@@ -9,12 +9,12 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     steps:
-      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
-
+      # pull_request_review is a pull-request event, so a token makes paths-filter use the pulls API instead of git.
       - name: Filter paths
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: filter
         with:
+          token: ${{ github.token }}
           predicate-quantifier: 'every'
           filters: |
             should_run:
@@ -22,8 +22,49 @@ jobs:
               - '!docs/**/*.md'
               - '!docs/**/*.csv'
 
-      - name: reviewerChecklist.js
+      # Runs before checkout. A pass on an older SHA still counts. A lookup failure falls through.
+      - name: Check if this check already passed
+        id: previous
         if: steps.filter.outputs.should_run == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const {owner, repo} = context.repo;
+            core.setOutput('PASSED', 'false');
+            try {
+              const {data} = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: 'reviewerChecklist.yml',
+                branch: context.payload.pull_request.head.ref,
+                event: 'pull_request_review',
+                status: 'completed',
+                per_page: 20,
+              });
+              const runs = data.workflow_runs.filter((run) => run.id !== context.runId);
+              let previous = runs.find((run) => run.pull_requests?.some((pullRequest) => pullRequest.number === prNumber));
+              // Fork runs leave pull_requests empty, so match a head SHA from this pull request.
+              if (!previous) {
+                const commits = await github.paginate(github.rest.pulls.listCommits, {owner, repo, pull_number: prNumber, per_page: 100});
+                const shas = new Set(commits.map((commit) => commit.sha));
+                previous = runs.find((run) => shas.has(run.head_sha));
+              }
+              if (previous?.conclusion === 'success') {
+                core.info(`Previous run ${previous.html_url} passed. Skipping checkout.`);
+                core.setOutput('PASSED', 'true');
+              }
+            } catch (error) {
+              core.warning(`Could not check the previous run, so the check will run. ${error}`);
+            }
+
+      - name: Checkout
+        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: reviewerChecklist.js
+        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
         uses: ./.github/actions/javascript/reviewerChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

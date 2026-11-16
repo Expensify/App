@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Card, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
-import type {QBONonReimbursableExportAccountType, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
+import type {BusinessCentralExport, QBONonReimbursableExportAccountType, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 import type {PartialDeep, ValueOf} from 'type-fest';
 
@@ -99,7 +99,7 @@ function createCard(nvpExportAccount?: string): Card {
 
 const translate: LocaleContextProps['translate'] = translateLocal;
 const themeStyles = createMock<ThemeStyles>({});
-const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(MOCK_POLICY_ID);
+const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(MOCK_POLICY_ID);
 
 describe('getExportMenuItem - QBD credit card account resolution', () => {
     it('resolves account by ID when NVP contains a QBD ListID (Classic-saved)', () => {
@@ -514,6 +514,38 @@ describe('getExportMenuItem - NetSuite', () => {
         expect(result?.shouldShowMenuItem).toBe(false);
         expect(result?.data).toEqual([]);
     });
+
+    it('resolves a credit card charge export against credit card accounts only', () => {
+        // Given a NetSuite policy exporting company card expenses as credit card charges, with payable accounts that include credit card accounts and a card exporting to a credit card account
+        const policy = createBasePolicy({
+            netsuite: {
+                options: {
+                    config: {
+                        nonreimbursableExpensesExportDestination: CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE,
+                        creditCardAccount: 'ns-cc-1',
+                    },
+                    data: {
+                        vendors: NETSUITE_VENDORS,
+                        payableList: [
+                            ...NETSUITE_PAYABLE_ACCOUNTS,
+                            {id: 'ns-cc-1', name: 'Corporate Card', type: CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD},
+                            {id: 'ns-cc-2', name: 'Team Card', type: CONST.NETSUITE_ACCOUNT_TYPE.CREDIT_CARD},
+                        ],
+                    },
+                },
+            },
+        });
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT, 'ns-cc-2');
+
+        // When the company card export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card resolves against credit card accounts only, so the menu shows the matching credit card account and offers every credit card account instead of the full payable list
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT);
+        expect(result?.title).toBe('Team Card');
+        expect(result?.data).toHaveLength(3);
+    });
 });
 
 describe('getExportMenuItem - Sage Intacct', () => {
@@ -736,6 +768,214 @@ describe('getExportMenuItem - DualEntry', () => {
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result?.shouldShowMenuItem).toBeFalsy();
+    });
+});
+
+describe('getExportMenuItem - Zoho Books', () => {
+    const exportsTo = translateLocal('common.exportsTo');
+    const defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+
+    function createZohoBooksPolicy(exportOverrides?: {exportToMultipleAccounts?: boolean; cardProgramAccounts?: Record<string, string>}) {
+        return createBasePolicy({
+            zohoBooks: {
+                config: {
+                    export: {
+                        exportToMultipleAccounts: exportOverrides?.exportToMultipleAccounts ?? true,
+                        reimbursable: CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL,
+                        nonReimbursable: CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE,
+                        creditCardAccountID: 'zb-1',
+                        cardProgramAccounts: exportOverrides?.cardProgramAccounts,
+                    },
+                },
+                data: {
+                    bankAccounts: [
+                        {id: 'zb-1', name: 'Amex Card', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD, isActive: true},
+                        {id: 'zb-2', name: 'Operating Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: true},
+                        {id: 'zb-3', name: 'Closed Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: false},
+                        {id: 'zb-4', name: 'Petty Cash', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CASH, isActive: true},
+                    ],
+                },
+            },
+        });
+    }
+
+    it('titles the card with the account name and marks the workspace default', () => {
+        // Given a workspace exporting to multiple accounts, and a card with no account of its own
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then it shows the workspace account by name only, because Zoho Books accounts have no number, and marks it as the default
+        expect(result?.title).toBe(`${exportsTo} Amex Card (${defaultSuffix})`);
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+    });
+
+    it("uses the card feed's account when the feed overrides the workspace account", () => {
+        // Given the card's feed exports to its own account
+        const policy = createZohoBooksPolicy({cardProgramAccounts: {[CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'zb-2'}});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card follows its feed's account, which is the card's default
+        expect(result?.title).toBe(`${exportsTo} Operating Checking (${defaultSuffix})`);
+    });
+
+    it('offers only active bank and credit card accounts and drops the default marker for a card with its own account', () => {
+        // Given a card that exports to its own account, in a workspace that also has an inactive bank account and a cash account
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-2');
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the title has no default marker, and only the active bank and credit card accounts are offered, because saving rejects the others
+        expect(result?.title).toBe(`${exportsTo} Operating Checking`);
+        expect(result?.data?.map((item) => item.keyForList)).toEqual(['zb-1', 'zb-2']);
+    });
+
+    it('still titles a card with its saved account after that account becomes inactive', () => {
+        // Given a card whose own account was deactivated in Zoho Books
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-3');
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the title still names the saved account so the admin can see what's set, while the picker leaves it out
+        expect(result?.title).toBe(`${exportsTo} Closed Checking`);
+        expect(result?.data?.map((item) => item.keyForList)).not.toContain('zb-3');
+    });
+
+    it('hides the menu item when the workspace does not export to multiple accounts', () => {
+        // Given a workspace with exporting to multiple accounts turned off
+        const policy = createZohoBooksPolicy({exportToMultipleAccounts: false});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card has no per-card account to pick
+        expect(result?.shouldShowMenuItem).toBeFalsy();
+    });
+});
+
+describe('getExportMenuItem - Business Central', () => {
+    function createBusinessCentralPolicy(nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>, exportOverrides: PartialDeep<BusinessCentralExport> = {}) {
+        return createBasePolicy({
+            businessCentral: {
+                config: {export: {nonReimbursable, defaultVendorID: 'bc-vendor-1', nonReimbursableAccount: 'bc-bank-1', ...exportOverrides}},
+                data: {
+                    vendors: [
+                        {id: 'bc-vendor-1', name: 'Fabrikam', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE},
+                        {id: 'bc-vendor-2', name: 'Contoso', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT},
+                        {id: 'bc-vendor-3', name: 'Blocked Supplies', blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL},
+                    ],
+                    bankAccounts: [
+                        {id: 'bc-bank-1', number: '20100', name: 'Amex Clearing'},
+                        {id: 'bc-bank-2', number: '20200', name: 'Visa Clearing'},
+                        {id: 'bc-bank-3', number: '20300', name: 'Jon Card Clearing'},
+                    ],
+                },
+            },
+        });
+    }
+
+    it.each([CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE, CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY])(
+        'resolves the card vendor override for a %s card export',
+        (nonReimbursable) => {
+            // Given a card with its own vendor, on a workspace that has a vendor blocked for all transactions
+            const policy = createBusinessCentralPolicy(nonReimbursable);
+            const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+            // When the card's export menu item is built
+            const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+            // Then it shows the card's vendor for either destination, since card expenses export against a vendor for both,
+            // and it leaves out the fully blocked vendor that Business Central would reject
+            expect(result?.title).toBe(`${translateLocal('common.exportsTo')} Contoso`);
+            expect(result?.shouldShowMenuItem).toBe(true);
+            expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR);
+            expect(result?.data.map((option) => option.value)).toEqual([translateLocal('workspace.accounting.defaultVendor'), 'bc-vendor-1', 'bc-vendor-2']);
+        },
+    );
+
+    it.each([undefined, CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE])('shows the default vendor label when the NVP is %s', (nvpValue) => {
+        // Given a card that follows the workspace default vendor
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, nvpValue);
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row and the selected option both show the default vendor
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} ${translateLocal('workspace.accounting.defaultVendor')}`);
+        expect(result?.data.find((option) => option.isSelected)?.value).toBe(translateLocal('workspace.accounting.defaultVendor'));
+    });
+
+    it('shows the row as a single "Exports to" line with the Business Central icon', () => {
+        // Given a card on a workspace connected to Business Central
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE);
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card details page hides the description and shows the integration icon, as in the design
+        expect(result?.shouldHideMenuItemDescription).toBe(true);
+        expect(result?.shouldShowMenuItemIcon).toBe(true);
+    });
+
+    it("shows the card feed's bank account when company card journal entries export to multiple accounts", () => {
+        // Given a Visa feed that overrides the company card account, on a workspace exporting company cards to multiple accounts as journal entries
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY, {
+            exportToMultipleAccounts: true,
+            cardProgramAccounts: {[CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'bc-bank-2'},
+        });
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA);
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row shows the feed's bank account as the card's default, since that is the account the journal entry is settled from
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} 20200 Visa Clearing (${translateLocal('common.default').toLocaleLowerCase()})`);
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT);
+    });
+
+    it("shows the card's own bank account and offers every bank account with the feed's account as the default", () => {
+        // Given a card with its own bank account on a feed that follows the company card account
+        const policy = createBusinessCentralPolicy(CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY, {exportToMultipleAccounts: true});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT, 'bc-bank-3');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row shows the card's account, and the picker lists the company card account first as the default
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} 20300 Jon Card Clearing`);
+        expect(result?.data.map((option) => option.keyForList)).toEqual(['bc-bank-1', 'bc-bank-2', 'bc-bank-3']);
+        expect(result?.data.at(0)?.text).toBe(`${translateLocal('common.default')} - 20100 Amex Clearing`);
+        expect(result?.data.find((option) => option.isSelected)?.keyForList).toBe('bc-bank-3');
+    });
+
+    it.each([
+        {name: 'purchase invoices with multiple accounts on', nonReimbursable: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE, exportToMultipleAccounts: true},
+        {name: 'journal entries with multiple accounts off', nonReimbursable: CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY, exportToMultipleAccounts: false},
+    ])('keeps the vendor row for $name', ({nonReimbursable, exportToMultipleAccounts}) => {
+        // Given a workspace where per card bank accounts don't apply to company card exports
+        const policy = createBusinessCentralPolicy(nonReimbursable, {exportToMultipleAccounts});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR, 'bc-vendor-2');
+
+        // When the card's export menu item is built
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the row still edits the card's vendor
+        expect(result?.title).toBe(`${translateLocal('common.exportsTo')} Contoso`);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR);
     });
 });
 

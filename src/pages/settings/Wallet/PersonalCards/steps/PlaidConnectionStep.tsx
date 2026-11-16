@@ -85,7 +85,6 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) && Object.values(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
-    const isAuthenticatedWithPlaid = !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -118,27 +117,25 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     useEffect(() => {
         subscribeToNavigationShortcuts();
 
-        // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (isAuthenticatedWithPlaid) {
-            return unsubscribeToNavigationShortcuts;
-        }
+        // Always request a fresh link token. The response re-derives isPlaidDisabled from the server-side throttle state,
+        // so any error or throttle state left in Onyx by an earlier attempt is replaced instead of trusted.
         if (addNewPersonalCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
-            return unsubscribeToNavigationShortcuts;
         }
+        return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
+        // If we are coming back from offline we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry) {
+        if (previousNetworkState.current && !isOffline && addNewPersonalCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
         }
         previousNetworkState.current = isOffline;
-    }, [addNewPersonalCard?.data?.selectedCountry, feed, isAuthenticatedWithPlaid, isOffline]);
+    }, [addNewPersonalCard?.data?.selectedCountry, feed, isOffline]);
 
     const handleBackButtonPress = () => {
         if (feed) {

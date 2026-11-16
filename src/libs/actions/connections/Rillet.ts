@@ -12,6 +12,9 @@ import type {
     UpdateRilletExporterParams,
     UpdateRilletExportToMultipleAccountsParams,
     UpdateRilletFieldMappingParams,
+    UpdateRilletFxExpenseAccountParams,
+    UpdateRilletReimbursableExpensesExportDestinationParams,
+    UpdateRilletReimbursementAccountParams,
     UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
     UpdateRilletSyncExpensifyCardSettlementsParams,
@@ -25,7 +28,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
+import type {RilletAccount, RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletExportReimbursable, RilletSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -643,6 +646,28 @@ function updateRilletExporter(policyID: string, email: RilletExport['exporter'],
     write(WRITE_COMMANDS.UPDATE_RILLET_EXPORTER, parameters, onyxData);
 }
 
+function updateRilletReimbursableExpensesExportDestination(policyID: string, value: RilletExportReimbursable, oldValue?: RilletExportReimbursable) {
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.REIMBURSABLE, value, oldValue ?? null);
+    const parameters: UpdateRilletReimbursableExpensesExportDestinationParams = {
+        policyID,
+        value,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
+}
+
+function updateRilletReimbursementAccount(
+    policyID: string,
+    reimbursementAccountCode: RilletExport['reimbursementAccountCode'],
+    oldReimbursementAccountCode?: RilletExport['reimbursementAccountCode'],
+) {
+    const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE, reimbursementAccountCode, oldReimbursementAccountCode ?? null);
+    const parameters: UpdateRilletReimbursementAccountParams = {
+        policyID,
+        reimbursementAccountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_REIMBURSEMENT_ACCOUNT, parameters, onyxData);
+}
+
 function updateRilletExportDate(policyID: string, value: RilletExport['exportDate'], oldValue?: RilletExport['exportDate']) {
     const onyxData = prepareRilletExportOnyxData(policyID, CONST.RILLET_CONFIG.EXPORT_DATE, value, oldValue ?? null);
     const parameters: UpdateRilletExportDateParams = {
@@ -704,6 +729,15 @@ function updateRilletBillPaymentAccount(policyID: string, billPaymentAccountCode
         billPaymentAccountCode,
     };
     write(WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
+}
+
+function updateRilletFxExpenseAccount(policyID: string, fxExpenseAccountCode: RilletAccount['code'], oldFxExpenseAccountCode?: RilletSync['fxExpenseAccountCode']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE, fxExpenseAccountCode, oldFxExpenseAccountCode ?? null);
+    const parameters: UpdateRilletFxExpenseAccountParams = {
+        policyID,
+        fxExpenseAccountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_FX_EXPENSE_ACCOUNT, parameters, onyxData);
 }
 
 function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: RilletSync['syncExpensifyCardSettlements'], oldEnabled?: RilletSync['syncExpensifyCardSettlements']) {
@@ -787,6 +821,8 @@ export {
     updateRilletSyncTaxRates,
     updateRilletFieldMapping,
     updateRilletExporter,
+    updateRilletReimbursableExpensesExportDestination,
+    updateRilletReimbursementAccount,
     updateRilletExportDate,
     updateRilletDefaultVendor,
     updateRilletCreditCardAccount,
@@ -794,6 +830,7 @@ export {
     updateRilletAccountingMethod,
     updateRilletSyncReimbursedReports,
     updateRilletBillPaymentAccount,
+    updateRilletFxExpenseAccount,
     updateRilletSyncExpensifyCardSettlements,
     updateRilletSettlementsAccount,
     updateRilletSyncTravelBillingSettlements,

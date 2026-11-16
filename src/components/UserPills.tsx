@@ -4,6 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -24,19 +25,20 @@ type UserPillData = {
 type UserPillsProps = {
     users: UserPillData[];
     maxVisible?: number;
+    isSelectable?: boolean;
 } & (
     | {onShowAllPress?: undefined; showAllSentryLabel?: undefined}
     | {
           /** When provided, the "+X more" text becomes its own tap target — bypasses any parent row's onPress. */
           onShowAllPress: () => void;
           /** Sentry label for the "+X more" pressable. */
-          showAllSentryLabel: string;
+          showAllSentryLabel: SentryLabel;
       }
 );
 
 const DEFAULT_MAX_VISIBLE = 6;
 
-function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel}: UserPillsProps) {
+function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel, isSelectable = false}: UserPillsProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
@@ -62,6 +64,7 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, sho
                         displayName={user.displayName}
                         accountID={user.accountID}
                         email={user.email}
+                        isSelectable={isSelectable}
                     />
                 );
             })}

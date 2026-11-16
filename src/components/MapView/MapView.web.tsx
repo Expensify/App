@@ -14,7 +14,7 @@ import PendingMapView from './PendingMapView';
 
 const MapViewImpl = lazy(() => import('./MapViewImpl.web'));
 
-function MapView({ref, ...props}: MapViewProps) {
+function MapView(props: MapViewProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,10 +49,7 @@ function MapView({ref, ...props}: MapViewProps) {
                 }
             >
                 {!isOffline ? (
-                    <MapViewImpl
-                        ref={ref}
-                        {...props}
-                    />
+                    <MapViewImpl {...props} />
                 ) : (
                     <PendingMapView
                         title={translate('distance.mapPending.title')}

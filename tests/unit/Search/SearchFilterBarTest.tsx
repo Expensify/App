@@ -1,193 +1,141 @@
 import {render, screen} from '@testing-library/react-native';
 
-import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import SearchFilterBar from '@components/Search/SearchPageHeader/SearchFilterBar';
-import type {FilterItem} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
 
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, Policy} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type {Card, Policy} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: () => false}}));
+const MockText = Text;
 
-const COLLIDING_CARD: Card = {
-    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
-    cardID: 12,
-    domainName: 'colliding-card.example',
-    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-    lastUpdated: '',
-    nameValuePairs: createMock<NonNullable<Card['nameValuePairs']>>({cardTitle: 'Colliding card'}),
-    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-};
-const FIRST_CARD: Card = {
-    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
-    cardID: 123,
-    domainName: 'first-card.example',
-    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-    lastUpdated: '',
-    nameValuePairs: createMock<NonNullable<Card['nameValuePairs']>>({cardTitle: 'First card'}),
-    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-};
-const SECOND_CARD: Card = {
-    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
-    cardID: 456,
-    domainName: 'second-card.example',
-    fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-    lastUpdated: '',
-    nameValuePairs: createMock<NonNullable<Card['nameValuePairs']>>({cardTitle: 'Second card'}),
-    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-};
-const CARD_LIST: CardList = {
-    [COLLIDING_CARD.cardID]: COLLIDING_CARD,
-    [FIRST_CARD.cardID]: FIRST_CARD,
-    [SECOND_CARD.cardID]: SECOND_CARD,
-};
-const FIRST_FEED_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-const OVERLAPPING_FEED_NAME = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2` satisfies CardFeedWithNumber;
-const SECOND_FEED_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
-const FIRST_FEED = `123_${FIRST_FEED_NAME}`;
-const OVERLAPPING_FEED = `123_${OVERLAPPING_FEED_NAME}`;
-const SECOND_FEED = `123_${SECOND_FEED_NAME}`;
-const COLLIDING_CARD_FEEDS = createMock<CardFeeds>({
-    settings: {companyCards: {[FIRST_FEED_NAME]: {}}, companyCardNicknames: {[FIRST_FEED_NAME]: 'Colliding feed'}},
-});
-const CARD_FEEDS = createMock<CardFeeds>({
-    settings: {
-        companyCards: {[FIRST_FEED_NAME]: {}, [OVERLAPPING_FEED_NAME]: {}, [SECOND_FEED_NAME]: {}},
-        companyCardNicknames: {[FIRST_FEED_NAME]: 'First feed', [OVERLAPPING_FEED_NAME]: 'Overlapping feed', [SECOND_FEED_NAME]: 'Second feed'},
-    },
-});
-const COLLIDING_TAX_RATE = 'id_TAX_RATE';
-const FIRST_TAX_RATE = 'id_TAX_RATE_1';
-const SECOND_TAX_RATE = 'id_TAX_RATE_2';
-const TAX_POLICY = createMock<Policy>({
-    id: 'search-filter-bar',
-    taxRates: {
-        taxes: {
-            [COLLIDING_TAX_RATE]: {name: 'Colliding tax', value: '1%'},
-            [FIRST_TAX_RATE]: {name: 'First tax', value: '5%'},
-            [SECOND_TAX_RATE]: {name: 'Second tax', value: '10%'},
-        },
-    },
-});
 jest.mock('@components/Search/FilterDropdowns/DropdownButton', () => ({
     __esModule: true,
-    default: jest.fn(),
+    default: ({label, value}: Pick<DropdownButtonProps, 'label' | 'value'>) => <MockText>{value ? `${label}: ${String(value)}` : label}</MockText>,
 }));
+jest.mock('@hooks/useLocalize');
 
-jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: () => ({translate: (key: string) => key, localeCompare: (a: string, b: string) => a.localeCompare(b)}),
-}));
-const mockDropdownButton = jest.mocked(DropdownButton);
+const mockUseLocalize = jest.mocked(useLocalize);
+const FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
-function createCardFilter(value: string | string[]): SearchFilter & FilterItem {
-    return {
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-        label: 'Cards',
+function renderFilter(key: SearchFilter['key'], value: SearchFilter['value']) {
+    const item = {
+        key,
+        id: key,
         value,
+        label: 'Filter',
         PopoverComponent: () => null,
-        sentryLabel: 'Search-Filter-cardID',
-        onClosePress: jest.fn(),
+        sentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CATEGORY,
+        onClosePress: undefined,
     };
+    return render(<SearchFilterBar item={item} />);
 }
 
-function createFeedFilter(value: string | string[]): SearchFilter & FilterItem {
-    return {
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
-        label: 'Feeds',
-        value,
-        PopoverComponent: () => null,
-        sentryLabel: 'Search-Filter-feed',
-        onClosePress: jest.fn(),
-    };
-}
-
-function createTaxRateFilter(value: string | string[]): SearchFilter & FilterItem {
-    return {
-        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-        label: 'Tax rates',
-        value,
-        PopoverComponent: () => null,
-        sentryLabel: 'Search-Filter-taxRate',
-        onClosePress: jest.fn(),
-    };
-}
-
-describe('SearchFilterBar descriptions', () => {
+describe('SearchFilterBar value adapters', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(async () => {
-        jest.clearAllMocks();
-        mockDropdownButton.mockImplementation(({label, value}) => {
-            const selectedItems = Array.isArray(value) ? value.join(', ') : value;
-            return <Text>{selectedItems ? `${label}: ${selectedItems}` : label}</Text>;
-        });
+        mockUseLocalize.mockReturnValue(
+            createMock<ReturnType<typeof useLocalize>>({
+                translate: <TPath extends TranslationPaths>(path: TPath, ...[,]: TranslationParameters<TPath>) => String(path),
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+            }),
+        );
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, CARD_LIST);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}12`, COLLIDING_CARD_FEEDS);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}123`, CARD_FEEDS);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TAX_POLICY.id}`, TAX_POLICY);
+        await waitForBatchedUpdates();
     });
 
-    it('renders the description for one scalar card ID', () => {
-        render(<SearchFilterBar item={createCardFilter(SECOND_CARD.cardID.toString())} />);
-        expect(screen.getByText('Cards: Second card')).toBeOnTheScreen();
+    it.each([
+        {scenario: 'a scalar ID overlapping another card ID', value: '123', expected: 'Filter: Card 123'},
+        {scenario: 'an array shown in card-list order', value: ['456', '12'], expected: 'Filter: Card 12, Card 456'},
+        {scenario: 'IDs joined with the producer delimiter', value: '123, 456', expected: 'Filter: Card 123, Card 456'},
+        {scenario: 'IDs joined without the producer space', value: '123,456', expected: 'Filter'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels cards for $scenario', async ({value, expected}) => {
+        // Given cards whose IDs overlap and descriptions come from the card Onyx writer.
+        const card12 = createMock<Card>({cardID: 12, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardName: 'Card 12'});
+        const card123 = createMock<Card>({cardID: 123, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardName: 'Card 123'});
+        const card456 = createMock<Card>({cardID: 456, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardName: 'Card 456'});
+        await Onyx.merge(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {
+            [String(card12.cardID)]: card12,
+            [String(card123.cardID)]: card123,
+            [String(card456.cardID)]: card456,
+        });
+
+        // When the adapter receives a card selection, only the producer's exact delimiter should separate scalar IDs.
+        renderFilter(FILTER_KEYS.CARD_ID, value);
+
+        // Then whole IDs select cards in card-list order, while unrecognized or empty selections keep the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 
-    it('renders only the exact card when scalar card IDs collide', () => {
-        render(<SearchFilterBar item={createCardFilter(FIRST_CARD.cardID.toString())} />);
-        expect(screen.getByText('Cards: First card')).toBeOnTheScreen();
+    it.each([
+        {scenario: 'a scalar ID overlapping another feed ID', value: '123_vcf', expected: 'Filter: Alpha Feed'},
+        {scenario: 'an array shown in localized option order', value: ['23_vcf', '123_vcf'], expected: 'Filter: Alpha Feed, Zulu Feed'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels feeds for $scenario', async ({value, expected}) => {
+        // Given overlapping feed IDs with names ordered differently from insertion order to expose incorrect matching or sorting.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}23`, {
+            settings: {
+                companyCards: {vcf: {}},
+                companyCardNicknames: {vcf: 'Zulu Feed'},
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}123`, {
+            settings: {
+                companyCards: {vcf: {}},
+                companyCardNicknames: {vcf: 'Alpha Feed'},
+            },
+        });
+
+        // When the adapter receives a feed selection, the real hook must resolve complete option IDs.
+        renderFilter(FILTER_KEYS.FEED, value);
+
+        // Then overlapping IDs stay distinct, names follow localized option order, and an empty selection keeps the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 
-    it('renders both descriptions for joined scalar card IDs in card-list order', () => {
-        render(<SearchFilterBar item={createCardFilter(`${FIRST_CARD.cardID}, ${SECOND_CARD.cardID}`)} />);
-        expect(screen.getByText('Cards: First card, Second card')).toBeOnTheScreen();
-    });
+    it.each([
+        {scenario: 'a scalar key overlapping another tax key', value: 'TAX123', expected: 'Filter: Second Tax'},
+        {scenario: 'an array shown in policy tax order', value: ['TAX123', 'TAX12'], expected: 'Filter: First Tax, Second Tax'},
+        {scenario: 'an empty selection', value: [], expected: 'Filter'},
+    ])('labels tax rates for $scenario', async ({value, expected}) => {
+        // Given a policy tax collection with colliding key prefixes.
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.POLICY}1`,
+            createMock<Policy>({
+                id: '1',
+                taxRates: {
+                    name: 'Tax',
+                    defaultExternalID: '',
+                    defaultValue: '',
+                    foreignTaxDefault: '',
+                    taxes: {
+                        TAX12: {name: 'First Tax', value: '12%'},
+                        TAX123: {name: 'Second Tax', value: '123%'},
+                    },
+                },
+            }),
+        );
 
-    it('does not parse joined card IDs without the producer delimiter', () => {
-        render(<SearchFilterBar item={createCardFilter(`${FIRST_CARD.cardID},${SECOND_CARD.cardID}`)} />);
-        expect(screen.getByText('Cards')).toBeOnTheScreen();
-    });
+        // When the adapter receives a tax selection, the real hook must distinguish complete keys despite their shared prefix.
+        renderFilter(FILTER_KEYS.TAX_RATE, value);
 
-    it('renders mutable card arrays in card-list order', () => {
-        render(<SearchFilterBar item={createCardFilter([FIRST_CARD.cardID.toString(), SECOND_CARD.cardID.toString()])} />);
-        expect(screen.getByText('Cards: First card, Second card')).toBeOnTheScreen();
-    });
-
-    it('normalizes a scalar feed before rendering its display label', () => {
-        render(<SearchFilterBar item={createFeedFilter(FIRST_FEED)} />);
-        expect(screen.getByText('Feeds: First feed')).toBeOnTheScreen();
-    });
-
-    it('renders only the exact feed when scalar feed identifiers overlap', () => {
-        render(<SearchFilterBar item={createFeedFilter(OVERLAPPING_FEED)} />);
-        expect(screen.getByText('Feeds: Overlapping feed')).toBeOnTheScreen();
-    });
-
-    it('preserves ordered feed identifiers before rendering their display labels', () => {
-        render(<SearchFilterBar item={createFeedFilter([FIRST_FEED, SECOND_FEED])} />);
-        expect(screen.getByText('Feeds: First feed, Second feed')).toBeOnTheScreen();
-    });
-
-    it('normalizes a scalar tax rate before rendering its display label', () => {
-        render(<SearchFilterBar item={createTaxRateFilter(FIRST_TAX_RATE)} />);
-        expect(screen.getByText('Tax rates: First tax')).toBeOnTheScreen();
-    });
-
-    it('preserves ordered tax-rate identifiers before rendering their display labels', () => {
-        render(<SearchFilterBar item={createTaxRateFilter([FIRST_TAX_RATE, SECOND_TAX_RATE])} />);
-        expect(screen.getByText('Tax rates: First tax, Second tax')).toBeOnTheScreen();
+        // Then names retain policy order rather than selection order, and an empty selection keeps the base label.
+        expect(screen.getByText(expected)).toBeOnTheScreen();
     });
 });

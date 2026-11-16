@@ -1,10 +1,13 @@
 import RenderHTML from '@components/RenderHTML';
+import getPaidWisePaymentAmounts from '@components/WisePaymentSummary/utils/getPaidWisePaymentAmounts';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import getBankAccountLastFourDigits from '@libs/getBankAccountLastFourDigits';
+import {getPolicyReimburserAccountID} from '@libs/PolicyPaymentUtils';
 import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage, getPaymentMessageWithExpectedDate} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -16,15 +19,21 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {policyPaymentAttributionSelector} from '@selectors/Policy';
 import React from 'react';
 
+import WisePaymentDetailsMessage from './WisePaymentDetailsMessage';
+
 type PaymentContentProps = {
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
     expectedDate: string | undefined;
     policyID: string | undefined;
+
+    /** The report the payment belongs to */
+    reportID: string | undefined;
 };
 
-function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
+function PaymentContent({action, expectedDate, policyID, reportID}: PaymentContentProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [policyPaymentAttribution] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyPaymentAttributionSelector});
+    const [reimburserAccountID] = useAllPersonalDetails((personalDetails) => getPolicyReimburserAccountID(policyPaymentAttribution, personalDetails));
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const originalMessage = getOriginalMessage(action);
@@ -47,10 +56,20 @@ function PaymentContent({action, expectedDate, policyID}: PaymentContentProps) {
             policy: policyPaymentAttribution,
             accountNumber: originalMessage.accountNumber,
             payerAccountID: action.actorAccountID,
+            reimburserAccountID,
         });
         const crossBorderMessage = getCrossBorderReimbursedMessage(translate, originalMessage, convertToDisplayString, last4Digits);
         const paymentMessage = crossBorderMessage ?? translate(wasAutoPaid ? 'iou.automaticallyPaidWithBusinessBankAccount' : 'iou.businessBankAccount', '', last4Digits);
         const translation = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, paymentMessage, expectedDate);
+        const wisePaymentAmounts = getPaidWisePaymentAmounts(action);
+        if (reportID && wisePaymentAmounts) {
+            return (
+                <WisePaymentDetailsMessage
+                    message={translation}
+                    reportID={reportID}
+                />
+            );
+        }
         if (wasAutoPaid) {
             return (
                 <ReportActionItemBasicMessage>

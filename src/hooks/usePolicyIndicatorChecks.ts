@@ -1,24 +1,28 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
-import {accountIDSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePoliciesWithCardFeedErrors from './usePoliciesWithCardFeedErrors';
 
 type PolicyIndicatorChecksResult = {
@@ -41,6 +45,10 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
         hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
@@ -51,6 +59,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyErrorChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS, cleanPolicies.find(shouldShowPolicyError)],
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, cleanPolicies.find(shouldShowCustomUnitsError)],
+        [CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR, cleanPolicies.find(shouldShowUKFuelRateTaxError)],
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR, cleanPolicies.find(shouldShowEmployeeListError)],
         [
             CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
@@ -62,7 +71,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
                 ),
             ),
         ],
-        [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
+        [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR, cleanPolicies.find((cleanPolicy) => shouldShowReimbursableExportDestinationAccountError(cleanPolicy))],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
         [
@@ -73,6 +82,18 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
                     isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy),
                     isPolicyAdmin(cleanPolicy),
                 ),
+            ),
+        ],
+        [
+            CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER,
+            cleanPolicies.find((cleanPolicy) =>
+                hasApprovalWorkflowWithNonMemberApprover({
+                    policy: cleanPolicy,
+                    currentUserLogin,
+                    // Rules only route the workflows under the beta, so they aren't used otherwise
+                    rules: isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, cleanPolicy?.id) : undefined,
+                    isMultipleApproversBetaEnabled,
+                }),
             ),
         ],
     ];

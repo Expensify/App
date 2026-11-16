@@ -5,7 +5,6 @@ import TextInput from '@components/TextInput';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
@@ -16,13 +15,15 @@ import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/Validation
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {merchantStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type MerchantFieldProps = {
@@ -32,14 +33,14 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {transactionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const merchantValue = merchantState?.merchant ?? '';
     const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
@@ -83,7 +84,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
         // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
         // merchant is the one that is missing.
-        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
+        if (
+            formError === 'common.error.fieldRequired' &&
+            (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually, isPolicyExpenseChat) || (isMerchantRequired && !displayMerchantValue))
+        ) {
             return translate('common.error.fieldRequired');
         }
 
@@ -107,10 +111,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -146,6 +150,23 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
     // The row hides the label once it has a value, and an error replaces it
     const shouldShowRequiredLabel = !displayMerchantValue && !!isMerchantRequired && !shouldDisplayMerchantError;
+
+    // On the bordered form the editable merchant is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.merchant')}
+                value={displayMerchantValue}
+                numberOfLinesValue={2}
+                rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                errorText={merchantErrorText}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+            />
+        );
+    }
 
     // Only read-only confirmations reach this row, so it never navigates
     return (

@@ -49,6 +49,7 @@ type UseArrowKeyFocusManager = [number, (index: number, shouldScrollHint?: boole
  * @param [config.itemsPerRow] – The number of items per row. If provided, the arrow keys will move focus horizontally as well as vertically
  * @param [config.disableCyclicTraversal] – Whether to disable cyclic traversal of the list. If true, the arrow keys will have no effect when the first or last item is focused
  * @param [config.allowHorizontalArrowKeys] – Whether to enable the right/left keys
+ * @param [config.allowNegativeIndexes] – Whether ArrowUp from the first enabled item moves focus to -1 (for example, back to a search input), even when cyclic traversal is on
  * @param [config.isFocused] Whether navigation is focused
  */
 export default function useArrowKeyFocusManager({
@@ -114,7 +115,8 @@ export default function useArrowKeyFocusManager({
         if (maxIndex < 0 || !isFocused) {
             return;
         }
-        const nextIndex = disableCyclicTraversal ? -1 : maxIndex;
+        // With negative indexes allowed, ArrowUp from the first item moves to -1 even when ArrowDown still wraps
+        const nextIndex = disableCyclicTraversal || allowNegativeIndexes ? -1 : maxIndex;
         setHasKeyBeenPressed?.();
         setFocusedIndexInternal((actualIndex) => {
             const currentFocusedIndex = actualIndex > 0 ? actualIndex - (itemsPerRow ?? 1) : nextIndex;
@@ -123,11 +125,11 @@ export default function useArrowKeyFocusManager({
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex -= itemsPerRow ?? 1;
                 if (newFocusedIndex < 0) {
-                    if (disableCyclicTraversal) {
-                        if (!allowNegativeIndexes) {
-                            return actualIndex;
-                        }
+                    if (allowNegativeIndexes) {
                         break;
+                    }
+                    if (disableCyclicTraversal) {
+                        return actualIndex;
                     }
                     newFocusedIndex = maxIndex;
                 }

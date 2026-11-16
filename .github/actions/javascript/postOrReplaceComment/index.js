@@ -26017,7 +26017,16 @@ var GithubUtils_default = GithubUtils;
 var context2 = new Context();
 
 // .github/actions/javascript/postOrReplaceComment/postOrReplaceComment.ts
-function getTestBuildMessage(appPr, mobileExpensifyPr) {
+function getMobileExpensifySource(mobileExpensifyPr, mobileExpensifyRef) {
+  if (mobileExpensifyPr) {
+    return `Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}`;
+  }
+  if (mobileExpensifyRef === "main") {
+    return "Mobile-Expensify `main`";
+  }
+  return "the pinned Mobile-Expensify submodule";
+}
+function getTestBuildMessage(appPr, mobileExpensifyPr, mobileExpensifyRef) {
   const inputs = ["ANDROID", "IOS", "WEB"];
   const names = {
     [inputs[0]]: "Android",
@@ -26055,7 +26064,7 @@ function getTestBuildMessage(appPr, mobileExpensifyPr) {
     {}
   );
   const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ", and Web" : ""}. Happy testing! :test_tube::test_tube:
-Built from${appPr ? ` App PR Expensify/App#${appPr}` : ""}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ""}.
+Built from${appPr ? ` App PR Expensify/App#${appPr} with` : ""} ${getMobileExpensifySource(mobileExpensifyPr, mobileExpensifyRef)}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
@@ -26119,6 +26128,7 @@ async function hidePreviousComment(repo, issueNumber, commentPrefix) {
 async function run() {
   const APP_PR_NUMBER = Number(getInput("APP_PR_NUMBER", { required: false }));
   const MOBILE_EXPENSIFY_PR_NUMBER = Number(getInput("MOBILE_EXPENSIFY_PR_NUMBER", { required: false }));
+  const MOBILE_EXPENSIFY_REF = getInput("MOBILE_EXPENSIFY_REF", { required: false });
   const REPO = String(getInput("REPO", { required: true }));
   const COMMENT_BODY = getInput("COMMENT_BODY", { required: false });
   const COMMENT_PREFIX = getInput("COMMENT_PREFIX", { required: true });
@@ -26132,7 +26142,7 @@ async function run() {
   }
   const destinationPRNumber = REPO === CONST_default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
   await hidePreviousComment(REPO, destinationPRNumber, COMMENT_PREFIX);
-  await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+  await commentPR(REPO, destinationPRNumber, COMMENT_BODY || getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER, MOBILE_EXPENSIFY_REF));
 }
 if (import.meta.main) {
   run();

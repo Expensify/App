@@ -23,7 +23,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 type ReimbursementAccountNavigatorRoute = PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 
@@ -43,7 +43,7 @@ function Plaid({onNext}: BankInfoSubStepProps) {
     const prevIsFocused = usePrevious(isFocused);
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
-    const handleNextPress = useCallback(() => {
+    const handleNextPress = () => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
@@ -58,7 +58,7 @@ function Plaid({onNext}: BankInfoSubStepProps) {
 
         updateReimbursementAccountDraft(bankAccountData);
         onNext(bankAccountData);
-    }, [plaidData, reimbursementAccountDraft, onNext]);
+    };
 
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
 

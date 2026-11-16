@@ -2,7 +2,6 @@ import {useInitialURLActions, useInitialURLState} from '@components/InitialURLCo
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import useActivePolicy from '@hooks/useActivePolicy';
-import useAIFeaturesPromoModal from '@hooks/useAIFeaturesPromoModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
@@ -14,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
@@ -31,6 +31,7 @@ import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitial
 import {Scheduler} from '@libs/Scheduler';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {markReportsTabPreloadDispatched} from '@libs/telemetry/reportsTabPreloadTime';
 import {getSearchParamFromUrl} from '@libs/Url';
 
 import * as App from '@userActions/App';
@@ -51,7 +52,9 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import {CommonActions} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
+
+import SearchTabPreload from './SearchTabPreload';
 
 function initializePusher(
     currentUserAccountID: number | undefined,
@@ -119,7 +122,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
-    useAIFeaturesPromoModal(session);
+    useRequestsKeptOnSAMLSignOut();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
@@ -268,6 +271,7 @@ function AuthScreensInitHandler() {
                 }
 
                 navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+                markReportsTabPreloadDispatched(target);
             },
             {shouldUseFallbackTimer: false},
         );
@@ -275,7 +279,13 @@ function AuthScreensInitHandler() {
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
 
-    return null;
+    // Its own component, so its Onyx reads re-render only the preload. Rendered here to reuse isLoadingApp and tabNavigatorStateKey.
+    return (
+        <SearchTabPreload
+            isLoadingApp={isLoadingApp}
+            tabNavigatorStateKey={tabNavigatorStateKey}
+        />
+    );
 }
 
 export default AuthScreensInitHandler;

@@ -181,6 +181,7 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
         jest.mocked(useSelectionListSearch).mockImplementationOnce(() => ({
             filteredData: [],
             textInputOptions: {label: undefined, value: 'zzzz', onChangeText: jest.fn(), headerMessage: undefined},
+            pinnedValues: [],
         }));
 
         // When: the picker is opened with expense accounts.

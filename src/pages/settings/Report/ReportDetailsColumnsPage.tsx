@@ -1,18 +1,15 @@
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
-import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import getReportDetailsColumns from '@libs/getReportDetailsColumns';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
-import {isIOUReport} from '@libs/ReportUtils';
-import {getColumnsToShow, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
-import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
+import {hasVendorFeature} from '@libs/PolicyUtils';
+import {isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
@@ -25,7 +22,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 /**
  * Default selected columns for the report details table.
@@ -59,7 +56,6 @@ function ReportDetailsColumnsPage() {
             return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
         },
     });
-    const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
@@ -74,31 +70,23 @@ function ReportDetailsColumnsPage() {
     // When no custom columns are saved, compute which columns getColumnsToShow would
     // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
     // Tax rate, Tax amount) appear pre-selected when they have data on the table.
-    const effectiveColumns = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-        if (savedColumns.length > 0) {
-            return savedColumns;
-        }
-
-        if (!reportTransactions?.length) {
-            return REPORT_DETAILS_DEFAULT_COLUMNS;
-        }
-
-        const visibleColumns = getColumnsToShow({
-            currentAccountID: currentUserDetails?.accountID,
-            data: reportTransactions,
+    let effectiveColumns;
+    const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
+    if (savedColumns.length > 0) {
+        effectiveColumns = savedColumns;
+    } else if (!reportTransactions?.length) {
+        effectiveColumns = REPORT_DETAILS_DEFAULT_COLUMNS;
+    } else {
+        const visibleColumns = getReportDetailsColumns({
+            transactions: reportTransactions,
             report,
-            isExpenseReportView: true,
-            isExpenseReportViewFromIOUReport: isIOUReport(report),
-            shouldShowBillableColumn: isBillableEnabledOnPolicy(policy),
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
-            reportCurrency: report?.currency,
-            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+            policy,
+            isVendorColumnAvailable,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter(isReportDetailsCustomColumn);
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
+        effectiveColumns = visibleColumns.filter(isReportDetailsCustomColumn);
+    }
 
     const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);

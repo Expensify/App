@@ -75,6 +75,7 @@ const createWeekListItem = (week: string, options: Partial<TransactionWeekGroupL
     week,
     formattedWeek: options.formattedWeek ?? 'Jan 25 - Jan 31, 2026',
     shortFormattedWeek: options.shortFormattedWeek ?? 'Jan 25 - 31, ’26',
+    lineChartFormattedWeek: options.lineChartFormattedWeek ?? 'Jan 25',
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

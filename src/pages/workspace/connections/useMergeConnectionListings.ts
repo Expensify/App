@@ -1,0 +1,160 @@
+/**
+ * Builds the People listings (HR and, behind the Merge ATS beta, recruiting providers) for the Connections page.
+ */
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+
+import {removePolicyConnection} from '@libs/actions/connections';
+import Navigation from '@libs/Navigation/Navigation';
+import {isControlPolicy} from '@libs/PolicyUtils';
+
+import {getHRCards} from '@pages/workspace/hr/utils';
+import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
+import {getRecruitingCards} from '@pages/workspace/recruiting/utils';
+
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import type {ConnectionListing, ConnectionStatus} from './types';
+
+import {getSyncStatusMessage} from './utils';
+
+const CATEGORY_CONFIG = {
+    [CONST.POLICY.CONNECTIONS.CATEGORY.HR]: {
+        featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias,
+        getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute,
+    },
+    [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
+        featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+        upgradeAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.alias,
+        getConfigureRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute,
+    },
+} as const;
+
+// Personal details only feed the settings rows, which the Connections page doesn't render
+const NO_PERSONAL_DETAILS: PersonalDetailsByLogin = {};
+
+function useMergeConnectionListings(policy: OnyxEntry<Policy>, onStartSetup: (setupLink: string, category: MergeProviderCardCategory) => void): ConnectionListing[] {
+    const policyID = policy?.id;
+    const {translate, getLocalDateFromDatetime, datetimeToRelative, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
+    const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare', 'Download']);
+
+    if (!policyID) {
+        return [];
+    }
+
+    const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
+    const hrCards = getHRCards({
+        policy,
+        policyEmployeePersonalDetails: NO_PERSONAL_DETAILS,
+        connectionSyncProgress,
+        getLocalDateFromDatetime,
+        translate,
+        formatPhoneNumber,
+        policyID,
+        gustoIcon: icons.GustoSquare,
+        trinetIcon: icons.TriNetSquare,
+    });
+    const recruitingCards = isRecruitingBetaEnabled ? getRecruitingCards({policy, policyEmployeePersonalDetails: NO_PERSONAL_DETAILS, policyID, icons, translate, formatPhoneNumber}) : [];
+
+    const connect = (card: MergeProviderCardDescriptor, categoryCards: MergeProviderCardDescriptor[]) => {
+        if (!card.setupLink) {
+            return;
+        }
+        if (!canWrite) {
+            showReadOnlyModal();
+            return;
+        }
+
+        const config = CATEGORY_CONFIG[card.category];
+        if (!isControlPolicy(policy)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, config.upgradeAlias, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)));
+            return;
+        }
+
+        const {setupLink} = card;
+        const startSetup = () => {
+            enablePolicyFeatureForConnection(policy, config.featureName);
+            onStartSetup(setupLink, card.category);
+        };
+
+        // At most one provider of a category can be connected to a workspace at a time
+        const connectedCard = categoryCards.find((categoryCard) => categoryCard.isConnected);
+        if (!connectedCard) {
+            startSetup();
+            return;
+        }
+        showConfirmModal({
+            title: translate('workspace.connections.replaceConnectionTitle'),
+            prompt: translate('workspace.connections.replaceConnectionPrompt', connectedCard.displayName),
+            confirmText: translate('common.replace'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            removePolicyConnection(policy, connectedCard.connectionName);
+            startSetup();
+        });
+    };
+
+    const getConnectedStatus = (card: MergeProviderCardDescriptor): ConnectionStatus => {
+        if (card.needsReconnect || card.hasError) {
+            return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
+        }
+        if (card.completeSetupRoute) {
+            return {isBroken: false, message: translate('workspace.merge.completeSetup')};
+        }
+        let syncingMessage;
+        if (card.isSyncInProgress) {
+            syncingMessage = card.syncStageInProgress ? translate('workspace.hr.syncStageName', card.syncStageInProgress) : translate(`workspace.${card.category}.syncing`);
+        }
+        return {
+            isBroken: false,
+            isSyncing: card.isSyncInProgress,
+            message: getSyncStatusMessage({syncingMessage, successfulDate: card.successfulDate, translate, datetimeToRelative}),
+        };
+    };
+
+    const getTitle = (card: MergeProviderCardDescriptor) => {
+        // Some providers offer both an HR and an ATS integration, so both listings get a suffix to tell them apart
+        if (!isRecruitingBetaEnabled) {
+            return card.displayName;
+        }
+        return translate(card.category === CONST.POLICY.CONNECTIONS.CATEGORY.HR ? 'workspace.connections.hrisListing' : 'workspace.connections.atsListing', card.displayName);
+    };
+
+    const toListings = (categoryCards: MergeProviderCardDescriptor[]): ConnectionListing[] =>
+        categoryCards.map((card) => ({
+            key: card.key,
+            category: card.category === CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING ? CONST.TAB.CONNECTIONS.RECRUITING : CONST.TAB.CONNECTIONS.PEOPLE,
+            title: getTitle(card),
+            icon: card.icon,
+            status: card.isConnected ? getConnectedStatus(card) : undefined,
+            onConnect: () => connect(card, categoryCards),
+            onConfigure: () => Navigation.navigate(CATEGORY_CONFIG[card.category].getConfigureRoute(policyID)),
+        }));
+
+    return [...toListings(hrCards), ...toListings(recruitingCards)];
+}
+
+export default useMergeConnectionListings;

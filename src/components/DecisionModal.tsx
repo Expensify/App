@@ -12,6 +12,7 @@ import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
+import Text from './Text';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -57,8 +58,14 @@ type DecisionModalProps = {
 
     /** Whether to handle browser navigation back to close the modal */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether to render the prompt as HTML or plain text */
+    shouldRenderPromptAsHTML?: boolean;
 };
 
+/**
+ * @deprecated Use @hooks/useDecisionModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function DecisionModal({
     title,
     prompt = '',
@@ -75,6 +82,7 @@ function DecisionModal({
     isSecondOptionSuccess = false,
     isSecondOptionDanger = false,
     shouldHandleNavigationBack,
+    shouldRenderPromptAsHTML = true,
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
@@ -114,10 +122,11 @@ function DecisionModal({
                             <HeaderTitle.Text>{title}</HeaderTitle.Text>
                         </HeaderTitle>
                     </View>
-                    <RenderHTML html={prompt} />
+                    {shouldRenderPromptAsHTML ? <RenderHTML html={prompt} /> : <Text>{prompt}</Text>}
                 </View>
                 {!!firstOptionText && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DECISION_MODAL.FIRST_OPTION}
                         variant={firstOptionVariant}
                         style={styles.mt5}
                         onPress={onFirstOptionSubmit}
@@ -128,6 +137,7 @@ function DecisionModal({
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DECISION_MODAL.SECOND_OPTION}
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     variant={secondOptionVariant}

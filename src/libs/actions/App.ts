@@ -9,6 +9,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import flushTelemetry from '@libs/telemetry/flushTelemetry';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
@@ -153,6 +154,11 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
     ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+    // Signing out must not erase the record of when we prompted for an app review. nvp_appReview is
+    // server-owned and its lastPrompt is not refreshed on every response, so if this record went away
+    // the next sign-in would re-show the prompt the user already answered - every time, forever.
+    // The record carries the accountID it belongs to, so a different user signing in here ignores it.
+    ONYXKEYS.APP_REVIEW_LAST_PROMPT,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -278,6 +284,11 @@ AppState.addEventListener('change', (nextAppState) => {
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
         logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
+    }
+
+    // Runs last so the spans canceled and the logs written above are part of the flush.
+    if (nextAppState.match(/inactive|background/)) {
+        flushTelemetry();
     }
     appState = nextAppState;
 });
@@ -438,8 +449,14 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+    loadPersonalDetails();
 
     return openAppPromise;
+}
+
+function loadPersonalDetails() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read would wait for OpenApp, so it cannot run in parallel
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
 /**
@@ -492,6 +509,9 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+        if (isFullReconnect) {
+            loadPersonalDetails();
+        }
 
         return reconnectAppPromise;
     });
@@ -612,8 +632,9 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
-    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
-    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient
+    // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
+    // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
         clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
@@ -678,10 +699,10 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 }
 
 /**
- * Clears the Corpay pay modal signal for the current session.
+ * Clears the enable global reimbursements modal signal for the current session.
  */
-function clearCorpayPayModal() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+function clearEnableGlobalReimbursementsModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, null);
 }
 
 export {
@@ -702,7 +723,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
-    clearCorpayPayModal,
+    clearEnableGlobalReimbursementsModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

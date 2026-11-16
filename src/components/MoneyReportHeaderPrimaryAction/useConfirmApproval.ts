@@ -1,10 +1,12 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -13,47 +15,84 @@ import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+import type AdditionalPayOnyxData from '@userActions/IOU/types/AdditionalPayOnyxData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+// eslint-disable-next-line no-restricted-imports -- Violations must be live, not from the Search snapshot.
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
-function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
+type UseConfirmApprovalOptions = {
+    getAdditionalOnyxData?: () => AdditionalPayOnyxData;
+    fallbackReport?: OnyxEntry<Report>;
+    fallbackPolicy?: OnyxEntry<Policy>;
+    fallbackTransactions?: Transaction[];
+};
+
+function useConfirmApproval(
+    reportID: string | undefined,
+    startApprovedAnimation: () => void,
+    {getAdditionalOnyxData, fallbackReport, fallbackPolicy, fallbackTransactions}: UseConfirmApprovalOptions = {},
+) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [liveReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
+    const moneyRequestReport = liveReport ?? fallbackReport;
+    const [livePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const policy = livePolicy ?? fallbackPolicy;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const liveTransactions = Object.values(reportTransactions);
+    // Live data wins per transaction, but keep the ones that haven't hydrated into Onyx yet.
+    const transactions = fallbackTransactions
+        ? [...new Map([...fallbackTransactions, ...liveTransactions].map((transaction) => [transaction.transactionID, transaction])).values()]
+        : liveTransactions;
+    const [transactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: transactionViolationsByIDsSelector(transactions.map((transaction) => transaction.transactionID)),
+    });
+    // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
+    const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, accountID, email ?? '', undefined, transactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         if (!isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
@@ -71,6 +110,8 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allTransactionViolations: {...autoReportedRejectedExpenseViolations, ...transactionViolations},
+            additionalOnyxData: getAdditionalOnyxData?.(),
         });
     };
 
@@ -78,7 +119,8 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     // submenu, so this always approves the full report (used for the non-held case and as a safe fallback).
     const confirmApproval = () => onApprove(true);
 
-    return {confirmApproval, onApprove, isAnyTransactionOnHold};
+    // The report and transactions are returned so callers render the approve options from the same data that gets approved.
+    return {confirmApproval, onApprove, isAnyTransactionOnHold, moneyRequestReport, transactions};
 }
 
 export default useConfirmApproval;

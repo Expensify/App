@@ -7,6 +7,9 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openLink} from '@libs/actions/Link';
 import DateUtils from '@libs/DateUtils';
@@ -18,6 +21,7 @@ import type * as UrlType from '@libs/Url';
 import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
+import ReportActionItemParentAction from '@pages/inbox/report/ReportActionItemParentAction';
 
 import colors from '@styles/theme/colors';
 
@@ -34,6 +38,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -142,14 +147,17 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, report?: Report) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders
+                components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
+            >
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
+                            reportsParentHierarchy={undefined}
                             chatReport={undefined}
-                            report={undefined}
+                            report={report}
                             transactionThreadReport={undefined}
                             parentReportAction={undefined}
                             action={action}
@@ -163,6 +171,315 @@ describe('ReportActionItem', () => {
             </ComposeProviders>,
         );
     }
+
+    describe('Bill Pay creation and submission history', () => {
+        const processorAccountID = 456;
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits %s to processor %s as %s', async (actionName, processor, actorName) => {
+            // Given bill intake submits as the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const bill: Report = {
+                reportID: '9876',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                managerID: 789,
+                billSenderAccountID: senderAccountID,
+            };
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: bill.reportID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {harvesting: true}), reportID: bill.reportID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${bill.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the event, including submissions saved with a harvest token.
+            renderItemWithAction(action, false, bill);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then each event shows only its own message and timestamp, with the creator instead of the token's owner.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this bill on behalf of Sender' : 'sent this bill to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this bill to Receiver' : 'created this bill on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.automaticallySubmitted'))).not.toBeOnTheScreen();
+        });
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.CREATED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits invoice action %s to processor %s as %s', async (actionName, processor, actorName) => {
+            // Given the vendor submits the invoice to the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const invoice: Report = {
+                reportID: '9877',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: senderAccountID,
+                managerID: ACTOR_ACCOUNT_ID,
+            };
+            const createdAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}),
+                reportActionID: '12344',
+                reportID: invoice.reportID,
+                actorAccountID: senderAccountID,
+                created: '2025-07-12 08:03:17.653',
+            };
+            const isCreation = actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+            const action = isCreation ? createdAction : {...createReportAction(actionName, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9878});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the invoice event.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then each event shows only its own message and timestamp, with the bill's creator instead of the vendor.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText(isCreation ? 'created this invoice on behalf of Sender' : 'sent this invoice to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(isCreation ? 'sent this invoice to Receiver' : 'created this invoice on behalf of Sender')).not.toBeOnTheScreen();
+            expect(screen.getByText(DateUtils.datetimeToCalendarTime(CONST.LOCALES.EN, action.created, CONST.DEFAULT_TIME_ZONE.selected))).toBeOnTheScreen();
+        });
+
+        it.each([
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this bill on behalf of sender1@sender.com'],
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this bill to receiver@receiver.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this invoice on behalf of sender1@sender.com'],
+            [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this invoice to receiver@receiver.com'],
+        ] as const)('uses the submission emails when personal details omit names for %s %s', async (type, actionName, message) => {
+            // Given the API omits the other company's names and logins but includes both emails with the submission.
+            const senderAccountID = 321;
+            const isInvoice = type === CONST.REPORT.TYPE.INVOICE;
+            const report: Report = {
+                reportID: '9880',
+                type,
+                ownerAccountID: isInvoice ? senderAccountID : ACTOR_ACCOUNT_ID,
+                managerID: ACTOR_ACCOUNT_ID,
+                billSenderAccountID: isInvoice ? undefined : senderAccountID,
+            };
+            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {}), reportActionID: '12344'};
+            const submittedAction = {
+                ...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {to: 'receiver@receiver.com'}),
+                submitterEmail: 'sender1@sender.com',
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, isInvoice ? {billID: 9881} : {});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID},
+                    [senderAccountID]: {accountID: senderAccountID},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the receiver opens the bill or the sender opens its invoice.
+            renderItemWithAction(actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? createdAction : submittedAction, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the participant from the submission rather than displaying Hidden.
+            expect(screen.getByText('Concierge')).toBeOnTheScreen();
+            expect(screen.getByText(message)).toBeOnTheScreen();
+            expect(screen.queryByText(/on behalf of Hidden|sent this (bill|invoice) to Hidden/)).not.toBeOnTheScreen();
+        });
+
+        it('keeps the invoice submission receiver when the current manager changes', async () => {
+            // Given the invoice now has a different manager from the account that received its submission.
+            const currentManagerAccountID = 789;
+            const invoice: Report = {reportID: '9882', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 321, managerID: currentManagerAccountID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {submittedTo: ACTOR_ACCOUNT_ID, to: 'receiver@receiver.com'}), actorAccountID: 321};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9883});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Original receiver'},
+                    [currentManagerAccountID]: {accountID: currentManagerAccountID, displayName: 'Current manager'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
+                });
+            });
+
+            // When the sender opens the invoice's submission history.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the account recorded on that submission, not the current manager.
+            expect(screen.getByText('sent this invoice to Original receiver')).toBeOnTheScreen();
+            expect(screen.queryByText('sent this invoice to Current manager')).not.toBeOnTheScreen();
+        });
+
+        it('keeps the usual wording on an invoice that is not linked to a bill', async () => {
+            // Given an invoice that was sent without bill intake, so it has no linked bill.
+            const senderAccountID = 321;
+            const invoice: Report = {reportID: '9879', type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: senderAccountID, managerID: ACTOR_ACCOUNT_ID};
+            const action = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {}), reportID: invoice.reportID, actorAccountID: senderAccountID};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'}});
+            });
+
+            // When NewDot renders the invoice submission.
+            renderItemWithAction(action, false, invoice);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history keeps the vendor as the actor and doesn't use the Bill Pay wording.
+            expect(screen.getByText('Sender')).toBeOnTheScreen();
+            expect(screen.queryByText(/created this invoice on behalf of/)).not.toBeOnTheScreen();
+            expect(screen.queryByText(/sent this invoice to/)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Edited file attachments', () => {
+        const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
+
+        const renderComment = (html: string, text: string, isEdited = true) =>
+            renderItemWithAction(
+                createMock<ReportAction>({
+                    ...createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {}),
+                    message: [{type: 'COMMENT', html, text, isEdited}],
+                }),
+            );
+
+        it('renders a renamed attachment as a named card with the edited label once the server dropped its source attribute', async () => {
+            // Given an attachment-only comment renamed through an edit, as the server returns it
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">renamed_file.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card carries the new name and the edited label is shown
+            expect(screen.getByText('renamed_file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('shows the edited label for an attachment-only comment that still carries its source attribute', async () => {
+            // Given an attachment-only comment edited while offline, whose optimistic html keeps the attachment attributes
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">offline_rename.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attachment path renders the card with the edited label
+            expect(screen.getByText('offline_rename.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('names the card from every text node when the label came back wrapped in emphasis', async () => {
+            // Given a stored anchor whose underscored label was parsed into emphasis tags
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`, 'n_d_m_tch__ng.csv', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card still shows a name instead of an empty label
+            expect(screen.getByText('n_d_m_tch__ng.csv')).toBeOnTheScreen();
+        });
+
+        it('keeps the text on both sides of a file when the comment was edited around it', async () => {
+            // Given an edited comment with text before and after the file
+            // When the comment is rendered
+            renderComment(`Help<br /><br /><a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">file.csv</a><br />Text`, 'Help\n\n[Attachment]\nText');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both text lines, the card and the edited label are all on screen
+            expect(screen.getByText('Help')).toBeOnTheScreen();
+            expect(screen.getByText('file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(/Text/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it("shows a link the author pasted to an earlier message's attachment as a link", async () => {
+            // Given a comment that is only a chat attachment URL the author pasted, which names the action that holds that file
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}" target="_blank" rel="noreferrer noopener">${pastedURL}</a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the URL stays readable as a link instead of being drawn as this message's own file
+            expect(screen.getByText(pastedURL)).toBeOnTheScreen();
+        });
+
+        it('shows an image the author linked from an attachment URL', async () => {
+            // Given a comment written as a linked image, whose anchor holds no text to name a card with
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}"><img src="${pastedURL}" alt="photo" /></a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('photo')).toBeOnTheScreen();
+        });
+
+        it('shows a link to another host as a link even when it carries an attachment ID', async () => {
+            // Given a stored comment whose link points off our attachment host but kept an attachment ID
+            const foreignURL = 'https://example.com/chat-attachments/1/invoice.csv';
+
+            // When the comment is rendered
+            renderComment(`See <a href="${foreignURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is a plain link rather than a file card, which would download it with the viewer's auth token
+            expect(screen.getByLabelText(foreignURL)).toBeOnTheScreen();
+            expect(screen.queryByLabelText('invoice.csv')).toBeNull();
+        });
+
+        it('shows a link on our attachment host with an attachment ID as a file card', async () => {
+            // Given the same shape on our own attachment host
+            // When the comment is rendered
+            renderComment(`See <a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is drawn as the file card it is
+            expect(screen.getByLabelText('invoice.csv')).toBeOnTheScreen();
+        });
+
+        it('shows a linked image whose anchor kept the attachment ID of the file it used to name', async () => {
+            // Given a comment edited into an image linked to another message's file, which the server returns with the
+            // attachment ID of the original file still on the anchor
+            const otherFileURL = 'https://www.expensify.com/chat-attachments/99999/w_other.csv';
+            const imageURL = 'https://www.expensify.com/chat-attachments/12345/w_photo.jpg';
+
+            // When the comment is rendered
+            renderComment(`Test <a href="${otherFileURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener"><img src="${imageURL}" alt="preview" /></a>`, 'Test [Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('preview')).toBeOnTheScreen();
+        });
+    });
 
     describe('Automatic actions', () => {
         const testCases = [
@@ -448,6 +765,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                 transactionThreadReport={undefined}
@@ -494,6 +812,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                 transactionThreadReport={undefined}
@@ -544,6 +863,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                 transactionThreadReport={undefined}
@@ -586,6 +906,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                 transactionThreadReport={undefined}
@@ -659,6 +980,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -719,6 +1041,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -771,6 +1094,32 @@ describe('ReportActionItem', () => {
             // Then the action message should be displayed
             expect(screen.getByText(translateLocal('iou.paidElsewhere'))).toBeOnTheScreen();
         });
+
+        it('does not show Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                paymentMethod: 'ACH',
+                creditBankAccountLast4: '1234',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('shows Explain link when action has reasoning, with no double period', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                paymentMethod: 'ACH',
+                creditBankAccountLast4: '1234',
+                reasoning: 'The withdrawal account is outside the United States, so the payment was routed through Corpay.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
+        });
     });
 
     describe('Modified expense message', () => {
@@ -801,6 +1150,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -827,7 +1177,7 @@ describe('ReportActionItem', () => {
 
             expect(openLink).toHaveBeenCalledTimes(1);
             // Without areRulesEnabled on policy, the link points to the help URL
-            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String));
+            expect(openLink).toHaveBeenCalledWith(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL, expect.any(String), false, undefined);
         });
     });
 
@@ -979,6 +1329,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1025,6 +1376,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1072,6 +1424,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1123,6 +1476,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1171,6 +1525,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1220,6 +1575,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1271,6 +1627,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1303,6 +1660,27 @@ describe('ReportActionItem', () => {
             expect(textElement).toHaveStyle({color: colors.productDark800});
         });
 
+        it('AGENT_PROMPT_UPDATED action shows the modifier and prompt diff', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, {
+                previousPrompt: 'Categorize coffee as Meals.',
+                newPrompt: 'Categorize coffee as Meals and taxi trips as Travel.',
+                updatedByAccountID: ACTOR_ACCOUNT_ID,
+                updatedBy: actorEmail,
+            });
+            action.message = [];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('mention-user')).toHaveTextContent(`@${actorEmail}`);
+            const promptDiff = ` updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(promptDiff)).toBeOnTheScreen();
+            expect(
+                screen.getByLabelText(
+                    /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
+                ),
+            ).toBeOnTheScreen();
+        });
+
         it('DELETED_TRANSACTION action shows deleted transaction message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION, {
                 amount: 1500,
@@ -1313,6 +1691,16 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/deleted/i)).toBeOnTheScreen();
+        });
+
+        it('UNDELETED_TRANSACTION action shows undeleted transaction message', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, {
+                fromReportID: '123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/undeleted/i)).toBeOnTheScreen();
         });
 
         it('MARKED_REIMBURSED action from OldDot shows reimbursement message', async () => {
@@ -1396,6 +1784,48 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(/paid with Expensify/i)).toBeOnTheScreen();
         });
+
+        it('IOU PAY through Wise links to the payment details', async () => {
+            // Given a bank account payment that Wise has created the transfer for, so the backend added its final amounts
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+                fee: 129,
+                rate: 0.7743,
+                debitedAmount: 10129,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then View details follows it, since the payment details have every amount to show
+            expect(screen.getByText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('IOU PAY through Corpay has no link to the payment details', async () => {
+            // Given a cross-border payment with only the employee's amount and currency, as Corpay records it
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the message shows without View details, since there are no fees or rate to show behind it
+            expect(screen.getByText(/paid £77.43/i)).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.viewDetails'))).toBeNull();
+        });
     });
 
     describe('Reimbursement actions', () => {
@@ -1426,6 +1856,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -1613,6 +2044,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID: 'pol123'}}
                                 transactionThreadReport={undefined}
@@ -1629,6 +2061,53 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
+        });
+
+        it('INTEGRATION_SYNC_FAILED action lets an unbreakable token in the error wrap instead of overflowing', async () => {
+            // Given a sync failure whose error names an address long enough to exceed the RHP message column
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: 'QuickBooks Online',
+                errorMessage: 'We were unable to find a vendor/supplier for applausetester+bp3108od@applause.expensifail.com',
+            });
+            let renderHTMLStyle: ReturnType<typeof useThemeStyles>['renderHTML'] | undefined;
+            function StyleProbe() {
+                renderHTMLStyle = useThemeStyles().renderHTML;
+                return null;
+            }
+
+            // When the action renders through the children branch of ReportActionItemBasicMessage
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <StyleProbe />
+                            <ReportActionItem
+                                reportsParentHierarchy={undefined}
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID: 'pol123'}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a wrapper carries the wrapping styles, which the children branch gets from nowhere else.
+            // `styles.renderHTML` also holds wordBreak/whiteSpace, but both resolve to {} under the native
+            // style variants Jest loads, so the width constraint is all that is observable here.
+            const ancestorStyles: unknown[] = [];
+            let ancestor = screen.getByText(/there was a problem syncing with/).parent;
+            while (ancestor) {
+                ancestorStyles.push(StyleSheet.flatten(ancestor.props.style));
+                ancestor = ancestor.parent;
+            }
+            expect(ancestorStyles).toEqual(expect.arrayContaining([StyleSheet.flatten(renderHTMLStyle)]));
         });
 
         it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
@@ -1656,6 +2135,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', policyID}}
                                 transactionThreadReport={undefined}
@@ -1697,6 +2177,23 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -1720,6 +2217,7 @@ describe('ReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <ReportActionItem
+                                    reportsParentHierarchy={undefined}
                                     chatReport={undefined}
                                     report={{reportID: 'testReport', policyID: COMMUTER_EXCLUSION_POLICY_ID}}
                                     transactionThreadReport={undefined}
@@ -1796,6 +2294,20 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/5678/)).toBeOnTheScreen();
         });
 
+        it('AUTO_PAY_FEE_DISCLOSURE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {
+                policyID: 'pol123',
+                accountID: ACTOR_ACCOUNT_ID,
+                bankName: 'Chase',
+                lastFour: '5678',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/enabled by test@test.com on the Chase account ending in 5678/)).toBeOnTheScreen();
+            expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'auto-pay settings'}).length).toBeGreaterThan(0);
+        });
+
         it('RENAMED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {
                 oldName: 'Old Room',
@@ -1826,6 +2338,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport'}}
                                 transactionThreadReport={undefined}
@@ -1860,6 +2373,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                 transactionThreadReport={undefined}
@@ -1896,6 +2410,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                 transactionThreadReport={undefined}
@@ -1937,6 +2452,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{
                                     reportID: 'threadReport',
@@ -1978,6 +2494,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                 transactionThreadReport={undefined}
@@ -2017,6 +2534,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', ownerAccountID: ACTOR_ACCOUNT_ID}}
                                 transactionThreadReport={undefined}
@@ -2054,6 +2572,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2088,6 +2607,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2124,6 +2644,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2183,6 +2704,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={createMock<Report>({reportID})}
                                 transactionThreadReport={undefined}
@@ -2216,6 +2738,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />
@@ -2256,6 +2779,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={report}
                                 transactionThreadReport={undefined}
@@ -2293,6 +2817,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2332,6 +2857,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2372,6 +2898,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -2496,6 +3023,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
                                 transactionThreadReport={undefined}
@@ -2532,6 +3060,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'testReport', isWaitingOnBankAccount: true}}
                                 transactionThreadReport={undefined}
@@ -2998,6 +3527,57 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(assertion)).toBeOnTheScreen();
         });
 
+        describe('isActionableCardFraudAlert buttons', () => {
+            const CARD_ID = 1;
+            const FRAUD_REPORT_ID = '111';
+            const fraudAlertMessage = {cardID: CARD_ID, maskedCardNumber: '****1234', triggerMerchant: 'SuspiciousShop', triggerAmount: 5000, currency: 'USD'};
+            const fraudAlertAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT, fraudAlertMessage), reportID: FRAUD_REPORT_ID};
+
+            it('shows the buttons to the cardholder while the fraud is live', async () => {
+                // Given the current user's card has live fraud pointing at the report that holds the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {possibleFraud: {fraudAlertReportID: Number(FRAUD_REPORT_ID)}}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the cardholder can resolve it
+                expect(screen.getByText('Yes, I do')).toBeOnTheScreen();
+                expect(screen.getByText("No, it wasn't me")).toBeOnTheScreen();
+            });
+
+            it('hides the buttons from a user who is not the cardholder', async () => {
+                // Given a workspace admin whose card list does not contain the flagged card
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the admin sees the alert but no buttons, since the backend rejects anyone but the cardholder
+                expect(screen.getByText(/suspicious activity/i)).toBeOnTheScreen();
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
+
+            it('hides the buttons from the cardholder once the fraud is cleared on the card', async () => {
+                // Given the backend cleared possibleFraud on the cardholder's card without resolving the alert
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.CARD_LIST, {[CARD_ID]: {cardID: CARD_ID, nameValuePairs: {}}});
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                // When the fraud alert renders
+                renderItemWithAction(fraudAlertAction);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then there is nothing left to resolve
+                expect(screen.queryByText('Yes, I do')).not.toBeOnTheScreen();
+                expect(screen.queryByText("No, it wasn't me")).not.toBeOnTheScreen();
+            });
+        });
+
         it('isCardBrokenConnectionAction falls back to card.cardName from CARD_LIST when originalMessage has no cardName', async () => {
             const CARD_ID_KEY = '100';
 
@@ -3034,7 +3614,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
@@ -3058,7 +3638,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything(), undefined);
         });
 
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
@@ -3159,6 +3739,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'chatReport1', chatReportID: 'chatReport1', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}}
                                 transactionThreadReport={undefined}
@@ -3212,6 +3793,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: 'expenseReport1', chatReportID: 'workspaceChat1', type: CONST.REPORT.TYPE.EXPENSE}}
                                 transactionThreadReport={undefined}
@@ -3334,6 +3916,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 transactionThreadReport={undefined}
                                 report={{reportID: HARVEST_REPORT_ID}}
@@ -3374,6 +3957,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={{reportID: HARVEST_REPORT_ID}}
                                 parentReportAction={undefined}
@@ -3422,6 +4006,7 @@ describe('ReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <ReportActionItem
+                                reportsParentHierarchy={undefined}
                                 chatReport={undefined}
                                 report={undefined}
                                 transactionThreadReport={undefined}
@@ -3473,8 +4058,14 @@ describe('ReportActionItem', () => {
 
         async function reactWithThumbsUp(action: ReportAction, timestamp: string) {
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+            });
+        }
+
+        async function clearReactions(action: ReportAction) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, {});
             });
         }
 
@@ -3495,6 +4086,35 @@ describe('ReportActionItem', () => {
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
         });
 
+        it('does not show the acknowledgement again when thumbs-up is added shortly after being removed', async () => {
+            jest.useFakeTimers();
+
+            try {
+                // Given an unrated Concierge reply, the customer can leave feedback.
+                const action = createConciergeComment();
+                renderItemWithAction(action, true);
+                await waitForBatchedUpdatesWithAct();
+
+                // When the customer rates it, acknowledge their feedback for four seconds.
+                await reactWithThumbsUp(action, '2025-07-12 09:03:18.000');
+                expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+
+                await act(async () => {
+                    jest.advanceTimersByTime(4000);
+                });
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+
+                await clearReactions(action);
+                expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+                // Then restoring the rating immediately does not repeat the acknowledgement.
+                await reactWithThumbsUp(action, '2025-07-12 09:03:19.000');
+                expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         it('does not acknowledge a rating that was already there when the chat was opened', async () => {
             const action = createConciergeComment();
             await reactWithThumbsUp(action, DateUtils.getDBTime());
@@ -3503,6 +4123,75 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        const PARENT_REPORT_ID = 'parentChatReport';
+        const THREAD_REPORT_ID = 'threadReport';
+
+        async function setUpThreadOffConciergeComment(conciergeAction: ReportAction, threadReportNameValuePairs?: Record<string, unknown>) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, {reportID: PARENT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {[conciergeAction.reportActionID]: conciergeAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, {
+                    reportID: THREAD_REPORT_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: PARENT_REPORT_ID,
+                    parentReportActionID: conciergeAction.reportActionID,
+                });
+                if (threadReportNameValuePairs) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${THREAD_REPORT_ID}`, threadReportNameValuePairs);
+                }
+            });
+        }
+
+        function renderThreadParentAction(conciergeActionID: string) {
+            const threadReport = {
+                reportID: THREAD_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: conciergeActionID,
+            } as Report;
+            return render(
+                <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItemParentAction
+                                reportID={THREAD_REPORT_ID}
+                                report={threadReport}
+                                action={createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {})}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                shouldDisplayReplyDivider={false}
+                                isFirstVisibleReportAction={false}
+                                reportsParentHierarchy={undefined}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+        }
+
+        it('offers the prompt on the message a thread hangs off once the rating is taken back', async () => {
+            // The backend keeps its feedback marker on the thread after the reaction is removed, so the marker must not decide this message
+            const conciergeAction = createConciergeComment();
+            await setUpThreadOffConciergeComment(conciergeAction, {conciergeFeedbackForReportActionID: conciergeAction.reportActionID});
+
+            renderThreadParentAction(conciergeAction.reportActionID);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        it('keeps the prompt off the message a thread hangs off while the rating is still there', async () => {
+            const conciergeAction = createConciergeComment();
+            await setUpThreadOffConciergeComment(conciergeAction, {conciergeFeedbackForReportActionID: conciergeAction.reportActionID});
+            await reactWithThumbsUp(conciergeAction, DateUtils.getDBTime());
+
+            renderThreadParentAction(conciergeAction.reportActionID);
+            await waitForBatchedUpdatesWithAct();
+
             expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
         });
 

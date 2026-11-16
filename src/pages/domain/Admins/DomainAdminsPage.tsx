@@ -6,6 +6,7 @@ import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -70,6 +71,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
@@ -171,6 +173,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ADD_ADMIN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
@@ -180,6 +183,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.SETTINGS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                 style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
@@ -211,7 +215,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}
                     admins={admins}

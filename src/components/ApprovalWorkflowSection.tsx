@@ -6,10 +6,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import sortAlphabetically from '@libs/sortAlphabetically';
-import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -70,30 +71,35 @@ function ApprovalWorkflowSection({
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fromProviderSuffix = providerName ? ` (${translate('workflowsPage.approverFromProvider', {provider: providerName})})` : '';
-    const approverTitle = (index: number) => {
-        if (isHRAdvancedMode) {
-            const isLast = index === approvalWorkflow.approvers.length - 1;
-            const approver = approvalWorkflow.approvers.at(index);
-            const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
-            if (isLast && isConfiguredFinalApprover) {
-                return translate('workflowsPage.finalApprover');
+    const approverTitles = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (isHRAdvancedMode) {
+                const isConfiguredFinalApprover = !!hrFinalApproverEmail && approver?.email === hrFinalApproverEmail;
+                if (isLast && isConfiguredFinalApprover) {
+                    return translate('workflowsPage.finalApprover');
+                }
+                if (count <= 1) {
+                    return translate('workflowsPage.approver');
+                }
+                return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
             }
+
             if (approvalWorkflow.approvers.length <= 1) {
                 return translate('workflowsPage.approver');
             }
-            return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
-        }
 
-        if (approvalWorkflow.approvers.length <= 1) {
-            return translate('workflowsPage.approver');
-        }
-
-        const title = `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
-        if (isRecruitingAdvancedMode && index === 0) {
-            return `${title}${fromProviderSuffix}`;
-        }
-        return title;
-    };
+            const title =
+                position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+            if (isRecruitingAdvancedMode && position === 0) {
+                return `${title}${fromProviderSuffix}`;
+            }
+            return title;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
@@ -111,6 +117,17 @@ function ApprovalWorkflowSection({
         email: m.email,
     }));
     const pressAction = isDisabled ? undefined : onPress;
+
+    // Only shown to someone who can fix it, since the copy asks them to pick a new approver
+    const getApproverError = (approver: Approver) => {
+        const error = isDisabled ? undefined : getNonMemberApproverError(approver, approvalWorkflow.isDefault);
+        return error ? translate(error) : undefined;
+    };
+    const nonMemberApproverError = approvalWorkflow.approvers.map(getApproverError).find(Boolean);
+    const editWorkflowText = translate('workflowsPage.editWorkflowAction');
+
+    // The approver rows aren't exposed to screen readers, so the Edit button reads the error out instead
+    const editButtonAccessibilityLabel = nonMemberApproverError ? `${editWorkflowText}, ${nonMemberApproverError}` : editWorkflowText;
     const accessibilityLabel = translate('workflowsPage.accessibilityLabel', {
         members,
         approvers: approvalWorkflow?.approvers
@@ -185,7 +202,7 @@ function ApprovalWorkflowSection({
                         <View>
                             <View style={styles.workflowApprovalVerticalLine} />
                             <MenuItem
-                                title={approverTitle(index)}
+                                title={approverTitles.at(index)}
                                 style={styles.p0}
                                 titleStyle={styles.textLabelSupportingNormal}
                                 descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
@@ -208,8 +225,8 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                helperText={getApprovalLimitDescription({approver, currency, translate, formatPhoneNumber, convertToDisplayString})}
-                                helperTextStyle={styles.workflowApprovalLimitText}
+                                brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
                         </View>
@@ -221,11 +238,11 @@ function ApprovalWorkflowSection({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onPress}
-                        accessibilityLabel={translate('workflowsPage.editWorkflowAction')}
+                        accessibilityLabel={editButtonAccessibilityLabel}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
                     >
                         <Button.Icon src={icons.Pencil} />
-                        <Button.Text>{translate('workflowsPage.editWorkflowAction')}</Button.Text>
+                        <Button.Text>{editWorkflowText}</Button.Text>
                     </Button>
                 </View>
             )}

@@ -2,11 +2,13 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
+import ImageLoadTimeoutNotice from '@components/ImageLoadTimeoutNotice';
 import Lightbox from '@components/Lightbox';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useClickZoomPan from '@hooks/useClickZoomPan';
+import useImageLoadStall from '@hooks/useImageLoadStall';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +35,8 @@ function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {
     return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
 }
 
+const LOADING_CONTEXT = {context: 'ImageView'};
+
 function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -41,6 +45,15 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isLoading, setIsLoading] = useState(true);
+    const [hasLoadFailed, setHasLoadFailed] = useState(false);
+    const [hasLoadTimedOut, setHasLoadTimedOut] = useState(false);
+    // On web the image keeps the onError it was first given, so handleError reads this ref, not the stale state.
+    const hasLoadTimedOutRef = useRef(false);
+    const updateLoadTimedOut = (value: boolean) => {
+        hasLoadTimedOutRef.current = value;
+        setHasLoadTimedOut(value);
+    };
+    const [reloadKey, setReloadKey] = useState(0);
     const [containerSize, setContainerSize] = useState<Dimensions>({width: 0, height: 0});
     const [imageSize, setImageSize] = useState<Dimensions>({width: 0, height: 0});
 
@@ -66,11 +79,35 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
 
         setImageSize({width: 0, height: 0});
         setIsLoading(true);
+        setHasLoadFailed(false);
+        updateLoadTimedOut(false);
         resetZoom();
+    };
+
+    const handleError = () => {
+        // A stalled load that later errors is still a slow load, so keep the timeout notice instead of "not found".
+        if (hasLoadTimedOutRef.current) {
+            return;
+        }
+        setHasLoadFailed(true);
+        onError?.();
+    };
+
+    /** The transport went silent, so stop the spinner and offer a retry while the image stays mounted. */
+    const handleLoadTimeout = () => {
+        updateLoadTimedOut(true);
+        setIsLoading(false);
+    };
+
+    const retryLoad = () => {
+        updateLoadTimedOut(false);
+        setIsLoading(true);
+        setReloadKey((key) => key + 1);
     };
 
     const imageLoad = ({nativeEvent: size}: ImageOnLoadEvent) => {
         setImageSize(size);
+        updateLoadTimedOut(false);
     };
 
     const imageLoadingEnd = () => {
@@ -85,6 +122,10 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     }
 
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isLocalToUserDeviceFile;
+    const shouldShowLoadingIndicator = !isImageLoaded && !shouldShowOfflineIndicator && !hasLoadFailed && !hasLoadTimedOut;
+
+    const reportLoadActivity = useImageLoadStall(shouldShowLoadingIndicator && !isOffline && !canUseTouchScreen, handleLoadTimeout);
+
     if (canUseTouchScreen) {
         return (
             <Lightbox
@@ -117,23 +158,32 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
             >
                 {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                 <Image
+                    key={reloadKey}
                     source={{uri: url}}
                     isAuthTokenRequired={isAuthTokenRequired}
                     style={[styles.h100, styles.w100]}
                     resizeMode={RESIZE_MODES.contain}
                     onLoadStart={imageLoadingStart}
+                    onProgress={reportLoadActivity}
                     onLoad={imageLoad}
                     onLoadEnd={imageLoadingEnd}
                     waitForSession={() => {
                         setImageSize({width: 0, height: 0});
                         setIsLoading(true);
+                        setHasLoadFailed(false);
                         resetZoom();
                     }}
-                    onError={onError}
+                    onError={handleError}
                 />
             </PressableWithoutFeedback>
 
-            {!isImageLoaded && !shouldShowOfflineIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {shouldShowLoadingIndicator && (
+                <LoadingIndicator
+                    style={[styles.opacity1, styles.bgTransparent]}
+                    extraLoadingContext={LOADING_CONTEXT}
+                />
+            )}
+            {hasLoadTimedOut && !isOffline && <ImageLoadTimeoutNotice onRetry={retryLoad} />}
             {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
         </View>
     );

@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -16,11 +17,12 @@ import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
@@ -38,14 +40,27 @@ type DateSelectPopupProps = {
 
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
+
+    applySentryLabel: SentryLabel;
 };
 
-function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS, style, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({
+    label,
+    value,
+    presets,
+    allowedCustomDateModifiers = CONST.SEARCH.CUSTOM_DATE_MODIFIERS,
+    style,
+    closeOverlay,
+    onChange,
+    setPopoverWidth,
+    applySentryLabel,
+}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -54,24 +69,18 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(dateFnsLocale, value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
-    const syncedRangeText = useMemo(
-        () =>
-            getDateRangeDisplayValueFromFormValue(
-                dateFnsLocale,
-                value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-                value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-            ),
-        [value, dateFnsLocale],
+    const syncedRangeText = getDateRangeDisplayValueFromFormValue(
+        dateFnsLocale,
+        value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+        value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+        value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
-    const isCustomDayOnly = allowedCustomDateModifiers.length === 1 && allowedCustomDateModifiers.at(0) === CONST.SEARCH.DATE_MODIFIERS.ON;
-    const selectedDateModifierTitle =
-        isCustomDayOnly && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.ON ? translate('search.filters.date.customDay') : getDateModifierTitle(selectedDateModifier, '', translate);
+    const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);
 
-    const updateRangeText = useCallback(() => {
+    const updateRangeText = () => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
-    }, []);
+    };
 
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
@@ -82,20 +91,20 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
         }
     }, [selectedDateModifier, setPopoverWidth]);
 
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
-    }, []);
+    };
 
-    const handleBackPress = useCallback(() => {
+    const handleBackPress = () => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
             searchDatePresetFilterBaseRef.current.restoreRangeToEntrySnapshot();
             updateRangeText();
         }
         clearSelection();
-    }, [clearSelection, selectedDateModifier, updateRangeText]);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
         }
@@ -114,7 +123,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         onChange(dateValues);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedDateModifier]);
+    };
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
@@ -122,8 +131,10 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
+        const popoverMaxHeightStyle = selectedDateModifier ? StyleUtils.getMaximumHeight(maxPopupHeight) : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+
         return (
-            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+            <View style={[styles.pv4, styles.gap2, popoverMaxHeightStyle, style]}>
                 <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
@@ -164,6 +175,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
                     <View style={[styles.flex1, useRangeLayout && styles.ml2]}>
                         <ActionButtons
                             containerStyle={[styles.flexRow, styles.gap2]}
+                            applySentryLabel={applySentryLabel}
                             onApply={applyChanges}
                         />
                     </View>
@@ -219,7 +231,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
             )}
             <ActionButtons
                 containerStyle={mobileButtonRowStyle}
-                applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
+                applySentryLabel={applySentryLabel}
                 onApply={applyChanges}
             />
         </View>

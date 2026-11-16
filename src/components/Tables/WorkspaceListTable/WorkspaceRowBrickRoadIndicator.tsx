@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 
+import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -10,6 +11,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
     shouldShowEmployeeListError,
@@ -35,9 +37,10 @@ const createCardFeedErrorsSelector = (workspaceAccountID: number) => (cardFeedEr
     !!cardFeedErrors?.shouldShowRbrForWorkspaceAccountID?.[workspaceAccountID];
 
 const createPolicyErrorsSelector = (connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>) => (policy: OnyxEntry<Policy>) =>
-    getUberConnectionErrorDirectlyFromPolicy(policy) ||
-    shouldShowEmployeeListError(policy) ||
-    getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    !isArchivedPolicy(policy) &&
+    (getUberConnectionErrorDirectlyFromPolicy(policy) ||
+        shouldShowEmployeeListError(policy) ||
+        getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
 /**
  * Error indicator of a workspaces list row. All of its subscriptions are narrow (booleans or a single
@@ -55,10 +58,11 @@ function WorkspaceRowBrickRoadIndicator({policyID}: WorkspaceRowBrickRoadIndicat
     const [hasPolicyErrors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: createPolicyErrorsSelector(connectionSyncProgress)});
     const [isHRCompleteSetupNeeded] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isMergeHRCompleteSetupNeededSelector});
     const [isQBORefreshTokenExpiringSoon] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isQBORefreshTokenExpiringSoonSelector});
+    const hasApprovalWorkflowWithNonMemberApprover = useHasApprovalWorkflowWithNonMemberApprover(policyID);
 
     // All of the error sources resolve to ERROR or undefined. The HR setup check and the QBO token expiry
     // warning are the only INFO sources, and every error takes precedence over them.
-    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors;
+    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors || hasApprovalWorkflowWithNonMemberApprover;
 
     if (!hasError && !isHRCompleteSetupNeeded && !isQBORefreshTokenExpiringSoon) {
         return null;

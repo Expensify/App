@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
@@ -21,6 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
+import FSClassView from './FSClassView';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -43,6 +45,8 @@ type DotIndicatorMessageProps = {
 
     textStyles?: StyleProp<TextStyle>;
 
+    isSelectable?: boolean;
+
     // Unused here, but OfflineWithFeedback still passes it to every error row.
     // eslint-disable-next-line react/no-unused-prop-types
     dismissError?: () => void;
@@ -50,7 +54,7 @@ type DotIndicatorMessageProps = {
     onRetryReceiptUpload?: () => void;
 };
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryReceiptUpload}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectable, onRetryReceiptUpload}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -74,7 +78,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
     const isErrorMessage = type === 'error';
     const receiptError = uniqueMessages.find(isReceiptError);
 
-    const isTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const defaultTextSelectable = !canUseTouchScreen() || !shouldUseNarrowLayout;
+    const isTextSelectable = isWeb ? (isSelectable ?? defaultTextSelectable) : defaultTextSelectable;
+    const shouldDisableTextSelection = isWeb && isSelectable === false;
+    const selectionDataSet = isTextSelectable ? undefined : {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true};
+    const receiptSelectionDataSet = shouldDisableTextSelection ? selectionDataSet : undefined;
 
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
@@ -125,7 +134,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
                 <Text
-                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1]}
+                    style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles, styles.flex1, shouldDisableTextSelection && styles.userSelectNone]}
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
@@ -137,6 +146,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
             <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                 {!!onRetryReceiptUpload && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.RETRY_RECEIPT_UPLOAD}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onRetryReceiptUpload}
                     >
@@ -145,6 +155,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DOT_INDICATOR_MESSAGE.DOWNLOAD_RECEIPT}
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         fileDownload(translate, receiptError.source, receiptError.filename);
@@ -157,22 +168,35 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
         );
         if (!isStackedLayout) {
             return (
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}>
+                <FSClassView
+                    style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, style]}
+                    dataSet={receiptSelectionDataSet}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                >
                     {messageRow}
                     {buttonsRow}
-                </View>
+                </FSClassView>
             );
         }
         return (
-            <View style={style}>
+            <FSClassView
+                style={style}
+                dataSet={receiptSelectionDataSet}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+            >
                 {messageRow}
                 <View style={styles.mt3}>{buttonsRow}</View>
-            </View>
+            </FSClassView>
         );
     }
 
+    // Error and info messages are text we write, not user data, so they stay readable in session recordings even under a masked container
     return (
-        <View style={[styles.dotIndicatorMessage, style]}>
+        <FSClassView
+            style={[styles.dotIndicatorMessage, style]}
+            dataSet={selectionDataSet}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+        >
             <View
                 style={styles.offlineFeedbackErrorDot}
                 accessible={isErrorMessage}
@@ -185,7 +209,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
                 />
             </View>
             <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
-        </View>
+        </FSClassView>
     );
 }
 

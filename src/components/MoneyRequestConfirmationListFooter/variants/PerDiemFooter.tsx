@@ -35,6 +35,7 @@ function PerDiemFooter({policy, policyTags, selectedParticipants, amountDisplay,
                     <DescriptionField
                         policy={policy}
                         isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                        descriptionHint={requiredFlags.descriptionHint}
                     />
                 </ConfirmationFieldList>
             </View>

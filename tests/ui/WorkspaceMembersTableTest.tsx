@@ -59,6 +59,8 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             shouldShowCustomField2Column={false}
                             shouldShowApproverColumn
                             shouldUseOrdinalApproverLabel={false}
+                            shouldShowOfficeLocationColumn={false}
+                            shouldShowBankAccountColumn
                             onRowSelectionChange={jest.fn()}
                         />
                     </ScreenWrapperStatusContext.Provider>
@@ -87,6 +89,7 @@ describe('WorkspaceMembersTable', () => {
 
     describe('approver sorting', () => {
         it('sorts members by their approver, with unapproved members last in both directions, and ties broken by member name', async () => {
+            // Given members where only some have an approver, since the ones without must sort last
             const members: WorkspaceMemberRowData[] = [
                 buildMember({
                     keyForList: 'walter',
@@ -143,6 +146,84 @@ describe('WorkspaceMembersTable', () => {
             // last in both directions.
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'approver', order: 'asc'});
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Walter', 'Nina', 'Brian', 'Carol']);
+        });
+    });
+
+    describe('bank account sorting', () => {
+        it('sorts members by their bank account last four, with members without one last in both directions', async () => {
+            // Given members where only some have a bank account, since the ones without must sort last
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'nina', login: 'nina@example.com', email: 'nina@example.com', name: 'Nina', accountID: 1, bankAccountLastFour: '5382'}),
+                buildMember({keyForList: 'carol', login: 'carol@example.com', email: 'carol@example.com', name: 'Carol', accountID: 2}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 3, bankAccountLastFour: '1809'}),
+                buildMember({keyForList: 'brian', login: 'brian@example.com', email: 'brian@example.com', name: 'Brian', accountID: 4}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Bank account header is pressed, which sorts descending first
+            const [bankAccountHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.bankAccount'));
+            fireEvent.press(bankAccountHeader);
+
+            // Then the last fours go high to low and the members without one stay at the bottom
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Nina', 'Adam', 'Carol', 'Brian']);
+
+            // When the header is pressed again to flip the order
+            fireEvent.press(bankAccountHeader);
+
+            // Then the last fours go low to high and the members without one are still at the bottom
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'bankAccount', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Nina', 'Brian', 'Carol']);
+        });
+    });
+
+    describe('owner role', () => {
+        it('includes the owner when filtering by Admins, because ownership is no longer a separate role', async () => {
+            // Given an owner whose real role is Workspace admin, plus a member and an auditor
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'zara', login: 'zara@example.com', email: 'zara@example.com', name: 'Zara', accountID: 1, role: CONST.POLICY.ROLE.ADMIN, isOwner: true}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 2, role: CONST.POLICY.ROLE.ADMIN}),
+                buildMember({keyForList: 'mia', login: 'mia@example.com', email: 'mia@example.com', name: 'Mia', accountID: 3, role: CONST.POLICY.ROLE.USER}),
+                buildMember({keyForList: 'ben', login: 'ben@example.com', email: 'ben@example.com', name: 'Ben', accountID: 4, role: CONST.POLICY.ROLE.AUDITOR}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Admins filter is applied
+            act(() => {
+                tableRef.current?.updateFilter({key: 'role', value: ['admins']});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the owner is kept with the other workspace admins
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Zara']);
+        });
+
+        it('sorts the owner with other workspace admins when sorting by Role', async () => {
+            // Given an owner whose real role is Workspace admin, so Role sorting should not isolate them
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'zara', login: 'zara@example.com', email: 'zara@example.com', name: 'Zara', accountID: 1, role: CONST.POLICY.ROLE.ADMIN, isOwner: true}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 2, role: CONST.POLICY.ROLE.ADMIN}),
+                buildMember({keyForList: 'mia', login: 'mia@example.com', email: 'mia@example.com', name: 'Mia', accountID: 3, role: CONST.POLICY.ROLE.USER}),
+                buildMember({keyForList: 'ben', login: 'ben@example.com', email: 'ben@example.com', name: 'Ben', accountID: 4, role: CONST.POLICY.ROLE.AUDITOR}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Role header is pressed, which sorts descending first
+            const [roleHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.role'));
+            fireEvent.press(roleHeader);
+
+            // Then workspace admins (owner included) group together, then members, then auditors
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'role', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Zara', 'Adam', 'Mia', 'Ben']);
         });
     });
 });

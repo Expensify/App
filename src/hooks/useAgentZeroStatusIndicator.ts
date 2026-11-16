@@ -12,7 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
-import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -59,7 +59,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
     // when its own label changes.
-    const serverLabelSelector = useCallback((reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID), [agentAccountID]);
+    const serverLabelSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID);
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
@@ -120,19 +120,19 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
      * react-compiler-compat ESLint processor (which would otherwise suppress the exhaustive-deps
      * false positive) only runs on .tsx/.jsx files, not .ts.
      */
-    const clearSafetyTimer = useCallback(() => {
+    const clearSafetyTimer = () => {
         if (!safetyTimerRef.current) {
             return;
         }
         clearTimeout(safetyTimerRef.current);
         safetyTimerRef.current = null;
-    }, []);
+    };
 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_INDICATOR_DURATION_MS if no response has arrived.
      */
-    const hardClearIndicator = useCallback(() => {
+    const hardClearIndicator = () => {
         // If offline, don't clear — the response may arrive when reconnected
         if (isOfflineRef.current) {
             return;
@@ -143,7 +143,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
-    }, [clearSafetyTimer, reportID, agentAccountID]);
+    };
 
     /**
      * (Re)arm the safety timer. Called when processing becomes active or the server label
@@ -155,23 +155,20 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
      * one-shot `getNewerActions` on HTTP reconnect. The safety timer is the backstop
      * for the long tail.
      */
-    const startSafetyTimer = useCallback(
-        (safetyDurationMs: number = MAX_INDICATOR_DURATION_MS) => {
-            clearSafetyTimer();
+    const startSafetyTimer = (safetyDurationMs: number = MAX_INDICATOR_DURATION_MS) => {
+        clearSafetyTimer();
 
-            if (safetyDurationMs <= 0) {
-                // Entry is already past the safety window (e.g. remount after >2 min) —
-                // hard-clear immediately rather than rearming a timer that would fire at zero.
-                hardClearIndicator();
-                return;
-            }
+        if (safetyDurationMs <= 0) {
+            // Entry is already past the safety window (e.g. remount after >2 min) —
+            // hard-clear immediately rather than rearming a timer that would fire at zero.
+            hardClearIndicator();
+            return;
+        }
 
-            safetyTimerRef.current = setTimeout(() => {
-                hardClearIndicator();
-            }, safetyDurationMs);
-        },
-        [clearSafetyTimer, hardClearIndicator],
-    );
+        safetyTimerRef.current = setTimeout(() => {
+            hardClearIndicator();
+        }, safetyDurationMs);
+    };
 
     // On reconnect, defensively clear any stale NVP, refetch missed actions, and rearm the
     // safety timer so the cap measures from reconnect rather than the original kickoff.

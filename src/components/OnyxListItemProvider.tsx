@@ -11,7 +11,7 @@ import createOnyxContext from './createOnyxContext';
  * Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
  * the same key (e.g. FlatList renderItem components)
  */
-const [PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
+const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [BetaConfigurationProvider, BetaConfigurationContext] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);
@@ -52,6 +52,7 @@ export default OnyxListItemProvider;
 
 export {
     usePersonalDetails,
+    PersonalDetailsContext,
     BetasContext,
     BetaConfigurationContext,
     BetaOverridesContext,

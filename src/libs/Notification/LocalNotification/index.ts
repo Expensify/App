@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 
@@ -29,8 +31,15 @@ Onyx.connectWithoutView({
     },
 });
 
-function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined) {
-    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, derivedReportName, true);
+function showCommentNotification(
+    report: Report,
+    reportAction: ReportAction,
+    onClick: LocalNotificationClickHandler,
+    derivedReportName: string | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportIDToName?: Record<string, string>,
+) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, true, reportIDToName);
 }
 
 function showModifiedExpenseNotification({

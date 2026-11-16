@@ -1,4 +1,6 @@
 /* eslint-disable rulesdir/prefer-actions-set-data -- stories seed Onyx directly so the ID-driven avatar cases render real data */
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Button from '@components/Button';
@@ -13,7 +15,6 @@ import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation'
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -620,20 +621,16 @@ function Comparison() {
             />
 
             <Card
-                title="description, onPress, sentryLabel, title"
+                title="description, onPress, title"
                 legacy={
                     <MenuItemWithTopDescription
                         description="Display"
                         title="Comfortable"
-                        sentryLabel="menuItemComparisonStorySentryLabel"
                         onPress={noop}
                     />
                 }
                 composable={
-                    <MenuItem.Root
-                        onPress={noop}
-                        sentryLabel="menuItemComparisonStorySentryLabel"
-                    >
+                    <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Display</MenuItem.FieldName>
@@ -999,16 +996,17 @@ function Comparison() {
             <Card
                 title="Avatar + title + 1-line description"
                 legacy={
-                    <MenuItem
-                        title="John Doe"
-                        description="john.doe.with.a.very.long.email.address.for.truncation@example.com"
-                        avatarID={STORY_ACCOUNT_ID}
-                        icon={icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        numberOfLinesDescription={1}
-                        containerStyle={[styles.pr2, styles.mt1]}
-                        interactive={false}
-                    />
+                    <View style={styles.mt1}>
+                        <MenuItem
+                            title="John Doe"
+                            description="john.doe.with.a.very.long.email.address.for.truncation@example.com"
+                            avatarID={STORY_ACCOUNT_ID}
+                            icon={icons.FallbackAvatar}
+                            iconType={CONST.ICON_TYPE_AVATAR}
+                            numberOfLinesDescription={1}
+                            interactive={false}
+                        />
+                    </View>
                 }
                 composable={
                     <View style={styles.mt1}>
@@ -1331,9 +1329,9 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <ReportActionAvatars
-                                    singleAvatarContainerStyle={[styles.actionAvatar]}
-                                    accountIDs={[STORY_ACCOUNT_ID]}
+                                <AccountAvatar
+                                    accountID={STORY_ACCOUNT_ID}
+                                    containerStyle={[styles.actionAvatar]}
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>
@@ -1374,7 +1372,7 @@ function Comparison() {
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <ReportActionAvatars
+                                <ReportAvatar
                                     singleAvatarContainerStyle={[styles.actionAvatar]}
                                     reportID={STORY_REPORT_ID}
                                 />

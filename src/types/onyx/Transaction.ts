@@ -117,6 +117,9 @@ type Comment = {
 
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /** Restriction saved at import: true/false locks reimbursability; null or missing allows changes regardless of later feed settings */
+    forceReimbursable?: boolean | null;
+
     /**
      * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
@@ -293,11 +296,11 @@ type Receipt = {
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
 
-    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationStartDate?: string;
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationStartDate?: string | null;
 
-    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationEndDate?: string;
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationEndDate?: string | null;
 };
 
 /** Model of route */
@@ -324,7 +327,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
@@ -352,10 +355,10 @@ type Reservation = {
     company?: Company;
 
     /** In car and hotel reservations, this represents the cancellation policy */
-    cancellationPolicy?: string;
+    cancellationPolicy?: string | null;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    cancellationDeadline?: string;
+    cancellationDeadline?: string | null;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
@@ -557,6 +560,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
+        /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
+        isReusedRoute?: boolean | null;
+
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.
          * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,
@@ -639,6 +645,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /**
+         * Whether the workspace was set to auto-categorize new expenses when this expense was created.
+         * Turning the setting on later does not categorize an expense that already exists.
+         */
+        wasAutoCategorizeEnabledOnCreation?: boolean;
 
         /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
         isFromFloatingActionButton?: boolean;

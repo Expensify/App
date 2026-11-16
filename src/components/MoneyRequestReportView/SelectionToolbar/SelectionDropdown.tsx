@@ -77,6 +77,7 @@ function SelectionDropdown({
 
     return (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.SELECTION_TOOLBAR_DROPDOWN}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => null}
             options={selectedTransactionsOptions}

@@ -21,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 
 import type {TNode} from 'react-native-render-html';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {HTMLContentModel, useAmbientTRenderEngine} from 'react-native-render-html';
 import {Pie} from 'victory-native';
 
@@ -90,11 +90,10 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
         sliceValues.push({label: dataLabel, value: polarEntry.value});
     }
 
-    const resolvedLabelLayout = useMemo(() => {
-        if (!baseLabelItem || !effectiveLabelRadius) {
-            return {};
-        }
-
+    let resolvedLabelLayout;
+    if (!baseLabelItem || !effectiveLabelRadius) {
+        resolvedLabelLayout = {};
+    } else {
         const slices = computeSliceAngles(sliceValues, START_ANGLE);
         const rowHeight = computeLabelBlockHeight(baseLabelItem, typefaces);
         const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
@@ -107,8 +106,14 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
         const topFor = (columnTitleSafeTop: number) =>
             designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), columnTitleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
         const plotBounds = {
-            left: {top: topFor(scaledTitleSafeTop + scaledLeftColumnTopPadding), bottom},
-            right: {top: topFor(scaledTitleSafeTop), bottom},
+            left: {
+                top: topFor(scaledTitleSafeTop + scaledLeftColumnTopPadding),
+                bottom,
+            },
+            right: {
+                top: topFor(scaledTitleSafeTop),
+                bottom,
+            },
         };
         const textRadius = computeTextRadiusBySide({
             slices,
@@ -119,9 +124,14 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             designWidth,
             edgePadding,
         });
-
-        return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, textRadius, plotBounds});
-    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height, chartContentStyles.width, customLabelByDataLabel, pixelScale]);
+        resolvedLabelLayout = computePieLabelLayout({
+            slices,
+            rowHeight,
+            labelRadius: effectiveLabelRadius,
+            textRadius,
+            plotBounds,
+        });
+    }
 
     return (
         <Pie.Chart

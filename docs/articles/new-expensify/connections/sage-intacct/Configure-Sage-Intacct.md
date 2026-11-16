@@ -16,8 +16,8 @@ If your Sage Intacct account supports multiple entities, you can connect each Wo
 
 To change the entity connection:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Under the Sage Intacct connection, select **Entity**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Entity**
 
 ---
 
@@ -25,8 +25,8 @@ To change the entity connection:
 
 To configure how data is imported from Sage Intacct:
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Import** under the Sage Intacct section
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Import**
 
 ## Expense Types vs. Chart of Accounts
 
@@ -71,11 +71,11 @@ Manage these settings the same way as standard dimensions.
 
 To import native VAT or GST tax rates:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Import** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Import**
 3. Toggle on **Tax**
 
-Set default rates per category under **Categories**. If you don’t see the Tax option, click the three-dot menu next to Sage Intacct and **resync the connection**.
+Set default rates per category under **Categories**. If you don’t see the Tax option, select **More (⋮)** in the Sage Intacct settings, then select **Sync now**.
 
 ## User-defined dimensions (UDDs)
 
@@ -85,7 +85,7 @@ To import UDDs:
    - Go to **Platform Services > Objects > List**
    - Filter by application: "user-defined dimensions"
 2. In Expensify:  
-   - Go to **Workspaces > [Workspace Name] > Accounting**
+   - Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
    - Click **Import** > Enable **User-defined dimensions**
    - Enter the Integration Name and choose whether to import as **Tags** or **Report Fields**
    - Click **Save**
@@ -96,8 +96,8 @@ To import UDDs:
 
 To access export settings:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Export** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Export**
 
 ## Preferred Exporter
 
@@ -133,7 +133,13 @@ If you manage company cards in Expensify, you can map each card to a specific ac
 
 ## How to export Consolidated Travel Billing expenses in Sage Intacct
 
-**Export Consolidated Travel Billing expenses as** appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Travel expenses export as credit card charges. Select the **Credit card account** where travel expenses will post in Sage Intacct.
+**Export Consolidated Travel Billing expenses as** appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Click it to open the **Consolidated Travel Billing** page. Travel expenses export as credit card charges. Select the **Credit card account** where travel expenses will post in Sage Intacct.
+
+## How to sync Consolidated Travel Billing settlements in Sage Intacct
+
+**Sync Consolidated Travel Billing settlements** is on the **Consolidated Travel Billing** page under **Export**, below **Credit card account**. Turn on this toggle to continuously reconcile settlements through Sage Intacct. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle.
+
+The toggle stays locked until you select a **Credit card account** and enable **Auto-sync** on the **Advanced** page.
 
 ---
 
@@ -141,8 +147,8 @@ If you manage company cards in Expensify, you can map each card to a specific ac
 
 To access advanced settings:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**
-2. Click **Advanced** under Sage Intacct
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct
+2. Select **Advanced**
 
 ## Auto-sync
 
@@ -176,9 +182,18 @@ Choose how to sync reimbursement status:
 
 **Note**: Make sure the selected account matches your Bill Payments default in Sage Intacct.
 
+## How to map the Sage Intacct currency conversion fee account
+
+Select **Sage Intacct currency conversion fee account** to choose the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+- Debits the selected currency conversion fee account and credits cash
+- Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
+- Only exports if this account is mapped
+
 ## How to sync Consolidated Travel Billing settlements in Sage Intacct
 
-**Sync Consolidated Travel Billing settlements** appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through Sage Intacct. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+Enable **Sync Consolidated Travel Billing settlements** to automatically reconcile settlements in Sage Intacct. This setting is available only when [Consolidated Travel Billing](/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace) is enabled and requires auto-sync to be enabled.
+
+Once enabled, select a **Reconciliation account** that matches your settlement account in Sage Intacct.
 
 ---
 
@@ -187,4 +202,3 @@ Choose how to sync reimbursement status:
 ## Will enabling auto-sync affect previously approved reports?
 
 No. Auto-sync only affects newly approved reports. Older approved or reimbursed reports must be exported manually if they weren’t synced before enabling auto-sync.
-

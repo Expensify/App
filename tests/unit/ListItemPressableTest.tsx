@@ -1,14 +1,22 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import {useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import useHover from '@hooks/useHover';
 
 import CONST from '@src/CONST';
 
+import {View} from 'react-native';
+
 jest.mock('@hooks/useHover', () => jest.fn());
 
 const mockedUseHover = jest.mocked(useHover);
+
+function HoverProbe() {
+    const isHovered = useListItemHovered();
+    return <View testID={`hovered-${isHovered}`} />;
+}
 
 describe('ListItemPressable', () => {
     beforeEach(() => {
@@ -119,5 +127,53 @@ describe('ListItemPressable', () => {
             />,
         );
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
+    });
+
+    it.each([
+        ['a checkbox row presses itself', CONST.ROLE.CHECKBOX, 1],
+        ['an option row leaves it to the list', undefined, 0],
+    ])('on Enter while the list owns the key, %s', (_case, accessibilityRole, expectedSelections) => {
+        // Given a row in a list whose Enter shortcut stands aside while a checkbox is focused
+        const onSelectRow = jest.fn();
+        render(
+            <ListItemComposed
+                item={{keyForList: '1', text: 'Item text'}}
+                accessibilityRole={accessibilityRole}
+                shouldPreventEnterKeySubmit
+                onSelectRow={onSelectRow}
+                shouldShowTooltip={false}
+                isFocused
+            />,
+        );
+
+        // When Enter presses the focused row
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`), {key: CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey});
+
+        // Then only the checkbox row selects itself, so an option row is not selected twice with the list's shortcut
+        expect(onSelectRow).toHaveBeenCalledTimes(expectedSelections);
+    });
+
+    it.each([
+        [false, true],
+        [true, false],
+    ])('should report hover=%s to children through ListItemHoverContext when shouldDisableHoverStyle=%s', (expectedHovered, shouldDisableHoverStyle) => {
+        // Given the pointer is over the row
+        mockedUseHover.mockReturnValue({hovered: true, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+
+        // When the row is rendered with or without hover styling disabled
+        render(
+            <ListItemComposed
+                item={{keyForList: '1'}}
+                onSelectRow={() => {}}
+                shouldShowTooltip={false}
+                isFocused={false}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+            >
+                <HoverProbe />
+            </ListItemComposed>,
+        );
+
+        // Then children only see the hover when hover styling is enabled
+        expect(screen.getByTestId(`hovered-${expectedHovered}`)).toBeVisible();
     });
 });

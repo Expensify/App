@@ -1,5 +1,6 @@
 import {addGpsPoints, setStartWaypointAddress} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, coordinatesToString, getGpsPoints, getTotalGpsTripPointsInLastSegment} from '@libs/GPSDraftDetailsUtils';
+import isIgnorableLocationTaskError from '@libs/isIgnorableLocationTaskError';
 
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 
@@ -24,15 +25,21 @@ function getGpsDraftDetails(): Promise<OnyxEntry<GpsDraftDetails>> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.GPS_DRAFT_DETAILS,
             callback: (gpsDraftDetails: OnyxEntry<GpsDraftDetails>) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(gpsDraftDetails);
             },
         });
     });
 }
 
-defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK_NAME, async ({data, error}) => {
+defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK_NAME, async (body) => {
+    const {data, error} = body;
+
     if (error) {
+        if (isIgnorableLocationTaskError(error)) {
+            return;
+        }
+
         console.error('[GPS distance request] Long-running task error: ', {error, data});
         return;
     }

@@ -2,18 +2,21 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {GestureResponderEvent} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 type TaxValuePickerProps = {
@@ -36,6 +39,7 @@ type TaxValuePickerProps = {
 };
 
 function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, onPress}: TaxValuePickerProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const previousValue = usePrevious(value);
 
@@ -52,7 +56,10 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
     };
 
     return (
-        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handlePress)}>
+        <MenuItem.Root
+            onPress={callIfAuthenticated(handlePress, session)}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.CREATE_VALUE}
+        >
             <MenuItemField.Row
                 name={translate('workspace.taxes.value')}
                 value={value ? getTaxValueWithPercentage(value) : ''}

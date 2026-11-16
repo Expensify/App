@@ -8,8 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {getStableReportSelector} from '@selectors/Report';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,31 +39,39 @@ type ReportActionItemThreadProps = {
 
     /** Whether the thread item / message is active */
     isActive?: boolean;
+
+    /** Account IDs of agents (e.g. Concierge) still processing a reply in the thread, if any */
+    processingAgentIDs?: number[];
 };
 
-function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive}: ReportActionItemThreadProps) {
+function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive, processingAgentIDs}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {selector: getStableReportSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: getStableReportSelector});
     const personalDetails = usePersonalDetails();
 
-    const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
-    const accountIDs =
-        reportAction.childOldestFourAccountIDs
-            ?.split(',')
-            .map((accountID) => Number(accountID))
-            .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
+    const isAgentProcessingInThread = !!processingAgentIDs?.length;
+
+    // While an agent is still replying, the server can report zero replies, so count the in-progress reply
+    const numberOfReplies = isAgentProcessingInThread ? Math.max(reportAction.childVisibleActionCount ?? 0, 1) : (reportAction.childVisibleActionCount ?? 0);
+    // A thread with no replies yet has an empty `childOldestFourAccountIDs`, which must give an empty list so the processing agents are shown
+    const childAccountIDs = (reportAction.childOldestFourAccountIDs ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map((accountID) => Number(accountID))
+        .filter((accountID) => !Number.isNaN(accountID) && accountID !== CONST.DEFAULT_NUMBER_ID);
+    const accountIDs = childAccountIDs.length === 0 && processingAgentIDs ? processingAgentIDs : childAccountIDs;
     const mostRecentReply = `${reportAction.childLastVisibleActionCreated}`;
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
-    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
+    const timeStamp = reportAction.childLastVisibleActionCreated ? datetimeToCalendarTime(mostRecentReply, false) : '';
     const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (
@@ -69,6 +79,10 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
+                        if (isCreatedSupportTicketReportAction(reportAction)) {
+                            navigateToSupportTicket(childReport?.reportID ?? reportAction.childReportID);
+                            return;
+                        }
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}

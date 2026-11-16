@@ -4,7 +4,11 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 
 import CONST from '@src/CONST';
 
+import type {RefObject} from 'react';
+
 import {useEffect, useRef, useState} from 'react';
+
+import useRowFocusSync from './useRowFocusSync';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 
@@ -20,6 +24,15 @@ type UseSelectionListKeyboardFocusParams = {
     debouncedScrollToIndex: ScrollToIndex;
     announceProgrammaticScroll: () => void;
     setShouldDisableHoverStyle: (shouldDisableHoverStyle: boolean) => void;
+
+    /** Whether ArrowUp from the first row moves to index -1 (the search input) instead of wrapping to the last row */
+    shouldAllowArrowUpToSearchInput?: boolean;
+
+    /** Called when ArrowUp leaves the first row for the search input, so DOM focus can follow */
+    onArrowUpToSearchInput?: () => void;
+
+    /** The list's outer element, so the highlight can follow the keyboard focus of its rows */
+    containerRef: RefObject<unknown>;
 };
 
 type UseSelectionListKeyboardFocusResult = {
@@ -42,6 +55,9 @@ function useSelectionListKeyboardFocus({
     debouncedScrollToIndex,
     announceProgrammaticScroll,
     setShouldDisableHoverStyle,
+    shouldAllowArrowUpToSearchInput = false,
+    onArrowUpToSearchInput,
+    containerRef,
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
@@ -72,6 +88,11 @@ function useSelectionListKeyboardFocus({
         disabledIndexes,
         isActive,
         onFocusedIndexChange: (index, shouldScrollHint) => {
+            // Only an arrow-key move sets shouldScrollHint, so a press on the search input (which already holds focus) is skipped
+            if (shouldAllowArrowUpToSearchInput && shouldScrollHint && index < 0) {
+                onArrowUpToSearchInput?.();
+            }
+
             if (!shouldScrollHint || !shouldScrollToFocusedIndex) {
                 return;
             }
@@ -80,11 +101,15 @@ function useSelectionListKeyboardFocus({
         },
         setHasKeyBeenPressed,
         isFocused,
+        // Negative indexes let ArrowUp leave the first row (even past a disabled section header at index 0) while ArrowDown still wraps
+        allowNegativeIndexes: shouldAllowArrowUpToSearchInput,
         onArrowUpDownCallback: () => {
             setShouldDisableHoverStyle(true);
             announceProgrammaticScroll();
         },
     });
+
+    useRowFocusSync({containerRef, showKeyboardHighlight: setHasKeyBeenPressed, setFocusedIndex});
 
     return {
         focusedIndex,

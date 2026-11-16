@@ -15,6 +15,7 @@ import type {ReactNode} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
@@ -121,7 +122,15 @@ const mockCompleteSkippedMarkAsRead = jest.fn();
 const mockOnScrolledOverThresholdChange = jest.fn();
 
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function Wrapper({children}: {children: ReactNode}) {
@@ -483,11 +492,13 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the list follows the user's own message, the delay giving the item time to land in the data
+            // Then the list follows the user's own message, the delay giving the item time to land in the data, and the
+            // pill is dismissed because the list is heading to the newest message
             expect(mockScrollToIndex).toHaveBeenCalledWith(LAST_ITEM_INDEX, {animated: false, viewPosition: 1});
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
         });
 
-        it('should not move the list when someone else sends a comment', async () => {
+        it('should not move the list or hide the pill when someone else sends a comment', async () => {
             // Given a list scrolled away from the bottom
             const {result} = await renderScroll();
             applyLayoutAndScroll(result, BOTTOM_OFFSET_AT_TOP);
@@ -498,9 +509,9 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the reader's position is left alone, and only the pill is dismissed
+            // Then the reader's position is left alone and the pill stays, so the reader can still see a new message arrived
             expect(mockScrollToIndex).not.toHaveBeenCalled();
-            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
         it('should not move the list for an own action that is not a comment', async () => {
@@ -514,8 +525,9 @@ describe('useMoneyRequestReportScroll', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            // Then the list does not jump, because expense rows scroll through their own flow
+            // Then the list does not jump and the pill stays, because expense rows scroll through their own flow
             expect(mockScrollToIndex).not.toHaveBeenCalled();
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
         it('should jump when a comment the user sent lands after the event was handled', async () => {

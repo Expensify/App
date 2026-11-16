@@ -39,11 +39,11 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
     shouldPreventAutoScrollOnSelect?: boolean;
 
-    /** Whether to wrap long text in rows */
-    isRowMultilineSupported?: boolean;
-
-    /** Number of lines to show for title text when multiline is supported */
-    titleNumberOfLines?: number;
+    /**
+     * Whether ArrowUp from the first row, or pressing the search input, clears the focused row so focus returns to the search input.
+     * With no focused row, plain Enter in the search input reaches the confirm button instead of toggling a row.
+     */
+    shouldAllowArrowUpToSearchInput?: boolean;
 
     /**
      * Passed straight to the underlying list. Defaults to `always`, which a list whose own text input drives its

@@ -17,12 +17,16 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils';
 
+import FontUtils from '@styles/utils/FontUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function DynamicContactMethodsPage() {
@@ -37,9 +41,9 @@ function DynamicContactMethodsPage() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
+    const options = getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email);
 
-    const addNewContactMethod = useCallback(() => {
+    const addNewContactMethod = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -54,7 +58,7 @@ function DynamicContactMethodsPage() {
             return;
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path));
-    }, [isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
+    };
 
     return (
         <ScreenWrapper
@@ -76,20 +80,31 @@ function DynamicContactMethodsPage() {
                                 pendingAction={option.pendingAction}
                                 key={option.partnerUserID}
                             >
-                                <MenuItem
-                                    title={option.menuItemTitle}
-                                    description={option.description}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID)))}
-                                    brickRoadIndicator={option.indicator}
-                                    shouldShowBasicTitle
-                                    shouldShowRightIcon
-                                    disabled={!!option.pendingAction}
-                                />
+                                <MenuItem.Root
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_ROW}
+                                    onPress={callIfAuthenticated(
+                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID))),
+                                        session,
+                                    )}
+                                    isDisabled={!!option.pendingAction}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title style={FontUtils.fontFamily.platform.EXP_NEUE}>{option.menuItemTitle}</MenuItem.Title>
+                                            {!!option.description && <MenuItem.Description>{option.description}</MenuItem.Description>}
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
+                                            {!!option.indicator && <MenuItem.BrickRoadIndicator status={option.indicator} />}
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             </OfflineWithFeedback>
                         ),
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.NEW_CONTACT_METHOD}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={addNewContactMethod}

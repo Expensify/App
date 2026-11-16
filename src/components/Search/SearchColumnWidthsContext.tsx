@@ -1,3 +1,5 @@
+import {getColumnWidthValue} from '@components/Table/columnResize/columnWidthExpressions';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
@@ -32,7 +34,13 @@ type SearchColumnSizingState = {
      * column short of the heading above it.
      */
     columnOptions: GetReportTableColumnStylesParams;
+
+    /** Resolved width of each resizable column. Only set while resizing is on, and only for columns with a draggable edge. */
+    resizableColumnWidths?: Partial<Record<SearchColumnType, number>>;
 };
+
+/** Holds a column at the width set beside it, so it neither grows into spare room nor shrinks. */
+const FIXED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
 
 /**
  * Defaults to sizing nothing, because the components that read this are shared well beyond the Search table: the same
@@ -41,8 +49,8 @@ type SearchColumnSizingState = {
  */
 const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
 
-function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, children}: React.PropsWithChildren<SearchColumnSizingState>) {
-    return <SearchColumnWidthsContext.Provider value={{columnWidths, sizedColumns, columnOptions}}>{children}</SearchColumnWidthsContext.Provider>;
+function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, resizableColumnWidths, children}: React.PropsWithChildren<SearchColumnSizingState>) {
+    return <SearchColumnWidthsContext.Provider value={{columnWidths, sizedColumns, columnOptions, resizableColumnWidths}}>{children}</SearchColumnWidthsContext.Provider>;
 }
 
 /**
@@ -53,7 +61,7 @@ function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, 
  */
 function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetReportTableColumnStylesParams) => ViewStyle {
     const StyleUtils = useStyleUtils();
-    const {columnWidths, sizedColumns, columnOptions} = useContext(SearchColumnWidthsContext);
+    const {columnWidths, sizedColumns, columnOptions, resizableColumnWidths} = useContext(SearchColumnWidthsContext);
 
     const isSizingColumns = Object.keys(columnWidths).length > 0;
 
@@ -68,6 +76,16 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // set leaves a row on one answer and its heading on the other, which slides every column after it sideways.
         const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, isSizingColumns && sizedColumns.has(columnName) ? {...columnOptions, ...options} : options);
         const sizing = columnWidths[columnName];
+        const resizableWidth = sizedColumns.has(columnName) ? resizableColumnWidths?.[columnName] : undefined;
+
+        // A drag rewrites this custom property on the scope element, so the header and rows repaint without a render.
+        // Fixed rather than grown, because the header row has no trailing arrow and would end up wider than the rows.
+        // The row still fills the table, since the last free-text column's width already includes the leftover room.
+        if (resizableWidth !== undefined) {
+            const widthValue = getColumnWidthValue(columnName, resizableWidth);
+
+            return {...columnStyles, ...FIXED_FLEX_STYLE, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
+        }
 
         if (!sizing) {
             // `flex: 1` expands to a zero basis, which discards any width declared beside it: the column starts from
@@ -79,15 +97,15 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // Only for a column of the sized table itself. A column belonging to some inner table rendered below it was
             // never part of what was measured, so pinning it would hold it to a width chosen for a different layout.
             if (isSizingColumns && sizedColumns.has(columnName) && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
-                return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: columnStyles.width, minWidth: columnStyles.width};
+                return {...columnStyles, ...FIXED_FLEX_STYLE, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 
             return columnStyles;
         }
 
-        // A hugging column is sized to its content and pinned there, the same way a column with a declared width is.
+        // A hugging column is sized to its content and held there, the same way a column with a declared width is.
         if (sizing.shouldHug) {
-            return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
+            return {...columnStyles, ...FIXED_FLEX_STYLE, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
         }
 
         // The resolved width is the column's starting size, not its final one: it still grows and shrinks from there.

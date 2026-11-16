@@ -5,11 +5,13 @@
  */
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
@@ -24,6 +26,9 @@ type HomeTaskGroupProps = {
     /** Rows in the order they should render (urgent/error rows first) */
     rows: React.ReactNode[];
 
+    /** Label for Sentry tracking of the expand toggle, from `CONST.SENTRY_LABEL` */
+    expandToggleSentryLabel: SentryLabel;
+
     /** Rendered below the rows, for the loading skeleton and the empty state */
     children?: React.ReactNode;
 
@@ -31,10 +36,11 @@ type HomeTaskGroupProps = {
     reducedTopGap?: boolean;
 };
 
-function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskGroupProps) {
+function HomeTaskGroup({title, rows, expandToggleSentryLabel, children, reducedTopGap = false}: HomeTaskGroupProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Collapse again whenever the user leaves and returns to Home.
@@ -49,7 +55,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
 
     return (
         <>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
+            <View style={[cardPaddingHorizontal, reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
                 <Text style={styles.textLabelSupporting}>{title}</Text>
             </View>
             {rows.length > 0 && (
@@ -60,6 +66,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
                             isExpanded={isExpanded}
                             onPress={() => setIsExpanded((prev) => !prev)}
                             collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                            sentryLabel={expandToggleSentryLabel}
                         />
                     )}
                 </View>

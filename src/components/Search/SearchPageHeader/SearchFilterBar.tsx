@@ -63,7 +63,8 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress, onLandscapePress}: DropdownProps) {
-    // getDisplayValue/mapFiltersFormToLabelValueList serializes card arrays with join(', '), so this consumer must retain the matching split(', ').
+    // SearchUIUtils.getDisplayValue joins card IDs with ', ', so decode that display value before resolving card names.
+    // Feed and tax scalars each represent one ID and only need wrapping.
     const cardValue = useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
     return (
         <DropdownButton
@@ -121,6 +122,7 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePre
 
 const FILTER_COMPONENT_MAP: Partial<Record<SearchFilter['key'], React.ComponentType<DropdownProps>>> = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: UserDropdown,

@@ -11,6 +11,9 @@ type TextWithTooltipProps = ForwardedFSClassProps & {
     numberOfLines?: number;
 
     testID?: string;
+
+    /** Whether this value should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
 export default TextWithTooltipProps;

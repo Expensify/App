@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
@@ -46,7 +47,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ShareButton from './ShareButton';
@@ -60,7 +62,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
@@ -81,59 +83,48 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    // State drives the loading UI; the ref blocks repeated share calls before React re-renders.
+    const [isSharing, setIsSharing] = useState(false);
+    const isSharingRef = useRef(false);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
+    const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const currentUserAccountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const displayReport = useMemo(
-        () =>
-            getReportDisplayOption({
-                dateFnsLocale,
-                convertToDisplayString,
-                report,
-                unknownUserDetails,
-                personalDetails,
-                privateIsArchived,
-                policy,
-                conciergeReportID,
-                translate,
-                currentUserAccountID,
-                reportAttributesDerived,
-                rules,
-            }),
-        [
-            report,
-            unknownUserDetails,
-            personalDetails,
-            privateIsArchived,
-            policy,
-            conciergeReportID,
-            translate,
-            currentUserAccountID,
-            reportAttributesDerived,
-            dateFnsLocale,
-            convertToDisplayString,
-            rules,
-        ],
-    );
+    const displayReport = getReportDisplayOption({
+        dateFnsLocale,
+        convertToDisplayString,
+        report,
+        unknownUserDetails,
+        personalDetails,
+        privateIsArchived,
+        policy,
+        conciergeReportID,
+        translate,
+        currentUserAccountID,
+        reportAttributesDerived,
+        rules,
+        formatPhoneNumber,
+        pendingDeleteMemberAccountIDs,
+    });
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
 
     // Only get file name for actual files to avoid URI decoding errors on text content
-    const validateFileName = useMemo(() => {
-        if (!shouldShowAttachment) {
-            return '';
-        }
-        return shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
-    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
+    let validateFileName;
+    if (!shouldShowAttachment) {
+        validateFileName = '';
+    } else {
+        validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }
 
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(() => {
+    const showAttachmentModalScreen = () => {
         reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>({
             source: fileSource,
             headerTitle: validateFileName,
@@ -141,7 +132,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             fallbackSource: icons.FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
+    };
 
     useShareFileSizeValidation(currentAttachment?.content, setErrorTitle, setErrorMessage, !errorTitle && shouldShowAttachment);
 
@@ -158,9 +149,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const handleShare = () => {
-        if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
+        if (isSharingRef.current || !currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
+
+        // Block repeat taps immediately and keep the lock until the share page is dismissed.
+        isSharingRef.current = true;
+        setIsSharing(true);
 
         if (isTextShared) {
             addComment({
@@ -191,6 +186,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 ?.filter((u) => u.accountID !== personalDetail.accountID)
                                 .map((u) => ({
                                     login: u.login ?? '',
+                                    accountIDForOptimisticData: u.accountID,
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,
@@ -218,7 +214,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
                 Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
-            () => {},
+            () => {
+                isSharingRef.current = false;
+                setIsSharing(false);
+            },
             fileType,
         );
     };
@@ -314,7 +313,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     </PressableWithoutFeedback>
                 </View>
             </ScrollView>
-            <ShareButton onPress={handleShare} />
+            <ShareButton
+                onPress={handleShare}
+                isLoading={isSharing}
+            />
         </ScreenWrapper>
     );
 }

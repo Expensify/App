@@ -36,7 +36,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
                     expect((value ?? '') >= before).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -58,7 +58,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.SESSION,
                 callback: (value) => {
                     expect(value?.authToken).toBe('preserved-auth-token');
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -69,28 +69,29 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.NVP_PRIORITY_MODE,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
         });
     });
 
-    it('applies extraSeeds atomically and keeps seeded keys after the clear', async () => {
+    it('marks the app as loading by default and keeps the loading state after the clear', async () => {
+        // Given a fully loaded app before an Onyx reset
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
-        await clearOnyxAndSeedFullReconnect([], {
-            [ONYXKEYS.IS_LOADING_APP]: true,
-        });
+        // When Onyx is reset without an explicit loading-state override
+        await clearOnyxAndSeedFullReconnect([]);
         await waitForBatchedUpdates();
 
+        // Then the app remains marked as loading until the next OpenApp response arrives
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.IS_LOADING_APP,
                 callback: (value) => {
                     expect(value).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -102,7 +103,28 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 callback: (value) => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
+                    resolve();
+                },
+            });
+        });
+    });
+
+    it('allows extraSeeds to override the default loading state', async () => {
+        // Given a reset that does not lead to another OpenApp call
+        // When the caller explicitly overrides the default loading state
+        await clearOnyxAndSeedFullReconnect([], {
+            [ONYXKEYS.IS_LOADING_APP]: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the caller-provided loading state survives the clear
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.IS_LOADING_APP,
+                callback: (value) => {
+                    expect(value).toBe(false);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -122,7 +144,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 callback: (value) => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -138,10 +160,8 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
         });
         await waitForBatchedUpdates();
 
-        // Preserve SESSION, seed IS_LOADING_APP, leave the rest to be cleared.
-        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION], {
-            [ONYXKEYS.IS_LOADING_APP]: true,
-        });
+        // Preserve SESSION and leave the rest to be cleared.
+        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION]);
         await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {
@@ -149,7 +169,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.NVP_PRIORITY_MODE,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -160,7 +180,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.HAS_LOADED_APP,
                 callback: (value) => {
                     expect(value).toBeUndefined();
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -171,7 +191,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.SESSION,
                 callback: (value) => {
                     expect(value?.authToken).toBe('preserved-auth-token');
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });
@@ -182,7 +202,7 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 key: ONYXKEYS.IS_LOADING_APP,
                 callback: (value) => {
                     expect(value).toBe(true);
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve();
                 },
             });

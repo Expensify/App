@@ -55,18 +55,23 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
     }
 }
 
-function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    let navigationIOUType: IOUType = iouType;
+/**
+ * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. This resolves an
+ * alias to the type NewDot actually renders before building a route with it.
+ */
+function getNonDeprecatedIOUType(iouType: IOUType): IOUType {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            navigationIOUType = CONST.IOU.TYPE.SUBMIT;
-            break;
+            return CONST.IOU.TYPE.SUBMIT;
         case CONST.IOU.TYPE.SEND:
-            navigationIOUType = CONST.IOU.TYPE.PAY;
-            break;
+            return CONST.IOU.TYPE.PAY;
         default:
-            break;
+            return iouType;
     }
+}
+
+function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    const navigationIOUType = getNonDeprecatedIOUType(iouType);
 
     // The base is explicit because the picker can be opened from a create tab, the Inbox or Search drop zone.
     Navigation.navigate(
@@ -309,15 +314,21 @@ function isValidMoneyRequestType(iouType: string): boolean {
  * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
  * @param hasMultipleTagLists - whether the policy has multiple levels tag
+ * @param tagListCount - the policy's current number of tag lists. When positive, values for tag lists the policy no longer has are dropped.
  * @returns
  */
-function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean): string {
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number, hasMultipleTagLists: boolean, tagListCount?: number): string {
     if (!hasMultipleTagLists) {
         return tag;
     }
 
     const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // A removed tag list leaves its value in the stored string, which keeps the "Tag no longer valid" violation on the expense
+    if (tagListCount && tagListCount > 0 && tagArray.length > tagListCount) {
+        tagArray.length = tagListCount;
+    }
 
     // Fill any sparse slots created when tagIndex > tagArray.length
     for (let i = 0; i < tagArray.length; i++) {
@@ -408,16 +419,7 @@ function navigateToConfirmationPage(
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
             break;
         case CONST.IOU.TYPE.CREATE:
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    reportIDParam || reportID,
-                    backToReport,
-                ),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportIDParam || reportID, backToReport));
             break;
         case CONST.IOU.TYPE.SEND:
             if (fromManualDistanceRequest) {
@@ -432,7 +434,6 @@ function navigateToConfirmationPage(
                     CONST.IOU.ACTION.CREATE,
                     shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
                     transactionID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     reportIDParam || reportID,
                     backToReport,
                 ),
@@ -449,6 +450,27 @@ function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction
         return undefined;
     }
     return getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID;
+}
+
+/**
+ * Resolve the `reimbursable` value a brand new expense should be created with.
+ *
+ * `defaultReimbursable` is optional on the policy blob and an absent value means "reimbursable",
+ * which is what the backend assumes too. The policy default, locked or not, only applies when the policy
+ * is where the expense goes (its policy expense chat, or a track expense). `policy` can be an unrelated
+ * workspace - for example the policy for moving expenses when an unreported expense is submitted to a
+ * P2P participant - and that workspace's rules must not leak into the P2P expense.
+ */
+function getDefaultReimbursableForPolicy({
+    policy,
+    isPolicyExpenseChat,
+    isCreatingTrackExpense,
+}: {
+    policy: OnyxEntry<Policy>;
+    isPolicyExpenseChat: boolean;
+    isCreatingTrackExpense: boolean;
+}): boolean {
+    return (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
 }
 
 function calculateDefaultReimbursable({
@@ -468,7 +490,7 @@ function calculateDefaultReimbursable({
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
     const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-    return (isPolicyExpenseChat && isGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+    return getDefaultReimbursableForPolicy({policy: reportPolicy, isPolicyExpenseChat, isCreatingTrackExpense});
 }
 
 function getInitialPerDiemTargetReport(
@@ -625,6 +647,15 @@ function isSelfDMParticipant(participant: Participant | undefined, currentUserAc
 }
 
 /**
+ * Whether the expense is addressed 1:1 to another user (a P2P IOU). P2P chats don't support negative amounts, so the
+ * amount input and the confirmation validation both rely on this. Unlike `isParticipantP2P`, it also excludes a raw
+ * current-user participant (self-DM seeded before the flag is set) and an invoice sender.
+ */
+function isP2PRecipient(participant: Participant | undefined, currentUserAccountID: number | undefined): boolean {
+    return isParticipantP2P(participant) && !isSelfDMParticipant(participant, currentUserAccountID);
+}
+
+/**
  * An expense targets the current user's self-DM (and therefore must be tracked rather than requested) when it has a
  * single selected participant that resolves to the current user's self-DM. SPLIT/INVOICE/PAY are never self-DM
  * destinations. This is the single source of truth shared by the confirmation step (to resolve the destination report)
@@ -670,6 +701,7 @@ export {
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
+    getNonDeprecatedIOUType,
     insertTagIntoTransactionTagsString,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
@@ -682,10 +714,12 @@ export {
     shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
+    getDefaultReimbursableForPolicy,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     getReusableP2PReportID,
     isParticipantP2P,
+    isP2PRecipient,
     isSelfDMSoleDestination,
     isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,

@@ -2,14 +2,15 @@
 title: Use Agent Templates
 description: Learn what each built-in agent template does, how it works, and when to use it.
 keywords: [agent templates, agents, TipMaster, Translator Tess, Splitter Sam, Description Dan, AI agent, receipt translator, card splitter, automate description]
-internalScope: Audience is New Expensify members creating AI agents. Covers the built-in agent templates available when creating a new agent and what each one does. Does not cover creating custom agents, editing agent instructions, Agent rules, or RuleBot.
+internalScope: Audience is New Expensify members creating AI agents. Covers the built-in agent templates available when creating a new agent and what each one does. Does not cover creating custom agents, editing agent instructions, agent rules, or RuleBot.
 contentType: topic
 platform: New Expensify
+order: 6
 ---
 
 # Use Agent Templates
 
-Agent templates are prebuilt personal Agents with instructions already written for common tasks. Instead of creating an agent from scratch, you can start with a template and customize its instructions at any time.
+Agent templates are prebuilt personal agents with instructions already written for common tasks. Instead of creating an agent from scratch, you can start with a template and customize its instructions at any time.
 
 Expensify includes a growing library of built-in templates, each designed for a specific workflow. This article explains what each template does and when you might want to use it.
 
@@ -57,7 +58,7 @@ HotelSplitBot is useful for itemizing hotel stays and categorizing room charges 
 
 ---
 
-## What Description Dan Does 
+## What Description Dan does
 
 Description Dan automatically adds descriptions to expenses based on descriptions you've previously used for the same merchant.
 
@@ -69,5 +70,6 @@ Description Dan is useful for recurring purchases where you typically use the sa
 
 ## Related articles
 
-- [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents)
-- [Write agent rules](/articles/new-expensify/ai-agents/How-to-Write-Agent-Rules)
+- [Understand how agents work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work)
+- [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents)
+- [Write agent instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions)
