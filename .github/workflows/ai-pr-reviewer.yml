@@ -1,0 +1,50 @@
+name: Expensify AI reviewer
+
+permissions:
+  contents: read
+  pull-requests: write
+
+# Runs on every push without waiting for the other AI reviewers, and keeps its verdict and walkthrough
+# in a collapsed block at the bottom of the PR description. See
+# https://github.com/Expensify/GitHub-Actions/tree/main/.github/actions/ai-pr-reviewer
+on:
+  pull_request_target:
+    types: [opened, ready_for_review, synchronize]
+
+jobs:
+  authorize:
+    if: github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert') && github.event.pull_request.user.login != 'OSBotify'
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    outputs:
+      IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: Check contributor authorization
+        id: gate
+        uses: ./.github/actions/javascript/isAuthorizedContributor
+        with:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTOR: ${{ github.event.pull_request.user.login }}
+          ACTOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          GITHUB_TOKEN: ${{ github.token }}
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+  review:
+    needs: authorize
+    if: needs.authorize.outputs.IS_AUTHORIZED == 'true'
+    # A new push cancels the review of the previous commit. The next run picks up from the last review that finished.
+    concurrency:
+      group: ai-pr-reviewer-${{ github.event.pull_request.html_url }}
+      cancel-in-progress: true
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    timeout-minutes: 45
+    steps:
+      - name: Review the PR
+        uses: Expensify/GitHub-Actions/.github/actions/ai-pr-reviewer@c071c3d4bbfe1134e3e173d212f0c12f06356bad
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          read_token: ${{ secrets.OS_BOTIFY_TOKEN }}
