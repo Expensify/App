@@ -36,7 +36,7 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
     const submitterItems: RuleConditionItem[] = members.map(({accountID, details}) => ({
         value: String(accountID),
         text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
-        alternateText: details.login,
+        alternateText: formatPhoneNumber(details.login ?? ''),
     }));
 
     return (

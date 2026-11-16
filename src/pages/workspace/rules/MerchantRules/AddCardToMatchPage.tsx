@@ -1,12 +1,14 @@
 import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import useLocalize from '@hooks/useLocalize';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyCards from '@hooks/usePolicyCards';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {getCardDescription} from '@libs/CardUtils';
+import {getCardDescriptionForSearchTable} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -24,16 +26,29 @@ type AddCardToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {policyID, ruleID} = route.params;
     const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const policy = usePolicy(policyID);
     const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
     const {cards: cardNames} = useExpenseDefaultConditionNames(policy);
+    const [allPersonalDetails] = useAllPersonalDetails();
 
     // Stored as card IDs, which is what the `cardID` filter carries.
-    const cardItems: RuleConditionItem[] = policyCards.map((card) => ({
-        value: String(card.cardID),
-        text: getCardDescription(card, translate),
-    }));
+    const cardItems: RuleConditionItem[] = policyCards.map((card) => {
+        // Two cards of the same feed read alike until the cardholder names them apart, which is how the spend
+        // rules name a card too.
+        const cardholderName = temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: allPersonalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            defaultValue: '',
+            shouldFallbackToHidden: false,
+            translate,
+            formatPhoneNumber,
+        });
+
+        return {
+            value: String(card.cardID),
+            text: getCardDescriptionForSearchTable(card, translate, cardholderName || undefined),
+        };
+    });
 
     return (
         <RuleConditionMultiSelectPage
