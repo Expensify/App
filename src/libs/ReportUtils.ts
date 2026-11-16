@@ -164,6 +164,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
+    getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasReadOnlyAllReportsAccess,
     hasDynamicExternalWorkflow,
@@ -15582,6 +15583,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.POSTED,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -15652,6 +15654,8 @@ function getTransactionSortValue(
             return getPostedDate(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return getVendorDisplayName(policy, transaction.comment?.vendor);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return getCategory(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
