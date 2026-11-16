@@ -5,13 +5,16 @@ import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isRecord} from '@libs/ObjectUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
-import type {ValueOf} from 'type-fest';
+import type {WebViewMessageEvent} from 'react-native-webview';
+import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import noop from 'lodash/noop';
 import React, {useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -20,9 +23,19 @@ import type {WalletStatementProps} from './types';
 
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
-type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
-
-type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
+/** Opaque URLs must not compare as trusted origins, even when they embed an HTTPS URL. */
+function getWebOrigin(url: string): string | undefined {
+    try {
+        const parsedURL = new URL(url);
+        if (parsedURL.protocol !== 'https:' && parsedURL.protocol !== 'http:') {
+            return undefined;
+        }
+        return parsedURL.origin;
+    } catch {
+        // Invalid URLs are untrusted, not errors that should interrupt the statement.
+        return undefined;
+    }
+}
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const styles = useThemeStyles();
@@ -38,6 +51,12 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const webViewRef = useRef<WebView>(null);
 
     const authToken = session?.authToken ?? null;
+    const statementPageOrigin = getWebOrigin(statementPageURL);
+
+    // Android does not call the navigation gate for the initial source.
+    if (!statementPageOrigin) {
+        return null;
+    }
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
@@ -45,17 +64,35 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         </View>
     );
 
-    const onMessage = (event: WebViewMessageEvent) => {
-        let parsedData: WebViewNavigationEvent | null = null;
+    const canLoadStatementPage = (request: ShouldStartLoadRequest) => getWebOrigin(request.url) === statementPageOrigin;
+
+    const navigateFromStatement = (event: WebViewMessageEvent) => {
+        if (!webViewRef.current || getWebOrigin(event.nativeEvent.url) !== statementPageOrigin) {
+            return;
+        }
+
+        let parsedData: unknown;
         try {
-            parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
-        } catch (error) {
-            console.error('Error parsing message from WebView:', error);
+            parsedData = JSON.parse(event.nativeEvent.data);
+        } catch {
+            // Page messages are untrusted input and may contain sensitive data, so do not log parse errors.
             return;
         }
-        if (!webViewRef.current || !parsedData) {
+
+        if (!isRecord(parsedData) || !('type' in parsedData)) {
             return;
         }
+
+        const type = parsedData.type;
+        if (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
+            return;
+        }
+
+        const url = 'url' in parsedData ? parsedData.url : undefined;
+        if (type === CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && (typeof url !== 'string' || !url)) {
+            return;
+        }
+
         handleWalletStatementNavigation(
             conciergeReportID,
             introSelected,
@@ -64,15 +101,19 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
             hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             delegateAccountID,
-            parsedData.type,
-            parsedData.url,
+            type,
+            typeof url === 'string' ? url : undefined,
         );
     };
 
     return (
         <WebView
             ref={webViewRef}
-            originWhitelist={['https://*']}
+            // All URLs must reach our gate; WebView otherwise opens rejected origins in another app.
+            originWhitelist={['*']}
+            onShouldStartLoadWithRequest={canLoadStatementPage}
+            // Popup requests can bypass the navigation gate and are not used by the statement.
+            onOpenWindow={noop}
             source={{
                 uri: statementPageURL,
                 headers: {
@@ -82,7 +123,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
             incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
             startInLoadingState
             renderLoading={renderLoading}
-            onMessage={onMessage}
+            onMessage={navigateFromStatement}
         />
     );
 }
