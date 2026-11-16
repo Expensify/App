@@ -250,6 +250,9 @@ const sentryLabelRestrictedSyntax = [
 ];
 
 export default await buildOxlintConfig({
+    // Runs these four preset rules as oxlint's own nursery versions: no-undef, no-unreachable-loop, no-restricted-exports and
+    // react/require-render-return. Nursery rules can change in an oxlint upgrade. Without this option they run from ESLint's
+    // code instead. import/export and import/named use oxlint's version either way.
     withNursery: true,
     presets: ['browser', 'react', 'expensify', 'typescript', 'scripts', 'jest', 'prettier'],
     transformRule: (ruleID, entry) => {
