@@ -49,15 +49,22 @@ describe.each([
     ['web', useWebDiscardChangesConfirmation],
     ['native', useNativeDiscardChangesConfirmation],
 ])('Discarding changes on a step stacked in the RHP (%s)', (_, useDiscardChangesConfirmation) => {
+    /** A create expense step with unsaved changes, which closes the whole RHP on Discard */
     function DirtyStep() {
+        useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldCloseRHPOnDiscard: true});
+        return null;
+    }
+
+    /** A page with unsaved changes outside the create expense flow, such as the agent avatar page */
+    function DirtyPageOutsideCreateFlow() {
         useDiscardChangesConfirmation({getHasUnsavedChanges: () => true});
         return null;
     }
 
-    function renderDirtyStepOverFirstStep() {
+    function renderDirtyStepOverFirstStep(dirtyStep = DirtyStep) {
         renderMoneyRequestNavigation({
             openSteps: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION],
-            stepComponents: {[SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: DirtyStep},
+            stepComponents: {[SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: dirtyStep},
             stepParams: {action: CONST.IOU.ACTION.CREATE, iouType: CONST.IOU.TYPE.CREATE, transactionID: '1', reportID: '1'},
         });
     }
@@ -85,6 +92,20 @@ describe.each([
         // Then the whole RHP closes, as the click asked, instead of only the step on top. The web hook sends the navigation
         // again on the next animation frame, so wait for it.
         await waitFor(() => expect(getRootRouteNames()).toEqual([NAVIGATORS.TAB_NAVIGATOR]));
+    });
+
+    it('only closes a page outside the create expense flow when the user clicks outside the RHP and picks Discard', async () => {
+        // Given a page with unsaved changes outside the create expense flow, stacked on another page in the RHP
+        renderDirtyStepOverFirstStep(DirtyPageOutsideCreateFlow);
+
+        // When the user clicks outside the RHP and picks Discard
+        clickOutsideRHP();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+
+        // Then only that page closes and the RHP stays on the page below it, as before
+        await waitFor(() => expect(getMoneyRequestStepNames()).toEqual([SCREENS.MONEY_REQUEST.CREATE]));
+        expect(getRootRouteNames()).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
     });
 
     it('keeps the RHP and the step open when the user cancels', async () => {
