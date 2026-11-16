@@ -3870,7 +3870,7 @@ describe('SearchQueryUtils', () => {
     describe('isSearchQuerySavable', () => {
         it.each([
             ['type:expense reportID:0', undefined],
-            ['type:expense groupBy:violation', undefined],
+            ['type:expense-report groupBy:category', undefined],
             ['type:expense merchant:coffee', CONST.JSON_CODE.INVALID_SEARCH_QUERY],
         ])('returns false when the search is invalid (%s, %s)', (query, responseJsonCode) => {
             // Given a query rejected by client validation or by Auth
