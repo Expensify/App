@@ -563,6 +563,7 @@ function IOURequestStepConfirmationContent({
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
