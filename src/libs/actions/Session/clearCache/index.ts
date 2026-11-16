@@ -1,5 +1,7 @@
 import {clearAuthImagesCache} from '@hooks/useCachedImageSource';
 
+import {USER_MEDIA_CACHE_NAME} from '@libs/UserMediaCache';
+
 import type ClearCache from './types';
 
 const clearStorage: ClearCache = async () => {
@@ -7,10 +9,9 @@ const clearStorage: ClearCache = async () => {
 
     // Clear the service worker's user-media cache so receipts and attachments
     // from one user's session cannot be served to a subsequent user on the
-    // same browser (shared device / account switching). Must match the
-    // `cacheName` string in `web/service-worker.ts`.
+    // same browser (shared device / account switching).
     if (typeof caches !== 'undefined') {
-        await caches.delete('user-media');
+        await caches.delete(USER_MEDIA_CACHE_NAME);
     }
 };
 

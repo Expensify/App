@@ -2,9 +2,12 @@ import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
+import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
+import {unblockUserMedia} from '@libs/UserMediaCache';
 import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 import {AppRegistry} from 'react-native';
 
@@ -82,14 +85,24 @@ export default function () {
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
 
+    // On the host that serves both products, only New Expensify users get the worker, so Expensify Classic users never have one.
+    const canUseServiceWorker = !isSharedProductHost() || readExperienceCookie() === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+
     // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
-    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
+    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator && canUseServiceWorker) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}).catch((error) => {
-                // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
-                // eslint-disable-next-line no-console
-                console.warn('[SW] registration failed', error);
-            });
+            // Signing out of Classic or switching to it blocks saving media until the app starts again for a New Expensify user
+            unblockUserMedia()
+                .catch((error: unknown) => {
+                    // eslint-disable-next-line no-console
+                    console.warn('[SW] failed to unblock saved media', error);
+                })
+                .then(() => navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}))
+                .catch((error: unknown) => {
+                    // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
+                    // eslint-disable-next-line no-console
+                    console.warn('[SW] registration failed', error);
+                });
         });
     }
 }

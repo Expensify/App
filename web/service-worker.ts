@@ -1,8 +1,16 @@
 /**
  * Open the saved app immediately on ordinary visits, and fetch fresh HTML for required upgrades.
  * Keep the installed shell and assets available offline without unregistering the worker.
+ *
+ * On the host that serves both New Expensify and Expensify Classic, only paths that New Expensify alone serves open the saved app.
+ * Paths both products serve go to the network, and every other path is left to the browser, so Classic works as if the worker didn't exist.
  */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
+import EXPERIENCE_COOKIE from '@libs/ExperienceCookie/EXPERIENCE_COOKIE';
+import {APP_ONLY_NAVIGATION_PATHS, SHARED_NAVIGATION_PATHS, SIGN_OUT_NAVIGATION_PATHS} from '@libs/NavigationPaths';
+import {blockAndClearUserMedia, isUserMediaBlocked, USER_MEDIA_CACHE_NAME} from '@libs/UserMediaCache';
+
+import type {RouteHandlerCallbackOptions, WorkboxPlugin} from 'workbox-core/types';
 
 import {clientsClaim} from 'workbox-core';
 import {ExpirationPlugin} from 'workbox-expiration';
@@ -12,10 +20,24 @@ import {NetworkOnly, StaleWhileRevalidate} from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
+// Defined at build time by config/rsbuild/rsbuild.common.ts
+// eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle
+declare const __SHARED_PRODUCT_HOST__: string;
+
+const APP_SHELL_URL = '/index.html';
 const USER_MEDIA_MAX_ENTRIES = 200;
 const USER_MEDIA_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const UPGRADE_REDIRECT_MAX_AGE_MS = 60 * 1000;
 const upgradeRedirects = new Map<string, ReturnType<typeof setTimeout>>();
+
+// Files and internal tools never receive the app shell
+const NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/];
+
+// Expensify Classic serves its pages' scripts and images under these paths, matched without case like the experience router does
+const CLASSIC_ASSET_PATHS =
+    /^\/(?:api|apiassets|_support|_devportal|_tests|_tools|authentication|partners|mcp|oauth|openid|mobile|concierge|expensiworks|\.well-known|newjs|site|homepage|build|js|font|cdn|errors|m)(?:\/|$)/i;
+
+const isSharedProductHost = self.location.hostname === __SHARED_PRODUCT_HOST__;
 
 self.skipWaiting();
 clientsClaim();
@@ -34,56 +56,141 @@ const upgradeNavigationStrategy = new NetworkOnly({
                 return response;
             },
             // Use the installed shell, rather than caching new HTML whose assets may not yet be available offline.
-            handlerDidError: async () => matchPrecache('/index.html'),
+            handlerDidError: async () => matchPrecache(APP_SHELL_URL),
         },
     ],
 });
 
-// Upgrade requests must reach the network even when / or /index.html already has a precached response.
-registerRoute(
-    new NavigationRoute(
-        async (options) => {
-            const navigationEvent = options.event instanceof FetchEvent ? options.event : undefined;
-            const clientID = navigationEvent?.resultingClientId;
-            const redirectTimeout = clientID ? upgradeRedirects.get(clientID) : undefined;
-            if (redirectTimeout !== undefined && clientID) {
-                clearTimeout(redirectTimeout);
-                upgradeRedirects.delete(clientID);
-            }
-            const isUpgrade = options.url.searchParams.has(APP_UPDATE_QUERY_PARAM) || redirectTimeout !== undefined;
-            if (!isUpgrade) {
-                const cachedResponse = await matchPrecache('/index.html').catch((error: unknown) => {
-                    console.error('Failed to read the saved app; trying the network.', error);
-                    return undefined;
-                });
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-            }
+/**
+ * Only the experience cookie tells a New Expensify user from an Expensify Classic user. Browsers that can't read cookies in a worker
+ * keep opening the saved app, and a failed read counts as Classic, because the worker can't tell which product the user chose.
+ */
+async function isNewExpensifyUser(): Promise<boolean> {
+    const {cookieStore} = self as Partial<Pick<ServiceWorkerGlobalScope, 'cookieStore'>>;
+    if (!cookieStore) {
+        return true;
+    }
+    try {
+        const cookie = await cookieStore.get(EXPERIENCE_COOKIE.NAME);
+        return cookie?.value === EXPERIENCE_COOKIE.VALUES.NEW;
+    } catch (error) {
+        console.error('Failed to read the experience cookie; leaving the offline error to the browser.', error);
+        return false;
+    }
+}
 
-            const response = await upgradeNavigationStrategy.handle(options);
-            if (response.type === 'opaqueredirect' && clientID) {
-                // Redirects may drop the query marker, but keep the ID of the page being opened.
-                // Expire abandoned redirects, including those that leave this worker's scope entirely.
-                upgradeRedirects.set(
-                    clientID,
-                    setTimeout(() => upgradeRedirects.delete(clientID), UPGRADE_REDIRECT_MAX_AGE_MS),
-                );
-            }
-            return response;
+// Both products serve these paths, so every server response, including Expensify Classic's redirects and error pages, is shown as it is.
+// Offline, only a New Expensify user gets the saved app. Without a response, Workbox rethrows the network error and the browser shows its own offline page.
+const sharedNavigationStrategy = new NetworkOnly({
+    plugins: [
+        {
+            handlerDidError: async () => ((await isNewExpensifyUser()) ? matchPrecache(APP_SHELL_URL) : undefined),
         },
-        {denylist: [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/]},
-    ),
-);
+    ],
+});
 
+const signOutStrategy = new NetworkOnly({});
+
+function getResultingClientID(options: RouteHandlerCallbackOptions): string | undefined {
+    return options.event instanceof FetchEvent ? options.event.resultingClientId : undefined;
+}
+
+/**
+ * Upgrades must reach the network even when the path has a precached response. Redirects may drop the query marker,
+ * so a page opened by an upgrade redirect is an upgrade too, and that redirect is forgotten once it arrives.
+ */
+function isUpgradeNavigation(url: URL, clientID: string | undefined): boolean {
+    const redirectTimeout = clientID ? upgradeRedirects.get(clientID) : undefined;
+    if (redirectTimeout !== undefined && clientID) {
+        clearTimeout(redirectTimeout);
+        upgradeRedirects.delete(clientID);
+    }
+    return url.searchParams.has(APP_UPDATE_QUERY_PARAM) || redirectTimeout !== undefined;
+}
+
+async function openUpgradedApp(options: RouteHandlerCallbackOptions, clientID: string | undefined): Promise<Response> {
+    const response = await upgradeNavigationStrategy.handle(options);
+    if (response.type === 'opaqueredirect' && clientID) {
+        // Expire abandoned redirects, including those that leave this worker's scope entirely.
+        upgradeRedirects.set(
+            clientID,
+            setTimeout(() => upgradeRedirects.delete(clientID), UPGRADE_REDIRECT_MAX_AGE_MS),
+        );
+    }
+    return response;
+}
+
+async function openSavedApp(options: RouteHandlerCallbackOptions): Promise<Response> {
+    const clientID = getResultingClientID(options);
+    if (isUpgradeNavigation(options.url, clientID)) {
+        return openUpgradedApp(options, clientID);
+    }
+
+    const cachedResponse = await matchPrecache(APP_SHELL_URL).catch((error: unknown) => {
+        console.error('Failed to read the saved app; trying the network.', error);
+        return undefined;
+    });
+    return cachedResponse ?? upgradeNavigationStrategy.handle(options);
+}
+
+async function openSharedPage(options: RouteHandlerCallbackOptions): Promise<Response> {
+    const clientID = getResultingClientID(options);
+    if (isUpgradeNavigation(options.url, clientID)) {
+        return openUpgradedApp(options, clientID);
+    }
+    return sharedNavigationStrategy.handle(options);
+}
+
+/**
+ * Signing out of Expensify Classic doesn't run New Expensify's sign-out, so saved receipts would outlive the session.
+ * The sign-out request reaches the server even if Cache Storage fails, so the session always ends.
+ */
+async function signOutOfClassic(options: RouteHandlerCallbackOptions): Promise<Response> {
+    try {
+        await blockAndClearUserMedia();
+    } catch (error) {
+        console.error('Failed to clear saved media on sign-out.', error);
+    }
+    return signOutStrategy.handle(options);
+}
+
+if (isSharedProductHost) {
+    // Sign-out pages have a .php variant, so file paths are not excluded here.
+    registerRoute(new NavigationRoute(signOutOfClassic, {allowlist: SIGN_OUT_NAVIGATION_PATHS}));
+    registerRoute(new NavigationRoute(openSavedApp, {allowlist: APP_ONLY_NAVIGATION_PATHS, denylist: NON_PAGE_PATHS}));
+    registerRoute(new NavigationRoute(openSharedPage, {allowlist: SHARED_NAVIGATION_PATHS, denylist: NON_PAGE_PATHS}));
+} else {
+    registerRoute(new NavigationRoute(openSavedApp, {denylist: NON_PAGE_PATHS}));
+}
+
+// Navigation routes are registered first, so upgrades to / and /index.html bypass the precached HTML.
+// Clean URLs are off, so a navigation to /index stays with the server instead of receiving /index.html.
 // Workbox replaces this exact property with the build's precache manifest.
 // eslint-disable-next-line no-underscore-dangle
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST, {cleanURLs: false});
+
+const userMediaPlugin: WorkboxPlugin = {
+    // A custom cacheWillUpdate replaces Workbox's default filter, so it saves only successful and opaque responses as that filter does.
+    cacheWillUpdate: async ({response}) => {
+        if (await isUserMediaBlocked()) {
+            return null;
+        }
+        return response.status === 200 || response.status === 0 ? response : null;
+    },
+    // A save that started before the block was set can finish after the cache was deleted, so it is deleted again.
+    cacheDidUpdate: async () => {
+        if (!(await isUserMediaBlocked())) {
+            return;
+        }
+        await caches.delete(USER_MEDIA_CACHE_NAME);
+    },
+};
 
 registerRoute(
-    ({sameOrigin, url, request}) => sameOrigin && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
+    ({sameOrigin, url, request}) =>
+        sameOrigin && !(isSharedProductHost && CLASSIC_ASSET_PATHS.test(url.pathname)) && (request.destination === 'image' || /\/(receipts|chat-attachments)\//.test(url.pathname)),
     new StaleWhileRevalidate({
-        cacheName: 'user-media',
-        plugins: [new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS})],
+        cacheName: USER_MEDIA_CACHE_NAME,
+        plugins: [userMediaPlugin, new ExpirationPlugin({maxEntries: USER_MEDIA_MAX_ENTRIES, maxAgeSeconds: USER_MEDIA_MAX_AGE_SECONDS})],
     }),
 );

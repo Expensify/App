@@ -1,7 +1,9 @@
 /**
  * Opens Expensify Classic, first setting the `experience` cookie to `classic` when the account uses it, so expensify.com keeps serving Classic on later visits.
+ * On expensify.com it removes New Expensify's service worker first, so Classic users browse without it, as they would on Classic's own host.
  */
-import {writeExperienceCookie} from '@libs/ExperienceCookie';
+import {isSharedProductHost, writeExperienceCookie} from '@libs/ExperienceCookie';
+import removeServiceWorkerForClassic from '@libs/removeServiceWorkerForClassic';
 
 import {openOldDotLink} from '@userActions/Link';
 
@@ -26,7 +28,11 @@ function useOpenClassic(): () => void {
         if (shouldWriteExperienceCookie) {
             writeExperienceCookie(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
         }
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        if (!isSharedProductHost()) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+        removeServiceWorkerForClassic().then(() => openOldDotLink(CONST.OLDDOT_URLS.INBOX, true));
     };
 }
 

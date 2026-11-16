@@ -15,6 +15,9 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getSharedProductHostForEnvironment from '../../src/libs/SharedProductHost.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 // Relative on purpose: module aliases are not resolved when this config is evaluated.
@@ -165,6 +168,9 @@ function getDefineValues(file: string): DefinePluginOptions {
         // Where `SkiaWebChart` tells CanvasKit to fetch its wasm binary from. Versioned so the glue in this
         // bundle can never be paired with another release's binary (see `CANVASKIT_WASM_FILENAME`).
         __CANVASKIT_WASM_URL__: JSON.stringify(`/${CANVASKIT_WASM_FILENAME}`),
+        // The host that serves both New Expensify and Expensify Classic in this build's environment. The service worker can't read the app
+        // config, so both bundles get it from here. An empty string matches no host.
+        __SHARED_PRODUCT_HOST__: JSON.stringify(getSharedProductHostForEnvironment(parsedConfig?.ENVIRONMENT ?? 'development') ?? ''),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 }
@@ -541,7 +547,9 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
-                                  exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
+                                  // Files Expensify Classic also serves at the root of expensify.com aren't needed offline and
+                                  // are left out, because installing the worker there could save Classic's copy or fail on it.
+                                  exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/, /^\.well-known\//, /^robots\.txt$/, /^favicon.*\.png$/],
                               }),
                           ]),
                     // Inject <link rel="prefetch/preload" /> into HTML.

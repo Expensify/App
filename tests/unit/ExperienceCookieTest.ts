@@ -1,9 +1,10 @@
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import * as NativeExperienceCookie from '@libs/ExperienceCookie/index.native';
 import type * as WebExperienceCookie from '@libs/ExperienceCookie/index.ts';
+import getSharedProductHostForEnvironment from '@libs/SharedProductHost';
 
 import CONST from '@src/CONST';
 
-let mockEnvironment: string = CONST.ENVIRONMENT.DEV;
 let mockExpensifyURL = 'https://www.expensify.com.dev/';
 
 jest.mock('@src/CONFIG', () => {
@@ -12,9 +13,6 @@ jest.mock('@src/CONFIG', () => {
         __esModule: true,
         default: {
             ...actualConfig,
-            get ENVIRONMENT() {
-                return mockEnvironment;
-            },
             EXPENSIFY: {
                 ...actualConfig.EXPENSIFY,
                 get EXPENSIFY_URL() {
@@ -32,12 +30,21 @@ jest.mock('@libs/Log', () => ({
 }));
 
 // The React Native preset resolves index.native.ts first, so the web implementation is loaded by its file name
-const {writeExperienceCookie, clearExperienceCookie} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
+const {writeExperienceCookie, clearExperienceCookie, readExperienceCookie, isSharedProductHost} = jest.requireActual<typeof WebExperienceCookie>('@libs/ExperienceCookie/index.ts');
 
 const HOST_ONLY_DELETE = 'experience=; Max-Age=0; Path=/; Secure; SameSite=Lax';
 
 let cookieSetter: jest.SpyInstance<void, [string]>;
 let realLocation: Location;
+
+// The build config defines this global, and Jest defines it with the development value
+const SHARED_PRODUCT_HOST_GLOBAL = '__SHARED_PRODUCT_HOST__';
+const DEV_SHARED_PRODUCT_HOST: unknown = Reflect.get(globalThis, SHARED_PRODUCT_HOST_GLOBAL);
+
+/** Stands in for a build of another environment, whose shared product host the build config defines */
+function arrangeBuildForEnvironment(environment: string) {
+    Reflect.set(globalThis, SHARED_PRODUCT_HOST_GLOBAL, getSharedProductHostForEnvironment(environment) ?? '');
+}
 
 /** Points jsdom at the given host without triggering a real navigation */
 function arrangeHostname(hostname: string) {
@@ -50,7 +57,7 @@ function getCookieWrites(): string[] {
 }
 
 beforeEach(() => {
-    mockEnvironment = CONST.ENVIRONMENT.DEV;
+    Reflect.set(globalThis, SHARED_PRODUCT_HOST_GLOBAL, DEV_SHARED_PRODUCT_HOST);
     mockExpensifyURL = 'https://www.expensify.com.dev/';
     realLocation = window.location;
 
@@ -108,7 +115,7 @@ describe('ExperienceCookie', () => {
         [CONST.ENVIRONMENT.STAGING, 'staging.expensify.com'],
     ])('writes the .expensify.com cookie for the %s build on %s', (environment, hostname) => {
         // Given a build whose Expensify Classic URL is www.expensify.com, served from that environment's shared product host
-        mockEnvironment = environment;
+        arrangeBuildForEnvironment(environment);
         mockExpensifyURL = 'https://www.expensify.com/';
         arrangeHostname(hostname);
 
@@ -145,5 +152,54 @@ describe('ExperienceCookie', () => {
         expect(didWrite).toBe(false);
         expect(didClear).toBe(false);
         expect(getCookieWrites()).toEqual([]);
+    });
+
+    it.each(Object.values(CONST.ENVIRONMENT))('uses the Expensify Classic host without www. as the shared product host for %s builds', (environment) => {
+        // Given the host the build config defines for an environment
+        const sharedProductHost = getSharedProductHostForEnvironment(environment);
+
+        // Then it is the host Expensify Classic runs on in that environment, which also serves New Expensify
+        expect(sharedProductHost).toBe(new URL(getOldDotURLFromEnvironment(environment)).hostname.replace(/^www\./, ''));
+    });
+
+    it('recognizes the shared product host only where the build says it is', () => {
+        // Given a production build
+        arrangeBuildForEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        mockExpensifyURL = 'https://www.expensify.com/';
+
+        // Then only expensify.com is the shared host
+        arrangeHostname('expensify.com');
+        expect(isSharedProductHost()).toBe(true);
+        arrangeHostname('new.expensify.com');
+        expect(isSharedProductHost()).toBe(false);
+    });
+
+    it('treats every host as unshared when the build has no shared product host', () => {
+        // Given a build for an environment without a shared host
+        arrangeBuildForEnvironment('unknown');
+        arrangeHostname('expensify.com.dev');
+
+        // Then nothing is treated as the shared host
+        expect(isSharedProductHost()).toBe(false);
+    });
+
+    it.each([
+        ['experience=new', CONST.EXPERIENCE_COOKIE.VALUES.NEW],
+        ['other=1; experience=classic; last=2', CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC],
+        ['experienced=new', undefined],
+        ['experience=other', undefined],
+        ['', undefined],
+    ])("reads the experience cookie from '%s'", (cookie, expected) => {
+        // Given the cookies the browser sends for this page
+        const cookieGetter = jest.spyOn(Document.prototype, 'cookie', 'get').mockReturnValue(cookie);
+
+        // Then only a known experience value is returned
+        expect(readExperienceCookie()).toBe(expected);
+        cookieGetter.mockRestore();
+    });
+
+    it('never reads a cookie on native', () => {
+        expect(NativeExperienceCookie.readExperienceCookie()).toBeUndefined();
+        expect(NativeExperienceCookie.isSharedProductHost()).toBe(false);
     });
 });
