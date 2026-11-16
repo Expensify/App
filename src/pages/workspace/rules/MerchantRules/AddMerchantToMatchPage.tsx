@@ -26,6 +26,7 @@ import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import React from 'react';
 import {View} from 'react-native';
 
+import {getMatchTypeLabel} from './matchTypeOptions';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<
@@ -42,14 +43,6 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const currentValue = form?.merchantToMatch ?? '';
-    const matchType = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-
-    const getMatchTypeLabel = () => {
-        if (matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.merchantRules.matchTypeExact');
-        }
-        return translate('workspace.rules.merchantRules.matchTypeContains');
-    };
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
@@ -128,7 +121,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                             getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
                         )
                     }
-                    value={getMatchTypeLabel()}
+                    value={getMatchTypeLabel('matchType', form?.matchType, translate)}
                 />
             </FormProvider>
         </ScreenWrapper>

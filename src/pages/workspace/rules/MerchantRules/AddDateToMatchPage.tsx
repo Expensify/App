@@ -25,6 +25,7 @@ import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 import React from 'react';
 import {View} from 'react-native';
 
+import {getMatchTypeLabel} from './matchTypeOptions';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddDateToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DATE_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH>;
@@ -38,17 +39,6 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
     const currentValue = form?.dateToMatch ?? '';
-    const dateMatchType = form?.dateMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-
-    const getDateMatchTypeLabel = () => {
-        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('workspace.rules.merchantRules.dateMatchTypeAfter');
-        }
-        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('workspace.rules.merchantRules.dateMatchTypeBefore');
-        }
-        return translate('workspace.rules.merchantRules.dateMatchTypeOn');
-    };
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
@@ -109,7 +99,7 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                             getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_DATE_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
                         )
                     }
-                    value={getDateMatchTypeLabel()}
+                    value={getMatchTypeLabel('dateMatchType', form?.dateMatchType, translate)}
                 />
             </FormProvider>
         </ScreenWrapper>

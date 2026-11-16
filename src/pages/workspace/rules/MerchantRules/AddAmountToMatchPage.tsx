@@ -24,6 +24,7 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
 
+import {getMatchTypeLabel} from './matchTypeOptions';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddAmountToMatchPageProps = PlatformStackScreenProps<
@@ -46,17 +47,6 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     // An operand saved without a comparison currency matches in whatever currency the expense carries, so a saved
     // rule keeps that as Any rather than being silently pinned to the workspace currency when it is reopened.
     const [currency, setCurrency] = useState(form?.amountToMatch ? (savedValue.currency ?? '') : (policy?.outputCurrency ?? CONST.CURRENCY.USD));
-    const amountMatchType = form?.amountMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-
-    const getAmountMatchTypeLabel = () => {
-        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('workspace.rules.merchantRules.amountMatchTypeGreaterThan');
-        }
-        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('workspace.rules.merchantRules.amountMatchTypeLessThan');
-        }
-        return translate('workspace.rules.merchantRules.amountMatchTypeEqualTo');
-    };
 
     const goBack = () => Navigation.goBack(backToRoute);
 
@@ -102,7 +92,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
                             getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
                         )
                     }
-                    value={getAmountMatchTypeLabel()}
+                    value={getMatchTypeLabel('amountMatchType', form?.amountMatchType, translate)}
                 />
             </FormProvider>
         </ScreenWrapper>
