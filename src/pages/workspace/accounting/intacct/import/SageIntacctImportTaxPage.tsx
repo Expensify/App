@@ -72,6 +72,7 @@ function SageIntacctImportTaxPage({route}: SageIntacctImportTaxPageProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.TAX_SOLUTION}
                         name={translate('workspace.sageIntacct.taxSolution')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING.getRoute(policyID))}
                         value={sageIntacctConfig?.tax?.taxSolutionID ?? sageIntacctData?.taxSolutionIDs?.at(0)}

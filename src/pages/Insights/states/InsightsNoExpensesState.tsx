@@ -34,6 +34,7 @@ function InsightsNoExpensesState() {
             buttons={[
                 {
                     buttonText: translate('iou.createExpense'),
+                    sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.NO_EXPENSES_CREATE_EXPENSE,
                     buttonAction: () => startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs),
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 },

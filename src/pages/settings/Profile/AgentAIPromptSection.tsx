@@ -228,6 +228,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
+                    maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AI_PROMPT}
                     multiline
                     autoGrowHeight
                     maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
@@ -239,6 +241,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             </OfflineWithFeedback>
             <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AI_PROMPT_SAVE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}

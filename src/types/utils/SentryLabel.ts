@@ -13,5 +13,9 @@ type WithSentryLabel = {
     sentryLabel?: SentryLabel;
 };
 
+type WithRequiredSentryLabel = {
+    sentryLabel: SentryLabel;
+};
+
 export default WithSentryLabel;
-export type {SentryLabel};
+export type {SentryLabel, WithRequiredSentryLabel};

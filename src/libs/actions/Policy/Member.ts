@@ -22,11 +22,11 @@ import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, hasDynamicExternalWorkflow, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
-import {buildApproverChainFromRules} from '@libs/WorkflowUtils';
+import {buildApproverChainFromRules, getApproverChainKey, getApproversFromImportedApprovers} from '@libs/WorkflowUtils';
 
 import * as FormActions from '@userActions/FormActions';
 import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
@@ -36,7 +36,19 @@ import {importApprovalWorkflowRules} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions, Rule} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+    Rule,
+} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -46,7 +58,7 @@ import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -58,6 +70,20 @@ import {createPolicyExpenseChats} from './Policy';
 type WorkspaceMembersRoleData = {
     email: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+};
+
+type AddMembersToWorkspaceOptions = {
+    /** Who the invited members submit to, instead of the workspace's default approver */
+    approverEmail?: string;
+
+    /** The notification preference of the invited members' workspace chats */
+    policyExpenseChatNotificationPreference?: NotificationPreference;
+
+    /** Whether the invited members work from the office, for commuter exclusions */
+    hasOfficeWorkArrangement?: boolean;
+
+    /** The workspace's categories, so the invited members can use every category until the backend sends visibleTo */
+    policyCategories?: OnyxEntry<PolicyCategories>;
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -838,6 +864,40 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
     });
 }
 
+/**
+ * A new member has no category restriction, so they can use every category. Add them to each category limited to some
+ * members, so their category visibility is right before the backend sends visibleTo, and offline.
+ * An invitee without personal details gets a temporary accountID that the backend replaces with the real one, so that
+ * temporary ID is removed again once the invite succeeds.
+ */
+function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyCategories: OnyxEntry<PolicyCategories>, accountIDs: number[], temporaryAccountIDs: Set<number>) {
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
+        const visibleTo = category.visibleTo;
+        if (!visibleTo) {
+            continue;
+        }
+        const hiddenAccountIDs = accountIDs.filter((accountID) => !visibleTo[accountID]);
+        if (hiddenAccountIDs.length === 0) {
+            continue;
+        }
+        optimisticCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, true]))};
+        failureCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, null]))};
+
+        const hiddenTemporaryAccountIDs = hiddenAccountIDs.filter((accountID) => temporaryAccountIDs.has(accountID));
+        if (hiddenTemporaryAccountIDs.length > 0) {
+            successCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenTemporaryAccountIDs.map((accountID) => [accountID, null]))};
+        }
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;
+    const buildUpdates = (categories: Record<string, NullishDeep<PolicyCategory>>): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> =>
+        isEmptyObject(categories) ? [] : [{onyxMethod: Onyx.METHOD.MERGE, key, value: categories}];
+    return {optimisticData: buildUpdates(optimisticCategories), successData: buildUpdates(successCategories), failureData: buildUpdates(failureCategories)};
+}
+
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
@@ -846,9 +906,7 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
-    approverEmail?: string,
-    policyExpenseChatNotificationPreference?: NotificationPreference,
-    hasOfficeWorkArrangement?: boolean,
+    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories}: AddMembersToWorkspaceOptions = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -879,6 +937,7 @@ function buildAddMembersToWorkspaceOnyxData(
     for (const accountID of accountIDs) {
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
+    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs, newPersonalDetailAccountIDs);
 
     // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
     const membersChats = canRoleCreateExpenses(effectiveRole)
@@ -918,6 +977,7 @@ function buildAddMembersToWorkspaceOnyxData(
               | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
               | typeof ONYXKEYS.COLLECTION.REPORT
               | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
           >
         | PersonalDetailsOnyxUpdate
     > = [
@@ -937,10 +997,17 @@ function buildAddMembersToWorkspaceOnyxData(
         ...announceRoomChat.onyxOptimisticData,
         ...(announceRoomMembers.optimisticData ?? []),
         ...(adminRoomMembers.optimisticData ?? []),
+        ...categoryVisibilityOnyxData.optimisticData,
     );
 
     const successData: Array<
-        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+          >
         | PersonalDetailsOnyxUpdate
     > = [
         {
@@ -957,6 +1024,7 @@ function buildAddMembersToWorkspaceOnyxData(
         ...announceRoomChat.onyxSuccessData,
         ...(announceRoomMembers.successData ?? []),
         ...(adminRoomMembers.successData ?? []),
+        ...categoryVisibilityOnyxData.successData,
     );
 
     const failureData: Array<
@@ -967,6 +1035,7 @@ function buildAddMembersToWorkspaceOnyxData(
               | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
               | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
           >
         | PersonalDetailsOnyxUpdate
     > = [
@@ -981,7 +1050,13 @@ function buildAddMembersToWorkspaceOnyxData(
             },
         },
     ];
-    failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []));
+    failureData.push(
+        ...membersChats.onyxFailureData,
+        ...announceRoomChat.onyxFailureData,
+        ...(announceRoomMembers.failureData ?? []),
+        ...(adminRoomMembers.failureData ?? []),
+        ...categoryVisibilityOnyxData.failureData,
+    );
 
     return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins, effectiveRole};
 }
@@ -999,8 +1074,7 @@ function addMembersToWorkspace(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
-    approverEmail?: string,
-    hasOfficeWorkArrangement?: boolean,
+    {approverEmail, hasOfficeWorkArrangement, policyCategories}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1016,9 +1090,7 @@ function addMembersToWorkspace(
         role,
         currentUser,
         reportActionsList,
-        approverEmail,
-        undefined,
-        hasOfficeWorkArrangement,
+        {approverEmail, hasOfficeWorkArrangement, policyCategories},
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1067,25 +1139,14 @@ async function importPolicyMembers(
             return false;
         }
 
-        // A repeated approver ends the chain, and a limit only counts with someone to receive the reports over it, the way imported approvers are read
+        // A repeated approver ends the chain, the way imported approvers are read
         const currentApprovers = buildApproverChainFromRules({
             submitter: member.email,
             rules: approvalWorkflowRules,
             employees: policy.employeeList ?? {},
             personalDetailsByEmail: {},
         }).filter((approver) => !approver.isCircularReference);
-        return (
-            currentApprovers.length !== member.approvers.length ||
-            member.approvers.some((approver, index) => {
-                const currentApprover = currentApprovers.at(index);
-                const hasCurrentLimit = !!currentApprover?.approvalLimit && !!currentApprover.overLimitForwardsTo;
-                return (
-                    approver.email !== currentApprover?.email ||
-                    approver.approvalLimit !== (hasCurrentLimit ? currentApprover.approvalLimit : undefined) ||
-                    approver.overLimitForwardsTo !== (hasCurrentLimit ? currentApprover.overLimitForwardsTo : undefined)
-                );
-            })
-        );
+        return getApproverChainKey(currentApprovers) !== getApproverChainKey(getApproversFromImportedApprovers(member.approvers));
     };
     const {added, updated} = members.reduce(
         (acc, curr) => {
@@ -1114,7 +1175,11 @@ async function importPolicyMembers(
     );
     const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
-    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
+    // Dynamic External Workflow policies are skipped because the backend keeps them on DYNAMIC_EXTERNAL, and successData would override that with ADVANCED
+    const shouldUpdateApprovalMode =
+        members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) &&
+        isControlPolicy(policy) &&
+        !hasDynamicExternalWorkflow(policy);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     if (shouldUpdateApprovalMode) {

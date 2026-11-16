@@ -23,33 +23,53 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
-const MENTION_REPORT_ID_REGEX = /<mention-report[^>]*\sreportID="?(\d+)"?/gi;
 const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
 
-/** Unique reportIDs referenced by <mention-report reportID=...> tags in the given HTML string */
-function getMentionedReportIDs(htmlString: string | undefined): string[] {
-    if (!htmlString?.includes('<mention-report')) {
+// Same reportID capture and flags as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes and in any case
+const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/gi;
+
+// Any non-empty room name works as a placeholder, because every room name starts with #
+const MENTIONED_ROOM_PLACEHOLDER = '#room';
+
+/** Returns the unique reportIDs of the `<mention-report reportID="...">` tags in the given HTML. */
+function getMentionedReportIDs(html: string | undefined): string[] {
+    if (!html || !/<mention-report reportID/i.test(html)) {
         return [];
     }
-    const reportIDs = new Set<string>();
-    for (const match of htmlString.matchAll(MENTION_REPORT_ID_REGEX)) {
-        reportIDs.add(match[1]);
-    }
-    return [...reportIDs];
+    return [...new Set(Array.from(html.matchAll(MENTION_REPORT_ID_REGEX), (match) => match[1]))];
+}
+
+/**
+ * Maps every room the HTML mentions by reportID to a placeholder name. Use it only when the converted text is never shown,
+ * so the conversion doesn't need a subscription to the reports and doesn't log a missing report name for each mention.
+ */
+function buildMentionedRoomPlaceholderMap(html: string | undefined): ReportIDToNameMap {
+    return Object.fromEntries(getMentionedReportIDs(html).map((reportID) => [reportID, MENTIONED_ROOM_PLACEHOLDER]));
 }
 
 /**
  * Builds a map of reportID to report name from COLLECTION.REPORT.
- * When reportIDs is passed, only those reports are looked up.
+ * The map is keyed by the reportID taken from the Onyx key, not report.reportID, because a partial update can cache a report without its reportID.
+ *
+ * @param reportIDs - when passed, only these reports are looked up, so callers that know which rooms their HTML mentions avoid a pass over every report
  */
 function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, reportIDs?: string[]): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
-    const reportsToMap = reportIDs ? reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(reports ?? {});
-    for (const report of reportsToMap) {
+    if (reportIDs) {
+        for (const reportID of reportIDs) {
+            const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (report) {
+                map[reportID] = report.reportName ?? reportID;
+            }
+        }
+        return map;
+    }
+    for (const [key, report] of Object.entries(reports ?? {})) {
         if (!report) {
             continue;
         }
-        map[report.reportID] = report.reportName ?? report.reportID;
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT.length);
+        map[reportID] = report.reportName ?? reportID;
     }
     return map;
 }
@@ -71,4 +91,4 @@ function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportID
 }
 
 export default useReportIDToNameMap;
-export {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown, useMentionedReportIDToNameMap};
+export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown, useMentionedReportIDToNameMap};
