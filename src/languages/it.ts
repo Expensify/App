@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'giorni',
         rename: 'Rinomina',
         address: 'Indirizzo',
+        dayAbbreviation: 'g',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Esporta in',
         shareReport: 'Condividi report',
         reportShared: 'Report condiviso',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} giorno`,
+            other: (count: number) => `${formattedCount ?? count} giorni`,
+        }),
         amount: 'Importo',
     },
     socials: {
@@ -1270,6 +1275,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        averageDays: 'Giorni medi',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -7053,6 +7059,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
             autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
+            enableAtLeastOneCategory: 'Abilita almeno una categoria.',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
@@ -7938,16 +7945,11 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Si è verificato un errore con una connessione configurata in Expensify Classic. [Vai a Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai a Expensify Classic per gestire le tue impostazioni.',
-            exactOnline: {
-                comingSoon: 'Presto in arrivo',
-                joinWaitlist: 'Unisciti alla lista d’attesa',
-                onWaitlist: 'Sei in lista d’attesa',
-                waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Presto in arrivo',
                 joinWaitlist: 'Unisciti alla lista d’attesa',
                 onWaitlist: 'Sei in lista d’attesa',
+                onWaitlistButton: 'In lista d’attesa',
                 onTheList: 'Sei in lista!',
                 waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
             },

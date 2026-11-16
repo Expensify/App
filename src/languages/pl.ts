@@ -435,6 +435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dni',
         rename: 'Zmień nazwę',
         address: 'Adres',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -581,6 +582,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Eksporty do',
         shareReport: 'Udostępnij raport',
         reportShared: 'Udostępniono raport',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dzień`,
+            other: (count: number) => `${formattedCount ?? count} dni`,
+        }),
         amount: 'Kwota',
     },
     socials: {
@@ -1293,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        averageDays: 'Średnia liczba dni',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -7079,6 +7085,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             categoryName: 'Nazwa kategorii',
             requiresCategory: 'Członkowie muszą kategoryzować wszystkie wydatki',
             autoCategorizeNewExpenses: 'Automatycznie kategoryzuj nowe wydatki',
+            enableAtLeastOneCategory: 'Włącz co najmniej jedną kategorię.',
             showCategoryGLCodes: 'Pokaż kody GL podczas kategoryzowania wydatków',
             needCategoryForExportToIntegration: (connectionName: string) => `Wszystkie wydatki muszą zostać skategoryzowane, aby można je było wyeksportować do ${connectionName}.`,
             subtitle: 'Uzyskaj lepszy wgląd w to, gdzie wydawane są pieniądze. Użyj naszych domyślnych kategorii lub dodaj własne.',
@@ -7958,16 +7965,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
-            exactOnline: {
-                comingSoon: 'Wkrótce dostępne',
-                joinWaitlist: 'Dołącz do listy oczekujących',
-                onWaitlist: 'Jesteś na liście oczekujących',
-                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Wkrótce dostępne',
                 joinWaitlist: 'Dołącz do listy oczekujących',
                 onWaitlist: 'Jesteś na liście oczekujących',
+                onWaitlistButton: 'Na liście oczekujących',
                 onTheList: 'Jesteś na liście!',
                 waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
             },

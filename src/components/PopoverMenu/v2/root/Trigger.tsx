@@ -1,4 +1,4 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
@@ -43,4 +43,3 @@ function Trigger({children, sentryLabel}: TriggerProps): React.ReactElement {
 Trigger.displayName = 'PopoverMenu.Trigger';
 
 export default Trigger;
-export type {TriggerProps};

@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'jours',
         rename: 'Renommer',
         address: 'Adresse',
+        dayAbbreviation: 'j',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} jour`,
+            other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
         amount: 'Montant',
     },
     socials: {
@@ -1274,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
+        averageDays: 'Jours en moyenne',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -7116,6 +7122,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
             autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
+            enableAtLeastOneCategory: 'Veuillez activer au moins une catégorie.',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -8009,16 +8016,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Une erreur s’est produite avec une connexion configurée dans Expensify Classic. [Accédez à Expensify Classic pour corriger ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
-            exactOnline: {
-                comingSoon: 'Bientôt disponible',
-                joinWaitlist: 'Rejoindre la liste d’attente',
-                onWaitlist: 'Vous êtes sur la liste d’attente',
-                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Bientôt disponible',
                 joinWaitlist: 'Rejoindre la liste d’attente',
                 onWaitlist: 'Vous êtes sur la liste d’attente',
+                onWaitlistButton: 'Sur liste d’attente',
                 onTheList: 'Vous êtes sur la liste !',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },

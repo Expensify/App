@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
+        dayAbbreviation: 'T',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -577,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Tag`,
+            other: (count: number) => `${formattedCount ?? count} Tage`,
+        }),
         amount: 'Betrag',
     },
     socials: {
@@ -1267,6 +1272,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -7103,6 +7109,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
             autoCategorizeNewExpenses: 'Neue Ausgaben automatisch kategorisieren',
+            enableAtLeastOneCategory: 'Bitte aktiviere mindestens eine Kategorie.',
             showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
@@ -7984,16 +7991,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
-            exactOnline: {
-                comingSoon: 'Demnächst verfügbar',
-                joinWaitlist: 'Warteliste beitreten',
-                onWaitlist: 'Sie stehen auf der Warteliste',
-                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Demnächst verfügbar',
                 joinWaitlist: 'Warteliste beitreten',
                 onWaitlist: 'Sie stehen auf der Warteliste',
+                onWaitlistButton: 'Auf der Warteliste',
                 onTheList: 'Sie stehen auf der Liste!',
                 waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
             },

@@ -78,6 +78,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getAutoReportingOffsetDisplayName, parseAutoReportingOffset} from './SubmissionScheduleUtils';
 import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspaceDisplayUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -3960,7 +3961,7 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
 /**
  * Builds the message for a category visibility change, e.g. "set Bob Sterling to only see the "Meals" and "Fuel" categories".
  * Lists that are too long to read inline show a count, and when shouldShowFullList is true (the action is shown at the top of its thread),
- * those lists are returned in full instead.
+ * those lists are also listed in full below the message.
  * Pass personalDetails from a subscription so member names update when their details load or change.
  */
 function getCategoryVisibilityUpdateMessage(
@@ -3980,19 +3981,6 @@ function getCategoryVisibilityUpdateMessage(
         const hiddenTranslation = translate('common.hidden');
         return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation}));
     };
-
-    if (shouldShowFullList) {
-        const fullLists: string[] = [];
-        if (categoryNames.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
-        }
-        if (accountIDs.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
-        }
-        if (fullLists.length > 0) {
-            return fullLists.join('\n');
-        }
-    }
 
     let members: string;
     if (accountIDs.length === 0) {
@@ -4019,12 +4007,24 @@ function getCategoryVisibilityUpdateMessage(
     }
 
     if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+    } else if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
     }
-    if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
+
+    if (!shouldShowFullList) {
+        return message;
     }
-    return message;
+
+    // The top of the thread repeats the message, then lists in full whatever it only counted
+    const lines = [message];
+    if (categoryNames.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
+    }
+    if (accountIDs.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
+    }
+    return lines.join('\n');
 }
 
 function getWorkspaceCategoryUpdateMessage(
@@ -4547,18 +4547,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         (typeof oldValue === 'string' || typeof oldValue === 'number') &&
         (typeof newValue === 'string' || typeof newValue === 'number')
     ) {
-        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) => {
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastDayOfMonth');
-            }
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
-            }
-            if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
-            }
-            return '';
-        };
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) =>
+            getAutoReportingOffsetDisplayName(parseAutoReportingOffset(autoReportingOffset), translate, (day) => toLocaleOrdinal(IntlStore.getCurrentLocale(), day));
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {

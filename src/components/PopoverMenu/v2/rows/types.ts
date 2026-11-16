@@ -44,4 +44,4 @@ type LabelMenuItemForwardProps = DistributiveOmit<
     | 'onSecondaryInteraction'
 >;
 
-export type {DistributiveOmit, MenuItemForwardProps, LabelMenuItemForwardProps};
+export type {MenuItemForwardProps, LabelMenuItemForwardProps};

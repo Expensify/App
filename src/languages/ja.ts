@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
         amount: '金額',
     },
     socials: {
@@ -1255,6 +1260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -6957,6 +6963,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
             autoCategorizeNewExpenses: '新しい経費を自動分類する',
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7825,16 +7832,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
-            exactOnline: {
-                comingSoon: '近日公開予定',
-                joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
-                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
-            },
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
                 onWaitlist: '順番待ちリストに登録されています',
+                onWaitlistButton: 'ウェイトリスト登録済み',
                 onTheList: 'リストに登録されています！',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },

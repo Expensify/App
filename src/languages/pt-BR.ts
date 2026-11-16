@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dias',
         rename: 'Renomear',
         address: 'Endereço',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportações para',
         shareReport: 'Compartilhar relatório',
         reportShared: 'Relatório compartilhado',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dia`,
+            other: (count: number) => `${formattedCount ?? count} dias`,
+        }),
         amount: 'Valor',
     },
     socials: {
@@ -1269,6 +1274,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Mais demorados para enviar',
         slowestToApprove: 'Mais lento para aprovar',
         mostTimeToPay: 'Maior prazo para pagar',
+        averageDays: 'Média de dias',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -7056,6 +7062,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             categoryName: 'Nome da categoria',
             requiresCategory: 'Os membros devem categorizar todas as despesas',
             autoCategorizeNewExpenses: 'Categorizar automaticamente novas despesas',
+            enableAtLeastOneCategory: 'Ative pelo menos uma categoria.',
             showCategoryGLCodes: 'Mostrar códigos GL ao categorizar despesas',
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
@@ -7935,16 +7942,11 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Há um erro em uma conexão configurada no Expensify Classic. [Acesse o Expensify Classic para corrigir esse problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vá para o Expensify Classic para gerenciar suas configurações.',
-            exactOnline: {
-                comingSoon: 'Em breve',
-                joinWaitlist: 'Entrar na lista de espera',
-                onWaitlist: 'Você está na lista de espera',
-                waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Em breve',
                 joinWaitlist: 'Entrar na lista de espera',
                 onWaitlist: 'Você está na lista de espera',
+                onWaitlistButton: 'Na lista de espera',
                 onTheList: 'Você está na lista!',
                 waitlistDescription: 'O Concierge vai enviar uma mensagem para avisar quando essa integração estiver pronta e como conectá-la.',
             },

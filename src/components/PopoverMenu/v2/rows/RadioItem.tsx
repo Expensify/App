@@ -91,4 +91,3 @@ function RadioItem({
 RadioItem.displayName = 'PopoverMenu.RadioItem';
 
 export default RadioItem;
-export type {RadioItemProps};

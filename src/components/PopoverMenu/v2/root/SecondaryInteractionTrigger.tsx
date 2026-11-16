@@ -1,4 +1,4 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
@@ -49,4 +49,3 @@ function SecondaryInteractionTrigger({children, sentryLabel}: SecondaryInteracti
 SecondaryInteractionTrigger.displayName = 'PopoverMenu.SecondaryInteractionTrigger';
 
 export default SecondaryInteractionTrigger;
-export type {SecondaryInteractionTriggerProps};

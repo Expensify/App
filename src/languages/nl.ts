@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dagen',
         rename: 'Naam wijzigen',
         address: 'Adres',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporteert naar',
         shareReport: 'Rapport delen',
         reportShared: 'Rapport gedeeld',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dag`,
+            other: (count: number) => `${formattedCount ?? count} dagen`,
+        }),
         amount: 'Bedrag',
     },
     socials: {
@@ -1266,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -7046,6 +7052,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
             autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
+            enableAtLeastOneCategory: 'Schakel minstens één categorie in.',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -7920,16 +7927,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
-            exactOnline: {
-                comingSoon: 'Binnenkort beschikbaar',
-                joinWaitlist: 'Aanmelden voor wachtlijst',
-                onWaitlist: 'Je staat op de wachtlijst',
-                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Binnenkort beschikbaar',
                 joinWaitlist: 'Aanmelden voor wachtlijst',
                 onWaitlist: 'Je staat op de wachtlijst',
+                onWaitlistButton: 'Op de wachtlijst',
                 onTheList: 'Je staat op de lijst!',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },

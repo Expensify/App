@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '天',
         rename: '重命名',
         address: '地址',
+        dayAbbreviation: '天',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
@@ -571,6 +572,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: '导出到',
         shareReport: '分享报表',
         reportShared: '报表已分享',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 天`,
+            other: (count: number) => `${formattedCount ?? count} 天`,
+        }),
         amount: '金额',
     },
     socials: {
@@ -1216,6 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        averageDays: '平均天数',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -6790,6 +6796,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
             autoCategorizeNewExpenses: '自动为新报销分类',
+            enableAtLeastOneCategory: '请至少启用一个类别。',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -7625,16 +7632,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
-            exactOnline: {
-                comingSoon: '即将推出',
-                joinWaitlist: '加入候补名单',
-                onWaitlist: '您在候补名单中',
-                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
-            },
             integrationWaitlist: {
                 comingSoon: '即将推出',
                 joinWaitlist: '加入候补名单',
                 onWaitlist: '您在候补名单中',
+                onWaitlistButton: '已在候补名单中',
                 onTheList: '你已在名单上！',
                 waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
             },

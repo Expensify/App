@@ -72,4 +72,9 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
 Item.displayName = 'PopoverMenu.Item';
 
 export default Item;
-export type {ItemProps, ItemSelectEvent};
+/**
+ * Documented in README.md as the type of the `onSelect` event, so it is kept as public API although no module imports it.
+ *
+ * @public
+ */
+export type {ItemSelectEvent};
