@@ -43,7 +43,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Export**.
 5. Locate the **Default Vendor** setting.
 6. Select a valid vendor from the dropdown (not **-Accountant-**).
@@ -53,7 +53,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Tap **Export**.
 5. Update the **Default Vendor** field.
 6. Tap **Save**.
@@ -62,9 +62,9 @@ On mobile:
 
 ## Sync the Workspace and Retry the Export
 
-1. Go to **Accounting**.
-2. Click the three-dot menu next to the NetSuite connection.
-3. Click **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 4. Open the report.
 5. Retry exporting to NetSuite.
 

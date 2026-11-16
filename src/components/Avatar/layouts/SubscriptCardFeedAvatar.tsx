@@ -12,7 +12,6 @@ import {getCardFeedIcon} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
-import type {CardFeed} from '@src/types/onyx/CardFeeds';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -27,8 +26,11 @@ import SubscriptAvatarFrame from './SubscriptAvatarFrame';
 type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
     primaryAvatar: IconType;
 
-    /** Card feed to display as the subscript */
-    cardFeed: CardFeed;
+    /**
+     * Bank name of the card feed displayed as the avatar subscript.
+     * Raw text is accepted because getCardFeedIcon resolves legacy and unknown values.
+     */
+    cardFeed: string;
 
     cardFeedIconSize?: {width: number; height: number};
 
@@ -67,7 +69,7 @@ function SubscriptCardFeedAvatar({
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         icon={primaryAvatar}
                         size={size}
-                        testID="ReportActionAvatars-Subscript-MainAvatar"
+                        testID="Avatar-Subscript-MainAvatar"
                     />
                 </AvatarTooltip>
             }
@@ -86,7 +88,7 @@ function SubscriptCardFeedAvatar({
                         width={cardFeedIconSize.width}
                         height={cardFeedIconSize.height}
                         additionalStyles={styles.alignSelfCenter}
-                        testID="ReportActionAvatars-Subscript-CardIcon"
+                        testID="Avatar-Subscript-CardIcon"
                     />
                 </View>
             }

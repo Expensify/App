@@ -1,5 +1,5 @@
-@import './AnnotationLayer.css';
-@import './TextLayer.css';
+@import '/css/AnnotationLayer.css';
+@import '/css/TextLayer.css';
 
 .react-pdf__Page {
     direction: ltr;

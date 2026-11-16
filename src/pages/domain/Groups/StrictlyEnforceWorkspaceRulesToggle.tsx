@@ -6,6 +6,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -42,6 +43,7 @@ function StrictlyEnforceWorkspaceRulesToggle({domainAccountID, groupID}: Strictl
                 title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
                 subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
                 switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.STRICTLY_ENFORCE_WORKSPACE_RULES_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={isEnabled}
                 onToggle={(enabled) => {

@@ -1,6 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
-import type {FeatureListItem} from '@components/FeatureList';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
@@ -110,21 +109,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         );
     };
 
-    const expensifyCardFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.MoneyReceipts,
-            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
-        },
-        {
-            icon: illustrations.CreditCardsNew,
-            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
-        },
-        {
-            icon: illustrations.MoneyWings,
-            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
-        },
-    ];
-
     const promptCurrencyChange = async () => {
         isCurrencyModalOpen.current = true;
         // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
@@ -154,7 +138,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         >
             <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - contentHeaderHeight}]}>
                 <FeatureList
-                    menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.existingFeedTitle' : 'workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate(ctaTextTranslationKey)}
@@ -186,7 +169,13 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     titleStyles={styles.textHeadlineH1}
                     buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                     buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
-                />
+                >
+                    {!isUkEuCurrencySupported && (
+                        <FeatureList.Item icon={illustrations.MoneyReceipts}>{translate('workspace.moreFeatures.expensifyCard.feed.features.cashBack')}</FeatureList.Item>
+                    )}
+                    <FeatureList.Item icon={illustrations.CreditCardsNew}>{translate('workspace.moreFeatures.expensifyCard.feed.features.unlimited')}</FeatureList.Item>
+                    <FeatureList.Item icon={illustrations.MoneyWings}>{translate('workspace.moreFeatures.expensifyCard.feed.features.spend')}</FeatureList.Item>
+                </FeatureList>
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Text style={[styles.textMicroSupporting, styles.m5]}>

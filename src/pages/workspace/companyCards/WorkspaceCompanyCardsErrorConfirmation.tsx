@@ -117,6 +117,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ERROR_CONFIRM}
                     text={translate('common.buttonConfirm')}
                     onPress={onButtonPress}
                 />

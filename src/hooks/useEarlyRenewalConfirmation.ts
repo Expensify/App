@@ -28,8 +28,8 @@ function useEarlyRenewalConfirmation() {
         const result = await showConfirmModal({
             title: translate('earlyRenewal.confirmTitle'),
             prompt: translate('earlyRenewal.confirmationDescription', {
-                startDate: DateUtils.formatWithUTCTimeZone(startDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
-                endDate: DateUtils.formatWithUTCTimeZone(endDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale),
+                startDate: DateUtils.formatToLongDateInUTC(startDate, dateFnsLocale),
+                endDate: DateUtils.formatToLongDateInUTC(endDate, dateFnsLocale),
             }),
             confirmText: translate('earlyRenewal.renew'),
             cancelText: translate('common.cancel'),

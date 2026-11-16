@@ -18,7 +18,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES;
@@ -31,43 +31,35 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const canUseTagsForLocations = canImportLocationsAsTags(qboConfig);
 
-    const data: CardListItem[] = useMemo(() => {
-        const items: CardListItem[] = [];
-
-        if (canUseTagsForLocations) {
-            items.push({
-                value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                text: translate('workspace.common.tags'),
-                keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                isSelected: qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-            });
-        }
-
+    const items: CardListItem[] = [];
+    if (canUseTagsForLocations) {
         items.push({
-            value: CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
-            text: translate('workspace.common.reportFields'),
-            keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
-            isSelected: qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
+            value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            text: translate('workspace.common.tags'),
+            keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            isSelected: qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
         });
+    }
+    items.push({
+        value: CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
+        text: translate('workspace.common.reportFields'),
+        keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
+        isSelected: qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD,
+    });
+    const data: CardListItem[] = items;
 
-        return items;
-    }, [canUseTagsForLocations, qboConfig?.syncLocations, translate]);
-
-    const selectDisplayedAs = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== qboConfig?.syncLocations) {
-                if (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
-                    Navigation.navigate(
-                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
-                    );
-                    return;
-                }
-                updateQuickbooksOnlineSyncLocations(policyID, row.value, qboConfig?.syncLocations);
+    const selectDisplayedAs = (row: CardListItem) => {
+        if (row.value !== qboConfig?.syncLocations) {
+            if (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
+                );
+                return;
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID));
-        },
-        [qboConfig?.syncLocations, policyID, policy],
-    );
+            updateQuickbooksOnlineSyncLocations(policyID, row.value, qboConfig?.syncLocations);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

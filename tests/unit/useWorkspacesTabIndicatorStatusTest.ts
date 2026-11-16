@@ -50,10 +50,10 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
     },
-    hasQBOExportError: {
-        name: 'has QBO export error',
+    hasReimbursementExportError: {
+        name: 'has reimbursement export error',
         indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR,
+        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR,
     },
     hasUberCredentialsError: {
         name: 'has Uber credentials error',
@@ -110,7 +110,7 @@ const getMockForTestCase = ({name}: IndicatorTestCase) =>
                           }),
                       }
                     : {}),
-                ...(name === TEST_CASES.hasQBOExportError.name
+                ...(name === TEST_CASES.hasReimbursementExportError.name
                     ? {
                           quickbooksOnline: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.QBO]>>({
                               config: {
@@ -516,6 +516,60 @@ describe('useWorkspacesTabIndicatorStatus', () => {
 
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
             expect(indicatorColor).toBe(defaultTheme.danger);
+        });
+    });
+
+    describe('archived policy with errors', () => {
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            // Given an archived workspace that still has a policy error and an accounting sync error
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            archivedDate: '2026-10-08 12:00:00.000',
+                            errors: {policyError: 'Policy error'},
+                            connections: {
+                                intacct: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]>>({
+                                    lastSync: {
+                                        errorMessage: 'Invalid credentials',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
+                                }),
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'intacct',
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('does not show an indicator because errors on an archived workspace cannot be resolved', async () => {
+            // When the Workspaces tab indicator status is computed
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
+
+            // Then the archived workspace is ignored, so no RBR is shown on the tab
+            expect(status).toBeUndefined();
+            expect(indicatorColor).toBe(defaultTheme.success);
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 });

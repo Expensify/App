@@ -12,7 +12,7 @@ import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobal
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const {APPLICANT_TYPE_ID, BUSINESS_CATEGORY} = INPUT_IDS;
@@ -24,33 +24,27 @@ function BusinessType({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
-    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields?.picklists.ApplicantType]);
-    const natureOfBusinessListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness),
-        [corpayOnboardingFields?.picklists.NatureOfBusiness],
-    );
+    const incorporationTypeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType);
+    const natureOfBusinessListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness);
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: APPLICANT_TYPE_ID,
-                defaultValue: enableGlobalReimbursementsDraft?.[APPLICANT_TYPE_ID] ?? '',
-                options: incorporationTypeListOptions,
-                description: translate('businessInfoStep.incorporationTypeName'),
-                modalHeaderTitle: translate('businessInfoStep.selectIncorporationType'),
-                searchInputTitle: translate('businessInfoStep.findIncorporationType'),
-            },
-            {
-                inputID: BUSINESS_CATEGORY,
-                defaultValue: enableGlobalReimbursementsDraft?.[BUSINESS_CATEGORY] ?? '',
-                options: natureOfBusinessListOptions,
-                description: translate('businessInfoStep.businessCategory'),
-                modalHeaderTitle: translate('businessInfoStep.selectBusinessCategory'),
-                searchInputTitle: translate('businessInfoStep.findBusinessCategory'),
-            },
-        ],
-        [enableGlobalReimbursementsDraft, incorporationTypeListOptions, natureOfBusinessListOptions, translate],
-    );
+    const pushRowFields = [
+        {
+            inputID: APPLICANT_TYPE_ID,
+            defaultValue: enableGlobalReimbursementsDraft?.[APPLICANT_TYPE_ID] ?? '',
+            options: incorporationTypeListOptions,
+            description: translate('businessInfoStep.incorporationTypeName'),
+            modalHeaderTitle: translate('businessInfoStep.selectIncorporationType'),
+            searchInputTitle: translate('businessInfoStep.findIncorporationType'),
+        },
+        {
+            inputID: BUSINESS_CATEGORY,
+            defaultValue: enableGlobalReimbursementsDraft?.[BUSINESS_CATEGORY] ?? '',
+            options: natureOfBusinessListOptions,
+            description: translate('businessInfoStep.businessCategory'),
+            modalHeaderTitle: translate('businessInfoStep.selectBusinessCategory'),
+            searchInputTitle: translate('businessInfoStep.findBusinessCategory'),
+        },
+    ];
 
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,

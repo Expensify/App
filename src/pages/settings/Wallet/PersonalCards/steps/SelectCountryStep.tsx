@@ -82,6 +82,7 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
 
     const onSelectionChange = (country: Option) => {
         setCurrentCountry(country.value);
+        setHasError(false);
     };
 
     const getCountries = () =>

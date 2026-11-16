@@ -9,6 +9,7 @@ import type {Route} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -37,6 +38,9 @@ type MergeProviderConfigRow = {
 
     /** Route opened when the row is tapped. */
     route: Route;
+
+    /** Sentry label for the row, one variant per page and field */
+    sentryLabel: SentryLabel;
 
     /** Pending action for this field while an update is in progress. */
     pendingAction?: PendingAction;

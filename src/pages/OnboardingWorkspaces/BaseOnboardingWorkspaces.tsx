@@ -60,7 +60,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         isSmallScreenWidth,
-        shouldUseNarrowLayout,
     } = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
@@ -191,7 +190,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         });
 
         if (shouldUseSubmitFlow) {
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID);
             return;
         }
 
@@ -492,6 +491,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     hasMoreThanLimit && !showAll ? (
                         <View style={[wrapperPadding, styles.alignItemsStart]}>
                             <LinkButton
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.WORKSPACES_SHOW_MORE}
                                 onPress={() => setShowAll(true)}
                                 innerStyles={styles.ph0}
                             >
@@ -509,6 +509,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <>
                         {joinablePoliciesErrors ? (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.WORKSPACES_TRY_AGAIN}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={retryAccessiblePoliciesLookup}
                                 style={[styles.mt5]}

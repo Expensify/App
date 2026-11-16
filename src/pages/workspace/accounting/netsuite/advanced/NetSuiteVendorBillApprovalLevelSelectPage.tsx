@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -41,24 +41,18 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
         isSelected: config?.syncOptions.exportVendorBillsTo === approvalType,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportVendorBillsTo.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportVendorBillsTo.description')}</Text>
+        </View>
     );
 
-    const selectVendorBillApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportVendorBillsTo && policyID) {
-                updateNetSuiteExportVendorBillsTo(policyID, row.value, config?.syncOptions.exportVendorBillsTo ?? CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [config?.syncOptions.exportVendorBillsTo, policyID],
-    );
+    const selectVendorBillApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== config?.syncOptions.exportVendorBillsTo && policyID) {
+            updateNetSuiteExportVendorBillsTo(policyID, row.value, config?.syncOptions.exportVendorBillsTo ?? CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

@@ -1,10 +1,11 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 
 const {DAY, WEEK, MONTH, QUARTER, YEAR} = CONST.SEARCH.GROUP_BY;
-const {THIS_MONTH, LAST_MONTH, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
+const {THIS_MONTH, LAST_MONTH, THIS_YEAR, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
 
 describe('insightsGroupByUtils', () => {
     beforeEach(() => {
@@ -20,7 +21,7 @@ describe('insightsGroupByUtils', () => {
         it.each<[string, InsightsFilters['date'], Array<InsightsFilters['groupBy']>]>([
             ['this month', {preset: THIS_MONTH}, [DAY, WEEK]],
             ['last month', {preset: LAST_MONTH}, [DAY, WEEK]],
-            ['year to date in October', {preset: YEAR_TO_DATE}, [WEEK, MONTH, QUARTER]],
+            ['this year', {preset: THIS_YEAR}, [WEEK, MONTH, QUARTER]],
             ['last 12 months', {preset: LAST_12_MONTHS}, [WEEK, MONTH, QUARTER]],
             ['a range under two weeks', {from: '2026-03-01', to: '2026-03-10'}, [DAY]],
             ['a range of 13 days', {from: '2026-03-01', to: '2026-03-13'}, [DAY]],
@@ -40,15 +41,15 @@ describe('insightsGroupByUtils', () => {
             expect(options).toEqual(expected);
         });
 
-        it('offers Day and Week for year to date in January', () => {
-            // Given it's late January, so the year so far is a few weeks long
+        it('offers the whole year options for year to date in January', () => {
+            // Given it's late January, and year to date is a deprecated alias of this year
             jest.setSystemTime(new Date(2026, 0, 20));
 
             // When the Group by options are listed for year to date
             const options = getInsightsGroupByOptions({preset: YEAR_TO_DATE});
 
-            // Then the range is too short for monthly points and short enough for daily ones
-            expect(options).toEqual([DAY, WEEK]);
+            // Then they fit the whole year, not just the few weeks so far
+            expect(options).toEqual([WEEK, MONTH, QUARTER]);
         });
     });
 
@@ -82,6 +83,16 @@ describe('insightsGroupByUtils', () => {
             // Then Week is picked, the closest grouping to Day that the range offers
             expect(groupBy).toBe(WEEK);
         });
+
+        it('fits running total to the default bucket, since it has no bucket of its own', () => {
+            // Given running total selected over the last 12 months, which offers Month
+
+            // When it is fitted to the range for display
+            const groupBy = getFittingGroupBy(INSIGHTS_RUNNING_TOTAL_GROUP_BY, getInsightsGroupByOptions({preset: LAST_12_MONTHS}));
+
+            // Then it resolves to a real bucket rather than staying the running total value
+            expect(groupBy).toBe(MONTH);
+        });
     });
 
     describe('getQueryGroupBy', () => {
@@ -105,6 +116,28 @@ describe('insightsGroupByUtils', () => {
 
             // Then its one point is grouped by day
             expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by day when the range offers daily points', () => {
+            // Given a running total dashboard over a range of 62 days, which offers Day
+            const filters: InsightsFilters = {date: {from: '2026-03-01', to: '2026-05-01'}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then the line accumulates from daily buckets, and the backend never sees the running total value itself
+            expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by month when the range is too long for daily points', () => {
+            // Given a running total dashboard over the last 12 months, which does not offer Day
+            const filters: InsightsFilters = {date: {preset: LAST_12_MONTHS}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then it accumulates from monthly buckets instead
+            expect(groupBy).toBe(MONTH);
         });
     });
 });

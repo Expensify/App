@@ -48,6 +48,7 @@ function TransactionItemRow({
     isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -67,6 +68,7 @@ function TransactionItemRow({
     radioButtonContainerStyle,
     radioButtonWrapperStyle,
     shouldShowErrors = true,
+    shouldShowCategoryOnNarrowLayout = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     shouldDisableActionPointerEvents = false,
@@ -144,7 +146,7 @@ function TransactionItemRow({
     if (shouldUseNarrowLayout) {
         const description = getDescription(transactionItem);
         const merchantOrDescription = merchant || description;
-        const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+        const categoryForDisplay = !shouldShowCategoryOnNarrowLayout || isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
         // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
@@ -202,6 +204,7 @@ function TransactionItemRow({
         isDateColumnCreated,
         submittedColumnSize,
         approvedColumnSize,
+        paidColumnSize,
         postedColumnSize,
         exportedColumnSize,
         amountColumnSize,

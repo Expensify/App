@@ -10,6 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
@@ -17,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {GeneratedRule} from '@src/types/onyx';
+import type {GeneratedRule, Rule} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -31,8 +32,8 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
-let mockIsDescribeRuleBetaEnabled = true;
 const mockScrollTo = jest.fn();
+const mockScrollToEnd = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -50,12 +51,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
-    })),
-);
-jest.mock('@hooks/usePermissions', () =>
-    jest.fn(() => ({
-        isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.DESCRIBE_RULE && mockIsDescribeRuleBetaEnabled,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
@@ -106,15 +102,6 @@ jest.mock('@components/Text', () => {
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
 });
-jest.mock('@components/MenuItem', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {Pressable, Text} = jest.requireActual<{
-        Pressable: React.ComponentType<{accessibilityLabel?: string; accessibilityRole?: string; onPress?: () => void; children?: React.ReactNode}>;
-        Text: React.ComponentType<{children?: React.ReactNode}>;
-    }>('react-native');
-    return ({title, onPress}: {title: string; onPress: () => void}) =>
-        ReactModule.createElement(Pressable, {accessibilityLabel: title, accessibilityRole: 'button', onPress}, ReactModule.createElement(Text, null, title));
-});
 jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
@@ -145,9 +132,9 @@ jest.mock('@components/Form/FormProvider', () => {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
-        ref: React.Ref<{scrollTo: (y: number) => void}>;
+        ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
     }) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
+        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
             ReactModule.Fragment,
             null,
@@ -221,7 +208,6 @@ describe('New rule describe section', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrompt = '';
-        mockIsDescribeRuleBetaEnabled = true;
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
         setAdminPolicy();
     });
@@ -234,7 +220,7 @@ describe('New rule describe section', () => {
     });
 
     it('shows the four templates and then the describe section', async () => {
-        // Given an admin with the describeRule beta on the New rule page
+        // Given an admin on the New rule page
         await renderRulesNewPage();
 
         // When the admin looks at the options
@@ -244,12 +230,12 @@ describe('New rule describe section', () => {
         const expectedOptionNames = [
             'workspace.rules.newRule.restrictCardSpend',
             'workspace.rules.newRule.flagForReview',
-            'workspace.rules.newRule.requireFieldsShort',
+            'workspace.rules.newRule.requireFields',
             'workspace.rules.newRule.applyExpenseDefaults',
         ];
         expect(options).toHaveLength(expectedOptionNames.length);
         for (const [index, name] of expectedOptionNames.entries()) {
-            expect(options.at(index)).toHaveAccessibleName(name);
+            expect(options.at(index)).toHaveAccessibleName(`${name}, ${name}Description`);
         }
 
         // And the describe section follows, with its own submit button
@@ -286,41 +272,13 @@ describe('New rule describe section', () => {
     });
 
     it('hides the describe section when New rule opens for a category', async () => {
-        // Given an admin with the describeRule beta who opens New rule for a category, which the describe section cannot scope a rule to
+        // Given an admin who opens New rule for a category, which the describe section cannot scope a rule to
         await renderRulesNewPage('Meals');
 
         // Then New rule lists only the rule types, without the describe section
         expect(screen.queryByText('workspace.rules.newRule.describeItBelow')).toBeNull();
         expect(screen.queryByLabelText('common.next')).toBeNull();
         expect(screen.getByText('workspace.rules.newRule.subtitle')).toBeOnTheScreen();
-    });
-
-    it('keeps Describe agent rule in place of the describe section without the beta', async () => {
-        // Given an admin without the describeRule beta, who must see the New rule options that exist without the feature
-        mockIsDescribeRuleBetaEnabled = false;
-        await renderRulesNewPage();
-
-        // When the admin looks at the options
-        const options = screen.getAllByRole('button');
-
-        // Then the four rule types come first and Describe agent rule comes last, with no describe section
-        const expectedOptionNames = [
-            'workspace.rules.newRule.restrictCardSpend',
-            'workspace.rules.newRule.flagForReview',
-            'workspace.rules.newRule.requireFields',
-            'workspace.rules.newRule.applyExpenseDefaults',
-            'workspace.rules.newRule.createAgentRule',
-        ];
-        expect(options).toHaveLength(expectedOptionNames.length);
-        for (const [index, name] of expectedOptionNames.entries()) {
-            expect(options.at(index)).toHaveAccessibleName(name);
-        }
-
-        expect(screen.queryByText('workspace.rules.newRule.describeItBelow')).toBeNull();
-
-        // And Describe agent rule opens the agent rule page
-        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.createAgentRule'));
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
     });
 
     it('seeds the draft of the generated rule type and opens its editor', async () => {
@@ -342,7 +300,7 @@ describe('New rule describe section', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(POLICY_ID));
     });
 
-    it('scopes an expense defaults draft to a merchant rule', async () => {
+    it('seeds the expense defaults draft from a merchant answer', async () => {
         // Given the admin described an expense default for a merchant
         await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Set Uber expenses to not billable');
@@ -355,12 +313,12 @@ describe('New rule describe section', () => {
             rule: {merchantToMatch: 'Uber'},
         });
 
-        // Then the draft carries the merchant rule type, because the merchant editor sends a draft without one to the type picker
-        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({merchantToMatch: 'Uber', ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+        // Then the editor opens with the generated values, so the admin only reviews and saves
+        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({merchantToMatch: 'Uber'});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
-    it('opens the category tax rate editor for a categoryTaxRate answer', async () => {
+    it('opens the expense defaults editor for a categoryTaxRate answer', async () => {
         // Given a workspace with a Meals category and a GST rate that a category rule can use, and an admin who describes a tax default
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
@@ -382,29 +340,29 @@ describe('New rule describe section', () => {
             rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
         });
 
-        // Then the expense defaults editor opens scoped to categories, because it takes its rule type from the draft
-        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({categoriesToMatch: ['Meals'], tax: 'GST', ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
+        // Then the editor opens matching on the category, because a category tax default is an ordinary expense default
+        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({categoriesToMatch: ['Meals'], tax: 'GST'});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
-    it('shows an error when the generated category already has a tax rate rule', async () => {
+    it('opens the editor when the generated category already has a rule', async () => {
         // Given a Meals category that already has a tax rate rule
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
-            rules: {
-                expenseRules: [
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention -- the expense rule stores the tax under the field name that the backend uses
-                        tax: {field_id_TAX: {externalID: 'GST'}},
-                        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Meals'}],
-                    },
-                ],
-            },
         });
+        const existingRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: POLICY_ID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Meals'},
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- the rule stores the tax under the field name that the backend uses
+            actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'GST'}}}},
+        };
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}existing-category-tax-rule`, existingRule);
         });
         await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Use GST for meals');
@@ -417,9 +375,10 @@ describe('New rule describe section', () => {
             rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
         });
 
-        // Then New rule shows the error and opens nothing, because a category can have one tax rate rule
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.categoryHasRule')]);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        // Then the editor opens anyway, because a category can hold more than one rule and saving a second one
+        // that matches the same things prompts first
+        expect(await getPromptErrors()).toEqual([]);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
     it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.MULTIPLE_RULES])(
@@ -498,10 +457,60 @@ describe('New rule describe section', () => {
         });
 
         // Then New rule shows the reason and the suggestion, and nothing opens, because no rule can be drafted
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.getByText('Comment on the report when it is submitted')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.explanationWithSuggestion Rules cannot send text messages.')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.quotedSuggestion Comment on the report when it is submitted')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
+    });
+
+    it('scrolls to the refusal so that the keyboard does not cover it', async () => {
+        // Given an admin who described something that neither a rule nor an agent rule can do, with the keyboard still open
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, 'Text the approver when a report is submitted');
+        expect(mockScrollToEnd).not.toHaveBeenCalled();
+
+        // When Concierge refuses it
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt: 'Comment on the report when it is submitted',
+        });
+
+        // Then the form scrolls to its end, because the refusal and its buttons show below the input, under the keyboard
+        expect(mockScrollToEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('drafts the refused description as an agent rule when the admin taps Create anyway', async () => {
+        // Given Concierge refused a description on New rule and suggested another one
+        const logSpy = jest.spyOn(Log, 'info');
+        const prompt = 'Text the approver when a report is submitted';
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, prompt);
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt: 'Comment on the report when it is submitted',
+        });
+        const generateRuleRequestCount = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE).length;
+
+        // When the admin keeps their own description and taps Create anyway, the button that replaces Next next to Use suggestion
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.impossible.createAnyway'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the description becomes the agent rule draft without another request to Concierge, because Concierge already answered it
+        expect(writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)).toHaveLength(generateRuleRequestCount);
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, generationID));
+        expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Created an agent rule after a refusal', false, {
+            policyID: POLICY_ID,
+            generationID,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+        });
+        logSpy.mockRestore();
     });
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {

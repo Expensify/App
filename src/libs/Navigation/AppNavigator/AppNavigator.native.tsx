@@ -4,7 +4,7 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 
 type AppNavigatorProps = {
     /** If we have an authToken this is true */
@@ -14,13 +14,7 @@ type AppNavigatorProps = {
 function AppNavigator({authenticated}: AppNavigatorProps) {
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
-    const shouldShowAuthScreens = useMemo(() => {
-        if (!CONFIG.IS_HYBRID_APP) {
-            return authenticated;
-        }
-
-        return authenticated && hybridApp?.readyToShowAuthScreens;
-    }, [hybridApp?.readyToShowAuthScreens, authenticated]);
+    const shouldShowAuthScreens = !CONFIG.IS_HYBRID_APP ? authenticated : authenticated && hybridApp?.readyToShowAuthScreens;
 
     if (shouldShowAuthScreens) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;
@@ -34,4 +28,4 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     return <PublicScreens />;
 }
 
-export default memo(AppNavigator);
+export default AppNavigator;

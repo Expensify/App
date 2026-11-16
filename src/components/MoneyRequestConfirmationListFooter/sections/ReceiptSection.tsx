@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isMapBasedDistanceRequest, isScanRequest} from '@libs/TransactionUtils';
+import {isMapBasedDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -73,16 +73,16 @@ function ReceiptSection({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {action, iouType, transactionID, reportID, isReadOnly, isPerDiemRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, isReadOnly, isPerDiemRequest, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isScanRequest} =
+        useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, receiptSliceSelector);
 
     const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});
 
     const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
-    const isScan = isScanRequest(transaction);
     const compact = useCompactReceiptDimensions({
         showMoreFields,
-        isScan,
+        isScan: isScanRequest,
         isInLandscapeMode,
         windowWidth,
         horizontalMargin,

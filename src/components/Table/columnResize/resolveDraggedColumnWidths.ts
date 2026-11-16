@@ -21,9 +21,17 @@ type ResizableColumn = {
     /** The layout's minimum, which absorbing never goes below. */
     minWidth: number;
 
+    /** Narrowest width a drag may give this column. Omitted to use the usual drag bound. */
+    dragMinWidth?: number;
+
     /** Width absorbing another column's resize never grows it past. `Infinity` when uncapped. */
     maxWidth: number;
 };
+
+/** A headless column held at one width, so it never resizes or takes the leftover room. Its real header still renders. */
+function getFixedColumn(key: string, width: number): ResizableColumn {
+    return {key, label: '', declaredWidth: width, contentWidth: width, minWidth: width, maxWidth: width};
+}
 
 type ResolveDraggedColumnWidthsParams = {
     /** Every column, in render order. */
@@ -81,5 +89,5 @@ function resolveDraggedColumnWidths({columns, startWidths, resizedColumnKeys, av
 }
 
 export default resolveDraggedColumnWidths;
-export {getAbsorbedDelta, getColumnAbsorbers, isColumnResizable};
+export {getAbsorbedDelta, getColumnAbsorbers, getFixedColumn, isColumnResizable};
 export type {ResizableColumn};

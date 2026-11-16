@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -31,7 +32,7 @@ type PageButtonProps = {
     onPress: () => void;
 
     /** Label used to identify the button in Sentry */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 };
 
 function PageButton({icon, label, isDisabled, onPress, sentryLabel}: PageButtonProps) {

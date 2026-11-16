@@ -53,6 +53,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemField
+                    sentryLabel={item.sentryLabel}
                     name={item.description ?? ''}
                     onPress={item?.onPress}
                     value={item.title}
@@ -67,6 +68,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             type: 'menuitem',
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.REIMBURSABLE_ROW.EXPORT_AS,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -83,6 +85,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.DEFAULT_VENDOR_SWITCH,
             onToggle: (enabled) => {
                 if (!policyID) {
                     return;
@@ -104,6 +107,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                     type: 'menuitem',
                     title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
                     description: translate('workspace.sageIntacct.defaultVendor'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.REIMBURSABLE_ROW.DEFAULT_VENDOR,
                     onPress: () => {
                         if (!policyID) {
                             return;
@@ -126,7 +130,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             onBackButtonPress={() =>
-                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+                Navigation.goBack(
+                    backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))),
+                )
             }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

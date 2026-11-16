@@ -205,6 +205,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 }}
                 footerContent={
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_CURRENCIES_SAVE}
                         buttonText={translate('common.save')}
                         isAlertVisible={false}
                         onSubmit={saveChanges}

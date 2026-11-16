@@ -14,6 +14,7 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -22,6 +23,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const REPORT_ID = '1';
 const LINKED_ACTION_ID = '777';
 const UNREAD_ACTION_ID = '888';
+const UNREAD_SUMMARY_ACTION_ID = '999';
 const NEWEST_CREATED = '2023-09-12 16:27:35.124';
 
 // Run animation frames synchronously so the autoscroll callbacks settle within the test.
@@ -69,6 +71,7 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
 // --- useReportActionsNewActionLiveTail ---
 const mockSetIsScrollToBottomEnabled = jest.fn();
 const mockCompleteLiveTailPrune = jest.fn();
+const mockOpenReportAtLiveTail = jest.fn();
 let mockIsScrollToBottomEnabled = false;
 jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
     __esModule: true,
@@ -76,6 +79,7 @@ jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
         isScrollToBottomEnabled: mockIsScrollToBottomEnabled,
         setIsScrollToBottomEnabled: mockSetIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom: mockCompleteLiveTailPrune,
+        openReportAtLiveTail: mockOpenReportAtLiveTail,
     }),
 }));
 
@@ -114,15 +118,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-// --- openReport ---
-const mockOpenReport = jest.fn();
-jest.mock('@userActions/Report', () => ({
-    __esModule: true,
-    openReport: (...args: unknown[]) => {
-        mockOpenReport(...args);
-    },
-}));
-
 // --- react-navigation route ---
 let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
 jest.mock('@react-navigation/native', () => {
@@ -142,6 +137,8 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    // This suite never builds a deleted report preview, so the real function reduces to the action's own errors.
+    getVisibleReportActionErrors: (reportAction?: ReportAction) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
@@ -182,7 +179,6 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         reportID: REPORT_ID,
-        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
@@ -206,7 +202,15 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function wrapper({children}: {children: ReactNode}) {
@@ -315,6 +319,18 @@ describe('useReportActionsScroll', () => {
             expect(result.current.initialScrollKey).toBe(UNREAD_ACTION_ID);
         });
 
+        it('uses the rendered summary as the initial scroll target when the unread action is collapsed', async () => {
+            const {result} = await renderScroll({
+                unreadMarkerReportActionID: UNREAD_ACTION_ID,
+                reportActionIDToDisplayIndex: new Map([[UNREAD_ACTION_ID, 1]]),
+                sortedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_ACTION_ID)],
+                renderedVisibleReportActions: [makeAction('1'), makeAction(UNREAD_SUMMARY_ACTION_ID)],
+            });
+
+            expect(result.current.initialScrollKey).toBe(UNREAD_ACTION_ID);
+            expect(result.current.initialScrollIndex).toBe(1);
+        });
+
         it('suppresses the initial scroll key for an aligned-to-top CREATED anchor action', async () => {
             mockIsTransactionThread = true;
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
@@ -363,7 +379,7 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).not.toHaveBeenCalled();
+            expect(mockOpenReportAtLiveTail).not.toHaveBeenCalled();
         });
 
         it('navigates and opens the report when the newest action is not present', async () => {
@@ -375,7 +391,7 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).not.toHaveBeenCalled();
         });
@@ -390,7 +406,7 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -489,6 +505,26 @@ describe('useReportActionsScroll', () => {
                 result.current.flushPendingScrollToBottom();
             });
 
+            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+            expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
+            expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);
+        });
+
+        it('clears the stale linked-message offset and hides the pill when flushing', async () => {
+            // Given a live-tail jump with the offset and pill left over from a linked message
+            mockIsScrollToBottomEnabled = true;
+            mockScrollOffsetRef.current = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1;
+            mockIsFloatingMessageCounterVisible = true;
+            const {result} = await renderScroll();
+
+            // When the list flushes the jump without emitting another scroll event
+            act(() => {
+                result.current.flushPendingScrollToBottom();
+            });
+
+            // Then later content size changes cannot restore the pill from the historical offset
+            expect(mockScrollOffsetRef.current).toBe(0);
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockSetIsScrollToBottomEnabled).toHaveBeenCalledWith(false);
             expect(mockCompleteLiveTailPrune).toHaveBeenCalledTimes(1);

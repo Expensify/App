@@ -18,15 +18,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
-import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
+import useIsReportOutOfSight from './useIsReportOutOfSight';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -123,13 +123,10 @@ function useMarkAsRead({
     const isReportArchived = useReportIsArchived(reportID);
     const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
-    // A preloaded tab mounts this screen before the user opens it. Marking read assumes the user is looking,
-    // so hold every readNewestAction until the tab is focused, which drops the preloaded flag.
-    const isInPreloadedTab = useIsInPreloadedTab();
-
-    // A hidden wide submit pre-mount is held the same way until its reveal.
+    // A preloaded tab or a hidden wide submit pre-mount mounts this screen before the user sees it. Marking read assumes the
+    // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
+    const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isHiddenFromUser = isInPreloadedTab || isHiddenPreMount;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -142,7 +139,7 @@ function useMarkAsRead({
     // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
     // read catch-up in that case, so bump a counter on app focus to re-run it.
     const [appFocusCount, setAppFocusCount] = useState(0);
-    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
+    useAppFocusEvent(() => setAppFocusCount((count) => count + 1));
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());

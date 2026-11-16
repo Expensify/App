@@ -3,7 +3,14 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
-import {addPersonalBankAccount, connectBankAccountManually, connectBankAccountWithPlaid, deletePaymentBankAccount, getCorpayOnboardingFields} from '@userActions/BankAccounts';
+import {
+    addPersonalBankAccount,
+    connectBankAccountManually,
+    connectBankAccountWithPlaid,
+    createCollectOnlyDepositAccount,
+    deletePaymentBankAccount,
+    getCorpayOnboardingFields,
+} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +83,19 @@ describe('BankAccounts', () => {
             await Onyx.clear();
         });
 
+        test('sends the magic code so the backend can verify changes to private personal details', () => {
+            // Given a magic code entered because the bank account flow changes the user's private personal details
+            // When the bank account is added with it
+            addPersonalBankAccount({phoneNumber: '+14155550199'}, undefined, {validateCode: '123456'});
+
+            // Then the request carries the magic code alongside the personal details
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT,
+                expect.objectContaining({phoneNumber: '+14155550199', validateCode: '123456'}),
+                expect.anything(),
+            );
+        });
+
         test('keeps the server error message on top of the generic fallback when the device clock is ahead of the server', async () => {
             // Given a VerificationError response that already merged its specific message onto PERSONAL_BANK_ACCOUNT,
             // keyed by the server's own microsecond clock
@@ -92,6 +112,70 @@ describe('BankAccounts', () => {
             const personalBankAccountFailure = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.PERSONAL_BANK_ACCOUNT);
             if (!personalBankAccountFailure?.value) {
                 throw new Error('addPersonalBankAccount did not write failureData for PERSONAL_BANK_ACCOUNT');
+            }
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountFailure.value);
+            await waitForBatchedUpdates();
+
+            // Then the server's specific message still wins over the generic fallback
+            const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+            expect(getLatestErrorMessage(personalBankAccount)).toBe(serverMessage);
+        });
+
+        test('sends both address lines as separate params', () => {
+            // Given an account with a second address line, which the API rejects when joined into addressStreet with a newline
+            const account = {addressStreet: '123 Main St', addressStreet2: 'Apt 4B'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then each line is sent in its own param so the backend can store both
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT,
+                expect.objectContaining({addressStreet: '123 Main St', addressStreet2: 'Apt 4B'}),
+                expect.anything(),
+            );
+        });
+
+        test('sends an empty second address line when addressStreet2 is missing', () => {
+            // Given an account without a second address line
+            const account = {addressStreet: '123 Main St'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then the second line is sent as an empty string, matching updatePersonalBankAccountInfo
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, expect.objectContaining({addressStreet: '123 Main St', addressStreet2: ''}), expect.anything());
+        });
+    });
+
+    describe('createCollectOnlyDepositAccount', () => {
+        afterEach(async () => {
+            jest.restoreAllMocks();
+            await Onyx.clear();
+        });
+
+        test('keeps the server error message on top of the generic fallback when the device clock is ahead of the server', async () => {
+            // Given a bank verification response that already merged its specific message onto PERSONAL_BANK_ACCOUNT,
+            // keyed by the server's own microsecond clock
+            const serverMessage = 'Please review your account number and routing number one more time before continuing.';
+            const serverErrorKey = 1700000000000000;
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: {[serverErrorKey]: serverMessage}});
+            await waitForBatchedUpdates();
+
+            // When the device clock reads far ahead of the server's at the moment createCollectOnlyDepositAccount stamps
+            // its failureData, and that failureData is applied as it would be after the request fails
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(serverErrorKey + 1_000_000_000);
+            createCollectOnlyDepositAccount({
+                routingNumber: selectedPlaidBankAccount.routingNumber,
+                accountNumber: selectedPlaidBankAccount.accountNumber,
+                additionalData: '{}',
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                confirm: false,
+            });
+            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
+            const personalBankAccountFailure = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+            if (!personalBankAccountFailure?.value) {
+                throw new Error('createCollectOnlyDepositAccount did not write failureData for PERSONAL_BANK_ACCOUNT');
             }
             await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountFailure.value);
             await waitForBatchedUpdates();

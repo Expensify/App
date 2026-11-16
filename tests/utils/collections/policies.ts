@@ -1,6 +1,10 @@
-import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import {toIndexMap} from '@libs/RuleUtils';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Rule} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
@@ -25,7 +29,7 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         autoReportingOffset: 1,
         preventSelfApproval: randBoolean(),
         outputCurrency: randCurrencyCode(),
-        role: rand(Object.values(CONST.POLICY.ROLE)),
+        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY)),
         owner: randEmail(),
         ownerAccountID: index,
         avatarURL: randAvatar(),
@@ -40,19 +44,38 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
     };
 }
 
-function createCategoryTaxExpenseRules(category: string, taxCode: string) {
-    return [
-        {
-            applyWhen: [{condition: 'matches', field: 'category', value: category}],
-            id: '1',
-            tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                field_id_TAX: {
-                    externalID: taxCode,
+/**
+ * A `rules_` collection holding one expense default that matches on the given category and sets a tax, which is
+ * where category tax defaults live now that they no longer sit in `policy.rules.expenseRules`.
+ *
+ * Passing a merchant narrows the rule to that merchant as well, which is what a rule the category tax lookup has
+ * to skip looks like.
+ */
+function createCategoryTaxRulesCollection(policyID: string, category: string, taxCode: string, merchant?: string): OnyxCollection<Rule> {
+    const categoryFilter = {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: category};
+
+    return {
+        [`${ONYXKEYS.COLLECTION.RULE}categoryTaxRule`]: {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters: merchant
+                ? {
+                      left: categoryFilter,
+                      operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                      right: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: merchant},
+                  }
+                : categoryFilter,
+            actions: toIndexMap([
+                {
+                    name: CONST.RULES.ACTIONS.SET,
+                    field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    value: {field_id_TAX: {externalID: taxCode}},
                 },
-            },
+            ]),
         },
-    ];
+    };
 }
 
-export {createCategoryTaxExpenseRules};
+export {createCategoryTaxRulesCollection};
