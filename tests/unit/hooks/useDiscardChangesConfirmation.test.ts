@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import {runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
+
 type MockNavigationAction = {
     type: string;
     source?: string;
@@ -357,6 +359,21 @@ describe('useDiscardChangesConfirmation (web)', () => {
 
             // Then it is sent again as it was, since the navigator it targets handles it the same way
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'POP', source: 'some-screen', target: 'rhp-stack'});
+        });
+
+        it('lets the navigation through without a second prompt when another guard already confirmed it', () => {
+            // Given a dirty screen under another dirty guard of the same RHP
+            renderDiscardHook(() => true);
+
+            // When the other guard sends again the navigation the user picked Discard for
+            let event: MockBeforeRemoveEvent | undefined;
+            runWhileReplayingDiscardedNavigation(() => {
+                event = invokeBeforeRemove('DISMISS_MODAL');
+            });
+
+            // Then this screen lets it through without asking again
+            expect(event?.defaultPrevented).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
     });
 

@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import type {DiscardChangesConfirmation} from '@hooks/useDiscardChangesConfirmation/types';
 import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
+import {runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
+
 import type {HardwareBackPressEvent} from '@src/types/utils/ReactNativeCompat';
 
 import {BackHandler} from 'react-native';
@@ -332,6 +334,18 @@ describe('useDiscardChangesConfirmation (native)', () => {
             // Then the close goes through at the root, so the whole RHP closes instead of only the top screen
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('lets the navigation through without a second prompt when another guard already confirmed it', () => {
+            // Given a dirty screen under another dirty guard of the same RHP
+            renderDiscardHook(() => true);
+
+            // When the other guard sends again the navigation the user picked Discard for
+            runWhileReplayingDiscardedNavigation(() => invokeBeforeRemove('DISMISS_MODAL'));
+
+            // Then this screen lets it through without asking again
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'DISMISS_MODAL'});
         });
     });
 });

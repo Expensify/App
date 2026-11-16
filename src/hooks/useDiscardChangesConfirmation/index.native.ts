@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import {isReplayingDiscardedNavigation, runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -32,7 +33,6 @@ function useDiscardChangesConfirmation({
     const {showConfirmModal} = useConfirmModal();
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
     const isDiscardModalOpen = useRef(false);
-    const isReplayingBlockedNavigation = useRef(false);
     const {routeName, isFocused, hasUnsavedChanges, suppressDiscardPrompt} = useDiscardPromptGate({getHasUnsavedChanges});
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.
@@ -56,14 +56,14 @@ function useDiscardChangesConfirmation({
                 return;
             }
             const confirmNavigation = () => {
-                isReplayingBlockedNavigation.current = true;
-                if (blockedNavigationAction.current) {
-                    navigationRef.current?.dispatch(getActionToReplay(blockedNavigationAction.current));
-                    blockedNavigationAction.current = undefined;
-                } else {
-                    navigationRef.current?.goBack();
-                }
-                isReplayingBlockedNavigation.current = false;
+                runWhileReplayingDiscardedNavigation(() => {
+                    if (blockedNavigationAction.current) {
+                        navigationRef.current?.dispatch(getActionToReplay(blockedNavigationAction.current));
+                        blockedNavigationAction.current = undefined;
+                    } else {
+                        navigationRef.current?.goBack();
+                    }
+                });
             };
             runDiscardConfirmation(onConfirm, confirmNavigation, () => {
                 blockedNavigationAction.current = undefined;
@@ -73,8 +73,14 @@ function useDiscardChangesConfirmation({
 
     usePreventRemove(shouldPreventRemove, ({data}: {data: {action: NavigationAction}}) => {
         // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
-        if (isReplayingBlockedNavigation.current || !hasUnsavedChanges()) {
-            navigationRef.current?.dispatch(getActionToReplay(data.action));
+        const letThrough = () => navigationRef.current?.dispatch(getActionToReplay(data.action));
+        // The user already picked Discard in this or another guard's prompt for this navigation, so don't ask again
+        if (isReplayingDiscardedNavigation()) {
+            letThrough();
+            return;
+        }
+        if (!hasUnsavedChanges()) {
+            letThrough();
             return;
         }
         if (isDiscardModalOpen.current) {

@@ -4,6 +4,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import {isReplayingDiscardedNavigation, runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
 import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -42,18 +43,15 @@ function useDiscardChangesConfirmation({
     useRegisterTabSwitchGuard(routeName, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
-    const shouldNavigateBack = useRef(false);
     const isDiscardModalOpen = useRef(false);
     const restoreState = useRef<RestoreState>({phase: 'idle'});
 
     const navigateBack = () => {
-        if (!blockedNavigationAction.current) {
+        const blockedAction = blockedNavigationAction.current;
+        if (!blockedAction) {
             return;
         }
-        shouldNavigateBack.current = true;
-        const blockedAction = blockedNavigationAction.current;
-        navigationRef.current?.dispatch(shouldCloseRHPOnDiscard ? getNavigationActionForReplay(blockedAction) : blockedAction);
-        shouldNavigateBack.current = false;
+        runWhileReplayingDiscardedNavigation(() => navigationRef.current?.dispatch(shouldCloseRHPOnDiscard ? getNavigationActionForReplay(blockedAction) : blockedAction));
     };
 
     const showDiscardModal = () => {
@@ -72,7 +70,6 @@ function useDiscardChangesConfirmation({
             onVisibilityChange?.(false);
             if (result.action !== ModalActions.CONFIRM) {
                 blockedNavigationAction.current = undefined;
-                shouldNavigateBack.current = false;
                 onCancel?.();
                 return;
             }
@@ -81,14 +78,14 @@ function useDiscardChangesConfirmation({
                 () => setNavigationActionToMicrotaskQueue(navigateBack),
                 () => {
                     blockedNavigationAction.current = undefined;
-                    shouldNavigateBack.current = false;
                 },
             );
         });
     };
 
     useBeforeRemove((e) => {
-        if (shouldNavigateBack.current) {
+        // The user already picked Discard in this or another guard's prompt for this navigation, so don't ask again
+        if (isReplayingDiscardedNavigation()) {
             return;
         }
 
