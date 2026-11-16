@@ -4,6 +4,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -57,7 +58,7 @@ function useDiscardChangesConfirmation({
             return;
         }
         shouldNavigateBack.current = true;
-        navigationRef.current?.dispatch(blockedNavigationAction.current);
+        navigationRef.current?.dispatch(getNavigationActionForReplay(blockedNavigationAction.current));
         shouldNavigateBack.current = false;
     };
 
