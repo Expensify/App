@@ -1,12 +1,13 @@
+import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
+import type {AudioSource} from 'expo-audio';
+import {AppState} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
 import attentionSound from '@assets/sounds/attention.mp3';
 import doneSound from '@assets/sounds/done.mp3';
 import receiveSound from '@assets/sounds/receive.mp3';
 import successSound from '@assets/sounds/success.mp3';
-
-import type {AudioSource} from 'expo-audio';
-import type {ValueOf} from 'type-fest';
-
-import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
+import Log from '@libs/Log';
 
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
@@ -19,13 +20,13 @@ const SOUND_ASSETS = {
 } satisfies Record<ValueOf<typeof SOUNDS>, Extract<AudioSource, number | string>>;
 
 // Configure audio mode for in-app notification sounds:
-// - playsInSilentMode: false — respect the device's silent/mute switch (iOS)
-// - shouldPlayInBackground: false — push notification sounds are played by the system
-// - interruptionMode: 'mixWithOthers' — don't interrupt other audio (e.g. music)
+// - playsInSilentMode: false – respect the device's silent/mute switch (iOS)
+// - shouldPlayInBackground: false – push notification sounds are played by the system
+// - interruptionMode: 'mixWithOthers' – don't interrupt other audio (e.g. music)
 const audioModeConfigured = setAudioModeAsync({playsInSilentMode: false, shouldPlayInBackground: false, interruptionMode: 'mixWithOthers'});
 
 const playSound = async (soundFile: ValueOf<typeof SOUNDS>) => {
-    if (getIsMuted()) {
+    if (getIsMuted() || AppState.currentState !== 'active') {
         return;
     }
 
@@ -50,7 +51,13 @@ const playSound = async (soundFile: ValueOf<typeof SOUNDS>) => {
         player.remove();
     });
 
-    player.play();
+    try {
+        player.play();
+    } catch (error) {
+        Log.warn('Failed to play sound', {error, soundFile});
+        subscription.remove();
+        player.remove();
+    }
 };
 
 function clearSoundAssetsCache() {}

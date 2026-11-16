@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import getPlatform from '@libs/getPlatform';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +46,12 @@ function withMinimalExecutionTime<F extends (...args: Parameters<F>) => ReturnTy
             }
 
             const [nextFunc, resolve] = next;
-            nextFunc();
+            const result = nextFunc();
+            if (result instanceof Promise) {
+                result.catch((error: unknown) => {
+                    Log.warn('Error in withMinimalExecutionTime queued execution', {error});
+                });
+            }
             resolve();
             timerId = setTimeout(processQueue, minExecutionTime);
         } else {
