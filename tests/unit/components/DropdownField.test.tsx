@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldHandle, DropdownFieldRenderProps} from '@components/DropdownField';
+import DropdownField from '@components/DropdownField';
 import Text from '@components/Text';
 
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
@@ -50,11 +50,11 @@ const mockRowAt = (rowTop: number) => {
     });
 };
 
-describe('ExpenseFieldDropdown', () => {
-    let renderedProps: ExpenseFieldDropdownRenderProps | undefined;
+describe('DropdownField', () => {
+    let renderedProps: DropdownFieldRenderProps | undefined;
     let renderCount = 0;
 
-    const renderDropdown = (props: ExpenseFieldDropdownRenderProps): ReactNode => {
+    const renderDropdown = (props: DropdownFieldRenderProps): ReactNode => {
         renderedProps = props;
         renderCount += 1;
         return props.isVisible ? <Text>{DROPDOWN_TEXT}</Text> : null;
@@ -79,7 +79,7 @@ describe('ExpenseFieldDropdown', () => {
 
     const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) =>
         render(
-            <ExpenseFieldDropdown
+            <DropdownField
                 sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 name={FIELD_NAME}
                 testID={ROW_TEST_ID}
@@ -136,9 +136,9 @@ describe('ExpenseFieldDropdown', () => {
 
     describe('open()', () => {
         const renderFieldWithRef = (shouldOpenInDropdown: boolean, onPress: () => void) => {
-            const ref = createRef<ExpenseFieldDropdownHandle>();
+            const ref = createRef<DropdownFieldHandle>();
             render(
-                <ExpenseFieldDropdown
+                <DropdownField
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={ref}
                     name={FIELD_NAME}

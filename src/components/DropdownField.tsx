@@ -13,9 +13,9 @@ import type {View} from 'react-native';
 
 import React, {useImperativeHandle, useRef, useState} from 'react';
 
-import type {ExpenseFieldRowProps} from './ExpenseFieldRow';
+import type {DropdownFieldRowProps} from './DropdownFieldRow';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import DropdownFieldRow from './DropdownFieldRow';
 
 /** Gap between the row and the container it opens */
 const CONTAINER_GAP = 4;
@@ -51,7 +51,7 @@ type DropdownLayout = {
     shouldOpenAbove: boolean;
 };
 
-type ExpenseFieldDropdownRenderProps = {
+type DropdownFieldRenderProps = {
     /** Whether the container is open */
     isVisible: boolean;
 
@@ -77,9 +77,9 @@ type ExpenseFieldDropdownRenderProps = {
     popoverHeight: number;
 };
 
-type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorRef' | 'isExpanded'> & {
+type DropdownFieldProps = Omit<DropdownFieldRowProps, 'onPress' | 'anchorRef' | 'isExpanded'> & {
     /** Renders the field's list. Only called once the row has been pressed, so an untouched field costs the form nothing. */
-    renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode;
+    renderDropdown: (props: DropdownFieldRenderProps) => ReactNode;
 
     /** Whether the list opens in the container. A field that can't answer in place falls back to `onPress`. */
     shouldOpenInDropdown: boolean;
@@ -91,22 +91,22 @@ type ExpenseFieldDropdownProps = Omit<ExpenseFieldRowProps, 'onPress' | 'anchorR
     listHeaderHeight?: number;
 
     /** Lets the field open its list without a press, e.g. once the user is back from a step the press sent them to */
-    ref?: Ref<ExpenseFieldDropdownHandle>;
+    ref?: Ref<DropdownFieldHandle>;
 };
 
-type ExpenseFieldDropdownHandle = {
+type DropdownFieldHandle = {
     /** Opens the list as a press would, falling back to `onPress` when it can't open in place. Does nothing if it is already open. */
     open: () => void;
 };
 
 /**
- * An expense form field whose list opens in a container anchored to the row, rather than on its own page.
+ * A form field whose list opens in a container anchored to the row, rather than on its own page.
  *
  * `PopoverWithMeasuredContent` makes it a pop-over on a wide layout and a bottom sheet on a narrow one. The
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
  * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
  */
-function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, ...rowProps}: ExpenseFieldDropdownProps) {
+function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, ...rowProps}: DropdownFieldProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -184,7 +184,7 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
 
     return (
         <>
-            <ExpenseFieldRow
+            <DropdownFieldRow
                 {...rowProps}
                 anchorRef={shouldOpenInDropdown ? anchorRef : undefined}
                 isExpanded={shouldOpenInDropdown ? isVisible : undefined}
@@ -205,5 +205,5 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
     );
 }
 
-export default ExpenseFieldDropdown;
-export type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps};
+export default DropdownField;
+export type {DropdownFieldHandle, DropdownFieldRenderProps};
