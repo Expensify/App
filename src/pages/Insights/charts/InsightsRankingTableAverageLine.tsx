@@ -1,7 +1,7 @@
-import useThemeStyles from '@hooks/useThemeStyles';
+import VictoryTheme, {DASH_INTERVALS} from '@components/Charts/VictoryTheme';
 
-import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -9,7 +9,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Svg, {Line} from 'react-native-svg';
 
-const DASH_INTERVALS = [4, 4];
+// Snaps the line to whole pixels, since the average rarely falls on one and a 1px line between two pixels is drawn blurred and paler.
+// react-native-svg leaves the attribute out of its types but passes it to the DOM on web.
+const CRISP_EDGES_PROPS: Record<string, string> = {shapeRendering: 'crispEdges'};
 
 type InsightsRankingTableAverageLineProps = {
     style?: StyleProp<ViewStyle>;
@@ -17,8 +19,9 @@ type InsightsRankingTableAverageLineProps = {
 
 /** Vertical dashed line marking the average in a ranking table */
 function InsightsRankingTableAverageLine({style}: InsightsRankingTableAverageLineProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const lineWidth = variables.insightsRankingTableAverageLineWidth;
+    const {strokeWidth, opacity} = VictoryTheme.averageLine;
 
     return (
         <View style={[styles.insightsRankingTableAverageDashedLine, style]}>
@@ -27,12 +30,15 @@ function InsightsRankingTableAverageLine({style}: InsightsRankingTableAverageLin
                 height="100%"
             >
                 <Line
-                    x1={lineWidth / 2}
-                    y1="100%"
-                    x2={lineWidth / 2}
-                    y2={0}
-                    stroke={colors.green600}
-                    strokeWidth={lineWidth}
+                    x1={strokeWidth / 2}
+                    y1={0}
+                    x2={strokeWidth / 2}
+                    y2="100%"
+                    stroke={theme.text}
+                    strokeOpacity={opacity}
+                    strokeWidth={strokeWidth}
+                    strokeLinecap="round"
+                    {...CRISP_EDGES_PROPS}
                     strokeDasharray={DASH_INTERVALS.join(' ')}
                 />
             </Svg>

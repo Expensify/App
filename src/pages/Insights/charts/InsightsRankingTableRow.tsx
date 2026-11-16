@@ -10,8 +10,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -54,9 +52,7 @@ type InsightsRankingTableRowProps = {
 
 function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, averageWidthPercent, rowIndex}: InsightsRankingTableRowProps) {
     const {item, share, barWidthPercent, change} = row;
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, numberFormat} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {cardPaddingHorizontal} = useLayoutSpacing();
@@ -133,61 +129,45 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
             hoverStyle={styles.hoveredComponentBG}
             {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
         >
-            {({hovered}) => (
-                <>
-                    <View
-                        style={[styles.flex1, styles.mnw0, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.GROUP)}
+            <View
+                style={[styles.flex1, styles.mnw0, cellStyle]}
+                {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.GROUP)}
+            >
+                <Text style={styles.breakWord}>{label}</Text>
+            </View>
+            <View
+                style={styles.insightsRankingTableShareColumn}
+                {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.SHARE)}
+            >
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={styles.insightsRankingTableBar(barWidthPercent)} />
+                    <Text
+                        variant="micro"
+                        style={[styles.textSupporting, styles.noWrap, styles.ph2]}
                     >
-                        <Text style={styles.breakWord}>{label}</Text>
-                    </View>
-                    <View
-                        style={styles.insightsRankingTableShareColumn}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.SHARE)}
-                    >
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <View style={styles.insightsRankingTableBar(barWidthPercent)} />
-                            {averageWidthPercent !== undefined && (
-                                <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, rowIndex > 0 ? variables.borderTopWidth : 0, 0)}>
-                                    <InsightsRankingTableAverageLine style={styles.flex1} />
-                                </View>
-                            )}
-                            <Text
-                                variant="micro"
-                                style={[
-                                    styles.textSupporting,
-                                    styles.noWrap,
-                                    styles.ph2,
-                                    // Positioned and drawn after the average line, so it covers the line where the two cross and stays readable
-                                    styles.pRelative,
-                                    averageWidthPercent !== undefined && StyleUtils.getBackgroundColorStyle(hovered ? theme.hoverComponentBG : theme.cardBG),
-                                ]}
-                            >
-                                {formattedShare}
-                            </Text>
-                        </View>
-                    </View>
-                    <View
-                        style={[styles.insightsRankingTableNumberColumn, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.COUNT)}
-                    >
-                        <Text>{numberFormat(item.count)}</Text>
-                    </View>
-                    <View
-                        style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd, cellStyle]}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.AMOUNT)}
-                    >
-                        <Text>{formattedAmount}</Text>
-                    </View>
-                    {!!change && (
-                        <View
-                            style={[styles.insightsRankingTableChangeColumn, cellStyle]}
-                            {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.CHANGE)}
-                        >
-                            <InsightsRankingTableChange change={change} />
-                        </View>
-                    )}
-                </>
+                        {formattedShare}
+                    </Text>
+                </View>
+            </View>
+            <View
+                style={[styles.insightsRankingTableNumberColumn, cellStyle]}
+                {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.COUNT)}
+            >
+                <Text>{numberFormat(item.count)}</Text>
+            </View>
+            <View
+                style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd, cellStyle]}
+                {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.AMOUNT)}
+            >
+                <Text>{formattedAmount}</Text>
+            </View>
+            {!!change && (
+                <View
+                    style={[styles.insightsRankingTableChangeColumn, cellStyle]}
+                    {...getCellAccessibilityProps(isTableSemanticsEnabled, RANKING_TABLE_COLUMN.CHANGE)}
+                >
+                    <InsightsRankingTableChange change={change} />
+                </View>
             )}
         </PressableWithFeedback>
     );

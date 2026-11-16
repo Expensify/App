@@ -8207,7 +8207,7 @@ const plainStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         insightsRankingTableAverageDashedLine: {
-            width: variables.insightsRankingTableAverageLineWidth,
+            width: VictoryTheme.averageLine.strokeWidth,
         } satisfies ViewStyle,
 
         insightsRankingTableAverageLegendMark: {

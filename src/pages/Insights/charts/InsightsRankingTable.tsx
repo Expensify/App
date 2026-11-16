@@ -24,7 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import buildRankingTableRows from './buildRankingTableRows';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
@@ -148,99 +148,112 @@ function InsightsRankingTable({
     const columnCount = isComparingPreviousPeriod ? RANKING_TABLE_COLUMN.CHANGE : RANKING_TABLE_COLUMN.AMOUNT;
 
     return (
-        <View
-            style={cardPaddingBottom}
-            {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, rows.length, columnCount)}
-        >
+        <View style={cardPaddingBottom}>
             <View
-                style={[styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.borderBottom]}
-                {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
+                style={styles.pRelative}
+                {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, rows.length, columnCount)}
             >
                 <View
-                    style={[styles.flex1, styles.mnw0]}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.GROUP)}
+                    style={[styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.borderBottom]}
+                    {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
                 >
-                    <SortableHeaderLabel
-                        text={translate(`search.filters.groupBy.${groupBy}`)}
-                        isActive={false}
-                        sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                        innerContainerStyle={headerLabelStyle}
-                    />
-                </View>
-                <View
-                    style={styles.insightsRankingTableShareColumn}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.SHARE)}
-                >
-                    <View style={styles.flex1}>
-                        <SortableHeaderLabel
-                            text={translate('insightsPage.share')}
-                            isActive={false}
-                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                            innerContainerStyle={headerLabelStyle}
-                        />
-                        {!!formattedAverage && averageWidthPercent !== undefined && (
-                            <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, 0, variables.borderTopWidth), styles.pt2]}>
-                                <View style={styles.insightsRankingTableAveragePill}>
-                                    <Text
-                                        variant="micro"
-                                        style={[styles.noWrap, StyleUtils.getColorStyle(theme.textReversed)]}
-                                    >
-                                        {translate('insightsPage.compare.averageValue', formattedAverage)}
-                                    </Text>
-                                </View>
-                                <InsightsRankingTableAverageLine style={styles.flex1} />
-                            </View>
-                        )}
-                    </View>
-                </View>
-                <View
-                    style={styles.insightsRankingTableNumberColumn}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, RANKING_TABLE_COLUMN.COUNT)}
-                >
-                    <SortableHeaderLabel
-                        text={translate(COUNT_COLUMN_TITLE_KEYS[countDimension])}
-                        isActive
-                        sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                        innerContainerStyle={headerLabelStyle}
-                    />
-                </View>
-                <View
-                    style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
-                    {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.AMOUNT)}
-                >
-                    <SortableHeaderLabel
-                        text={translate('iou.amount')}
-                        isActive={false}
-                        sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                        innerContainerStyle={headerLabelStyle}
-                    />
-                </View>
-                {isComparingPreviousPeriod && (
                     <View
-                        style={styles.insightsRankingTableChangeColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.CHANGE)}
+                        style={[styles.flex1, styles.mnw0]}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.GROUP)}
                     >
                         <SortableHeaderLabel
-                            text={translate('insightsPage.compare.percentChange')}
+                            text={translate(`search.filters.groupBy.${groupBy}`)}
                             isActive={false}
                             sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
                             innerContainerStyle={headerLabelStyle}
                         />
                     </View>
-                )}
-            </View>
-            <View {...getRowGroupAccessibilityProps(isTableSemanticsEnabled)}>
-                {rows.map((row, index) => (
-                    <InsightsRankingTableRow
-                        key={row.item.keyForList}
-                        row={row}
-                        groupBy={groupBy}
-                        countDimension={countDimension}
-                        queryJSON={queryJSON}
-                        averageWidthPercent={averageWidthPercent}
-                        rowIndex={index}
-                    />
-                ))}
+                    <View
+                        style={styles.insightsRankingTableShareColumn}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.SHARE)}
+                    >
+                        <View style={styles.flex1}>
+                            <SortableHeaderLabel
+                                text={translate('insightsPage.share')}
+                                isActive={false}
+                                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                                innerContainerStyle={headerLabelStyle}
+                            />
+                        </View>
+                    </View>
+                    <View
+                        style={styles.insightsRankingTableNumberColumn}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, RANKING_TABLE_COLUMN.COUNT)}
+                    >
+                        <SortableHeaderLabel
+                            text={translate(COUNT_COLUMN_TITLE_KEYS[countDimension])}
+                            isActive
+                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                            innerContainerStyle={headerLabelStyle}
+                        />
+                    </View>
+                    <View
+                        style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
+                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.AMOUNT)}
+                    >
+                        <SortableHeaderLabel
+                            text={translate('iou.amount')}
+                            isActive={false}
+                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                            innerContainerStyle={headerLabelStyle}
+                        />
+                    </View>
+                    {isComparingPreviousPeriod && (
+                        <View
+                            style={styles.insightsRankingTableChangeColumn}
+                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, RANKING_TABLE_COLUMN.CHANGE)}
+                        >
+                            <SortableHeaderLabel
+                                text={translate('insightsPage.compare.percentChange')}
+                                isActive={false}
+                                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
+                                innerContainerStyle={headerLabelStyle}
+                            />
+                        </View>
+                    )}
+                </View>
+                <View {...getRowGroupAccessibilityProps(isTableSemanticsEnabled)}>
+                    {rows.map((row, index) => (
+                        <InsightsRankingTableRow
+                            key={row.item.keyForList}
+                            row={row}
+                            groupBy={groupBy}
+                            countDimension={countDimension}
+                            queryJSON={queryJSON}
+                            averageWidthPercent={averageWidthPercent}
+                            rowIndex={index}
+                        />
+                    ))}
+                </View>
+                {!!formattedAverage &&
+                    averageWidthPercent !== undefined && (
+                        // Laid out like the rows, so one unbroken line runs over every bar at the average
+                        <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.pointerEventsNone]}>
+                            <View style={[styles.flex1, styles.mnw0]} />
+                            <View style={styles.insightsRankingTableShareColumn}>
+                                <View style={styles.flex1}>
+                                    <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent), styles.pt2]}>
+                                        <View style={styles.insightsRankingTableAveragePill}>
+                                            <Text
+                                                variant="micro"
+                                                style={[styles.noWrap, StyleUtils.getColorStyle(theme.textReversed)]}
+                                            >
+                                                {translate('insightsPage.compare.averageValue', formattedAverage)}
+                                            </Text>
+                                        </View>
+                                        <InsightsRankingTableAverageLine style={styles.flex1} />
+                                    </View>
+                                </View>
+                            </View>
+                            <View style={styles.insightsRankingTableNumberColumn} />
+                            <View style={styles.insightsRankingTableNumberColumn} />
+                        </View>
+                    )}
             </View>
         </View>
     );
