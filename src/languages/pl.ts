@@ -7959,16 +7959,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
-            exactOnline: {
-                comingSoon: 'Wkrótce dostępne',
-                joinWaitlist: 'Dołącz do listy oczekujących',
-                onWaitlist: 'Jesteś na liście oczekujących',
-                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Wkrótce dostępne',
                 joinWaitlist: 'Dołącz do listy oczekujących',
                 onWaitlist: 'Jesteś na liście oczekujących',
+                onWaitlistButton: 'Na liście oczekujących',
                 onTheList: 'Jesteś na liście!',
                 waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
             },
