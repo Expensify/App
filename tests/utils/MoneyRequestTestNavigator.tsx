@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {TupleToUnion} from 'type-fest';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -50,7 +49,7 @@ function EmptyScreen() {
 }
 
 /** The navigation of the RHP route in the root stack. Clicking outside the RHP calls `goBack` on it. */
-let rhpNavigation: NavigationProp<ParamListBase> | undefined;
+let rhpNavigation: Pick<ReturnType<typeof useNavigation>, 'goBack'> | undefined;
 
 let stepComponentsForRender: Partial<Record<MoneyRequestTestScreen, React.ComponentType>> = {};
 
@@ -160,4 +159,3 @@ function getMoneyRequestStepNames() {
 }
 
 export {renderMoneyRequestNavigation, clickOutsideRHP, getRootRouteNames, getMoneyRequestStepNames};
-export type {MoneyRequestTestScreen};
