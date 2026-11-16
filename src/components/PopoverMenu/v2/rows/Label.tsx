@@ -44,4 +44,3 @@ function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}:
 Label.displayName = 'PopoverMenu.Label';
 
 export default Label;
-export type {LabelProps};

@@ -4651,14 +4651,14 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                const {reports, reportNameValuePairs} = createSidebarTestData();
+                const {reports} = createSidebarTestData();
 
                 const reportsDrafts: Record<string, boolean> = {
                     '2': true,
                 };
 
                 // When the reports are categorized
-                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, reportNameValuePairs);
+                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, new Set(['4']));
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -5295,6 +5295,170 @@ describe('SidebarUtils', () => {
                 // Then the expense report shows in the LHN again, and in the Unread tab, because the new comment lives on its thread
                 expect(displayedReports[expenseReportKey]).toBeUndefined();
                 expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
+            });
+
+            describe('flagged entries', () => {
+                // A never-read DM: it is stored in the LHN set as a spread copy of the report with the flags on it
+                const makeUnreadChat = (overrides: Partial<Report> = {}): Report => ({
+                    reportID: '1',
+                    reportName: 'Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: 'hello',
+                    lastReadTime: undefined,
+                    lastActorAccountID: 18921695,
+                    lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                        18921695: {notificationPreference: 'always'},
+                    },
+                    ...overrides,
+                });
+
+                const buildParams = (reports: OnyxCollection<Report>, reportAttributes: ReportAttributesDerivedValue['reports'], currentReportId?: string) => ({
+                    currentReportId,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: undefined,
+                });
+
+                const updateParams = (
+                    displayedReports: ReportsToDisplayInLHN,
+                    reports: OnyxCollection<Report>,
+                    reportAttributes: ReportAttributesDerivedValue['reports'],
+                    currentReportId?: string,
+                ) => {
+                    const {priorityMode, ...rest} = buildParams(reports, reportAttributes, currentReportId);
+                    return {
+                        ...rest,
+                        displayedReports,
+                        updatedReportsKeys: Object.keys(displayedReports),
+                        isInFocusMode: (priorityMode as string) === CONST.PRIORITY_MODE.GSD,
+                    };
+                };
+
+                const chatAttributes = (requiresAttention = false): ReportAttributesDerivedValue['reports'] => ({
+                    '1': {reportName: 'Chat', isEmpty: false, brickRoadStatus: undefined, requiresAttention, reportErrors: {}},
+                });
+
+                // The chat is hidden unless the current user's participant preference says otherwise, and that lookup
+                // reads the signed-in account from the SESSION connection
+                const signIn = async () => {
+                    await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
+                    await waitForBatchedUpdatesWithAct();
+                };
+
+                it('should return the same map and entry when a flagged report is rechecked with unchanged input', async () => {
+                    // Given an LHN set holding one unread chat (a flagged entry, stored as a spread copy of the report)
+                    await signIn();
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+                    const reports: OnyxCollection<Report> = {[reportKey]: makeUnreadChat()};
+                    const displayedReports = SidebarUtils.getReportsToDisplayInLHN(buildParams(reports, chatAttributes()));
+                    expect(displayedReports[reportKey]?.isUnreadReport).toBe(true);
+
+                    // When the set is rechecked twice with the same report reference and the same flags, feeding each
+                    // result back in (as the provider does with its cache)
+                    const second = SidebarUtils.updateReportsToDisplayInLHN(updateParams(displayedReports, reports, chatAttributes()));
+                    const third = SidebarUtils.updateReportsToDisplayInLHN(updateParams(second, reports, chatAttributes()));
+
+                    // Then nothing changed, so the lazy copy is never taken: the same map and the same entry come back
+                    expect(second).toBe(displayedReports);
+                    expect(third).toBe(displayedReports);
+                    expect(third[reportKey]).toBe(displayedReports[reportKey]);
+                });
+
+                it('should return a new entry when the flagged report itself changes', async () => {
+                    // Given an LHN set holding one unread chat
+                    await signIn();
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+                    const reports: OnyxCollection<Report> = {[reportKey]: makeUnreadChat()};
+                    const displayedReports = SidebarUtils.getReportsToDisplayInLHN(buildParams(reports, chatAttributes()));
+
+                    // When the report gets a new message (a new report object from Onyx) and is rechecked
+                    const updatedReports: OnyxCollection<Report> = {[reportKey]: makeUnreadChat({lastVisibleActionCreated: '2025-01-20 12:31:00.000'})};
+                    const result = SidebarUtils.updateReportsToDisplayInLHN(updateParams(displayedReports, updatedReports, chatAttributes()));
+
+                    // Then the entry is rebuilt from the new report and the map is a new object
+                    expect(result).not.toBe(displayedReports);
+                    expect(result[reportKey]).not.toBe(displayedReports[reportKey]);
+                    expect(result[reportKey]?.lastVisibleActionCreated).toBe('2025-01-20 12:31:00.000');
+                    expect(result[reportKey]?.isUnreadReport).toBe(true);
+                });
+
+                it('should return a new entry when only a flag of the flagged report changes', async () => {
+                    // Given an LHN set holding one unread chat that does not require attention
+                    await signIn();
+                    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}1`;
+                    const reports: OnyxCollection<Report> = {[reportKey]: makeUnreadChat()};
+                    const displayedReports = SidebarUtils.getReportsToDisplayInLHN(buildParams(reports, chatAttributes()));
+                    expect(displayedReports[reportKey]?.requiresAttention).toBe(false);
+
+                    // When its derived attributes flip requiresAttention, with the same report reference
+                    const result = SidebarUtils.updateReportsToDisplayInLHN(updateParams(displayedReports, reports, chatAttributes(true)));
+
+                    // Then the entry is rebuilt with the new flag
+                    expect(result).not.toBe(displayedReports);
+                    expect(result[reportKey]?.requiresAttention).toBe(true);
+                });
+
+                it('should return a new entry when only the one-transaction thread of a flagged report gets a newer message', () => {
+                    // Given an unread single-expense report whose hidden transaction thread decides its Inbox message time.
+                    // The expense report object itself and its flags will not change below; only the thread does.
+                    const expenseReport: Report = {
+                        ...createRandomReport(1, undefined),
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        lastReadTime: '2025-01-20 10:00:00.000',
+                        lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                        lastActorAccountID: 18921695,
+                    };
+                    const makeThread = (lastVisibleActionCreated: string): Report => ({
+                        ...createRandomReport(2, undefined),
+                        type: CONST.REPORT.TYPE.CHAT,
+                        parentReportID: expenseReport.reportID,
+                        lastReadTime: '2025-01-20 10:00:00.000',
+                        lastVisibleActionCreated,
+                        lastActorAccountID: 18921695,
+                    });
+                    const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+                    const threadKey = `${ONYXKEYS.COLLECTION.REPORT}2`;
+                    const attributes: ReportAttributesDerivedValue['reports'] = {
+                        [expenseReport.reportID]: {reportName: '', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}, oneTransactionThreadReportID: '2'},
+                    };
+                    const oldThread = makeThread('2025-01-20 12:00:00.000');
+                    const displayedReports = SidebarUtils.getReportsToDisplayInLHN(
+                        buildParams({[expenseReportKey]: expenseReport, [threadKey]: oldThread}, attributes, expenseReport.reportID),
+                    );
+                    expect(displayedReports[expenseReportKey]?.isUnreadReport).toBe(true);
+                    expect(displayedReports[expenseReportKey]?.lastVisibleActionCreatedForInboxTab).toBe('2025-01-20 12:00:00.000');
+
+                    // When the expense report is rechecked with an unchanged thread, and then again after the thread got a newer comment
+                    const unchanged = SidebarUtils.updateReportsToDisplayInLHN(
+                        updateParams(displayedReports, {[expenseReportKey]: expenseReport, [threadKey]: oldThread}, attributes, expenseReport.reportID),
+                    );
+                    const newThread = makeThread('2025-01-20 13:00:00.000');
+                    const result = SidebarUtils.updateReportsToDisplayInLHN(
+                        updateParams(displayedReports, {[expenseReportKey]: expenseReport, [threadKey]: newThread}, attributes, expenseReport.reportID),
+                    );
+
+                    // Then the unchanged recheck keeps the map, while the thread's newer message rebuilds the entry even though the
+                    // expense report object and all of its flags are the same, so the Inbox tab sees the new message time
+                    expect(unchanged).toBe(displayedReports);
+                    expect(result).not.toBe(displayedReports);
+                    expect(result[expenseReportKey]).not.toBe(displayedReports[expenseReportKey]);
+                    expect(result[expenseReportKey]?.lastVisibleActionCreatedForInboxTab).toBe('2025-01-20 13:00:00.000');
+                    expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
+                });
             });
         });
 

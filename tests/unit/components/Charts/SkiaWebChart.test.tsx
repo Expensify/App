@@ -3,8 +3,10 @@ import {act, render, screen} from '@testing-library/react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartReveal, {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
-import isSkiaWebSupported from '@components/Charts/SkiaWebChart/isSkiaWebSupported';
+import getSkiaWebUnsupportedReason from '@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason';
 import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
+
+import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNoiseFilter';
 
 import type {ComponentType} from 'react';
 
@@ -15,9 +17,11 @@ import {View} from 'react-native';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/Charts/SkiaWebChart/isSkiaWebSupported', () => jest.fn());
+jest.mock('@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason', () => jest.fn());
 
 jest.mock('@shopify/react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
+
+jest.mock('@libs/telemetry/integrations/canvasKitNoiseFilter', () => ({markCanvasKitLoadStarted: jest.fn()}));
 
 jest.mock('@sentry/react-native', () => ({captureException: jest.fn(), setUser: jest.fn()}));
 
@@ -37,8 +41,9 @@ jest.mock('@components/Icon', () => ({
 
 const CHART_LOADING_HEIGHT = getCartesianChartHeight();
 
-const mockIsSkiaWebSupported = jest.mocked(isSkiaWebSupported);
+const mockGetSkiaWebUnsupportedReason = jest.mocked(getSkiaWebUnsupportedReason);
 const mockLoadSkiaWeb = jest.mocked(LoadSkiaWeb);
+const mockMarkCanvasKitLoadStarted = jest.mocked(markCanvasKitLoadStarted);
 const mockCaptureException = jest.mocked(Sentry.captureException);
 
 function LoadedChart() {
@@ -89,9 +94,9 @@ describe('SkiaWebChart', () => {
         jest.clearAllMocks();
     });
 
-    it('should show the unable-to-display empty state without mounting Skia when WebGL is unsupported', () => {
-        // Given a browser without WebGL
-        mockIsSkiaWebSupported.mockReturnValue(false);
+    it.each(['common.webGLNotSupported', 'common.webAssemblyNotSupported'] as const)('should show the capability-specific empty state without mounting Skia: %s', (reason) => {
+        // Given a browser missing one of the capabilities CanvasKit needs
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(reason);
         const getComponent = createChartLoader();
 
         // When the chart mounts
@@ -105,14 +110,15 @@ describe('SkiaWebChart', () => {
         // Then the empty state shows and neither CanvasKit nor the chart's code loads, because CanvasKit crashes when it
         // initializes without a GL surface
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
-        expect(screen.getByText('common.webGLNotSupported')).toBeTruthy();
+        expect(screen.getByText(reason)).toBeTruthy();
         expect(mockLoadSkiaWeb).not.toHaveBeenCalled();
+        expect(mockMarkCanvasKitLoadStarted).not.toHaveBeenCalled();
         expect(getComponent).not.toHaveBeenCalled();
     });
 
     it('should show the failed-to-load message under a reveal without holding its spinner', async () => {
         // Given a chart under a reveal whose spinner is up while Skia loads
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
         const skiaLoad = deferSkiaLoad();
         render(renderRevealedChart(createChartLoader()));
 
@@ -129,7 +135,7 @@ describe('SkiaWebChart', () => {
 
     it('should hold the reveal spinner when the chart was still loading Skia at mount', async () => {
         // Given a browser with WebGL where Skia has not loaded yet, so the chart shows its fallback under a reveal
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
         const skiaLoad = deferSkiaLoad();
         render(renderRevealedChart(createChartLoader(ReadyChart)));
 
@@ -143,7 +149,11 @@ describe('SkiaWebChart', () => {
 
     it('should mount the chart once Skia loads when WebGL is supported', async () => {
         // Given a browser with WebGL
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
+        mockLoadSkiaWeb.mockImplementationOnce(() => {
+            expect(mockMarkCanvasKitLoadStarted).toHaveBeenCalledTimes(1);
+            return Promise.resolve();
+        });
 
         // When the chart mounts for the first time and its loads settle
         render(
@@ -163,7 +173,7 @@ describe('SkiaWebChart', () => {
 
     it('should render an already loaded chart without its fallback when it mounts again', async () => {
         // Given a chart whose code and CanvasKit finished loading on an earlier mount
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
         const getComponent = createChartLoader();
         const {unmount} = render(
             <SkiaWebChart
@@ -187,12 +197,13 @@ describe('SkiaWebChart', () => {
         expect(screen.getByTestId('loaded-chart')).toBeTruthy();
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
         expect(getComponent).toHaveBeenCalledTimes(1);
+        expect(mockMarkCanvasKitLoadStarted).toHaveBeenCalledTimes(1);
     });
 
     it('should load the chart again on the next mount after a load fails', async () => {
         // Given a chart whose first CanvasKit load failed, a result React would otherwise keep for the rest of the session.
         // React logs caught render errors to console.error, so mock it to keep the test output clean.
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
         mockLoadSkiaWeb.mockRejectedValueOnce(new Error('Failed to fetch canvaskit.wasm'));
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const getComponent = createChartLoader();
@@ -224,7 +235,7 @@ describe('SkiaWebChart', () => {
 
     it('should point CanvasKit at the versioned wasm URL emitted by the build', async () => {
         // Given a browser that supports WebGL
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
 
         // When the chart mounts Skia
         render(
@@ -247,7 +258,7 @@ describe('SkiaWebChart', () => {
     it('should degrade to the failed-to-load empty state and report a warning when CanvasKit fails to load', async () => {
         // Given a browser that supports WebGL but where CanvasKit throws while loading, as it does when the
         // glue and wasm binary are from different releases or the 8 MB download fails
-        mockIsSkiaWebSupported.mockReturnValue(true);
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
         const loadError = new Error('CanvasKit initialized without its bindings');
         mockLoadSkiaWeb.mockRejectedValueOnce(loadError);
         // React logs caught render errors to console.error. Mock it to keep the test output clean.

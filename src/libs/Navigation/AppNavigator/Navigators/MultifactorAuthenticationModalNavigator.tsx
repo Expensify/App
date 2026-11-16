@@ -7,7 +7,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RHPResizeHandle from '@components/RHPResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -148,10 +147,7 @@ function MultifactorAuthenticationModalNavigator() {
     const {width: singleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
     const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
-    const {isBetaEnabled} = usePermissions();
-    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
-
-    const stackContentStyle = styles.singleRHPStackBox(isResizable);
+    const stackContentStyle = styles.singleRHPStackBox(!shouldUseNarrowLayout);
 
     if (phase === 'closed') {
         return null;
@@ -184,7 +180,7 @@ function MultifactorAuthenticationModalNavigator() {
                              * via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
                              * on wide layout, so the slide range is stable regardless of layout timing.
                              */
-                            cardStyleInterpolator: isResizable
+                            cardStyleInterpolator: !shouldUseNarrowLayout
                                 ? enhanceCardStyleInterpolator(slideFromWidthInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles})
                                 : slideFromWidthInterpolator,
                             transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
@@ -243,7 +239,7 @@ function MultifactorAuthenticationModalNavigator() {
                     <View style={stackContentStyle}>{stack}</View>
                 </View>
             </FocusTrapExtraContainersContext.Provider>
-            {isResizable && <RHPResizeHandle ref={setResizeHandleElement} />}
+            {!shouldUseNarrowLayout && <RHPResizeHandle ref={setResizeHandleElement} />}
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}
