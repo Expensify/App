@@ -8164,10 +8164,10 @@ const plainStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         insightsRankingTableShareColumn: {
-            flex: 1,
+            flex: 1.5,
             minWidth: 0,
             alignSelf: 'stretch',
-            paddingRight: variables.insightsRankingTableShareLabelWidth,
+            paddingRight: variables.insightsRankingTableShareLabelSpace,
         } satisfies ViewStyle,
 
         insightsRankingTableNumberColumn: {

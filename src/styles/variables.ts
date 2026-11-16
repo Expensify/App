@@ -189,7 +189,7 @@ export default {
     insightsAICardWidth: 250,
     insightsRankingTableBarHeight: 8,
     insightsRankingTableBarMinWidth: 4,
-    insightsRankingTableShareLabelWidth: 56,
+    insightsRankingTableShareLabelSpace: 56,
     insightsRankingTableAverageLineWidth: 2,
     insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
