@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -211,5 +211,24 @@ describe('LogOutPreviousUserPage', () => {
         // Then the transition route is on top when the previous account is signed out, so the public transition page can redeem the token from its params
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
+    });
+
+    it('closes the switch prompt when the transition page unmounts', async () => {
+        // Given an account signed in to NewDot and a transition link for a different account
+        mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+        renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        expect(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeOnTheScreen();
+
+        // When the transition page is replaced while the prompt is still open
+        act(() => {
+            navigationRef.dispatch(StackActions.replace(SCREENS.CONCIERGE));
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the prompt is closed, so it cannot sign out whatever session is current later
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
     });
 });

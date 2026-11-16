@@ -32,6 +32,8 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
+const SWITCH_ACCOUNT_MODAL_ID = 'switchAccount';
+
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
 // out if the transition is for another user.
 //
@@ -44,7 +46,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
     const {translate, formatPhoneNumber} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModalByID} = useConfirmModal();
     const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     useEffect(() => {
@@ -112,12 +114,18 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 return;
             }
 
+            let isCancelled = false;
             showConfirmModal({
+                id: SWITCH_ACCOUNT_MODAL_ID,
                 title: translate('deeplinkWrapper.switchAccount.title'),
                 prompt: translate('deeplinkWrapper.switchAccount.prompt', {newEmail: formatPhoneNumber(linkEmail), currentEmail: formatPhoneNumber(sessionEmail ?? '')}),
                 confirmText: translate('deeplinkWrapper.switchAccount.confirm'),
                 cancelText: translate('deeplinkWrapper.switchAccount.staySignedIn'),
             }).then((result) => {
+                // The cleanup below closes the prompt without an answer, which must not count as "Stay signed in".
+                if (isCancelled) {
+                    return;
+                }
                 if (result.action !== ModalActions.CONFIRM) {
                     setHasCancelledSwitch(true);
                     return;
@@ -140,7 +148,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             });
-            return;
+
+            // The prompt lives above the navigators, so close it with the page. Otherwise a later confirm would sign out whatever session is current.
+            return () => {
+                isCancelled = true;
+                closeModalByID(SWITCH_ACCOUNT_MODAL_ID);
+            };
         }
 
         if (isSupportalLogin) {
