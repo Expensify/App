@@ -101,27 +101,28 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {dob: '1988-05-19', phoneNumber: '+13466666666'});
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {dob: '1988-05-19'});
         });
         await TestHelper.signInWithTestUser();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('asks for a magic code before saving the details and activating the card', async () => {
-        // Given a cardholder confirming their details for a card shipped to the name and address their admin entered
+    it('asks for a validateCode before saving a new phone number and activating the card', async () => {
+        // Given a cardholder with no phone number on file, confirming their details for a card shipped to the name and address their admin entered
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // When they submit the details
+        // When they add a phone number and submit the details
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.phoneNumber')), '+13466666666');
         fireEvent.press(screen.getByText(TestHelper.translateLocal('activateCardPage.activatePhysicalCard')));
         await waitForBatchedUpdatesWithAct();
 
-        // Then they are asked for a magic code first, because saving details needs one, and nothing is sent yet
+        // Then they are asked for a validateCode first, because the phone number is used for card 3DS verification, and nothing is sent yet
         const validateCodeProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
         expect(validateCodeProps?.validateCodeReasonCode).toBe(CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON);
         expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD)).toHaveLength(0);
 
-        // When they enter the magic code
+        // When they enter the validateCode
         await act(async () => {
             validateCodeProps?.handleSubmitForm('123456');
         });
@@ -143,5 +144,32 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
             }),
         );
         expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD)).toHaveLength(0);
+    });
+
+    it('activates the card without a validateCode when the phone number on file is kept', async () => {
+        // Given a cardholder who already has a phone number on file but no address
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {phoneNumber: '+13466666666'});
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they submit the details without changing the phone number
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('activateCardPage.activatePhysicalCard')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the details go out right away without a validateCode, since only a new phone number needs one
+        expect(ValidateCodeActionContent).not.toHaveBeenCalled();
+        const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
+        const sentParams = body instanceof FormData ? Object.fromEntries(body) : {};
+        expect(sentParams).toEqual(
+            expect.objectContaining({
+                cardID: String(CARD_ID),
+                cardLastFourDigits: LAST_FOUR_DIGITS,
+                phoneNumber: '+13466666666',
+                addressStreet: '123 Pike Street',
+            }),
+        );
+        expect(sentParams).not.toHaveProperty('validateCode');
     });
 });

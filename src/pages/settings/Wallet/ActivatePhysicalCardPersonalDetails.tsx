@@ -20,7 +20,7 @@ import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/
 import {requestValidateCodeAction} from '@libs/actions/User';
 import type {ActivatePhysicalCardPersonalDetails as PersonalDetailsToSave} from '@libs/API/parameters/SetPersonalDetailsAndActivateExpensifyCardParams';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {
     getAddressFieldErrors,
@@ -111,7 +111,14 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        setPersonalDetailsToSave(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode));
+        const personalDetails = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+
+        // Only a new phone number needs a validateCode, because it's used for card 3DS verification
+        if (personalDetails.phoneNumber === formatE164PhoneNumber(privatePersonalDetails?.phoneNumber ?? '', countryCode)) {
+            setPersonalDetailsAndActivateExpensifyCard(lastFourDigits, card.cardID, personalDetails);
+            return;
+        }
+        setPersonalDetailsToSave(personalDetails);
     };
 
     if (personalDetailsToSave) {
