@@ -280,13 +280,18 @@ function toSentenceContinuation(phrase: string): string {
     return phrase.charAt(0).toLowerCase() + phrase.slice(1);
 }
 
+/** Lists the parts a has condition checks for, without saying whether the expense has to carry them. */
+function getHasConditionValueText(values: string[], translate: LocaleContextProps['translate']): string {
+    return values.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+}
+
 /**
  * Words a has condition, which the rule editor's row and the rules table both show.
  *
  * Returns an empty string for an operator that is neither has nor doesn't have, the way the other conditions do.
  */
 function getHasConditionText(values: string[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, translate: LocaleContextProps['translate']): string {
-    const parts = values.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+    const parts = getHasConditionValueText(values, translate);
     if (operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
         return translate('workspace.rules.expenseDefaultsTable.doesNotHaveValue', parts);
     }
@@ -523,6 +528,7 @@ export {
     getDefaultMccGroupCategory,
     getExpenseDefaultConditionText,
     getHasConditionText,
+    getHasConditionValueText,
     getExpenseDefaultRuleDescription,
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,

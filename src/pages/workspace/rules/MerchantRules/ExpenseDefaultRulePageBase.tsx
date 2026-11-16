@@ -48,7 +48,7 @@ import {
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
-import {getHasConditionText} from '@libs/MerchantTypeRulesUtils';
+import {getHasConditionText, getHasConditionValueText} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -487,7 +487,7 @@ function ExpenseDefaultRulePageBase({
                     taxRatesToMatchDisplayName,
                     getDateToMatchDisplayName(),
                     getAmountToMatchDisplayName(),
-                    getHasToMatchDisplayName(),
+                    hasToMatch.length > 0 ? getHasConditionValueText(hasToMatch, translate) : undefined,
                     cardsToMatchDisplayName,
                     submittersToMatchDisplayName,
                     merchantTypesToMatchDisplayName,

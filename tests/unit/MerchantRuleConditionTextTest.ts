@@ -1,4 +1,4 @@
-import {getExpenseDefaultConditionText} from '@libs/MerchantTypeRulesUtils';
+import {getExpenseDefaultConditionText, getHasConditionText, getHasConditionValueText} from '@libs/MerchantTypeRulesUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -106,6 +106,18 @@ describe('Expense default condition text', () => {
         // When the row's condition text is built
         // Then only the category reads, rather than the clause claiming the rule requires what it excludes
         expect(getConditionText(filters)).toBe('Category is "Meals"');
+    });
+
+    it('lists the parts of a has condition without the quotes the table sentence adds', () => {
+        // Given a rule checking for a receipt and a tag
+        const values = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG];
+
+        // When the values are read on their own, which is what the duplicate rule prompt names the rule by
+        // Then they carry no quotes, because that prompt quotes whatever it is given
+        expect(getHasConditionValueText(values, translateLocal)).toBe('Receipt, Tag');
+
+        // And the table sentence still quotes them, so the two surfaces keep reading the same as each other
+        expect(getHasConditionText(values, EQUAL_TO, translateLocal)).toBe('Has "Receipt, Tag"');
     });
 
     it('falls back to the stored ID when a member has left the workspace', () => {
