@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +11,7 @@ import CONST from '@src/CONST';
 import type {InsightsScope} from '@src/types/onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
@@ -35,22 +37,28 @@ function InsightsExplainButton({explainPrompt, insightsScope, shouldShowText = t
     }
 
     return (
-        <Button
-            size={CONST.BUTTON_SIZE.SMALL}
-            onPress={() => askConcierge(explainPrompt, {insightsScope})}
-            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
-            accessibilityLabel={translate('insightsPage.explain')}
-            style={styles.alignSelfStart}
-            innerStyles={styles.bgTransparent}
-            hoverStyles={styles.hoveredComponentBG}
+        <Tooltip
+            shouldRender={!shouldShowText}
+            text={translate('insightsPage.explain')}
         >
-            <Button.Icon
-                src={icons.Sparkles}
-                fill={theme.icon}
-                hoverFill={theme.icon}
-            />
-            {shouldShowText && <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>}
-        </Button>
+            <View style={styles.alignSelfStart}>
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    onPress={() => askConcierge(explainPrompt, {insightsScope})}
+                    sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
+                    accessibilityLabel={translate('insightsPage.explain')}
+                    innerStyles={styles.bgTransparent}
+                    hoverStyles={styles.hoveredComponentBG}
+                >
+                    <Button.Icon
+                        src={icons.Sparkles}
+                        fill={theme.icon}
+                        hoverFill={theme.icon}
+                    />
+                    {shouldShowText && <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>}
+                </Button>
+            </View>
+        </Tooltip>
     );
 }
 
