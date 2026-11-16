@@ -11,14 +11,12 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
-
-import {switchToOldDot} from '@userActions/ExitSurvey';
-import {openOldDotLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +40,7 @@ function DynamicExitSurveyConfirmPage() {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic({shouldDismissModal: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
@@ -61,12 +60,6 @@ function DynamicExitSurveyConfirmPage() {
             backPath = `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
         }
     }
-
-    const goToExpensifyClassic = () => {
-        switchToOldDot(exitSurveyResponse);
-        Navigation.dismissModal();
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-    };
 
     return (
         <ScreenWrapper
@@ -98,7 +91,8 @@ function DynamicExitSurveyConfirmPage() {
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
-                    onPress={goToExpensifyClassic}
+                    onPress={() => switchToClassic(exitSurveyResponse)}
+                    isLoading={isSwitchingToClassic}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
