@@ -11,7 +11,6 @@ type MockWideRHPState = {
     isSuperWideRHPFocused: boolean;
 };
 
-const DEFAULT_SINGLE_RHP_WIDTH = 375;
 const DRAGGED_SINGLE_RHP_WIDTH = 520;
 const WIDE_ROUTE_KEY = 'wide-route';
 const STACKED_SINGLE_ROUTE_KEY = 'stacked-single-route';
@@ -20,9 +19,6 @@ const SINGLE_ON_WIDE: MockWideRHPState = {wideRHPRouteKeys: [WIDE_ROUTE_KEY], su
 
 let mockWideRHPState = SINGLE_ON_WIDE;
 jest.mock('@components/WideRHPContextProvider', () => ({useWideRHPState: () => mockWideRHPState}));
-
-let mockIsResizableRHPEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => mockIsResizableRHPEnabled}));
 
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isSmallScreenWidth: false}));
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 1600}));
@@ -33,8 +29,7 @@ jest.mock('@hooks/useStyleUtils', () => () => ({}));
 jest.mock('@hooks/useThemeStyles', () => () => ({
     navigationScreenCardStyle: {},
     overflowVisible: {},
-    singleRHPExtendedCardInterpolatorStyles: {width: DEFAULT_SINGLE_RHP_WIDTH},
-    resizableSingleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) => ({width: singleRHPWidth}),
+    singleRHPExtendedCardInterpolatorStyles: (singleRHPWidth: number) => ({width: singleRHPWidth}),
 }));
 jest.mock('@libs/Navigation/AppNavigator/useModalCardStyleInterpolator', () => () => () => ({cardStyle: {}}));
 
@@ -48,7 +43,6 @@ function getStackedSingleCardStyle() {
 describe('useModalStackScreenOptions', () => {
     beforeEach(() => {
         mockWideRHPState = SINGLE_ON_WIDE;
-        mockIsResizableRHPEnabled = true;
     });
 
     it('gives a single RHP stacked on a wide RHP its dragged width', () => {
@@ -67,18 +61,7 @@ describe('useModalStackScreenOptions', () => {
         // When the closing card's options are built
         const cardStyle = getStackedSingleCardStyle();
 
-        // Then it keeps the dragged width instead of snapping to the default mid-slide, because the width follows the beta, not focus
+        // Then it keeps the dragged width instead of snapping to the default mid-slide, because the width comes from the saved value, not from which card is focused
         expect(cardStyle).toEqual(expect.objectContaining({width: DRAGGED_SINGLE_RHP_WIDTH}));
-    });
-
-    it('keeps the default width for a stacked single RHP without the beta', () => {
-        // Given a user outside the resizable RHP beta
-        mockIsResizableRHPEnabled = false;
-
-        // When the stacked card's options are built
-        const cardStyle = getStackedSingleCardStyle();
-
-        // Then the card stays at the default single RHP width
-        expect(cardStyle).toEqual(expect.objectContaining({width: DEFAULT_SINGLE_RHP_WIDTH}));
     });
 });
