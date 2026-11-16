@@ -1,8 +1,9 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
+import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -3847,7 +3848,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName, accountIDToName} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
@@ -3861,6 +3862,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
+            accountIDToName,
         ),
     );
     return true;
@@ -3877,6 +3879,7 @@ function editReportComment(
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
+    accountIDToName?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -3889,7 +3892,7 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
-    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
+    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName, accountIDToName}).trim();
     const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID, attachmentIDByLocalSource);
 
@@ -3906,7 +3909,7 @@ function editReportComment(
         originalReportAction.reportActionID,
     );
 
-    const reportComment = Parser.htmlToText(htmlForNewComment);
+    const reportComment = Parser.htmlToText(htmlForNewComment, {accountIDToName});
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -3929,7 +3932,7 @@ function editReportComment(
     const renamedAttachmentLabels = getUploadingAttachmentLabelsRenamedInDraft(textForNewComment, originalCommentHTML);
     const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentIDs, renamedAttachmentLabels);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
-    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
+    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml, {accountIDToName}) : reportComment;
 
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
@@ -4038,6 +4041,7 @@ function editReportComment(
             isOriginalReportArchived,
             videoAttributeCache,
             reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -5699,7 +5703,11 @@ function showReportActionNotification(
             derivedMovedFromReportName,
         });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
+        // Read the same COMMENT part that the notification body is built from
+        const messageParts = Array.isArray(reportAction.message) ? reportAction.message : [reportAction.message];
+        const commentHtml = messageParts.find((part) => part?.type === CONST.REPORT.MESSAGE.TYPE.COMMENT)?.html;
+        const reportIDToName = buildReportIDToNameMap(allReports, getMentionedReportIDs(commentHtml));
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, reportIDToName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
@@ -9082,8 +9090,7 @@ function changeReportPolicyAndInviteSubmitter({
         CONST.POLICY.ROLE.USER,
         currentUser,
         reportActionsList,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        {policyExpenseChatNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterLogin].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterLogin].reportActionID;

@@ -61,6 +61,7 @@ type PolicyRulesModifiedFields = {
     tag?: string;
     comment?: string;
     description?: string;
+    amount?: string;
     billable?: boolean;
     reimbursable?: boolean;
     tax?: {
@@ -73,10 +74,13 @@ type PersonalRulesModifiedFields = PolicyRulesModifiedFields & {
     reportName?: string;
 };
 
-// Exact Online, Sage Accounting and Acumatica only have a waitlist until their connectors are released.
+// Exact Online, Odoo, Sage Accounting and Acumatica only have a waitlist until their connectors are released.
 type ConnectionName = Exclude<
     ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>,
-    typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING | typeof CONST.POLICY.CONNECTIONS.NAME.ACUMATICA
+    | typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ODOO
+    | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ACUMATICA
 >;
 type AllConnectionName = ConnectionName;
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;

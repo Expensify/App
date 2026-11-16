@@ -395,6 +395,9 @@ const CONST = {
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
+
+    // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
+    ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1317,6 +1320,47 @@ const CONST = {
             'RESIDENTS_PROPERTY_MANAGEMENT',
             'DIPLOMATIC_BODIES',
         ],
+
+        /**
+         * Maps Wise's payout `failure_reason_code` values to the translation key of the reason we show on a failed deposit.
+         * Codes not listed here, including `REASON_NOT_SPECIFIED` and ones Wise adds later, show the generic reason.
+         * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
+         */
+        PAYOUT_FAILURE_REASON: {
+            WRONG_ACCOUNT_NUMBER: 'wrongAccountNumber',
+            WRONG_ACCOUNT_DETAILS: 'wrongAccountDetails',
+            WRONG_BANK_CODE: 'wrongBankCode',
+            WRONG_BRANCH_CODE: 'wrongBranchCode',
+            WRONG_ACCOUNT_TYPE: 'wrongAccountType',
+            WRONG_CARD_NUMBER: 'wrongCardNumber',
+            WRONG_CARD_TYPE: 'wrongCardType',
+            WRONG_NAME: 'wrongName',
+            WRONG_PHONE_NUMBER: 'wrongPhoneNumber',
+            WRONG_ID_NUMBER: 'wrongIdNumber',
+            WRONG_RUT_NUMBER: 'wrongRutNumber',
+            TAX_ID_NOT_MATCHING: 'taxIdNotMatching',
+            WRONG_CURRENCY: 'wrongCurrency',
+            ACCOUNT_DOES_NOT_EXIST: 'accountDoesNotExist',
+            EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED: 'externalIdentifierDetailsHaveChanged',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_FROZEN: 'accountFrozen',
+            ACCOUNT_BLOCKED: 'accountBlocked',
+            ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
+            TAX_ID_SUSPENDED: 'taxIdSuspended',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'cannotAcceptFrom3rdParty',
+            CREDITING_ACCOUNT_FORBIDDEN: 'creditingAccountForbidden',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'businessPaymentsForbidden',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnRequestedByRecipient',
+            FUNDS_NOT_EXPECTED_RETURNED: 'fundsNotExpectedReturned',
+            DUPLICATE_ENTRY: 'duplicateEntry',
+            MANDATE_NOT_FILLED_IN: 'mandateNotFilledIn',
+            REQUEST_FOR_INFORMATION_EXPIRED: 'requestForInformationExpired',
+            WRONG_REFERENCE: 'wrongReference',
+            WRONG_PAYMENT_PURPOSE: 'wrongPaymentPurpose',
+            SENDER_REQUESTED_TO_CANCEL: 'senderRequestedToCancel',
+            TECHNICAL_ISSUE: 'technicalIssue',
+            TECHNICAL_ISSUE_RETRYABLE: 'technicalIssueRetryable',
+        },
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -1526,6 +1570,7 @@ const CONST = {
         BUSINESS_CENTRAL: 'businessCentral',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1544,12 +1589,9 @@ const CONST = {
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
-        RESIZABLE_RHP: 'resizableRHP',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
-        SINGLE_EXPENSE_TABLE_VIEW: 'singleExpenseTableView',
         FLAT_NAV: 'flatNav',
-        CATEGORY_VISIBILITY: 'categoryVisibility',
         RECEIPT_TRANSLATION: 'receiptTranslation',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
@@ -1569,6 +1611,7 @@ const CONST = {
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
+        BR: 'BR',
         CA: 'CA',
         FI: 'FI',
         FR: 'FR',
@@ -1893,7 +1936,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES:
-        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
+        'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account#which-industries-does-expensify-not-support-for-direct-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -2095,7 +2138,6 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
-            TOGGLE_SINGLE_EXPENSE_VIEW: 'toggleSingleExpenseView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -2261,6 +2303,11 @@ const CONST = {
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                // OldDot sends these four actions when a Wise reimbursement fails, is held, is refunded, or is released
+                REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED',
+                REIMBURSEMENT_HELD: 'REIMBURSEMENTHELD',
+                REIMBURSEMENT_REFUNDED: 'REIMBURSEMENTREFUNDED',
+                REIMBURSEMENT_RELEASED: 'REIMBURSEMENTRELEASED',
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
@@ -2472,6 +2519,24 @@ const CONST = {
             MAX_GROUPING_TIME: 300000,
             MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
+        // Matches the backend's WORKFLOW_ACTIONS list
+        get WORKFLOW_ACTIONS() {
+            return [
+                this.ACTIONS.TYPE.SUBMITTED,
+                this.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                this.ACTIONS.TYPE.APPROVED,
+                this.ACTIONS.TYPE.UNAPPROVED,
+                this.ACTIONS.TYPE.REJECTED,
+                this.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                this.ACTIONS.TYPE.RETRACTED,
+                this.ACTIONS.TYPE.CLOSED,
+                this.ACTIONS.TYPE.REOPENED,
+                this.ACTIONS.TYPE.FORWARDED,
+                this.ACTIONS.TYPE.TAKE_CONTROL,
+                this.ACTIONS.TYPE.REROUTE,
+                this.ACTIONS.TYPE.REASSIGN_APPROVER,
+            ] as const;
+        },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
             USER: 'CANCEL_REASON_USER',
@@ -2679,10 +2744,6 @@ const CONST = {
         LAYOUT_OPTION: {
             DETAILED: 'detailed',
             MATRIX: 'matrix',
-        },
-        SINGLE_EXPENSE_REPORT_VIEW: {
-            EXPENSE: 'expense',
-            TABLE: 'table',
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
@@ -3560,6 +3621,7 @@ const CONST = {
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
         HEIC: 'image/heic',
+        HEIF: 'image/heif',
     },
 
     IMAGE_CACHE_FILE_TYPES: {
@@ -5201,6 +5263,12 @@ const CONST = {
         RULE_CONDITIONS: {
             MATCHES: 'matches',
         },
+
+        // Expensify Classic stores this in an employee's forwardsTo or overLimitForwardsTo when it sends reports to nobody
+        EMPLOYEE_NO_ONE: 'no one',
+
+        // Approval limit, in cents, up to which Expensify Classic admins mean every report to go to the over-limit approver
+        EVERY_REPORT_OVER_LIMIT_APPROVAL_LIMIT: 100,
         FIELDS: {
             TAG: 'tag',
             CATEGORY: 'category',
@@ -5210,13 +5278,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -5596,6 +5661,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
                 ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
@@ -5639,6 +5705,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
                 acumatica: 'Acumatica',
                 gusto: 'Gusto',
@@ -6829,6 +6896,7 @@ const CONST = {
     STATE_CHARACTER_LIMIT: 32,
     REPORT_TITLE_FORMULA_LIMIT: 500,
     AGENT_PROMPT_LIMIT: 300,
+    AGENT_PROMPT_MAX_LENGTH: 60000,
 
     // Test receipt data
     TEST_RECEIPT: {
@@ -8213,10 +8281,24 @@ const CONST = {
             EVERYTHING_MOBILE: 'everythingMobile',
             TRAVEL_EXPENSE: 'travelExpense',
         },
+        SWITCH_RESULT: {
+            SAVED: 'saved',
+            FAILED: 'failed',
+        },
     },
 
     CACHE_API_KEYS: {
         ATTACHMENTS: 'attachments',
+    },
+
+    // Tells expensify.com whether to serve New Expensify or Expensify Classic. The server writes the same cookie, so the name, values and lifetime must match.
+    EXPERIENCE_COOKIE: {
+        NAME: 'experience',
+        VALUES: {
+            NEW: 'new',
+            CLASSIC: 'classic',
+        },
+        MAX_AGE_SECONDS: 365 * 24 * 60 * 60,
     },
 
     SESSION_STORAGE_KEYS: {
@@ -8441,6 +8523,7 @@ const CONST = {
             // Groups by violation type. Only Insights queries use it until the Search command supports it (see https://github.com/Expensify/App/issues/105303)
             VIOLATION: 'violation',
             PAID_BY: 'paid-by',
+            WORKFLOW_STAGE: 'workflow-stage',
         },
         WORKFLOW_STAGES: {
             CREATED_SUBMITTED: 'created-submitted',
@@ -8809,6 +8892,10 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WORKFLOW_STAGE: {
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8873,6 +8960,7 @@ const CONST = {
                 APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 VIOLATION: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 PAID_BY: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WORKFLOW_STAGE: [this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -9853,6 +9941,11 @@ const CONST = {
             UPDATE: 'update',
             REMOVE: 'remove',
         },
+        /** Which reports an approver after the first one gets */
+        APPROVER_CONDITION: {
+            ALWAYS: 'always',
+            OVER_AMOUNT: 'overAmount',
+        },
     },
 
     RULES: {
@@ -9874,6 +9967,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -10546,6 +10640,7 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
             WORKFLOW_EFFICIENCY: 'workflowEfficiency',
+            AVERAGE_PROCESSING_TIME: 'averageProcessingTime',
             LONGEST_TO_SUBMIT: 'longestToSubmit',
             SLOWEST_TO_APPROVE: 'slowestToApprove',
             MOST_TIME_TO_PAY: 'mostTimeToPay',
