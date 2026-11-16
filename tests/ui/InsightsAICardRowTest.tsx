@@ -158,4 +158,36 @@ describe('InsightsAICardRow', () => {
         expect(screen.getByLabelText(/Up 400%/)).toBeOnTheScreen();
         expect(screen.getByLabelText(/Down .*30,318/)).toBeOnTheScreen();
     });
+
+    it.each([
+        {
+            unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT,
+            value: 1234,
+            expected: '1,234',
+        },
+        {
+            unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION,
+            value: 216000,
+            expected: '2.5d',
+        },
+    ])('formats a neutral $unit chip without treating it as money or a percentage', async ({unit, value, expected}) => {
+        // Given a Compliance count or Efficiency duration in seconds
+        const insight: AIInsight = {
+            ...SPIKE,
+            chip: {
+                type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL,
+                unit,
+                value,
+            },
+        };
+
+        // When the structured card renders
+        await renderRow([insight]);
+
+        // Then the chip uses its own unit and the card keeps its title and summary
+        expect(screen.getByText(expected)).toBeOnTheScreen();
+        expect(screen.getByText(insight.title)).toBeOnTheScreen();
+        expect(screen.getByText(insight.summary)).toBeOnTheScreen();
+        expect(screen.queryByText(/%/)).toBeNull();
+    });
 });
