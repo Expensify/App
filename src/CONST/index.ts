@@ -10663,6 +10663,7 @@ const CONST = {
             CHIP_UNIT: {
                 PERCENT: 'percent',
                 AMOUNT: 'amount',
+                DURATION: 'duration',
             },
         },
     },
