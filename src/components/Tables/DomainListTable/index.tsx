@@ -95,6 +95,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN), session),
             buttonText: translate('domain.addDomain.newDomain'),
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.LIST.EMPTY_STATE_NEW_DOMAIN,
         },
     ];
 
