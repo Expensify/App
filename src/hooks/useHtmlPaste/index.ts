@@ -73,12 +73,6 @@ function isEmojiImage(image: HTMLImageElement): boolean {
     const discourseTone = discourseMatch?.[2];
     const discourseAlt = discourseTone ? `:${discourseName}:t${discourseTone}:` : `:${discourseName}:`;
     const isDiscourseEmoji = !!discourseName && image.classList.contains('emoji') && image.alt === discourseAlt && image.title === image.alt;
-    console.log('logs', {
-        discourseName,
-        source,
-        image,
-        isDiscourseEmoji,
-    });
 
     return isTeamsEmoji || isDiscourseEmoji || patterns.META.test(source) || patterns.YOUTUBE.test(source);
 }
