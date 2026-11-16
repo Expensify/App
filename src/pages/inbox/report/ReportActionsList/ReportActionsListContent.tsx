@@ -63,7 +63,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {
         report,
         hasOnceLoadedReportActions,
-        hasOlderActions,
+        isWaitingForOlderActions,
         hasNewerActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -214,7 +214,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     // Once shown offline, the skeleton keeps holding the space of the missing history after reconnecting until older
     // actions replace it. Removing it on reconnect would shrink the list and move the messages the user is reading.
-    const shouldShowHistorySkeleton = isMissingOldestAction && (isOffline || (!!hasShownOfflineHistorySkeleton && hasOlderActions));
+    const shouldShowHistorySkeleton = isMissingOldestAction && (isOffline || (!!hasShownOfflineHistorySkeleton && isWaitingForOlderActions));
 
     const listFooterComponent = shouldShowHistorySkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 

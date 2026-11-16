@@ -1264,23 +1264,30 @@ describe('ReportActionsList (body)', () => {
             isOffline = false;
             view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
 
-            // Then the displayed action window survives both the pending loads and their completion.
+            // Then the displayed action window survives the pending loads.
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(getCapturedVisibleActions()).toEqual(visibleActions);
+
+            // When both loads complete.
             isAppLoadPending = false;
             hasOnceLoadedReportActions = true;
             mockUseIsReportLoadPending.mockReturnValue(false);
             view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+
+            // Then the same action window stays on screen without a skeleton in between.
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(getCapturedVisibleActions()).toEqual(visibleActions);
         });
 
         it('keeps the offline history skeleton after reconnecting until the older actions have loaded', () => {
-            // Given a cached chat without its oldest actions, opened offline with the history skeleton above its messages
+            // Given a cached chat without its oldest actions or pagination pages, opened offline with OpenReport queued
+            // and the history skeleton above its messages. Without pages, pagination reports no older actions yet.
             const actionsWithoutCreated = mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
             let isOffline = true;
-            let hasOlderActions = true;
+            let isReportLoadPending = true;
+            let hasOlderActions = false;
             mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUseIsReportLoadPending.mockImplementation(() => isReportLoadPending);
             mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: actionsWithoutCreated, hasOlderActions}));
             const renderList = () => (
                 <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
@@ -1290,11 +1297,19 @@ describe('ReportActionsList (body)', () => {
             const view = render(renderList());
             expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
 
-            // When the connection returns before the older actions have loaded
+            // When the connection returns while OpenReport is still loading
             isOffline = false;
             view.rerender(renderList());
 
             // Then the skeleton keeps the space of the missing history, so removing it cannot move the messages being read
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When OpenReport finishes and stores pages that have older actions on the server
+            isReportLoadPending = false;
+            hasOlderActions = true;
+            view.rerender(renderList());
+
+            // Then the skeleton still holds the space until those older actions load
             expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
 
             // When the oldest page has loaded
