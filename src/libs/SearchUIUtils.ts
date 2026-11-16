@@ -3275,8 +3275,11 @@ function getGroupDateRange(groupBy: SearchGroupBy, group: SearchGroup): SearchDa
     }
 }
 
-/** The search a time-based group opens, shared by its section and the active hashes so the snapshot kept for the group is the one opening it reads. */
-function buildDateGroupTransactionsQuery(groupBy: SearchGroupBy, group: SearchGroup, queryJSON: SearchQueryJSON | undefined): SearchQueryJSON | undefined {
+/**
+ * The transactions search a date group opens. Day, month, quarter and year sections and the active group hashes all build it here, so a group's cached snapshot matches the search that opens it.
+ * Week sections call `buildDateRangeGroupQuery` themselves because their label also needs the range trimmed to the date filter.
+ */
+function getDateGroupTransactionsQueryJSON(queryJSON: SearchQueryJSON | undefined, groupBy: SearchGroupBy, group: SearchGroup): SearchQueryJSON | undefined {
     const dateRange = getGroupDateRange(groupBy, group);
     return queryJSON && dateRange ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
 }
@@ -3417,7 +3420,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.WEEK:
             case CONST.SEARCH.GROUP_BY.YEAR:
             case CONST.SEARCH.GROUP_BY.QUARTER: {
-                transactionsQueryJSON = buildDateGroupTransactionsQuery(queryJSON.groupBy, group, queryJSON);
+                transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, queryJSON.groupBy, group);
                 break;
             }
             case CONST.SEARCH.GROUP_BY.APPROVER: {
@@ -3840,7 +3843,7 @@ function getDaySections(
             continue;
         }
 
-        const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.DAY, dayGroup, queryJSON);
+        const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.DAY, dayGroup);
         daySections[key] = {
             groupedBy: CONST.SEARCH.GROUP_BY.DAY,
             transactions: [],
@@ -3876,7 +3879,7 @@ function getMonthSections(
             if (!('year' in monthGroup) || !('month' in monthGroup)) {
                 continue;
             }
-            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.MONTH, monthGroup, queryJSON);
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.MONTH, monthGroup);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
@@ -3962,7 +3965,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             if (!('year' in yearGroup) || typeof yearGroup.year !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.YEAR, yearGroup, queryJSON);
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.YEAR, yearGroup);
             const formattedYear = String(yearGroup.year);
 
             yearSections[key] = {
@@ -3994,7 +3997,7 @@ function getQuarterSections(
             if (!('year' in quarterGroup) || typeof quarterGroup.year !== 'number' || !('quarter' in quarterGroup) || typeof quarterGroup.quarter !== 'number') {
                 continue;
             }
-            const transactionsQueryJSON = buildDateGroupTransactionsQuery(CONST.SEARCH.GROUP_BY.QUARTER, quarterGroup, queryJSON);
+            const transactionsQueryJSON = getDateGroupTransactionsQueryJSON(queryJSON, CONST.SEARCH.GROUP_BY.QUARTER, quarterGroup);
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
             const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale, shouldShowShortLabelYear);
 
