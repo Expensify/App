@@ -190,8 +190,6 @@ export default {
     insightsRankingTableBarHeight: 8,
     insightsRankingTableBarMinWidth: 4,
     insightsRankingTableShareLabelWidth: 56,
-    insightsRankingTableNumberColumnWidth: 120,
-    insightsRankingTableChangeColumnWidth: 96,
     insightsRankingTableAverageLineWidth: 2,
     insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
