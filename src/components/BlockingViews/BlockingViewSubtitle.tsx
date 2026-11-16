@@ -42,7 +42,6 @@ function BlockingViewSubtitle({
             {!!linkTranslationKey && (
                 <TextLink
                     onPress={onLinkPress}
-                    // The page decides what the link does. Sentry tells the pages apart, so one label covers this link on every page.
                     sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.SUBTITLE_LINK}
                     style={[styles.link, styles.mt2]}
                 >

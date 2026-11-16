@@ -25,7 +25,6 @@ import type PressableProps from './GenericPressable/types';
 
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
-// It always handles a press itself, so every usage passes a label.
 type PressableWithDelayToggleProps = DistributedOmit<PressableProps, 'sentryLabel'> &
     WithRequiredSentryLabel & {
         text?: string;
