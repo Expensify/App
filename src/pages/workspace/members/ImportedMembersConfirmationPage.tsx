@@ -37,8 +37,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Rule} from '@src/types/onyx';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';

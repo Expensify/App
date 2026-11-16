@@ -52,6 +52,7 @@ function Name({onNext, onMove, isEditing}: SubPageProps) {
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
             shouldDelayAutoFocus
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

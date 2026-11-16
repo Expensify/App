@@ -95,6 +95,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
                     name={field.label}
                     value={formValues[fieldName]}
                     onPress={editDetails}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             ))}
             <ErrorMessageRow
