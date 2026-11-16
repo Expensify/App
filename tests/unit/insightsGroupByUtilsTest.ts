@@ -98,15 +98,15 @@ describe('insightsGroupByUtils', () => {
     });
 
     describe('getQueryGroupBy', () => {
-        it('queries the nearest offered option when the date range rules the selection out', () => {
+        it('queries the Running total bucket when the date range rules the selection out', () => {
             // Given a quarterly dashboard moved to last month, which only offers Day and Week
             const filters: InsightsFilters = {date: {preset: LAST_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
 
             // When the Group by to query with is picked
             const groupBy = getQueryGroupBy(filters);
 
-            // Then Week is queried, the closest grouping to Quarter that the month offers
-            expect(groupBy).toBe(WEEK);
+            // Then Day is queried, since the charts show a Running total in place of Quarter and plot it by day on ranges of 62 days or less
+            expect(groupBy).toBe(DAY);
         });
 
         it('queries a single date by day, whatever grouping is selected', () => {
