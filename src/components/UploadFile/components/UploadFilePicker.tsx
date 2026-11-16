@@ -17,7 +17,7 @@ type UploadFilePickerProps = Pick<
     UploadFileProps,
     'buttonText' | 'acceptedFileTypes' | 'setError' | 'onInputChange' | 'totalFilesSizeLimit' | 'fileLimit' | 'maxFileSize' | 'accessibilityLabel'
 > & {
-    /** Files uploaded so far, which the file limit and the duplicate check count */
+    /** Files uploaded so far, which the file limit and the check for a file with the same name count */
     existingFiles: FileObject[];
 
     /** Gets the files that pass the checks when the button opens the picker */
@@ -26,6 +26,11 @@ type UploadFilePickerProps = Pick<
     /** Draws the control that opens the picker in place of the button. The files that pass the checks go to the `onUpload` given to `openPicker`. */
     children?: (openPicker: (onUpload: (files: FileObject[]) => void) => void) => ReactNode;
 };
+
+/** Saved files come back from the server with lowercased names and symbols replaced, so names are compared in that form to catch the same file picked again */
+function getComparableFileName(fileName = ''): string {
+    return fileName.toLowerCase().replaceAll(/[^a-z0-9]/g, '_');
+}
 
 /** The button, or the control drawn by `children`, that opens the file picker and checks the picked files against the limits before reporting them */
 function UploadFilePicker({
@@ -76,13 +81,13 @@ function UploadFilePicker({
             }
         }
 
-        const uploadedFilesNames = new Set(existingFiles.map((uploadedFile) => uploadedFile.name));
+        const uploadedFileNames = new Set(existingFiles.map((uploadedFile) => getComparableFileName(uploadedFile.name)));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
+        const newFilesToUpload = files.filter((file) => !uploadedFileNames.has(getComparableFileName(file.name)));
 
         onInputChange(newFilesToUpload);
         upload(newFilesToUpload);
-        setError('');
+        setError(newFilesToUpload.length < files.length ? translate('attachmentPicker.fileAlreadyAdded') : '');
     };
 
     return (

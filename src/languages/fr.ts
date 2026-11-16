@@ -645,6 +645,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Cette image est trop volumineuse pour être prévisualisée avant le téléversement.',
         imageDimensionsTooLarge: "Les dimensions de l'image sont trop grandes pour être traitées. Veuillez utiliser une image plus petite.",
         tooManyFiles: (fileLimit: number) => `Vous pouvez téléverser au maximum ${fileLimit} fichiers à la fois.`,
+        fileAlreadyAdded: 'Un fichier portant le même nom a déjà été ajouté.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Les fichiers dépassent ${maxUploadSizeInMB} Mo. Veuillez réessayer.`,
         someFilesCantBeUploaded: 'Certains fichiers ne peuvent pas être téléversés',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Les fichiers doivent être inférieurs à ${maxUploadSizeInMB} Mo. Les fichiers plus volumineux ne seront pas téléversés.`,

@@ -646,6 +646,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Η εικόνα είναι πολύ μεγάλη για προεπισκόπηση πριν από την αποστολή.',
         imageDimensionsTooLarge: 'Οι διαστάσεις της εικόνας είναι πολύ μεγάλες για επεξεργασία. Παρακαλούμε χρησιμοποιήστε μια μικρότερη εικόνα.',
         tooManyFiles: (fileLimit: number) => `Μπορείτε να ανεβάζετε έως ${fileLimit} αρχεία κάθε φορά.`,
+        fileAlreadyAdded: 'Έχει ήδη προστεθεί αρχείο με το ίδιο όνομα.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Τα αρχεία υπερβαίνουν τα ${maxUploadSizeInMB} MB. Παρακαλούμε δοκιμάστε ξανά.`,
         someFilesCantBeUploaded: 'Ορισμένα αρχεία δεν μπορούν να μεταφορτωθούν',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Τα αρχεία πρέπει να είναι μικρότερα από ${maxUploadSizeInMB} MB. Τυχόν μεγαλύτερα αρχεία δεν θα αποσταλούν.`,

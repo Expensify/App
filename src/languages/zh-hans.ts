@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: '此图片过大，无法在上传前预览。',
         imageDimensionsTooLarge: '图片尺寸过大，无法处理。请使用较小的图片。',
         tooManyFiles: (fileLimit: number) => `您一次最多只能上传 ${fileLimit} 个文件。`,
+        fileAlreadyAdded: '已添加同名文件。',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
         someFilesCantBeUploaded: '某些文件无法上传',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `文件大小必须小于 ${maxUploadSizeInMB} MB。更大的文件将不会被上传。`,

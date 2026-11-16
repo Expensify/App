@@ -53,7 +53,7 @@ describe('LabelledFileUploadAdapter', () => {
         ]);
     });
 
-    it('leaves out a file the same button already holds', () => {
+    it('leaves out a file the same button already holds and says why', () => {
         // Given the loan agreement uploaded
         const onInputChange = jest.fn();
         renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]}], onInputChange);
@@ -62,8 +62,24 @@ describe('LabelledFileUploadAdapter', () => {
         mockPickedFiles = [loanFile];
         fireEvent.press(screen.getByText('Upload loan agreement'));
 
-        // Then nothing is added, since the same document twice proves nothing more
+        // Then nothing is added, since the same document twice proves nothing more, and the user is told the file is already there
         expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByText('attachmentPicker.fileAlreadyAdded')).toBeOnTheScreen();
+    });
+
+    it('tells a saved file apart from a new one by the name the server gives it', () => {
+        // Given a saved file, which the server names in lowercase with its spaces and dots replaced
+        const onInputChange = jest.fn();
+        const savedFile: FileObject = {name: 'loan_agreement_v1.pdf', uri: 'kyc/1/loan_agreement_v1.pdf'};
+        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [savedFile]}], onInputChange);
+
+        // When the user picks the same file again under its original name
+        mockPickedFiles = [{name: 'Loan Agreement v1.pdf', uri: 'file://Loan Agreement v1.pdf'}];
+        fireEvent.press(screen.getByText('Upload loan agreement'));
+
+        // Then it is left out as the file the button already holds
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(screen.getByText('attachmentPicker.fileAlreadyAdded')).toBeOnTheScreen();
     });
 
     it('counts only the files of the picked button against the file limit', () => {

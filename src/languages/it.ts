@@ -645,6 +645,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Questa immagine è troppo grande per essere visualizzata in anteprima prima del caricamento.',
         imageDimensionsTooLarge: "Le dimensioni dell'immagine sono troppo grandi per essere elaborate. Utilizza un'immagine più piccola.",
         tooManyFiles: (fileLimit: number) => `Puoi caricare al massimo ${fileLimit} file alla volta.`,
+        fileAlreadyAdded: 'È già stato aggiunto un file con lo stesso nome.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `I file superano ${maxUploadSizeInMB} MB. Riprova.`,
         someFilesCantBeUploaded: 'Impossibile caricare alcuni file',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `I file devono essere inferiori a ${maxUploadSizeInMB} MB. I file più grandi non verranno caricati.`,
