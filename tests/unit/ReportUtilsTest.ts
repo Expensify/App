@@ -4785,6 +4785,47 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
+        it('returns false when the outstanding child is the member own open report with expenses on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open report with expenses on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since the member cannot submit their own report on that workspace
+            const expenseReportID = '7103';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+                total: -1000,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(103, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const transaction = {
+                ...createRandomTransaction(7103),
+                transactionID: '7103',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
             // Given the member's own open, empty report on a workspace where they are a regular member
             // When the LHN checks whether their workspace chat needs attention
@@ -17529,6 +17570,13 @@ describe('ReportUtils', () => {
                 employeeList: {},
             };
 
+            const policyWithApproveOnlyUser: Policy = {
+                ...createRandomPolicy(4),
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                employeeList: {},
+            };
+
             const restrictedReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -17549,15 +17597,17 @@ describe('ReportUtils', () => {
             };
 
             // When checking whether a user can join restricted rooms
-            // Then regular workspace members can join, but non-members and guests cannot
+            // Then regular workspace members can join, but non-members, guests, and approve-only members cannot
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(false);
 
             // When checking whether a user can join public rooms
-            // Then non-members and guests can both join
+            // Then non-members, guests, and approve-only members can join
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(true);
         });
     });
 
@@ -31559,12 +31609,12 @@ describe('getTransactionsWithReceipts', () => {
         const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
         const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
 
-        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+        expect(getTransactionsWithReceipts([withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
     });
 
     it('returns an empty array when no transactions have receipts', () => {
         const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
-        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+        expect(getTransactionsWithReceipts([withoutReceipt])).toEqual([]);
     });
 });
 
@@ -31647,14 +31697,14 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(true);
     });
 
     it('returns false when there are more requests than receipts (manual requests exist)', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 
     it('returns false when at least one receipt has finished scanning', () => {
@@ -31662,7 +31712,7 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 });
 

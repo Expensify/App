@@ -152,6 +152,7 @@ function InsightsChartWidget({
             today,
             shouldShowRunningTotal,
             countDimension,
+            metric: chart.metric,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };

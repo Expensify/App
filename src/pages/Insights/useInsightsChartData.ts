@@ -54,7 +54,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
     const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
 
-    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
+    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, metric: chart.metric, isOffline});
     const trackedData = keepTrackedBuckets(resolvedCurrent.data);
     const current: InsightsChartData =
         resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
@@ -80,7 +80,13 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
                 return current;
             }
 
-            const compared = resolveInsightsChartData({snapshot: previousPeriodSnapshot, queryJSON: previousPeriodQueryJSON, sortedData: comparedSortedData, isOffline});
+            const compared = resolveInsightsChartData({
+                snapshot: previousPeriodSnapshot,
+                queryJSON: previousPeriodQueryJSON,
+                sortedData: comparedSortedData,
+                metric: chart.metric,
+                isOffline,
+            });
             // A compared chart waits for both sets of rows.
             if (BLOCKING_STATES.has(compared.state)) {
                 return {data: current.data, state: compared.state};

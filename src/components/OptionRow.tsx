@@ -253,7 +253,7 @@ function OptionRow({
                                         containerStyle={[styles.textInputContainer]}
                                         inputStyle={[
                                             styles.optionRowAmountInput,
-                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
+                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft),
                                             option.amountInputProps.inputStyle,
                                         ]}
                                         onAmountChange={option.amountInputProps.onAmountChange}
