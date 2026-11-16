@@ -14,6 +14,8 @@ const SENTRY_LABEL = {
     },
     DYNAMIC_FORM: {
         TABS_ITEM: 'DynamicForm-TabsItem',
+        TOGGLE_LINK: 'DynamicForm-ToggleLink',
+        LINK_ROW: 'DynamicForm-LinkRow',
     },
     APPROVE_MENU: {
         OPTION: {
@@ -307,6 +309,7 @@ const SENTRY_LABEL = {
     IMPORT_SPREADSHEET: {
         CHOOSE_FILE: 'ImportSpreadsheet-ChooseFile',
         COLUMN_DROPDOWN: 'ImportSpreadsheet-ColumnDropdown',
+        LEARN_MORE_LINK: 'ImportSpreadsheet-LearnMoreLink',
         IMPORT_BUTTON: 'ImportSpreadsheet-ImportButton',
         COLUMN_ROLE_OPTION: 'ImportSpreadsheet-ColumnRoleOption',
     },
@@ -338,6 +341,7 @@ const SENTRY_LABEL = {
     OPEN_APP_FAILURE_MODAL: {
         REFRESH_AND_TRY_AGAIN: 'OpenAppFailureModal-RefreshAndTryAgain',
         CLOSE: 'OpenAppFailureModal-Close',
+        CONCIERGE_EMAIL_LINK: 'OpenAppFailureModal-ConciergeEmailLink',
     },
     PROACTIVE_APP_REVIEW_MODAL: {
         POSITIVE: 'ProactiveAppReviewModal-Positive',
@@ -367,6 +371,15 @@ const SENTRY_LABEL = {
     },
     TEST_DRIVE: {
         BANNER_GET_STARTED: 'TestDrive-BannerGetStarted',
+    },
+    IMPORT_CONTACT_BUTTON: {
+        LINK: 'ImportContactButton-Link',
+    },
+    SEARCH_ACTION_HEADER: {
+        REPORT_NAME_LINK: 'SearchActionHeader-ReportNameLink',
+    },
+    AUTO_EMAIL_LINK: {
+        EMAIL: 'AutoEmailLink-Email',
     },
     TEXT_LINK_BLOCK: {
         LINK: 'TextLinkBlock-Link',
@@ -403,6 +416,12 @@ const SENTRY_LABEL = {
         VICTORY_CHART_ZOOM: 'HTMLRenderer-VictoryChartZoom',
         TABLE_ROW: 'HTMLRenderer-TableRow',
         LINK: 'HTMLRenderer-Link',
+        MENTION_USER: 'HTMLRenderer-MentionUser',
+        MENTION_REPORT: 'HTMLRenderer-MentionReport',
+        USER_DETAILS: 'HTMLRenderer-UserDetails',
+        CONCIERGE_LINK: 'HTMLRenderer-ConciergeLink',
+        ACCOUNT_MANAGER_LINK: 'HTMLRenderer-AccountManagerLink',
+        TRANSACTION_HISTORY_LINK: 'HTMLRenderer-TransactionHistoryLink',
     },
     RECEIPT: {
         IMAGE: 'Receipt-Image',
@@ -441,6 +460,8 @@ const SENTRY_LABEL = {
     },
     BLOCKING_VIEW: {
         RETRY_BUTTON: 'BlockingView-RetryButton',
+        SUBTITLE_LINK: 'BlockingView-SubtitleLink',
+        BELOW_SUBTITLE_LINK: 'BlockingView-BelowSubtitleLink',
     },
     SEARCH: {
         SEARCH_BUTTON: 'Search-SearchButton',
@@ -831,6 +852,7 @@ const SENTRY_LABEL = {
             ADD_BANK_ACCOUNT: 'Search-BulkInvoicePayMenu-AddBankAccount',
             PAY_ELSEWHERE: 'Search-BulkInvoicePayMenu-PayElsewhere',
         },
+        EMPTY_STATE_BOOK_TRAVEL_DEMO_LINK: 'Search-EmptyStateBookTravelDemoLink',
     },
     SEARCH_EDIT_MULTIPLE: {
         AMOUNT_FIELD: 'SearchEditMultiple-AmountField',
@@ -1102,6 +1124,7 @@ const SENTRY_LABEL = {
             TODO: 'LHN-InboxTab-Todo',
         },
         INBOX_TAB_MARK_ALL_AS_READ: 'LHN-InboxTabMarkAllAsRead',
+        EMPTY_STATE_SEE_ALL_CHATS_LINK: 'LHN-EmptyStateSeeAllChatsLink',
     },
     OPTION_ROW: {
         BASE_LIST_ITEM: 'OptionRow-BaseListItem',
@@ -1291,6 +1314,7 @@ const SENTRY_LABEL = {
     PDF_VIEW: {
         PASSWORD_CONFIRM: 'PDFView-PasswordConfirm',
         DOCUMENT: 'PDFView-Document',
+        ENTER_PASSWORD_LINK: 'PDFView-EnterPasswordLink',
     },
     AVATAR_CROP_MODAL: {
         ROTATE_BUTTON: 'AvatarCropModal-RotateButton',
@@ -1732,6 +1756,12 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_VIEW_TRANSACTIONS: 'WorkspaceCompanyCards-BulkActionsViewTransactions',
             BULK_ACTIONS_EDIT_TRANSACTION_START_DATE: 'WorkspaceCompanyCards-BulkActionsEditTransactionStartDate',
             BULK_ACTIONS_EXPORT_CSV: 'WorkspaceCompanyCards-BulkActionsExportCSV',
+            TABLE_VIEW_TRANSACTIONS_LINK: 'WorkspaceCompanyCards-TableViewTransactionsLink',
+            PENDING_BANK_LINK: 'WorkspaceCompanyCards-PendingBankLink',
+            ERROR_CONNECT_WITH_PLAID_LINK: 'WorkspaceCompanyCards-ErrorConnectWithPlaidLink',
+            ERROR_CONNECT_WITH_EXPENSIFY_CARD_LINK: 'WorkspaceCompanyCards-ErrorConnectWithExpensifyCardLink',
+            FEED_PENDING_CONCIERGE_LINK: 'WorkspaceCompanyCards-FeedPendingConciergeLink',
+            ADD_NEW_DETAILS_HELP_LINK: 'WorkspaceCompanyCards-AddNewDetailsHelpLink',
         },
         LIST: {
             NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -1808,6 +1838,8 @@ const SENTRY_LABEL = {
             RULES_DOCUMENT: 'WorkspaceOverview-RulesDocument',
             INVITE_BUTTON: 'WorkspaceOverview-InviteButton',
             MORE_DROPDOWN: 'WorkspaceOverview-MoreDropdown',
+            PLAN_TYPE_SUBSCRIPTIONS_LINK: 'WorkspaceOverview-PlanTypeSubscriptionsLink',
+            PLAN_TYPE_PRICING_LINK: 'WorkspaceOverview-PlanTypePricingLink',
         },
         MEMBERS: {
             INVITE_BUTTON: 'WorkspaceMembers-InviteButton',
@@ -1853,6 +1885,8 @@ const SENTRY_LABEL = {
             LIST_ROW: 'WorkspaceMembers-ListRow',
             ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
+            ROLE_FEEDBACK_CONCIERGE_LINK: 'WorkspaceMembers-RoleFeedbackConciergeLink',
+            CONFIGURE_HR_SYNC_LINK: 'WorkspaceMembers-ConfigureHRSyncLink',
         },
         CATEGORIES: {
             ROW: 'WorkspaceCategories-Row',
@@ -1932,6 +1966,9 @@ const SENTRY_LABEL = {
             IMPORT_FIRST_ROW_TITLE_SWITCH: 'WorkspaceTags-ImportFirstRowTitleSwitch',
             IMPORT_INDEPENDENT_TAGS_SWITCH: 'WorkspaceTags-ImportIndependentTagsSwitch',
             IMPORT_GL_ADJACENT_COLUMN_SWITCH: 'WorkspaceTags-ImportGLAdjacentColumnSwitch',
+            IMPORT_OVERRIDE_WARNING_DOWNLOAD_LINK: 'WorkspaceTags-ImportOverrideWarningDownloadLink',
+            IMPORT_SWITCH_TO_MULTI_LEVEL_WARNING_DOWNLOAD_LINK: 'WorkspaceTags-ImportSwitchToMultiLevelWarningDownloadLink',
+            IMPORT_SWITCH_TO_MULTI_LEVEL_WARNING_LEARN_MORE_LINK: 'WorkspaceTags-ImportSwitchToMultiLevelWarningLearnMoreLink',
         },
         REPORT_FIELDS: {
             LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
@@ -2018,6 +2055,7 @@ const SENTRY_LABEL = {
             TRACK_TAX_SWITCH: 'WorkspaceDistanceRates-TrackTaxSwitch',
             REQUIRE_MAP_OR_GPS_SWITCH: 'WorkspaceDistanceRates-RequireMapOrGPSSwitch',
             EMPTY_STATE_ADD_RATE: 'WorkspaceDistanceRates-EmptyStateAddRate',
+            COMMUTER_EXCLUSIONS_WORKSPACE_ADDRESS_LINK: 'WorkspaceDistanceRates-CommuterExclusionsWorkspaceAddressLink',
         },
         WORKFLOWS: {
             AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
@@ -2062,6 +2100,8 @@ const SENTRY_LABEL = {
             COLLECT_EMPLOYEE_BANK_DETAILS_SWITCH: 'WorkspaceWorkflows-CollectEmployeeBankDetailsSwitch',
             MAKE_OR_TRACK_PAYMENTS_SWITCH: 'WorkspaceWorkflows-MakeOrTrackPaymentsSwitch',
             SUBMISSION_FREQUENCY_SWITCH: 'WorkspaceWorkflows-SubmissionFrequencySwitch',
+            CURRENCY_CONVERSION_FEES_LEARN_MORE_LINK: 'WorkspaceWorkflows-CurrencyConversionFeesLearnMoreLink',
+            APPROVALS_CONFIGURE_VIA_PROVIDER_LINK: 'WorkspaceWorkflows-ApprovalsConfigureViaProviderLink',
         },
         ACCOUNTING: {
             JOIN_WAITLIST: {
@@ -2323,6 +2363,8 @@ const SENTRY_LABEL = {
                     CONNECT_SANDBOX: 'WorkspaceAccountingCertinia-ConnectionOptions-ConnectSandbox',
                     REUSE_EXISTING_CONNECTION: 'WorkspaceAccountingCertinia-ConnectionOptions-ReuseExistingConnection',
                 },
+                PREREQUISITES_PSA_BUNDLE_LINK: 'WorkspaceAccountingCertinia-PrerequisitesPSABundleLink',
+                PREREQUISITES_FFA_BUNDLE_LINK: 'WorkspaceAccountingCertinia-PrerequisitesFFABundleLink',
             },
             DUAL_ENTRY: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingDualEntry-AutoSyncSwitch',
@@ -2402,6 +2444,7 @@ const SENTRY_LABEL = {
                     CUSTOMERS: 'WorkspaceAccountingSageIntacct-ImportMappingRow-Customers',
                     PROJECTS: 'WorkspaceAccountingSageIntacct-ImportMappingRow-Projects',
                 },
+                USER_DIMENSIONS_INSTRUCTIONS_LINK: 'WorkspaceAccountingSageIntacct-UserDimensionsInstructionsLink',
             },
             NETSUITE: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingNetSuite-AutoSyncSwitch',
@@ -2498,6 +2541,8 @@ const SENTRY_LABEL = {
                     CREATE_NEW_CONNECTION: 'WorkspaceAccountingNetSuite-ConnectionOptions-CreateNewConnection',
                     REUSE_EXISTING_CONNECTION: 'WorkspaceAccountingNetSuite-ConnectionOptions-ReuseExistingConnection',
                 },
+                TOKEN_AUTHENTICATION_LINK: 'WorkspaceAccountingNetSuite-TokenAuthenticationLink',
+                IMPORT_CUSTOM_FIELD_HELP_LINK: 'WorkspaceAccountingNetSuite-ImportCustomFieldHelpLink',
             },
             RILLET: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingRillet-AutoSyncSwitch',
@@ -2608,6 +2653,12 @@ const SENTRY_LABEL = {
             SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             UBER_AUTO_INVITE_SWITCH: 'WorkspaceConnections-UberAutoInviteSwitch',
             UBER_AUTO_REMOVE_SWITCH: 'WorkspaceConnections-UberAutoRemoveSwitch',
+            QBO_RECONNECT_LINK: 'WorkspaceConnections-QBOReconnectLink',
+            NETSUITE_OAUTH_UPGRADE_LINK: 'WorkspaceConnections-NetSuiteOAuthUpgradeLink',
+            AUTHENTICATION_ERROR_LEARN_MORE_LINK: 'WorkspaceConnections-AuthenticationErrorLearnMoreLink',
+            GO_TO_CLASSIC_SETTINGS_LINK: 'WorkspaceConnections-GoToClassicSettingsLink',
+            MERGE_RECONNECT_LINK: 'WorkspaceConnections-MergeReconnectLink',
+            MERGE_UPDATE_GROUP_SELECTION_LINK: 'WorkspaceConnections-MergeUpdateGroupSelectionLink',
         },
         MERGE: {
             SKIPPED_EMPLOYEES_TOGGLE_HR: 'WorkspaceMerge-SkippedEmployeesToggle-HR',
@@ -2715,6 +2766,7 @@ const SENTRY_LABEL = {
             SPEND_RULE_CATEGORIES_SAVE: 'WorkspaceRules-SpendRuleCategoriesSave',
             SPEND_RULE_CURRENCIES_SAVE: 'WorkspaceRules-SpendRuleCurrenciesSave',
             SPEND_RULE_MERCHANTS_SAVE: 'WorkspaceRules-SpendRuleMerchantsSave',
+            MERCHANT_RULE_RESET: 'WorkspaceRules-MerchantRuleReset',
         },
         ROOMS: {
             ROW: 'WorkspaceRooms-Row',
@@ -2762,6 +2814,8 @@ const SENTRY_LABEL = {
             ISSUE_CARD_ADD_EXPIRATION_DATE_SWITCH: 'WorkspaceExpensifyCard-IssueCardAddExpirationDateSwitch',
             ISSUE_CARD_ADD_SPEND_RULE_SWITCH: 'WorkspaceExpensifyCard-IssueCardAddSpendRuleSwitch',
             LIMIT_TYPE_ADD_EXPIRATION_DATE_SWITCH: 'WorkspaceExpensifyCard-LimitTypeAddExpirationDateSwitch',
+            SETTINGS_SETTLEMENT_FREQUENCY_LEARN_MORE_LINK: 'WorkspaceExpensifyCard-SettingsSettlementFrequencyLearnMoreLink',
+            VIEW_TRANSACTIONS_LINK: 'WorkspaceExpensifyCard-ViewTransactionsLink',
         },
         PER_DIEM: {
             ROW: 'WorkspacePerDiem-Row',
@@ -2795,6 +2849,7 @@ const SENTRY_LABEL = {
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
             CODING_SYNC_SWITCH: 'WorkspaceTravel-CodingSyncSwitch',
             TRAVEL_BILLING_SWITCH: 'WorkspaceTravel-TravelBillingSwitch',
+            BILLING_LEARN_HOW_LINK: 'WorkspaceTravel-BillingLearnHowLink',
         },
         INVOICES: {
             COMPANY_NAME: 'WorkspaceInvoices-CompanyName',
@@ -2992,6 +3047,7 @@ const SENTRY_LABEL = {
         REPLACE_DEVICE_VERIFY_NEW_CONTINUE: 'TwoFactorAuth-ReplaceDeviceVerifyNewContinue',
         REPLACE_DEVICE_VERIFY_OLD_CONTINUE: 'TwoFactorAuth-ReplaceDeviceVerifyOldContinue',
         VERIFY_NEXT: 'TwoFactorAuth-VerifyNext',
+        VERIFY_AUTHENTICATOR_APP_LINK: 'TwoFactorAuth-VerifyAuthenticatorAppLink',
     },
     VALIDATE_CODE: {
         RESEND_CODE: 'ValidateCode-ResendCode',
@@ -3022,10 +3078,14 @@ const SENTRY_LABEL = {
     },
     LOCATION_ERROR: {
         CLOSE_BUTTON: 'LocationError-CloseButton',
+        ALLOW_PERMISSION_LINK: 'LocationError-AllowPermissionLink',
     },
     ERROR_PAGE: {
         REFRESH: 'ErrorPage-Refresh',
         SIGN_OUT: 'ErrorPage-SignOut',
+        NEW_EXPENSIFY_LINK: 'ErrorPage-NewExpensifyLink',
+        CONCIERGE_EMAIL_LINK: 'ErrorPage-ConciergeEmailLink',
+        SESSION_EXPIRED_SIGN_IN_LINK: 'ErrorPage-SessionExpiredSignInLink',
     },
     UPDATE_REQUIRED: {
         REFRESH_PAGE: 'UpdateRequired-RefreshPage',
@@ -3038,6 +3098,7 @@ const SENTRY_LABEL = {
         REVOKE_ALL: 'MultifactorAuthentication-RevokeAll',
         REVOKE_DISMISS: 'MultifactorAuthentication-RevokeDismiss',
         REVOKE_THIS_DEVICE: 'MultifactorAuthentication-RevokeThisDevice',
+        NO_ELIGIBLE_METHODS_SETTINGS_LINK: 'MultifactorAuthentication-NoEligibleMethodsSettingsLink',
         REVOKE_OTHER_DEVICES: 'MultifactorAuthentication-RevokeOtherDevices',
         OUTCOME_CLOSE: 'MultifactorAuthentication-OutcomeClose',
         VALIDATE_CODE_VERIFY: 'MultifactorAuthentication-ValidateCodeVerify',
@@ -3100,6 +3161,7 @@ const SENTRY_LABEL = {
         DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
         ROUTING_NUMBER_INPUT: 'BankAccount-RoutingNumberInput',
         ACCOUNT_NUMBER_INPUT: 'BankAccount-AccountNumberInput',
+        PRIVACY_LINK: 'BankAccount-PrivacyLink',
     },
     EARLY_DISCOUNT_BANNER: {
         DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
@@ -3242,6 +3304,10 @@ const SENTRY_LABEL = {
         MERGE_ACCOUNTS_NEXT: 'SettingsSecurity-MergeAccountsNext',
         MERGE_RESULT_CONFIRM: 'SettingsSecurity-MergeResultConfirm',
         MERGE_RESULT_GO_TO_CLASSIC: 'SettingsSecurity-MergeResultGoToExpensifyClassic',
+        MERGE_RESULT_2FA_LEARN_MORE_LINK: 'SettingsSecurity-MergeResult2FALearnMoreLink',
+        COPILOT_LEARN_MORE_LINK: 'SettingsSecurity-CopilotLearnMoreLink',
+        ADD_COPILOT_ACCESS_LEVEL_LEARN_MORE_LINK: 'SettingsSecurity-AddCopilotAccessLevelLearnMoreLink',
+        DELEGATE_CHANGE_ACCESS_LEARN_MORE_LINK: 'SettingsSecurity-DelegateChangeAccessLearnMoreLink',
     },
     SETTINGS_WALLET: {
         ADD_COMPANY_CARDS: {
@@ -3313,6 +3379,8 @@ const SENTRY_LABEL = {
         WISE_BANK_ACCOUNT_ADDED_CONTINUE: 'SettingsWallet-WiseBankAccountAddedContinue',
         DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApprovalReview',
         MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetailsAdd',
+        INTERNATIONAL_BANK_ACCOUNT_DETAILS_PROTECT_DATA_LINK: 'SettingsWallet-InternationalBankAccountDetailsProtectDataLink',
+        WISE_SETUP_IN_PROGRESS_CONTINUE_LINK: 'SettingsWallet-WiseSetupInProgressContinueLink',
     },
     SETTINGS_RULES: {
         BULK_ACTIONS: 'SettingsRules-BulkActions',
@@ -3369,11 +3437,13 @@ const SENTRY_LABEL = {
         SUBSCRIPTION_SIZE: 'SettingsSubscription-SubscriptionSize',
         SUBSCRIPTION_SIZE_SAVE: 'SettingsSubscription-SubscriptionSizeSave',
         TAX_EXEMPT: 'SettingsSubscription-TaxExempt',
+        PAYMENT_CARD_SECURITY_LINK: 'SettingsSubscription-PaymentCardSecurityLink',
     },
     REIMBURSEMENT_ACCOUNT: {
         BENEFICIAL_OWNERS_CONFIRM: 'ReimbursementAccount-BeneficialOwnersConfirm',
         BANK_ACCOUNT_ADDED_CONFIRM: 'ReimbursementAccount-BankAccountAddedConfirm',
         BENEFICIAL_OWNER_ROW: 'ReimbursementAccount-BeneficialOwnerRow',
+        CONNECT_BANK_ACCOUNT_ADDED_CONFIRM: 'ReimbursementAccount-ConnectBankAccountAddedConfirm',
         BUSINESS_INFO_ADDRESS: 'ReimbursementAccount-BusinessInfoAddress',
         BUSINESS_INFO_INCORPORATION_DATE: 'ReimbursementAccount-BusinessInfoIncorporationDate',
         BUSINESS_INFO_INCORPORATION_STATE: 'ReimbursementAccount-BusinessInfoIncorporationState',
@@ -3403,6 +3473,8 @@ const SENTRY_LABEL = {
         SIGNER_INFO_SEND_REMINDER: 'ReimbursementAccount-SignerInfoSendReminder',
         UBO_CONFIRM: 'ReimbursementAccount-UBOConfirm',
         UBO_ROW: 'ReimbursementAccount-UBORow',
+        BUSINESS_INFO_RESTRICTED_BUSINESSES_LINK: 'ReimbursementAccount-BusinessInfoRestrictedBusinessesLink',
+        CONNECT_BANK_ACCOUNT_CONTACT_US_LINK: 'ReimbursementAccount-ConnectBankAccountContactUsLink',
     },
     FREE_TRIAL: {
         OPEN_SUBSCRIPTION: 'FreeTrial-OpenSubscription',
@@ -3456,6 +3528,12 @@ const SENTRY_LABEL = {
         WALLET_SETUP_WITH_PLAID: 'EnablePayments-WalletSetupWithPlaid',
         WALLET_TERMS_SUBMIT: 'EnablePayments-WalletTermsSubmit',
         WALLET_VERIFY_IDENTITY_CONTINUE: 'EnablePayments-WalletVerifyIdentityContinue',
+        PAY_ADDITIONAL_DETAILS_HELP_LINK: 'EnablePayments-PayAdditionalDetailsHelpLink',
+        PAY_ONFIDO_FACIAL_SCAN_POLICY_LINK: 'EnablePayments-PayOnfidoFacialScanPolicyLink',
+        PAY_ONFIDO_PRIVACY_POLICY_LINK: 'EnablePayments-PayOnfidoPrivacyPolicyLink',
+        PAY_ONFIDO_TERMS_OF_SERVICE_LINK: 'EnablePayments-PayOnfidoTermsOfServiceLink',
+        IDOLOGY_QUESTIONS_HELP_LINK: 'EnablePayments-IdologyQuestionsHelpLink',
+        LONG_TERMS_PRINTER_FRIENDLY_VIEW_LINK: 'EnablePayments-LongTermsPrinterFriendlyViewLink',
     },
     EXPENSIFY_CARD_PAGE: {
         ACTIVATE_PHYSICAL_CARD: 'ExpensifyCardPage-ActivatePhysicalCard',
@@ -3494,6 +3572,7 @@ const SENTRY_LABEL = {
         TRAVEL_CVV_REVEAL: 'ExpensifyCardPage-TravelCVVReveal',
         UNBLOCK_PIN: 'ExpensifyCardPage-UnblockPIN',
         VIEW_TRANSACTIONS: 'ExpensifyCardPage-ViewTransactions',
+        UPDATE_ADDRESS_LINK: 'ExpensifyCardPage-UpdateAddressLink',
     },
     NEW_AGENT_PAGE: {
         BUILD_CUSTOM_AGENT: 'NewAgentPage-BuildCustomAgent',
@@ -3517,6 +3596,9 @@ const SENTRY_LABEL = {
         WARNING_ASK_ADMIN: 'PersonalCard-WarningAskAdmin',
         WARNING_THIS_IS_COMPANY_CARD: 'PersonalCard-WarningThisIsCompanyCard',
         WARNING_THIS_IS_PERSONAL_CARD: 'PersonalCard-WarningThisIsPersonalCard',
+        FIX_CONNECTION_PENDING_BANK_LINK: 'PersonalCard-FixConnectionPendingBankLink',
+        ERROR_CONNECT_WITH_PLAID_LINK: 'PersonalCard-ErrorConnectWithPlaidLink',
+        PENDING_BANK_LINK: 'PersonalCard-PendingBankLink',
     },
     REPORT_SETTINGS: {
         NOTIFICATION_PREFERENCE: 'ReportSettings-NotificationPreference',
@@ -3739,6 +3821,7 @@ const SENTRY_LABEL = {
     },
     COLUMNS_SETTINGS_LIST: {
         SAVE_BUTTON: 'ColumnsSettingsList-SaveButton',
+        RESET_COLUMNS_LINK: 'ColumnsSettingsList-ResetColumnsLink',
     },
     COUNTRY_SELECTOR: {
         OPEN: 'CountrySelector-Open',
@@ -3759,6 +3842,7 @@ const SENTRY_LABEL = {
     FROZEN_CARD_HEADER: {
         UNFREEZE: 'FrozenCardHeader-Unfreeze',
         ASK_TO_UNFREEZE: 'FrozenCardHeader-AskToUnfreeze',
+        FROZEN_BY_PROFILE_LINK: 'FrozenCardHeader-FrozenByProfileLink',
     },
     FULLSCREEN_LOADING_INDICATOR: {
         GO_BACK: 'FullscreenLoadingIndicator-GoBack',
@@ -3768,6 +3852,47 @@ const SENTRY_LABEL = {
     },
     DOCUSIGN_FULL_STEP: {
         OPEN_DOCUSIGN: 'DocusignFullStep-OpenDocusign',
+    },
+    FORM_ALERT_WRAPPER: {
+        FIX_ERRORS_LINK: 'FormAlertWrapper-FixErrorsLink',
+    },
+    HEADER_TITLE: {
+        SUBTITLE_LINK: 'HeaderTitle-SubtitleLink',
+    },
+    MERCHANT_RULE_SUGGESTION_BANNER: {
+        CREATE_RULE_LINK: 'MerchantRuleSuggestionBanner-CreateRuleLink',
+    },
+    PARENT_NAVIGATION_SUBTITLE: {
+        PARENT_REPORT_LINK: 'ParentNavigationSubtitle-ParentReportLink',
+    },
+    PATRIOT_ACT_LINK: {
+        HELP_LINK: 'PatriotActLink-HelpLink',
+    },
+    EXPORT_INTEGRATION: {
+        MESSAGE_LINK: 'ExportIntegration-MessageLink',
+    },
+    COUNTRY_FULL_STEP: {
+        SETTINGS_LINK: 'CountryFullStep-SettingsLink',
+    },
+    REGISTRATION_NUMBER_STEP: {
+        HELP_LINK: 'RegistrationNumberStep-HelpLink',
+    },
+    VALIDATE_CODE_MODAL: {
+        EXPIRED_CODE_REQUEST_LINK: 'ValidateCodeModal-ExpiredCodeRequestLink',
+        SIGN_IN_HERE_LINK: 'ValidateCodeModal-SignInHereLink',
+    },
+    CREATE_EMPTY_REPORT_CONFIRMATION: {
+        REPORTS_LINK: 'CreateEmptyReportConfirmation-ReportsLink',
+    },
+    FILES_VALIDATION: {
+        SUPPORTED_FILES_LINK: 'FilesValidation-SupportedFilesLink',
+    },
+    HELP_LINKS: {
+        LEARN_MORE_LINK: 'HelpLinks-LearnMoreLink',
+        IS_MY_DATA_SAFE_LINK: 'HelpLinks-IsMyDataSafeLink',
+    },
+    WHY_LINK: {
+        WHY_DO_WE_ASK_LINK: 'WhyLink-WhyDoWeAskLink',
     },
     // Components that require a label get this one when rendered in tests. Tests send nothing to Sentry, so one shared label is enough.
     TEST: {

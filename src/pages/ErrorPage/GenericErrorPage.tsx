@@ -65,6 +65,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                 <Text>
                                     {`${translate('genericErrorPage.body.helpTextConcierge')} `}
                                     <TextLink
+                                        sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.CONCIERGE_EMAIL_LINK}
                                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                                         style={[styles.link]}
                                     >
