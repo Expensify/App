@@ -1,4 +1,5 @@
 import Navigation from '@libs/Navigation/Navigation';
+import {suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
 import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
@@ -118,6 +119,9 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
+
+    // OldDot is drawn by the same app, so frame drop measuring stops before its screens appear, and NewDot's runtime is torn down next.
+    suspendFrameDropMonitor();
 
     // eslint-disable-next-line no-restricted-properties
     HybridAppModule.closeReactNativeApp({shouldSetNVP});

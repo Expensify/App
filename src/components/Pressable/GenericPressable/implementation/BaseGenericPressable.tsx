@@ -10,6 +10,7 @@ import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
+import {recordPress} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
 
@@ -120,6 +121,7 @@ function GenericPressable({
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         }
         notifyPressedTrigger(internalRef, focusIdentifier);
+        recordPress(rest.sentryLabel);
         onLongPress(event);
     };
 
@@ -138,6 +140,7 @@ function GenericPressable({
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         }
         notifyPressedTrigger(internalRef, focusIdentifier);
+        recordPress(rest.sentryLabel);
         return onPress(event);
     };
 
