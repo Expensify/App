@@ -33,6 +33,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -833,17 +834,9 @@ function MenuItem({
     };
     const secondaryInteractionHandler = copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction;
 
-    // The row always attaches its press handlers, so they are passed on only with a label. A copyable row without a
-    // label of its own still opens the copy menu on a long press, so it reports that under the copy label.
+    // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
+    // copy label.
     const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
-    const pressProps = pressableSentryLabel
-        ? {
-              sentryLabel: pressableSentryLabel,
-              onPress: shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction,
-              // Keep the native selection menu available through press-out; reset on the next pointer start.
-              onSecondaryInteraction: shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler,
-          }
-        : {};
     // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
     const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
 
@@ -881,7 +874,10 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                {...pressProps}
+                                sentryLabel={castToSentryLabel(pressableSentryLabel)}
+                                onPress={shouldCheckActionAllowedOnPress && !isAnonymousAction ? callIfAuthenticated(onPressAction, session) : onPressAction}
+                                // Keep the native selection menu available through press-out; reset on the next pointer start.
+                                onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : secondaryInteractionHandler}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}

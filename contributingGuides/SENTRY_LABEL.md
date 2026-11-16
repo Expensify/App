@@ -14,16 +14,15 @@ When you write a component that passes `sentryLabel` on to one of these, give it
 - `WithRequiredSentryLabel`: every usage passes a label. Use it for components that always handle a press, such as a button that requires `onPress`, a menu that opens itself, or a link, and for menu, dropdown and tab items.
 - `WithSentryLabelWhenPressable<'onPress' | ...>`: usages that pass one of the listed props must pass a defined label too, and usages without one need none. Use it for components that can render read-only, such as `MenuItem` or `Button` without `onPress`. The listed props don't have to be handlers: `Badge` uses `pressable`. When the label prop has another name, pass it as the second parameter, e.g. `WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'>`. To derive another props type from one that uses it, use `DistributedOmit` or `DistributedPick` from type-fest. `Omit` and `Pick` merge the union and silently drop the requirement.
 
-TypeScript only knows the label goes with the handler while both are in the same props object. Once you destructure them, check the label again and pass them on together:
+TypeScript only knows the label goes with the handler while both are in the same props object. Once you take them out of the props, pass the label on through `castToSentryLabel` together with the handlers:
 
 ```tsx
-// Button always has a handler, even when it renders read-only, so it passes the handler on only with a label.
-const pressProps = sentryLabel ? {sentryLabel, onPress: pressWithFeedback} : {};
+const pressProps = {sentryLabel: castToSentryLabel(sentryLabel), onPress: pressWithFeedback};
 
 return <PressableWithFeedback {...pressProps} />;
 ```
 
-The props already require the label whenever the caller passes a handler, so the check only leaves out handlers of read-only usages, which do nothing.
+The props already require the label whenever the caller passes a handler, so the cast only tells TypeScript what the props guarantee. Pass the handlers on unconditionally: if a cast or untyped data lets a handler through without a label, the press still works and only the label is missing. Keep the handlers in the object literal rather than passing them to a function, so React Compiler can still compile the component.
 
 Inputs, such as `TextInput` (`TextInput-Field`), and components that fall back to a default label, such as `RadioButton` and `FormProvider`, keep an optional `sentryLabel` (`WithSentryLabel`). In tests and stories, pass `CONST.SENTRY_LABEL.TEST.LABEL`. Neither sends anything to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
 

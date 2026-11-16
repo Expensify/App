@@ -4,6 +4,7 @@ import usePressResponderProps from '@components/Pressable/PressResponder/usePres
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';
 
@@ -95,10 +96,6 @@ function PressableWithSecondaryInteraction({
         };
     }, [onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
 
-    // The long press runs the secondary interaction, which can come from a press responder with its own label, so the
-    // two are passed on together.
-    const longPressProps = sentryLabel ? {onLongPress: onSecondaryInteraction ? executeSecondaryInteraction : undefined, sentryLabel} : {};
-
     const inlineStyle = inline ? styles.dInline : {};
     const selectionStyle = canUseTouchScreen() && !shouldAllowTextSelection ? [styles.userSelectNone, styles.noSelect] : [];
 
@@ -106,7 +103,9 @@ function PressableWithSecondaryInteraction({
     return (
         <PressableWithFeedback
             {...rest}
-            {...longPressProps}
+            // The long press runs the secondary interaction, which can come from a press responder with its own label.
+            sentryLabel={castToSentryLabel(sentryLabel)}
+            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}
             nativeID={nativeID}

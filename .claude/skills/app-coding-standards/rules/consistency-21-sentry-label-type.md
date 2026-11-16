@@ -48,7 +48,7 @@ Flag ONLY when ALL of these are true:
 - The type uses `WithRequiredSentryLabel` or `WithSentryLabelWhenPressable`
 - The file is a test or story
 
-Also flag a component that destructures `sentryLabel` and a press handler, then passes the handler on without checking the label first (see "TypeScript only knows the label goes with the handler" in SENTRY_LABEL.md), when it silences the resulting type error with a cast.
+Also flag a component that takes `sentryLabel` and a press handler out of its props, then silences the resulting type error with its own cast or drops the handler when the label is missing, instead of passing the label through `castToSentryLabel` (see "TypeScript only knows the label goes with the handler" in SENTRY_LABEL.md).
 
 **Search Patterns** (hints for reviewers):
 - `sentryLabel?: SentryLabel`

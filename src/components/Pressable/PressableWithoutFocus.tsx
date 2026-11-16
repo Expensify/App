@@ -1,3 +1,5 @@
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
@@ -22,14 +24,12 @@ function PressableWithoutFocus({children, ...rest}: PressableProps) {
         rest.onPress?.();
     };
 
-    // The press handler is replaced, so it is passed on with the label it needs.
-    const pressProps = rest.sentryLabel ? {onPress: pressAndBlur, sentryLabel: rest.sentryLabel} : {};
-
     return (
         <GenericPressable
             ref={ref}
             {...rest}
-            {...pressProps}
+            sentryLabel={castToSentryLabel(rest.sentryLabel)}
+            onPress={pressAndBlur}
         >
             {children}
         </GenericPressable>

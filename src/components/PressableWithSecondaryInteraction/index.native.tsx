@@ -2,6 +2,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import Text from '@components/Text';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
 
@@ -38,10 +40,6 @@ function PressableWithSecondaryInteraction({
         onSecondaryInteraction?.(event);
     };
 
-    // The long press runs the secondary interaction, which can come from a press responder with its own label, so the
-    // two are passed on together.
-    const longPressProps = sentryLabel ? {onLongPress: onSecondaryInteraction ? executeSecondaryInteraction : undefined, sentryLabel} : {};
-
     // Use Text node for inline mode to prevent content overflow.
     if (inline) {
         return (
@@ -49,7 +47,9 @@ function PressableWithSecondaryInteraction({
                 // The press props stay out of the cast, since TypeScript can't relate them to the label after it. The
                 // label still travels with them in `rest`.
                 {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
-                {...longPressProps}
+                // The long press runs the secondary interaction, which can come from a press responder with its own label.
+                sentryLabel={castToSentryLabel(sentryLabel)}
+                onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
                 suppressHighlighting={suppressHighlighting}
             >
                 {children as ReactNode}
@@ -65,7 +65,8 @@ function PressableWithSecondaryInteraction({
             nativeID={nativeID}
             accessibilityControls={accessibilityControls}
             ref={ref}
-            {...longPressProps}
+            sentryLabel={castToSentryLabel(sentryLabel)}
+            onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
             pressDimmingValue={activeOpacity}
         >

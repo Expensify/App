@@ -7,6 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import HapticFeedback from '@libs/HapticFeedback';
 
 import CONST from '@src/CONST';
@@ -96,10 +97,6 @@ function Button({
         }
         onLongPress(event);
     };
-
-    // The handlers above always exist, even on a read-only button, so they are passed on only with a label. The props
-    // require one whenever the caller passes `onPress` or `onLongPress`.
-    const pressProps = sentryLabel ? {sentryLabel, onPress: pressWithFeedback, onLongPress: longPress} : {};
 
     let buttonVariantStyles;
     const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
@@ -193,7 +190,9 @@ function Button({
             onBlur={onBlur}
             onHoverIn={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(true) : undefined}
             onHoverOut={!isDisabled || !stayNormalOnDisable ? () => setIsHovered(false) : undefined}
-            {...pressProps}
+            sentryLabel={castToSentryLabel(sentryLabel)}
+            onPress={pressWithFeedback}
+            onLongPress={longPress}
         >
             {blendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonStateContext.Provider value={{isHovered, variant, size, isDisabled, isLoading}}>

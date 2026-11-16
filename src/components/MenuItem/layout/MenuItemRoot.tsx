@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -139,18 +140,9 @@ function MenuItemRoot({
           }
         : undefined;
 
-    // The row always attaches its press handlers, so they are passed on only with a label. A read-only row has none of
-    // its own, so it takes the label of the sub-component that handles its long press, e.g. `MenuItem.Copy`.
+    // A read-only row has no label of its own, so it takes the label of the sub-component that handles its long press,
+    // e.g. `MenuItem.Copy`.
     const rowSentryLabel = sentryLabel ?? registeredSecondaryInteractionSentryLabel;
-    const pressProps = rowSentryLabel
-        ? {
-              sentryLabel: rowSentryLabel,
-              onPress: onPressAction,
-              // RN Web prevents the native context menu whenever an onLongPress handler is attached.
-              // Reset on the next pointer start, since press-out can precede the browser's selection menu.
-              onSecondaryInteraction: shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction,
-          }
-        : {};
     // TypeScript can't match a plain boolean against both the accessibility and the label unions, so it gets a literal type.
     const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
 
@@ -159,7 +151,11 @@ function MenuItemRoot({
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
-                        {...pressProps}
+                        sentryLabel={castToSentryLabel(rowSentryLabel)}
+                        onPress={onPressAction}
+                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
                         onMouseDown={(event) => {
                             markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
                         }}

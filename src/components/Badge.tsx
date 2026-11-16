@@ -1,6 +1,8 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -99,8 +101,7 @@ function Badge({
         return null;
     }
 
-    // Destructuring drops the type that ties the label to `pressable`, so the label is checked again here.
-    const pressProps = pressable && sentryLabel ? {onPress, sentryLabel} : {};
+    const pressProps = pressable ? {sentryLabel: castToSentryLabel(sentryLabel), onPress} : {};
 
     return (
         <Wrapper
