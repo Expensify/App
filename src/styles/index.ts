@@ -8158,6 +8158,11 @@ const plainStyles = (theme: ThemeColors) =>
             width: variables.insightsAICardWidth,
         } satisfies ViewStyle,
 
+        insightsDataTableSkeletonTopOffset: (topOffset: number) =>
+            ({
+                marginTop: topOffset,
+            }) satisfies ViewStyle,
+
         insightsRankingTableShareColumn: {
             flex: 1.5,
             minWidth: 0,

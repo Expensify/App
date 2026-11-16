@@ -20,6 +20,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -77,7 +79,28 @@ function InsightsRankingTable({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={rowLimit ?? CONST.SEARCH.TOP_SEARCH_LIMIT} />;
+        // The column headers: a label line, its padding and the divider below
+        const headerHeight = variables.tableHeaderContentHeight + 2 * styles.pv2.paddingVertical + variables.borderTopWidth;
+        // A narrow row: its padding, the name and count lines with the gap between, the gap above the bar, the bar and the divider
+        const narrowRowHeight =
+            2 * variables.tableRowPaddingVerticalCompact +
+            variables.fontSizeNormalHeight +
+            styles.gap1.gap +
+            variables.lineHeightNormal +
+            styles.gap3.gap +
+            variables.insightsRankingTableBarHeight +
+            variables.borderTopWidth;
+
+        return (
+            <View style={!shouldUseNarrowLayout && cardPaddingBottom}>
+                <InsightsDataTableSkeleton
+                    fixedNumItems={rowLimit ?? CONST.SEARCH.TOP_SEARCH_LIMIT}
+                    shouldShowIndicator={false}
+                    rowHeight={shouldUseNarrowLayout ? narrowRowHeight : variables.tableRowHeight}
+                    topOffset={shouldUseNarrowLayout ? variables.borderTopWidth : headerHeight}
+                />
+            </View>
+        );
     }
 
     const {rows, average, averageWidthPercent} = buildRankingTableRows({data, comparison, isComparingPreviousPeriod});
