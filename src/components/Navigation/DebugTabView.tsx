@@ -266,7 +266,7 @@ function DebugTabView({selectedTab}: Props) {
                         src={icons.DotIndicator}
                         fill={indicator}
                     />
-                    {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}
+                    {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20, styles.flexShrink1]}>{translate(message)}</Text>}
                 </View>
                 <Button
                     onPress={navigateTo}
