@@ -1,5 +1,6 @@
 import type IntlPolyfill from './types';
 
+import polyfillDateTimeFormatRange from './polyfillDateTimeFormatRange';
 import polyfillListFormat from './polyfillListFormat';
 
 /**
@@ -17,6 +18,8 @@ const intlPolyfill: IntlPolyfill = () => {
     require('@formatjs/intl-pluralrules/locale-data/en');
 
     polyfillListFormat();
+
+    polyfillDateTimeFormatRange();
 };
 
 export default intlPolyfill;

@@ -37,18 +37,21 @@ function WorkspaceTaxesSettingsPage({
         {
             title: policy?.taxRates?.name,
             description: translate('workspace.taxes.customTaxName'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.CUSTOM_TAX_NAME,
             action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
             pendingAction: policy?.taxRates?.pendingFields?.name,
         },
         {
             title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
             description: translate('workspace.taxes.workspaceDefault'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.WORKSPACE_DEFAULT,
             action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
         },
         {
             title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
             description: translate('workspace.taxes.foreignDefault'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TAXES.SETTINGS_ROW.FOREIGN_DEFAULT,
             action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,
         },
@@ -77,6 +80,7 @@ function WorkspaceTaxesSettingsPage({
                                 pendingAction={item.pendingAction}
                             >
                                 <MenuItemField
+                                    sentryLabel={item.sentryLabel}
                                     value={item.title}
                                     name={item.description}
                                     onPress={item.action}

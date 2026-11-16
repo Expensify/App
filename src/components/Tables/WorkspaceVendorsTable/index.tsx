@@ -91,7 +91,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                 interactive={selectionEnabled}
                 accessibilityLabel={accessibilityLabel}
                 rowIndex={index}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW}
                 disabled={item.disabled}
                 offlineWithFeedback={{
                     errors: item.errors,

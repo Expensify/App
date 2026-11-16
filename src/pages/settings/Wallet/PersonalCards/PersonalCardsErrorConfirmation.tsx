@@ -63,6 +63,7 @@ function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfir
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.ERROR_CONFIRM}
                     text={translate('common.buttonConfirm')}
                     onPress={onButtonPress}
                 />

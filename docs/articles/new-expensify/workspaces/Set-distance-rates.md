@@ -2,7 +2,7 @@
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
 keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, EUR government mileage rates, IRS standard rate, mileage rates, distance bands, auto-generated rate, lightning bolt icon, default currency change, miles kilometers unit, require GPS or map entry, disable manual distance, disable odometer entry, restrict distance expense types]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates and requiring GPS or map entry, does not cover creating distance expenses.
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, requiring GPS or map entry, and excluding commutes using a fixed distance or home and office locations. Does not cover creating distance expenses or managing multiple office locations.
 ---
 
 # Set Distance Rates
@@ -56,6 +56,63 @@ To enable **Track tax** for distance rates:
 Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amount to an existing distance rate. The selected tax rate is automatically applied when the distance rate is used. 
 
 **Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to configure the tax rate and tax reclaimable amount.
+
+---
+
+## How to exclude commutes from distance expenses
+
+On Control workspaces, you can exclude a portion of each mileage claim that represents ordinary commuting, so members are reimbursed only for the eligible portion of a route.
+
+To configure how commutes are excluded:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **More (⋮) > Settings**.
+4. Select **Exclude commutes**.
+5. Choose **Remove fixed distance**.
+6. Enter the fixed distance to subtract from each claim.
+7. Select **Save**.
+
+---
+
+## How the Exclude commutes setting is applied
+
+When **Remove fixed distance** is selected:
+
+- Members can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are hidden.
+- The fixed distance exclusion applies to all members of the workspace, and the configured distance is subtracted from each distance expense.
+- On each distance expense, members see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
+- If the excluded distance is greater than the trip distance, the reimbursable distance is set to zero.
+- Changing the exclusion method or amount only affects future expenses. Existing expenses are not recalculated.
+
+---
+
+## How to exclude commutes using home and office locations
+
+On Control workspaces, **Exclude usual commute** calculates exclusions using each member's home address, work arrangement, and office. Distance rates determine the reimbursement per mile or kilometer; commute exclusions determine how much of the route is eligible before that rate is applied.
+
+Before enabling this method, add the workspace's company address in **Workspaces > [workspace name] > Overview > Company address**. This address provides the office reference for commute calculations.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Distance rates**.
+2. Select **More (⋮) > Settings**.
+3. Select **Exclude commutes**.
+4. Choose **Exclude usual commute**.
+5. When **Set a typical work arrangement** appears, choose **Office-based** or **Remote or mobile** for most current members, then select **Apply**.
+6. Select **Save** to return to the distance settings.
+
+For **Office-based** members:
+
+- Direct trips between home and the office have no reimbursable distance.
+- Trips from home to another location, such as a client, or from that location to home have the usual one-way commute subtracted. Reimbursable distance never falls below zero.
+- Members must save a home address before creating a distance expense. Missing addresses trigger reminders to add one.
+
+For **Remote or mobile** members, who have no regular workplace, home-and-office commute exclusions do not apply. This does not exempt them from a fixed-distance exclusion if the workspace uses **Remove fixed distance** instead.
+
+Only **Map** and **GPS** distance methods are available while a commute exclusion is enabled. Members see the excluded distance during confirmation and on the final expense.
+
+To change the starting arrangement later, open **Exclude commutes > Default work arrangement** and choose an arrangement. You can also [set a member's work arrangement individually](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#How-to-set-a-work-arrangement-for-commute-exclusions). Work arrangement changes apply to future mileage calculations; existing expenses are not automatically recalculated.
+
+---
 
 ## How to change a distance rate, effective dates, or tax rate
 
