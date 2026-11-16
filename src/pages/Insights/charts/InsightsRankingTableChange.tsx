@@ -1,4 +1,3 @@
-import Badge from '@components/Badge';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 
@@ -57,19 +56,10 @@ function InsightsRankingTableChange({change}: InsightsRankingTableChangeProps) {
         );
     }
 
-    if (change.type === RANKING_TABLE_CHANGE.NEW) {
-        return (
-            <Badge
-                text={text}
-                badgeStyles={[styles.ml0, styles.alignSelfEnd]}
-            />
-        );
-    }
-
     return (
         <InsightsChangeBadge
             text={text}
-            isIncrease={change.type === RANKING_TABLE_CHANGE.INCREASE}
+            isIncrease={change.type === RANKING_TABLE_CHANGE.NEW ? undefined : change.type === RANKING_TABLE_CHANGE.INCREASE}
             style={styles.alignSelfEnd}
         />
     );

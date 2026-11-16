@@ -1,4 +1,3 @@
-/** Table of the groups with the highest count, with each group's share drawn as a bar, its count, its amount and, when comparing, how it changed. */
 import formatChartCount, {COUNT_COLUMN_TITLE_KEYS} from '@components/Charts/utils/formatChartCount';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
 import {getAverageLabelKey} from '@components/Search/buildChartSeries';
@@ -61,6 +60,7 @@ type InsightsRankingTableProps = {
     isLoading?: boolean;
 };
 
+/** Table of the groups with the highest count, with each group's share drawn as a bar, its count, its amount and, when comparing, how it changed. */
 function InsightsRankingTable({
     title,
     data,

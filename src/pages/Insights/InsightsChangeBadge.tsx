@@ -11,15 +11,27 @@ import {View} from 'react-native';
 
 type InsightsChangeBadgeProps = {
     text: string;
-    isIncrease: boolean;
+
+    /** Left out for a change without a direction, like "New", which shows a gray badge without an arrow */
+    isIncrease?: boolean;
+
     style?: StyleProp<ViewStyle>;
 };
 
-/** Badge with an arrow showing which way a value changed */
+/** Badge showing how a value changed, with an arrow when it went up or down */
 function InsightsChangeBadge({text, isIncrease, style}: InsightsChangeBadgeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
+
+    if (isIncrease === undefined) {
+        return (
+            <Badge
+                text={text}
+                badgeStyles={[styles.ml0, style]}
+            />
+        );
+    }
 
     return (
         <View
