@@ -566,6 +566,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowHRSyncLink && '. '}
                         {shouldShowHRSyncLink && (
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CONFIGURE_HR_SYNC_LINK}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
                             >
                                 {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}

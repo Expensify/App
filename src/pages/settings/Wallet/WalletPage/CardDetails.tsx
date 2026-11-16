@@ -100,6 +100,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                         <MenuItem.Copy value={formattedAddress} />
                     </MenuItemField>
                     <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.UPDATE_ADDRESS_LINK}
                         style={[styles.link, styles.mh5, styles.mb3]}
                         onPress={() => onUpdateAddressPress?.()}
                     >

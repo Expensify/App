@@ -12,14 +12,11 @@ type FooterRowProps = FooterLink & {
 };
 
 function FooterRow({href, onPress, sentryLabel, text, style}: FooterRowProps) {
-    // TextLink isn't a pressable on web, so sentryLabelExact makes Sentry report every click on the link with just the label.
-    const dataSet = {sentryLabel, sentryLabelExact: true};
-
     if (onPress) {
         return (
             <TextLink
                 style={style}
-                dataSet={dataSet}
+                sentryLabel={sentryLabel}
                 onPress={onPress}
             >
                 {text}
@@ -30,7 +27,7 @@ function FooterRow({href, onPress, sentryLabel, text, style}: FooterRowProps) {
     return (
         <TextLink
             style={style}
-            dataSet={dataSet}
+            sentryLabel={sentryLabel}
             href={href}
             tabIndex={0}
         >

@@ -13,6 +13,12 @@ jest.mock('@hooks/useIsTabFocused', () => ({
     default: jest.fn(() => true),
 }));
 
+// Jest treats every layout as narrow, where visibility follows `useIsFocused()` alone, so the root state is not needed.
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
     useIsFocused: jest.fn(() => true),
 }));

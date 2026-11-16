@@ -34,6 +34,7 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
                 <Text
                     {...defaultRendererProps}
                     style={[styles.textStrong]}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.USER_DETAILS}
                 >
                     <TNodeChildrenRenderer tnode={tnode} />
                 </Text>
@@ -42,6 +43,7 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
                     {...defaultRendererProps}
                     style={[styles.textStrong]}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.USER_DETAILS}
                     suppressHighlighting
                     role={CONST.ROLE.LINK}
                 >

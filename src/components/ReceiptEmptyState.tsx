@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -22,7 +23,8 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReceiptAlternativeMethods from './ReceiptAlternativeMethods';
 import Text from './Text';
 
-type ReceiptEmptyStateProps = {
+// A wide RHP renders the placeholder as a pressable that opens the file picker, even without onPress.
+type ReceiptEmptyStateProps = WithSentryLabelWhenPressable<'onPress' | 'isDisplayedInWideRHP'> & {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
@@ -71,6 +73,7 @@ function ReceiptPlaceholderPlusIcon({circleFill, plusFill, size}: {circleFill: s
 // Returns an SVG icon indicating that the user should attach a receipt
 function ReceiptEmptyState({
     onPress,
+    sentryLabel,
     disabled = false,
     isThumbnail = false,
     isInMoneyRequestView = false,
@@ -92,7 +95,7 @@ function ReceiptEmptyState({
     const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
     const isInteractive = !!onPress || isDisplayedInWideRHP;
-    const Wrapper = isInteractive ? PressableWithoutFeedback : View;
+    const wrapperStyle = [styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter];
     const containerStyle = isCompact
         ? [styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptEmptyStateCompact, styles.moneyRequestAttachReceipt, style]
         : [
@@ -113,77 +116,93 @@ function ReceiptEmptyState({
         onLoad?.();
     }, [onLoad]);
 
+    const placeholder = (
+        <>
+            {PDFValidationComponent}
+            {isCompact ? (
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
+                    <Icon
+                        src={icons.ReceiptPlus}
+                        fill={isHovered ? theme.success : theme.icon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    />
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textStrong, styles.flexShrink1]}
+                    >
+                        {translate('dropzone.addReceipt')}
+                    </Text>
+                </View>
+            ) : (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <View style={styles.pRelative}>
+                            <Icon
+                                fill={theme.border}
+                                src={icons.Receipt}
+                                width={variables.eReceiptEmptyIconWidth}
+                                height={variables.eReceiptEmptyIconWidth}
+                            />
+                            {!isThumbnail && (
+                                <View style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}>
+                                    <ReceiptPlaceholderPlusIcon
+                                        circleFill={theme.success}
+                                        plusFill={theme.receiptPlaceholderPlus}
+                                        size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                        {!isThumbnail && isDisplayedInWideRHP && (
+                            <>
+                                <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                                <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
+                            </>
+                        )}
+                    </View>
+                </View>
+            )}
+        </>
+    );
+
     return (
         <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
             {({openPicker}) => (
                 <View style={containerStyle}>
-                    <Wrapper
-                        accessibilityRole={isInteractive ? 'button' : undefined}
-                        accessibilityLabel={translate('receipt.upload')}
-                        onPress={() => {
-                            if (isDisplayedInWideRHP) {
-                                openPicker({
-                                    onPicked: validateFiles,
-                                });
-                                return;
-                            }
-                            onPress?.();
-                        }}
-                        disabled={disabled}
-                        disabledStyle={styles.cursorDefault}
-                        hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
-                        onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
-                        onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
-                        style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                    >
-                        {PDFValidationComponent}
-                        {isCompact ? (
-                            <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
-                                <Icon
-                                    src={icons.ReceiptPlus}
-                                    fill={isHovered ? theme.success : theme.icon}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.textStrong, styles.flexShrink1]}
-                                >
-                                    {translate('dropzone.addReceipt')}
-                                </Text>
-                            </View>
-                        ) : (
-                            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <View style={styles.pRelative}>
-                                        <Icon
-                                            fill={theme.border}
-                                            src={icons.Receipt}
-                                            width={variables.eReceiptEmptyIconWidth}
-                                            height={variables.eReceiptEmptyIconWidth}
-                                        />
-                                        {!isThumbnail && (
-                                            <View
-                                                style={[styles.moneyRequestAttachReceiptThumbnailIcon, StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL))]}
-                                            >
-                                                <ReceiptPlaceholderPlusIcon
-                                                    circleFill={theme.success}
-                                                    plusFill={theme.receiptPlaceholderPlus}
-                                                    size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
-                                                />
-                                            </View>
-                                        )}
-                                    </View>
-                                    {!isThumbnail && isDisplayedInWideRHP && (
-                                        <>
-                                            <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
-                                            <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-                        )}
-                    </Wrapper>
+                    {/* The props require a label whenever the placeholder is pressable, but destructuring hides that from
+                    TypeScript, so the label is checked again before rendering the pressable. */}
+                    {isInteractive && sentryLabel ? (
+                        <PressableWithoutFeedback
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.upload')}
+                            sentryLabel={sentryLabel}
+                            onPress={() => {
+                                if (isDisplayedInWideRHP) {
+                                    openPicker({
+                                        onPicked: validateFiles,
+                                    });
+                                    return;
+                                }
+                                onPress?.();
+                            }}
+                            disabled={disabled}
+                            disabledStyle={styles.cursorDefault}
+                            hoverStyle={onPress && isCompact ? styles.hoveredComponentBG : undefined}
+                            onHoverIn={onPress && isCompact ? () => setIsHovered(true) : undefined}
+                            onHoverOut={onPress && isCompact ? () => setIsHovered(false) : undefined}
+                            style={wrapperStyle}
+                        >
+                            {placeholder}
+                        </PressableWithoutFeedback>
+                    ) : (
+                        <View
+                            accessibilityLabel={translate('receipt.upload')}
+                            style={wrapperStyle}
+                        >
+                            {placeholder}
+                        </View>
+                    )}
                     {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
                 </View>
             )}

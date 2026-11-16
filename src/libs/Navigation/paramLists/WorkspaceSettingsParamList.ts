@@ -27,6 +27,17 @@ type WorkspaceSettingsParamList = {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY]: {
+        policyID: string;
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
+        policyID: string;
+        currencyCode: string;
+        isForcedToChangeCurrency?: boolean;
+        shouldStartExpensifyCardEnrollment?: boolean;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: {
         policyID: string;
         country?: Country | '';

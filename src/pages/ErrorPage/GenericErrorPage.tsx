@@ -20,9 +20,11 @@ import variables from '@styles/variables';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import ErrorBodyText from './ErrorBodyText';
 
@@ -63,6 +65,7 @@ function GenericErrorPage({error}: {error?: Error}) {
                                 <Text>
                                     {`${translate('genericErrorPage.body.helpTextConcierge')} `}
                                     <TextLink
+                                        sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.CONCIERGE_EMAIL_LINK}
                                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                                         style={[styles.link]}
                                     >
@@ -83,8 +86,8 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     {isAuthenticated && (
                                         <Button
                                             sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.SIGN_OUT}
-                                            onPress={() => {
-                                                signOutAndRedirectToSignIn();
+                                            onPress={async () => {
+                                                signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                                                 refreshPage();
                                             }}
                                         >

@@ -139,6 +139,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                             >
                                 <Text>
                                     <TextLink
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.GO_TO_CLASSIC_SETTINGS_LINK}
                                         onPress={() => {
                                             // Go to Expensify Classic.
                                             openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
