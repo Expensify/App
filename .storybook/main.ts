@@ -7,7 +7,7 @@ import rsbuildFinal from './rsbuild.config.ts';
 const main: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
     addons: ['@storybook/addon-a11y', '@storybook/addon-docs'],
-    staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts'}],
+    staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts/web'}],
     core: {},
 
     managerHead: (head) => `
@@ -15,6 +15,8 @@ const main: StorybookConfig = {
         ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
     `,
     framework: {
+        // Lets knip see that @storybook/react is used: storybook-react-rsbuild is pinned to it. Remove together with the pin.
+        /** @type {import('@storybook/react')} */
         name: 'storybook-react-rsbuild',
         options: {},
     },

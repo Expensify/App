@@ -108,6 +108,8 @@ type ThemeColors = {
     badgeDangerBG: Color;
     badgeSuccessText: Color;
     badgeDangerText: Color;
+    badgeInfoBG: Color;
+    badgeInfoText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
     badgeOfferBG: Color;
@@ -136,7 +138,7 @@ type ThemeColors = {
     trialTimer: Color;
 
     reportStatusBadge: Record<
-        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported',
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted' | 'unreported' | 'canceled',
         {
             backgroundColor: Color;
             textColor: Color;

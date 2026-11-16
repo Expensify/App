@@ -166,4 +166,27 @@ describe('ConfirmationStep — subtitle and resubmission', () => {
         // Then the error is announced for this submission
         expect(getAnnouncementKey()).not.toBe(keyBeforeSubmit);
     });
+
+    it('asks the user to fix the errors, and the link opens the first one', () => {
+        // Given a confirmation page whose rows have errors after Confirm was pressed
+        const onFixTheErrorsLinkPressed = jest.fn();
+        render(
+            <ConfirmationStep
+                isEditing={false}
+                onNext={() => {}}
+                onMove={() => {}}
+                pageTitle="title"
+                summaryItems={[]}
+                showOnfidoLinks={false}
+                isFixErrorsAlertVisible
+                onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+            />,
+        );
+
+        // When the user presses the "fix the errors" link above Confirm
+        fireEvent.press(screen.getByText('common.fixTheErrors'), {preventDefault: jest.fn()});
+
+        // Then the flow is asked to open the first row with an error, as in other forms
+        expect(onFixTheErrorsLinkPressed).toHaveBeenCalledTimes(1);
+    });
 });

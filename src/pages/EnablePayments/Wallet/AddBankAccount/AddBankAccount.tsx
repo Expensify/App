@@ -28,7 +28,7 @@ import type {EnablePaymentsSubPageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import SetupMethod from './SetupMethod';
@@ -60,7 +60,7 @@ function AddBankAccount() {
 
     const {isBankAccountAdded: isBankAccountAlreadyAdded} = useIsBankAccountAdded();
 
-    const submit = useCallback(() => {
+    const submit = () => {
         // Re-submitting an already added bank account fails with a "bank account already exists" error, so skip the
         // API call and advance the wallet step instead; the URL correction in EnablePaymentsPage navigates forward.
         if (isBankAccountAlreadyAdded) {
@@ -101,17 +101,7 @@ function AddBankAccount() {
                 personalPolicyID,
             );
         }
-    }, [
-        isBankAccountAlreadyAdded,
-        personalBankAccountDraft?.plaidAccountID,
-        personalBankAccountDraft?.setupType,
-        plaidData?.bankAccounts,
-        plaidData?.plaidAccessToken,
-        personalPolicyID,
-        walletAdditionalDetailsDraft,
-        walletAdditionalDetails,
-        privatePersonalDetails,
-    ]);
+    };
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
@@ -120,16 +110,12 @@ function AddBankAccount() {
     const initialWalletAdditionalDetails = useInitialOnyxValue(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const initialWalletAdditionalDetailsDraft = useInitialOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
     const initialPrivatePersonalDetails = useInitialOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const skipPages = useMemo(
-        () =>
-            getSkippedBankAccountOwnerPages(
-                getBankAccountOwnerDetails({
-                    walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
-                    walletAdditionalDetails: initialWalletAdditionalDetails,
-                    privatePersonalDetails: initialPrivatePersonalDetails,
-                }),
-            ),
-        [initialPrivatePersonalDetails, initialWalletAdditionalDetails, initialWalletAdditionalDetailsDraft],
+    const skipPages = getSkippedBankAccountOwnerPages(
+        getBankAccountOwnerDetails({
+            walletAdditionalDetailsDraft: initialWalletAdditionalDetailsDraft,
+            walletAdditionalDetails: initialWalletAdditionalDetails,
+            privatePersonalDetails: initialPrivatePersonalDetails,
+        }),
     );
 
     const {CurrentPage, isEditing, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps, EnablePaymentsSubPageType>({

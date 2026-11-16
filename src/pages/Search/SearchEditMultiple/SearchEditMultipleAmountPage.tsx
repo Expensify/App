@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 import {withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
 
@@ -42,7 +42,7 @@ function SearchEditMultipleAmountPage() {
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const selectedTransactionIDs = useMemo(() => draftTransaction?.selectedTransactionIDs ?? [], [draftTransaction?.selectedTransactionIDs]);
+    const selectedTransactionIDs = draftTransaction?.selectedTransactionIDs ?? [];
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
@@ -66,12 +66,11 @@ function SearchEditMultipleAmountPage() {
     });
 
     const amount = draftTransaction?.amount ?? 0;
-    const allowNegative = useMemo(() => {
-        if (!selectedTransactionIDs.length) {
-            return false;
-        }
-
-        return selectedTransactionIDs.every((transactionID) => {
+    let allowNegative;
+    if (!selectedTransactionIDs.length) {
+        allowNegative = false;
+    } else {
+        allowNegative = selectedTransactionIDs.every((transactionID) => {
             const transaction = mergedTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (!transaction) {
                 return false;
@@ -81,7 +80,6 @@ function SearchEditMultipleAmountPage() {
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return true;
             }
-
             const transactionReport = mergedReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
             const iouReport =
                 transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
@@ -90,12 +88,11 @@ function SearchEditMultipleAmountPage() {
             if (!iouReport) {
                 return false;
             }
-
             const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`];
             const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
             return shouldEnableNegative(iouReport, transactionPolicy, iouType);
         });
-    }, [selectedTransactionIDs, mergedTransactions, mergedReports, policies]);
+    }
     const isP2P = selectedTransactionIDs.some((transactionID) => {
         const transaction = mergedTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {

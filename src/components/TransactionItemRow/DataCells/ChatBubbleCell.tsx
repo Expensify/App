@@ -22,7 +22,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
@@ -46,13 +46,10 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
-    const threadMessages = useMemo(
-        () => ({
-            count: iouReportAction?.childVisibleActionCount ?? 0,
-            isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
-        }),
-        [iouReportAction?.childVisibleActionCount, transactionReport],
-    );
+    const threadMessages = {
+        count: iouReportAction?.childVisibleActionCount ?? 0,
+        isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
+    };
 
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);

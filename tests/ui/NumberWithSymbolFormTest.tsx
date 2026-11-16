@@ -123,6 +123,36 @@ describe('NumberWithSymbolForm', () => {
     });
 
     describe('displayAsTextInput path', () => {
+        it.each([
+            {accessibilityLabel: undefined, expectedLabel: 'Amount'},
+            {accessibilityLabel: 'Amount, USD', expectedLabel: 'Amount, USD'},
+        ])('uses the accessible name "$expectedLabel"', async ({accessibilityLabel, expectedLabel}) => {
+            // Given a caller that may supply more context than the visible label provides
+            renderForm({displayAsTextInput: true, label: 'Amount', accessibilityLabel});
+            await waitForBatchedUpdatesWithAct();
+
+            // When assistive technology reads the editable input's name
+            const input = getTextInput();
+
+            // Then explicit context is preserved without changing the existing fallback
+            expect(input.props.accessibilityLabel).toBe(expectedLabel);
+        });
+
+        it.each(['', '10'])('updates currency context without changing the amount "%s"', async (value) => {
+            // Given an empty or populated amount input with currency context
+            const props = {displayAsTextInput: true, label: 'Amount', value};
+            const {rerender} = renderForm({...props, accessibilityLabel: 'Amount, USD'});
+            await waitForBatchedUpdatesWithAct();
+
+            // When currency selection changes the accessible name without remounting
+            rerender(wrapForm({...props, accessibilityLabel: 'Amount, AED'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the new context reaches the input without becoming part of its editable value
+            expect(getTextInput().props.accessibilityLabel).toBe('Amount, AED');
+            expect(getTextInput().props.value).toBe(value);
+        });
+
         it('renders a plain text input with no number pad', async () => {
             // Given a form configured to display as a text input
             renderForm({displayAsTextInput: true, value: '10'});

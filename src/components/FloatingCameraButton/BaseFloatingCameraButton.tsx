@@ -1,3 +1,4 @@
+import FloatingButtonGlass, {isFloatingButtonGlassAvailable} from '@components/FloatingButtonGlass';
 import Icon from '@components/Icon';
 import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
@@ -40,7 +41,8 @@ type BaseFloatingCameraButtonProps = {
 };
 
 function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
-    const {textLight} = useTheme();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {textLight, success} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -93,7 +95,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
-        });
+        }, session);
     };
 
     return (
@@ -112,9 +114,13 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
-                style={styles.floatingActionButton}
+                style={[styles.floatingActionButton, isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass]}
                 testID="floating-camera-button-container"
             >
+                <FloatingButtonGlass
+                    tintColor={success}
+                    tintOpacity={variables.floatingCameraButtonGlassTintOpacity}
+                />
                 <Icon
                     fill={textLight}
                     src={icon}

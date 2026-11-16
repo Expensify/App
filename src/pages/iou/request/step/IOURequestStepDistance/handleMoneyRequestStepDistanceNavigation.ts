@@ -304,7 +304,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     isFromGlobalCreate: transactionIsFromGlobalCreate,
                     isLookingAroundUser,
                     isSelfDMDestination,
-                    // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
                             report,

@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
+import type {SearchQueryJSON} from '@components/Search/types';
+
 import useExportedToFilterOptions, {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 
 import {isAdminOfCardEnabledPolicy} from '@libs/PolicyUtils';
@@ -15,6 +17,11 @@ import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockGetExportTemplates = jest.fn<unknown, unknown[]>();
+let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
+
+jest.mock('@components/Search/SearchContext', () => ({
+    useSearchQueryContext: () => ({currentSearchQueryJSON: mockCurrentSearchQueryJSON}),
+}));
 
 jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: (...args: unknown[]) => mockGetExportTemplates(...args),
@@ -37,6 +44,7 @@ describe('useExportedToFilterOptions', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockCurrentSearchQueryJSON = undefined;
         mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
     });
 
@@ -61,6 +69,17 @@ describe('useExportedToFilterOptions', () => {
 
         expect(result.current.exportedToFilterOptions).toContain(quickBooksDisplayName);
         expect(result.current.connectedIntegrationNames).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('leaves Digits out of the options even when a policy is connected to it', async () => {
+        // Given a policy connected to Digits, whose exports the exported-status cell can't show yet
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
+        // When the hook builds the options the exported-to autocomplete suggests
+        const {result} = renderHook(() => useExportedToFilterOptions());
+
+        // Then Digits isn't offered, so typing "exported-to:" can't reach a value the filter picker also hides
+        expect(result.current.exportedToFilterOptions).not.toContain(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.DIGITS]);
     });
 
     it('includes integration custom template name from options when getExportTemplates returns integration template', () => {
@@ -104,6 +123,54 @@ describe('useExportedToFilterOptions', () => {
 
         // Then the multiple tax export flag is on, matching the union of the per-policy templates
         expect(mockGetExportTemplates.mock.calls.at(0)?.at(7)).toBe(true);
+    });
+
+    it.each([
+        [['usd'], false, false],
+        [['cad'], true, false],
+        [['usd', 'cad'], true, false],
+        [undefined, true, false],
+        [['cad'], false, true],
+        [[], false, false],
+        [['usd', 'cad'], false, true],
+    ])('uses workspace override %s instead of the submitted search', async (value, shouldIncludeMultipleTaxExport, isNegated) => {
+        // Given a submitted CAD search, plus separate USD and CAD workspace connections
+        mockCurrentSearchQueryJSON = createMock<SearchQueryJSON>({
+            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'cad'}]}],
+        });
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: {...buildPolicyWithConnection('usd', CONST.POLICY.CONNECTIONS.NAME.QBO), outputCurrency: CONST.CURRENCY.USD},
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: {...buildPolicyWithConnection('cad', CONST.POLICY.CONNECTIONS.NAME.XERO), outputCurrency: CONST.CURRENCY.CAD},
+        });
+        mockGetExportTemplates.mockImplementation((...args) => ({
+            customTemplates: [],
+            defaultTemplates: args.at(7) ? [createMock<ExportTemplate>({templateName: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT})] : [],
+        }));
+
+        // When autocomplete supplies its own workspace scope, even with no workspace selected
+        const {result} = renderHook(() => useExportedToFilterOptions({value, isNegated}));
+
+        // Then both the CAD template and accounting integrations follow the override
+        expect(result.current.exportedToFilterOptions.includes(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(shouldIncludeMultipleTaxExport);
+        expect(result.current.connectedIntegrationNames.has(CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe(!value || value.includes('usd') !== isNegated);
+        expect(result.current.connectedIntegrationNames.has(CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe(!value || value.includes('cad') !== isNegated);
+    });
+
+    it('keeps the submitted workspace scope when no override is provided', async () => {
+        // Given a submitted USD search and a separate CAD workspace
+        mockCurrentSearchQueryJSON = createMock<SearchQueryJSON>({
+            flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'usd'}]}],
+        });
+        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: {id: 'usd', outputCurrency: CONST.CURRENCY.USD},
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: {id: 'cad', outputCurrency: CONST.CURRENCY.CAD},
+        });
+
+        // When a non-autocomplete consumer does not supply an override
+        renderHook(() => useExportedToFilterOptions());
+
+        // Then the submitted USD scope still excludes the CAD-only template
+        expect(mockGetExportTemplates.mock.calls.at(0)?.at(7)).toBe(false);
     });
 
     it('excludes templates whose templateName matches integration connection key', () => {
@@ -155,5 +222,18 @@ describe('useExportedToFilterOptions', () => {
 
         // Then the reconciliation flag is on, since the selector keeps the role and card product fields
         expect(mockGetExportTemplates.mock.calls.at(0)?.at(8)).toBe(true);
+    });
+
+    it('returns the same options array when it re-renders with unchanged data', async () => {
+        // Given a connected policy, so the options include an integration label next to the export templates
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.QBO));
+        const {result, rerender} = renderHook(() => useExportedToFilterOptions());
+        const firstOptions = result.current.exportedToFilterOptions;
+
+        // When the hook re-renders without a data change, as it does on every keystroke in the Search input
+        rerender({});
+
+        // Then it returns the same array, so the Search input keeps its markdown parser instead of registering a new one
+        expect(result.current.exportedToFilterOptions).toBe(firstOptions);
     });
 });

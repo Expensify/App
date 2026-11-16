@@ -28,7 +28,7 @@ function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPa
     const scopeRoute = sidebarRoute ?? splitState?.routes.at(splitState.index ?? -1);
     // `getActionFromState` nests a split's screen params under `params.params`, so both sides read one level down.
     const currentParams: unknown = scopeRoute?.params ?? (isRecord(route.params) ? route.params.params : undefined);
-    const targetParams = payload.params?.params;
+    const targetParams = isRecord(payload.params) ? payload.params.params : undefined;
     if (!isRecord(currentParams) || !isRecord(targetParams)) {
         return;
     }

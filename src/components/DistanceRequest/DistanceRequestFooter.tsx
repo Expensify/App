@@ -28,7 +28,7 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const MAX_WAYPOINTS = 25;
@@ -60,10 +60,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
-    const hasAvailableReusableRouteSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline).length > 0,
-        [reusableDistanceRoutes, isOffline],
-    );
+    const hasAvailableReusableRouteSelector = (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline).length > 0;
     const [hasAvailableReusableRoute = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasAvailableReusableRouteSelector,
     });
@@ -79,7 +76,10 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy ?? activePolicy);
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
-    const {unit} = mileageRate ?? {};
+    // A saved expense keeps the unit the backend stored on it, which can differ from the stored default P2P rate after a currency change.
+    // Drafts can carry a distanceUnit too (reuse route, confirmation page), so only trust it when editing a saved expense.
+    const savedDistanceUnit = transactionState === CONST.TRANSACTION.STATE.CURRENT ? transaction?.comment?.customUnit?.distanceUnit : undefined;
+    const unit = savedDistanceUnit ?? mileageRate?.unit;
     const primaryRoute = transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
     const alternateRoute = transaction?.routes?.[CONST.TRANSACTION.ALTERNATE_ROUTE_KEY];
     const isAlternateDirectionSelected = getSelectedRouteKey(transaction) === CONST.TRANSACTION.ALTERNATE_ROUTE_KEY;
@@ -130,7 +130,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             disabled={isAddStopDisabled}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.addStop')}
-                            sentryLabel="DistanceRequestFooter-AddStop"
+                            sentryLabel={CONST.SENTRY_LABEL.DISTANCE_REQUEST_FOOTER.ADD_STOP}
                             style={[styles.searchFiltersBarButton]}
                             hoverStyle={isAddStopDisabled ? undefined : styles.hoveredComponentBG}
                             disabledStyle={styles.buttonOpacityDisabled}
@@ -148,7 +148,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                             onPress={navigateToReuseRoutePage}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('distance.reuseRoute')}
-                            sentryLabel="DistanceRequestFooter-ReuseRoute"
+                            sentryLabel={CONST.SENTRY_LABEL.DISTANCE_REQUEST_FOOTER.REUSE_ROUTE}
                             style={[styles.searchFiltersBarButton]}
                             hoverStyle={styles.hoveredComponentBG}
                         >

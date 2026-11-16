@@ -4,8 +4,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 type SnapshotMap = Record<string, SearchResults>;
@@ -15,22 +13,20 @@ type SnapshotMap = Record<string, SearchResults>;
  * Returns an object mapping each hash to its corresponding SearchResults.
  */
 function useMultipleSnapshots(hashes: string[]): SnapshotMap {
-    const selector = useMemo(() => {
-        return (snapshots: OnyxCollection<SearchResults>): SnapshotMap => {
-            if (!snapshots || hashes.length === 0) {
-                return {};
-            }
+    const selector = (snapshots: OnyxCollection<SearchResults>): SnapshotMap => {
+        if (!snapshots || hashes.length === 0) {
+            return {};
+        }
 
-            const result: SnapshotMap = {};
-            for (const hash of hashes) {
-                const snapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
-                if (snapshot) {
-                    result[hash] = snapshot;
-                }
+        const result: SnapshotMap = {};
+        for (const hash of hashes) {
+            const snapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+            if (snapshot) {
+                result[hash] = snapshot;
             }
-            return result;
-        };
-    }, [hashes]);
+        }
+        return result;
+    };
 
     const [snapshotMap = getEmptyObject<SnapshotMap>()] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {
         selector,

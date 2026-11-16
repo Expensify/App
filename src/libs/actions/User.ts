@@ -46,7 +46,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
+import type {AccountingIntegrationWaitlistConnectionName} from '@src/types/onyx/AccountingIntegrationWaitlist';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -765,7 +766,7 @@ const isChannelMuted = (reportId: string, currentUserAccountID: number) =>
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
@@ -1193,9 +1194,9 @@ function setContactMethodAsDefault(
     }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack: boolean, session: OnyxEntry<Session>) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!sessionAccountID || isAnonymousUser()) {
+    if (!sessionAccountID || isAnonymousUser(session)) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }
@@ -1378,6 +1379,41 @@ function joinExactOnlineWaitlist() {
 
 function clearExactOnlineWaitlistError() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: null}});
+}
+
+/**
+ * Signs the workspace up to hear when an accounting integration becomes available. The server sends back the whole
+ * waitlist, so this only tracks the request itself.
+ */
+function joinAccountingIntegrationWaitlist(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}}},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: null}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}}},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST, {policyID, connectionName}, {optimisticData, successData, failureData});
+}
+
+/** Removes the workspace's failed attempt to join an accounting integration waitlist, so the user can try again */
+function clearAccountingIntegrationWaitlistError(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    Onyx.merge(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {[policyID]: {[connectionName]: null}});
 }
 
 function dismissMarketingWindow(updateKey: string) {
@@ -2100,6 +2136,8 @@ export {
     setNameValuePair,
     joinExactOnlineWaitlist,
     clearExactOnlineWaitlistError,
+    joinAccountingIntegrationWaitlist,
+    clearAccountingIntegrationWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,

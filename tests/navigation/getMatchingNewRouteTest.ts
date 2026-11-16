@@ -1,6 +1,29 @@
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 
 describe('getBestMatchingPath', () => {
+    it.each([
+        ['/insights', '/insights/spend'],
+        ['/insights/', '/insights/spend'],
+        ['/insights?backTo=/home', '/insights/spend?backTo=/home'],
+        ['/insights/?backTo=/home', '/insights/spend?backTo=/home'],
+    ])('redirects %s to the Spend dashboard', (path, expectedPath) => {
+        // Given an Insights link without a dashboard, which would otherwise show Not Found
+        // When resolving the link through the existing redirects
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then Spend is selected without losing the link's query parameters
+        expect(redirectedPath).toBe(expectedPath);
+    });
+
+    it.each(['/insights/spend', '/insights/compliance', '/insights/spend/details/topSpenders', '/insights-other'])('does not redirect %s to the default dashboard', (path) => {
+        // Given an explicit dashboard, a detail link, or a different route sharing the Insights prefix
+        // When checking for a default-dashboard redirect
+        const redirectedPath = getMatchingNewRoute(path);
+
+        // Then the original destination remains responsible for handling the link
+        expect(redirectedPath).toBeUndefined();
+    });
+
     it('returns mapped base path when input matches the exact pattern', () => {
         expect(getMatchingNewRoute('/settings/workspaces/')).toBe('/workspaces/');
     });
@@ -112,6 +135,16 @@ describe('getBestMatchingPath', () => {
 
     it('preserves query params when redirecting the old split expense edit path', () => {
         expect(getMatchingNewRoute('/edit/split-expense/overview/123/456/789?backTo=/r/123')).toBe('/create/split-expense/overview/123/456/0/split-expense/edit/123/789?backTo=/r/123');
+    });
+
+    it('does not rewrite the split expense edit route opened from the Date tab of the Search split overview', () => {
+        // Given a split edit URL built on top of the Search split overview while the Date tab is active
+        const splitEditPath = '/search/split-expense-overview-search/date/split-expense/edit/123/456';
+
+        // When it is matched against the legacy routes
+        // Then it comes back unchanged, so the legacy `/*/*/date/*/*/*` pattern can't turn it into a broken expense-date route
+        expect(getMatchingNewRoute(splitEditPath)).toBe(splitEditPath);
+        expect(getMatchingNewRoute(`${splitEditPath}?backTo=/search`)).toBe(`${splitEditPath}?backTo=/search`);
     });
 
     it('redirects old card reconciliation account path with two wildcards', () => {
@@ -536,6 +569,11 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/verify-work-email')).toBe('/workspaces/p123/expensify-card/789/verify-work-email');
     });
 
+    it('does not rewrite pages opened on top of the work-email page', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/company-cards/feed123/work-email/contact-methods')).toBe('/workspaces/p123/company-cards/feed123/work-email/contact-methods');
+        expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email/contact-methods')).toBe('/workspaces/p123/expensify-card/789/work-email/contact-methods');
+    });
+
     it('does not rewrite the already-migrated Expensify Card details paths', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456')).toBe('/workspaces/p123/expensify-card/card-details/456');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
@@ -733,5 +771,78 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/789/scan')).toBe(undefined);
         // A 5-segment waypoint URL (no pageIndex) is not a valid legacy waypoint route either.
         expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
+    });
+
+    it('redirects the legacy personal card edit links to their dynamic routes', () => {
+        // Given links saved before these screens became dynamic routes
+        // When they are opened
+        // Then they land on the dynamic route with the wallet as the base
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/name')).toBe('/settings/wallet/personal-card/123/edit-card-name');
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/transaction-start-date')).toBe('/settings/wallet/personal-card/123/edit-transaction-start-date');
+    });
+
+    it('redirects the legacy signer info link onto Home and keeps its query', () => {
+        // Given a signer info link that put Home under the form before it became a dynamic route
+        // When it is opened
+        // Then it keeps Home as the base, and the policy and bank account params survive
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+    });
+
+    it('does not redirect the wallet bank account links or the new dynamic routes', () => {
+        // Given the bank account links, which kept their URLs when they became dynamic routes, and URLs already on the dynamic routes
+        // When they are matched against the legacy patterns
+        // Then none of them is rewritten
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account/entry-point')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit-card-name')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/1/enter-signer-info/name?policyID=A')).toBe(undefined);
+    });
+
+    it('redirects legacy Expensify Card child links onto the card suffixes', () => {
+        // Given card child links from before the children became dynamic routes, which carried the card only once
+        // When they are opened
+        // Then the card stays the page's base and the child acts on the same card
+        expect(getMatchingNewRoute('/settings/wallet/card/123/activate')).toBe('/settings/wallet/card/123/activate/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/confirm-validate-code')).toBe('/settings/wallet/card/123/reveal-validate-code/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/change-pin')).toBe('/settings/wallet/card/123/change-pin/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud')).toBe('/settings/wallet/card/123/report-virtual-fraud/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud/verify-account')).toBe('/settings/wallet/card/123/report-virtual-fraud/123/fraud-validate-code');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud-confirm')).toBe('/settings/wallet/card/123/report-virtual-fraud-confirm/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged')).toBe('/settings/wallet/card/123/report-card-lost-or-damaged/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged/stolen/confirm-validate-code')).toBe(
+            '/settings/wallet/card/123/report-card-lost-or-damaged/123/replace-validate-code/stolen',
+        );
+    });
+
+    it('does not redirect the Expensify Card child routes already on their suffixes', () => {
+        // Given card child URLs already in the dynamic shape
+        // When they are matched against the legacy patterns
+        // Then none of them is rewritten again
+        expect(getMatchingNewRoute('/settings/wallet/card/123/activate/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged/123/replace-validate-code/stolen')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/change-pin-atm')).toBe(undefined);
+    });
+
+    it('redirects bookmarked travel-invoicing accounting pages to their travel-billing paths', () => {
+        // Given bookmarks saved while the Consolidated Travel Billing pages used travel-invoicing paths
+        const staticPath = '/workspaces/ABC/accounting/netsuite/export/travel-invoicing/journal-posting-preference';
+        const nestedDynamicPath = '/workspaces/ABC/accounting/xero/export/xero-travel-invoicing/xero-travel-invoicing-payable-account';
+        const advancedPath = '/workspaces/ABC/accounting/campfire/advanced/travel-invoicing-payable-account?backTo=/home';
+
+        // When the old paths are opened
+        const redirects = [staticPath, nestedDynamicPath, advancedPath].map(getMatchingNewRoute);
+
+        // Then each lands on the renamed page, keeping the workspace and any query
+        expect(redirects).toEqual([
+            '/workspaces/ABC/accounting/netsuite/export/travel-billing/journal-posting-preference',
+            '/workspaces/ABC/accounting/xero/export/xero-travel-billing/xero-travel-billing-payable-account',
+            '/workspaces/ABC/accounting/campfire/advanced/travel-billing-payable-account?backTo=/home',
+        ]);
     });
 });

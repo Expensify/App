@@ -11,10 +11,11 @@ import CONST from '@src/CONST';
 import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
 
 import isEmpty from 'lodash/isEmpty';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import FormContext from './Form/FormContext';
+import FSClassView from './FSClassView';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -81,16 +82,17 @@ function FormHelpMessage({
     const visibleMessageRole = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : CONST.ROLE.ALERT;
     const visibleMessageLiveRegion = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : 'assertive';
 
-    const errorAnnouncementText = useMemo(() => {
-        if (!isError || typeof message !== 'string') {
-            return '';
-        }
+    let errorAnnouncementText;
+    if (!isError || typeof message !== 'string') {
+        errorAnnouncementText = '';
+    } else {
         const trimmedMessage = message.trim();
         if (!trimmedMessage) {
-            return '';
+            errorAnnouncementText = '';
+        } else {
+            errorAnnouncementText = shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
         }
-        return shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
-    }, [isError, message, shouldRenderMessageAsHTML]);
+    }
 
     const hasError = errorAnnouncementText.length > 0;
 
@@ -102,21 +104,23 @@ function FormHelpMessage({
         announcementKey: errorAnnouncementKey,
     });
 
-    const HTMLMessage = useMemo(() => {
-        if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
-            return '';
-        }
-
+    let HTMLMessage;
+    if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
+        HTMLMessage = '';
+    } else {
         // Messages that are already HTML (for example a saved category description hint) must not be parsed again,
         // or ExpensiMark re-wraps their mentions and the mention renders blank.
-        const replacedText = Parser.isHTML(message) ? message : Parser.replace(message, {shouldEscapeText: false});
-
+        const replacedText = Parser.isHTML(message)
+            ? message
+            : Parser.replace(message, {
+                  shouldEscapeText: false,
+              });
         if (isError) {
-            return `<alert-text>${replacedText}</alert-text>`;
+            HTMLMessage = `<alert-text>${replacedText}</alert-text>`;
+        } else {
+            HTMLMessage = `<muted-text-label>${replacedText}</muted-text-label>`;
         }
-
-        return `<muted-text-label>${replacedText}</muted-text-label>`;
-    }, [isError, message, shouldRenderMessageAsHTML]);
+    }
 
     const errorIconLabel = isError && shouldShowRedDotIndicator ? CONST.ACCESSIBILITY_LABELS.ERROR : undefined;
 
@@ -125,9 +129,11 @@ function FormHelpMessage({
     }
 
     return (
-        <View
+        // Help and error messages are text we write, not user data, so they stay readable in session recordings even under a masked field
+        <FSClassView
             style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
             dataSet={dataSet}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         >
             {isError && shouldShowRedDotIndicator && (
                 <View
@@ -184,7 +190,7 @@ function FormHelpMessage({
                     </Text>
                 )}
             </View>
-        </View>
+        </FSClassView>
     );
 }
 

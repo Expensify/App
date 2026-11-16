@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import isObject from 'lodash/isObject';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {DebugForms} from './const';
 
@@ -30,42 +30,35 @@ type ConstantPickerProps = {
 function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-    const sections: ListItem[] = useMemo(
-        () =>
-            Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
-                .reduce((acc: Array<[string, string]>, [key, value]) => {
-                    // Option has multiple constants, so we need to flatten these into separate options
-                    if (isObject(value)) {
-                        acc.push(...Object.entries(value));
-                        return acc;
-                    }
-                    acc.push([key, String(value)]);
-                    return acc;
-                }, [])
-                .map(
-                    ([key, value]) =>
-                        ({
-                            text: value,
-                            keyForList: key,
-                            isSelected: value === fieldValue,
-                            searchText: value,
-                        }) satisfies ListItem,
-                )
-                .filter(({searchText}) => {
-                    return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;
-                }),
-        [fieldName, fieldValue, formType, searchValue],
-    );
-    const selectedOptionKey = useMemo(() => sections.find((option) => option.searchText === fieldValue)?.keyForList, [sections, fieldValue]);
+    const sections: ListItem[] = Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
+        .reduce((acc: Array<[string, string]>, [key, value]) => {
+            // Option has multiple constants, so we need to flatten these into separate options
+            if (isObject(value)) {
+                acc.push(...Object.entries(value));
+                return acc;
+            }
+            acc.push([key, String(value)]);
+            return acc;
+        }, [])
+        .map(
+            ([key, value]) =>
+                ({
+                    text: value,
+                    keyForList: key,
+                    isSelected: value === fieldValue,
+                    searchText: value,
+                }) satisfies ListItem,
+        )
+        .filter(({searchText}) => {
+            return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;
+        });
+    const selectedOptionKey = sections.find((option) => option.searchText === fieldValue)?.keyForList;
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: translate('common.search'),
-            onChangeText: setSearchValue,
-        }),
-        [searchValue, translate, setSearchValue],
-    );
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+    };
 
     return (
         <SelectionList

@@ -8,7 +8,7 @@ import type {HTMLAttributes} from 'react';
 import type {LayoutRectangle} from 'react-native';
 
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import React, {memo, useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 
 type MouseEvents = {
     onMouseEnter: (e: React.MouseEvent) => void | undefined;
@@ -57,13 +57,13 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e: React.MouseEvent) => {
+    const updateTargetAndMousePosition = (e: React.MouseEvent) => {
         if (!(e.currentTarget instanceof HTMLElement)) {
             return;
         }
         target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
-    }, []);
+    };
 
     /**
      * Get the tooltip bounding rectangle
@@ -79,16 +79,13 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
         return chooseBoundingBox(target.current, initialMousePosition.current.x, initialMousePosition.current.y);
     };
 
-    const updateTargetPositionOnMouseEnter = useCallback(
-        (e: React.MouseEvent) => {
-            updateTargetAndMousePosition(e);
-            if (React.isValidElement(children)) {
-                const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
-                onMouseEnter?.(e);
-            }
-        },
-        [children, updateTargetAndMousePosition],
-    );
+    const updateTargetPositionOnMouseEnter = (e: React.MouseEvent) => {
+        updateTargetAndMousePosition(e);
+        if (React.isValidElement(children)) {
+            const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
+            onMouseEnter?.(e);
+        }
+    };
 
     // Skip the tooltip and return the children if the device does not support hovering
     if (!deviceHasHoverSupport) {
@@ -134,4 +131,4 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
     );
 }
 
-export default memo(Tooltip);
+export default Tooltip;

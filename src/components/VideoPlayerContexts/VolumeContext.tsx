@@ -1,6 +1,6 @@
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 
 import type {VolumeActionsContextType, VolumeStateContextType} from './types';
@@ -16,28 +16,25 @@ function VolumeContextProvider({children}: ChildrenProps) {
     // We need this field to remember the last value before clicking mute
     const lastNonZeroVolume = useSharedValue(1);
 
-    const updateVolume = useCallback(
-        (newVolume: number) => {
-            if (!currentVideoPlayerRef.current) {
-                return;
-            }
-            currentVideoPlayerRef.current.volume = newVolume;
-            currentVideoPlayerRef.current.muted = newVolume === 0;
+    const updateVolume = (newVolume: number) => {
+        if (!currentVideoPlayerRef.current) {
+            return;
+        }
+        currentVideoPlayerRef.current.volume = newVolume;
+        currentVideoPlayerRef.current.muted = newVolume === 0;
 
-            volume.set(newVolume);
-        },
-        [currentVideoPlayerRef, volume],
-    );
+        volume.set(newVolume);
+    };
 
     // This function ensures mute and unmute functionality. Overwriting lastNonZeroValue
     // only in the case of mute guarantees that a pan gesture reducing the volume to zero won't cause
     // us to lose this value. As a result, unmute restores the last non-zero value.
-    const toggleMute = useCallback(() => {
+    const toggleMute = () => {
         if (volume.get() !== 0) {
             lastNonZeroVolume.set(volume.get());
         }
         updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
-    }, [lastNonZeroVolume, updateVolume, volume]);
+    };
 
     // We want to update the volume when currently playing video changes.
     // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.

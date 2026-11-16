@@ -105,6 +105,43 @@ describe('AddVendorPage', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
             expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
+
+        it('excludes disabled vendors from the selection items', () => {
+            // Given a policy with multiple vendors where one vendor is disabled in policyVendors
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors);
+
+            // Then the disabled vendor is excluded from the list
+            expect(result).toEqual([{name: 'Acme Co', value: 'v1'}]);
+        });
+
+        it('retains the currently-selected vendor even if disabled', () => {
+            // Given a policy with a disabled vendor that is currently selected in the rule
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items with the disabled vendor as selectedVendorID
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors, 'v2');
+
+            // Then the disabled vendor is retained so the user can see their current selection
+            expect(result).toEqual([
+                {name: 'Acme Co', value: 'v1'},
+                {name: 'Globex', value: 'v2'},
+            ]);
+        });
     });
 
     describe('getSelectedVendorItem', () => {
@@ -143,12 +180,12 @@ describe('AddVendorPage', () => {
     });
 
     /**
-     * The "Set vendor to" row in MerchantRulePageBase is assembled from these already-exported helpers
+     * The "Set vendor to" row in ExpenseDefaultRulePageBase is assembled from these already-exported helpers
      * (see the `isVendorFeatureEnabled` / `vendorFieldLabel` / `vendorDisplayName` derivations). Asserting
      * them here pins the row's decision logic; the row's render/JSX wiring and navigation are exercised by
      * the Playwright click-through.
      */
-    describe('vendor rule row derivation (MerchantRulePageBase)', () => {
+    describe('vendor rule row derivation (ExpenseDefaultRulePageBase)', () => {
         const qboPolicy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
         const intacctPolicy = buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
         const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});

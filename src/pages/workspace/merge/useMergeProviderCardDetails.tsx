@@ -28,11 +28,11 @@ type UseMergeProviderCardDetailsParams = {
     canWriteMoreFeatures: boolean;
     showReadOnlyModal: () => void;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnect?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnect?: (disconnect: () => void) => void;
 };
 
-/** The status text, sync error and overflow menu of a Merge provider, shared by the HR and Recruiting cards and their Connections panel */
+/** The status text, sync error and overflow menu of a Merge provider on the Connections HR and Recruiting panels */
 function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal, onDisconnect}: UseMergeProviderCardDetailsParams) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
@@ -98,6 +98,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
             return {
                 icon: icons.Sync,
                 text: translate('workspace.merge.reconnect'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_MENU_RECONNECT,
                 onSelected: handleConnect,
                 disabled: isOffline,
             };
@@ -106,6 +107,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
             return {
                 icon: icons.CheckCircle,
                 text: translate('workspace.merge.completeSetup'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_MENU_COMPLETE_SETUP,
                 onSelected: () => {
                     if (!canWriteMoreFeatures) {
                         showReadOnlyModal();
@@ -121,6 +123,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
         return {
             icon: icons.Sync,
             text: translate('workspace.merge.syncNow'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_MENU_SYNC_NOW,
             onSelected: () => {
                 if (showMergeManualSyncLimitModalIfReached(policy, card.connectionName, translate, showConfirmModal)) {
                     return;
@@ -137,6 +140,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
         {
             icon: icons.Trashcan,
             text: translate('workspace.merge.disconnect'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_MENU_DISCONNECT,
             onSelected: () => {
                 showConfirmModal({
                     title: translate('workspace.merge.disconnectTitle', card.displayName),
@@ -148,8 +152,12 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
                     if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;
                     }
-                    onDisconnect?.();
-                    removePolicyConnection(policy, card.connectionName);
+                    const disconnect = () => removePolicyConnection(policy, card.connectionName);
+                    if (onDisconnect) {
+                        onDisconnect(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,

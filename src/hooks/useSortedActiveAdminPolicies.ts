@@ -1,14 +1,12 @@
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 
-import {useMemo} from 'react';
-
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useLocalize from './useLocalize';
 
 function useSortedActiveAdminPolicies() {
     const {localeCompare} = useLocalize();
     const activeAdminPolicies = useActiveAdminPolicies();
-    const sortedActiveAdminPolicies = useMemo(() => sortPoliciesByName(activeAdminPolicies, localeCompare), [activeAdminPolicies, localeCompare]);
+    const sortedActiveAdminPolicies = sortPoliciesByName(activeAdminPolicies, localeCompare);
 
     return sortedActiveAdminPolicies;
 }

@@ -48,7 +48,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type VerifiedBankAccountFlowEntryPointProps = {
@@ -72,9 +72,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 
-    /** Set step for USD flow */
-    setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
-
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
@@ -94,7 +91,6 @@ function VerifiedBankAccountFlowEntryPoint({
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
-    setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     isComingFromExpensifyCard,
     isChangingBankAccount,
@@ -124,7 +120,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
     const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
 
-    const removeExistingBankAccountDetails = useCallback(() => {
+    const removeExistingBankAccountDetails = () => {
         // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
         if (isChangingBankAccount && currency) {
             prepareNewBankAccountSetup(currency, reimbursementAccount);
@@ -141,19 +137,16 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, [isChangingBankAccount, currency, reimbursementAccount]);
+    };
 
     /**
      * Prepares and redirects user to next step in the USD flow
      */
-    const prepareNextStep = useCallback(
-        (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
-            setBankAccountSubStep(setupType);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const prepareNextStep = (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
+        setBankAccountSubStep(setupType);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
+    };
 
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
@@ -234,7 +227,6 @@ function VerifiedBankAccountFlowEntryPoint({
     useResetBankAccountModal({
         reimbursementAccount,
         isNonUSDWorkspace,
-        setUSDBankAccountStep,
         setShouldShowContinueSetupButton,
         navigateAfterReset,
         backTo,
@@ -291,6 +283,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONTINUE_WITH_SETUP}
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
@@ -298,6 +291,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 {shouldShowChangeBankAccount && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CHANGE_BANK_ACCOUNT}
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
@@ -305,6 +299,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_START_OVER}
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
@@ -315,6 +310,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_WITH_PLAID}
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
                                         isDisabled={!!isPlaidDisabled}
@@ -322,6 +318,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_MANUALLY}
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}

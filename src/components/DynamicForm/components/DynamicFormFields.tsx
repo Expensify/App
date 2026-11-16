@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getLoneField, getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
 import isHeading from '@components/DynamicForm/utils/isHeading';
+import isLink from '@components/DynamicForm/utils/isLink';
 import type {FormValue} from '@components/Form/types';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -14,9 +15,10 @@ import React, {useState} from 'react';
 
 import DynamicFormFieldRow from './DynamicFormFieldRow';
 import DynamicFormHeadingRow from './DynamicFormHeadingRow';
+import DynamicFormLinkRow from './DynamicFormLinkRow';
 
 type DynamicFormFieldsProps = {
-    /** Headings and fields to render, in order. Fields of a type this App version does not know are left out. */
+    /** Headings, links and fields to render, in order. Fields of a type this App version does not know are left out. */
     content: DynamicFormContentItem[];
 
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
@@ -45,6 +47,9 @@ type DynamicFormFieldsProps = {
 
     /** Every answer here is sensitive, as in the editor of an entry of a sensitive list: none is drafted, and each starts from the answer in `values` */
     isSensitive?: boolean;
+
+    /** A refresh is in progress. Fields marked `refreshOnChange` wait for it, since a second refresh could finish first and leave the form on requirements for an earlier answer. */
+    isRefreshingRequirements?: boolean;
 };
 
 /** The inputs of a schema-driven form. Render it inside a FormProvider and validate the fields of the same content with getDynamicFieldErrors. */
@@ -59,6 +64,7 @@ function DynamicFormFields({
     onOpenListItemEditor,
     onListItemsChange,
     isSensitive = false,
+    isRefreshingRequirements = false,
 }: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
     const visibleContent = getVisibleContent(content, values, allFields);
@@ -87,17 +93,29 @@ function DynamicFormFields({
             currency={currency}
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
+            isRefreshingRequirements={isRefreshingRequirements}
         />
     );
 
-    return visibleContent.map((item, index) =>
-        isHeading(item) ? (
-            <DynamicFormHeadingRow
-                key={`heading-${item.key}`}
-                heading={item}
-                isFirst={index === 0}
-            />
-        ) : (
+    return visibleContent.map((item, index) => {
+        if (isLink(item)) {
+            return (
+                <DynamicFormLinkRow
+                    key={`link-${item.key}`}
+                    link={item}
+                />
+            );
+        }
+        if (isHeading(item)) {
+            return (
+                <DynamicFormHeadingRow
+                    key={`heading-${item.key}`}
+                    heading={item}
+                    isFirst={index === 0}
+                />
+            );
+        }
+        return (
             <DynamicFormFieldRow
                 key={item.key}
                 field={item}
@@ -110,10 +128,11 @@ function DynamicFormFields({
                 onOpenListItemEditor={onOpenListItemEditor}
                 onListItemsChange={onListItemsChange}
                 isSensitive={isSensitive}
+                isRefreshingRequirements={isRefreshingRequirements}
                 renderFields={renderFields}
             />
-        ),
-    );
+        );
+    });
 }
 
 export default DynamicFormFields;

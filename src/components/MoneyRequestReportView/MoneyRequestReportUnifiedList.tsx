@@ -1,8 +1,11 @@
 import FlashList from '@components/FlashList';
-import type FlatListRefType from '@components/FlashList/types';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import variables from '@styles/variables';
@@ -13,7 +16,7 @@ import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNative
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
@@ -48,15 +51,13 @@ function unifiedListItemType(item: UnifiedListItem) {
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
-    ref: FlatListRefType;
+    /** Ref to the underlying list, shared via the common ActionList imperative API. */
+    ref: ActionListRefType;
 };
 
 /**
- * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
- * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
- * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
- * needed. The scroll manager relies on the FlashList registering into this slot.
+ * Forwards the shared ActionList ref through @components/FlashList to the underlying list.
+ * FlashList implements the common imperative API consumed by the report scroll manager.
  */
 function MoneyRequestReportFlashList(props: MoneyRequestReportFlashListProps) {
     return (
@@ -89,16 +90,22 @@ type MoneyRequestReportUnifiedListProps = {
     /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
 
+    /** First revealed action to mount for a manual expansion's focus handoff. */
+    focusRequestedReportActionID?: string;
+
     /** ID of a newly added transaction to highlight, if any. */
     newTransactionID?: string;
 
     /** Ref to the underlying list, shared via the ActionList context. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
     onLayout: (event: LayoutChangeEvent) => void;
+
+    /** Called after FlashList finishes measuring and committing its rows. */
+    onCommitLayoutEffect?: () => void;
 
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
@@ -138,10 +145,12 @@ function MoneyRequestReportUnifiedList({
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
+    focusRequestedReportActionID,
     newTransactionID,
     listRef,
     accessibilityLabel,
     onLayout,
+    onCommitLayoutEffect,
     onScroll,
     onScrollBeginDrag,
     onContentSizeChange,
@@ -185,6 +194,24 @@ function MoneyRequestReportUnifiedList({
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
     const viewableItemsRef = useRef<ViewToken[]>([]);
 
+    const expandedFocusIndex = focusRequestedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === focusRequestedReportActionID) : -1;
+    useEffect(() => {
+        if (expandedFocusIndex < 0) {
+            return;
+        }
+
+        const dataIndex = expandedFocusIndex + reportActionIndexOffset;
+        if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+            return;
+        }
+
+        // Resolve the transaction offset here, where the virtualized list's data is owned.
+        const frame = requestAnimationFrame(() => {
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [expandedFocusIndex, focusRequestedReportActionID, reportActionIndexOffset, listRef]);
+
     // Handle to the nested table (horizontal mode) — read for row page positions, never driven to scroll (its scroll is a no-op).
     const tableRef = useRef<ExternalScrollFlashListTableHandle>(null);
 
@@ -192,7 +219,9 @@ function MoneyRequestReportUnifiedList({
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
     // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
 
@@ -356,9 +385,12 @@ function MoneyRequestReportUnifiedList({
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
+            // In mobile web landscape the report header collapses on scroll and CollapsedReportHeaderSpacer pads the list
+            // to keep its rows still, which this would scroll straight back out of view.
+            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined, disabled: isMobileWebLandscape}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
+            onCommitLayoutEffect={onCommitLayoutEffect}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.75}
             onStartReached={onStartReached}
@@ -369,6 +401,7 @@ function MoneyRequestReportUnifiedList({
                         {/* Report fields + group-by/columns controls stay pinned to the page; only the column header and
                             rows scroll horizontally. Measured together so the table's offset into the page is exact. */}
                         <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
+                            <CollapsedReportHeaderSpacer />
                             {reportFieldsHeader}
                             {controller.beforeListContent}
                         </View>
@@ -390,6 +423,7 @@ function MoneyRequestReportUnifiedList({
                     </>
                 ) : (
                     <>
+                        <CollapsedReportHeaderSpacer />
                         {reportFieldsHeader}
                         {controller.beforeListContent}
                         {controller.tableColumnHeader}
@@ -400,7 +434,9 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={contentContainerStyle}
+            // Chrome's scroll anchoring would scroll by the height CollapsedReportHeaderSpacer adds above the rows, undoing the
+            // header hand-over. It doesn't help with rows above the viewport, which FlashList moves by rewriting their top.
+            contentContainerStyle={[contentContainerStyle, isMobileWebLandscape && styles.overflowAnchorNone]}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
@@ -413,4 +449,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;

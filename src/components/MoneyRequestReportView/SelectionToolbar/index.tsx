@@ -2,7 +2,6 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -31,6 +30,8 @@ import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +41,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionBulkActionBar from './SelectionBulkActionBar';
@@ -61,6 +62,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
+    const {collapsedHeaderHeightSV} = useActionListContext();
+    // With the report header collapsed the toolbar becomes the top of the page, so it needs its own space above the buttons.
+    const collapsedHeaderSpacingStyle = useAnimatedStyle(() => (collapsedHeaderHeightSV.get() > 0 ? styles.pt3 : styles.pt0));
     const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -192,16 +196,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
-        hasOnlyHeldExpenses,
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -270,12 +264,18 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     searchData={undefined}
                     onHandlerReady={setDuplicateHandler}
                     onAfterDuplicate={() => clearSelectedTransactions(true)}
+                    sourceReport={report}
+                    sourceChatReport={chatReport}
+                    sourcePolicy={policy}
                 />
             )}
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    <View
-                        style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
+                    <Reanimated.View
+                        style={[
+                            isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn,
+                            collapsedHeaderSpacingStyle,
+                        ]}
                     >
                         <ReportSubmitToPopoverAnchor reportID={reportID}>
                             <SelectionDropdown
@@ -300,7 +300,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                             onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
                             onClearAll={() => clearSelectedTransactions(true)}
                         />
-                    </View>
+                    </Reanimated.View>
                 </OfflineWithFeedback>
             )}
             {shouldShowBulkActionBar && (
@@ -314,21 +314,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onWorkspacePolicySelect={handleWorkspaceSelected}
                     kycWallRef={kycWallRef}
                     onClearSelection={() => clearSelectedTransactions(true)}
-                />
-            )}
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    fullAmount={fullAmount}
-                    onClose={handleHoldMenuClose}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={report}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={handleHoldMenuConfirm}
-                    transactionCount={transactions.length}
                 />
             )}
         </>
