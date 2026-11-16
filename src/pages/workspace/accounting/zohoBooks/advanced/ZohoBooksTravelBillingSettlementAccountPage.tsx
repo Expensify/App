@@ -37,7 +37,7 @@ type AccountListItem = ListItem & {
     value: ZohoBooksBankAccount['id'];
 };
 
-function ZohoBooksTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
+function ZohoBooksTravelBillingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -87,7 +87,7 @@ function ZohoBooksTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
         />
     );
 
-    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+    const setTravelBillingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
             updateZohoBooksTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
@@ -100,14 +100,14 @@ function ZohoBooksTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
-            displayName="ZohoBooksTravelInvoicingSettlementAccountPage"
+            displayName="ZohoBooksTravelBillingSettlementAccountPage"
             title="workspace.zohoBooks.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             shouldShowListEmptyContent={!textInputOptions.value}
-            onSelectRow={setTravelInvoicingSettlementsAccount}
+            onSelectRow={setTravelBillingSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
@@ -120,4 +120,4 @@ function ZohoBooksTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
     );
 }
 
-export default withPolicyConnections(ZohoBooksTravelInvoicingSettlementAccountPage);
+export default withPolicyConnections(ZohoBooksTravelBillingSettlementAccountPage);
