@@ -111,7 +111,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
+    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy, transactions);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 

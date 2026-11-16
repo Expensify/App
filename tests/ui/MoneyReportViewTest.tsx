@@ -66,6 +66,11 @@ jest.mock('@react-navigation/native', () => ({
     useRoute: jest.fn(() => ({key: '', name: '', params: {reportID: '1'}})),
 }));
 
+jest.mock('@components/ActivityIndicator', () => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
+    return () => <RN.View testID="activity-indicator" />;
+});
+
 jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string}>>>('react-native');
     return () => <RN.View testID="animated-bg" />;
@@ -551,5 +556,51 @@ describe('MoneyReportView report fields visibility', () => {
             expect(observation).toBeDefined();
             expect(observation?.pendingAction).toBeUndefined();
         }
+    });
+});
+
+describe('MoneyReportView total', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+        initOnyxDerivedValues();
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it('shows the total amount when every expense of the report is settled', async () => {
+        // Given a report with two settled expenses in the report's currency
+        const reportTotals = {nonReimbursableTotal: -8000, unheldNonReimbursableTotal: -8000, unheldTotal: -8000, total: -8000};
+        await seedReportAndTransactions([buildTransaction('t1', 5000, false), buildTransaction('t2', 3000, false)], reportTotals);
+
+        // When the report view renders
+        renderMoneyReportView(buildExpenseReport(reportTotals));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Total row shows no loading indicator
+        await waitFor(() => {
+            expect(screen.getByText('common.total')).toBeOnTheScreen();
+            expect(screen.queryByTestId('activity-indicator')).not.toBeOnTheScreen();
+        });
+    });
+
+    it('shows a loading indicator instead of the total while a pending expense in another currency is on the report', async () => {
+        // Given a report with a pending expense in a different currency, so its total cannot be converted yet
+        const reportTotals = {nonReimbursableTotal: -8000, unheldNonReimbursableTotal: -8000, unheldTotal: -8000, total: -8000};
+        const pendingForeignTransaction = {...buildTransaction('t2', 3000, false), currency: CONST.CURRENCY.EUR, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        await seedReportAndTransactions([buildTransaction('t1', 5000, false), pendingForeignTransaction], reportTotals);
+
+        // When the report view renders
+        renderMoneyReportView(buildExpenseReport(reportTotals));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Total row shows a loading indicator instead of the amount, because the view checks the transactions it reads for the report
+        await waitFor(() => {
+            expect(screen.getByText('common.total')).toBeOnTheScreen();
+            expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+        });
     });
 });

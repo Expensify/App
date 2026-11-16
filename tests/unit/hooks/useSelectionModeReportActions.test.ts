@@ -430,6 +430,21 @@ describe('useSelectionModeReportActions', () => {
         await Onyx.clear();
     });
 
+    describe('hasUpdatedTotal', () => {
+        it('checks whether the total is updated against the transactions it is given', () => {
+            // Given a report, a policy and the report's transactions
+            const report = buildReport();
+            const policy = buildPolicy();
+            const transactions = [buildTransaction(1), buildTransaction(2)];
+
+            // When the hook decides whether the Pay button can be shown
+            renderSelectionModeHook({report, policy, transactions});
+
+            // Then the total is checked against those transactions, so the caller's data is used instead of a global lookup
+            expect(hasUpdatedTotal).toHaveBeenCalledWith(report, policy, transactions);
+        });
+    });
+
     describe('allExpensesSelected', () => {
         it('returns true when all transactions are selected', () => {
             const transactions = [buildTransaction(1), buildTransaction(2)];

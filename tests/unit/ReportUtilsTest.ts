@@ -184,6 +184,7 @@ import {
     hasReceiptError,
     hasReportBeenForwardedSinceLastSubmit,
     hasSmartscanError,
+    hasUpdatedTotal,
     hasVisibleReportFieldViolations,
     isActionCreator,
     isAdminOwnerApproverOrReportOwner,
@@ -32167,5 +32168,79 @@ describe('isExportInProgress', () => {
         // When checking whether the export is running
         // Then it is not, because no outcome will ever arrive and the button must not stay hidden
         expect(isExportInProgress(reportActions)).toBe(false);
+    });
+});
+
+describe('hasUpdatedTotal', () => {
+    const reportID = '9101';
+    const policy: Policy = {...createRandomPolicy(9101), outputCurrency: CONST.CURRENCY.USD};
+    const expenseReport: Report = {
+        ...createRandomReport(Number(reportID), undefined),
+        reportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        currency: CONST.CURRENCY.USD,
+        pendingFields: undefined,
+        unheldTotal: undefined,
+    };
+    const buildTransaction = (transactionID: number, overrides: Partial<Transaction> = {}): Transaction => ({
+        ...createRandomTransaction(transactionID),
+        reportID,
+        currency: CONST.CURRENCY.USD,
+        pendingAction: undefined,
+        comment: {},
+        ...overrides,
+    });
+
+    it('returns true when the report has no pending, foreign currency or held expenses', () => {
+        // Given a report whose expenses are all settled USD expenses
+        const transactions = [buildTransaction(1), buildTransaction(2)];
+
+        // When checking whether the report total is up to date
+        // Then it is
+        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(true);
+    });
+
+    it('returns false when a pending expense is in a different currency than the report', () => {
+        // Given a report with a pending expense that is not in the report's currency, so the total cannot be converted yet
+        const transactions = [buildTransaction(1), buildTransaction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, currency: CONST.CURRENCY.EUR})];
+
+        // When checking whether the report total is up to date
+        // Then it is not, so the pay button is blocked until the total is recalculated
+        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(false);
+    });
+
+    it('returns false when an expense is held but the report has no unheld total yet', () => {
+        // Given a report with a held expense that was just placed on hold, so the server has not sent unheldTotal yet
+        const transactions = [buildTransaction(1, {comment: {hold: 'holdActionID'}})];
+
+        // When checking whether the report total is up to date
+        // Then it is not, because the optimistic held expense is not reflected in the total
+        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(false);
+    });
+
+    it('returns true when the report is missing, without looking at the transactions', () => {
+        // Given no report, and a pending foreign currency expense that would otherwise block the total
+        const transactions = [buildTransaction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, currency: CONST.CURRENCY.EUR})];
+
+        // When checking whether the total is up to date
+        // Then it is, because there is no report total to wait for
+        expect(hasUpdatedTotal(undefined, policy, transactions)).toBe(true);
+    });
+
+    it('uses only the transactions it is given instead of the ones stored for the report', async () => {
+        // Given a pending foreign currency expense stored in Onyx for the report
+        const storedTransaction = buildTransaction(3, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, currency: CONST.CURRENCY.EUR});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${storedTransaction.transactionID}`, storedTransaction);
+        await waitForBatchedUpdates();
+
+        // When checking the total with an empty list, and then with the stored transaction
+        const resultWithEmptyList = hasUpdatedTotal(expenseReport, policy, []);
+        const resultWithStoredTransaction = hasUpdatedTotal(expenseReport, policy, [storedTransaction]);
+
+        // Then the stored transaction is ignored unless it is passed in, since the caller owns the transactions
+        expect(resultWithEmptyList).toBe(true);
+        expect(resultWithStoredTransaction).toBe(false);
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${storedTransaction.transactionID}`, null);
     });
 });

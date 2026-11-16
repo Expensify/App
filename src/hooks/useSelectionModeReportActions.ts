@@ -104,7 +104,7 @@ function useSelectionModeReportActions({
     const canIOUBePaid = getCanIOUBePaid();
     const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const canAllowSettlement = hasUpdatedTotal(report, policy);
+    const canAllowSettlement = hasUpdatedTotal(report, policy, transactions);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
