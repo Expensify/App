@@ -1,6 +1,48 @@
-import {isReplayingDiscardedNavigation, runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
+import {
+    isFlowDiscardPromptSuppressed,
+    isReplayingDiscardedNavigation,
+    releaseFlowDiscardPromptSuppression,
+    runWhileReplayingDiscardedNavigation,
+    SUPPRESSION_SAFETY_TIMEOUT_MS,
+    suppressFlowDiscardPrompt,
+} from '@libs/Navigation/helpers/discardPromptState';
 
 describe('discardPromptState', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        releaseFlowDiscardPromptSuppression();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('keeps the flow muted until the suppression is released', () => {
+        // Given a submit that muted the flow's discard guards
+        suppressFlowDiscardPrompt();
+
+        // When nothing released it yet
+        // Then the flow stays muted
+        expect(isFlowDiscardPromptSuppressed()).toBe(true);
+
+        // When the submit aborts and releases it
+        releaseFlowDiscardPromptSuppression();
+
+        // Then the guards prompt again
+        expect(isFlowDiscardPromptSuppressed()).toBe(false);
+    });
+
+    it('releases a forgotten suppression after a safety timeout', () => {
+        // Given a suppression that nothing releases, such as a submit that stays on the page without unlocking
+        suppressFlowDiscardPrompt();
+
+        // When the safety timeout passes
+        jest.advanceTimersByTime(SUPPRESSION_SAFETY_TIMEOUT_MS);
+
+        // Then the flow isn't muted for good
+        expect(isFlowDiscardPromptSuppressed()).toBe(false);
+    });
+
     it('marks the replay of a discarded navigation, even when the replay throws', () => {
         // Given no replay in progress
         expect(isReplayingDiscardedNavigation()).toBe(false);
