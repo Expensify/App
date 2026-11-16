@@ -165,7 +165,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
     it.each([
         ['without a display name', {accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN, avatar: OWNER_AVATAR_URL}, {source: OWNER_AVATAR_URL, name: OWNER_LOGIN}],
         ['without personal details', undefined, {source: getDefaultAvatarURL({accountID: OWNER_ACCOUNT_ID}), name: HIDDEN_NAME_KEY}],
-    ])('should name and picture the member like the legacy component %s', (_case, ownerDetails, expectedIcon) => {
+    ])('should name and picture the member %s', (_case, ownerDetails, expectedIcon) => {
         // Given a policy expense chat whose member is missing part of their personal details
         seedChat();
         mockPersonalDetails = ownerDetails ? {[OWNER_ACCOUNT_ID]: ownerDetails} : {};
@@ -199,7 +199,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
             />,
         );
 
-        // Then the member is named and pictured from the snapshot, like the legacy component, instead of falling back to "Hidden"
+        // Then the member is named and pictured from the snapshot instead of falling back to "Hidden"
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(OWNER_ICON);
     });
 
@@ -215,7 +215,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
             />,
         );
 
-        // Then the member is still the subscript, under the generic fallback avatar rather than an unavailable workspace icon, as in the legacy component
+        // Then the member is still the subscript, under the generic fallback avatar rather than an unavailable workspace icon
         expect(screen.getByTestId('MockedSubscriptAvatar')).toBeOnTheScreen();
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(PLACEHOLDER_ICON);
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(OWNER_ICON);
@@ -344,7 +344,7 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
             />,
         );
 
-        // Then there is neither a workspace nor a member, so the single layout gets the generic fallback avatar, as in the legacy component
+        // Then there is neither a workspace nor a member, so the single layout gets the generic fallback avatar
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(PLACEHOLDER_ICON);
     });

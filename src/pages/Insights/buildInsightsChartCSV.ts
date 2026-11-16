@@ -30,6 +30,7 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
     [CONST.SEARCH.GROUP_BY.PAID_BY]: 'search.filters.groupBy.paid-by',
     [CONST.SEARCH.GROUP_BY.VIOLATION]: 'search.filters.groupBy.violation',
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'search.filters.groupBy.workflow-stage',
 };
 
 function buildInsightsChartCSV({

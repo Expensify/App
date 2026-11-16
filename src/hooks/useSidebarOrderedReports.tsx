@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -88,6 +89,18 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     getReportIDsForTab: () => [],
 });
 
+/** The IDs of the archived reports, sorted so two lists can be compared between renders */
+function getArchivedReportIDs(reportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string[] {
+    const archivedReportIDs: string[] = [];
+    for (const [key, reportNameValuePair] of Object.entries(reportNameValuePairs ?? {})) {
+        if (!reportNameValuePair?.private_isArchived) {
+            continue;
+        }
+        archivedReportIDs.push(key.slice(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length));
+    }
+    return archivedReportIDs.sort();
+}
+
 // This file does not compile with React Compiler (render-time ref cache below keeps referential
 // stability), so the manual useMemo/useCallback in this provider are load-bearing and must stay.
 function SidebarOrderedReportsContextProvider({
@@ -116,6 +129,10 @@ function SidebarOrderedReportsContextProvider({
     const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const reportNameValuePairsUpdates = useCollectionDelta(reportNameValuePairs);
+    // The sort only needs the archived state from the name value pairs, so it reads a set of archived report IDs that
+    // keeps its reference while that set is unchanged
+    const archivedReportIDList = useStableArrayReference(useMemo(() => getArchivedReportIDs(reportNameValuePairs), [reportNameValuePairs]));
+    const archivedReportIDs = useMemo(() => new Set(archivedReportIDList), [archivedReportIDList]);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const {isBetaEnabled} = usePermissions();
@@ -130,6 +147,14 @@ function SidebarOrderedReportsContextProvider({
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
     const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
+    // REPORT_ATTRIBUTES is rewritten with a new object whenever a recompute processes a report, even if nothing changed, so
+    // the LHN reads a reference that only advances when the value diff above reports a change (kept in state during render)
+    const [rememberedReportAttributes, setRememberedReportAttributes] = useState(reportAttributes);
+    const hasReportAttributesContentChanged = reportAttributesUpdates !== undefined || reportAttributes === undefined || rememberedReportAttributes === undefined;
+    const lhnReportAttributes = hasReportAttributesContentChanged ? reportAttributes : rememberedReportAttributes;
+    if (hasReportAttributesContentChanged && rememberedReportAttributes !== reportAttributes) {
+        setRememberedReportAttributes(reportAttributes);
+    }
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -214,15 +239,23 @@ function SidebarOrderedReportsContextProvider({
 
         // Make sure the previous and current reports are always included in the updates when we switch reports.
         if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
-            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`);
-            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+            for (const reportID of [prevDerivedCurrentReportID, derivedCurrentReportID]) {
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+                reportsToUpdate.add(reportKey);
+
+                // A thread's parent stays in the LHN only while the thread is open (see shouldHideReport), so recheck it too
+                const parentReportID = chatReports?.[reportKey]?.parentReportID;
+                if (parentReportID) {
+                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+                }
+            }
         }
 
         // The LHN hides the transaction thread of a single-expense report and shows the expense report instead, whose
         // unread state also depends on the thread. So when the thread changes (e.g. a new comment), recheck its parent too.
         for (const key of Array.from(reportsToUpdate)) {
             const parentReportID = chatReports?.[key]?.parentReportID;
-            if (!parentReportID || reportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
+            if (!parentReportID || lhnReportAttributes?.[parentReportID]?.oneTransactionThreadReportID !== chatReports?.[key]?.reportID) {
                 continue;
             }
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
@@ -239,7 +272,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
-        reportAttributes,
+        lhnReportAttributes,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
         priorityMode,
@@ -282,7 +315,7 @@ function SidebarOrderedReportsContextProvider({
                 isBillPayBetaEnabled,
                 transactionViolations,
                 reportNameValuePairs,
-                reportAttributes,
+                reportAttributes: lhnReportAttributes,
                 draftComments: reportsDrafts,
                 transactions,
                 isOffline,
@@ -308,7 +341,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
                 reportNameValuePairs,
-                reportAttributes,
+                reportAttributes: lhnReportAttributes,
                 conciergeReportID,
                 guideAccountIDs,
                 session,
@@ -316,7 +349,7 @@ function SidebarOrderedReportsContextProvider({
         }
 
         return reportsToDisplay;
-        // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
+        // Rule disabled intentionally — currentReportsToDisplay is this memo's previous result, not an input
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         getUpdatedReports,
@@ -327,7 +360,7 @@ function SidebarOrderedReportsContextProvider({
         isBillPayBetaEnabled,
         transactionViolations,
         reportNameValuePairs,
-        reportAttributes,
+        lhnReportAttributes,
         reportsDrafts,
         isOffline,
         clearCacheDummyCounter,
@@ -361,15 +394,15 @@ function SidebarOrderedReportsContextProvider({
         return result;
     }, [reportsDrafts]);
 
-    useEffect(() => {
+    // Stored during render, not in an effect: a setState in a passive effect leaves an update pending after every
+    // Onyx-driven commit, which is what React's nested-update counter counts (React #185 after 50 in a row).
+    if (currentReportsToDisplay !== reportsToDisplayInLHN) {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
-    }, [reportsToDisplayInLHN]);
+    }
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, reportAttributes),
-        // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, reportAttributes],
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, archivedReportIDs, lhnReportAttributes),
+        [reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, archivedReportIDs, lhnReportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -469,7 +502,7 @@ function SidebarOrderedReportsContextProvider({
                 filteredReportIDs: arraysEqual(updatedFilteredIDs, filteredReportIDs) ? filteredReportIDs : updatedFilteredIDs,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
-                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
+                chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, lhnReportAttributes),
                 activeTab,
                 inboxTabCounts,
                 hasStaleUnreadReport,
@@ -480,7 +513,7 @@ function SidebarOrderedReportsContextProvider({
             filteredReportIDs,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
-            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
+            chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, lhnReportAttributes),
             activeTab,
             inboxTabCounts,
             hasStaleUnreadReport,
@@ -491,7 +524,7 @@ function SidebarOrderedReportsContextProvider({
         filteredReportIDs,
         derivedCurrentReportID,
         shouldUseNarrowLayout,
-        reportAttributes,
+        lhnReportAttributes,
         activeTab,
         inboxTabCounts,
         hasStaleUnreadReport,
