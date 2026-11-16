@@ -307,38 +307,32 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
  */
 function openPublicProfilePage(accountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
             value: {
-                [accountID]: {
-                    isLoading: true,
-                },
+                isLoading: true,
             },
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
             value: {
-                [accountID]: {
-                    isLoading: false,
-                },
+                isLoading: false,
             },
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
             value: {
-                [accountID]: {
-                    isLoading: false,
-                },
+                isLoading: false,
             },
         },
     ];

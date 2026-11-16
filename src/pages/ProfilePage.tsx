@@ -91,7 +91,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -102,6 +101,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'History', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const [personalDetailLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -168,7 +168,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const formattedLogin = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login;
 
     const hasAvatar = !!details?.avatar;
-    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
+    const isLoading = !!personalDetailLoadingState?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';

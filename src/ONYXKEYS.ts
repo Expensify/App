@@ -120,13 +120,6 @@ const ONYXKEYS = {
     /** Contains all the private personal details of the user */
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
-    /**
-     * PERSONAL_DETAILS_METADATA is a perf optimization used to hold loading states of each entry in PERSONAL_DETAILS_LIST.
-     * A lot of components are connected to the PERSONAL_DETAILS_LIST entity and do not care about the loading state.
-     * Setting the loading state directly on the personal details entry caused a lot of unnecessary re-renders.
-     */
-    PERSONAL_DETAILS_METADATA: 'personalDetailsMetadata',
-
     /** GPS points stored for the GPS distance expense before they're accepted by the user */
     GPS_DRAFT_DETAILS: 'gpsDraftDetails',
 
@@ -1078,6 +1071,11 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
+        /** Session-scoped loading flags for a user's public profile, keyed by accountID.
+         *  Kept apart from PERSONAL_DETAILS_LIST so its many subscribers don't re-render on loading changes,
+         *  and keyed per account so a profile only re-renders when its own flag changes.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE: 'personalDetailsLoadingState_',
         /** Pagination state for tag filter search, keyed by policyIDs.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination_',
@@ -1732,6 +1730,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
@@ -1854,7 +1853,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
-    [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
