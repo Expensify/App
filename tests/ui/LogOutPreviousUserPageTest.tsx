@@ -20,8 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type * as ReactNative from 'react-native';
-
 import {NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -74,8 +72,9 @@ jest.mock('@userActions/Session', () => ({
 }));
 
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
-    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    return () => <Text>NotFoundPage</Text>;
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const {View} = jest.requireActual<typeof import('react-native')>('react-native');
+    return () => <View testID="NotFoundPage" />;
 });
 
 jest.mock('@components/Modal/ReanimatedModal', () => {
@@ -229,12 +228,12 @@ describe('LogOutPreviousUserPage', () => {
         });
 
         // When a transition link with another token is tapped inside the app
-        renderPage({shortLivedAuthToken: 'tappedtoken', email: 'tapped@test.com', exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        renderPage({shortLivedAuthToken: 'tapped-token', email: 'tapped@test.com', exitTo: ROUTES.HOME, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
         // Then the page does not offer a switch based on the launch URL and shows the not-found page
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
-        expect(screen.getByText('NotFoundPage')).toBeOnTheScreen();
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
