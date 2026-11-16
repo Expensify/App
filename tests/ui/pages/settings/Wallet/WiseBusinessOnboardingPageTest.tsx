@@ -475,13 +475,10 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('retires the Wallet and workspace banners once the form shows, not while the loader waits for the read', async () => {
+    it('leaves the Wallet and workspace banners alone when the form shows, since they hide once a page is saved', async () => {
         // Given a visit whose read of the bank account details has not returned
         await renderPage({shouldLeaveReadRunning: true});
         expect(screen.getByTestId(LOADER_TEST_ID)).toBeOnTheScreen();
-
-        // Then neither banner is dismissed yet, since a write queued ahead of the read would hold the loader
-        expect(await readDismissedProductTraining()).toBeUndefined();
 
         // When the read returns and the form shows
         await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
@@ -490,31 +487,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
 
-        // Then both banners are dismissed, since onboarding has started
-        const dismissed = await readDismissedProductTraining();
-        expect(dismissed?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]).toMatchObject({dismissedMethod: 'click'});
-        expect(dismissed?.[CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]).toMatchObject({dismissedMethod: 'click'});
-    });
-
-    it('does not retire the banners again when Next or Back mounts the page on one of its pages', async () => {
-        // Given the details read earlier in the visit
-        // When the page mounts on the business page, as Next does
-        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
-        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
-
-        // Then no dismiss is written, since the visit already did when its form opened
-        expect(await readDismissedProductTraining()).toBeUndefined();
-    });
-
-    it('does not retire the banners for a bank account that cannot use global reimbursements', async () => {
-        // Given a business account in euros, which Wise reimbursements do not cover
-        const euroBankAccount: BankAccount = {...ELIGIBLE_BANK_ACCOUNT, bankCurrency: CONST.CURRENCY.EUR};
-
-        // When the page opens for it
-        await renderPage({bankAccount: euroBankAccount});
-
-        // Then onboarding has not started, so both banners stay
-        expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
+        // Then neither banner is dismissed, so an admin who leaves before saving still sees them
         expect(await readDismissedProductTraining()).toBeUndefined();
     });
 

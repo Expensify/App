@@ -5,6 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -392,6 +393,7 @@ function BaseReportActionContextMenu({
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
@@ -409,6 +411,7 @@ function BaseReportActionContextMenu({
                                 childReportActions,
                                 originalReportActions,
                                 reportIDToName,
+                                accountIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,

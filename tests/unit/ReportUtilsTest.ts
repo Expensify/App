@@ -4785,6 +4785,47 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
         });
 
+        it('returns false when the outstanding child is the member own open report with expenses on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open report with expenses on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since the member cannot submit their own report on that workspace
+            const expenseReportID = '7103';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+                total: -1000,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(103, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const transaction = {
+                ...createRandomTransaction(7103),
+                transactionID: '7103',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
             // Given the member's own open, empty report on a workspace where they are a regular member
             // When the LHN checks whether their workspace chat needs attention
@@ -17529,6 +17570,13 @@ describe('ReportUtils', () => {
                 employeeList: {},
             };
 
+            const policyWithApproveOnlyUser: Policy = {
+                ...createRandomPolicy(4),
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                employeeList: {},
+            };
+
             const restrictedReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -17549,15 +17597,17 @@ describe('ReportUtils', () => {
             };
 
             // When checking whether a user can join restricted rooms
-            // Then regular workspace members can join, but non-members and guests cannot
+            // Then regular workspace members can join, but non-members, guests, and approve-only members cannot
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(false);
 
             // When checking whether a user can join public rooms
-            // Then non-members and guests can both join
+            // Then non-members, guests, and approve-only members can join
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(true);
         });
     });
 
@@ -28417,6 +28467,27 @@ describe('ReportUtils', () => {
             expect(result).toBe('Test Merchant');
         });
 
+        it('should return the vendor name shown in the Vendor column for VENDOR column', () => {
+            // Given a workspace whose synced vendor list renamed one vendor, and expenses holding that vendor, a vendor no longer synced, and no vendor
+            const policyWithVendors = createMock<Policy>({
+                ...mockPolicy,
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: 'USD', email: ''}]}}},
+            });
+            const renamedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true}}});
+            const unsyncedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true}}});
+            const noVendorTransaction = createMockTransaction();
+
+            // When getting their sort values for the Vendor column
+            const renamedVendorSortValue = getTransactionSortValue(translateLocal, renamedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const unsyncedVendorSortValue = getTransactionSortValue(translateLocal, unsyncedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const noVendorSortValue = getTransactionSortValue(translateLocal, noVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+
+            // Then each expense sorts by the name the column shows, which prefers the synced name and falls back to the stored one
+            expect(renamedVendorSortValue).toBe('Acme Co');
+            expect(unsyncedVendorSortValue).toBe('Former Vendor');
+            expect(noVendorSortValue).toBe('');
+        });
+
         it('should return category for CATEGORY column', () => {
             const transaction = createMockTransaction({category: 'Travel'});
             const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY, mockReport, mockPolicy);
@@ -28574,6 +28645,7 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
