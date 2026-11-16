@@ -190,7 +190,9 @@ const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_T
 const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
 
 // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so violation filter skips it too.
-const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+// customRules and ruleViolation belong to the new rules engine, so they're left out until it ships with clearer names.
+const EXCLUDED_VIOLATION_FILTER_VALUES = new Set<string>([CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT, CONST.VIOLATIONS.CUSTOM_RULES, CONST.VIOLATIONS.RULE_VIOLATION]);
+const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => !EXCLUDED_VIOLATION_FILTER_VALUES.has(name));
 
 function isViolationName(name: string): name is OnyxTypes.ViolationName {
     return VALID_VIOLATION_NAMES.has(name);

@@ -17142,6 +17142,17 @@ describe('getViolationFilterOptions', () => {
         expect(labels).toEqual([...labels].sort(localeCompare));
         expect(labels.length).toBeGreaterThanOrEqual(CONST.STANDARD_LIST_ITEM_LIMIT);
     });
+
+    it('leaves out the Classic-only and new rules engine violations', () => {
+        // Given the Classic-only cash expense notice and the new rules engine violations, which have no clear filter names yet
+        // When building the violation picker options
+        const values = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.value);
+
+        // Then none of them is offered
+        expect(values).not.toContain(CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+        expect(values).not.toContain(CONST.VIOLATIONS.CUSTOM_RULES);
+        expect(values).not.toContain(CONST.VIOLATIONS.RULE_VIOLATION);
+    });
 });
 
 describe('getWithdrawalStatusOptions', () => {
