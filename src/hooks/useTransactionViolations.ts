@@ -1,9 +1,10 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
-import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
+import {getVisibleTransactionViolations, isDistanceRequest, isRTERViolationPastBrokenConnectionDismissThreshold} from '@libs/TransactionUtils';
 import {syncCustomUnitOutOfPolicyViolation, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -27,10 +28,13 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
 
     const syncedDateRangeViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
     // `policy` already prefers distanceOriginalPolicy when the report policy lacks the rate.
-    const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy);
+    const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy).filter(
+        (violation) => !isRTERViolationPastBrokenConnectionDismissThreshold(violation, cardIDsPastDismissThreshold),
+    );
 
     return getVisibleTransactionViolations(
         transaction,

@@ -2,9 +2,11 @@ import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
 import {getFooterSelectionFromQuery} from '@libs/SearchQueryUtils';
 import {getTransactionsByReportID, getViolationsFromSearchData, isTodoSearch} from '@libs/SearchUIUtils';
+import {removeRTERViolationsPastBrokenConnectionDismissThreshold} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import React, {useState} from 'react';
@@ -45,6 +47,7 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
 
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
     // A to-do search has no snapshot to carry the backend's aggregate, so the breakdown the footer asks for is
@@ -91,7 +94,10 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // Computed here, not per row: it scans every snapshot key.
     const searchData = currentSearchResults?.data;
     const currentSearchTransactionsByReportID = searchData ? getTransactionsByReportID(searchData) : EMPTY_TRANSACTIONS_BY_REPORT_ID;
-    const currentSearchViolations = searchData ? getViolationsFromSearchData(searchData) : CONST.EMPTY_OBJECT;
+    // Rows offer Submit from these, so they match the report header once a feed is broken past the threshold.
+    const currentSearchViolations = searchData
+        ? removeRTERViolationsPastBrokenConnectionDismissThreshold(getViolationsFromSearchData(searchData), cardIDsPastDismissThreshold)
+        : CONST.EMPTY_OBJECT;
 
     const resultsValue: SearchResultsContextValue = {
         currentSearchResults,

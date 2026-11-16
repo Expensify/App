@@ -36,6 +36,7 @@ import {
     getAttendees,
     isDeletedTransaction as isDeletedTransactionUtil,
     isDistanceRequest,
+    isRTERViolationPastBrokenConnectionDismissThreshold,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowAttendees,
@@ -47,6 +48,7 @@ import {syncCustomUnitOutOfPolicyViolation} from '@libs/Violations/ViolationsUti
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {cardIDsPastBrokenConnectionDismissThresholdSelector} from '@src/selectors/Card';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
@@ -164,6 +166,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardIDsPastDismissThreshold] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {selector: cardIDsPastBrokenConnectionDismissThresholdSelector});
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
@@ -202,7 +205,8 @@ function TransactionListItemInner<TItem extends ListItem>({
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
-            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem),
+            shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem) &&
+            !isRTERViolationPastBrokenConnectionDismissThreshold(violation, cardIDsPastDismissThreshold),
     );
 
     const isInvoice = isInvoiceReport(reportForViolations) || reportForViolations.type === CONST.REPORT.TYPE.INVOICE;
