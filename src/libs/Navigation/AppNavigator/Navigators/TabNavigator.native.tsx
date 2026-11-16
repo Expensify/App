@@ -23,8 +23,7 @@ import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
-import getTabNavigatorState from './NativeTabNavigator/getTabNavigatorState';
-import {getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
@@ -60,24 +59,19 @@ type NativeTabNavigatorProps = {
 };
 
 function NativeTabNavigator({flatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
-    const {shouldShowNativeTabBar, dotColors, tabLabels, tabsWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, getTabHostRouteName} = useNativeTabNavigator({
-        isFlatNavTabBarEnabled,
-        flatNavSearchSectionID,
-    });
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    // A tab with no bar item draws no icon.
-    const getScreenOptions = ({route}: {route: {name: NativeTabRouteName}}) => {
-        if (!tabsWithoutBarItem.has(route.name)) {
-            return {
-                ...screenOptions,
-                ...getTabOptions(route.name),
-                tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
-            };
-        }
-        const tabBarItemHostRouteName = getTabHostRouteName(route.name);
-        return tabBarItemHostRouteName ? {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName} : {...screenOptions, ...HIDDEN_TAB_OPTIONS};
-    };
+    // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
+    // slot, inside the first item with no item shown as selected.
+    const getScreenOptions = ({route}: {route: {name: NativeTabRouteName}}) =>
+        route.name in tabLabels
+            ? {
+                  ...screenOptions,
+                  ...getTabOptions(route.name),
+                  tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
+              }
+            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, flatNavSearchSectionID)};
 
     return (
         <Tab.Navigator
@@ -138,7 +132,7 @@ function NativeTabNavigator({flatNavSearchSectionID, isFlatNavTabBarEnabled = fa
 /** The tab navigator with the flat nav bar, which reads where Search is so the bar can highlight its item. */
 function FlatNavNativeTabNavigator() {
     const route = useRoute();
-    const getTabState = (parentState: NavigationState) => getTabNavigatorState(parentState, route.key);
+    const getTabState = (parentState: NavigationState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state;
     const searchKey = useNavigationState((parentState) =>
         getSearchTabSearchKey(getTabState(parentState)?.routes.find((tabRoute) => tabRoute.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)),
     );

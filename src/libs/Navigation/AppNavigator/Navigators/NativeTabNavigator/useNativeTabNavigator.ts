@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
@@ -22,8 +21,7 @@ import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getActiveTabRoute from './getActiveTabRoute';
-import getTabNavigatorState from './getTabNavigatorState';
-import {getFlatNavTabHostRouteName, isNavigationToNativeTabItem} from './nativeTabItemUtils';
+import {isNavigationToNativeTabItem} from './nativeTabItemUtils';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
@@ -34,20 +32,6 @@ import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
  */
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
-/** Tabs that stay reachable by navigation but have no item in the native bar. */
-const TABS_WITHOUT_BAR_ITEM: ReadonlySet<string> = new Set([NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]);
-
-/**
- * With the flat nav bar, Search, Insights and Workspaces are drawn inside the Expenses, Reports and More placeholders.
- * Account has no item to stand in for it, so it has no host and is drawn in Home with no item shown as selected.
- */
-const FLAT_NAV_TABS_WITHOUT_BAR_ITEM: ReadonlySet<string> = new Set([
-    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-    SCREENS.INSIGHTS,
-    NAVIGATORS.WORKSPACE_NAVIGATOR,
-    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-]);
-
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
@@ -56,12 +40,9 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 type NativeTabNavigatorParams = {
     /** Whether the bar shows the flat nav items, see useIsNativeFlatNavTabBarEnabled */
     isFlatNavTabBarEnabled?: boolean;
-
-    /** The section of the search Search shows, which decides the item Search is drawn inside. Only read with the flat nav bar. */
-    flatNavSearchSectionID?: FlatNavSectionID;
 };
 
-function useNativeTabNavigator({isFlatNavTabBarEnabled = false, flatNavSearchSectionID}: NativeTabNavigatorParams = {}) {
+function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorParams = {}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {translate} = useLocalize();
@@ -72,7 +53,10 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false, flatNavSearchSec
     const parentNavigation = navigation.getParent();
     const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
     const route = useRoute();
-    const tabState = useNavigationState((parentState) => getTabNavigatorState(parentState, route.key));
+    // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
+    // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
+    // mounts, so the nearest navigation listener context is still the parent stack's.
+    const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = getActiveTabRoute(tabState);
     const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
@@ -84,22 +68,23 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false, flatNavSearchSec
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [isFlatNavTabBarEnabled ? SCREENS.NATIVE_TAB_ITEM.MORE : NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
     };
-    // The iOS labels are sized by how many items the bar has, so only the items in the bar get a label.
-    const tabLabels: Record<string, string> = isFlatNavTabBarEnabled
-        ? {
-              [SCREENS.HOME]: translate('common.home'),
-              [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
-              [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: translate('common.expenses'),
-              [SCREENS.NATIVE_TAB_ITEM.REPORTS]: translate('common.reports'),
-              [SCREENS.NATIVE_TAB_ITEM.MORE]: translate('common.more'),
-          }
-        : {
-              [SCREENS.HOME]: translate('common.home'),
-              [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
-              [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
-              [SCREENS.INSIGHTS]: translate('common.insights'),
-              [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
-          };
+    // Only the items in the bar get a label: the iOS labels are sized by how many items the bar has, and a tab without
+    // a label is hidden from the bar.
+    const tabLabels: Record<string, string> = {
+        [SCREENS.HOME]: translate('common.home'),
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
+        ...(isFlatNavTabBarEnabled
+            ? {
+                  [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: translate('common.expenses'),
+                  [SCREENS.NATIVE_TAB_ITEM.REPORTS]: translate('common.reports'),
+                  [SCREENS.NATIVE_TAB_ITEM.MORE]: translate('common.more'),
+              }
+            : {
+                  [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+                  [SCREENS.INSIGHTS]: translate('common.insights'),
+                  [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+              }),
+    };
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -133,18 +118,7 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false, flatNavSearchSec
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    const getTabHostRouteName = (routeName: string) => (isFlatNavTabBarEnabled ? getFlatNavTabHostRouteName(routeName, flatNavSearchSectionID) : undefined);
-
-    return {
-        shouldShowNativeTabBar,
-        dotColors,
-        tabLabels,
-        tabsWithoutBarItem: isFlatNavTabBarEnabled ? FLAT_NAV_TABS_WITHOUT_BAR_ITEM : TABS_WITHOUT_BAR_ITEM,
-        tabRouterOverride,
-        isTabSelectionEnabled,
-        isFlatNavTabBarEnabled,
-        getTabHostRouteName,
-    };
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

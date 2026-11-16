@@ -10,7 +10,7 @@ import getFlatNavTabBarSlot from '@libs/Navigation/FlatNavTabBar/getFlatNavTabBa
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {isSearchRootParams} from '@libs/SearchQueryUtils';
 
-import NAVIGATORS from '@src/NAVIGATORS';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
@@ -29,15 +29,6 @@ const NATIVE_TAB_ITEM_SLOTS = {
     [SCREENS.NATIVE_TAB_ITEM.MORE]: FLAT_NAV_TAB_BAR_SLOT.MORE,
 } as const satisfies Record<NativeTabItemName, FlatNavTabBarSlot>;
 
-/** The visible tab that draws each slot of the flat nav bar. */
-const SLOT_ROUTE_NAMES: Record<FlatNavTabBarSlot, NativeTabRouteName> = {
-    [FLAT_NAV_TAB_BAR_SLOT.HOME]: SCREENS.HOME,
-    [FLAT_NAV_TAB_BAR_SLOT.INBOX]: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    [FLAT_NAV_TAB_BAR_SLOT.EXPENSES]: SCREENS.NATIVE_TAB_ITEM.EXPENSES,
-    [FLAT_NAV_TAB_BAR_SLOT.REPORTS]: SCREENS.NATIVE_TAB_ITEM.REPORTS,
-    [FLAT_NAV_TAB_BAR_SLOT.MORE]: SCREENS.NATIVE_TAB_ITEM.MORE,
-};
-
 const NATIVE_TAB_ITEM_NAMES: ReadonlySet<string> = new Set(Object.values(SCREENS.NATIVE_TAB_ITEM));
 
 function isNativeTabItemName(routeName: string): routeName is NativeTabItemName {
@@ -51,7 +42,7 @@ function getNativeTabGlyphName(routeName: NativeTabRouteName): NativeTabGlyphNam
 
 /** A navigation to a placeholder, which the tab press handlers replace with their own navigation. */
 function isNavigationToNativeTabItem(action: NavigationAction) {
-    if (action.type !== 'NAVIGATE' && action.type !== 'JUMP_TO') {
+    if (action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.type !== CONST.NAVIGATION.ACTION_TYPE.JUMP_TO) {
         return false;
     }
     const payload: unknown = action.payload;
@@ -68,9 +59,9 @@ function getSearchTabSearchKey(searchTabRoute: {state?: NavigationState | Partia
  * The placeholder a hidden tab route is drawn inside, or undefined for a route the flat nav bar has no slot for, such
  * as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection.
  */
-function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavSectionID | undefined): NativeTabRouteName | undefined {
+function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavSectionID | undefined): NativeTabItemName | undefined {
     const slot = getFlatNavTabBarSlot({focusedTabRouteName: routeName, activeFlatNavSectionID: searchSectionID});
-    return slot ? SLOT_ROUTE_NAMES[slot] : undefined;
+    return Object.values(SCREENS.NATIVE_TAB_ITEM).find((itemName) => NATIVE_TAB_ITEM_SLOTS[itemName] === slot);
 }
 
 export {getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};

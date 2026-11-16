@@ -1,3 +1,4 @@
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
@@ -10,6 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * navigation spans start only when Search is opened from another tab, as the Spend tab starts them.
  */
 function openSearchFromTabBar(navigateToSearch: () => void, isSearchFocused: boolean, session: OnyxEntry<Session>) {
+    clearSelectedText();
     interceptAnonymousUser(() => {
         if (!isSearchFocused) {
             startNavigateToReportsTabSpans();

@@ -8,7 +8,6 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useOnyx from '@hooks/useOnyx';
 
-import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openSearchFromTabBar from '@libs/Navigation/FlatNavTabBar/openSearchFromTabBar';
 import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
@@ -51,27 +50,22 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
         if (isSearchFocused && currentSearchKey === searchKey) {
             return;
         }
-        clearSelectedText();
         const lastSearchQuery = searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery;
         openSearchFromTabBar(() => navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions), isSearchFocused, session);
-    };
-
-    const openMoreMenu = () => {
-        interceptAnonymousUser(() => setMoreMenuState('open'), session);
     };
 
     useEffect(() => {
         const removeListeners = [
             expensesNavigation?.addListener('tabPress', () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.EXPENSES)),
             reportsNavigation?.addListener('tabPress', () => openSpendTab(CONST.SEARCH.SEARCH_KEYS.REPORTS)),
-            moreNavigation?.addListener('tabPress', openMoreMenu),
+            moreNavigation?.addListener('tabPress', () => interceptAnonymousUser(() => setMoreMenuState('open'), session)),
         ];
         return () => {
             for (const removeListener of removeListeners) {
                 removeListener?.();
             }
         };
-    }, [expensesNavigation, reportsNavigation, moreNavigation, openSpendTab, openMoreMenu]);
+    }, [expensesNavigation, reportsNavigation, moreNavigation, openSpendTab, session]);
 
     if (moreMenuState === 'closed') {
         return null;

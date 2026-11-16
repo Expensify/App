@@ -1,6 +1,6 @@
 /**
  * The menu the More item of the flat nav native bar opens: Accounting, Saved, Insights and Workspaces, with the one the
- * user is on highlighted. It is docked to the bottom of the screen, so it needs no anchor.
+ * user is on highlighted.
  */
 import Icon from '@components/Icon';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
@@ -59,7 +59,7 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const anchorRef = useRef<View>(null);
     const isSearchFocused = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
-    // The sections do no work while the menu is closed.
+    // The sections stay frozen while the menu animates closed.
     const sections = useFlatNavSections({isActive: isVisible});
     const activeFlatNavSectionID = useActiveFlatNavItem(sections, isSearchFocused)?.sectionID;
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -88,25 +88,27 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
         }
     };
 
-    const menuItems: PopoverMenuItem[] = items.map((item) => ({
-        key: item.id,
-        text: translate(item.translationPath),
-        icon: icons[item.iconName],
-        isSelected: item.isActive,
-        badgeText: 'badgeText' in item ? item.badgeText : undefined,
-        rightComponent:
-            'indicatorColor' in item && item.indicatorColor ? (
+    const menuItems: PopoverMenuItem[] = items.map((item) => {
+        const indicatorColor = 'indicatorColor' in item ? item.indicatorColor : undefined;
+        return {
+            key: item.id,
+            text: translate(item.translationPath),
+            icon: icons[item.iconName],
+            isSelected: item.isActive,
+            badgeText: 'badgeText' in item ? item.badgeText : undefined,
+            rightComponent: indicatorColor ? (
                 <Icon
                     src={icons.DotIndicator}
-                    fill={item.indicatorColor}
+                    fill={indicatorColor}
                 />
             ) : undefined,
-        shouldShowRightComponent: 'indicatorColor' in item && !!item.indicatorColor,
-        sentryLabel: SENTRY_LABELS[item.id],
-        // Navigating under the closing sheet would move the screens behind it, and can leave the modal marked as visible.
-        shouldCallAfterModalHide: true,
-        onSelected: () => openItem(item),
-    }));
+            shouldShowRightComponent: !!indicatorColor,
+            sentryLabel: SENTRY_LABELS[item.id],
+            // Navigating under the closing sheet would move the screens behind it, and can leave the modal marked as visible.
+            shouldCallAfterModalHide: true,
+            onSelected: () => openItem(item),
+        };
+    });
 
     return (
         <PopoverMenu

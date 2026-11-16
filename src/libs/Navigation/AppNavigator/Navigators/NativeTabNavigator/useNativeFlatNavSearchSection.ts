@@ -1,11 +1,6 @@
 /**
- * The flat nav section of the search the Search tab shows, which decides the placeholder Search is drawn inside. It is
- * read from the search key in the same render that changes the search, rather than from the sections the user can see,
- * so the tab navigator does not build the sections on every render. The Saved section is checked against the saved
- * searches the way the Spend menu checks it. Accounting is taken from the key alone: whether the user sees it depends on
- * the export, card and approval settings of every workspace (getSuggestedSearchesVisibility), which is too much to read
- * here. So an Accounting search of a user who cannot see Accounting, such as a shared link, highlights More while the More
- * menu has no active row. Only the flat nav tab navigator calls it, so without the beta none of this is read.
+ * The flat nav section of the search the Search tab shows, read from its search key so the tab navigator does not build
+ * the sections. Saved is checked against the saved searches, Accounting is taken from the key alone, see FlatNavTabBarFocus.
  */
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';

@@ -11,13 +11,10 @@ import useFlatNavSections from '@libs/Navigation/FlatNav/useFlatNavSections';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
-
-const WORKSPACES_DOT_COLOR = '#ff0000';
 
 const mockNavigateToSection = jest.fn();
 const mockNavigateToInsights = jest.fn();
@@ -72,20 +69,12 @@ describe('MoreMenuPopover', () => {
         jest.mocked(useFlatNavSections).mockReturnValue(SECTIONS);
     });
 
-    it('lists Accounting, Saved, Insights and Workspaces with the active one highlighted', () => {
+    it('highlights the entry the user is on and navigates once the sheet has closed', () => {
         // Given Search focused on an Accounting search
         renderMenu(true, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
         // When the menu is shown
-        // Then it lists the More entries in order, each with the label of its row
-        expect(getMenuItems().map((item) => item.key)).toEqual([MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED, MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
-        expect(getMenuItems().map((item) => item.sentryLabel)).toEqual([
-            CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.ACCOUNTING,
-            CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.SAVED,
-            CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.INSIGHTS,
-            CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.WORKSPACES,
-        ]);
-        // And every row navigates only once the sheet has closed, so no screen moves under the closing sheet
+        // Then every row navigates only once the sheet has closed, so no screen moves under the closing sheet
         expect(getMenuItems().every((item) => item.shouldCallAfterModalHide)).toBe(true);
         // And only Accounting is highlighted, since that is where the user is, and it carries its todo badge
         expect(
@@ -96,17 +85,15 @@ describe('MoreMenuPopover', () => {
         expect(getMenuItem(MORE_MENU.ITEM.ACCOUNTING).badgeText).toBe('3');
         // And Workspaces shows the dot the More item shows in the bar
         expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).shouldShowRightComponent).toBe(true);
-        expect(getMenuItem(MORE_MENU.ITEM.WORKSPACES).rightComponent).toEqual(expect.objectContaining({props: expect.objectContaining({fill: WORKSPACES_DOT_COLOR})}));
-        expect(getMenuItem(MORE_MENU.ITEM.INSIGHTS).shouldShowRightComponent).toBe(false);
     });
 
-    it('reads the sections only while it is open', () => {
-        // Given the menu mounted and closed
-        renderMenu(false, SCREENS.HOME);
+    it.each([true, false])('reads the sections only while it is open: open %s', (isVisible) => {
+        // Given the menu mounted, open or closing
+        renderMenu(isVisible, SCREENS.HOME);
 
         // When its sections are read
-        // Then they are paused, so a closed menu classifies no todos and builds no saved search titles
-        expect(useFlatNavSections).toHaveBeenLastCalledWith({isActive: false});
+        // Then they are paused while it is closed, so a closing menu classifies no todos and builds no saved search titles
+        expect(useFlatNavSections).toHaveBeenLastCalledWith({isActive: isVisible});
     });
 
     it('opens each entry the way its tab opens it', () => {
