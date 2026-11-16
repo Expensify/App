@@ -2,6 +2,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import Text from '@components/Text';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
 
@@ -37,17 +39,17 @@ function PressableWithSecondaryInteraction({
         onSecondaryInteraction?.(event);
     };
 
+    const sentryLabel = castToSentryLabel(rest.sentryLabel);
+
     // Use Text node for inline mode to prevent content overflow.
     if (inline) {
-        // Text takes a long press only with a label, so the two are passed on together.
-        const longPressProps = rest.sentryLabel ? {onLongPress: onSecondaryInteraction ? executeSecondaryInteraction : undefined, sentryLabel: rest.sentryLabel} : {};
-
         return (
             <Text
                 // The cast hides the press props and the label, since TypeScript can't tie a handler in `rest` to its label.
-                // At runtime `rest` still passes any onPress with its label, and the long press is added only with one.
+                // At runtime `rest` still passes any onPress with its label.
                 {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
-                {...longPressProps}
+                sentryLabel={sentryLabel}
+                onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
                 suppressHighlighting={suppressHighlighting}
             >
                 {children as ReactNode}
