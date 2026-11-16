@@ -82,6 +82,8 @@ function FileTypeMenuButton({buttonText, accessibilityLabel, types, onSelect}: F
                     headerText={translate('dynamicForm.selectDocumentToUpload')}
                     menuItems={types.map((type) => ({key: type.value, text: type.label, icon: icons.Document}))}
                     shouldUseScrollView
+                    // The header already spaces the list from the top, so the list's own margins for long lists stay off
+                    shouldUseModalPaddingStyle
                     onItemSelected={(item) => {
                         setIsMenuVisible(false);
                         const fileType = item.key;
