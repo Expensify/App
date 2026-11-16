@@ -195,18 +195,21 @@ describe('Onyx.update with one DM comment on an account with 10k reports', () =>
 
     test('[Onyx] a new comment in one DM', async () => {
         // Given an account with 10k reports and every derived value computed
-        const updateSets = Array.from({length: UPDATE_SETS}, (_, index): Array<OnyxUpdate<OnyxKey>> => [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${firstDMReportID}`,
-                value: {lastMessageText: `new comment ${index}`, lastVisibleActionCreated: created(index)},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstDMReportID}`,
-                value: {[`new${index}`]: comment(`new${index}`, 2, index)},
-            },
-        ]);
+        const updateSets = Array.from(
+            {length: UPDATE_SETS},
+            (_, index): Array<OnyxUpdate<OnyxKey>> => [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${firstDMReportID}`,
+                    value: {lastMessageText: `new comment ${index}`, lastVisibleActionCreated: created(index)},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstDMReportID}`,
+                    value: {[`new${index}`]: comment(`new${index}`, 2, index)},
+                },
+            ],
+        );
         let setIndex = 0;
 
         // When a comment arrives in one DM
