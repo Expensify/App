@@ -55,7 +55,7 @@ type BuildRankingTableRowsParams = {
 
 /** Returns how a group's count changed against the previous period's, rounded to a whole percentage */
 function getRankingTableChange(count: number, previousCount: number | undefined): RankingTableChange {
-    if (previousCount === 0 && count > 0) {
+    if (!previousCount && count > 0) {
         return {type: RANKING_TABLE_CHANGE.NEW};
     }
     if (!previousCount) {
@@ -93,4 +93,4 @@ function buildRankingTableRows({data, comparison, isComparingPreviousPeriod}: Bu
 
 export default buildRankingTableRows;
 export {RANKING_TABLE_CHANGE};
-export type {RankingTableChange};
+export type {RankingTableChange, RankingTableRow};

@@ -1404,6 +1404,7 @@ const translations = {
             monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
             quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
             yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
+            noChange: 'No change',
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },

@@ -64,14 +64,14 @@ describe('buildRankingTableRows', () => {
         ]);
     });
 
-    it('shows no change when the previous period has nothing to compare against', () => {
-        // Given the page compares against the previous period, but no previous rows came back
+    it('marks expenses as new when no previous-period baseline is available', () => {
+        // Given previous-period comparison is selected without a baseline
         const data = [violationGroup('missingReceipt', 10)];
 
         // When the rows are built
         const {rows} = buildRankingTableRows({data, comparison: undefined, isComparingPreviousPeriod: true});
 
-        // Then the row shows no change rather than calling the type new
-        expect(rows.at(0)?.change).toEqual({type: RANKING_TABLE_CHANGE.NONE});
+        // Then a missing baseline is treated like zero previous expenses
+        expect(rows.at(0)?.change).toEqual({type: RANKING_TABLE_CHANGE.NEW});
     });
 });
