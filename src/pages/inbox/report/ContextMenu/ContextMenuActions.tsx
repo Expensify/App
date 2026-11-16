@@ -1158,7 +1158,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
-            const messageText = getReportActionMessageText(reportAction);
+            const messageText = getReportActionMessageText(reportAction, reportIDToName);
 
             const isAttachment = isReportActionAttachment(reportAction);
             if (!isAttachment) {
