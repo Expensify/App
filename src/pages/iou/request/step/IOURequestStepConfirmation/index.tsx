@@ -769,12 +769,14 @@ function IOURequestStepConfirmationContent({
                                 subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                             />
                             {hasMultipleTransactions && (
-                                <PrevNextButtons
-                                    isPrevButtonDisabled={currentTransactionIndex === 0}
-                                    isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
-                                    onNext={() => startTransition(showNextTransaction)}
-                                    onPrevious={() => startTransition(showPreviousTransaction)}
-                                />
+                                <View style={styles.pr2}>
+                                    <PrevNextButtons
+                                        isPrevButtonDisabled={currentTransactionIndex === 0}
+                                        isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                        onNext={() => startTransition(showNextTransaction)}
+                                        onPrevious={() => startTransition(showPreviousTransaction)}
+                                    />
+                                </View>
                             )}
                         </Header>
                     )}
