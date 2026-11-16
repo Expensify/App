@@ -47,6 +47,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -130,14 +131,10 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
     const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
-        }
-        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
-            return canUseZohoBooksIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
             return canUseDigitsIntegration;
@@ -182,10 +179,13 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && policy?.connections?.netsuite?.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2;
     const shouldShowReconnect = hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || isNetSuiteOAuthConnection);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
+    let credentialsMenuSentryLabel: SentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_ENTER_CREDENTIALS;
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
+        credentialsMenuSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_RECONNECT;
     } else if (isSageIntacct && !hasAuthError) {
         credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
+        credentialsMenuSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_UPDATE_CREDENTIALS;
     }
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
@@ -194,6 +194,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                   {
                       icon: icons.CircularArrowBackwards,
                       text: translate('workspace.accounting.reinstall'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_REINSTALL,
                       onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                       shouldCallAfterModalHide: true,
                       disabled: isOffline,
@@ -206,6 +207,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                   {
                       icon: icons.Key,
                       text: translate(credentialsMenuTextKey),
+                      sentryLabel: credentialsMenuSentryLabel,
                       onSelected: () => {
                           if (isSageIntacct && policyID) {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
@@ -224,6 +226,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                   {
                       icon: icons.Sync,
                       text: translate('workspace.accounting.syncNow'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_SYNC_NOW,
                       onSelected: () => syncConnection(policy, connectedIntegration, connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD),
                       disabled: isOffline,
                   },
@@ -232,6 +235,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         {
             icon: icons.Trashcan,
             text: translate('workspace.accounting.disconnect'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_DISCONNECT,
             onSelected: () => {
                 showConfirmModal({
                     title: translate('workspace.accounting.disconnectTitle', connectedIntegrationDisplayName),
@@ -283,6 +287,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.xero.organization'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.XERO,
                           iconRight: icons.ArrowRight,
                           title: getCurrentXeroOrganizationName(policy),
                           titleStyle: styles.fontWeightNormal,
@@ -305,6 +310,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.netsuite.subsidiary'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.NETSUITE,
                           iconRight: icons.ArrowRight,
                           title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -325,6 +331,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.intacct.entity'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.SAGE_INTACCT,
                           iconRight: icons.ArrowRight,
                           title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           titleStyle: styles.fontWeightNormal,
@@ -340,6 +347,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate(isConnectedToIntuitEnterpriseSuite ? 'workspace.qbo.entity' : 'workspace.qbo.connectedTo'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.QBO,
                           iconRight: isConnectedToIntuitEnterpriseSuite ? icons.ArrowRight : undefined,
                           title: policy?.connections?.quickbooksOnline?.config?.companyName,
                           titleStyle: styles.fontWeightNormal,
@@ -358,6 +366,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.certinia.company'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.CERTINIA,
                           iconRight: icons.ArrowRight,
                           title: selectedCertiniaCompany?.name ?? certiniaCompanyID ?? translate('common.none'),
                           titleStyle: styles.fontWeightNormal,
@@ -373,6 +382,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.rillet.entity'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.RILLET,
                           iconRight: icons.ArrowRight,
                           title: rilletSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.rillet?.config?.subsidiaryID)?.tradeName ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -391,6 +401,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.dualEntry.company'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.DUAL_ENTRY,
                           iconRight: icons.ArrowRight,
                           title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -409,6 +420,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.campfire.entity'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.CAMPFIRE,
                           iconRight: icons.ArrowRight,
                           title: campfireSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.campfire?.config?.subsidiaryID)?.name ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -427,6 +439,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.businessCentral.subsidiary'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.BUSINESS_CENTRAL,
                           iconRight: icons.ArrowRight,
                           title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -445,6 +458,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.zohoBooks.organization'),
+                          sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_ENTITY_ROW.ZOHO_BOOKS,
                           iconRight: icons.ArrowRight,
                           title: currentZohoBooksOrganization?.name ?? '',
                           titleStyle: styles.fontWeightNormal,
@@ -512,6 +526,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                       iconRight: icons.ArrowRight,
                       shouldShowRightIcon: true,
                       title: translate('workspace.accounting.import'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.IMPORT,
                       onPress: integrationData?.onImportPagePress,
                       brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
                           ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -525,6 +540,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.export'),
+                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.EXPORT,
                                 onPress: integrationData?.onExportPagePress,
                                 brickRoadIndicator:
                                     areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
@@ -545,6 +561,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.cardReconciliation'),
+                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.CARD_RECONCILIATION,
                                 onPress: integrationData?.onCardReconciliationPagePress,
                             },
                         ]
@@ -556,6 +573,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.advanced'),
+                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
                                 onPress: integrationData?.onAdvancedPagePress,
                                 brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
                                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR

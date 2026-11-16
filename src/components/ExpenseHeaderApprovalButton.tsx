@@ -82,6 +82,7 @@ type ApprovalOption = {
     icon: IconAsset;
     onSelected: () => void;
     keyForList: string;
+    sentryLabel: SentryLabel;
 };
 
 type ApprovalDropdownOptionProps = {
@@ -122,6 +123,7 @@ function getApprovalDropdownOptions({
             icon: illustrations.ThumbsUp,
             onSelected: onPartialApprove,
             keyForList: APPROVE_PARTIAL,
+            sentryLabel: CONST.SENTRY_LABEL.APPROVE_MENU.OPTION.PARTIAL,
         });
     }
 
@@ -131,6 +133,7 @@ function getApprovalDropdownOptions({
         icon: illustrations.DocumentCheck,
         onSelected: onFullApprove,
         keyForList: APPROVE_FULL,
+        sentryLabel: CONST.SENTRY_LABEL.APPROVE_MENU.OPTION.FULL,
     });
 
     return options;

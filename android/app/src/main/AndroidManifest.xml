@@ -129,6 +129,8 @@
                 <data android:mimeType="image/png" />
                 <data android:mimeType="image/tif" />
                 <data android:mimeType="image/tiff" />
+                <data android:mimeType="image/heic" />
+                <data android:mimeType="image/heif" />
 
                 <!-- Documents -->
                 <data android:mimeType="application/pdf" />

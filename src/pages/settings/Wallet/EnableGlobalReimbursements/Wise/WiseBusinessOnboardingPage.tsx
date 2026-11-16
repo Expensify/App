@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useDismissWiseGlobalReimbursementsBanners from '@hooks/useDismissWiseGlobalReimbursementsBanners';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -102,7 +103,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
-    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID);
+    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(
+        introReadBankAccountID === bankAccountID && (!!businessAccount?.isLoading || businessAccount?.data?.bankAccountID === bankAccountID),
+    );
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
     useEffect(() => {
@@ -118,7 +122,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadBusinessAccount || hasBusinessAccountReadStarted || isPrefillDone) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [bankAccountID, shouldReadBusinessAccount, hasBusinessAccountReadStarted, isPrefillDone]);
     const isWaitingForBusinessAccount = shouldReadBusinessAccount && (!hasBusinessAccountReadStarted || !!businessAccount?.isLoading);
 
@@ -183,6 +187,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         setIsPrefillDone(true);
     }
 
+    // Starting onboarding for any account retires both banners for good, and the writes wait for the form so the read is not queued behind them
+    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
+    useDismissWiseGlobalReimbursementsBanners(isNewVisit && isPrefillDone && isEligible);
+
     useEffect(() => {
         if (!isPrefillPending) {
             return;
@@ -206,7 +214,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    if (!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
+    if (!isEligible) {
         return <NotFoundPage onBackButtonPress={goBackToIntro} />;
     }
 
