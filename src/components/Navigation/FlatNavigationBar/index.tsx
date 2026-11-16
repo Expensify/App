@@ -79,10 +79,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
-    const searchTabRoute = useSignedInLinkRoute(useStoredSearchTabRoute());
-    const insightsLinkRoute = useSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE);
-    const workspacesLinkRoute = useSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route);
-    const accountLinkRoute = useSignedInLinkRoute(ROUTES.SETTINGS);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const storedSearchTabRoute = useStoredSearchTabRoute();
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
@@ -237,7 +235,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                                 onPress={navigateToSearch}
-                                                linkRoute={searchTabRoute}
+                                                linkRoute={getSignedInLinkRoute(storedSearchTabRoute)}
                                                 onHoverIn={() => setIsSearchTabHovered(true)}
                                                 onHoverOut={() => setIsSearchTabHovered(false)}
                                             />
@@ -248,7 +246,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
                                                 onPress={navigateToInsights}
-                                                linkRoute={insightsLinkRoute}
+                                                linkRoute={getSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE)}
                                             />
                                             <FlatNavDivider />
                                             <FlatNavItem
@@ -260,7 +258,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
                                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                                                 onPress={navigateToWorkspaces}
-                                                linkRoute={workspacesLinkRoute}
+                                                linkRoute={getSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route)}
                                             />
                                         </ScrollView>
                                     </View>
@@ -287,7 +285,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
                                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                             onPress={navigateToAccount}
-                                            linkRoute={accountLinkRoute}
+                                            linkRoute={getSignedInLinkRoute(ROUTES.SETTINGS)}
                                         />
                                     </View>
                                 </View>

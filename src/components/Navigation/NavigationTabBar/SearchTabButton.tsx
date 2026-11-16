@@ -29,7 +29,8 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
-    const searchTabRoute = useSignedInLinkRoute(useStoredSearchTabRoute());
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const searchTabRoute = getSignedInLinkRoute(useStoredSearchTabRoute());
 
     // The wide button gets no hover out when it goes away while hovered, on a switch to the narrow layout or an unmount.
     useEffect(() => () => setIsSearchTabHovered(false), [isWideLayout]);

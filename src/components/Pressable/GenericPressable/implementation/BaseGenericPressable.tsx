@@ -9,7 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import mergeRefs from '@libs/mergeRefs';
-import {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import getRoutePath from '@libs/Navigation/helpers/getRoutePath';
+import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
@@ -153,9 +154,11 @@ function GenericPressable({
 
     const pressOnce = (event?: GestureResponderEvent) => singleExecution(onPressHandler)(event);
 
-    // The browser follows the href unless the click is prevented, so only Cmd or Ctrl clicks on an enabled link reach it and open a new tab.
+    const hasHref = !!linkRoute && !isDisabled && !fullDisabled && interactive;
+
+    // The browser follows the href unless the click is prevented, so only Cmd, Ctrl or Shift clicks on an enabled link reach it and open a new tab or window.
     const pressLink = (event?: GestureResponderEvent) => {
-        if (!isDisabled && isModifiedMousePress(event)) {
+        if (hasHref && isNewTabOrWindowMousePress(event)) {
             return;
         }
         event?.preventDefault();
@@ -186,6 +189,7 @@ function GenericPressable({
      * If a custom onKeyDown handler is provided, it delegates to that handler.
      * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     * An element with an href is skipped, because the browser turns Enter into a click that keeps its modifier keys for pressLink.
      */
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (onKeyDown) {
@@ -193,7 +197,7 @@ function GenericPressable({
             return;
         }
 
-        if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+        if (isRoleLink && !hasHref && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
             onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
         }
@@ -236,7 +240,7 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
-            href={linkRoute && !isDisabled && !fullDisabled ? `/${linkRoute}` : undefined}
+            href={hasHref && linkRoute ? getRoutePath(linkRoute) : undefined}
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

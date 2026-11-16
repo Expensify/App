@@ -26,10 +26,10 @@ describe('useSignedInLinkRoute', () => {
         await waitForBatchedUpdates();
 
         // When the hook resolves the Account tab link
-        const {result} = renderHook(() => useSignedInLinkRoute(ROUTES.SETTINGS));
+        const {result} = renderHook(() => useSignedInLinkRoute());
 
         // Then the tab can be opened in a new browser tab
-        expect(result.current).toBe(ROUTES.SETTINGS);
+        expect(result.current(ROUTES.SETTINGS)).toBe(ROUTES.SETTINGS);
     });
 
     it('returns no route for an anonymous user', async () => {
@@ -38,9 +38,9 @@ describe('useSignedInLinkRoute', () => {
         await waitForBatchedUpdates();
 
         // When the hook resolves the Account tab link
-        const {result} = renderHook(() => useSignedInLinkRoute(ROUTES.SETTINGS));
+        const {result} = renderHook(() => useSignedInLinkRoute());
 
         // Then there is no link, so a Cmd click cannot open the tab without the sign in prompt
-        expect(result.current).toBeUndefined();
+        expect(result.current(ROUTES.SETTINGS)).toBeUndefined();
     });
 });

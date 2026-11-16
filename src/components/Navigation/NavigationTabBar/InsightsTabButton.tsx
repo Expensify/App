@@ -27,7 +27,8 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
     const navigateToInsights = useInsightsTabNavigation(isSelected);
-    const insightsLinkRoute = useSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const insightsLinkRoute = getSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE);
 
     if (isWideLayout) {
         return (

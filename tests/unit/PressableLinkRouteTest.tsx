@@ -13,13 +13,14 @@ jest.mock('@libs/Navigation/helpers/openInternalRouteInNewTab', () => jest.requi
 
 const TEST_ID = 'link-pressable';
 
-function renderLinkPressable(onPress: () => void, isDisabled = false) {
+function renderLinkPressable(onPress: () => void, isDisabled = false, isInteractive = true) {
     render(
         <PressableWithFeedback
             testID={TEST_ID}
             linkRoute={ROUTES.SETTINGS}
             onPress={onPress}
             disabled={isDisabled}
+            interactive={isInteractive}
             accessibilityLabel="Settings"
             role={CONST.ROLE.LINK}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
@@ -65,6 +66,43 @@ describe('Pressable with linkRoute', () => {
         // Then the current tab does not navigate and the browser keeps its default new tab behavior
         expect(preventDefault).not.toHaveBeenCalled();
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('leaves a Shift click to the browser so the route opens in a new window', () => {
+        // Given a pressable linking to the settings route
+        const onPress = jest.fn();
+        const preventDefault = jest.fn();
+        renderLinkPressable(onPress);
+
+        // When it is clicked with the Shift key held
+        fireEvent.press(screen.getByTestId(TEST_ID), {nativeEvent: {button: 0, shiftKey: true}, preventDefault});
+
+        // Then the current tab does not navigate and the browser keeps its default new window behavior
+        expect(preventDefault).not.toHaveBeenCalled();
+        expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('leaves Enter to the browser so Cmd or Ctrl reaches the click it fires', () => {
+        // Given a pressable with the link role linking to the settings route
+        const onPress = jest.fn();
+        const preventDefault = jest.fn();
+        renderLinkPressable(onPress);
+
+        // When Enter is pressed on it
+        fireEvent(screen.getByTestId(TEST_ID), 'keyDown', {key: CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey, nativeEvent: {}, preventDefault});
+
+        // Then the key press does not navigate on its own, so the browser's click decides between this tab and a new one
+        expect(preventDefault).not.toHaveBeenCalled();
+        expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('renders no href when not interactive', () => {
+        // Given a pressable linking to the settings route that ignores presses
+        // When it renders
+        renderLinkPressable(jest.fn(), false, false);
+
+        // Then there is no href, so a Cmd click cannot open a route a plain click would not
+        expect(screen.getByTestId(TEST_ID).props.href).toBeUndefined();
     });
 
     it('renders no href when disabled', () => {

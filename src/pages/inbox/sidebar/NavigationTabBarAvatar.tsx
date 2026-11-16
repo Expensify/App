@@ -34,7 +34,8 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const {status} = useAccountTabIndicatorStatus();
 
     const accountAccessibilityState = {selected: isSelected};
-    const accountLinkRoute = useSignedInLinkRoute(ROUTES.SETTINGS);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const accountLinkRoute = getSignedInLinkRoute(ROUTES.SETTINGS);
 
     return (
         <PressableWithFeedback

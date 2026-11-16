@@ -30,7 +30,8 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
 
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
-    const workspacesLinkRoute = useSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const workspacesLinkRoute = getSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route);
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
