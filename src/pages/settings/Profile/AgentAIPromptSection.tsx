@@ -214,6 +214,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
+                    maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AI_PROMPT}
                     multiline
                     autoGrowHeight
                     maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}

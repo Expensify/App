@@ -260,7 +260,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef, RefObject} from 'react';
@@ -423,7 +423,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = WithSentryLabel & {
+type ContextMenuActionWithIcon = WithRequiredSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon: Extract<
         ExpensifyIconName,
@@ -1453,8 +1453,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
                     Clipboard.setString(translate('iou.retracted'));
                 } else if (isOldDotReportAction(reportAction)) {
-                    const oldDotActionMessage = getMessageOfOldDotReportAction(translate, reportAction);
-                    Clipboard.setString(oldDotActionMessage);
+                    setClipboardMessage(getMessageOfOldDotReportAction(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
                     const originalMessage = getOriginalMessage(reportAction) as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage'];
                     Clipboard.setString(getDismissedViolationMessageText(translate, originalMessage));

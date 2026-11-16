@@ -21,7 +21,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
-    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
     getDistanceRateTaxUpdates,
@@ -36,7 +35,7 @@ import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 
-import {getDefaultP2PMileageRate, setTransactionReport} from '@userActions/Transaction';
+import {getDefaultP2PMileageRate} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
 import type {IOURequestType} from '@src/CONST';
@@ -734,49 +733,6 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     });
 }
 
-type MoveMoneyRequestDraftToSelfDMParams = {
-    transaction: OnyxEntry<Transaction>;
-    selfDMReport: OnyxEntry<Report>;
-    currentUserAccountID: number;
-
-    /** Workspace whose distance rates the self DM uses */
-    policyForMovingExpenses: OnyxEntry<Policy>;
-    lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates>;
-    personalPolicyOutputCurrency: string | undefined;
-};
-
-/** Puts a draft expense on the current user's self DM, where it is saved without a report. */
-function moveMoneyRequestDraftToSelfDM({
-    transaction,
-    selfDMReport,
-    currentUserAccountID,
-    policyForMovingExpenses,
-    lastSelectedDistanceRates,
-    personalPolicyOutputCurrency,
-}: MoveMoneyRequestDraftToSelfDMParams) {
-    if (!transaction?.transactionID) {
-        return;
-    }
-    setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, currentUserAccountID);
-    setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
-
-    if (!isDistanceRequest(transaction)) {
-        return;
-    }
-    // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place makes the Rate
-    // field read "Pending..." and the amount go blank once the expense is on the self DM. Re-resolve the rate the self
-    // DM itself uses, the same way starting a track distance expense does.
-    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
-        reportID: selfDMReport?.reportID,
-        isPolicyExpenseChat: false,
-        isTrackDistanceExpense: true,
-        policy: policyForMovingExpenses,
-        lastSelectedDistanceRates,
-        expenseDate: transaction.created,
-    });
-    setCustomUnitRateID(transaction.transactionID, selfDMRateID, transaction, policyForMovingExpenses, false, policyForMovingExpenses?.outputCurrency ?? personalPolicyOutputCurrency);
-}
-
 /** Get report policy id of IOU request */
 function getIOURequestPolicyID(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): string | undefined {
     // Workspace sender will exist for invoices
@@ -829,13 +785,7 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
  * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(
-    transactionID: string,
-    category: string,
-    policy: OnyxEntry<Policy>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isMovingFromTrackExpense?: boolean,
-) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         category,
     });
@@ -847,16 +797,6 @@ function setMoneyRequestCategory(
             taxCode: '',
             taxAmount: null,
             taxValue: null,
-        });
-        return;
-    }
-    const transaction = getAllTransactionDrafts()[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy, getCurrencyDecimals);
-    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-        setMoneyRequestTaxRateValues(transactionID, {
-            taxCode: categoryTaxCode,
-            taxAmount: categoryTaxAmount,
-            taxValue: categoryTaxValue,
         });
     }
 }
@@ -1229,6 +1169,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft,
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
+    rules,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -1242,6 +1183,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -1263,7 +1205,7 @@ function updateDistanceRateOnExpenseDateChange({
     if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
         const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
-        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, getCurrencyDecimals, distanceUnit);
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, rules, getCurrencyDecimals, distanceUnit);
         setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
         setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
         setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);
@@ -1310,7 +1252,6 @@ export {
     setMoneyRequestParticipantsSyncedAccountIDs,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
-    moveMoneyRequestDraftToSelfDM,
     getIOURequestPolicyID,
     updateLastLocationPermissionPrompt,
     setMultipleMoneyRequestParticipantsFromReport,
