@@ -37,7 +37,7 @@ static BOOL frameIsInImage(SentryFrame *_Nullable frame, NSString *imageName) {
 
 #pragma mark - App hang context
 
-// Tags and grouping for App Hang events. V2 counts time spent inactive or in the background as hang time.
+// Tags and grouping for App Hang events. V2 counts time spent inactive as hang time, but not time in the background.
 // Remove this section together with App Hang tracking, which sentry-cocoa 10 drops in favor of MetricKit.
 
 static NSString *const appHangMechanismType = @"AppHang";
@@ -204,7 +204,7 @@ static void addAppHangContext(SentryEvent *event, SentryException *hang) {
         // "launch" until the first return from the background before the hang.
         NSUInteger activationsBeforeHang = activations > 0 && becameActive > start ? activations - 1 : activations;
         tags[@"app_hang.since"] = activationsBeforeHang <= 1 ? @"launch" : @"resume";
-        // Includes returning from the background mid-hang: V2 counts the time the app was suspended.
+        // Includes returning from the background mid-hang.
         if (enteredBackground > start || (activations > 1 && becameActive > start)) {
             tags[@"app_hang.interrupted"] = @"background";
         } else if (resignedActive > start) {
