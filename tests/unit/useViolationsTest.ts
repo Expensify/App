@@ -343,6 +343,36 @@ describe('useViolations', () => {
     });
 
     describe('getViolationsForField - allTagLevelsRequired special logic', () => {
+        it('should hide an unnamed allTagLevelsRequired violation on a filled tag row when missingTag comes first', () => {
+            // Given a missing tag violation before a required-level violation that does not name a tag row
+            const violations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {}},
+                {name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, data: {}},
+            ];
+
+            // When checking a row that already has a tag value
+            const {result} = renderHook(() => useViolations(violations, false));
+            const violationsForDepartment = result.current.getViolationsForField('tag', {tagListName: 'Department'}, false, 'Engineering');
+
+            // Then the missing-level error is hidden because it belongs to an empty row, while the other violation remains
+            expect(violationsForDepartment.map((violation) => violation.name)).toEqual([CONST.VIOLATIONS.MISSING_TAG]);
+        });
+
+        it('should keep an unnamed allTagLevelsRequired violation on an empty tag row when missingTag comes first', () => {
+            // Given a missing tag violation before a required-level violation that does not name a tag row
+            const violations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {}},
+                {name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, data: {}},
+            ];
+
+            // When checking a required tag row that is still empty
+            const {result} = renderHook(() => useViolations(violations, false));
+            const violationsForProject = result.current.getViolationsForField('tag', {tagListName: 'Project'}, false, '');
+
+            // Then the missing-level error remains because this row still needs a tag
+            expect(violationsForProject.map((violation) => violation.name)).toEqual([CONST.VIOLATIONS.MISSING_TAG, CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED]);
+        });
+
         it('should filter allTagLevelsRequired violations by tagName when tagValue is provided', () => {
             // Given allTagLevelsRequired violations that identify which tag levels are incomplete
             // This violation appears when one tag is set but others are required

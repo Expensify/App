@@ -123,23 +123,27 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
     const getViolationsForField = (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         const currentViolations = violationsByField.get(field) ?? [];
 
+        // Since tag levels can have different violations, we need to further filter those. If the violation isnt for multi-level tags, we can just return the violations
         if (field !== 'tag' || (data?.tagListIndex === undefined && data?.tagListName === undefined && !tagValue)) {
             return currentViolations;
         }
 
         return currentViolations.flatMap((violation) => {
-            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
-            // tagListIndex can be 0 so we compare with undefined
             if (violation.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(violation.data?.errorIndexes)) {
                 return violation.data.errorIndexes.includes(data.tagListIndex) ? [{...violation, data: {...violation.data, tagName: data.tagListName}}] : [];
             }
 
+            if (violation.name === CONST.VIOLATIONS.NONDEFAULT_TAG && violation.data?.tagListIndex !== undefined && data?.tagListIndex !== undefined) {
+                return violation.data.tagListIndex === data.tagListIndex ? [violation] : [];
+            }
+
             if (violation.name === CONST.VIOLATIONS.MISSING_TAG) {
+                // A named missing tag belongs only to its row
                 if (data?.tagListName && violation.data?.tagName && violation.data.tagName !== data.tagListName) {
                     return [];
                 }
 
-                // A missing tag without a name applies to each dependent tag list.
+                // An unnamed missing tag applies to each dependent row
                 if (policyHasDependentTags && data?.tagListName && !violation.data?.tagName) {
                     return [{...violation, data: {...violation.data, tagName: data.tagListName}}];
                 }
@@ -149,6 +153,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
                 return [];
             }
 
+            // A filled row should show this error only when the violation names that row
             if (violation.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue && violation.data?.tagName !== data?.tagListName) {
                 return [];
             }
