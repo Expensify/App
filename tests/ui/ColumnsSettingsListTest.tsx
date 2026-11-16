@@ -54,6 +54,31 @@ beforeAll(async () => {
     await IntlStore.load('en');
 });
 
+it('uses a saved selection that arrives while the picker is open', () => {
+    // Given the picker opens before the saved preference is available
+    const onSave = jest.fn();
+    const picker = (currentColumns: SearchCustomColumnIds[]) => (
+        <NavigationContainer>
+            <ColumnsSettingsList
+                allColumns={ALL_COLUMNS}
+                defaultSelectedColumns={DEFAULT_COLUMNS}
+                currentColumns={currentColumns}
+                requiredColumns={new Set([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT])}
+                onSave={onSave}
+            />
+        </NavigationContainer>
+    );
+    const {rerender} = render(picker([]));
+    const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+
+    // When the saved preference arrives and the user saves without editing
+    rerender(picker(savedColumns));
+    fireEvent.press(screen.getByText('Save'));
+
+    // Then the picker saves the loaded selection instead of its initial defaults
+    expect(onSave).toHaveBeenCalledWith(savedColumns);
+});
+
 describe('ColumnsSettingsList search', () => {
     it('shows only the columns whose name contains the search text', () => {
         // Given the columns page with several columns

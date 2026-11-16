@@ -1046,6 +1046,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
     parentReport,
     isOffline,
+    shouldShowCustomizeFields = false,
     rules,
     cardList,
 }: {
@@ -1069,6 +1070,8 @@ function getSecondaryReportActions({
     parentReport?: OnyxEntry<Report>;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
+    /** The header belongs to a report displayed as a single expense. */
+    shouldShowCustomizeFields?: boolean;
     rules: OnyxCollection<Rule>;
     cardList: OnyxEntry<CardList>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -1240,6 +1243,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
+    if (shouldShowCustomizeFields) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, submitterLogin, policy, cardList, reportActions ?? [], true)) {
@@ -1399,6 +1406,10 @@ function getSecondaryTransactionThreadActions({
         if (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) {
             options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER);
         }
+    }
+
+    if (isExpenseReportUtils(parentReport)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

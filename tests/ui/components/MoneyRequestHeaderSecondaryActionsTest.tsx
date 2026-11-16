@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, waitFor} from '@testing-library/react-native';
 
 import MoneyRequestHeaderSecondaryActions from '@components/MoneyRequestHeaderSecondaryActions';
 import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -6,10 +6,12 @@ import type * as OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 
 import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
+import Navigation from '@libs/Navigation/Navigation';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -141,6 +143,10 @@ describe('MoneyRequestHeaderSecondaryActions', () => {
         });
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('passes the iouReport transactions from useReportTransactionsCollection to deleteTrackExpense on delete', () => {
         render(
             <MoneyRequestHeaderSecondaryActions
@@ -159,5 +165,26 @@ describe('MoneyRequestHeaderSecondaryActions', () => {
         }).then(() => {
             expect(mockedDeleteTrackExpense).toHaveBeenCalledWith(expect.objectContaining({iouReportTransactions: Object.values(mockIouReportTransactionsByKey)}));
         });
+    });
+
+    it('opens Customize fields for the parent report from an expense thread', async () => {
+        // Given an expense thread with the Customize fields option available.
+        const customizeFields = CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS;
+        mockedGetSecondaryTransactionThreadActions.mockReturnValue([customizeFields]);
+        const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        render(
+            <MoneyRequestHeaderSecondaryActions
+                reportID={TEST_REPORT_ID}
+                onBackButtonPress={() => {}}
+            />,
+        );
+
+        // When the user selects the option from More.
+        const option = mockCapturedDropdownOptions.find(({value}) => value === customizeFields);
+        expect(option).toBeDefined();
+        option?.onSelected();
+
+        // Then the picker uses the parent report's fields and columns.
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(TEST_PARENT_REPORT_ID, true)));
     });
 });

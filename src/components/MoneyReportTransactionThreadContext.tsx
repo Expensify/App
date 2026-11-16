@@ -19,6 +19,8 @@ type MoneyReportTransactionThreadContextValue = {
     requestParentReportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | null;
     transactionThreadReportID: string | undefined;
     transactionThreadReport: OnyxTypes.Report | undefined;
+    /** Counts the visible expenses even while their thread data is still loading. */
+    hasSingleTransaction: boolean;
     /** Filtered report actions for the transaction thread */
     reportActions: OnyxTypes.ReportAction[];
 };
@@ -28,6 +30,7 @@ const defaultValue: MoneyReportTransactionThreadContextValue = {
     requestParentReportAction: null,
     transactionThreadReportID: undefined,
     transactionThreadReport: undefined,
+    hasSingleTransaction: false,
     reportActions: [],
 };
 
@@ -40,7 +43,7 @@ type MoneyReportTransactionThreadProviderProps = {
 };
 
 function MoneyReportTransactionThreadProvider({reportID, children}: MoneyReportTransactionThreadProviderProps) {
-    const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
+    const {transactionThreadReportID, transactionThreadReport, hasSingleTransaction, reportActions} = useTransactionThreadReport(reportID);
     const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
 
     // Parent lookup uses the raw Onyx collection so Hold/Unhold still work when the parent IOU is
@@ -55,6 +58,7 @@ function MoneyReportTransactionThreadProvider({reportID, children}: MoneyReportT
         requestParentReportAction: requestParentReportAction ?? null,
         transactionThreadReportID,
         transactionThreadReport,
+        hasSingleTransaction,
         reportActions: reportActions ?? [],
     };
 

@@ -75,6 +75,7 @@ describe('MoneyReportTransactionThreadContext', () => {
         mockUseTransactionThreadReport.mockReturnValue({
             transactionThreadReportID: undefined,
             transactionThreadReport: undefined,
+            hasSingleTransaction: false,
             reportActions: [],
         });
     });
@@ -86,6 +87,7 @@ describe('MoneyReportTransactionThreadContext', () => {
             iouTransactionID: undefined,
             requestParentReportAction: null,
             transactionThreadReportID: undefined,
+            hasSingleTransaction: false,
             reportActions: [],
         });
     });
@@ -109,6 +111,7 @@ describe('MoneyReportTransactionThreadContext', () => {
         mockUseTransactionThreadReport.mockReturnValue({
             transactionThreadReportID: THREAD_REPORT_ID,
             transactionThreadReport: createTransactionThreadReport(PARENT_ACTION_ID),
+            hasSingleTransaction: true,
             reportActions: filteredReportActions,
         });
         mockUseOnyx.mockImplementation((key: OnyxKey) => {
@@ -122,6 +125,7 @@ describe('MoneyReportTransactionThreadContext', () => {
 
         expect(mockUseTransactionThreadReport).toHaveBeenCalledWith(MONEY_REPORT_ID);
         expect(result.current.transactionThreadReportID).toBe(THREAD_REPORT_ID);
+        expect(result.current.hasSingleTransaction).toBe(true);
         expect(result.current.reportActions).toEqual(filteredReportActions);
         expect(result.current.requestParentReportAction).toEqual(parentReportAction);
         expect(result.current.iouTransactionID).toBe(IOU_TRANSACTION_ID);
@@ -136,6 +140,7 @@ describe('MoneyReportTransactionThreadContext', () => {
         mockUseTransactionThreadReport.mockReturnValue({
             transactionThreadReportID: THREAD_REPORT_ID,
             transactionThreadReport: createTransactionThreadReport(PARENT_ACTION_ID),
+            hasSingleTransaction: true,
             reportActions: [],
         });
         mockUseOnyx.mockImplementation((key: OnyxKey) => {
@@ -164,6 +169,7 @@ describe('MoneyReportTransactionThreadContext', () => {
         mockUseTransactionThreadReport.mockReturnValue({
             transactionThreadReportID: THREAD_REPORT_ID,
             transactionThreadReport: createTransactionThreadReport(PARENT_ACTION_ID),
+            hasSingleTransaction: true,
             reportActions: [],
         });
         mockUseOnyx.mockImplementation((key: OnyxKey) => {
@@ -183,6 +189,7 @@ describe('MoneyReportTransactionThreadContext', () => {
         mockUseTransactionThreadReport.mockReturnValue({
             transactionThreadReportID: THREAD_REPORT_ID,
             transactionThreadReport: createTransactionThreadReport(undefined),
+            hasSingleTransaction: true,
             reportActions: [],
         });
 

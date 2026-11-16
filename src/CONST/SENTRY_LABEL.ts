@@ -1143,6 +1143,7 @@ const SENTRY_LABEL = {
     },
     MORE_MENU: {
         MORE_BUTTON: 'MoreMenu-MoreButton',
+        CUSTOMIZE_FIELDS: 'MoreMenu-CustomizeFields',
         VIEW_DETAILS: 'MoreMenu-ViewDetails',
         EXPORT: 'MoreMenu-Export',
         EXPORT_FILE: 'MoreMenu-ExportFile',
@@ -3707,6 +3708,7 @@ const SENTRY_LABEL = {
     },
     COLUMNS_SETTINGS_LIST: {
         SAVE_BUTTON: 'ColumnsSettingsList-SaveButton',
+        RESET: 'ColumnsSettingsList-Reset',
     },
     COUNTRY_SELECTOR: {
         OPEN: 'CountrySelector-Open',

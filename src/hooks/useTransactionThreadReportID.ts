@@ -1,5 +1,5 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ function useTransactionThreadReportID(reportID: string | undefined) {
     return {
         transactionThreadReportID,
         effectiveTransactionThreadReportID,
+        hasSingleTransaction: isSingleTransactionReport(moneyRequestReport, visibleTransactions),
         reportActions,
     };
 }

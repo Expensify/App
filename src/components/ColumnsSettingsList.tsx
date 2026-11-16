@@ -49,6 +49,12 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
+    /** Defaults to the Columns heading. */
+    title?: string;
+
+    /** Defaults to the Reset columns label. */
+    resetText?: string;
+
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -83,6 +89,8 @@ type ColumnsSettingsListProps = {
 };
 
 function ColumnsSettingsList({
+    title,
+    resetText,
     allColumns,
     defaultSelectedColumns,
     currentColumns,
@@ -124,18 +132,16 @@ function ColumnsSettingsList({
         isSelected: defaultCustomColumns.has(columnId),
     }));
 
-    const [columns, setColumns] = useState(() => {
-        const selectedColumnIds = currentColumns.filter((columnId) => allCustomColumns.includes(columnId));
-
-        if (!selectedColumnIds.length) {
-            return defaultColumns;
-        }
-
-        const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
-        const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
-
-        return [...selected, ...unselected];
-    });
+    const currentSelectedColumnIds = currentColumns.filter((columnId) => allCustomColumns.includes(columnId));
+    const initialColumns = currentSelectedColumnIds.length
+        ? [
+              ...currentSelectedColumnIds.map((columnId) => ({columnId, isSelected: true})),
+              ...allCustomColumns.filter((columnId) => !currentSelectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false})),
+          ]
+        : defaultColumns;
+    // The saved preference can arrive after the picker opens. Keep reading it until the user starts editing.
+    const [editedColumns, setColumns] = useState<typeof defaultColumns>();
+    const columns = editedColumns ?? initialColumns;
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
@@ -182,7 +188,8 @@ function ColumnsSettingsList({
             return;
         }
 
-        setColumns((prevColumns) => {
+        setColumns((editedColumnsBeforeToggle) => {
+            const prevColumns = editedColumnsBeforeToggle ?? initialColumns;
             const columnToUpdate = prevColumns.find((col) => col.columnId === updatedColumnId);
 
             if (!columnToUpdate) {
@@ -272,8 +279,15 @@ function ColumnsSettingsList({
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
-                {isResetColumnsVisible && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+            <HeaderWithBackButton title={title ?? translate('search.columns')}>
+                {isResetColumnsVisible && (
+                    <TextLink
+                        dataSet={{sentryLabel: CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.RESET}}
+                        onPress={resetColumns}
+                    >
+                        {resetText ?? translate('search.resetColumns')}
+                    </TextLink>
+                )}
             </HeaderWithBackButton>
             <ListSearchBar
                 label={translate('common.search')}

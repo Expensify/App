@@ -170,6 +170,7 @@ type ReportSettingsNavigatorParamList = {
     };
     [SCREENS.REPORT_SETTINGS.COLUMNS]: {
         reportID: string;
+        isExpenseView?: string;
     };
 };
 

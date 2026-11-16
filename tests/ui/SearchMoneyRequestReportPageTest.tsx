@@ -200,6 +200,7 @@ function renderPage(options: RenderOptions) {
     mockUseTransactionThreadReportID.mockReturnValue({
         transactionThreadReportID,
         effectiveTransactionThreadReportID: transactionThreadReportID,
+        hasSingleTransaction: !!report && Object.keys(allReportTransactions).length === 1,
         reportActions,
     });
     mockUseSearchResultsContext.mockReturnValue({

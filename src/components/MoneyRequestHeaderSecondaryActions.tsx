@@ -2,6 +2,7 @@ import useActivePolicy from '@hooks/useActivePolicy';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useCustomizeFieldsAction from '@hooks/useCustomizeFieldsAction';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -425,9 +426,11 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         firstPolicy: filteredPoliciesInfo?.firstPolicy,
     };
 
+    const customizeFieldsAction = useCustomizeFieldsAction(parentReport?.reportID);
     const secondaryActionsImplementation: Partial<
         Record<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>, DropdownOption<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>>>
     > = {
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: customizeFieldsAction,
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD]: {
             text: translate('iou.hold'),
             icon: expensifyIcons.Stopwatch,

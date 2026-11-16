@@ -1659,6 +1659,7 @@ const translations = {
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
+        customizeFields: 'Customize fields',
         pending: 'Pending',
         canceled: 'Canceled',
         posted: 'Posted',
@@ -11236,6 +11237,7 @@ const translations = {
         columns: 'Columns',
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
+        resetFields: 'Reset fields',
         columnMenu: {
             openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
             sortAscending: 'Sort ascending',

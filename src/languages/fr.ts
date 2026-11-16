@@ -1526,6 +1526,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancelPayment: 'Annuler le paiement',
         cancelPaymentConfirmation: 'Voulez-vous vraiment annuler ce paiement ?',
         viewDetails: 'Afficher les détails',
+        customizeFields: 'Personnaliser les champs',
         pending: 'En attente',
         canceled: 'Annulé',
         posted: 'Publié',
@@ -10951,6 +10952,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         columns: 'Colonnes',
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
+        resetFields: 'Réinitialiser les champs',
         columnMenu: {
             openMenu: ({columnName}: {columnName: string}) => `Options de la colonne ${columnName}`,
             sortAscending: 'Trier par ordre croissant',

@@ -170,6 +170,7 @@ describe('useHoldRejectActions - report-level reject', () => {
             requestParentReportAction: {reportActionID: 'parent-action-1', actionName: CONST.REPORT.ACTIONS.TYPE.IOU} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>,
             transactionThreadReportID: undefined,
             transactionThreadReport: undefined,
+            hasSingleTransaction: false,
             reportActions: [],
         });
         await Onyx.merge(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, false);

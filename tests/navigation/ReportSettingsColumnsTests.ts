@@ -1,8 +1,11 @@
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {config} from '@libs/Navigation/linkingConfig/config';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
 
 describe('ReportSettingsColumns route and navigation', () => {
     describe('ROUTES.REPORT_SETTINGS_COLUMNS', () => {
@@ -37,6 +40,19 @@ describe('ReportSettingsColumns route and navigation', () => {
     });
 
     describe('linkingConfig', () => {
+        it('opens the shared picker in expense mode', () => {
+            // Given an expense whose field preferences come from the containing report.
+            const reportID = '123456';
+
+            // When the expense menu opens the picker for that report.
+            const path = ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(reportID, true);
+            const route = findFocusedRoute(getStateFromPath(path));
+
+            // Then the shared screen receives both the containing report ID and the expense mode.
+            expect(path).toBe(`r/${reportID}/settings/columns?isExpenseView=true`);
+            expect(route).toMatchObject({name: SCREENS.REPORT_SETTINGS.COLUMNS, params: {reportID, isExpenseView: 'true'}});
+        });
+
         it('should map COLUMNS screen to the correct route path', () => {
             const rightModalConfig = config?.screens?.[NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
             const reportSettingsConfig =

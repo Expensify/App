@@ -4,6 +4,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
+import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -14,6 +15,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useCustomizeFieldsAction from '@hooks/useCustomizeFieldsAction';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
@@ -64,6 +66,7 @@ import {
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
+    isExpenseReport,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
     navigateToDetailsPage,
@@ -413,6 +416,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     });
 
     const shareActions = useShareActions({reportID, policy});
+    const customizeFieldsAction = useCustomizeFieldsAction(moneyRequestReport?.reportID);
+    const {hasSingleTransaction} = useMoneyReportTransactionThread();
 
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
@@ -434,6 +439,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isOffline,
+              shouldShowCustomizeFields: isExpenseReport(moneyRequestReport) && hasSingleTransaction,
               rules,
               cardList,
           })
@@ -441,6 +447,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     // Merge all action implementations
     const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
+        [CONST.REPORT.SECONDARY_ACTIONS.CUSTOMIZE_FIELDS]: customizeFieldsAction,
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),

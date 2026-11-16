@@ -235,6 +235,7 @@ describe('useTransactionThreadReportID', () => {
 
         expect(result.current.transactionThreadReportID).toBe(CONST.FAKE_REPORT_ID);
         expect(result.current.effectiveTransactionThreadReportID).toBe(CONST.FAKE_REPORT_ID);
+        expect(result.current.hasSingleTransaction).toBe(true);
     });
 
     it('returns undefined when more than one visible transaction is associated with the report', () => {
@@ -262,6 +263,7 @@ describe('useTransactionThreadReportID', () => {
 
         expect(result.current.transactionThreadReportID).toBeUndefined();
         expect(result.current.effectiveTransactionThreadReportID).toBeUndefined();
+        expect(result.current.hasSingleTransaction).toBe(false);
     });
 
     it('forces effectiveTransactionThreadReportID to undefined while keeping the derived id when a sent-money IOU PAY is present', () => {

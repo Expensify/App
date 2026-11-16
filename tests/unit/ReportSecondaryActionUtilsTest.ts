@@ -5765,6 +5765,31 @@ describe('getSecondaryTransactionThreadActions', () => {
         ).toEqual(result);
     });
 
+    it('offers Customize fields before View details on an expense in a report', () => {
+        // Given an expense in a workspace report.
+        const report = createMock<Report>({reportID: REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE});
+
+        // When the user opens the expense's More menu.
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportActions: undefined,
+            reportTransaction: createMock<Transaction>({reportID: REPORT_ID}),
+            reportAction: undefined,
+            originalTransaction: undefined,
+            policy: undefined,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the field picker is available alongside the expense details.
+        const viewDetailsIndex = result.indexOf(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
+        expect(viewDetailsIndex).toBeGreaterThan(0);
+        expect(result.at(viewDetailsIndex - 1)).toBe(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.CUSTOMIZE_FIELDS);
+    });
+
     it('includes HOLD option', () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

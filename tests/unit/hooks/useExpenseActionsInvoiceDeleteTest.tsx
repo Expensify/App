@@ -112,6 +112,7 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
             requestParentReportAction: iouAction,
             transactionThreadReportID,
             transactionThreadReport,
+            hasSingleTransaction: true,
             reportActions: [iouAction],
         });
 
@@ -183,6 +184,7 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
             requestParentReportAction: iouAction,
             transactionThreadReportID: undefined,
             transactionThreadReport: undefined,
+            hasSingleTransaction: true,
             reportActions: [iouAction],
         });
         mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);

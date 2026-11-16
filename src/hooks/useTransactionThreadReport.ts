@@ -12,13 +12,14 @@ import useTransactionThreadReportID from './useTransactionThreadReportID';
  * whether a report has a single transaction thread (and access its data).
  */
 function useTransactionThreadReport(reportID: string | undefined) {
-    const {transactionThreadReportID, reportActions} = useTransactionThreadReportID(reportID);
+    const {transactionThreadReportID, hasSingleTransaction, reportActions} = useTransactionThreadReportID(reportID);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
 
     return {
         transactionThreadReportID,
         transactionThreadReport,
+        hasSingleTransaction,
         reportActions,
     };
 }

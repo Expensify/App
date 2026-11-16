@@ -1518,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancelPayment: 'Zahlung stornieren',
         cancelPaymentConfirmation: 'Sind Sie sicher, dass Sie diese Zahlung stornieren möchten?',
         viewDetails: 'Details anzeigen',
+        customizeFields: 'Felder anpassen',
         pending: 'Ausstehend',
         canceled: 'Storniert',
         posted: 'Gebucht',
@@ -10918,6 +10919,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         columns: 'Spalten',
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
+        resetFields: 'Felder zurücksetzen',
         columnMenu: {
             openMenu: ({columnName}: {columnName: string}) => `Spaltenoptionen für ${columnName}`,
             sortAscending: 'Aufsteigend sortieren',
