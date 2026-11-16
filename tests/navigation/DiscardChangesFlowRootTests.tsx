@@ -60,9 +60,9 @@ describe.each([
         return null;
     }
 
-    /** A later step with unsaved changes of its own, such as Merchant with typed text */
+    /** A later create expense step with unsaved changes of its own, such as Distance opened from Confirmation with a new distance */
     function DirtyStep() {
-        useDiscardChangesConfirmation({getHasUnsavedChanges: () => true});
+        useDiscardChangesConfirmation({getHasUnsavedChanges: () => true, shouldCloseRHPOnDiscard: true});
         return null;
     }
 
