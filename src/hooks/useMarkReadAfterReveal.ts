@@ -1,5 +1,7 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {getDBTimeWithSkew} from '@libs/NetworkState';
+import {Scheduler} from '@libs/Scheduler';
+import type {IdleTask} from '@libs/Scheduler';
 
 import {readNewestAction} from '@userActions/Report';
 
@@ -9,11 +11,8 @@ import {DeviceEventEmitter} from 'react-native';
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import usePrevious from './usePrevious';
 
-// Upper bound on how long a read held from a reveal can wait for an idle main thread.
-const READ_AFTER_REVEAL_TIMEOUT_MS = 1000;
-
 type PendingRead = {
-    idleCallbackID: number;
+    task: IdleTask;
     read: () => void;
 };
 
@@ -21,7 +20,7 @@ function cancelIdleRead(pendingRead: PendingRead | null) {
     if (!pendingRead) {
         return;
     }
-    cancelIdleCallback(pendingRead.idleCallbackID);
+    pendingRead.task.cancel();
 }
 
 /**
@@ -89,14 +88,11 @@ function useMarkReadAfterReveal(reportID: string, lastReadTime: string | undefin
             }
             readNewestAction(reportID, isReportActionsLoaded, false, readTime);
         };
-        const idleCallbackID = requestIdleCallback(
-            () => {
-                pendingRead.current = null;
-                read();
-            },
-            {timeout: READ_AFTER_REVEAL_TIMEOUT_MS},
-        );
-        pendingRead.current = {idleCallbackID, read};
+        const task = Scheduler.scheduleWhenIdle(() => {
+            pendingRead.current = null;
+            read();
+        });
+        pendingRead.current = {task, read};
     };
 
     return {markRead, cancelPendingRead};
