@@ -81,6 +81,7 @@ function FileTypeMenuButton({buttonText, accessibilityLabel, types, onSelect}: F
                     anchorRef={anchorRef}
                     headerText={translate('dynamicForm.selectDocumentToUpload')}
                     menuItems={types.map((type) => ({key: type.value, text: type.label, icon: icons.Document}))}
+                    shouldUseScrollView
                     onItemSelected={(item) => {
                         setIsMenuVisible(false);
                         const fileType = item.key;
