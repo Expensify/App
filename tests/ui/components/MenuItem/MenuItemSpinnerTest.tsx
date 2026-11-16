@@ -1,4 +1,4 @@
-/** Verifies that loading replaces an icon without changing its leading slot or row behavior. */
+/** Verifies that spinner leaves preserve the corresponding icon slots and composed row behavior. */
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -19,27 +19,29 @@ import {StyleSheet} from 'react-native';
 function MockIcon() {
     return null;
 }
-const iconLeaves = [
-    {name: 'Icon', Component: MenuItem.Icon, Spinner: MenuItem.Spinner, isNarrow: false},
-    {name: 'IconNarrow', Component: MenuItem.IconNarrow, Spinner: MenuItem.SpinnerNarrow, isNarrow: true},
+const spinnerLeaves = [
+    {name: 'Spinner', IconLeaf: MenuItem.Icon, Spinner: MenuItem.Spinner, isNarrow: false},
+    {name: 'SpinnerNarrow', IconLeaf: MenuItem.IconNarrow, Spinner: MenuItem.SpinnerNarrow, isNarrow: true},
 ];
 
 function Wrapper({children}: PropsWithChildren) {
     return <LocaleContextProvider>{children}</LocaleContextProvider>;
 }
 
-describe.each(iconLeaves)('MenuItem.$name loading', ({Component, Spinner, isNarrow}) => {
-    it.each([false, true])('preserves the icon slot with isLoading=%s', (isLoading) => {
-        // Given each leaf has its own slot width, which must not disappear while loading
+describe.each(spinnerLeaves)('MenuItem.$name', ({IconLeaf, Spinner, isNarrow}) => {
+    it('uses the supporting color and corresponding icon slot styles', () => {
+        // Given spinner leaves must fit the icon slots they replace
         const {result} = renderHook(() => ({styles: useThemeStyles(), theme: useTheme()}));
         const slotStyle = StyleSheet.flatten([result.current.styles.popoverMenuIcon, isNarrow && result.current.styles.wAuto]);
 
-        // When the leaf renders in its normal or loading state
+        // When the caller composes a spinner instead of an icon
         render(
             <Wrapper>
                 <MenuItem.Root>
                     <MenuItem.Row>
-                        <MenuItem.Leading>{isLoading ? <Spinner /> : <Component src={MockIcon} />}</MenuItem.Leading>
+                        <MenuItem.Leading>
+                            <Spinner />
+                        </MenuItem.Leading>
                         <MenuItem.Content>
                             <MenuItem.Title>Row title</MenuItem.Title>
                         </MenuItem.Content>
@@ -48,19 +50,12 @@ describe.each(iconLeaves)('MenuItem.$name loading', ({Component, Spinner, isNarr
             </Wrapper>,
         );
 
-        // Then exactly one visual is rendered, with the same slot styles and supporting spinner color
+        // Then the spinner preserves the slot styles without rendering an icon alongside it
         expect(screen.getByText('Row title')).toBeOnTheScreen();
-        if (isLoading) {
-            const spinner = screen.UNSAFE_getByType(ActivityIndicator);
-            expect(spinner.props.color).toBe(result.current.theme.textSupporting);
-            expect(StyleSheet.flatten(spinner.parent?.props.style)).toEqual(slotStyle);
-            expect(screen.UNSAFE_queryByType(Icon)).toBeNull();
-        } else {
-            const icon = screen.UNSAFE_getByType(Icon);
-            expect(icon.props.src).toBe(MockIcon);
-            expect(StyleSheet.flatten(icon.props.additionalStyles)).toEqual(slotStyle);
-            expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
-        }
+        const spinner = screen.UNSAFE_getByType(ActivityIndicator);
+        expect(spinner.props.color).toBe(result.current.theme.textSupporting);
+        expect(StyleSheet.flatten(spinner.parent?.props.style)).toEqual(slotStyle);
+        expect(screen.UNSAFE_queryByType(Icon)).toBeNull();
     });
 
     it('restores the glyph and keeps the row action after loading finishes', async () => {
@@ -70,7 +65,7 @@ describe.each(iconLeaves)('MenuItem.$name loading', ({Component, Spinner, isNarr
             <Wrapper>
                 <MenuItem.Root onPress={onPress}>
                     <MenuItem.Row>
-                        <MenuItem.Leading>{isLoading ? <Spinner /> : <Component src={MockIcon} />}</MenuItem.Leading>
+                        <MenuItem.Leading>{isLoading ? <Spinner /> : <IconLeaf src={MockIcon} />}</MenuItem.Leading>
                         <MenuItem.Content>
                             <MenuItem.Title>Open row</MenuItem.Title>
                         </MenuItem.Content>
