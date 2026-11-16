@@ -516,7 +516,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty} = useTableContext<TableData>();
+    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty, noResultsStateElement} =
+        useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -525,7 +526,8 @@ function TableBody(props: TableBodyProps) {
         emptyMessage = translate('common.noResultsFound');
     }
 
-    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
+    const isAsyncSearchInFlight = !!(noResultsStateElement?.props as {shouldShowLoadingIndicator?: boolean} | undefined)?.shouldShowLoadingIndicator;
+    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult && !isAsyncSearchInFlight, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
     if ((isEmptyResult || isDefaultViewEmpty || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {

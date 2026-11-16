@@ -117,8 +117,23 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         setShouldShowError(false);
     };
 
+    // Full-number queries trust the server match, since masked names share digit suffixes; last-four matches are flagged as unverified.
+    const {resultsQuery, matchedEncryptedNumbers, lastFourEncryptedNumbers, isFullNumberQuery} = companyCardNumberSearch;
+    const hasCurrentResults = !!resultsQuery && normalizeCardNumber(searchText) === resultsQuery;
+    const lastFourWarning = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
+    let searchedListOptions;
+    if (isFullNumberQuery) {
+        searchedListOptions = hasCurrentResults
+            ? cardListOptions
+                  .filter((option) => matchedEncryptedNumbers.has(option.value))
+                  .map((option) => (lastFourEncryptedNumbers.has(option.value) ? {...option, alternateText: lastFourWarning} : option))
+            : [];
+    } else {
+        searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+    }
+
     const submit = () => {
-        if (!cardSelected) {
+        if (!cardSelected || !searchedListOptions.some((option) => option.value === cardSelected)) {
             setShouldShowError(true);
             return;
         }
@@ -142,23 +157,6 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             }
         });
     };
-
-    // For a full-number query the server is authoritative: the masked card name shares digit suffixes with
-    // unrelated cards, so a tokenized match would surface a card whose hidden digits differ from what the
-    // admin typed. Partial (last-four) matches are flagged so the admin can tell they aren't verified.
-    const {resultsQuery, matchedEncryptedNumbers, lastFourEncryptedNumbers, isFullNumberQuery} = companyCardNumberSearch;
-    const hasCurrentResults = !!resultsQuery && normalizeCardNumber(searchText) === resultsQuery;
-    const lastFourWarning = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
-    let searchedListOptions;
-    if (isFullNumberQuery) {
-        searchedListOptions = hasCurrentResults
-            ? cardListOptions
-                  .filter((option) => matchedEncryptedNumbers.has(option.value))
-                  .map((option) => (lastFourEncryptedNumbers.has(option.value) ? {...option, alternateText: lastFourWarning} : option))
-            : [];
-    } else {
-        searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
@@ -226,7 +224,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         textInputOptions={textInputOptions}
                         customListHeaderContent={customListHeader}
                         shouldScrollToFocusedIndex={false}
-                        shouldShowLoadingPlaceholder={companyCardNumberSearch.isSearching}
+                        isLoadingNewOptions={companyCardNumberSearch.isSearching}
                         shouldShowListEmptyContent={companyCardNumberSearch.hasError}
                         listEmptyContent={
                             companyCardNumberSearch.hasError ? (

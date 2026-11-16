@@ -193,7 +193,7 @@ function WorkspaceCompanyCardTableRow({
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             )}
-                            {!!isPartialNumberMatch && <Text style={[styles.textLabelError, styles.lh16, styles.mr3]}>{partialNumberMatchHint}</Text>}
+                            {!!isPartialNumberMatch && <Text style={[styles.textLabelSupporting, styles.lh16, styles.mr3]}>{partialNumberMatchHint}</Text>}
                         </View>
                     </View>
 
