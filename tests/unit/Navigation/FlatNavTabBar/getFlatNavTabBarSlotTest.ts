@@ -58,7 +58,7 @@ describe('getFlatNavTabBarSlot', () => {
         // When its slot is resolved
         const result = getFlatNavTabBarSlot({focusedTabRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, activeFlatNavSectionID: undefined});
 
-        // Then Expenses is highlighted, since the Search tab opens on it, and More is not highlighted with nothing active in its menu
+        // Then Expenses is highlighted, since it is the default section of the Search tab, and More is not highlighted with nothing active in its menu
         expect(result).toBe(FLAT_NAV_TAB_BAR_SLOT.EXPENSES);
     });
 });

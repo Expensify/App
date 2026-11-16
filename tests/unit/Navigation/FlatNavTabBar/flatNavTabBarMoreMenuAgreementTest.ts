@@ -43,8 +43,23 @@ describe('flat nav tab bar slot and More menu', () => {
             return activeItemCount > 1 || isMoreHighlighted !== (activeItemCount === 1);
         });
 
-        // Then More is highlighted only with exactly one active entry, so a saved search while the Saved section is hidden or an
-        // Accounting search for a user without Accounting never highlights More with nothing active in its menu
+        // Then More is highlighted only with exactly one active entry when both are given the section of a visible search, so
+        // a saved search while the Saved section is hidden never highlights More with nothing active in its menu
         expect(mismatches).toEqual([]);
+    });
+
+    it('should highlight More with no active entry for an Accounting search the user cannot see', () => {
+        // Given a user without the Accounting section on an Accounting search, with the section read from the search key
+        // alone, because checking whether Accounting is visible needs the settings of every workspace
+        const sections = createSections([FLAT_NAV.SECTION.ACCOUNTING]);
+        const focus = {focusedTabRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, activeFlatNavSectionID: FLAT_NAV.SECTION.ACCOUNTING};
+
+        // When the slot and the More entries are built
+        const slot = getFlatNavTabBarSlot(focus);
+        const activeItems = getMoreMenuItems({...focus, sections}).filter((item) => item.isActive);
+
+        // Then More is highlighted while its menu has no active entry, since the menu does not list Accounting
+        expect(slot).toBe(FLAT_NAV_TAB_BAR_SLOT.MORE);
+        expect(activeItems).toEqual([]);
     });
 });

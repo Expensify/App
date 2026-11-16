@@ -27,6 +27,7 @@ type MoreMenuSectionItem = MoreMenuItemBase & {
     /** The flat nav section the entry opens */
     section: FlatNavSection;
 
+    /** Todo count of the section, as its badge shows it. Undefined when the section has no todo searches or their count is 0. */
     badgeText?: string;
 };
 
