@@ -122,7 +122,7 @@ describe('Column availability single source of truth', () => {
         const expenseColumns = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
 
-        // Then only Search offers it, because the report view already shows converted amounts in its Total column
+        // Then only Search offers it, because the column is scoped to expense searches
         expect(expenseColumns).toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
         expect(reportColumns).not.toContain(TABLE_COLUMNS.CONVERTED_AMOUNT);
     });
