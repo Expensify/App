@@ -186,13 +186,14 @@ function buildBookingApprovalStateOnyxData(reportID: string, tripData: TripRoomD
 
 /** Like expense approvals, the green dot goes away once nothing in the trip waits on the approver */
 function buildOutstandingChildRequestOnyxData(tripRoomReport: Report, decidedTripData: TripRoomData, currentUserAccountID: number): BookingDecisionOnyxData {
-    if (!tripRoomReport.hasOutstandingChildRequest || canApproveAnyBooking(decidedTripData, currentUserAccountID)) {
+    if (!tripRoomReport.hasOutstandingChildRequest) {
         return {optimisticData: [], successData: [], failureData: []};
     }
 
+    // A failed decision puts its booking back to outstanding, so restore the dot even if a later decision cleared it
     const key = `${ONYXKEYS.COLLECTION.REPORT}${tripRoomReport.reportID}` as const;
     return {
-        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {hasOutstandingChildRequest: false}}],
+        optimisticData: canApproveAnyBooking(decidedTripData, currentUserAccountID) ? [] : [{onyxMethod: Onyx.METHOD.MERGE, key, value: {hasOutstandingChildRequest: false}}],
         successData: [],
         failureData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {hasOutstandingChildRequest: true}}],
     };
@@ -206,15 +207,19 @@ function buildTripStatusSnapshotOnyxData(reportID: string, decidedTripData: Trip
     for (const snapshot of Object.values(getAllSnapshots() ?? {})) {
         const snapshotHash = snapshot?.search?.hash;
         const previousTripStatus = snapshot?.data?.[tripRoomSearchKey]?.status;
-        if (snapshotHash === undefined || !previousTripStatus || previousTripStatus === CONST.SEARCH.TRIP_STATUS.CANCELED || previousTripStatus === tripStatus) {
+        if (snapshotHash === undefined || !previousTripStatus || previousTripStatus === CONST.SEARCH.TRIP_STATUS.CANCELED) {
             continue;
         }
         const key = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
-        optimisticSnapshotData[tripRoomSearchKey] = {status: tripStatus};
+        if (previousTripStatus !== tripStatus) {
+            const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+            optimisticSnapshotData[tripRoomSearchKey] = {status: tripStatus};
+            onyxData.optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: optimisticSnapshotData}});
+        }
+
+        // Always roll back, since a later decision may have changed the status from this decision's optimistic state
         const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
         failureSnapshotData[tripRoomSearchKey] = {status: previousTripStatus};
-        onyxData.optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: optimisticSnapshotData}});
         onyxData.failureData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: failureSnapshotData}});
     }
     return onyxData;

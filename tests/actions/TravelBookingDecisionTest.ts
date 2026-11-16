@@ -139,6 +139,31 @@ describe('Travel booking decisions', () => {
         expect(confirmed?.tripData?.bookingApprovalState?.[HOTEL_PNR_ID]?.pendingAction).toBeFalsy();
     });
 
+    it('puts the trip back to outstanding when the first of two back-to-back approvals fails', async () => {
+        // Given an approver with two outstanding bookings
+        await setUpTrip(buildTripData(CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING));
+
+        // When they approve the hotel, then the flight before the hotel's request settles, reading the trip as the app would
+        const hotelTripData = (await getOnyxValue(reportNameValuePairsKey))?.tripData;
+        approveTravelBookings({tripRoomReport: await getOnyxValue(reportKey), tripData: hotelTripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, [HOTEL_PNR_ID]);
+        await Onyx.update(mockWrite.mock.calls.at(0)?.[2]?.optimisticData ?? []);
+        await waitForBatchedUpdates();
+        const flightTripData = (await getOnyxValue(reportNameValuePairsKey))?.tripData;
+        approveTravelBookings({tripRoomReport: await getOnyxValue(reportKey), tripData: flightTripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, [FLIGHT_PNR_ID]);
+        await Onyx.update(mockWrite.mock.calls.at(1)?.[2]?.optimisticData ?? []);
+        await waitForBatchedUpdates();
+
+        // And the server fails the hotel, then confirms the flight, in the order the requests were sent
+        await Onyx.update(mockWrite.mock.calls.at(0)?.[2]?.failureData ?? []);
+        await Onyx.update(mockWrite.mock.calls.at(1)?.[2]?.successData ?? []);
+        await waitForBatchedUpdates();
+
+        // Then the hotel still waits on the approver, so the green dot and the outstanding Spend row come back
+        expect((await getOnyxValue(reportNameValuePairsKey))?.tripData?.bookingApprovalState?.[HOTEL_PNR_ID]?.status).toBe('outstanding');
+        expect((await getOnyxValue(reportKey))?.hasOutstandingChildRequest).toBe(true);
+        expect((await getOnyxValue(snapshotKey))?.data?.[reportKey]).toMatchObject({status: CONST.SEARCH.TRIP_STATUS.OUTSTANDING});
+    });
+
     it('blocks Approve and Reject offline and shows the offline message instead of queuing them', async () => {
         // Given an approver who is offline, since a queued decision could reach Spotnana after the deadline decided the booking
         await setUpTrip(buildTripData(CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING));
