@@ -3695,6 +3695,48 @@ describe('Transaction', () => {
             await mockFetch.resume();
         });
 
+        it('should only mark the transactions that have the DUPLICATED_TRANSACTION violation as dismissed', async () => {
+            // Given a duplicate review of two transactions where only the draft one has the violation, as happens when the other one is on a paid report
+            const flaggedTransactionID = 'dismissTxnFlagged';
+            const unflaggedTransactionID = 'dismissTxnUnflagged';
+            const flaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${flaggedTransactionID}` as const;
+            const unflaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${unflaggedTransactionID}` as const;
+            const testerEmail = 'tester@example.com';
+            const duplicateViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const flaggedTransaction = generateTransaction({transactionID: flaggedTransactionID, reportID: FAKE_OLD_REPORT_ID});
+            const unflaggedTransaction = generateTransaction({transactionID: unflaggedTransactionID, reportID: FAKE_NEW_REPORT_ID});
+
+            mockFetch.pause();
+            await Onyx.merge(flaggedTransactionKey, flaggedTransaction);
+            await Onyx.merge(unflaggedTransactionKey, unflaggedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${flaggedTransactionID}`, duplicateViolations);
+
+            // When the user keeps all of them
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [flaggedTransactionID, unflaggedTransactionID],
+                dismissedPersonalDetails: {login: testerEmail, accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[flaggedTransactionKey]: flaggedTransaction, [unflaggedTransactionKey]: unflaggedTransaction},
+                currentTransactionViolations: [
+                    {transactionID: flaggedTransactionID, violations: duplicateViolations},
+                    {transactionID: unflaggedTransactionID, violations: []},
+                ],
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the flagged transaction gets the dismissal, because a dismissal left on the other one would hide a violation the server raises on it later
+            const optimisticFlaggedTransaction = await getOnyxValue(flaggedTransactionKey);
+            const optimisticUnflaggedTransaction = await getOnyxValue(unflaggedTransactionKey);
+            expect(optimisticFlaggedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]?.[testerEmail]).toEqual(expect.any(Number));
+            expect(optimisticUnflaggedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.DUPLICATED_TRANSACTION]).toBeUndefined();
+
+            await mockFetch.resume();
+        });
+
         describe('integration with useOnyx', () => {
             it('works when violations are read via useOnyx hook', async () => {
                 const transactionID = 'dismissTxn4';

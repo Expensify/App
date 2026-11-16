@@ -645,7 +645,15 @@ function dismissDuplicateTransactionViolation({
     optimisticData.push(...optimisticDataTransactionViolations);
     optimisticData.push(...optimisticReportActions);
 
-    const optimisticDataTransactions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = currentTransactions.map((transaction) => ({
+    // A dismissal written to a transaction without the violation is never confirmed by the server, and would hide the violation if it is raised on that transaction later.
+    const transactionIDsWithDuplicateViolation = new Set(
+        currentTransactionViolations
+            .filter((transactionViolations) => transactionViolations.violations?.some((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION))
+            .map((transactionViolations) => transactionViolations.transactionID),
+    );
+    const transactionsToDismiss = currentTransactions.filter((transaction) => !!transaction && transactionIDsWithDuplicateViolation.has(transaction.transactionID));
+
+    const optimisticDataTransactions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionsToDismiss.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
@@ -667,7 +675,7 @@ function dismissDuplicateTransactionViolation({
         value: transactionViolations.violations?.map((violation) => violation),
     }));
 
-    const failureDataTransaction: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = currentTransactions.map((transaction) => ({
+    const failureDataTransaction: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionsToDismiss.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
