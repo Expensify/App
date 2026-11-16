@@ -37,8 +37,8 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const {translate} = useLocalize();
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
     const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
-    // Overview opens this page on its own route. The pages that ask for a currency change open it on top of themselves,
-    // so it has to go back to whichever page that was, also after a reload.
+
+    // Pages other than Overview open this on top of themselves, so it has to go back to them, also after a reload
     const isDynamicRoute = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.path, isDynamicRoute);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
