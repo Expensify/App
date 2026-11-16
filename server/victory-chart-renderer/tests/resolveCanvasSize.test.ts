@@ -63,22 +63,18 @@ describe('resolveCanvasSize', () => {
             expect(() => resolveCanvasSize(tnode)).toThrow('width and height must be positive numbers');
         });
 
-        const oversizedCases: Array<{label: string; attributes: TNode['attributes']}> = [
+        test.each<{label: string; attributes: TNode['attributes']}>([
             {label: 'width', attributes: {width: '4097', height: '430'}},
             {label: 'height', attributes: {width: '680', height: '16000'}},
             {label: 'width written as an exponent', attributes: {width: '1e9', height: '430'}},
-        ];
+        ])('throws when $label exceeds the maximum', ({attributes}) => {
+            // Given a chart whose size would make the renderer allocate a huge surface
+            const tnode = makeChartNode(attributes);
 
-        for (const {label, attributes} of oversizedCases) {
-            test(`throws when ${label} exceeds the maximum`, () => {
-                // Given a chart whose size would make the renderer allocate a huge surface
-                const tnode = makeChartNode(attributes);
-
-                // When the canvas size is resolved
-                // Then it is rejected before any surface is allocated
-                expect(() => resolveCanvasSize(tnode)).toThrow('width and height must not exceed 4096');
-            });
-        }
+            // When the canvas size is resolved
+            // Then it is rejected before any surface is allocated
+            expect(() => resolveCanvasSize(tnode)).toThrow('width and height must not exceed 4096');
+        });
 
         test('throws when only width is provided', () => {
             const tnode = makeChartNode({width: '680'});
