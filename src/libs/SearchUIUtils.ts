@@ -3244,14 +3244,6 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-const MONTHS_PER_YEAR = 12;
-const QUARTERS_PER_YEAR = 4;
-
-/** `Date` rolls an out-of-range month or quarter into another year, so a range is only built for one that names a real period. */
-function isPeriodNumberInRange(value: number, periodsPerYear: number): boolean {
-    return Number.isInteger(value) && value >= 1 && value <= periodsPerYear;
-}
-
 /**
  * The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields.
  * Like `getSelectedGroupFilterEntry`, it reads the shape from the group's keys, so a month or quarter group read as YEAR still gets its year's range.
@@ -3263,11 +3255,9 @@ function getGroupDateRange(groupBy: SearchGroupBy, group: SearchGroup): SearchDa
         case CONST.SEARCH.GROUP_BY.WEEK:
             return 'week' in group && group.week ? DateUtils.getWeekDateRange(group.week) : undefined;
         case CONST.SEARCH.GROUP_BY.MONTH:
-            return 'month' in group && Number.isInteger(group.year) && isPeriodNumberInRange(group.month, MONTHS_PER_YEAR) ? DateUtils.getMonthDateRange(group.year, group.month) : undefined;
+            return 'month' in group ? DateUtils.getMonthDateRange(group.year, group.month) : undefined;
         case CONST.SEARCH.GROUP_BY.QUARTER:
-            return 'quarter' in group && Number.isInteger(group.year) && isPeriodNumberInRange(group.quarter, QUARTERS_PER_YEAR)
-                ? DateUtils.getQuarterDateRange(group.year, group.quarter)
-                : undefined;
+            return 'quarter' in group ? DateUtils.getQuarterDateRange(group.year, group.quarter) : undefined;
         case CONST.SEARCH.GROUP_BY.YEAR:
             return 'year' in group && Number.isInteger(group.year) ? DateUtils.getYearDateRange(group.year) : undefined;
         default:

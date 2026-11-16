@@ -30,6 +30,15 @@ type ChartGroupByConfig = {
     getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
 
+const getMonthRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined);
+
+const getQuarterRange = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined);
+
+/** Builds the drill-down filter for a time group, or no filter when the group has no real period */
+function buildDateFilterQuery(range: ChartBucketRange | undefined): string {
+    return range ? `date>=${range.start} date<=${range.end}` : '';
+}
+
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
  * for displaying grouped transaction data in charts.
@@ -80,14 +89,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? (item.formattedMonth ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         axisLabelSteps: [1, 2, 3, 6],
-        getFilterQuery: (item: GroupedItem) => {
-            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.MONTH) {
-                return '';
-            }
-            const {start, end} = DateUtils.getMonthDateRange(item.year, item.month);
-            return `date>=${start} date<=${end}`;
-        },
-        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? DateUtils.getMonthDateRange(item.year, item.month) : undefined),
+        getFilterQuery: (item: GroupedItem) => buildDateFilterQuery(getMonthRange(item)),
+        getDateRange: getMonthRange,
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
@@ -122,14 +125,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? (item.formattedQuarter ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         axisLabelSteps: [1, 2, 4],
-        getFilterQuery: (item: GroupedItem) => {
-            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.QUARTER) {
-                return '';
-            }
-            const {start, end} = DateUtils.getQuarterDateRange(item.year, item.quarter);
-            return `date>=${start} date<=${end}`;
-        },
-        getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
+        getFilterQuery: (item: GroupedItem) => buildDateFilterQuery(getQuarterRange(item)),
+        getDateRange: getQuarterRange,
     },
     [CONST.SEARCH.GROUP_BY.APPROVER]: {
         titleIconName: 'Users',

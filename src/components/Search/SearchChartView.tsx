@@ -179,7 +179,8 @@ function SearchChartView({
             return;
         }
 
-        if (!queryJSON) {
+        // A time group without a real period (e.g. month 13) has no date filter, so drilling in would open the whole query
+        if (!queryJSON || (getDateRange && !getDateRange(item))) {
             return;
         }
 

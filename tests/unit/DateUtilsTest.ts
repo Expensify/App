@@ -1585,6 +1585,54 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getMonthDateRange', () => {
+        it('returns the first and last day of a month', () => {
+            // Given February of a leap year, whose last day differs from other years
+            // When its range is built
+            // Then the range ends on the 29th
+            expect(DateUtils.getMonthDateRange(2024, 2)).toEqual({start: '2024-02-01', end: '2024-02-29'});
+        });
+
+        it.each([0, 13, 1.5, Number.NaN])('returns undefined for month %p', (month) => {
+            // Given a month that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getMonthDateRange(2025, month)).toBeUndefined();
+        });
+
+        it('returns undefined for a year that is not an integer', () => {
+            // Given a missing year, which `format` would throw on
+            // When a range is built for it
+            // Then there is no range rather than a crash
+            expect(DateUtils.getMonthDateRange(Number.NaN, 6)).toBeUndefined();
+        });
+    });
+
+    describe('getQuarterDateRange', () => {
+        it('returns the first and last day of a quarter', () => {
+            // Given the last quarter of the year
+            // When its range is built
+            // Then it covers October through December
+            expect(DateUtils.getQuarterDateRange(2025, 4)).toEqual({start: '2025-10-01', end: '2025-12-31'});
+        });
+
+        it.each([0, 5, 2.5, Number.NaN])('returns undefined for quarter %p', (quarter) => {
+            // Given a quarter that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getQuarterDateRange(2025, quarter)).toBeUndefined();
+        });
+    });
+
+    describe('isDateStringInMonth', () => {
+        it('matches no date for a month outside the year', () => {
+            // Given month 13, which would otherwise roll into January of the next year
+            // When a January date is checked against it
+            // Then it doesn't match
+            expect(DateUtils.isDateStringInMonth('2026-01-15', 2025, 13)).toBe(false);
+        });
+    });
+
     describe('abbreviated date with a year', () => {
         // cspell:ignore Juni
         // Midday UTC, so the displayed day is the same in every timezone the test can run in.

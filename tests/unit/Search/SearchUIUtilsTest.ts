@@ -4718,7 +4718,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a month group (e.g., date >= 2025-12-15)
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 12);
+            const monthDateRange = {start: '2025-12-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4740,7 +4740,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 6);
+            const monthDateRange = {start: '2025-06-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4766,7 +4766,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a quarter group (e.g., date >= 2025-09-15)
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 3);
+            const quarterDateRange = {start: '2025-07-01', end: '2025-09-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4788,7 +4788,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 2);
+            const quarterDateRange = {start: '2025-04-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4927,7 +4927,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
             // This verifies that both date filters are respected when expanding quarter groups
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1);
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4954,7 +4954,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect GREATER_THAN and LOWER_THAN filters that narrow the range', () => {
             // Test case where both filters narrow down a quarter range
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 4);
+            const quarterDateRange = {start: '2025-10-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4981,7 +4981,7 @@ describe('SearchUIUtils', () => {
         it('should handle multiple date filter objects when multiple date filters exist in flatFilters', () => {
             // Test that adjustTimeRangeToDateFilters correctly merges and processes multiple date filter objects
             // This simulates the scenario where date>2025-12-02 and date<2026-02-02 are stored as separate filter objects
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1); // Q1 2026: 2026-01-01 to 2026-03-31
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const flatFilters = [
                 {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
