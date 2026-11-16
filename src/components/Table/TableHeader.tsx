@@ -310,9 +310,9 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     const {minWidth, maxWidth} = StyleSheet.flatten(column.styling?.containerStyles) ?? {};
     const columnCellSizingStyle = {minWidth, maxWidth};
 
-    // Base sort-button styles shared by both paths. The column's `containerStyles` are horizontal-alignment styles for
-    // the header row, so they belong on this `flexRow` button rather than the column-direction cell wrapper below. Flex
-    // sizing is appended per path since it differs.
+    // Base sort-button styles shared by both paths. The column's `containerStyles` pad the header row, so they belong
+    // on this `flexRow` button rather than the column-direction cell wrapper below. Flex sizing is appended per path
+    // since it differs.
     const alignment = column.styling?.alignment ?? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START;
     const alignmentStyle = {
         [CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START]: undefined,
