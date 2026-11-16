@@ -42,7 +42,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Review the PR
-        uses: Expensify/GitHub-Actions/.github/actions/ai-pr-reviewer@af077e1932be7b9d0c41214a35b9ddd71a9f12af
+        uses: Expensify/GitHub-Actions/.github/actions/ai-pr-reviewer@0ef9159906d43f0eef4ee9bc5a5ea0bd412c65ff
         with:
           pr_number: ${{ github.event.pull_request.number }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
