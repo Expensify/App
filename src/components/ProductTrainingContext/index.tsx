@@ -57,15 +57,20 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
-    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [policyFlags, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => ({
+            isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
+            isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
+            isUserInPaidPolicy: hasAnyPaidPolicy(policies),
+        }),
+    });
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
-    const isUserPolicyEmployee =
-        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
-
-    const isUserPolicyAdmin =
-        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+    const isPolicyDataReady = !!policyFlags && !!currentUserLogin && !isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata);
+    const isUserPolicyEmployee = isPolicyDataReady && policyFlags.isUserPolicyEmployee;
+    const isUserPolicyAdmin = isPolicyDataReady && policyFlags.isUserPolicyAdmin;
+    const isUserInPaidPolicy = isPolicyDataReady && policyFlags.isUserInPaidPolicy;
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
@@ -104,8 +109,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
         return highestPriorityTooltip.name;
     };
-
-    const isUserInPaidPolicy = !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && hasAnyPaidPolicy(allPolicies);
 
     const shouldTooltipBeVisible = (tooltipName: ProductTrainingTooltipName) => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {

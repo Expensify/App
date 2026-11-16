@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import {
     canCancelSubscription,
     hasCardAuthenticatedError,
@@ -89,6 +90,7 @@ function CardSection() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [ownerTravelBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const hasOwnedPaidPolicy = getOwnedPaidPolicies(allPolicies, session?.accountID).length > 0;
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = () => {
         requestRefundByUser();
@@ -204,7 +206,7 @@ function CardSection() {
         // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
         // which an annual subscriber can have
         BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
-    } else if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
+    } else if (shouldShowDiscountBanner(hasOwnedPaidPolicy, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
     } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
