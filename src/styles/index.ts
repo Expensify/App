@@ -7388,9 +7388,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 minHeight,
             }) satisfies ViewStyle,
 
-        autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) =>
+        // The hidden copy is absolutely positioned. On native, a maxWidth there only clamps its box after the text is laid out against the
+        // wider parent, so long text wrapped into fewer lines than the input and the measured height cut off the last lines. A fixed width wraps it like the input.
+        autoGrowHeightHiddenInput: (width: number, maxHeight?: number) =>
             ({
-                maxWidth,
+                width,
                 maxHeight: maxHeight && maxHeight + 1,
                 overflow: 'hidden',
             }) satisfies TextStyle,
