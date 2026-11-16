@@ -8206,9 +8206,10 @@ const plainStyles = (theme: ThemeColors) =>
                 alignItems: 'center',
             }) satisfies ViewStyle,
 
-        insightsRankingTableAverageDashedLine: {
-            width: VictoryTheme.averageLine.strokeWidth,
-        } satisfies ViewStyle,
+        insightsRankingTableAverageDashedLine: (width: number) =>
+            ({
+                width,
+            }) satisfies ViewStyle,
 
         insightsRankingTableAverageLegendMark: {
             height: variables.insightsRankingTableBarHeight + variables.insightsRankingTableAverageMarkerOverhang * 2,

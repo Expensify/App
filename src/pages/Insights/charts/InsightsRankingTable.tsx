@@ -29,6 +29,7 @@ import {StyleSheet, View} from 'react-native';
 import buildRankingTableRows from './buildRankingTableRows';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
+import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
 import InsightsRankingTableRow, {RANKING_TABLE_COLUMN} from './InsightsRankingTableRow';
 
 const AVERAGE_FRACTION_DIGITS = 1;
@@ -130,7 +131,7 @@ function InsightsRankingTable({
                 ))}
                 {!!formattedAverage && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.borderTop, cardPadding]}>
-                        <InsightsRankingTableAverageLine style={styles.insightsRankingTableAverageLegendMark} />
+                        <InsightsRankingTableAverageMarker style={styles.insightsRankingTableAverageLegendMark} />
                         <Text
                             variant="label"
                             style={styles.textSupporting}

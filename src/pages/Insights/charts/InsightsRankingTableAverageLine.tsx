@@ -17,14 +17,14 @@ type InsightsRankingTableAverageLineProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-/** Vertical dashed line marking the average in a ranking table */
+/** Vertical dashed line marking the average through a ranking table, drawn like the average line in charts */
 function InsightsRankingTableAverageLine({style}: InsightsRankingTableAverageLineProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {strokeWidth, opacity} = VictoryTheme.averageLine;
 
     return (
-        <View style={[styles.insightsRankingTableAverageDashedLine, style]}>
+        <View style={[styles.insightsRankingTableAverageDashedLine(strokeWidth), style]}>
             <Svg
                 width="100%"
                 height="100%"

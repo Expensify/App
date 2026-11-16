@@ -24,7 +24,7 @@ import {View} from 'react-native';
 
 import type {RankingTableRow} from './buildRankingTableRows';
 
-import InsightsRankingTableAverageLine from './InsightsRankingTableAverageLine';
+import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
 import InsightsRankingTableChange, {formatRankingTableChange} from './InsightsRankingTableChange';
 
 /** Smaller shares would otherwise be displayed as zero. In percentage points. */
@@ -111,7 +111,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
                     <View style={styles.insightsRankingTableBar(barWidthPercent)} />
                     {averageWidthPercent !== undefined && (
                         <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, variables.insightsRankingTableAverageMarkerOverhang)}>
-                            <InsightsRankingTableAverageLine style={styles.flex1} />
+                            <InsightsRankingTableAverageMarker style={styles.flex1} />
                         </View>
                     )}
                 </View>
