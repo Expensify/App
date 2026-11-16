@@ -268,7 +268,7 @@ describe('useInviteeGettingStartedItems', () => {
         it('should complete "Add your first receipt" once any expense exists', async () => {
             // Given an invitee who created an expense anywhere in the product
             await setupWorkspaceInviteeScenario();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', amount: 100});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', amount: 100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
             await waitForBatchedUpdates();
 
             // When the hook builds the checklist
@@ -308,7 +308,7 @@ describe('useInviteeGettingStartedItems', () => {
             // Given an invitee who finished every step
             await setupWorkspaceInviteeScenario();
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, lastName: 'Doe'}});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', amount: 100});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', amount: 100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
             await Onyx.merge(ONYXKEYS.NVP_LAST_ANDROID_LOGIN, '2026-11-01 10:00:00');
             await waitForBatchedUpdates();
 

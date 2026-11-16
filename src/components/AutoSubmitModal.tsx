@@ -120,7 +120,7 @@ function AutoSubmitModal() {
                         ))}
                     </FeatureTraining.BodyText>
                     {shouldShowDismissOption && <FeatureTraining.DismissOption />}
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                    <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.AUTO_SUBMIT_MODAL.CONFIRM_BUTTON}>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>

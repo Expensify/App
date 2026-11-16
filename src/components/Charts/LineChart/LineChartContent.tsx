@@ -71,6 +71,7 @@ function LineChartCanvas({
     yAxisUnit,
     yAxisUnitPosition = 'left',
     formatValue: formatValueOverride,
+    countDimension,
     shouldUseWholeNumberTicks = false,
     onPointPress,
     onTooltipPress,
@@ -418,6 +419,7 @@ function LineChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}

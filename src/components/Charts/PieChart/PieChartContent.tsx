@@ -57,6 +57,7 @@ function PieChartCanvas({
     valueUnitPosition,
     valueDecimals,
     formatValue: formatValueOverride,
+    countDimension,
     onSlicePress,
     onTooltipPress,
     tooltipFooter,
@@ -247,7 +248,7 @@ function PieChartCanvas({
             touchAction="pan-y"
         >
             <Animated.View
-                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
+                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && !!onSlicePress && styles.cursorPointer]}
                 onTouchStart={onChartTouchStart}
             >
                 {processedSlices.length > 0 && (
@@ -299,6 +300,7 @@ function PieChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={donutWidth}
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}

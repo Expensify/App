@@ -491,6 +491,7 @@ function BaseTextInput({
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.TEXT_INPUT.PASSWORD_VISIBILITY_TOGGLE}
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {

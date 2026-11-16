@@ -33,10 +33,6 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
-// Only the anchored dropdowns beta, so the tests that render the plain menu row keep every other beta off.
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
 
 let mockIsFocused = true;
 // Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.

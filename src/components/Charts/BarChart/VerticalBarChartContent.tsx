@@ -44,6 +44,7 @@ function VerticalBarChartCanvas({
     yAxisUnit,
     yAxisUnitPosition = 'left',
     formatValue: formatValueOverride,
+    countDimension,
     shouldUseWholeNumberTicks = false,
     onBarPress,
     onTooltipPress,
@@ -316,6 +317,7 @@ function VerticalBarChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}

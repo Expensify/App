@@ -25,6 +25,7 @@ import GPSDirection from './GPSDirection';
 import GPSWaypointLayer from './GPSWaypointLayer';
 import LayerOrderAnchors from './LayerOrderAnchors';
 import responder from './responder';
+import useMapboxLanguage from './useMapboxLanguage';
 import utils from './utils';
 
 const LOCATION_PUCK_PULSING = {
@@ -55,7 +56,8 @@ function GPSMapViewContent({
     // Fitting the camera to bounds around a single point zooms it in as far as it goes, so such a trip is centered at a fixed zoom instead
     const singlePointCoordinate = utils.getSinglePointCoordinate(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
 
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
+    useMapboxLanguage(preferredLocale);
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocationPuck', 'MapCurrentLocation']);
@@ -272,6 +274,7 @@ function GPSMapViewContent({
             />
             <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.GPS_CENTER_BUTTON}
                     onPress={centerMap}
                     accessibilityLabel={translate('common.center')}
                 >

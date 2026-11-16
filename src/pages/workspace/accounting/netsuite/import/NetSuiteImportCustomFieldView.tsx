@@ -43,6 +43,15 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     };
 };
 
+const ROW_SENTRY_LABELS = {
+    [INPUT_IDS.LIST_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.LIST_NAME,
+    [INPUT_IDS.TRANSACTION_FIELD_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.TRANSACTION_FIELD_ID,
+    [INPUT_IDS.SEGMENT_NAME]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.SEGMENT_NAME,
+    [INPUT_IDS.INTERNAL_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.INTERNAL_ID,
+    [INPUT_IDS.SCRIPT_ID]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.SCRIPT_ID,
+    [INPUT_IDS.MAPPING]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOM_FIELD_VIEW_ROW.MAPPING,
+};
+
 function NetSuiteImportCustomFieldView({
     policy,
     route: {
@@ -126,6 +135,7 @@ function NetSuiteImportCustomFieldView({
                         const isEditable = !config?.pendingFields?.[importCustomField] && isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
                             <MenuItemField
+                                sentryLabel={ROW_SENTRY_LABELS[fieldName]}
                                 key={fieldName}
                                 name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
                                 value={
@@ -142,6 +152,7 @@ function NetSuiteImportCustomFieldView({
                         );
                     })}
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.REMOVE_CUSTOM_FIELD}
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
                         isDisabled={!!config?.pendingFields?.[importCustomField]}

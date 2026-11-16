@@ -57,11 +57,13 @@ Use your chosen `WEB_PORT` if different. This is a local API, not a separate hos
 
 ### 1. Install
 
-Root `npm install` installs these dependencies too. For an independent Worker checkout or CI job, install just this package:
+This package is an npm workspace, so root `npm install` links it and installs its dependencies. Shared packaging helpers are imported through `@expensify/new-expensify-cloudflare-worker/adhoc-config`.
+
+The separate Worker lockfile is retained for lightweight deployment/test jobs and the local CLI bootstrap. To install only that locked toolchain, without installing the whole App workspace graph:
 
 ```bash
 cd web/cloudflare-worker
-npm ci
+npm ci --workspaces=false
 ```
 
 ### 2. Get a web build in `dist/`
@@ -178,4 +180,41 @@ To check the config without credentials or uploading anything:
 npx wrangler deploy --dry-run --env test-staging
 ```
 
-Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.
+Never commit credentials or `.dev.vars` files here. This is a public repository. Account and zone IDs are nonsecret deployment identifiers.
+
+## Ad-hoc Worker
+
+Every ad-hoc web build publishes that build's `src/index.ts` and matching web assets to a named [Worker Preview](https://developers.cloudflare.com/workers/previews/) under the shared `new-expensify-adhoc` Worker. The Preview name is the PR number, so rebuilding updates that PR's Preview without changing another PR or the parent Worker's production deployment.
+
+The public URL is `https://<PR number>.adhoc.expensify.com` through a Preview-only custom domain on the parent Worker. The separate `pr-testing-expensify` Worker and its `*.pr-testing.expensify.com/*` route continue serving legacy S3-backed builds; this pipeline does not update either. Ordinary zone routes target production, not Previews. Previews use Workers Static Assets and staging settings, with no R2 or service bindings. A stale tab requesting a chunk absent from the new build gets a 404 and uses the existing reload recovery.
+
+Closing a PR does not delete its Preview. Cloudflare allows 500 Previews per Worker on paid plans and automatically evicts the least recently deployed Preview at that limit. Each Preview retains up to 100 deployments. These platform retention limits apply even without an application cleanup job.
+
+### Build and deployment
+
+There are two different kinds of code here:
+
+```text
+GitHub Actions (deployment tooling, not a Worker):
+  buildWeb         -> build web assets and compile the branch Worker, output the checked-out SHA
+  deployWebAdHoc   -> deployAdhocCloudflareWorker.ts -> publish the Preview and verify code/assets identity
+
+Cloudflare (request handling):
+  PR hostname -> named Worker Preview -> build-status wrapper -> compiled src/index.ts -> this PR's Static Assets
+```
+
+**The runtime is shared with the main app Worker.** `buildWeb` bundles the existing `web/cloudflare-worker/src/index.ts` from the same App SHA as the web build. CSP, nonces, security headers, Brotli, caching and SPA routing are not reimplemented in the CI tooling. The preview wrapper answers the reserved build-status endpoint and delegates every application request unchanged. `scripts/deployAdhocCloudflareWorker.ts` runs only in CI.
+
+The deployment CLI runs in Bun with TypeScript and the shared `expensify-common/CLI` parser. It publishes and verifies the Preview without GitHub API calls. Pure typed packaging helpers in `web/cloudflare-worker/scripts/adhocConfig.ts` are shared with the standalone workerd tests without pulling the App CLI dependencies into that package.
+
+The existing test-build authorization and reviewed-code confirmation still apply. Callers resolve the build ref, and `buildWeb.yml` outputs the actual checked-out commit SHA after compiling the web app and bundling the Worker without Cloudflare credentials. Publication stamps the code and assets with that SHA and the current workflow run/attempt.
+
+The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractAdhocAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
+
+The existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret is exposed only to the deploy step. The account ID is configured directly in the workflow. Publication uses `wrangler preview --worker-name new-expensify-adhoc --name <PR number>`, not a production deploy or a per-PR route update. Worker Previews are open beta and require Wrangler 4.135.0 or later.
+
+The generated `previews` configuration supplies staging variables, while Static Assets and compatibility settings stay at the top level. `--ignore-base-config` prevents new Previews from inheriting the parent's Preview Base settings. Do not manually attach secrets or privileged bindings to CI Previews: Cloudflare preserves existing Preview secrets across subsequent deployments.
+
+The trusted wrapper forwards application responses unchanged, including Brotli encoding and CSP nonces. Its reserved `/__expensify_preview` endpoint reports the SHA/run/attempt; `/preview-build.json` in Static Assets carries the same identity. Both must match before the build is reported as deployed. A failed new build never gets a success status just because an old version still serves that hostname.
+
+Manual ad-hoc builds cancel an earlier run for the same App/mobile target, using each repository's PR number or ref. Push-to-main builds use a separate concurrency group and queue every push without cancellation, preserving builds for regression bisection. Explicitly rerunning an older workflow republishes that run's build, not the latest PR head.

@@ -39,6 +39,8 @@ function PayOverdueInvoice({gracePeriodEndUnixSeconds, isOverdue = false}: PayOv
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.PAY_OVERDUE_INVOICE}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.PAY_OVERDUE_INVOICE}
             icon={icons.InvoiceGeneric}
             title={title}
             ctaText={translate('homePage.timeSensitiveSection.payOverdueInvoice.cta')}

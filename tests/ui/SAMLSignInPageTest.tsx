@@ -20,10 +20,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import type {AppStateStatus} from 'react-native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import {dismissAuthSession, openAuthSessionAsync, WebBrowserResultType} from 'expo-web-browser';
 import React from 'react';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -182,5 +185,35 @@ describe('SAMLSignInPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+    });
+    it('waits until the app is active to sign in with a token that came back while it was in the background', async () => {
+        // Given the token comes back from an authenticator app before iOS marks the app active again
+        const appStateListeners: Array<(state: AppStateStatus) => void> = [];
+        const currentStateSpy = jest.spyOn(AppState, 'currentState', 'get').mockReturnValue(CONST.APP_STATE.BACKGROUND);
+        const addEventListenerSpy = jest.spyOn(AppState, 'addEventListener').mockImplementation((type, listener) => {
+            appStateListeners.push(listener);
+            return {remove: jest.fn()};
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is sent yet, since iOS cancels a request sent before the app is active
+        expect(signInWithShortLivedAuthToken).not.toHaveBeenCalled();
+
+        // When the app becomes active
+        currentStateSpy.mockReturnValue(CONST.APP_STATE.ACTIVE);
+        act(() => {
+            for (const listener of appStateListeners) {
+                listener(CONST.APP_STATE.ACTIVE);
+            }
+        });
+
+        // Then it signs in once with the token it kept
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledTimes(1);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+
+        currentStateSpy.mockRestore();
+        addEventListenerSpy.mockRestore();
     });
 });

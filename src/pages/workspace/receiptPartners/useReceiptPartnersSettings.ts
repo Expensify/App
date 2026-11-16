@@ -81,6 +81,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                         {
                             icon: icons.Key,
                             text: translate('workspace.accounting.enterCredentials'),
+                            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_ENTER_CREDENTIALS,
                             onSelected: () =>
                                 startIntegrationFlow({
                                     name: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
@@ -96,6 +97,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: U
                     {
                         icon: icons.Trashcan,
                         text: translate('workspace.accounting.disconnect'),
+                        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_DISCONNECT,
                         onSelected: () => {
                             showConfirmModal({
                                 title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
