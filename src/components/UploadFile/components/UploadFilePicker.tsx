@@ -27,9 +27,28 @@ type UploadFilePickerProps = Pick<
     children?: (openPicker: (onUpload: (files: FileObject[]) => void) => void) => ReactNode;
 };
 
-/** Saved files come back from the server with lowercased names and symbols replaced, so names are compared in that form to catch the same file picked again */
-function getComparableFileName(fileName = ''): string {
-    return fileName.toLowerCase().replaceAll(/[^a-z0-9]/g, '_');
+/** The name the server stores a file under: lowercased, with every byte outside a-z, 0-9 and `-` replaced by `_`, and the extension kept */
+function getServerFileName(fileName: string): {name: string; extension: string} {
+    const extensionStart = fileName.lastIndexOf('.');
+    const name = extensionStart > 0 ? fileName.slice(0, extensionStart) : fileName;
+    const storedName = Array.from(new TextEncoder().encode(name.toLowerCase()), (byte) => {
+        const character = String.fromCharCode(byte);
+        return /[a-z0-9-]/.test(character) ? character : '_';
+    }).join('');
+    return {name: storedName, extension: extensionStart > 0 ? fileName.slice(extensionStart).toLowerCase() : ''};
+}
+
+/**
+ * A picked file is the same as an uploaded one with the same name, or with the name the server gives the picked file once it saves it.
+ * A server name with no letter or digit left, such as one written in Japanese, says nothing about the file, so it is not compared.
+ */
+function isSameFile(pickedFile: FileObject, uploadedFile: FileObject): boolean {
+    const pickedName = pickedFile.name ?? '';
+    if (pickedName === uploadedFile.name) {
+        return true;
+    }
+    const serverName = getServerFileName(pickedName);
+    return /[a-z0-9]/.test(serverName.name) && `${serverName.name}${serverName.extension}` === uploadedFile.name?.toLowerCase();
 }
 
 /** The button, or the control drawn by `children`, that opens the file picker and checks the picked files against the limits before reporting them */
@@ -81,9 +100,7 @@ function UploadFilePicker({
             }
         }
 
-        const uploadedFileNames = new Set(existingFiles.map((uploadedFile) => getComparableFileName(uploadedFile.name)));
-
-        const newFilesToUpload = files.filter((file) => !uploadedFileNames.has(getComparableFileName(file.name)));
+        const newFilesToUpload = files.filter((file) => !existingFiles.some((uploadedFile) => isSameFile(file, uploadedFile)));
 
         // The error is set before the files go on, so a check of the receiver can replace it
         setError(newFilesToUpload.length < files.length ? translate('attachmentPicker.fileAlreadyAdded') : '');

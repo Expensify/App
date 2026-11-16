@@ -112,20 +112,51 @@ describe('LabelledFileUploadAdapter', () => {
             {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
         ]);
     });
-});
-it('shows an error under the last button when every button has a file', () => {
-    // Given both buttons holding a file, and an error about the field as a whole, such as too many files for one save
-    // When the field renders
-    renderAdapter(
-        [
-            {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]},
-            {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
-        ],
-        jest.fn(),
-        0,
-        'Too many files',
-    );
 
-    // Then the error shows once, so the user sees why Next does not go on
-    expect(screen.getAllByText('Too many files')).toHaveLength(1);
+    it('takes two different files whose names are in another alphabet', () => {
+        // Given a contract picked under the loan agreement button, named in Japanese
+        const onInputChange = jest.fn();
+        const contract: FileObject = {name: '契約書.pdf', uri: 'file://契約書.pdf'};
+        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [contract]}], onInputChange);
+
+        // When the user picks an invoice under the same button, also named in Japanese
+        const invoice: FileObject = {name: '請求書.pdf', uri: 'file://請求書.pdf'};
+        mockPickedFiles = [invoice];
+        fireEvent.press(screen.getByText('Upload loan agreement'));
+
+        // Then it is added, since a new file is compared by its own name
+        expect(onInputChange).toHaveBeenCalledWith([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [contract, invoice]}]);
+    });
+
+    it('does not compare a new file with a saved one whose server name kept no letter', () => {
+        // Given a saved file named in Japanese, which the server stores with every byte of its name as `_`
+        const onInputChange = jest.fn();
+        const savedContract: FileObject = {name: '_________.pdf', uri: 'kyc/1/_________.pdf'};
+        renderAdapter([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [savedContract]}], onInputChange);
+
+        // When the user picks another file whose Japanese name has as many bytes
+        const invoice: FileObject = {name: '請求書.pdf', uri: 'file://請求書.pdf'};
+        mockPickedFiles = [invoice];
+        fireEvent.press(screen.getByText('Upload loan agreement'));
+
+        // Then it is added, since the saved name says nothing about which file it was
+        expect(onInputChange).toHaveBeenCalledWith([{id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [savedContract, invoice]}]);
+    });
+
+    it('shows an error under the last button when every button has a file', () => {
+        // Given both buttons holding a file, and an error about the field as a whole, such as too many files for one save
+        // When the field renders
+        renderAdapter(
+            [
+                {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]},
+                {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
+            ],
+            jest.fn(),
+            0,
+            'Too many files',
+        );
+
+        // Then the error shows once, so the user sees why Next does not go on
+        expect(screen.getAllByText('Too many files')).toHaveLength(1);
+    });
 });
