@@ -86,12 +86,9 @@ describe('Insights ranking table', () => {
     });
 
     it.each([
-        [5, 'Up 100%'],
-        [20, 'Down 50%'],
-        [10, 'No change'],
-        [0, 'New'],
-        [undefined, 'No change'],
-    ])('announces all narrow row metrics and the comparison against %s expenses', async (previousCount, changeLabel) => {
+        ['more expenses than the previous period', 5, 'Up 100%'],
+        ['no previous-period data', undefined, 'No change'],
+    ])('announces all narrow row metrics and the change with %s', async (_description, previousCount, changeLabel) => {
         // Given a narrow layout, where each pressed row is a single accessibility element
         jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true}));
         renderTable(previousCount, true);

@@ -20,7 +20,7 @@ function violationGroup(violation: string, count: number, percentOfTotal?: numbe
 }
 
 describe('buildRankingTableRows', () => {
-    it('takes each share from the backend and scales the bars to the largest row', () => {
+    it('takes each share from the backend and scales the bars by count to the largest row', () => {
         // Given two listed violation types, whose shares the backend worked out of every type's expenses
         const data = [violationGroup('missingReceipt', 50, 18.8), violationGroup('overLimit', 25, 9.4)];
 
@@ -29,7 +29,7 @@ describe('buildRankingTableRows', () => {
 
         // Then each row shows the backend's share, since the types past the limit aren't here to share out of
         expect(rows.map(({share}) => share)).toEqual([18.8, 9.4]);
-        // And the bars are scaled to the largest row, which fills the bar area
+        // And the bars are scaled by count to the largest row, which fills the bar area
         expect(rows.map(({barWidthPercent}) => barWidthPercent)).toEqual([100, 50]);
         // And no row shows a change, since the page doesn't compare against the previous period
         expect(rows.every(({change}) => change === undefined)).toBe(true);

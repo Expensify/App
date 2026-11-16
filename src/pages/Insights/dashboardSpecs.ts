@@ -27,7 +27,7 @@ type InsightsChartSpec = {
     titleKey: TranslationPaths;
     view: SearchView;
 
-    /** Whether the chart spans the dashboard's whole width, at its place in the list, instead of sharing the two-column grid */
+    /** Whether the chart spans the dashboard's whole width instead of sharing the two-column grid */
     isFullWidth?: boolean;
 
     /** What the chart plots for each group, left out by charts plotting the money each group totals */
