@@ -1427,6 +1427,8 @@ function search({
     const queryError = getSearchQueryError(queryJSON);
     if (queryError) {
         const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
+        // Settle the snapshot as if Auth had rejected the query. The loading updates move it to its final loaded state, so
+        // the error view shows and the query isn't requested again. The error goes last because optimisticData clears it.
         return Onyx.update([
             ...(optimisticData ?? []),
             ...(finallyData ?? []),
@@ -1438,7 +1440,13 @@ function search({
                     errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
                 },
             },
-        ]).then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        ])
+            .then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY)
+            .catch((error: unknown) => {
+                // Callers don't catch search(), so a failed write is logged here like the other snapshot writes
+                Log.hmmm('[Search] failed to store the search query error', {error: String(error)});
+                return undefined;
+            });
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;

@@ -1291,6 +1291,8 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
 /** Checks query forms that Auth rejects, including queries typed directly into the search input. */
 function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationPaths | undefined {
+    // The parser turns comma-separated values like `type:expense,invoice` into arrays, even though the AST types
+    // say string, and Auth rejects a type or groupBy that isn't a single string.
     if (typeof queryJSON.type !== 'string') {
         return 'errorPage.wrongTypeSubtitle';
     }

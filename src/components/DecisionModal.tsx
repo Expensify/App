@@ -3,7 +3,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ButtonVariant} from '@styles/utils/types';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -27,10 +26,6 @@ type DecisionModalProps = {
 
     /** Text content used in second button */
     secondOptionText: string;
-
-    isSecondOptionDisabled?: boolean;
-
-    secondOptionSentryLabel?: SentryLabel;
 
     /** Whether the first option uses a success-themed button */
     isFirstOptionSuccess?: boolean;
@@ -76,8 +71,6 @@ function DecisionModal({
     prompt = '',
     firstOptionText,
     secondOptionText,
-    isSecondOptionDisabled,
-    secondOptionSentryLabel,
     onFirstOptionSubmit,
     onSecondOptionSubmit,
     isSmallScreenWidth,
@@ -144,10 +137,9 @@ function DecisionModal({
                     </Button>
                 )}
                 <Button
-                    sentryLabel={secondOptionSentryLabel ?? CONST.SENTRY_LABEL.DECISION_MODAL.SECOND_OPTION}
+                    sentryLabel={CONST.SENTRY_LABEL.DECISION_MODAL.SECOND_OPTION}
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
-                    isDisabled={isSecondOptionDisabled}
                     variant={secondOptionVariant}
                     size={CONST.BUTTON_SIZE.LARGE}
                 >
