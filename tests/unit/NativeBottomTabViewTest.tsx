@@ -1,10 +1,12 @@
 import {act, render} from '@testing-library/react-native';
 
 import type {ParamListBase, TabNavigationState} from '@react-navigation/native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {NativeBottomTabView} from '@react-navigation/bottom-tabs/unstable';
 import {DefaultTheme, ThemeProvider} from '@react-navigation/native';
 import React, {useContext, useEffect} from 'react';
+import {StyleSheet} from 'react-native';
 
 type NativeBottomTabViewProps = Parameters<typeof NativeBottomTabView>[0];
 
@@ -170,6 +172,21 @@ function selectNatively(selectedScreenKey: string) {
     });
 }
 
+function isViewStyleProp(style: unknown): style is StyleProp<ViewStyle> {
+    return typeof style === 'object';
+}
+
+// The `display` of the view a hidden route is drawn in, found from its content
+function getHiddenRouteDisplay(screen: ReturnType<typeof render>, routeKey: string) {
+    const content = screen.UNSAFE_getByProps({routeKey});
+    let instance: typeof content | null = content;
+    while (instance && instance.props.pointerEvents === undefined) {
+        instance = instance.parent;
+    }
+    const style: unknown = instance?.props.style;
+    return isViewStyleProp(style) ? StyleSheet.flatten(style)?.display : undefined;
+}
+
 describe('NativeBottomTabView', () => {
     beforeEach(() => {
         mockNativeTabMounts.length = 0;
@@ -307,5 +324,28 @@ describe('NativeBottomTabView', () => {
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
         expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(true);
         expect(mockLatestScreenProps.get('Inbox')?.specialEffects?.repeatedTabSelection).toEqual({popToRoot: false, scrollToTop: false});
+    });
+    it('keeps the route a host showed laid out while another tab is focused', () => {
+        // Given Spend focused in its Expenses host and then Inbox focused
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the views the hidden routes are drawn in are laid out
+        // Then Spend stays laid out in Expenses, so a native tap on Expenses shows it before JS focuses it again, and
+        // Workspaces, the only route More hosts, is laid out there the same way
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+        expect(getHiddenRouteDisplay(screen, 'Workspaces-key')).toBeUndefined();
+    });
+
+    it('hides a hidden route without a host while it is not focused', () => {
+        // Given Account, which has no host, visited and then left for Inbox
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Account'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the view Account is drawn in is laid out
+        // Then it is hidden, since it is drawn over the content of Inbox, the tab it shares
+        expect(getHiddenRouteDisplay(screen, 'Account-key')).toBe('none');
     });
 });
