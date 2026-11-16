@@ -11,6 +11,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Visibility from '@libs/Visibility';
 
 import {clearSignInData, setAccountError, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
 
@@ -62,9 +63,20 @@ function SAMLSignInPage() {
     const authSessionOpenedAt = useRef<number | null>(null);
     const backgroundedAt = useRef<number | null>(null);
     const lastBackgroundMs = useRef<number | undefined>(undefined);
+    const shortLivedAuthTokenWaitingForActiveApp = useRef<string | null>(null);
+
+    const signInWithToken = (shortLivedAuthToken: string) => {
+        Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
+        signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
+    };
 
     useAppState({
         onAppStateChange: (nextAppState: AppStateStatus) => {
+            if (nextAppState === CONST.APP_STATE.ACTIVE && shortLivedAuthTokenWaitingForActiveApp.current) {
+                const shortLivedAuthToken = shortLivedAuthTokenWaitingForActiveApp.current;
+                shortLivedAuthTokenWaitingForActiveApp.current = null;
+                signInWithToken(shortLivedAuthToken);
+            }
             if (nextAppState === 'background') {
                 backgroundedAt.current = Date.now();
                 addBreadcrumb('background', {authSessionOpen: isAuthSessionOpen.current});
@@ -151,8 +163,13 @@ function SAMLSignInPage() {
 
         // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
         if (credentials?.login && shortLivedAuthToken) {
-            Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
+            // Coming back from an authenticator app hands over the token before the app is active, and iOS cancels a request sent then.
+            if (!Visibility.isVisible()) {
+                Log.info('SAMLSignInPage - Received shortLivedAuthToken while the app is not active. Waiting to sign in...');
+                shortLivedAuthTokenWaitingForActiveApp.current = shortLivedAuthToken;
+                return;
+            }
+            signInWithToken(shortLivedAuthToken);
             return;
         }
 

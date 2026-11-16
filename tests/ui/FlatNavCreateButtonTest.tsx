@@ -5,6 +5,8 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavCreateButton from '@components/Navigation/FlatNavigationBar/FlatNavCreateButton';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useCreateMenuVisibility from '@pages/inbox/sidebar/FABPopoverContent/useCreateMenuVisibility';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
@@ -53,10 +55,23 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: jest.fn(),
 }));
 
-function renderButton() {
+function Harness({isCompact = false}: {isCompact?: boolean}) {
+    const menu = useCreateMenuVisibility();
+    return (
+        <FlatNavCreateButton
+            isCompact={isCompact}
+            isCreateMenuActive={menu.isCreateMenuActive}
+            isCreateMenuVisible={menu.isCreateMenuVisible}
+            showCreateMenu={menu.showCreateMenu}
+            hideCreateMenu={menu.hideCreateMenu}
+        />
+    );
+}
+
+function renderButton(isCompact = false) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <FlatNavCreateButton />
+            <Harness isCompact={isCompact} />
         </ComposeProviders>,
     );
 }
@@ -143,5 +158,65 @@ describe('FlatNavCreateButton', () => {
         // another measurement, and the menu opens once
         expect(mockCalculatePopoverPosition).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId('CreateMenuPopover')).toBeOnTheScreen();
+    });
+
+    it('shrinks to an icon-only button when compact', async () => {
+        // Given the Create button in a collapsed bar
+
+        // When the button renders
+        renderButton(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the "Create" text is gone, but the button keeps its name for screen readers
+        expect(screen.queryByText('Create')).not.toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Create'})).toBeOnTheScreen();
+    });
+
+    it('still opens the menu when compact', async () => {
+        // Given the compact Create button in a collapsed bar
+        renderButton(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // When it is pressed
+        pressCreate();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it opens the same menu, so collapsing the bar loses no action
+        expect(screen.getByTestId('CreateMenuPopover')).toBeOnTheScreen();
+    });
+
+    it('shows the "Create" text when not compact', async () => {
+        // Given the Create button in the expanded bar
+
+        // When the button renders
+        renderButton();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the text is drawn next to the icon
+        expect(screen.getByText('Create')).toBeOnTheScreen();
+    });
+
+    it('calls showCreateMenu when the button is pressed while inactive', async () => {
+        // Given show and hide handlers
+        const showCreateMenu = jest.fn();
+        const hideCreateMenu = jest.fn();
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <FlatNavCreateButton
+                    isCreateMenuActive={false}
+                    isCreateMenuVisible={false}
+                    showCreateMenu={showCreateMenu}
+                    hideCreateMenu={hideCreateMenu}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the button is pressed
+        pressCreate();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the external show handler is called
+        expect(showCreateMenu).toHaveBeenCalledTimes(1);
     });
 });
