@@ -64,6 +64,7 @@ function useColumnResize({
     getStoredTableColumnWidths,
     getTargetColumnWidth,
     columnGap,
+    hasStoredColumnWidths,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
     const dragRef = useRef<Drag | null>(null);
@@ -243,7 +244,9 @@ function useColumnResize({
         };
     };
 
-    return {setScopeElement, getHandleProps, hasHandle};
+    const resetColumnWidths = hasStoredColumnWidths ? () => setTableColumnWidths(columnResizingID, null) : undefined;
+
+    return {setScopeElement, getHandleProps, hasHandle, resetColumnWidths};
 }
 
 export default useColumnResize;

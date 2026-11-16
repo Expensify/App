@@ -310,6 +310,7 @@ function useSelectionModePayment({
                     const workspacePolicyItem: WorkspacePolicyPaymentOption = {
                         text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                         icon: expensifyIcons.Building,
+                        sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_WITH_WORKSPACE,
                         workspacePolicy: wp,
                     };
                     result.push(workspacePolicyItem);
