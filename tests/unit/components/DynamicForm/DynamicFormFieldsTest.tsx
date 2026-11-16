@@ -4,8 +4,8 @@ import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
-import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
@@ -143,7 +143,7 @@ const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>>
     date: DatePicker,
     boolean: YesNoAdapter,
     country: CountryPicker,
-    currency: CurrencyPicker,
+    currency: CurrencyDropdownAdapter,
     address: AddressSearch,
     multiselect: PushRowWithModal,
     countryMultiselect: PushRowWithModal,
@@ -513,7 +513,7 @@ describe('DynamicFormFields', () => {
         const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, {currency: CONST.CURRENCY.GBP});
 
         // Then the currency picker starts on the screen currency, so the form submits a currency even if the user never opens it, and the amount follows the pick
-        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyPicker, defaultValue: CONST.CURRENCY.GBP});
+        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyDropdownAdapter, defaultValue: CONST.CURRENCY.GBP});
         expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountForm, currency: CONST.CURRENCY.GBP});
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });

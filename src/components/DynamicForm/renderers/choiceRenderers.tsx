@@ -1,6 +1,6 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
-import CurrencyPicker from '@components/CurrencyPicker';
+import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
@@ -167,14 +167,13 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             };
         }
         return {
-            isMenuRow: true,
+            isMenuRow: false,
             input: (
                 <InputWrapper
-                    InputComponent={CurrencyPicker}
+                    InputComponent={CurrencyDropdownAdapter}
                     {...inputProps}
                     label={getInputLabel(field, translate)}
-                    modalHeaderTitle={getFieldLabel(field, translate)}
-                    shouldReadErrorWithLabel
+                    title={getFieldLabel(field, translate)}
                 />
             ),
         };
