@@ -24,7 +24,6 @@ import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOUReques
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
-import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import DocumentDetection from '@pages/iou/request/step/IOURequestStepScan/documentDetection/DocumentDetection';
@@ -423,7 +422,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                         isCapturingPhoto={didCapturePhoto}
                     />
                 )}
-                <MultiScanEducationalModal />
             </View>
         );
     };

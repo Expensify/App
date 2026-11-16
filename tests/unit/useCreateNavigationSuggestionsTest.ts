@@ -69,11 +69,12 @@ const mockIcons = {
     NewWorkspace: mockIcon,
 };
 const mockTranslations = new Map([
-    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.addFirstReceipt', 'Add your first receipt'],
     ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
     ['common.chat', 'Chat'],
     ['common.new', 'New'],
     ['iou.addExpense', 'Add expense'],
+    ['iou.createAnExpense', 'Create an expense'],
     ['iou.createExpense', 'Create expense'],
     ['iou.trackDistance', 'Track distance'],
     ['onboarding.workspace.createWorkspace', 'Create workspace'],
@@ -278,7 +279,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(false);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense']);
+        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense', 'Add your first receipt']);
         expect(result.current.find((item) => item.keyForList === 'create_chat')).toMatchObject({
             text: 'Start chat',
             matchTerms: ['Start chat', 'New Chat'],
