@@ -1837,6 +1837,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
@@ -1883,6 +1884,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -1962,6 +1964,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated with that expense report as the target
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: sourceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2020,6 +2023,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2083,6 +2087,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2139,6 +2144,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2210,6 +2216,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2290,6 +2297,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2357,6 +2365,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2417,6 +2426,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2486,6 +2496,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2539,6 +2550,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2587,6 +2599,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2636,6 +2649,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2687,6 +2701,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2744,6 +2759,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2822,6 +2838,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2883,6 +2900,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -2956,6 +2974,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3012,6 +3031,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3079,6 +3099,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3259,6 +3280,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: {},
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
@@ -4000,6 +4022,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
@@ -4064,6 +4087,7 @@ describe('actions/Duplicate', () => {
             // When the selected expenses are duplicated
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
                 allTransactions,
@@ -4139,6 +4163,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_source_1', 'bulk_source_2'],
                 allTransactions,
@@ -4238,6 +4263,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated with that expense report as the target
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transactionIDs: ['instant_source_1', 'instant_source_2'],
                 allTransactions,
@@ -4341,6 +4367,7 @@ describe('actions/Duplicate', () => {
             // When both expenses are bulk duplicated onto that report, so the first copy raises its total from 800 to 1300
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 conciergeChat: undefined,
                 transactionIDs: ['limit_source_1', 'limit_source_2'],
                 allTransactions,
@@ -4449,6 +4476,7 @@ describe('actions/Duplicate', () => {
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
             isVendorMatchingBetaEnabled: false,
+            personalDetailsByLogins: {},
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
                 policyID: undefined,

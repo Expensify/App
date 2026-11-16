@@ -156,6 +156,7 @@ describe('actions/IOU/createExpenseByType', () => {
             participantsPolicyTags: {},
             policyTags: {},
             rules: undefined,
+            personalDetailsByLogins: {},
             ...overrides,
         });
     }

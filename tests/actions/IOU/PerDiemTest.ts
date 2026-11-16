@@ -476,6 +476,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -582,6 +583,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -688,6 +690,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -807,6 +810,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -913,6 +917,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1012,6 +1017,7 @@ describe('PerDiem', () => {
                     policyTags: {},
                     isASAPSubmitBetaEnabled: false,
                     isVendorMatchingBetaEnabled: false,
+                    personalDetailsByLogins: {},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     hasViolations: false,
@@ -1149,6 +1155,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1238,6 +1245,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1342,6 +1350,7 @@ describe('PerDiem', () => {
 
             const result = getPerDiemExpenseInformation({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1413,6 +1422,7 @@ describe('PerDiem', () => {
 
             submitPerDiemExpense({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
