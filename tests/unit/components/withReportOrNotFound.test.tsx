@@ -65,12 +65,12 @@ function ForwardedReportName({report: forwardedReport}: WithReportOrNotFoundProp
 
 const WrappedContent = withReportOrNotFound()(ForwardedReportName);
 
-function renderWithHOC() {
+function renderWithHOC(params: Partial<ScreenProps['route']['params']> | undefined) {
     render(
         <OnyxListItemProvider>
             <WrappedContent
                 navigation={createMock<ScreenProps['navigation']>({})}
-                route={createMock<ScreenProps['route']>({params: {reportID}})}
+                route={createMock<ScreenProps['route']>(params === undefined ? {} : {params})}
                 report={callerReport}
                 policy={undefined}
                 reportMetadata={undefined}
@@ -139,7 +139,7 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
     });
 
     describe.each([
-        ['withReportOrNotFound', renderWithHOC],
+        ['withReportOrNotFound', () => renderWithHOC({reportID})],
         ['ReportOrNotFoundGuard', renderWithGuard],
         ['DynamicReportDetailsPage', () => renderWithPage({reportID})],
     ])('%s', (_, renderSubject) => {
@@ -259,23 +259,28 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
     });
 
     describe.each([
-        ['omitted', undefined],
-        ['empty', {}],
-    ] as const)('DynamicReportDetailsPage with %s route params', (_, params) => {
-        it.each([undefined, true, false])('should preserve guard behavior when global loading is %s', async (isLoadingReportData) => {
-            // Given a details route without a report ID and the current global loading state
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, isLoadingReportData ?? null);
+        ['withReportOrNotFound', renderWithHOC],
+        ['DynamicReportDetailsPage', renderWithPage],
+    ])('%s without a report ID', (_, renderSubject) => {
+        describe.each([
+            ['omitted', undefined],
+            ['empty', {}],
+        ] as const)('with %s route params', (_paramsDescription, params) => {
+            it.each([undefined, true, false])('should preserve guard behavior when global loading is %s', async (isLoadingReportData) => {
+                // Given a malformed route that must reach the guard regardless of the global loading state
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, isLoadingReportData ?? null);
+                });
+
+                // When the screen mounts, parameter extraction must not throw before the guard renders
+                renderSubject(params);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then only the guard fallback renders, without trying to fetch an absent report ID
+                expect(screen.getByTestId(isLoadingReportData === false ? 'notFound' : 'loading')).toBeTruthy();
+                expect(screen.queryByTestId('content')).toBeNull();
+                expect(mockOpenReport).not.toHaveBeenCalled();
             });
-
-            // When the actual page mounts, parameter extraction must not throw before the guard renders
-            renderWithPage(params);
-            await waitForBatchedUpdatesWithAct();
-
-            // Then only the guard fallback renders, without trying to fetch an absent report ID
-            expect(screen.getByTestId(isLoadingReportData === false ? 'notFound' : 'loading')).toBeTruthy();
-            expect(screen.queryByTestId('content')).toBeNull();
-            expect(mockOpenReport).not.toHaveBeenCalled();
         });
     });
 
@@ -298,7 +303,7 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
         await seedReport();
 
         // When the wrapped screen renders
-        renderWithHOC();
+        renderWithHOC({reportID});
         await waitForBatchedUpdatesWithAct();
 
         // Then the wrapper overrides the caller's report with its own Onyx read
