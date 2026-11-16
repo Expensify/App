@@ -5,7 +5,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
 import {isReplayingDiscardedNavigation, runWhileReplayingDiscardedNavigation} from '@libs/Navigation/helpers/discardPromptState';
-import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -39,8 +38,9 @@ function useDiscardChangesConfirmation({
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
-    const {routeName, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt} = useDiscardPromptGate({
+    const {routeName, hasUnsavedChanges, shouldPromptFor, getActionToReplay, suppressDiscardPrompt} = useDiscardPromptGate({
         getHasUnsavedChanges,
+        shouldCloseRHPOnDiscard,
         shouldPromptWhenUnfocused,
     });
 
@@ -55,7 +55,7 @@ function useDiscardChangesConfirmation({
         if (!blockedAction) {
             return;
         }
-        runWhileReplayingDiscardedNavigation(() => navigationRef.current?.dispatch(shouldCloseRHPOnDiscard ? getNavigationActionForReplay(blockedAction) : blockedAction));
+        runWhileReplayingDiscardedNavigation(() => navigationRef.current?.dispatch(getActionToReplay(blockedAction)));
     };
 
     const showDiscardModal = () => {

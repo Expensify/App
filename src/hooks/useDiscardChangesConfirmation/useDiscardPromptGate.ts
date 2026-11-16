@@ -2,6 +2,7 @@
  * The checks that decide whether the "Discard changes?" prompt asks, shared by the web and native versions of the hook.
  */
 import {isFlowDiscardPromptSuppressed, releaseFlowDiscardPromptSuppression} from '@libs/Navigation/helpers/discardPromptState';
+import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import isNavigationInsideFlow from '@libs/Navigation/helpers/isNavigationInsideFlow';
 
 import type {NavigationAction} from '@react-navigation/native';
@@ -11,9 +12,9 @@ import {useEffect, useRef} from 'react';
 
 import type UseDiscardChangesConfirmationOptions from './types';
 
-type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldPromptWhenUnfocused'>;
+type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldCloseRHPOnDiscard' | 'shouldPromptWhenUnfocused'>;
 
-function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused = false}: UseDiscardPromptGateParams) {
+function useDiscardPromptGate({getHasUnsavedChanges, shouldCloseRHPOnDiscard = false, shouldPromptWhenUnfocused = false}: UseDiscardPromptGateParams) {
     const route = useRoute();
     const navigation = useNavigation();
 
@@ -50,11 +51,13 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldPromptWhenUnfocused =
     // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
     const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState());
 
+    const getActionToReplay = (action: NavigationAction) => (shouldCloseRHPOnDiscard ? getNavigationActionForReplay(action) : action);
+
     const suppressDiscardPrompt = (shouldSuppress = true) => {
         isSavingRef.current = shouldSuppress;
     };
 
-    return {routeName: route.name, isFocused, hasUnsavedChanges, shouldPromptFor, suppressDiscardPrompt};
+    return {routeName: route.name, isFocused, hasUnsavedChanges, shouldPromptFor, getActionToReplay, suppressDiscardPrompt};
 }
 
 export default useDiscardPromptGate;
