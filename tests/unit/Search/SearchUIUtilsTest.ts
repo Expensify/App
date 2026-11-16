@@ -4363,6 +4363,70 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
         });
 
+        it('should skip a month group outside 1-12', () => {
+            // Given a month 13 group, which would otherwise get a "January 2027" label and no query to open
+            const dataWithInvalidMonth: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, month: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_13` as const]: {year: 2026, month: 13, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the month sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidMonth,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMonthGroupListItemType,
+            );
+
+            // Then only the real month gets a section, the same way week skips a group it can't place
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
+        it('should skip a quarter group outside 1-4', () => {
+            // Given a quarter 5 group, which would otherwise get a rolled-over label and no query to open
+            const dataWithInvalidQuarter: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, quarter: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_5` as const]: {year: 2026, quarter: 5, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the quarter sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidQuarter,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionQuarterGroupListItemType,
+            );
+
+            // Then only the real quarter gets a section
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
         it('should leave the year out of short labels when every month falls in the same year', () => {
             // Given months that all fall in 2026, so a year on every chart axis label would repeat the same information
             const dataInOneYear: OnyxTypes.SearchResults['data'] = {

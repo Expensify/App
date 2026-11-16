@@ -9140,6 +9140,8 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
+        // How search results can name the tag group of untagged expenses
+        TAG_UNTAGGED_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         VENDOR_EMPTY_VALUE: 'none',

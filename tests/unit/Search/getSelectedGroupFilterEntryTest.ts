@@ -63,7 +63,7 @@ describe('getSelectedGroupFilterEntry', () => {
         [CONST.SEARCH.GROUP_BY.MERCHANT, {...groupBase, merchant: ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.MERCHANT_EMPTY_VALUE],
         [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: 'Project A'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, 'Project A'],
         [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: ''}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.TAG_EMPTY_VALUE],
-        [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: '(untagged)'}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.TAG_EMPTY_VALUE],
+        [CONST.SEARCH.GROUP_BY.TAG, {...groupBase, tag: CONST.SEARCH.TAG_UNTAGGED_VALUE}, CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, CONST.SEARCH.TAG_EMPTY_VALUE],
     ])('scopes a %s group by its value', (groupBy, group, key, value) => {
         // Given a value group as it arrives in the search snapshot
 
