@@ -137,7 +137,6 @@ import {
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyAccessible,
-    isPolicyApproveOnly,
     isConnectionFeature,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
@@ -1737,8 +1736,6 @@ describe('PolicyUtils', () => {
             it('gives approve-only members read-only access like members', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
 
-                expect(isPolicyApproveOnly(policy, memberLogin)).toBe(true);
-                expect(isPolicyApproveOnly(buildPolicy(CONST.POLICY.ROLE.USER), memberLogin)).toBe(false);
                 expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
                 expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
             });

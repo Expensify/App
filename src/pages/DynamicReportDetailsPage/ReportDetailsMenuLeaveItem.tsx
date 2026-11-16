@@ -11,12 +11,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import {
-    isPolicyAdmin as isPolicyAdminUtil,
-    isPolicyApproveOnly as isPolicyApproveOnlyUtil,
-    isPolicyEmployee as isPolicyEmployeeUtil,
-    isPolicyGuest as isPolicyGuestUtil,
-} from '@libs/PolicyUtils';
+import {canMemberRead, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {
     canLeaveChat,
     findLastAccessedReport,
@@ -68,7 +63,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
 
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report.policyID, policy);
-    const isRestrictedRoomMember = isPolicyGuestUtil(policy) || isPolicyApproveOnlyUtil(policy);
+    const isRestrictedRoomMember = !canMemberRead(policy, currentUserPersonalDetails?.login ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
 
     const leaveChat = () => {

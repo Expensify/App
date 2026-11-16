@@ -145,6 +145,7 @@ import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, 
 import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
+    canMemberRead as canMemberReadPolicyUtils,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
@@ -13437,11 +13438,10 @@ function canJoinChat(
     }
 
     // For restricted visibility rooms, the user must be a workspace member with room access to join
-    const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
     if (
         isUserCreatedPolicyRoom(report) &&
         report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED &&
-        (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST || policyRole === CONST.POLICY.ROLE.APPROVE_ONLY)
+        !canMemberReadPolicyUtils(policy, currentUserEmail ?? deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS)
     ) {
         return false;
     }
