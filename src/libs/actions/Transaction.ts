@@ -2181,9 +2181,9 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
                 value: {pendingFields: {reportID: null}},
             });
             failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
-                value: {pendingFields: {reportID: null}},
+                value: null,
             });
         }
 
