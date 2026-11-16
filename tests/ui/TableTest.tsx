@@ -3058,7 +3058,7 @@ describe('Table', () => {
         const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
         // The menu's popover needs the real modal, navigation and portal providers.
-        function ColumnMenuTable({tableRef}: {tableRef: React.RefObject<TableHandle<TestItem, TestColumnKey> | null>}) {
+        function ColumnMenuTable({tableRef, initialSortColumn}: {tableRef: React.RefObject<TableHandle<TestItem, TestColumnKey> | null>; initialSortColumn?: TestColumnKey}) {
             const props = createDefaultProps();
             return (
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
@@ -3073,6 +3073,7 @@ describe('Table', () => {
                                         renderItem={props.renderItem}
                                         keyExtractor={props.keyExtractor}
                                         compareItems={props.compareItems}
+                                        initialSortColumn={initialSortColumn}
                                     >
                                         <Table.Header />
                                         <Table.Body />
@@ -3113,7 +3114,7 @@ describe('Table', () => {
             });
         });
 
-        it('sorts by the chosen order, and removes the sort when the active order is picked again, when the beta is on', async () => {
+        it('sorts by the chosen order, and resets to the initial sort when the active order is picked again, when the beta is on', async () => {
             // Given the column menu beta is on
             await act(async () => {
                 await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
@@ -3134,8 +3135,60 @@ describe('Table', () => {
             await openNameColumnMenu();
             await pressMenuItem('search.columnMenu.sortDescending');
 
-            // Then the sort is removed, as the third press of a heading does without the menu
-            expect(tableRef.current?.getActiveSorting().columnKey).toBeUndefined();
+            // Then the table goes back to its initial sort, which for a table without one means no sort
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: undefined, order: 'asc'});
+        });
+
+        it('keeps the initial sort when its checked order is picked again', async () => {
+            // Given the column menu beta is on, and the table starts sorted by Name ascending, which the menu shows as checked
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <ColumnMenuTable
+                    tableRef={tableRef}
+                    initialSortColumn="name"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks the checked Sort ascending
+            await openNameColumnMenu();
+            await pressMenuItem('search.columnMenu.sortAscending');
+
+            // Then the rows stay A→Z instead of falling back to data order
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Apple', 'Banana', 'Carrot', 'Date', 'Eggplant']);
+        });
+
+        it('resets another column to the initial sort and its order when its active order is picked again', async () => {
+            // Given the column menu beta is on, and a table that starts sorted by Name is sorted by Category descending
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <ColumnMenuTable
+                    tableRef={tableRef}
+                    initialSortColumn="name"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            act(() => tableRef.current?.updateSorting({columnKey: 'category', order: 'desc'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks Sort descending from the Category column's menu again
+            const categoryColumnMenu = screen.getAllByLabelText('search.columnMenu.openMenu').at(1);
+            if (!categoryColumnMenu) {
+                throw new Error('Category column menu not found');
+            }
+            fireEvent.press(categoryColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then the table goes back to Name ascending, so a server-sorted table doesn't keep paging in the removed order
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
         });
 
         it('keeps pressing a heading to cycle the sort when the beta is off', async () => {

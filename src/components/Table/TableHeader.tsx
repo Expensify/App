@@ -278,6 +278,8 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
 
     const {
         activeSorting,
+        initialSortColumn,
+        initialSortOrder,
         tableMethods: {updateSorting, toggleColumnSorting},
     } = useTableContext<DataType, ColumnKey>();
 
@@ -385,8 +387,10 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
                 <ColumnHeaderMenu.SortItems
                     sorting={{
                         activeSortOrder: isSortingByColumn ? activeSorting.order : undefined,
-                        // Picking the order the column is already sorted in removes the sort, like the third press of a heading without the menu.
-                        onSort: (order) => updateSorting({columnKey: isSortingByColumn && activeSorting.order === order ? undefined : column.key, order}),
+                        // Picking the order the column is already sorted in resets the table to its initial sort, so a table that starts
+                        // sorted by this column stays as it is.
+                        onSort: (order) =>
+                            updateSorting(isSortingByColumn && activeSorting.order === order ? {columnKey: initialSortColumn, order: initialSortOrder} : {columnKey: column.key, order}),
                     }}
                     sentryLabels={{
                         ascending: CONST.SENTRY_LABEL.TABLE_HEADER.COLUMN_MENU_ITEM.SORT_ASCENDING,
