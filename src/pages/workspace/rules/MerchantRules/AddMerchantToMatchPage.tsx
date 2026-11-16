@@ -27,6 +27,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
+import useInitialMatchType from './useInitialMatchType';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<
@@ -44,7 +45,10 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
 
     const currentValue = form?.merchantToMatch ?? '';
 
+    const initialMatchType = useInitialMatchType('matchType', form?.matchType);
+
     const goBack = () => {
+        updateDraftMerchantRule({matchType: initialMatchType});
         Navigation.goBack(backToRoute);
     };
 

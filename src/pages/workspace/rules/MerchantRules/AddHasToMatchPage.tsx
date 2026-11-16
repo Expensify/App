@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 import useRuleConditionSelection from './useRuleConditionSelection';
@@ -45,11 +45,9 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
 
     const {selectedValues: selectedHasValues, toggleValue: toggleHasValue, toggleAll} = useRuleConditionSelection(form?.hasToMatch ?? []);
 
-    const isNegated = (form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
-
-    const onNegationChange = (shouldNegate: boolean) => {
-        updateDraftMerchantRule({hasMatchType: shouldNegate ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO});
-    };
+    // Held here rather than written straight to the rule, so that it is kept or dropped along with the parts it
+    // applies to when Save or Back is pressed.
+    const [isNegated, setIsNegated] = useState((form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
 
     // A rule can only check for a part the workspace actually uses, except where the rule already checks for it,
     // since hiding that row would leave no way to see or remove it.
@@ -86,7 +84,10 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
 
     // Clearing every part leaves the rule matching on whatever its other conditions are.
     const handleSave = () => {
-        updateDraftMerchantRule({hasToMatch: selectedHasValues});
+        updateDraftMerchantRule({
+            hasToMatch: selectedHasValues,
+            hasMatchType: isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+        });
         Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
     };
 
@@ -105,7 +106,7 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
                 style={[styles.flex1, styles.pt3]}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
                 isNegated={isNegated}
-                onNegationChange={onNegationChange}
+                onNegationChange={setIsNegated}
             >
                 <SelectionList
                     canSelectMultiple

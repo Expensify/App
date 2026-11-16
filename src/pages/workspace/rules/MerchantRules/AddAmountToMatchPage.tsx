@@ -25,6 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import React, {useState} from 'react';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
+import useInitialMatchType from './useInitialMatchType';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddAmountToMatchPageProps = PlatformStackScreenProps<
@@ -48,7 +49,12 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     // rule keeps that as Any rather than being silently pinned to the workspace currency when it is reopened.
     const [currency, setCurrency] = useState(form?.amountToMatch ? (savedValue.currency ?? '') : (policy?.outputCurrency ?? CONST.CURRENCY.USD));
 
-    const goBack = () => Navigation.goBack(backToRoute);
+    const initialMatchType = useInitialMatchType('amountMatchType', form?.amountMatchType);
+
+    const goBack = () => {
+        updateDraftMerchantRule({amountMatchType: initialMatchType});
+        Navigation.goBack(backToRoute);
+    };
 
     const onSubmit = () => {
         updateDraftMerchantRule({amountToMatch: formatAmountFilterValue(amount, currency || undefined)});

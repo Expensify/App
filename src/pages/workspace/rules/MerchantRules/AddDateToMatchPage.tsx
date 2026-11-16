@@ -26,6 +26,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
+import useInitialMatchType from './useInitialMatchType';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddDateToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DATE_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH>;
@@ -40,7 +41,10 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
 
     const currentValue = form?.dateToMatch ?? '';
 
+    const initialMatchType = useInitialMatchType('dateMatchType', form?.dateMatchType);
+
     const goBack = () => {
+        updateDraftMerchantRule({dateMatchType: initialMatchType});
         Navigation.goBack(backToRoute);
     };
 
