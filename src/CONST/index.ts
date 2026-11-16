@@ -1148,6 +1148,8 @@ const CONST = {
         SOURCE_OF_FUNDS_KEY: 'sourceOfFunds',
         /** Drafted as true while a newly picked source waits for the daily operations page, since the new source can fund daily operations too */
         SOURCE_OF_FUNDS_REVIEW_KEY: 'shouldReviewSourceOfFunds',
+        /** The server takes up to this many files in one save and drops the rest without an error */
+        MAX_NEW_FILES_PER_SAVE: 20,
         /** Wise's businessSourceOfWealthInfo values, in Wise's order */
         SOURCE_OF_WEALTH: {
             REVENUE: 'REVENUE',

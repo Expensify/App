@@ -83,6 +83,9 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Shows a spinner in place of the current page, such as while the screen waits for a save that can add pages */
     isLoading?: boolean;
 
+    /** Checks of a whole page on top of each field's own, such as a cap on the files one save can upload. Errors are keyed by the field they show under, and block Next. */
+    validatePage?: (page: DynamicFormPage, values: DynamicFormValues) => Record<string, string>;
+
     /** When the step indicator shows: `auto` from three shown pages on, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 
@@ -113,6 +116,7 @@ type DynamicFormSubPageProps = SubPageProps &
         | 'isRefreshingRequirements'
         | 'refreshError'
         | 'shouldDisableNextWhenOffline'
+        | 'validatePage'
     > & {
         pages: DynamicFormPage[];
 

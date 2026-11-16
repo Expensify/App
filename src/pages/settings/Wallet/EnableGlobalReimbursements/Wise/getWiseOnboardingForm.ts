@@ -5,7 +5,10 @@ import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getVisibleFields from '@components/DynamicForm/utils/getVisibleFields';
 import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
+import {getListItemFiles, getListItems} from '@components/DynamicForm/utils/listItems';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
+
+import {getFiles, isSavedFile} from '@libs/getWiseOnboardingPageParams';
 
 import CONST from '@src/CONST';
 import type {DynamicFormPage} from '@src/types/onyx';
@@ -63,5 +66,20 @@ function getFirstUnansweredRequirementPageKey(form: WiseOnboardingForm, answers:
         )?.key;
 }
 
+/** The key of the first shown file field at which the page's files not yet on the server pass the number one save can upload, counted in page order */
+function getFieldOverNewFileLimit(form: WiseOnboardingForm, page: DynamicFormPage, answers: DynamicFormValues): string | undefined {
+    let newFileCount = 0;
+    const fileFields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), answers, getAllFields(getPages(form))).filter((field) => field.type === 'file');
+    for (const field of fileFields) {
+        const answer = answers[field.key];
+        const files = field.uploads ? getListItems(answer).flatMap(getListItemFiles) : getFiles(answer);
+        newFileCount += files.filter((file) => !isSavedFile(file)).length;
+        if (newFileCount > CONST.WISE.MAX_NEW_FILES_PER_SAVE) {
+            return field.key;
+        }
+    }
+    return undefined;
+}
+
 export default getWiseOnboardingForm;
-export {getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey};
+export {getFieldOverNewFileLimit, getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey};

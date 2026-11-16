@@ -47,7 +47,7 @@ import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import {getKeptSourceOfFunds, SOURCE_OF_FUNDS_PAGE_KEY} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
-import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
+import getWiseOnboardingForm, {getFieldOverNewFileLimit, getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
 import {getStringList} from './kycRequirementAttributes';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
@@ -252,6 +252,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         saveWiseOnboardingPage(bankAccountID, stepPage, stepAnswers, sensitiveAnswers);
     };
+    // The server drops the files past its cap without an error, so a page asks for fewer before it saves
+    const validatePage = (page: DynamicFormPage, values: DynamicFormValues) => {
+        const fieldKey = getFieldOverNewFileLimit(form, page, values);
+        return fieldKey ? {[fieldKey]: translate('attachmentPicker.tooManyFiles', CONST.WISE.MAX_NEW_FILES_PER_SAVE)} : {};
+    };
     const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
 
     // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page.
@@ -307,6 +312,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={savePage}
+            validatePage={validatePage}
             // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
             shouldDisableNextWhenOffline
             submitError={saveError}

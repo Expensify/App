@@ -5,7 +5,11 @@ import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 import {getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getKeptSourceOfFunds, SOURCE_OF_FUNDS_PAGE_KEY} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/forms/requirements/sourceOfFunds';
-import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingForm';
+import getWiseOnboardingForm, {
+    getFieldOverNewFileLimit,
+    getFirstUnansweredRequirementPageKey,
+    getOnboardingStep,
+} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingForm';
 import getKYCRequirementPages from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/kycRequirementLayouts';
 
 import CONST from '@src/CONST';
@@ -249,5 +253,63 @@ describe('getFirstUnansweredRequirementPageKey', () => {
         // Then there is none, and a form without requirements has none either, even with the profile pages empty
         expect(getFirstUnansweredRequirementPageKey(form, answers)).toBeUndefined();
         expect(getFirstUnansweredRequirementPageKey(getWiseOnboardingForm(undefined), {})).toBeUndefined();
+    });
+});
+
+describe('getFieldOverNewFileLimit', () => {
+    const form = getWiseOnboardingForm(ENHANCED_DUE_DILIGENCE);
+    const proofPage = getPages(form).find((page) => page.key === PROOF_ROUTE_KEY);
+    if (!proofPage) {
+        throw new Error('The form has no proof page');
+    }
+
+    /** One entry of a document type holding the given number of files */
+    function getEntry(documentType: string, count: number, savedFileKey?: string) {
+        const files = Array.from({length: count}, (_, index) => ({
+            name: `${documentType}-${index}.pdf`,
+            uri: `file://${documentType}-${index}.pdf`,
+            ...(savedFileKey ? {savedFileKey} : {}),
+        }));
+        return {id: documentType, fileType: documentType, files};
+    }
+
+    it('finds no field while the new files fit in one save', () => {
+        // Given revenue and grants with exactly as many new files as one save takes
+        const answers = {
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [getEntry('TAX_DOCUMENTS', 10)],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getEntry('GRANT_APPROVAL_LETTER', 5), getEntry('BANK_STATEMENT', 5)],
+        };
+
+        // When the page is checked
+        // Then no field is over the limit
+        expect(getFieldOverNewFileLimit(form, proofPage, answers)).toBeUndefined();
+    });
+
+    it('finds the field at which the new files pass what one save takes', () => {
+        // Given one new file more than one save takes, the last one under grants
+        const answers = {
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [getEntry('TAX_DOCUMENTS', 10)],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getEntry('GRANT_APPROVAL_LETTER', 10), getEntry('BANK_STATEMENT', 1)],
+        };
+
+        // When the page is checked
+        // Then grants is over the limit, since the server would drop its last file without an error
+        expect(getFieldOverNewFileLimit(form, proofPage, answers)).toBe(`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`);
+    });
+
+    it('leaves out files the server holds and fields of sources no longer picked', () => {
+        // Given ten saved revenue files, eleven new grant files, and new files of a donation source the user unpicked
+        const answers = {
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`]: [getEntry('TAX_DOCUMENTS', 10, 'kyc/1/tax.pdf')],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.GRANTS}`]: [getEntry('GRANT_APPROVAL_LETTER', 10), getEntry('BANK_STATEMENT', 1)],
+            [`proofFile-${CONST.WISE.SOURCE_OF_WEALTH.DONATIONS}`]: [getEntry('DONATION_RECEIPTS', 10)],
+        };
+
+        // When the page is checked
+        // Then no field is over the limit, since the save sends only the new files of the shown sources
+        expect(getFieldOverNewFileLimit(form, proofPage, answers)).toBeUndefined();
     });
 });

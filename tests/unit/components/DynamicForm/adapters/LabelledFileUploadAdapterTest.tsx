@@ -24,7 +24,7 @@ const UPLOADS = [
     {types: [{value: 'BANK_STATEMENT', label: 'Bank statement'}], buttonText: 'Upload bank statement'},
 ];
 
-function renderAdapter(value: DynamicFormListItem[], onInputChange: (value: DynamicFormListItem[]) => void, fileLimit = 0) {
+function renderAdapter(value: DynamicFormListItem[], onInputChange: (value: DynamicFormListItem[]) => void, fileLimit = 0, errorText = '') {
     render(
         <LabelledFileUploadAdapter
             value={value}
@@ -32,6 +32,7 @@ function renderAdapter(value: DynamicFormListItem[], onInputChange: (value: Dyna
             uploads={UPLOADS}
             acceptedFileTypes={['pdf']}
             fileLimit={fileLimit}
+            errorText={errorText}
         />,
     );
 }
@@ -97,4 +98,20 @@ describe('LabelledFileUploadAdapter', () => {
             {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
         ]);
     });
+});
+it('shows an error under the last button when every button has a file', () => {
+    // Given both buttons holding a file, and an error about the field as a whole, such as too many files for one save
+    // When the field renders
+    renderAdapter(
+        [
+            {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [loanFile]},
+            {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [statementFile]},
+        ],
+        jest.fn(),
+        0,
+        'Too many files',
+    );
+
+    // Then the error shows once, so the user sees why Next does not go on
+    expect(screen.getAllByText('Too many files')).toHaveLength(1);
 });

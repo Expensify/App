@@ -44,7 +44,7 @@ type LabelledFileUploadAdapterProps = Omit<UploadFileSettings, 'buttonText'> &
         /** Called with every entry after each add or remove */
         onInputChange?: (value: DynamicFormListItem[]) => void;
 
-        /** Validation error, shown under each button that has no file yet */
+        /** Validation error, shown under each button that has no file yet, or under the last button when every button has one */
         errorText?: string;
 
         /** The upload buttons, in order */
@@ -78,6 +78,7 @@ function LabelledFileUploadAdapter({
     useUploadErrorAnnouncement(uploadError, errorText);
 
     const getFiles = (upload: LabelledUpload) => entries.filter((entry) => upload.types.some((type) => type.value === entry.fileType));
+    const hasFileUnderEveryButton = uploads.every((upload) => getFiles(upload).length > 0);
     const getTypeLabel = (fileType: unknown) => uploads.flatMap((upload) => upload.types).find((type) => type.value === fileType)?.label ?? '';
 
     const addFiles = (fileType: string, newFiles: FileObject[]) => {
@@ -106,7 +107,7 @@ function LabelledFileUploadAdapter({
                 let shownError = '';
                 if (uploadErrorIndex === index && uploadError) {
                     shownError = uploadError;
-                } else if (uploadEntries.length === 0) {
+                } else if (uploadEntries.length === 0 || (hasFileUnderEveryButton && index === uploads.length - 1)) {
                     shownError = errorText;
                 }
                 return (

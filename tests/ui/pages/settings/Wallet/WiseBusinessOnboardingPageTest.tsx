@@ -1,6 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
+import {getPages} from '@components/DynamicForm/utils/paginate';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
@@ -890,6 +891,25 @@ describe('WiseBusinessOnboardingPage', () => {
 
         // Then the page stays, so the user can change the industry again
         expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+    });
+
+    it('stops Next on the documents page when its new files pass what one save can upload', async () => {
+        // Given the documents page open for revenue
+        await renderPage({reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}, subPage: 'business-source-of-wealth-proof'});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const proofPage = flowProps && getPages(flowProps.schema).find((page) => page.key === 'business-source-of-wealth-proof');
+        const fieldKey = `proofFile-${CONST.WISE.SOURCE_OF_WEALTH.REVENUE}`;
+        const getAnswers = (count: number) => ({
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            [fieldKey]: [{id: 'TAX_DOCUMENTS', fileType: 'TAX_DOCUMENTS', files: Array.from({length: count}, (_, index) => ({name: `${index}.pdf`, uri: `file://${index}.pdf`}))}],
+        });
+
+        // When the page is checked with as many new files as one save takes, and with one more
+        // Then only the second is stopped, with the message under the revenue field, since the server drops the files past its cap without an error
+        expect(proofPage && flowProps?.validatePage?.(proofPage, getAnswers(CONST.WISE.MAX_NEW_FILES_PER_SAVE))).toEqual({});
+        expect(proofPage && flowProps?.validatePage?.(proofPage, getAnswers(CONST.WISE.MAX_NEW_FILES_PER_SAVE + 1))).toEqual({
+            [fieldKey]: 'attachmentPicker.tooManyFiles',
+        });
     });
 
     it('leaves the user on the confirmation page once every requirement page has an answer', async () => {
