@@ -1,8 +1,8 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useFetchMissingMoneyRequestParents, {missingParentsSelector} from '@hooks/useFetchMissingMoneyRequestParents';
+import useFetchMissingMoneyRequestParents, {missingParentsSelector, threadsReadThroughParentSelector} from '@hooks/useFetchMissingMoneyRequestParents';
 
-import {openReport} from '@libs/actions/Report';
+import {openReport, readNewestAction} from '@libs/actions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +24,7 @@ let mockIsOffline = false;
 
 jest.mock('@libs/actions/Report', () => ({
     openReport: jest.fn(),
+    readNewestAction: jest.fn(),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: CURRENT_USER_ACCOUNT_ID}));
@@ -134,6 +135,37 @@ describe('useFetchMissingMoneyRequestParents', () => {
         expect(openReport).toHaveBeenCalledTimes(2);
     });
 
+    it('syncs the thread read time when the loaded parent was already read', async () => {
+        // Given the missing expense report was requested after a cache clear
+        await seedColdStart();
+        await renderFetchMissingParents();
+
+        // When it comes back read after the thread's last comment, since reading the report never moves the thread's read time
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, lastReadTime: '2026-11-01 12:00:00.000'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the thread is marked read too, so the next cache clear doesn't fetch the parent again
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+        expect(readNewestAction).toHaveBeenCalledWith(THREAD_REPORT_ID, true);
+    });
+
+    it('keeps the thread unread when the loaded parent is unread too', async () => {
+        // Given the missing expense report was requested after a cache clear
+        await seedColdStart();
+        await renderFetchMissingParents();
+
+        // When it comes back read only before the thread's new comment
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, lastReadTime: '2026-11-01 10:30:00.000'});
+            await waitForBatchedUpdates();
+        });
+
+        // Then nothing is marked read, the comment is still new to the user
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
     it('loads the parent once its IOU action arrives after the thread', async () => {
         // Given the unread thread is in Onyx but its parent's IOU action hasn't arrived yet
         await seedColdStart();
@@ -231,5 +263,24 @@ describe('missingParentsSelector', () => {
 
         // Then only the missing expense report is returned, once
         expect(missingParents).toEqual([{parentReportID: EXPENSE_REPORT_ID, parentReportActionID: IOU_ACTION_ID}]);
+    });
+});
+
+describe('threadsReadThroughParentSelector', () => {
+    it('returns only unread threads whose loaded parent was read after their last comment', () => {
+        // Given one thread whose parent was read after its comment, one whose parent wasn't, and one whose parent is missing
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`]: unreadThread,
+            [`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]: {reportID: EXPENSE_REPORT_ID, lastReadTime: '2026-11-01 12:00:00.000'},
+            [`${ONYXKEYS.COLLECTION.REPORT}301`]: {...unreadThread, reportID: '301', parentReportID: CHAT_REPORT_ID},
+            [`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`]: {reportID: CHAT_REPORT_ID, lastReadTime: '2026-11-01 10:30:00.000'},
+            [`${ONYXKEYS.COLLECTION.REPORT}302`]: {...unreadThread, reportID: '302', parentReportID: '201'},
+        };
+
+        // When selecting the threads read through their parent
+        const threads = threadsReadThroughParentSelector(reports);
+
+        // Then only the thread under the read expense report is returned
+        expect(threads).toEqual({[EXPENSE_REPORT_ID]: THREAD_REPORT_ID});
     });
 });

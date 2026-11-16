@@ -1,4 +1,4 @@
-import {openReport} from '@libs/actions/Report';
+import {openReport, readNewestAction} from '@libs/actions/Report';
 import {isMoneyRequestAction} from '@libs/ReportActionTypeGuards';
 
 import CONST from '@src/CONST';
@@ -38,12 +38,27 @@ function missingParentsSelector(reports: OnyxCollection<Report>): MissingParent[
     return [...missingParents.values()];
 }
 
+/** Threads still unread by their own read time although their loaded parent was read after the last comment, keyed by the parent. */
+function threadsReadThroughParentSelector(reports: OnyxCollection<Report>): Record<string, string> {
+    const threadIDs: Record<string, string> = {};
+    for (const report of Object.values(reports ?? {})) {
+        const parentReport = report?.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+        const lastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
+        if (!report?.parentReportID || !parentReport || lastVisibleActionCreated <= (report.lastReadTime ?? '') || lastVisibleActionCreated > (parentReport.lastReadTime ?? '')) {
+            continue;
+        }
+        threadIDs[report.parentReportID] = report.reportID;
+    }
+    return threadIDs;
+}
+
 /** Opens each missing parent once without marking it as read, so the LHN can show it as unread. */
 function useFetchMissingMoneyRequestParents() {
     const {isOffline} = useNetwork();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [missingParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: missingParentsSelector});
+    const [threadsReadThroughParent] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: threadsReadThroughParentSelector});
     // Only transaction threads, a regular comment thread's parent isn't dropped this way
     const [moneyRequestParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: (allReportActions) =>
@@ -63,8 +78,14 @@ function useFetchMissingMoneyRequestParents() {
 
         // Forget parents that loaded (or whose thread was read), so a later cache clear can fetch them again
         for (const parentReportID of requestedParentIDs.current) {
-            if (!missingParentIDs.has(parentReportID)) {
-                requestedParentIDs.current.delete(parentReportID);
+            if (missingParentIDs.has(parentReportID)) {
+                continue;
+            }
+            requestedParentIDs.current.delete(parentReportID);
+            // Reading the expense report doesn't move the thread's read time, so sync it or every cache clear fetches the parent again
+            const threadReportID = threadsReadThroughParent?.[parentReportID];
+            if (threadReportID) {
+                readNewestAction(threadReportID, true);
             }
         }
 
@@ -91,6 +112,7 @@ function useFetchMissingMoneyRequestParents() {
         }
     }, [
         missingParents,
+        threadsReadThroughParent,
         moneyRequestParents,
         priorityMode,
         isLoadingApp,
@@ -104,4 +126,4 @@ function useFetchMissingMoneyRequestParents() {
 }
 
 export default useFetchMissingMoneyRequestParents;
-export {missingParentsSelector};
+export {missingParentsSelector, threadsReadThroughParentSelector};
