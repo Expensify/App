@@ -70,6 +70,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             }}
             role={CONST.ROLE.LINK}
             accessibilityLabel={`/${navigationRoute}`}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
         >
             <UserDetailsTooltip
                 accountID={accountID}
@@ -79,6 +80,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             >
                 <Text
                     {...defaultRendererProps}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
                     style={[
                         styles.link,
                         styleWithoutColor,

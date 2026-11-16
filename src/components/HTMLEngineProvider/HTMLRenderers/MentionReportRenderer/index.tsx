@@ -97,6 +97,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
             }
             role={isGroupPolicyReport ? CONST.ROLE.LINK : undefined}
             accessibilityLabel={isGroupPolicyReport ? `/${navigationRoute}` : undefined}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_REPORT}
         >
             #{mentionDisplayText}
         </Text>
