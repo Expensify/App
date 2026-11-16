@@ -81,6 +81,7 @@ import {
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
     getReimbursementChoice,
+    isCurrencyChangeBlockedByDirectReimbursement,
     hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
@@ -4739,6 +4740,71 @@ describe('PolicyUtils', () => {
 
                 // Then missing countries do not count regardless of the bank account ID
                 expect(hasCountries).toBe(false);
+            });
+        });
+
+        describe('isCurrencyChangeBlockedByDirectReimbursement', () => {
+            it('should block a currency outside the direct reimbursement list on a Direct workspace', () => {
+                // Given a USD workspace on Direct reimbursement, which the server only lets switch to USD or AUD outside the beta
+                const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks HKD
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD', false);
+
+                // Then the change is blocked, so the picker explains it instead of sending a request the server rejects
+                expect(isBlocked).toBe(true);
+            });
+
+            it.each([CONST.CURRENCY.USD, CONST.CURRENCY.AUD])('should allow %s on a Direct workspace outside the Global Reimbursements beta', (currency) => {
+                // Given a GBP workspace on Direct reimbursement
+                const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.GBP, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks a currency the server always accepts for Direct reimbursement
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, currency, false);
+
+                // Then the change goes through
+                expect(isBlocked).toBe(false);
+            });
+
+            it.each([
+                [CONST.CURRENCY.SGD, false, true],
+                [CONST.CURRENCY.SGD, true, false],
+                [CONST.CURRENCY.EUR, true, false],
+                ['HKD', true, true],
+            ])('should resolve %s with the beta set to %s as blocked: %s', (currency, isBetaEnabled, expected) => {
+                // Given a USD workspace on Direct reimbursement, where the Global Reimbursements beta widens the allowed currencies
+                const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks the currency
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, currency, isBetaEnabled);
+
+                // Then the result matches the list the server applies for that beta state
+                expect(isBlocked).toBe(expected);
+            });
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+                'should allow any currency when reimbursement is %s',
+                (choice) => {
+                    // Given a workspace that does not use Direct reimbursement, so the server has no currency restriction
+                    const policy = createMock<Policy>({id: '1', outputCurrency: CONST.CURRENCY.USD, reimbursementChoice: choice});
+
+                    // When the admin picks HKD
+                    const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD', false);
+
+                    // Then the change goes through
+                    expect(isBlocked).toBe(false);
+                },
+            );
+
+            it('should allow picking the current currency on a Direct workspace', () => {
+                // Given an HKD workspace on Direct reimbursement, which can exist on legacy workspaces
+                const policy = createMock<Policy>({id: '1', outputCurrency: 'HKD', reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+
+                // When the admin picks the currency the workspace already uses
+                const isBlocked = isCurrencyChangeBlockedByDirectReimbursement(policy, 'HKD', false);
+
+                // Then nothing is blocked, because nothing changes on the server either
+                expect(isBlocked).toBe(false);
             });
         });
 

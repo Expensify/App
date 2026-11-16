@@ -8443,6 +8443,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             timezoneInputLabel: 'Strefa czasowa',
             timezoneInputHelpText: 'Twoja strefa czasowa jest używana do automatycznego wysyłania raportów',
             timezoneErrorMessage: 'Nie udało się zmienić strefy czasowej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
+            directReimbursementCurrencyTitle: 'Waluta niedostępna przy bezpośrednim zwrocie',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Ta przestrzeń robocza zwraca koszty członkom bezpośrednio przez Expensify, co nie jest dostępne w ${currency}. Aby używać ${currency}, najpierw wyłącz bezpośredni zwrot w Przepływach pracy.`,
+            goToWorkflows: 'Przejdź do przepływów pracy',
         },
         officeLocations: {
             title: 'Lokalizacje biur',

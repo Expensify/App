@@ -8569,6 +8569,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             timezoneInputLabel: 'Zona horaria',
             timezoneInputHelpText: 'Tu zona horaria se usa para el envío automático de informes',
             timezoneErrorMessage: 'No se pudo cambiar la zona horaria. Por favor, inténtalo de nuevo o contacta con soporte.',
+            directReimbursementCurrencyTitle: 'Moneda no disponible con el reembolso directo',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espacio de trabajo reembolsa a los miembros directamente a través de Expensify, lo cual no está disponible en ${currency}. Para usar ${currency}, primero desactiva el reembolso directo en Flujos de trabajo.`,
+            goToWorkflows: 'Ir a flujos de trabajo',
         },
         officeLocations: {
             title: 'Ubicaciones de oficinas',

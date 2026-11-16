@@ -9233,6 +9233,10 @@ const translations = {
             timezoneInputLabel: 'Timezone',
             timezoneInputHelpText: 'Your timezone is used for automatic report submission',
             timezoneErrorMessage: "Timezone couldn't be changed. Please try again or contact support.",
+            directReimbursementCurrencyTitle: 'Currency not available with direct reimbursement',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `This workspace reimburses members directly through Expensify, which isn't available in ${currency}. To use ${currency}, turn off direct reimbursement in Workflows first.`,
+            goToWorkflows: 'Go to workflows',
             currencyInputDisabledText: (currency: string) => `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',

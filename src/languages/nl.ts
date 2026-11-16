@@ -8407,6 +8407,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             timezoneInputLabel: 'Tijdzone',
             timezoneInputHelpText: 'Je tijdzone wordt gebruikt voor het automatisch indienen van rapporten',
             timezoneErrorMessage: 'Tijdzone kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
+            directReimbursementCurrencyTitle: 'Valuta niet beschikbaar met directe terugbetaling',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Deze workspace betaalt leden rechtstreeks terug via Expensify, wat niet beschikbaar is in ${currency}. Schakel eerst directe terugbetaling uit in Workflows om ${currency} te gebruiken.`,
+            goToWorkflows: 'Naar workflows',
         },
         officeLocations: {
             title: 'Kantoorlokaties',

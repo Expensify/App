@@ -8502,6 +8502,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             timezoneInputLabel: 'Fuseau horaire',
             timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
             timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
+            directReimbursementCurrencyTitle: 'Devise non disponible avec le remboursement direct',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Cet espace de travail rembourse les membres directement via Expensify, ce qui n’est pas disponible en ${currency}. Pour utiliser ${currency}, désactivez d’abord le remboursement direct dans Workflows.`,
+            goToWorkflows: 'Aller aux workflows',
         },
         officeLocations: {
             title: 'Sites de bureau',

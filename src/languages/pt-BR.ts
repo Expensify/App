@@ -8425,6 +8425,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             timezoneInputLabel: 'Fuso horário',
             timezoneInputHelpText: 'Seu fuso horário é usado para o envio automático de relatórios',
             timezoneErrorMessage: 'Não foi possível alterar o fuso horário. Tente novamente ou entre em contato com o suporte.',
+            directReimbursementCurrencyTitle: 'Moeda indisponível com reembolso direto',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Este espaço de trabalho reembolsa os membros diretamente pelo Expensify, o que não está disponível em ${currency}. Para usar ${currency}, primeiro desative o reembolso direto em Fluxos de trabalho.`,
+            goToWorkflows: 'Ir para fluxos de trabalho',
         },
         officeLocations: {
             title: 'Locais do escritório',

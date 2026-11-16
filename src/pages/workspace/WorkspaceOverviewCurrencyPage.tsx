@@ -7,13 +7,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useApplyWorkspaceCurrencyChange from '@hooks/useApplyWorkspaceCurrencyChange';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getGovernmentRateCountryForCurrency, getGovernmentRateCountryPhraseTranslationKey, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
-import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import {goBackFromInvalidPolicy, isCurrencyChangeBlockedByDirectReimbursement} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -37,6 +38,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
     const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
     const applyWorkspaceCurrencyChange = useApplyWorkspaceCurrencyChange(policy);
 
     const applyCurrencySelection = (currencyCode: string) => {
@@ -45,6 +47,22 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
+            return;
+        }
+
+        if (isCurrencyChangeBlockedByDirectReimbursement(policy, item.currencyCode, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS))) {
+            showConfirmModal({
+                title: translate('workspace.editor.directReimbursementCurrencyTitle'),
+                prompt: translate('workspace.editor.directReimbursementCurrencyPrompt', item.currencyCode),
+                confirmText: translate('workspace.editor.goToWorkflows'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id));
+            });
             return;
         }
 
