@@ -7,6 +7,7 @@ import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,6 +45,13 @@ type WorkspaceCompanyCardTableRowData = TableData &
         onRenameName?: (newName: string) => void;
 
         exportAccountTitle?: string;
+
+        /** Abbreviated local date of the last successful sync, or "Never" / "Updating...". Unset for unassigned cards. */
+        lastUpdatedText?: string;
+
+        /** Full local timestamp of the last successful sync, as the card details page shows it */
+        lastUpdatedTooltip?: string;
+
         onDismissError?: () => void;
     };
 
@@ -131,7 +139,15 @@ function WorkspaceCompanyCardTableRow({
     };
 
     const partialNumberMatchHint = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
-    const accessibilityLabel = [memberColumnTitle, isPartialNumberMatch ? partialNumberMatchHint : undefined, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle]
+    // Screen readers get the full sync timestamp, which sighted users see in the tooltip.
+    const accessibilityLabel = [
+        memberColumnTitle,
+        isPartialNumberMatch ? partialNumberMatchHint : undefined,
+        formattedCardDetails,
+        formattedCustomCardName,
+        item.exportAccountTitle,
+        item.lastUpdatedTooltip ?? item.lastUpdatedText,
+    ]
         .filter(Boolean)
         .join(', ');
 
@@ -221,6 +237,23 @@ function WorkspaceCompanyCardTableRow({
                                 text={item.exportAccountTitle ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <Tooltip text={item.lastUpdatedTooltip}>
+                                <Text
+                                    numberOfLines={1}
+                                    // Shrinks the text to its content so the tooltip centers on the date, not the whole cell.
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre, styles.alignSelfStart, styles.mw100]}
+                                >
+                                    {item.lastUpdatedText ?? ''}
+                                </Text>
+                            </Tooltip>
                         </View>
                     )}
 

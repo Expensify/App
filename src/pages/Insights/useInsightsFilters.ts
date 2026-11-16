@@ -41,11 +41,11 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
     const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
 
     const defaultFilters: InsightsFilters = {
-        ...DEFAULT_INSIGHTS_FILTERS,
-        date: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH} : DEFAULT_INSIGHTS_FILTERS.date,
+        ...DEFAULT_INSIGHTS_FILTERS[dashboard],
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
-    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
+    // A stored query leaves Compare out when it's off, so the default Compare mode only applies until the filters are stored
+    const filters: InsightsFilters = {...defaultFilters, compare: storedQuery ? undefined : defaultFilters.compare, ...parseInsightsFilters(storedQuery)};
 
     // What GetInsights fetches, so two selections that fetch the same thing can be told apart from ones that need a new request. Leaves out the display-only parts: the Compare mode every response already covers, and Running total, which resolves to its bucket here.
     const fetchedQuery = (dashboardFilters: InsightsFilters) => buildInsightsQueryString({...dashboardFilters, groupBy: getQueryGroupBy(dashboardFilters), compare: undefined});

@@ -7,6 +7,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useOpenClassic from '@hooks/useOpenClassic';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSignOut from '@hooks/useSignOut';
 
@@ -24,7 +25,7 @@ import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceMana
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveWiseMoreInfoNeeded from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
 
-import {openExternalLink, openOldDotLink} from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {hasStashedSession, isSupportAuthToken} from '@userActions/Session';
 
@@ -49,6 +50,7 @@ import useSettingsNavigationMenuData from './useSettingsNavigationMenuData';
 
 function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserPersonalDetails): {accountMenuItemsData: MenuSection; generalMenuItemsData: MenuSection} {
     const {convertToDisplayString} = useCurrencyListActions();
+    const openClassic = useOpenClassic();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'ExpensifyLogoNew', 'TreasureChest', 'Exit']);
     const {accountMenuItemsData: navigationAccountMenuItemsData, generalMenuItemsData: navigationGeneralMenuItemsData} = useSettingsNavigationMenuData();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -216,7 +218,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              openClassic();
                               return;
                           }
 
