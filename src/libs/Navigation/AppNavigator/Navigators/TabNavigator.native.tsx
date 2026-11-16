@@ -24,7 +24,7 @@ import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
-import {getFlatNavTabHostRouteName, getSearchTabRoute, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
@@ -65,7 +65,7 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
     // selects the new item in the same commit as Search moves.
-    const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(getSearchTabRoute(navigation.getState())));
+    const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
     // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
     // slot, inside the first item with no item shown as selected.
     const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>

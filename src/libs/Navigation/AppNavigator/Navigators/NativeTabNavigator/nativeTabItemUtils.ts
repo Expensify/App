@@ -50,12 +50,12 @@ function isNavigationToNativeTabItem(action: NavigationAction) {
     return !!payload && typeof payload === 'object' && 'name' in payload && typeof payload.name === 'string' && isNativeTabItemName(payload.name);
 }
 
-/** The `searchKey` param of the search the Search tab route shows. Reads a partial cold start state too. */
 /** The Search tab route in the tab navigator state */
-function getSearchTabRoute(tabState: NavigationState | undefined) {
+function findSearchTabRoute(tabState: NavigationState | undefined) {
     return tabState?.routes.find((tabRoute) => tabRoute.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 }
 
+/** The `searchKey` param of the search the Search tab route shows. Reads a partial cold start state too. */
 function getSearchTabSearchKey(searchTabRoute: {state?: NavigationState | PartialState<NavigationState>} | undefined): SearchKey | undefined {
     const params = searchTabRoute?.state?.routes.findLast((searchRoute) => searchRoute.name === SCREENS.SEARCH.ROOT)?.params;
     return isSearchRootParams(params) ? params.searchKey : undefined;
@@ -70,5 +70,5 @@ function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavS
     return Object.values(SCREENS.NATIVE_TAB_ITEM).find((itemName) => NATIVE_TAB_ITEM_SLOTS[itemName] === slot);
 }
 
-export {getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabRoute, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
+export {findSearchTabRoute, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
 export type {NativeTabRouteName};

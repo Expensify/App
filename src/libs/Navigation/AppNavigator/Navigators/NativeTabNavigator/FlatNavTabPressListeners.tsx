@@ -24,7 +24,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
-import {getSearchTabRoute, getSearchTabSearchKey} from './nativeTabItemUtils';
+import {findSearchTabRoute, getSearchTabSearchKey} from './nativeTabItemUtils';
 
 type MoreMenuState = 'closed' | 'open' | 'closing';
 
@@ -44,7 +44,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     // A navigation from another tab hands Search its search in the tab route params, which Search takes only in its next
     // render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
     const pendingSearchNavigation = useRef<{isPending: boolean; queuedSearchKey?: SpendTabSearchKey}>({isPending: false});
-    const getCurrentSearchTabRoute = () => getSearchTabRoute(searchNavigation?.getState());
+    const getCurrentSearchTabRoute = () => findSearchTabRoute(searchNavigation?.getState());
 
     // Focus and the current search are read at the press, not from the last render, so a quick second tap sees the
     // navigation the first one made.

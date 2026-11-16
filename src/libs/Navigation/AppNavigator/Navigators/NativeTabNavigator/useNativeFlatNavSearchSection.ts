@@ -22,8 +22,8 @@ type NativeFlatNavSearchSectionParams = {
 
 /**
  * Returns the resolver of the section from the `searchKey` param of the search the Search tab route shows. The tab
- * navigator reads that param from the route it renders, since navigation state read in this component lags one commit
- * behind it, and the bar would select the item of the previous search in the meantime.
+ * navigator reads that param from its current state when it builds the screen options, since navigation state read in
+ * this component lags one commit behind it, and the bar would select the item of the previous search in the meantime.
  */
 function useNativeFlatNavSearchSection({isSearchFocused}: NativeFlatNavSearchSectionParams): (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined {
     const [storedSearchKey] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {selector: storedSearchTabSearchKeySelector});
