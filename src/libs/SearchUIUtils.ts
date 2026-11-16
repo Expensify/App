@@ -3252,8 +3252,11 @@ function isPeriodNumberInRange(value: number, periodsPerYear: number): boolean {
     return Number.isInteger(value) && value >= 1 && value <= periodsPerYear;
 }
 
-/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
-function getGroupDateRange(groupBy: string, group: SearchGroup): SearchDateRange | undefined {
+/**
+ * The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields.
+ * Like `getSelectedGroupFilterEntry`, it reads the shape from the group's keys, so a month or quarter group read as YEAR still gets its year's range.
+ */
+function getGroupDateRange(groupBy: SearchGroupBy, group: SearchGroup): SearchDateRange | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY:
             return 'day' in group && group.day ? {start: group.day, end: group.day} : undefined;
@@ -3273,13 +3276,19 @@ function getGroupDateRange(groupBy: string, group: SearchGroup): SearchDateRange
 }
 
 /** The search a time-based group opens, shared by its section and the active hashes so the snapshot kept for the group is the one opening it reads. */
-function buildDateGroupTransactionsQuery(groupBy: string, group: SearchGroup, queryJSON: SearchQueryJSON | undefined): SearchQueryJSON | undefined {
+function buildDateGroupTransactionsQuery(groupBy: SearchGroupBy, group: SearchGroup, queryJSON: SearchQueryJSON | undefined): SearchQueryJSON | undefined {
     const dateRange = getGroupDateRange(groupBy, group);
     return queryJSON && dateRange ? buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON : undefined;
 }
 
-/** The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one. */
-function getSelectedGroupFilterEntry(groupBy: string, group: SearchGroup): SelectedGroupFilterEntry | undefined {
+/**
+ * The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one.
+ *
+ * A group doesn't record which grouping produced it, so the shape is told apart by its keys, not by `groupBy`. Some shapes can't be told apart at all:
+ * member and approver groups have the same fields, a card group has every member field, and a month or quarter group has every year field.
+ * Such a mismatched pair still returns a filter, which is fine because `groupBy` and the group always come from the same query.
+ */
+function getSelectedGroupFilterEntry(groupBy: SearchGroupBy, group: SearchGroup): SelectedGroupFilterEntry | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return 'accountID' in group ? {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: group.accountID} : undefined;

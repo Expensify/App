@@ -92,4 +92,24 @@ describe('getSelectedGroupFilterEntry', () => {
         // Then there is none, so the export fails instead of filtering on an undefined value
         expect(entry).toBeUndefined();
     });
+
+    it.each([
+        [
+            CONST.SEARCH.GROUP_BY.FROM,
+            'card',
+            {...groupBase, accountID: 42, bank: 'vcf', cardName: 'Business card', cardID: 7, lastFourPAN: '1234'},
+            {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: 42},
+        ],
+        [CONST.SEARCH.GROUP_BY.APPROVER, 'member', {...groupBase, accountID: 42}, {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: 42}],
+        [CONST.SEARCH.GROUP_BY.YEAR, 'month', {...groupBase, year: 2026, month: 2}, {kind: 'dateRange', dateRange: {start: '2026-01-01', end: '2026-12-31'}}],
+        [CONST.SEARCH.GROUP_BY.YEAR, 'quarter', {...groupBase, year: 2026, quarter: 3}, {kind: 'dateRange', dateRange: {start: '2026-01-01', end: '2026-12-31'}}],
+    ])('builds a %s filter from a %s group that has the fields it reads', (groupBy, groupType, group, expectedEntry) => {
+        // Given a group of another grouping whose shape includes every field this grouping reads, which can't be detected because a group doesn't record its grouping
+
+        // When the filter that scopes an export to that group is built
+        const entry = getSelectedGroupFilterEntry(groupBy, group);
+
+        // Then it is built from those fields, which is fine because the grouping and the group always come from the same query
+        expect(entry).toEqual(expectedEntry);
+    });
 });
