@@ -39,6 +39,8 @@ function usePolicyCards(policyID: string | undefined): PolicyCards {
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
+    const upperCasePolicyID = policyID?.toUpperCase();
+
     // Every fund holding an Expensify Card feed this workspace reaches, by the three routes a workspace is tied to
     // one: `linkedPolicyIDs`, the OldDot-only `preferredPolicy`, and a fund that backs the workspace account
     // directly. `useDefaultFundID` walks the same three in precedence order to settle on a single fund, which is
@@ -57,7 +59,7 @@ function usePolicyCards(policyID: string | undefined): PolicyCards {
                     return false;
                 }
                 return (
-                    getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase() ||
+                    getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === upperCasePolicyID ||
                     isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID)
                 );
             })
