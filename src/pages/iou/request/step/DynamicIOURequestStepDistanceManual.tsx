@@ -273,6 +273,7 @@ function DynamicIOURequestStepDistanceManual({
 
             if (shouldUpdateTransaction) {
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,

@@ -702,6 +702,7 @@ describe('TransactionInlineEdit', () => {
 
         function buildParams(): TransactionInlineEditParams {
             return {
+                translate,
                 isVendorMatchingBetaEnabled: false,
                 hash: 123456,
                 isOffline: false,

@@ -122,6 +122,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
+            translate,
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,

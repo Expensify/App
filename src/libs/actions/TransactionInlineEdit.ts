@@ -120,6 +120,7 @@ type TransactionEditPermissionsParams = {
 };
 
 type GetIouParamsInput = {
+    translate: LocalizedTranslate;
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
     parentReport: OnyxEntry<Report>;
@@ -181,6 +182,7 @@ type TransactionInlineEditParams = GetIouParamsInput & {
  * policyTagList, policyRecentlyUsedCategories, and transaction are also included.
  */
 function getIouParamsForTransaction({
+    translate,
     transactionID,
     transaction,
     parentReport,
@@ -235,6 +237,7 @@ function getIouParamsForTransaction({
     }
 
     return {
+        translate,
         transactionID,
         transactionThreadReport: resolvedTransactionThreadReport,
         parentReport,

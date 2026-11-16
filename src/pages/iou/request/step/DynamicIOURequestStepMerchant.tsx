@@ -143,6 +143,7 @@ function DynamicIOURequestStepMerchant({
         // re-render every subscriber of that key for nothing.
         if (isEditing) {
             updateMoneyRequestMerchant({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,
