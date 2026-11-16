@@ -172,4 +172,18 @@ describe('InsightsAICardRow', () => {
         expect(screen.getByText(insight.summary)).toBeOnTheScreen();
         expect(screen.queryByText(/%/)).toBeNull();
     });
+
+    it('formats a neutral count chip without money or a percentage', async () => {
+        // Given a Compliance count
+        const insight: AIInsight = {...SPIKE, chip: {type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL, unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT, value: 1234}};
+
+        // When the structured card renders
+        await renderRow([insight]);
+
+        // Then the chip uses the count and keeps the card's title and summary
+        expect(screen.getByText('1,234')).toBeOnTheScreen();
+        expect(screen.getByText(insight.title)).toBeOnTheScreen();
+        expect(screen.getByText(insight.summary)).toBeOnTheScreen();
+        expect(screen.queryByText(/%/)).toBeNull();
+    });
 });

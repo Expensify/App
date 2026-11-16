@@ -25,13 +25,17 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, numberFormat} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Coins', 'Clock']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Coins', 'Clock', 'Flag']);
 
     let value: string;
     let neutralIcon = icons.Coins;
     switch (chip.unit) {
         case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT:
             value = convertToShortDisplayString(chip.value, chip.currency);
+            break;
+        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT:
+            value = numberFormat(chip.value);
+            neutralIcon = icons.Flag;
             break;
         case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION:
             value = DateUtils.formatAverageDuration(chip.value, translate, numberFormat, true);

@@ -58,6 +58,10 @@ type AIInsightChangeChip = AIInsightChipValue & {
 type AIInsightNeutralChip = (
     | AIInsightChipValue
     | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
+          value: number;
+      }
+    | {
           unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
 
           /** Average processing duration in seconds */
