@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportNameValuePairs} from '@src/types/onyx';
 
+import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
 import {addMinutes} from 'date-fns';
 import React from 'react';
@@ -37,8 +37,6 @@ type OnboardingHelpButtonProps = {
     hasActiveScheduledCall: boolean | undefined;
 };
 
-const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
-
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -47,7 +45,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     });
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: reportNameValuePartsSelector,
+        selector: latestCalendlyCallSelector,
     });
 
     const styles = useThemeStyles();
@@ -68,6 +66,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('getAssistancePage.scheduleACall'),
             icon: icons.CalendarSolid,
             value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_SCHEDULE_CALL,
             onSelected: () => {
                 clearBookingDraft();
                 Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(reportID));
@@ -77,19 +76,15 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
-                latestScheduledCall.eventTime,
-                userTimezone,
-                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
-                {locale: dateFnsLocale},
-            )}`,
+            text: DateUtils.formatToLongDateInTimeZone(latestScheduledCall.eventTime, userTimezone, dateFnsLocale, true),
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_EVENT_TIME,
             description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
                 CONST.DATE.LOCAL_TIME_FORMAT,
                 {locale: dateFnsLocale},
-            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone, dateFnsLocale)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
@@ -103,12 +98,14 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_RESCHEDULE,
             onSelected: () => rescheduleBooking(latestScheduledCall),
             icon: icons.CalendarSolid,
         });
         options.push({
             text: translate('common.cancel'),
             value: CONST.ONBOARDING_HELP.CANCEL,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_CANCEL,
             onSelected: () => cancelBooking(latestScheduledCall),
             icon: icons.Close,
         });
@@ -118,8 +115,8 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
             icon: icons.Monitor,
-            shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
             },
@@ -132,6 +129,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     return (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.HELP_DROPDOWN}
             onPress={(_event, value) => {
                 const option = options.find((opt) => opt.value === value);
                 option?.onSelected?.();

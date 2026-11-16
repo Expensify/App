@@ -1,32 +1,32 @@
 import HapticFeedback from '@libs/HapticFeedback';
 
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 
 function usePaymentAnimations() {
     const [isPaidAnimationRunning, setIsPaidAnimationRunning] = useState(false);
     const [isApprovedAnimationRunning, setIsApprovedAnimationRunning] = useState(false);
     const [isSubmittingAnimationRunning, setIsSubmittingAnimationRunning] = useState(false);
 
-    const stopAnimation = useCallback(() => {
+    const stopAnimation = () => {
         setIsPaidAnimationRunning(false);
         setIsApprovedAnimationRunning(false);
         setIsSubmittingAnimationRunning(false);
-    }, []);
+    };
 
-    const startAnimation = useCallback(() => {
+    const startAnimation = () => {
         setIsPaidAnimationRunning(true);
         HapticFeedback.longPress();
-    }, []);
+    };
 
-    const startApprovedAnimation = useCallback(() => {
+    const startApprovedAnimation = () => {
         setIsApprovedAnimationRunning(true);
         HapticFeedback.longPress();
-    }, []);
+    };
 
-    const startSubmittingAnimation = useCallback(() => {
+    const startSubmittingAnimation = () => {
         setIsSubmittingAnimationRunning(true);
         HapticFeedback.longPress();
-    }, []);
+    };
 
     return {
         isPaidAnimationRunning,

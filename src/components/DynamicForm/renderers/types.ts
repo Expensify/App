@@ -1,23 +1,26 @@
 import type {DynamicFormFieldsProps} from '@components/DynamicForm/components/DynamicFormFields';
-import type {DynamicFormFieldOfType} from '@components/DynamicForm/types';
+import type {DynamicFormFieldOfType, DynamicFormValues} from '@components/DynamicForm/types';
 import type {FormValue, InputComponentBaseProps} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {ThemeStyles} from '@src/styles';
-import type {DynamicFormFieldType} from '@src/types/onyx';
+import type {DynamicFormField, DynamicFormFieldType, DynamicFormListItem} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ReactElement} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 
-type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize'> &
+type DynamicFieldContext = Pick<DynamicFormFieldsProps, 'values' | 'maxFileSize' | 'onOpenListItemEditor' | 'onListItemsChange' | 'isSensitive'> &
     Required<Pick<DynamicFormFieldsProps, 'currency'>> & {
         translate: LocalizedTranslate;
         styles: ThemeStyles;
 
         /** The field is the page's only question, so a choice is drawn as the page itself instead of as a row */
         isLoneField: boolean;
+
+        /** Draws a list entry's fields in the modal editor used outside DynamicFormFlow */
+        renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
     };
 
 /** The answer each field type's input holds. An address holds its street, and its other parts sit under their own keys. */
@@ -36,6 +39,7 @@ type DynamicFieldAnswerMap = {
     boolean: boolean;
     currency: string;
     percent: string;
+    list: DynamicFormListItem[];
 };
 
 /** Props every input gets from the renderer */
@@ -43,6 +47,9 @@ type DynamicFieldInputProps<TAnswer extends FormValue = FormValue> = Required<Fo
     Required<Pick<InputComponentBaseProps, 'inputID' | 'shouldSaveDraft'>> &
     Pick<InputComponentBaseProps, 'onValueChange'> & {
         onBlur?: () => void;
+
+        /** Offline, a field that asks the server for a new form cannot change, because the request would wait in the queue while the user goes on with a stale form */
+        disabled?: boolean;
 
         /** A sensitive answer is not drafted, so the input starts from the answer the flow keeps in memory */
         defaultValue?: TAnswer;

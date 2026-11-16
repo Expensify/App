@@ -4,9 +4,11 @@ import type {Merge} from 'type-fest';
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
+import lodashIsPlainObject from 'lodash/isPlainObject';
 import AppLogs from 'react-native-app-logs';
 
 import pkg from '../../package.json';
+import {getLogTab} from './ActiveClientManager';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
 import MainQueueStore from './Network/MainQueueStore';
@@ -107,9 +109,33 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     });
 }
 
+type LogParameters = Parameters<Logger['add']>[1];
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> => lodashIsPlainObject(value);
+
+function addTabToParameters(parameters: LogParameters): LogParameters {
+    const tab = getLogTab();
+    if (!tab) {
+        return parameters;
+    }
+    if (!parameters) {
+        return {tab};
+    }
+    if (isPlainObject(parameters)) {
+        return {...parameters, tab};
+    }
+    return parameters;
+}
+
+class ContextualLogger extends Logger {
+    add(...[message, parameters, ...rest]: Parameters<Logger['add']>) {
+        super.add(message, addTabToParameters(parameters), ...rest);
+    }
+}
+
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
-const Log = new Logger({
+const Log = new ContextualLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);

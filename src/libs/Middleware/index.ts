@@ -7,8 +7,10 @@ import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
 import Logging from './Logging';
+import MembersNeedCategoryError from './MembersNeedCategoryError';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
+import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
@@ -23,12 +25,14 @@ export {
     Logging,
     Reauthentication,
     RecordFullReconnectTime,
+    ReconcileBulkEditReportAction,
     FailureTracking,
     SaveResponseInOnyx,
     Pagination,
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    MembersNeedCategoryError,
     FraudMonitoring,
     LoadPostDataForOpenOrReconnect,
     SentryServerTiming,

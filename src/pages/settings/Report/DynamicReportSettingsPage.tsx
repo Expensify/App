@@ -34,7 +34,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DynamicReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT>;
@@ -49,15 +49,15 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
+    const linkedWorkspace = report?.policyID && policy?.id === report?.policyID ? policy : undefined;
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
     const notificationPreferenceValue = getReportNotificationPreferenceForSettings(report, currentUserAccountID);
     const notificationPreference = notificationPreferenceValue ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`) : '';
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
-    const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport), [linkedWorkspace, isArchivedNonExpenseReport]);
+    const shouldAllowWriteCapabilityEditing = canEditWriteCapability(report, linkedWorkspace, isReportArchived);
+    const shouldAllowChangeVisibility = canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
 
@@ -73,6 +73,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.NOTIFICATION_PREFERENCE}
                             name={translate('notificationPreferencesPage.label')}
                             onPress={() => {
                                 if (!reportID) {
@@ -85,6 +86,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.WRITE_CAPABILITY}
                             name={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                             value={writeCapabilityText}
@@ -110,6 +112,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.VISIBILITY}
                                 name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));

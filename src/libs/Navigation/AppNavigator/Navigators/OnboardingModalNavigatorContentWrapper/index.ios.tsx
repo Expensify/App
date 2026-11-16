@@ -1,3 +1,5 @@
+import {OnboardingHeaderProvider, OnboardingStickyHeader} from '@components/OnboardingHeader';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,12 +20,15 @@ function OnboardingModalNavigatorContentWrapper({children, onboardingIsMediumOrL
 
     // Add padding left and right to the style to account for the safe area insets
     return (
-        <View
-            onClick={(e) => e.stopPropagation()}
-            style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth), {paddingLeft, paddingRight}]}
-        >
-            {children}
-        </View>
+        <OnboardingHeaderProvider>
+            <View
+                onClick={(e) => e.stopPropagation()}
+                style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth), {paddingLeft, paddingRight}]}
+            >
+                {children}
+                <OnboardingStickyHeader />
+            </View>
+        </OnboardingHeaderProvider>
     );
 }
 

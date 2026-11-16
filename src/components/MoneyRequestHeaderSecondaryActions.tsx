@@ -8,6 +8,9 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+import type {RejectModalAction} from '@hooks/useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -53,7 +56,6 @@ import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionU
 import {
     canDuplicateExpenseIntoSourceReport,
     generateReportID,
-    getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
     isExpenseReport,
@@ -81,6 +83,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -91,14 +94,12 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
-import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
-import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchQueryContext, useSearchSelectionActions} from './Search/SearchContext';
@@ -122,7 +123,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     >();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
     const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -161,6 +162,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     // Collection Onyx subscriptions (isolated here to prevent parent header re-renders)
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -194,10 +196,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserEmail), [currentUserEmail]);
+    const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
-    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -211,7 +213,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin), [currentUserLogin]);
+    const hasWorkspaceToSubmitToSelector = createHasWorkspaceToSubmitToSelector(currentUserLogin);
     const [hasWorkspaceToSubmitTo = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -222,11 +224,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    // State
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
-        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
-    > | null>(null);
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
 
     // Derived computations
@@ -236,7 +233,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         transaction &&
         getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, false)
     );
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     // Duplicate expense target: the expense's report when it can accept the copy, otherwise the default workspace chat
     const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
@@ -298,7 +295,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -330,40 +326,43 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     };
 
     const dismissModalAndUpdateUseHold = () => {
-        setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(
-                parentReportAction,
-                transaction,
+            changeMoneyRequestHoldStatus({
+                reportAction: parentReportAction,
+                iouTransaction: transaction,
+                iouTransactionReport: transactionReport,
+                reportActionChildReport: report,
                 policy,
                 isOffline,
-                currentUserLogin ?? '',
-                accountID,
-                rawTransactionViolations,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: rawTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         }
     };
 
-    const dismissRejectModalBasedOnAction = () => {
+    const dismissRejectModalBasedOnAction = (rejectModalAction: RejectModalAction) => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }
         } else {
             dismissRejectUseExplanation();
@@ -371,8 +370,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 rejectMoneyRequestReason(parentReportAction);
             }
         }
-        setRejectModalAction(null);
     };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
 
     // Secondary actions
     const secondaryActions = (() => {
@@ -384,6 +385,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             currentUserAccountID: accountID,
             parentReport,
             parentReportOwnerLogin: parentOwnerLogin,
+            parentReportActions,
             reportTransaction: transaction,
             reportAction: parentReportAction,
             originalTransaction,
@@ -430,6 +432,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.hold'),
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.HOLD,
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
@@ -443,22 +446,24 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 const shouldShowHoldEducationalModal = isReportSubmitter || isParentChatReportDM;
                 const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed) {
-                    changeMoneyRequestHoldStatus(
-                        parentReportAction,
-                        transaction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: parentReportAction,
+                        iouTransaction: transaction,
+                        iouTransactionReport: transactionReport,
+                        reportActionChildReport: report,
                         policy,
                         isOffline,
-                        currentUserLogin ?? '',
-                        accountID,
-                        rawTransactionViolations,
+                        currentUserLogin: currentUserLogin ?? '',
+                        currentUserAccountID: accountID,
+                        transactionViolations: rawTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    );
+                    });
                 } else if (shouldShowHoldEducationalModal) {
-                    setIsHoldEducationalModalVisible(true);
+                    showHoldSubmitterEducationalModal({isDM: isParentChatReportDM}).finally(dismissModalAndUpdateUseHold);
                 } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD));
                 }
             },
         },
@@ -466,6 +471,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.unhold'),
             icon: expensifyIcons.Stopwatch,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REMOVE_HOLD,
             onSelected: () => {
                 if (!parentReportAction) {
                     throw new Error('Parent action does not exist');
@@ -476,24 +482,27 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(
-                    parentReportAction,
-                    transaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: parentReportAction,
+                    iouTransaction: transaction,
+                    iouTransactionReport: transactionReport,
+                    reportActionChildReport: report,
                     policy,
                     isOffline,
-                    currentUserLogin ?? '',
-                    accountID,
-                    rawTransactionViolations,
+                    currentUserLogin: currentUserLogin ?? '',
+                    currentUserAccountID: accountID,
+                    transactionViolations: rawTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
             text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SPLIT,
             onSelected: () => {
                 initSplitExpense(transaction, report, splitEffectivePolicy, selfDMReportID, restrictedActionPolicyID, personalPolicy?.outputCurrency, getCurrencyDecimals, getCurrencySymbol);
             },
@@ -502,11 +511,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('common.merge'),
             icon: expensifyIcons.ArrowCollapse,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MERGE,
             onSelected: () => {
                 if (!transaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, getCurrencyDecimals, [], false, isReportInSearch);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, translate, getCurrencyDecimals, [], false, isReportInSearch);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {
@@ -514,6 +524,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     dropdownMenuRef.current?.setIsMenuVisible(false);
@@ -562,6 +573,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
             icon: expensifyIcons.Info,
             onSelected: () => {
@@ -572,6 +584,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
             icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+            sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.MORE_MENU.SPLIT : CONST.SENTRY_LABEL.MORE_MENU.DELETE,
             onSelected: () => {
                 if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                     deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
@@ -636,7 +649,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                                 return;
                             }
 
-                            removeTransaction(transaction.transactionID);
+                            removeTransaction(transaction.transactionID, {isDeleted: true});
                         };
                     }
                     if (isInNarrowPaneModal) {
@@ -657,6 +670,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('common.reject'),
             icon: expensifyIcons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REJECT,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -668,7 +682,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    showHoldOrRejectEducationalModal().finally(() => dismissRejectModalBasedOnAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT));
                 }
             },
         },
@@ -676,6 +690,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.moveExpenses'),
             icon: expensifyIcons.DocumentMerge,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MOVE_EXPENSE,
             onSelected: () => {
                 if (!parentReport || !transaction?.transactionID) {
                     return;
@@ -704,6 +719,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.sendToSomeone'),
             icon: expensifyIcons.Send,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SEND_TO_SOMEONE,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -717,6 +733,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             text: translate('iou.submitToEmployer'),
             icon: expensifyIcons.Building,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SEND_TO_EMPLOYER,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -744,31 +761,17 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const shouldPopoverUseScrollView = getShouldPopoverUseScrollView(applicableSecondaryActions);
 
     return (
-        <>
-            <ButtonWithDropdownMenu
-                ref={dropdownMenuRef}
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                options={applicableSecondaryActions}
-                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
-                isSplitButton={false}
-                wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
-            />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {!!isHoldEducationalModalVisible && (
-                <HoldSubmitterEducationalModal
-                    onClose={dismissModalAndUpdateUseHold}
-                    onConfirm={dismissModalAndUpdateUseHold}
-                    isDM={isParentChatReportDM}
-                />
-            )}
-        </>
+        <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
+            ref={dropdownMenuRef}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('common.more')}
+            options={applicableSecondaryActions}
+            shouldPopoverUseScrollView={shouldPopoverUseScrollView}
+            isSplitButton={false}
+            wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
+        />
     );
 }
 

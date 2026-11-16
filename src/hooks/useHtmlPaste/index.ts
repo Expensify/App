@@ -1,4 +1,6 @@
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
@@ -7,6 +9,8 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {Str} from 'expensify-common';
+import {DomUtils, parseDocument} from 'htmlparser2';
 import {useCallback, useEffect, useRef} from 'react';
 
 import type UseHtmlPaste from './types';
@@ -45,7 +49,82 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
+/**
+ * Checks whether an image contains Slack's metadata identifying it as an emoji.
+ *
+ * @param image The image element to inspect.
+ * @returns `true` when Slack's emoji metadata is present; otherwise, `false`.
+ */
+function isEmojiImage(image: HTMLImageElement): boolean {
+    const dataset = image.dataset;
+
+    return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
+}
+
+/**
+ * Returns the text that should replace an image identified by Slack's emoji metadata.
+ *
+ * @param image Image element being pasted.
+ * @returns The shortcode or legacy alt text, or an empty string when the image should remain unchanged.
+ */
+function getEmojiReplacementText(image: HTMLImageElement): string {
+    if (!isEmojiImage(image)) {
+        return '';
+    }
+
+    // Slack's data-* metadata identifies the emoji and supplies its shortcode, with alt text as the legacy fallback.
+    const shortcode = image.dataset.stringifyEmoji;
+    return shortcode?.length ? shortcode : image.alt;
+}
+
+/**
+ * Replaces recognized emoji image tags while preserving every other character from the original clipboard HTML.
+ *
+ * @param html Original clipboard HTML.
+ * @param images Images parsed from the clipboard HTML.
+ * @param replacements Replacement text keyed by its corresponding parsed image.
+ * @returns Clipboard HTML with only recognized emoji image tags replaced.
+ */
+function replaceEmojiImagesInHTML(html: string, images: HTMLImageElement[], replacements: Map<HTMLImageElement, string>): string {
+    if (replacements.size === 0) {
+        return html;
+    }
+
+    const sourceDocument = parseDocument(html, {withStartIndices: true, withEndIndices: true});
+    const sourceImages = DomUtils.getElementsByTagName('img', sourceDocument, true);
+    if (sourceImages.length !== images.length) {
+        return html;
+    }
+
+    const sourceReplacements: Array<{startIndex: number; endIndex: number; text: string}> = [];
+    for (const [index, image] of images.entries()) {
+        const replacement = replacements.get(image);
+        if (!replacement) {
+            continue;
+        }
+
+        const sourceImage = sourceImages.at(index);
+        if (sourceImage?.startIndex === null || sourceImage?.startIndex === undefined || sourceImage.endIndex === null) {
+            return html;
+        }
+
+        sourceReplacements.push({
+            startIndex: sourceImage.startIndex,
+            endIndex: sourceImage.endIndex,
+            text: Str.htmlEncode(replacement),
+        });
+    }
+
+    let htmlWithEmojiReplacements = html;
+    for (const replacement of sourceReplacements.toSorted((first, second) => second.startIndex - first.startIndex)) {
+        htmlWithEmojiReplacements = htmlWithEmojiReplacements.slice(0, replacement.startIndex) + replacement.text + htmlWithEmojiReplacements.slice(replacement.endIndex + 1);
+    }
+
+    return htmlWithEmojiReplacements;
+}
+
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const [personalDetailsList] = useAllPersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     /**
@@ -55,13 +134,17 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const paste = useCallback(
         (text: string) => {
             try {
-                const textInputHTMLElement = textInputRef.current as HTMLElement;
-                if (textInputHTMLElement?.hasAttribute('contenteditable')) {
+                const textInputHTMLElement = textInputRef.current;
+                if (!(textInputHTMLElement instanceof HTMLElement)) {
+                    return;
+                }
+                if (textInputHTMLElement.hasAttribute('contenteditable')) {
                     insertAtCaret(textInputHTMLElement, text, maxLength);
+                } else if (textInputHTMLElement instanceof HTMLInputElement || textInputHTMLElement instanceof HTMLTextAreaElement) {
+                    const availableLength = maxLength - (textInputHTMLElement.value?.length ?? 0);
+                    textInputHTMLElement.setRangeText(text.slice(0, availableLength));
                 } else {
-                    const htmlInput = textInputRef.current as unknown as HTMLInputElement;
-                    const availableLength = maxLength - (htmlInput.value?.length ?? 0);
-                    htmlInput.setRangeText(text.slice(0, availableLength));
+                    return;
                 }
 
                 requestAnimationFrame(() => {
@@ -103,9 +186,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const handlePastedHTML = useCallback(
         (html: string) => {
             // Built here rather than in render so it costs nothing until a paste actually happens.
-            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports)}));
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: buildAccountIDToNameMap(personalDetailsList)}));
         },
-        [paste, reports],
+        [paste, reports, personalDetailsList],
     );
 
     /**
@@ -114,7 +197,6 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
             if (!clipboardText) {
                 return;
@@ -157,24 +239,29 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
             if (event.clipboardData?.types?.includes(TEXT_HTML)) {
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
-                const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset?.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
-                    }
-                }
-                // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
-                // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
+                // Native markdown input adds this wrapper and styling when copied, so preserve its original plain text.
                 if (pastedHTML.startsWith('<p dir="ltr">')) {
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(pastedHTML);
+
+                const domparser = new DOMParser();
+                const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
+                const embeddedImages = Array.from(htmlDocument.images);
+                const emojiImageReplacements = new Map<HTMLImageElement, string>();
+
+                // Collect emoji replacements before parsing HTML so they do not become inaccessible markdown image URLs.
+                for (const image of embeddedImages) {
+                    const emojiText = getEmojiReplacementText(image);
+
+                    if (!emojiText) {
+                        continue;
+                    }
+
+                    emojiImageReplacements.set(image, emojiText);
+                }
+
+                handlePastedHTML(replaceEmojiImagesInHTML(pastedHTML, embeddedImages, emojiImageReplacements));
                 return;
             }
             handlePastePlainText(event);

@@ -1,7 +1,8 @@
+import {getReportPreviewSenderID} from '@hooks/useReportPreviewSenderID';
+
 import type {PersonalDetailsByLogin} from '../../src/components/PersonalDetailsByLoginProvider';
 import type {OriginalMessageIOU, PersonalDetails, Report, ReportAction, Transaction} from '../../src/types/onyx';
 
-import {getReportPreviewSenderID} from '../../src/components/ReportActionAvatars/useReportPreviewSenderID';
 import CONST from '../../src/CONST';
 import createMock from '../utils/createMock';
 
@@ -336,7 +337,8 @@ describe('getReportPreviewSenderID', () => {
         const dmChat = createMock<Report>({
             reportID: 'dm-1',
             type: CONST.REPORT.TYPE.CHAT,
-            lastActorAccountID: MANAGER_ACCOUNT_ID,
+            // Contradicts `chatReportLastActorAccountID` below, so the test fails if the lookup reads it off `chatReport` again.
+            lastActorAccountID: OWNER_ACCOUNT_ID,
             participants: {
                 [OWNER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [MANAGER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -346,6 +348,7 @@ describe('getReportPreviewSenderID', () => {
         const result = getReportPreviewSenderID({
             ...baseParams,
             chatReport: dmChat,
+            chatReportLastActorAccountID: MANAGER_ACCOUNT_ID,
             iouReport: makeIOUReport({transactionCount: 2, ownerAccountID: OWNER_ACCOUNT_ID, managerID: MANAGER_ACCOUNT_ID}),
             action: makeAction({childMoneyRequestCount: 2, childLastActorAccountID: OWNER_ACCOUNT_ID}),
             iouActions: [

@@ -1,11 +1,14 @@
-import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import MenuItem from '@components/MenuItem';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
+import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterFormValues, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -28,32 +31,34 @@ type AmountInputProps = {
     title: string;
     value: string;
     name: string;
+    baseFilterKey: SearchAmountFilterKeys;
     onSave: (value: string) => void;
     onBackButtonPress: () => void;
 };
 
-function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInputProps) {
+function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPress}: AmountInputProps) {
     const styles = useThemeStyles();
-    const [amount, setAmount] = useState(value);
+    const initialValue = getAmountFilterInputValue(value);
+    const [amount, setAmount] = useState(initialValue.amount);
+    const {currency, setCurrency} = useAmountFilterCurrency(baseFilterKey, value);
 
     return (
         <BasePopup
             label={title}
-            onApply={() => onSave(amount)}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            onApply={() => onSave(formatAmountFilterValue(amount, currency))}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_VALUE.AMOUNT}
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
-            <AmountWithoutCurrencyInput
+            <AmountFilterInput
+                baseFilterKey={baseFilterKey}
                 containerStyles={[styles.ph4, styles.mb2]}
-                defaultValue={value}
-                onInputChange={setAmount}
+                amount={amount}
+                currency={currency}
+                onAmountChange={setAmount}
+                onCurrencyChange={setCurrency}
                 label={title}
-                accessibilityLabel={title}
                 name={name}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                shouldAllowNegative
                 autoFocus
             />
         </BasePopup>
@@ -62,6 +67,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
 
 function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
 
@@ -69,12 +75,20 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: translate('search.filters.amount.equalTo'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: translate('search.filters.amount.greaterThan'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: translate('search.filters.amount.lessThan'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: translate('search.filters.amount.greaterThanOrEqualTo'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: translate('search.filters.amount.lessThanOrEqualTo'),
     };
 
-    const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+    const modifierConfig = [
+        CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+    ];
 
     const formatAmount = (amount: string | undefined) => {
-        return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
+        return getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
     };
 
     if (selectedModifier) {
@@ -82,23 +96,38 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
             setSelectedModifier(null);
         };
 
-        const save = (rawAmount: string) => {
-            if (rawAmount.trim() === '') {
+        const save = (newAmount: string) => {
+            if (newAmount === '') {
                 setAmountValues((prevAmountValues) => ({...prevAmountValues, [selectedModifier]: undefined}));
                 goBack();
                 return;
             }
 
-            const newAmount = convertToBackendAmount(Number(rawAmount)).toString();
-
             // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
             if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
-                setAmountValues({[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '', [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '', [selectedModifier]: newAmount});
+                setAmountValues({
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: undefined,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: undefined,
+                    [selectedModifier]: newAmount,
+                });
             }
 
-            // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
-            if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN) {
-                setAmountValues((prevAmountValues) => ({...prevAmountValues, [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '', [selectedModifier]: newAmount}));
+            // Editing an active comparison keeps other raw-query constraints; a new operator replaces its counterpart.
+            if (selectedModifier !== CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
+                const oppositeModifier = {
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+                }[selectedModifier];
+                setAmountValues((prevAmountValues) => ({
+                    ...prevAmountValues,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '',
+                    [oppositeModifier]: prevAmountValues[selectedModifier] ? prevAmountValues[oppositeModifier] : undefined,
+                    [selectedModifier]: newAmount,
+                }));
             }
             goBack();
         };
@@ -106,33 +135,29 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         return (
             <AmountInput
                 title={title[selectedModifier]}
-                value={formatAmount(amountValues[selectedModifier])}
+                value={amountValues[selectedModifier] ?? ''}
                 name={`${baseFilterKey}${selectedModifier}`}
+                baseFilterKey={baseFilterKey}
                 onBackButtonPress={goBack}
                 onSave={save}
             />
         );
     }
 
-    const onChange = (values: SearchAmountValues) => {
-        const formValues: Record<string, string | undefined> = {};
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        updateFilterForm(formValues);
+    const applyChanges = () => {
+        updateFilterForm(getAmountFilterFormValues(baseFilterKey, amountValues));
         closeOverlay();
     };
-
-    const applyChanges = () => onChange(amountValues);
 
     return (
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
             {modifierConfig.map((modifier) => (
                 <MenuItem
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
                     key={modifier}
                     title={title[modifier]}
                     description={formatAmount(amountValues[modifier])}

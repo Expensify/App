@@ -255,16 +255,19 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
  * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
  * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
  */
-function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
-    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
         return !transaction?.isAmountSet;
     }
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet;
 }
 
-/** Whether the merchant is still missing on a Scan the user started filling in, under the same all-or-nothing rule. */
-function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
-    return isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually) && !transaction?.isMerchantSet;
+/**
+ * Whether the merchant is still missing on a Scan the user started filling in, under the same all-or-nothing rule.
+ * The merchant only takes part in that rule where it is required (a workspace chat), as in the manual flow.
+ */
+function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
+    return shouldRequireMerchant && isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant) && !transaction?.isMerchantSet;
 }
 
 /**
@@ -273,8 +276,14 @@ function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredSca
  * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
  * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
  */
-function isConfirmationDateMissing(transaction: OnyxEntry<Transaction>, shouldShowDate: boolean, isReadOnly: boolean, canEnterScanFieldsManually = false): boolean {
-    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+function isConfirmationDateMissing(
+    transaction: OnyxEntry<Transaction>,
+    shouldShowDate: boolean,
+    isReadOnly: boolean,
+    canEnterScanFieldsManually = false,
+    shouldRequireMerchant = true,
+): boolean {
+    if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
         return !transaction?.isCreatedSet;
     }
     return shouldShowDate && !isReadOnly && isCreatedMissing(transaction);

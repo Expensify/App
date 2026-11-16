@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import VerifyAccountPageBase from './VerifyAccountPageBase';
 
@@ -31,7 +31,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
         parentReportAction: validateEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
 
-    const handleJoinWorkspaceValidationSuccess = useCallback(() => {
+    const handleJoinWorkspaceValidationSuccess = () => {
         completeTask(
             validateEmailTaskReport,
             validateEmailTaskParentReport?.hasOutstandingChildTask ?? false,
@@ -44,7 +44,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
             CONST.ACCOUNT_ID.CONCIERGE,
         );
         getAccessiblePolicies();
-    }, [validateEmailTaskParentReport?.hasOutstandingChildTask, validateEmailTaskParentReportAction, validateEmailTaskReport]);
+    };
     const isValidateEmailTaskCompleted = isCompletedTaskReport(validateEmailTaskReport);
 
     if (backPath === ROUTES.SETTINGS_WALLET) {

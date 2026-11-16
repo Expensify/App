@@ -90,6 +90,7 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonSentryLabel,
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
@@ -112,7 +113,6 @@ function BaseTextInput({
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
     const isMultiline = multiline || autoGrowHeight;
@@ -218,12 +218,14 @@ function BaseTextInput({
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
-    // Activate or deactivate the label when either focus changes, or for controlled
-    // components when the value prop changes:
+    // Keep the label clear of values and adornments, including changes while the input is blurred.
     useEffect(() => {
         if (
             hasValue ||
             isFocused ||
+            forceActiveLabel ||
+            !!prefixCharacter ||
+            !!suffixCharacter ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
             isInputAutoFilled(input.current)
@@ -232,7 +234,7 @@ function BaseTextInput({
         } else {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, hasValue, isFocused]);
+    }, [activateLabel, deactivateLabel, forceActiveLabel, hasValue, isFocused, prefixCharacter, suffixCharacter]);
 
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
@@ -473,6 +475,7 @@ function BaseTextInput({
                                     }}
                                     iconSize={clearButtonIconSize}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
+                                    sentryLabel={clearButtonSentryLabel}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (
@@ -488,6 +491,7 @@ function BaseTextInput({
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.TEXT_INPUT.PASSWORD_VISIBILITY_TOGGLE}
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {

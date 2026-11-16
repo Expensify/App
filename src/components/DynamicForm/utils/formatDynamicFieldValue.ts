@@ -3,7 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
 import getFieldOptions, {getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
 
@@ -14,8 +14,9 @@ function formatAddress(fieldKey: string, values: DynamicFormValues, translate: L
         const part = values[partKey];
         return typeof part === 'string' ? part : '';
     };
-    const stateAndZip = [getPart(addressKeys.state), getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
     const country = getAddressCountry(fieldKey, values);
+    // A state the form does not ask for is not submitted, so it is not shown either
+    const stateAndZip = [isStateAsked(country) ? getPart(addressKeys.state) : '', getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
     const countryName = country ? translate(`allCountries.${country}`) : '';
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
 }
@@ -55,6 +56,9 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
             return `${answer}%`;
         case 'address':
             return formatAddress(field.key, values, translate);
+        case 'text':
+            // A row shows one line, so a multiline answer is joined into it, which also gives a cut answer its ellipsis
+            return field.multiline ? answer.replaceAll(/\s*\r?\n\s*/g, ' ').trim() : answer;
         default:
             return answer;
     }

@@ -8,11 +8,13 @@ import type {
     GetRouteParams,
     MarkAsCashParams,
     TransactionThreadInfo,
+    UndeleteTransactionsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -26,6 +28,7 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUndeletedTransactionAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
@@ -77,6 +80,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -90,6 +94,7 @@ import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
+import {removeActiveTransactionIDsForReport} from './TransactionThreadNavigation';
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -877,6 +882,10 @@ type ChangeTransactionsReportProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     jsonQuery?: string;
     hash?: number;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+
+    /** When true, each transaction gets an UNDELETED_TRANSACTION action from the caller instead of the normal move action. */
+    isUndelete?: boolean;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -901,6 +910,8 @@ function getChangeTransactionsReportOnyxData({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     cardList,
+    currentUserPersonalDetails,
+    isUndelete,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1048,6 +1059,8 @@ function getChangeTransactionsReportOnyxData({
     // The transactions that are actually moved to the destination report. Transactions already in the destination are
     // skipped below, so this excludes them from the transactionList sent to the backend (which does not filter them out).
     const movedTransactionIDs: string[] = [];
+    // The moved transactions grouped by the report they leave, so a carousel seeded from that report can drop them.
+    const movedTransactionIDsByOldReportID: Record<string, string[]> = {};
     let shouldFixViolations = false;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -1116,9 +1129,6 @@ function getChangeTransactionsReportOnyxData({
         return targetReportCurrenciesByReport[targetReportID];
     };
 
-    // Track distance rate updates so we can send them to the backend
-    const transactionIDToUpdatedCustomUnitRateID: Record<string, string> = {};
-
     for (const transaction of transactions) {
         const isDeletedExpense = isDeletedTransaction(transaction);
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1137,6 +1147,7 @@ function getChangeTransactionsReportOnyxData({
         movedTransactionIDs.push(transaction.transactionID);
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
+        (movedTransactionIDsByOldReportID[oldReportID] ??= []).push(transaction.transactionID);
         const oldReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
         const sourceCurrency = oldReport?.currency;
         const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
@@ -1176,7 +1187,8 @@ function getChangeTransactionsReportOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                ...transaction,
+                // Callers can pass Search row items, whose display-only fields must not be saved on the real transaction
+                ...getTransactionFromTransactionListItem(transaction),
                 reportID,
                 comment,
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
@@ -1293,7 +1305,6 @@ function getChangeTransactionsReportOnyxData({
             if (!currentRateID || !currentRate || currentRate.enabled === false) {
                 const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
                 if (defaultRate?.customUnitRateID) {
-                    transactionIDToUpdatedCustomUnitRateID[transaction.transactionID] = defaultRate.customUnitRateID;
                     // Build an updated transaction with the new rate so we can derive fields from it
                     const updatedTransaction: typeof transaction = {
                         ...transaction,
@@ -1399,6 +1410,7 @@ function getChangeTransactionsReportOnyxData({
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                iouReport: newReport,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1433,8 +1445,8 @@ function getChangeTransactionsReportOnyxData({
         // 3. Keep track of the new report totals
         // Source report uses original transaction details (expense is being removed at its original amount)
         // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
-        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
-        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
+        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, allowNegative) ?? {};
+        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
         const oldReportTotal = oldReport?.total ?? 0;
 
@@ -1721,9 +1733,12 @@ function getChangeTransactionsReportOnyxData({
             );
         }
 
-        // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
+        // 7. Add MOVED_TRANSACTION / UNREPORTED_TRANSACTION / UNDELETED_TRANSACTION report actions.
+        // The undelete flow always emits the action and attributes it to the caller, including when an admin undeletes another member's expense.
         let movedAction;
-        if (!isUnreportingSomeoneElsesTransaction) {
+        if (isUndelete) {
+            movedAction = buildOptimisticUndeletedTransactionAction(transactionThreadReportID);
+        } else if (!isUnreportingSomeoneElsesTransaction) {
             if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
             } else if (!isOpenReport(newReport)) {
@@ -1800,6 +1815,7 @@ function getChangeTransactionsReportOnyxData({
                 accountID,
                 login: email,
             },
+            currentUserPersonalDetails,
             iouReport: isUnreporting ? undefined : newReport,
             iouAction: searchIOUAction,
             policy: isUnreporting ? undefined : policy,
@@ -2124,7 +2140,6 @@ function getChangeTransactionsReportOnyxData({
         successData,
         failureData,
         transactionIDToReportActionAndThreadData,
-        transactionIDToUpdatedCustomUnitRateID,
         updatedReportTotals,
         updatedReportUnheldTotals,
         updatedReportTransactionCounts,
@@ -2133,10 +2148,18 @@ function getChangeTransactionsReportOnyxData({
         updatedReportReimbursableTotals,
         updatedReportUnheldReimbursableTotals,
         movedTransactionIDs,
+        movedTransactionIDsByOldReportID,
     };
 }
 
-function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+/** Drops moved expenses from a carousel seeded from the report they left. Called by every move entry point. */
+function removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
+    for (const [oldReportID, transactionIDs] of Object.entries(movedTransactionIDsByOldReportID ?? {})) {
+        removeActiveTransactionIDsForReport(transactionIDs, oldReportID);
+    }
+}
+
+function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Without a hash the move falls back to the explicit list and only the loaded page moves, so surface that
@@ -2172,22 +2195,18 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
             });
         }
 
-        const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
-
         const queryParameters: ChangeTransactionsReportParams = {
             // Stays empty so the backend moves every matching expense from the query, not just the loaded page
             transactionList: '',
             reportID,
             // Send the optimistic action and thread IDs so the backend reuses them instead of adding a second moved message
             transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
-            ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
-                transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
-            }),
             jsonQuery: props.jsonQuery,
             hash: props.hash,
         };
 
         API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
+        removeMovedTransactionsFromCarousel(loadedTransactionsOnyxData?.movedTransactionIDsByOldReportID);
         return;
     }
 
@@ -2195,8 +2214,7 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     if (!changeTransactionsReportOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID, movedTransactionIDs} =
-        changeTransactionsReportOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs, movedTransactionIDsByOldReportID} = changeTransactionsReportOnyxData;
 
     // If every selected transaction is already in the destination report, there is nothing to move, so skip the API call.
     if (movedTransactionIDs.length === 0) {
@@ -2207,9 +2225,6 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         transactionList: movedTransactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
-        ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
-            transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
-        }),
     };
 
     // The all-matching path above already returned after its own API.write, so only one of the two writes ever runs
@@ -2219,6 +2234,36 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         successData,
         failureData,
     });
+    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
+}
+
+/**
+ * Restore trashed card expenses to unreported through the dedicated UndeleteTransactions command, so
+ * the backend records the caller as the actor on the UNDELETED_TRANSACTION action even when a card
+ * admin undeletes another member's expense.
+ */
+function undeleteTransactions(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
+    const undeleteOnyxData = getChangeTransactionsReportOnyxData({...props, isUndelete: true});
+    if (!undeleteOnyxData) {
+        return;
+    }
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs, movedTransactionIDsByOldReportID} = undeleteOnyxData;
+
+    if (movedTransactionIDs.length === 0) {
+        return;
+    }
+
+    const parameters: UndeleteTransactionsParams = {
+        transactionList: movedTransactionIDs.join(','),
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+    };
+
+    API.write(WRITE_COMMANDS.UNDELETE_TRANSACTIONS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
 }
 
 /**
@@ -2294,6 +2339,7 @@ export {
     revert,
     changeTransactionsReport,
     getChangeTransactionsReportOnyxData,
+    undeleteTransactions,
     setTransactionReport,
     getDefaultP2PMileageRate,
     mergeExpenseAddedGrowlTransactionIDs,

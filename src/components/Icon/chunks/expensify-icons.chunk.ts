@@ -10,6 +10,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
+import ArrowUpRight from '@assets/images/arrow-up-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
@@ -127,6 +128,7 @@ import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
+import GlobeWithCard from '@assets/images/globe-with-card.svg';
 import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
@@ -144,7 +146,9 @@ import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.s
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
 import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
+import DigitsSquare from '@assets/images/integrationicons/digits-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
+import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
@@ -271,6 +275,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
+import Translate from '@assets/images/translate.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
@@ -282,6 +287,7 @@ import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
+import UserPencil from '@assets/images/user-pencil.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import UserSearch from '@assets/images/user-search.svg';
 import UserShield from '@assets/images/user-shield.svg';
@@ -322,6 +328,7 @@ const Expensicons = {
     ArrowRightLong,
     ArrowsLeftRight,
     ArrowUpLong,
+    ArrowUpRight,
     ArrowDownLong,
     AttachmentNotFound,
     BackArrow,
@@ -421,6 +428,7 @@ const Expensicons = {
     GalleryPlus,
     Gear,
     Globe,
+    GlobeWithCard,
     GoogleLogo,
     Hashtag,
     Heart,
@@ -505,6 +513,7 @@ const Expensicons = {
     ReceiptMultiple,
     RilletSquare,
     DualEntrySquare,
+    ExactOnlineSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -520,6 +529,7 @@ const Expensicons = {
     ThumbsUpHourglass,
     ThreeDots,
     Transfer,
+    Translate,
     Trashcan,
     TriNetSquare,
     ZenefitsSquare,
@@ -579,6 +589,7 @@ const Expensicons = {
     UserEye,
     UserSearch,
     CaretUpDown,
+    UserPencil,
     UserPlus,
     Feed,
     Table,
@@ -613,6 +624,7 @@ const Expensicons = {
     Contactless,
     CampfireSquare,
     ZohoBooksSquare,
+    DigitsSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

@@ -81,8 +81,8 @@ The legacy tax RESTlet does not provide SuiteTax support. Do not disable SuiteTa
 In New Expensify:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
-2. Select your Workspace and open **Accounting**.
-3. Next to NetSuite, select the three dots **(⋮)**, then select **Sync Now**.
+2. Select your workspace, then select **Connections** and select **Configure** next to NetSuite.
+3. Select **More (⋮)**, then select **Sync now**.
 4. Wait for the sync to finish and check for errors.
 5. Check the imported coding data. If applicable, confirm your expected tax rates and default tax are still selected.
 6. Check your next normal export. Do not re-export an already exported report just to test the update.

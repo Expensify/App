@@ -22,7 +22,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
@@ -63,27 +63,21 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
         Navigation.goBack();
     };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noSubsidiariesFound')}
-                subtitle={translate('workspace.netsuite.noSubsidiariesFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noSubsidiariesFound')}
+            subtitle={translate('workspace.netsuite.noSubsidiariesFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
-            </View>
-        ),
-        [styles.pb2, styles.ph5, styles.textNormal, translate],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
+        </View>
     );
 
     return (

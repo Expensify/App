@@ -3,7 +3,6 @@ name: Knip check
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
     paths:
       - '**.js'
       - '**.jsx'
@@ -24,23 +23,29 @@ concurrency:
 jobs:
   knip-compare:
     name: Compare knip issues against main
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    env:
+      # Use the PR's target branch so staging and production PRs are not compared with main.
+      BASE_REF: ${{ github.base_ref || 'main' }}
     steps:
       - name: Checkout PR
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          WORKSPACES: '["server/victory-chart-renderer", "web/cloudflare-worker"]'
 
       - name: Run knip on PR
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-pr.json
 
-      - name: Checkout main
+      - name: Checkout base branch
         run: |
-          git fetch origin main --no-tags --depth=1
-          git checkout origin/main
+          git fetch origin "$BASE_REF" --no-tags --depth=1
+          git checkout "origin/$BASE_REF"
 
-      - name: Run knip on main
+      - name: Run knip on base branch
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-main.json
 
       - name: Restore PR workspace

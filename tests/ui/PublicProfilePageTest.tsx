@@ -82,7 +82,7 @@ describe('ProfilePage - agent custom instructions', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${AGENT_ACCOUNT_ID}`, {prompt, pendingAction: null});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${AGENT_ACCOUNT_ID}`, {prompt, pendingAction: null});
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
         await waitForBatchedUpdatesWithAct();
@@ -126,7 +126,7 @@ describe('ProfilePage - agent custom instructions', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${AGENT_ACCOUNT_ID}`, {prompt: 'Ignore #some-room mentions.', pendingAction: null});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${AGENT_ACCOUNT_ID}`, {prompt: 'Ignore #some-room mentions.', pendingAction: null});
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
         await waitForBatchedUpdatesWithAct();

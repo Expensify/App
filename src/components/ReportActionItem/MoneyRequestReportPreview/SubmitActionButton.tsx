@@ -9,12 +9,15 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
@@ -28,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {getArchiveReason} from '@selectors/Report';
 import React from 'react';
 
 import {useReportPreviewActions, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewTransactionViolations} from './MoneyRequestReportPreviewContext';
@@ -79,6 +83,8 @@ function SubmitActionButtonContent() {
     } = useReportPreviewActionButtonData(iouReportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
+    const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
@@ -125,7 +131,8 @@ function SubmitActionButtonContent() {
         currentUserEmail,
         transactions,
     );
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
 
     const handleSubmit = () => {
         // A domain that strictly enforces workspace rules, or a workspace that prevents self-approval, makes the backend
@@ -157,6 +164,7 @@ function SubmitActionButtonContent() {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: iouReport,
+                expenseReportTransactions: transactions,
                 policy,
                 rules,
                 currentUserAccountIDParam: currentUserAccountID,

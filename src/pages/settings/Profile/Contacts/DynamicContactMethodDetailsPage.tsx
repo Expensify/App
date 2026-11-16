@@ -36,10 +36,12 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
@@ -56,8 +58,6 @@ import KeyboardUtils from '@src/utils/keyboard';
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-
-import getDecodedContactMethodFromUriParam from './utils';
 
 type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS>;
 
@@ -88,7 +88,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     /**
      * Gets the current contact method from the route params
      */
-    const contactMethod: string = useMemo(() => getDecodedContactMethodFromUriParam(route.params.contactMethod), [route.params.contactMethod]);
+    const contactMethod: string = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
@@ -135,6 +135,11 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     const isFocused = useIsFocused();
     const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
 
+    // Read the path when navigating, the rendered listPath can still be the route of a screen just closed over this one
+    const goBackToContactMethods = () => {
+        Navigation.goBack(stripDynamicRouteSuffixFromPath(Navigation.getActiveRoute(), DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.path));
+    };
+
     useEffect(() => {
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
@@ -143,13 +148,13 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         if (isFocused) {
             // Navigate to methods page on successful validateCode verification.
             // The validatedDate property indicates successful validateCode verification.
-            Navigation.goBack(listPath);
+            goBackToContactMethods();
         } else {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
-    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, listPath]);
+    }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod]);
 
     // Handle navigation when screen regains focus and flag is set
     useEffect(() => {
@@ -157,7 +162,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             return;
         }
         setShouldNavigateOnFocus(false);
-        Navigation.goBack(listPath);
+        goBackToContactMethods();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
     }, [isFocused]);
 
@@ -217,6 +222,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             menuItems.push({
                 icon: icons.Trashcan,
                 text: translate('common.remove'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_THREE_DOTS_REMOVE,
                 onSelected: () => close(turnOnDeleteModal),
             });
         }
@@ -256,6 +262,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'defaultLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_SET_AS_DEFAULT}
                         title={translate('contacts.setAsDefault')}
                         icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : navigateToSetDefaultConfirm}
@@ -281,6 +288,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                     onClose={() => clearContactMethodErrors(contactMethod, 'deletedLogin')}
                 >
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHOD_REMOVE}
                         title={translate('common.remove')}
                         icon={icons.Trashcan}
                         onPress={() => {

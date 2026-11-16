@@ -191,6 +191,21 @@ type OriginalMessageReimbursementAccountChanged = {
     originalMessage: Record<string, unknown>;
 };
 
+/** Fields Wise adds to REIMBURSEMENT_DELAYED for estimate changes and late completions */
+type ReimbursementDelayedOriginalMessage = {
+    /**
+     * New delivery estimate of a Wise reimbursement, or the date it landed when `completed` is true. Absent when the
+     * delay comes from our fraud review hold, which has no estimate.
+     */
+    expectedDate?: string;
+
+    /** Delivery estimate before this update, so an earlier `expectedDate` can be announced as good news */
+    previousExpectedDate?: string;
+
+    /** True when a Wise deposit we reported as delayed or bounced completed after all */
+    completed?: boolean;
+};
+
 /**
  *
  */
@@ -202,6 +217,51 @@ type OriginalMessageReimbursementDelayed = {
     /**
      *
      */
+    originalMessage: Record<string, unknown> & ReimbursementDelayedOriginalMessage;
+};
+
+/** Fields Auth sends on a failed Wise deposit */
+type ReimbursementDepositFailedOriginalMessage = {
+    /**
+     * Wise payout `failure_reason_code`, see `CONST.WISE.PAYOUT_FAILURE_REASON`. It can arrive after the action
+     * is created, because Auth fills it in when Wise's payout failure webhook lands.
+     */
+    reason?: string;
+};
+
+/** Wise could not deposit a reimbursement into the recipient's bank account */
+type OriginalMessageReimbursementDepositFailed = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED;
+    originalMessage: Record<string, unknown> & ReimbursementDepositFailedOriginalMessage;
+};
+
+/** Wise is holding a reimbursement for review before sending it */
+type OriginalMessageReimbursementHeld = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD;
+    originalMessage: Record<string, unknown>;
+};
+
+/** Fields Auth sends when Wise returns a reimbursement to the payer */
+type ReimbursementRefundedOriginalMessage = {
+    /** Amount returned to the payer */
+    amount?: number;
+
+    /** ISO 4217 currency code of `amount` */
+    currency?: string;
+
+    /** Last four digits of the payer's bank account the funds went back to */
+    debitBankAccountLast4?: string;
+};
+
+/** Wise returned a reimbursement to the payer's bank account */
+type OriginalMessageReimbursementRefunded = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED;
+    originalMessage: Record<string, unknown> & ReimbursementRefundedOriginalMessage;
+};
+
+/** Wise released a held reimbursement and resumed the payment */
+type OriginalMessageReimbursementReleased = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED;
     originalMessage: Record<string, unknown>;
 };
 
@@ -337,6 +397,10 @@ type OldDotOriginalMessageMap = {
      *
      */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: OriginalMessageReimbursementDelayed;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: OriginalMessageReimbursementDepositFailed;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD]: OriginalMessageReimbursementHeld;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED]: OriginalMessageReimbursementRefunded;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED]: OriginalMessageReimbursementReleased;
     /**
      *
      */

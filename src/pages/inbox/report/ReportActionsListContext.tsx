@@ -60,8 +60,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         isSingleExpenseReport,
         isMissingReportActions,
         isConciergeHiddenHistory,
-        isConciergeMainDM,
-        hasCachedReportActions,
         showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
     } = readinessSignals;
@@ -94,18 +92,11 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
 
-    // Show skeleton for the Concierge chat (side panel or main DM) until report
-    // data has been loaded at least once. Before the first openReport response,
-    // hasOlderActions is unreliable, so we can't determine whether to show the
-    // greeting or onboarding messages. The skeleton avoids flashing wrong content.
-    // hasOnceLoadedReportActions is RAM-only and resets on a page refresh, but
-    // cached report actions persist in Onyx. For the main DM, render those cached
-    // actions immediately (matching production) instead of flashing a skeleton on
-    // every refresh; the side panel always opens fresh so it keeps gating on
-    // hasOnceLoadedReportActions only. hasCachedReportActions is false only on a
-    // genuinely cold load with no cached history (it excludes the synthetic CREATED
-    // action that is always injected for Concierge).
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !(isConciergeMainDM && hasCachedReportActions) && !isOffline;
+    // Show skeleton for the Concierge side panel until report data has been loaded
+    // at least once. Before the first openReport response, hasOlderActions is
+    // unreliable, so we can't determine whether to show the greeting or onboarding
+    // messages. The skeleton avoids flashing wrong content.
+    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !isOffline;
 
     // When opening a linked message online, wait for the first load before rendering the list: the batch of
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.

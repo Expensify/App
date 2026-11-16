@@ -1,17 +1,19 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,14 +24,17 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useShouldShowNewWorkspaceRolesPromotion from '@hooks/useShouldShowNewWorkspaceRolesPromotion';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {getRules} from '@libs/actions/Policy/Rules';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,11 +80,15 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
+    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const menuItemWrapperStyle = styles.sectionMenuItem(shouldUseNarrowLayout);
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
@@ -187,38 +196,43 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const canReadVendors = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors);
 
+    // Agents errors can only exist on manageable agents
+    const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
+    const hasAgentErrors = hasAgentErrorsSelector(manageableWorkspaceAgents);
+
+    const shouldShowNewRolesBadge = useShouldShowNewWorkspaceRolesPromotion(policy);
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
         policyID,
         currentUserLogin: currentUserLogin ?? undefined,
+        currentUserPersonalDetails,
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
+        hasAgentErrors,
         hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isUnifiedConnectionsBetaEnabled,
+        shouldShowNewRolesBadge,
         convertToDisplayString,
     }).map((item) => ({
         ...item,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
     const triggerScrollEvent = useScrollEventEmitter();
+    const connectionsMenuItem = workspaceMenuItems.find((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS);
     const {
         shouldShowTooltip: shouldShowConnectionsTooltip,
         hideTooltip: hideConnectionsTooltip,
         renderTooltipContent: renderConnectionsTooltip,
     } = useConnectionsMovedTooltip(
         // New workspaces never used the old integration pages, so only point this out where something is already connected.
-        isWorkspacesTabFocused &&
-            !hasPolicyCreationError &&
-            (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) &&
-            workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        isWorkspacesTabFocused && !hasPolicyCreationError && (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) && !!connectionsMenuItem,
         activeRoute,
+        !!connectionsMenuItem && [connectionsMenuItem.screenName, ...(connectionsMenuItem.aliasScreenNames ?? [])].some((screenName) => screenName === activeRoute),
         isWorkspacesTabFocused,
     );
     // Close RHP if we land on a route that no longer exists in the menu
@@ -257,8 +271,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         <ScreenWrapper
             testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             <FullPageNotFoundView
                 onBackButtonPress={goBackFromWorkspaceSettingPages}
@@ -281,7 +294,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 />
 
                 <ScrollView
-                    contentContainerStyle={styles.flexColumn}
+                    {...tabRootScrollProps}
                     onScroll={triggerScrollEvent}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
@@ -304,6 +317,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             */}
                             {workspaceMenuItems.map((item) => {
                                 const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
+                                const isItemFocused = getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName));
+                                const {shouldShowBasicTitle, titleStyle, hoveredTitleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
                                 const onPress = () => {
                                     if (isConnectionsItem) {
                                         hideConnectionsTooltip();
@@ -313,17 +328,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 return (
                                     <HighlightableMenuItem
                                         key={item.translationKey}
-                                        disabled={hasPolicyCreationError || (isExecuting && !getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName)))}
+                                        disabled={hasPolicyCreationError || (isExecuting && !isItemFocused)}
                                         interactive={!hasPolicyCreationError}
                                         title={translate(item.translationKey)}
                                         icon={item.icon}
                                         onPress={onPress}
                                         brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                        wrapperStyle={[menuItemWrapperStyle, selectedStyle]}
+                                        hoveredStyle={hoveredStyle}
+                                        shouldShowBasicTitle={shouldShowBasicTitle}
+                                        titleStyle={titleStyle}
+                                        hoveredTitleStyle={hoveredTitleStyle}
                                         highlighted={!!item?.highlighted}
-                                        focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
+                                        focused={isItemFocused}
                                         role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeText}
+                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
+                                        isBadgeSuccess={item.isBadgeSuccess}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}

@@ -3,10 +3,12 @@ import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 
 import useLocalize from '@hooks/useLocalize';
+import {buildMentionedRoomPlaceholderMap} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
@@ -58,7 +60,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const theme = useTheme();
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
-    const text = getTextFromHtml(html);
+    // `text` only feeds the emoji checks and the plain-text branch, which is never taken when the HTML has a room mention,
+    // so a placeholder name keeps the emoji checks right without subscribing every comment to the report collection.
+    const text = getTextFromHtml(html, undefined, buildMentionedRoomPlaceholderMap(html));
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
@@ -98,7 +102,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID), reportActionID));
 
         return (
             <View onLayout={endSendMessageVisibleSpanOnLayout}>

@@ -1,5 +1,6 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getSubmittedAnswers, {getAnswerKeys} from '@components/DynamicForm/utils/getSubmittedAnswers';
+import {getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
@@ -46,6 +47,18 @@ describe('getSubmittedAnswers', () => {
         expect(answers).toMatchObject({home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
     });
 
+    it('leaves out the state of an address in a country where no state is asked', () => {
+        // Given a British address, whose state AddressSearch filled with the nation name although the form never showed a state picker
+        const addressKeys = getAddressInputKeys('home');
+        const fields: DynamicFormField[] = [{key: 'home', type: 'address', required: true}];
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers(fields, {home: '1 Main Street', [addressKeys.state]: 'England', [addressKeys.country]: 'GB'});
+
+        // Then the state is not submitted, since Wise rejects a region name where it takes no state
+        expect(answers).not.toHaveProperty(addressKeys.state);
+    });
+
     it('lists every answer key of a compound field', () => {
         // Given an address field, whose answer is spread over several keys
         const field: DynamicFormField = {key: 'home', type: 'address', required: true, sensitive: true};
@@ -56,5 +69,25 @@ describe('getSubmittedAnswers', () => {
         // Then the address parts are included, so marking the field sensitive covers all of them
         expect(keys).toContain('home');
         expect(keys).toContain(cityKey);
+    });
+
+    it('submits each list entry with its sensitive answers kept in memory', () => {
+        // Given a list of directors whose SSN is sensitive, so it is kept in memory under the entry instead of in the drafted entry
+        const directors: DynamicFormField = {
+            key: 'directors',
+            type: 'list',
+            required: true,
+            itemFields: [
+                {key: 'firstName', type: 'text', required: true},
+                {key: 'ssn', type: 'text', required: true, sensitive: true},
+            ],
+        };
+        const values = {directors: [{id: 'jane', firstName: 'Jane'}], [getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'};
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers([directors], values);
+
+        // Then the entry is sent whole, SSN included, without the memory key it was kept under
+        expect(answers).toEqual({directors: [{id: 'jane', firstName: 'Jane', ssn: '123456789'}]});
     });
 });

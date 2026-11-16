@@ -2107,6 +2107,7 @@ var require_dispatcher = __commonJS({
 var require_dispatcher_base = __commonJS({
   "node_modules/undici/lib/dispatcher/dispatcher-base.js"(exports, module) {
     "use strict";
+    var buffer = __require("node:buffer");
     var Dispatcher = require_dispatcher();
     var {
       ClientDestroyedError,
@@ -2118,6 +2119,7 @@ var require_dispatcher_base = __commonJS({
     var kOnClosed = /* @__PURE__ */ Symbol("onClosed");
     var kInterceptedDispatch = /* @__PURE__ */ Symbol("Intercepted Dispatch");
     var kWebSocketOptions = /* @__PURE__ */ Symbol("webSocketOptions");
+    var kEventSourceOptions = /* @__PURE__ */ Symbol("eventSourceOptions");
     var DispatcherBase = class extends Dispatcher {
       constructor(opts) {
         super();
@@ -2126,11 +2128,17 @@ var require_dispatcher_base = __commonJS({
         this[kClosed] = false;
         this[kOnClosed] = [];
         this[kWebSocketOptions] = opts?.webSocket ?? {};
+        this[kEventSourceOptions] = opts?.eventSource ?? {};
       }
       get webSocketOptions() {
         return {
           maxFragments: this[kWebSocketOptions].maxFragments ?? 131072,
           maxPayloadSize: this[kWebSocketOptions].maxPayloadSize ?? 128 * 1024 * 1024
+        };
+      }
+      get eventSourceOptions() {
+        return {
+          maxEventSize: this[kEventSourceOptions].maxEventSize ?? buffer.kStringMaxLength
         };
       }
       get destroyed() {
@@ -6280,7 +6288,6 @@ var require_client_h1 = __commonJS({
       socket[kSocketUsed] = false;
       socket[kParser] = new Parser(client, socket, llhttpInstance);
       addListener(socket, "error", function(err) {
-        assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
         const parser = this[kParser];
         if (err.code === "ECONNRESET" && parser.statusCode && !parser.shouldKeepAlive) {
           const parserErr = parser.finish();
@@ -6964,7 +6971,6 @@ var require_client_h2 = __commonJS({
       client[kHTTP2Session] = session;
       socket[kHTTP2Session] = session;
       util.addListener(socket, "error", function(err) {
-        assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
         this[kError] = err;
         this[kClient][kOnError](err);
       });
@@ -7023,7 +7029,6 @@ var require_client_h2 = __commonJS({
       }
     }
     function onHttp2SessionError(err) {
-      assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
       this[kSocket][kError] = err;
       this[kClient][kOnError](err);
     }
@@ -7717,9 +7722,10 @@ var require_client = __commonJS({
         // h2
         maxConcurrentStreams,
         allowH2,
-        webSocket
+        webSocket,
+        eventSource
       } = {}) {
-        super({ webSocket });
+        super({ webSocket, eventSource });
         if (keepAlive !== void 0) {
           throw new InvalidArgumentError("unsupported keepAlive, use pipelining=0 instead");
         }
@@ -8616,7 +8622,7 @@ var require_agent = __commonJS({
       return opts && opts.connections === 1 ? new Client(origin, opts) : new Pool(origin, opts);
     }
     var Agent = class extends DispatcherBase {
-      constructor({ factory = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
+      constructor({ factory = defaultFactory, maxRedirections = 0, connect, tls, ...options } = {}) {
         if (typeof factory !== "function") {
           throw new InvalidArgumentError("factory must be a function.");
         }
@@ -8630,8 +8636,11 @@ var require_agent = __commonJS({
         if (connect && typeof connect !== "function") {
           connect = { ...connect };
         }
+        if (tls && typeof tls !== "function") {
+          tls = { ...tls };
+        }
         this[kInterceptors] = options.interceptors?.Agent && Array.isArray(options.interceptors.Agent) ? options.interceptors.Agent : [createRedirectInterceptor({ maxRedirections })];
-        this[kOptions] = { ...util.deepClone(options), connect };
+        this[kOptions] = { ...util.deepClone(options), connect, tls };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kMaxRedirections] = maxRedirections;
         this[kFactory] = factory;
@@ -14359,8 +14368,9 @@ var require_fetch = __commonJS({
         }
       );
       response.body = { stream, source: null, length: null };
-      fetchParams.controller.onAborted = onAborted;
-      fetchParams.controller.on("terminated", onAborted);
+      if (!fetchParams.controller.resume) {
+        fetchParams.controller.on("terminated", onAborted);
+      }
       fetchParams.controller.resume = async () => {
         while (true) {
           let bytes;
@@ -14460,7 +14470,6 @@ var require_fetch = __commonJS({
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
               location = headersList.get("location", true);
-              this.body = new Readable({ read: resume });
               const decoders = [];
               const willFollow = location && request2.redirect === "follow" && redirectStatusSet.has(status);
               if (request2.method !== "HEAD" && request2.method !== "CONNECT" && !nullBodyStatus.includes(status) && !willFollow) {
@@ -14468,7 +14477,7 @@ var require_fetch = __commonJS({
                 const codings = contentEncoding ? contentEncoding.toLowerCase().split(",") : [];
                 const maxContentEncodings = 5;
                 if (codings.length > maxContentEncodings) {
-                  reject(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
+                  this.abort(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
                   return true;
                 }
                 for (let i = codings.length - 1; i >= 0; --i) {
@@ -14498,6 +14507,7 @@ var require_fetch = __commonJS({
                   }
                 }
               }
+              this.body = new Readable({ read: resume });
               const onError = this.onError.bind(this);
               resolve({
                 status,
@@ -14522,9 +14532,6 @@ var require_fetch = __commonJS({
             onComplete() {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
-              }
-              if (fetchParams.controller.onAborted) {
-                fetchParams.controller.off("terminated", fetchParams.controller.onAborted);
               }
               fetchParams.controller.ended = true;
               this.body.push(null);
@@ -17599,6 +17606,16 @@ var require_receiver = __commonJS({
             if (isControlFrame(this.#info.opcode)) {
               this.#loop = this.parseControlFrame(body);
               this.#state = parserStates.INFO;
+              const socket = this.ws[kResponse].socket;
+              if (this.#loop && socket.writableNeedDrain) {
+                this.#loop = false;
+                socket.once("drain", () => {
+                  if (this.destroyed) return;
+                  this.#loop = true;
+                  this.run(callback);
+                });
+                return;
+              }
             } else {
               if (!this.#info.compressed) {
                 if (!this.writeFragments(body)) {
@@ -18292,6 +18309,7 @@ var require_util8 = __commonJS({
 var require_eventsource_stream = __commonJS({
   "node_modules/undici/lib/web/eventsource/eventsource-stream.js"(exports, module) {
     "use strict";
+    var buffer = __require("node:buffer");
     var { Transform } = __require("node:stream");
     var { isASCIINumber, isValidLastEventId } = require_util8();
     var BOM = [239, 187, 191];
@@ -18299,24 +18317,28 @@ var require_eventsource_stream = __commonJS({
     var CR = 13;
     var COLON = 58;
     var SPACE = 32;
+    var defaultMaxEventSize = buffer.kStringMaxLength;
     var DATA = Buffer.from("data");
     var EVENT = Buffer.from("event");
     var ID = Buffer.from("id");
     var RETRY = Buffer.from("retry");
-    function isASCIINumberBytes(buffer, start) {
-      if (start >= buffer.length) {
+    var minParserItems = 1024;
+    var maxParserItems = 131072;
+    var bytesPerParserItem = 128;
+    function isASCIINumberBytes(buffer2, start) {
+      if (start >= buffer2.length) {
         return false;
       }
-      for (let i = start; i < buffer.length; i++) {
-        if (buffer[i] < 48 || buffer[i] > 57) {
+      for (let i = start; i < buffer2.length; i++) {
+        if (buffer2[i] < 48 || buffer2[i] > 57) {
           return false;
         }
       }
       return true;
     }
-    function isValidLastEventIdBytes(buffer, start) {
-      for (let i = start; i < buffer.length; i++) {
-        if (buffer[i] === 0) {
+    function isValidLastEventIdBytes(buffer2, start) {
+      for (let i = start; i < buffer2.length; i++) {
+        if (buffer2[i] === 0) {
           return false;
         }
       }
@@ -18332,6 +18354,11 @@ var require_eventsource_stream = __commonJS({
         }
       }
       return true;
+    }
+    function createMaxEventSizeExceededError() {
+      const error2 = new Error("EventSource message size exceeded");
+      error2.aborted = false;
+      return error2;
     }
     var EventSourceStream = class extends Transform {
       /**
@@ -18359,6 +18386,13 @@ var require_eventsource_stream = __commonJS({
       pos = 0;
       lineChunkIndex = 0;
       linePos = 0;
+      lineLength = 0;
+      eventSize = 0;
+      eventFieldSizes = { data: 0, event: 0, id: 0, retry: 0 };
+      dataLineCount = 0;
+      maxEventSize;
+      maxDataLines;
+      maxBufferedChunks;
       event = {
         data: void 0,
         event: void 0,
@@ -18367,6 +18401,7 @@ var require_eventsource_stream = __commonJS({
       };
       /**
        * @param {object} options
+       * @param {number} [options.maxEventSize]
        * @param {eventSourceSettings} options.eventSourceSettings
        * @param {Function} [options.push]
        */
@@ -18374,6 +18409,10 @@ var require_eventsource_stream = __commonJS({
         options.readableObjectMode = true;
         super(options);
         this.state = options.eventSourceSettings || {};
+        this.maxEventSize = options.maxEventSize ?? defaultMaxEventSize;
+        const parserItemLimit = this.maxEventSize > 0 ? Math.min(maxParserItems, Math.max(minParserItems, Math.floor(this.maxEventSize / bytesPerParserItem))) : 0;
+        this.maxDataLines = parserItemLimit;
+        this.maxBufferedChunks = parserItemLimit;
         if (options.push) {
           this.push = options.push;
         }
@@ -18387,6 +18426,10 @@ var require_eventsource_stream = __commonJS({
       _transform(chunk, _encoding, callback) {
         if (chunk.length === 0) {
           callback();
+          return;
+        }
+        if (this.maxEventSize > 0 && this.chunks.length >= this.maxBufferedChunks && chunk[0] !== LF && chunk[0] !== CR) {
+          callback(createMaxEventSizeExceededError());
           return;
         }
         this.chunks.push(chunk);
@@ -18425,18 +18468,32 @@ var require_eventsource_stream = __commonJS({
             if (byte === CR) {
               this.crlfCheck = true;
             }
-            this.parseLine(this.readLine(), this.event);
+            try {
+              this.parseLine(this.readLine(), this.event);
+            } catch (error2) {
+              callback(error2);
+              return;
+            }
             this.consumeCurrentByte();
             this.eventEndCheck = true;
             continue;
+          }
+          if (this.maxEventSize > 0 && ++this.lineLength > this.maxEventSize + 7) {
+            callback(createMaxEventSizeExceededError());
+            return;
           }
           this.advanceCursor();
         }
         callback();
       }
+      _destroy(error2, callback) {
+        this.chunks.length = 0;
+        this.clearEvent();
+        super._destroy(error2, callback);
+      }
       /**
        * @param {Buffer} line
-       * @param {EventStreamEvent} event
+       * @param {EventSourceStreamEvent} event
        */
       parseLine(line, event) {
         if (line.length === 0) {
@@ -18456,6 +18513,12 @@ var require_eventsource_stream = __commonJS({
           }
         }
         if (isFieldName(line, fieldLength, DATA)) {
+          if (this.maxEventSize > 0 && this.dataLineCount >= this.maxDataLines) {
+            throw createMaxEventSizeExceededError();
+          }
+          const valueBytes = line.length - valueStart;
+          const dataSize = this.eventFieldSizes.data + (event.data === void 0 ? 0 : 1) + valueBytes;
+          this.setEventFieldSize("data", dataSize);
           const value = line.toString("utf8", valueStart);
           if (event.data === void 0) {
             event.data = value;
@@ -18463,26 +18526,37 @@ var require_eventsource_stream = __commonJS({
             event.data += `
 ${value}`;
           }
+          this.dataLineCount++;
           return;
         }
         if (isFieldName(line, fieldLength, RETRY)) {
           if (isASCIINumberBytes(line, valueStart)) {
+            this.setEventFieldSize("retry", line.length - valueStart);
             event.retry = line.toString("utf8", valueStart);
           }
           return;
         }
         if (isFieldName(line, fieldLength, ID)) {
           if (isValidLastEventIdBytes(line, valueStart)) {
+            this.setEventFieldSize("id", line.length - valueStart);
             event.id = line.toString("utf8", valueStart);
           }
           return;
         }
         if (isFieldName(line, fieldLength, EVENT)) {
-          const value = line.toString("utf8", valueStart);
-          if (value.length > 0) {
-            event.event = value;
+          if (valueStart < line.length) {
+            this.setEventFieldSize("event", line.length - valueStart);
+            event.event = line.toString("utf8", valueStart);
           }
         }
+      }
+      setEventFieldSize(field, size) {
+        const eventSize = this.eventSize - this.eventFieldSizes[field] + size;
+        if (this.maxEventSize > 0 && eventSize > this.maxEventSize) {
+          throw createMaxEventSizeExceededError();
+        }
+        this.eventSize = eventSize;
+        this.eventFieldSizes[field] = size;
       }
       /**
        * @param {EventSourceStreamEvent} event
@@ -18510,6 +18584,12 @@ ${value}`;
         this.event.event = void 0;
         this.event.id = void 0;
         this.event.retry = void 0;
+        this.eventSize = 0;
+        this.dataLineCount = 0;
+        this.eventFieldSizes.data = 0;
+        this.eventFieldSizes.event = 0;
+        this.eventFieldSizes.id = 0;
+        this.eventFieldSizes.retry = 0;
       }
       hasPendingEvent() {
         return this.event.data !== void 0 || this.event.event !== void 0 || this.event.id !== void 0 || this.event.retry !== void 0;
@@ -18534,13 +18614,15 @@ ${value}`;
       syncLineStartToCursor() {
         this.lineChunkIndex = this.chunkIndex;
         this.linePos = this.pos;
+        this.lineLength = 0;
         this.dropConsumedChunks();
       }
       dropConsumedChunks() {
-        while (this.lineChunkIndex > 0) {
-          this.chunks.shift();
-          this.lineChunkIndex--;
-          this.chunkIndex--;
+        if (this.lineChunkIndex > 0) {
+          const consumed = this.lineChunkIndex;
+          this.chunks.splice(0, consumed);
+          this.lineChunkIndex = 0;
+          this.chunkIndex -= consumed;
         }
         if (this.chunkIndex === this.chunks.length) {
           this.chunks.length = 0;
@@ -18643,6 +18725,7 @@ var require_eventsource = __commonJS({
     var { delay } = require_util8();
     var { kEnumerableProperty } = require_util();
     var { environmentSettingsObject } = require_util2();
+    var { getGlobalDispatcher } = require_global2();
     var experimentalWarned = false;
     var defaultReconnectionTime = 3e3;
     var CONNECTING = 0;
@@ -18783,6 +18866,7 @@ var require_eventsource = __commonJS({
           this.#state.origin = response.urlList[response.urlList.length - 1].origin;
           const eventSourceStream = new EventSourceStream({
             eventSourceSettings: this.#state,
+            maxEventSize: this.#dispatcher.eventSourceOptions?.maxEventSize,
             push: (event) => {
               this.dispatchEvent(createFastMessageEvent(
                 event.type,
@@ -18915,7 +18999,8 @@ var require_eventsource = __commonJS({
       {
         key: "dispatcher",
         // undici only
-        converter: webidl.converters.any
+        converter: webidl.converters.any,
+        defaultValue: () => getGlobalDispatcher()
       }
     ]);
     module.exports = {
@@ -21294,605 +21379,6 @@ var require_light = __commonJS({
       var lib = Bottleneck_1;
       return lib;
     }));
-  }
-});
-
-// node_modules/lodash/_freeGlobal.js
-var require_freeGlobal = __commonJS({
-  "node_modules/lodash/_freeGlobal.js"(exports, module) {
-    var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
-    module.exports = freeGlobal;
-  }
-});
-
-// node_modules/lodash/_root.js
-var require_root = __commonJS({
-  "node_modules/lodash/_root.js"(exports, module) {
-    var freeGlobal = require_freeGlobal();
-    var freeSelf = typeof self == "object" && self && self.Object === Object && self;
-    var root = freeGlobal || freeSelf || Function("return this")();
-    module.exports = root;
-  }
-});
-
-// node_modules/lodash/_Symbol.js
-var require_Symbol = __commonJS({
-  "node_modules/lodash/_Symbol.js"(exports, module) {
-    var root = require_root();
-    var Symbol2 = root.Symbol;
-    module.exports = Symbol2;
-  }
-});
-
-// node_modules/lodash/_getRawTag.js
-var require_getRawTag = __commonJS({
-  "node_modules/lodash/_getRawTag.js"(exports, module) {
-    var Symbol2 = require_Symbol();
-    var objectProto = Object.prototype;
-    var hasOwnProperty = objectProto.hasOwnProperty;
-    var nativeObjectToString = objectProto.toString;
-    var symToStringTag = Symbol2 ? Symbol2.toStringTag : void 0;
-    function getRawTag(value) {
-      var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
-      try {
-        value[symToStringTag] = void 0;
-        var unmasked = true;
-      } catch (e) {
-      }
-      var result = nativeObjectToString.call(value);
-      if (unmasked) {
-        if (isOwn) {
-          value[symToStringTag] = tag;
-        } else {
-          delete value[symToStringTag];
-        }
-      }
-      return result;
-    }
-    module.exports = getRawTag;
-  }
-});
-
-// node_modules/lodash/_objectToString.js
-var require_objectToString = __commonJS({
-  "node_modules/lodash/_objectToString.js"(exports, module) {
-    var objectProto = Object.prototype;
-    var nativeObjectToString = objectProto.toString;
-    function objectToString(value) {
-      return nativeObjectToString.call(value);
-    }
-    module.exports = objectToString;
-  }
-});
-
-// node_modules/lodash/_baseGetTag.js
-var require_baseGetTag = __commonJS({
-  "node_modules/lodash/_baseGetTag.js"(exports, module) {
-    var Symbol2 = require_Symbol();
-    var getRawTag = require_getRawTag();
-    var objectToString = require_objectToString();
-    var nullTag = "[object Null]";
-    var undefinedTag = "[object Undefined]";
-    var symToStringTag = Symbol2 ? Symbol2.toStringTag : void 0;
-    function baseGetTag(value) {
-      if (value == null) {
-        return value === void 0 ? undefinedTag : nullTag;
-      }
-      return symToStringTag && symToStringTag in Object(value) ? getRawTag(value) : objectToString(value);
-    }
-    module.exports = baseGetTag;
-  }
-});
-
-// node_modules/lodash/isObject.js
-var require_isObject = __commonJS({
-  "node_modules/lodash/isObject.js"(exports, module) {
-    function isObject(value) {
-      var type = typeof value;
-      return value != null && (type == "object" || type == "function");
-    }
-    module.exports = isObject;
-  }
-});
-
-// node_modules/lodash/isFunction.js
-var require_isFunction = __commonJS({
-  "node_modules/lodash/isFunction.js"(exports, module) {
-    var baseGetTag = require_baseGetTag();
-    var isObject = require_isObject();
-    var asyncTag = "[object AsyncFunction]";
-    var funcTag = "[object Function]";
-    var genTag = "[object GeneratorFunction]";
-    var proxyTag = "[object Proxy]";
-    function isFunction(value) {
-      if (!isObject(value)) {
-        return false;
-      }
-      var tag = baseGetTag(value);
-      return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
-    }
-    module.exports = isFunction;
-  }
-});
-
-// node_modules/lodash/_coreJsData.js
-var require_coreJsData = __commonJS({
-  "node_modules/lodash/_coreJsData.js"(exports, module) {
-    var root = require_root();
-    var coreJsData = root["__core-js_shared__"];
-    module.exports = coreJsData;
-  }
-});
-
-// node_modules/lodash/_isMasked.js
-var require_isMasked = __commonJS({
-  "node_modules/lodash/_isMasked.js"(exports, module) {
-    var coreJsData = require_coreJsData();
-    var maskSrcKey = (function() {
-      var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || "");
-      return uid ? "Symbol(src)_1." + uid : "";
-    })();
-    function isMasked(func) {
-      return !!maskSrcKey && maskSrcKey in func;
-    }
-    module.exports = isMasked;
-  }
-});
-
-// node_modules/lodash/_toSource.js
-var require_toSource = __commonJS({
-  "node_modules/lodash/_toSource.js"(exports, module) {
-    var funcProto = Function.prototype;
-    var funcToString = funcProto.toString;
-    function toSource(func) {
-      if (func != null) {
-        try {
-          return funcToString.call(func);
-        } catch (e) {
-        }
-        try {
-          return func + "";
-        } catch (e) {
-        }
-      }
-      return "";
-    }
-    module.exports = toSource;
-  }
-});
-
-// node_modules/lodash/_baseIsNative.js
-var require_baseIsNative = __commonJS({
-  "node_modules/lodash/_baseIsNative.js"(exports, module) {
-    var isFunction = require_isFunction();
-    var isMasked = require_isMasked();
-    var isObject = require_isObject();
-    var toSource = require_toSource();
-    var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
-    var reIsHostCtor = /^\[object .+?Constructor\]$/;
-    var funcProto = Function.prototype;
-    var objectProto = Object.prototype;
-    var funcToString = funcProto.toString;
-    var hasOwnProperty = objectProto.hasOwnProperty;
-    var reIsNative = RegExp(
-      "^" + funcToString.call(hasOwnProperty).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
-    );
-    function baseIsNative(value) {
-      if (!isObject(value) || isMasked(value)) {
-        return false;
-      }
-      var pattern = isFunction(value) ? reIsNative : reIsHostCtor;
-      return pattern.test(toSource(value));
-    }
-    module.exports = baseIsNative;
-  }
-});
-
-// node_modules/lodash/_getValue.js
-var require_getValue = __commonJS({
-  "node_modules/lodash/_getValue.js"(exports, module) {
-    function getValue(object, key) {
-      return object == null ? void 0 : object[key];
-    }
-    module.exports = getValue;
-  }
-});
-
-// node_modules/lodash/_getNative.js
-var require_getNative = __commonJS({
-  "node_modules/lodash/_getNative.js"(exports, module) {
-    var baseIsNative = require_baseIsNative();
-    var getValue = require_getValue();
-    function getNative(object, key) {
-      var value = getValue(object, key);
-      return baseIsNative(value) ? value : void 0;
-    }
-    module.exports = getNative;
-  }
-});
-
-// node_modules/lodash/_nativeCreate.js
-var require_nativeCreate = __commonJS({
-  "node_modules/lodash/_nativeCreate.js"(exports, module) {
-    var getNative = require_getNative();
-    var nativeCreate = getNative(Object, "create");
-    module.exports = nativeCreate;
-  }
-});
-
-// node_modules/lodash/_hashClear.js
-var require_hashClear = __commonJS({
-  "node_modules/lodash/_hashClear.js"(exports, module) {
-    var nativeCreate = require_nativeCreate();
-    function hashClear() {
-      this.__data__ = nativeCreate ? nativeCreate(null) : {};
-      this.size = 0;
-    }
-    module.exports = hashClear;
-  }
-});
-
-// node_modules/lodash/_hashDelete.js
-var require_hashDelete = __commonJS({
-  "node_modules/lodash/_hashDelete.js"(exports, module) {
-    function hashDelete(key) {
-      var result = this.has(key) && delete this.__data__[key];
-      this.size -= result ? 1 : 0;
-      return result;
-    }
-    module.exports = hashDelete;
-  }
-});
-
-// node_modules/lodash/_hashGet.js
-var require_hashGet = __commonJS({
-  "node_modules/lodash/_hashGet.js"(exports, module) {
-    var nativeCreate = require_nativeCreate();
-    var HASH_UNDEFINED = "__lodash_hash_undefined__";
-    var objectProto = Object.prototype;
-    var hasOwnProperty = objectProto.hasOwnProperty;
-    function hashGet(key) {
-      var data = this.__data__;
-      if (nativeCreate) {
-        var result = data[key];
-        return result === HASH_UNDEFINED ? void 0 : result;
-      }
-      return hasOwnProperty.call(data, key) ? data[key] : void 0;
-    }
-    module.exports = hashGet;
-  }
-});
-
-// node_modules/lodash/_hashHas.js
-var require_hashHas = __commonJS({
-  "node_modules/lodash/_hashHas.js"(exports, module) {
-    var nativeCreate = require_nativeCreate();
-    var objectProto = Object.prototype;
-    var hasOwnProperty = objectProto.hasOwnProperty;
-    function hashHas(key) {
-      var data = this.__data__;
-      return nativeCreate ? data[key] !== void 0 : hasOwnProperty.call(data, key);
-    }
-    module.exports = hashHas;
-  }
-});
-
-// node_modules/lodash/_hashSet.js
-var require_hashSet = __commonJS({
-  "node_modules/lodash/_hashSet.js"(exports, module) {
-    var nativeCreate = require_nativeCreate();
-    var HASH_UNDEFINED = "__lodash_hash_undefined__";
-    function hashSet(key, value) {
-      var data = this.__data__;
-      this.size += this.has(key) ? 0 : 1;
-      data[key] = nativeCreate && value === void 0 ? HASH_UNDEFINED : value;
-      return this;
-    }
-    module.exports = hashSet;
-  }
-});
-
-// node_modules/lodash/_Hash.js
-var require_Hash = __commonJS({
-  "node_modules/lodash/_Hash.js"(exports, module) {
-    var hashClear = require_hashClear();
-    var hashDelete = require_hashDelete();
-    var hashGet = require_hashGet();
-    var hashHas = require_hashHas();
-    var hashSet = require_hashSet();
-    function Hash(entries) {
-      var index = -1, length = entries == null ? 0 : entries.length;
-      this.clear();
-      while (++index < length) {
-        var entry = entries[index];
-        this.set(entry[0], entry[1]);
-      }
-    }
-    Hash.prototype.clear = hashClear;
-    Hash.prototype["delete"] = hashDelete;
-    Hash.prototype.get = hashGet;
-    Hash.prototype.has = hashHas;
-    Hash.prototype.set = hashSet;
-    module.exports = Hash;
-  }
-});
-
-// node_modules/lodash/_listCacheClear.js
-var require_listCacheClear = __commonJS({
-  "node_modules/lodash/_listCacheClear.js"(exports, module) {
-    function listCacheClear() {
-      this.__data__ = [];
-      this.size = 0;
-    }
-    module.exports = listCacheClear;
-  }
-});
-
-// node_modules/lodash/eq.js
-var require_eq = __commonJS({
-  "node_modules/lodash/eq.js"(exports, module) {
-    function eq(value, other) {
-      return value === other || value !== value && other !== other;
-    }
-    module.exports = eq;
-  }
-});
-
-// node_modules/lodash/_assocIndexOf.js
-var require_assocIndexOf = __commonJS({
-  "node_modules/lodash/_assocIndexOf.js"(exports, module) {
-    var eq = require_eq();
-    function assocIndexOf(array, key) {
-      var length = array.length;
-      while (length--) {
-        if (eq(array[length][0], key)) {
-          return length;
-        }
-      }
-      return -1;
-    }
-    module.exports = assocIndexOf;
-  }
-});
-
-// node_modules/lodash/_listCacheDelete.js
-var require_listCacheDelete = __commonJS({
-  "node_modules/lodash/_listCacheDelete.js"(exports, module) {
-    var assocIndexOf = require_assocIndexOf();
-    var arrayProto = Array.prototype;
-    var splice = arrayProto.splice;
-    function listCacheDelete(key) {
-      var data = this.__data__, index = assocIndexOf(data, key);
-      if (index < 0) {
-        return false;
-      }
-      var lastIndex = data.length - 1;
-      if (index == lastIndex) {
-        data.pop();
-      } else {
-        splice.call(data, index, 1);
-      }
-      --this.size;
-      return true;
-    }
-    module.exports = listCacheDelete;
-  }
-});
-
-// node_modules/lodash/_listCacheGet.js
-var require_listCacheGet = __commonJS({
-  "node_modules/lodash/_listCacheGet.js"(exports, module) {
-    var assocIndexOf = require_assocIndexOf();
-    function listCacheGet(key) {
-      var data = this.__data__, index = assocIndexOf(data, key);
-      return index < 0 ? void 0 : data[index][1];
-    }
-    module.exports = listCacheGet;
-  }
-});
-
-// node_modules/lodash/_listCacheHas.js
-var require_listCacheHas = __commonJS({
-  "node_modules/lodash/_listCacheHas.js"(exports, module) {
-    var assocIndexOf = require_assocIndexOf();
-    function listCacheHas(key) {
-      return assocIndexOf(this.__data__, key) > -1;
-    }
-    module.exports = listCacheHas;
-  }
-});
-
-// node_modules/lodash/_listCacheSet.js
-var require_listCacheSet = __commonJS({
-  "node_modules/lodash/_listCacheSet.js"(exports, module) {
-    var assocIndexOf = require_assocIndexOf();
-    function listCacheSet(key, value) {
-      var data = this.__data__, index = assocIndexOf(data, key);
-      if (index < 0) {
-        ++this.size;
-        data.push([key, value]);
-      } else {
-        data[index][1] = value;
-      }
-      return this;
-    }
-    module.exports = listCacheSet;
-  }
-});
-
-// node_modules/lodash/_ListCache.js
-var require_ListCache = __commonJS({
-  "node_modules/lodash/_ListCache.js"(exports, module) {
-    var listCacheClear = require_listCacheClear();
-    var listCacheDelete = require_listCacheDelete();
-    var listCacheGet = require_listCacheGet();
-    var listCacheHas = require_listCacheHas();
-    var listCacheSet = require_listCacheSet();
-    function ListCache(entries) {
-      var index = -1, length = entries == null ? 0 : entries.length;
-      this.clear();
-      while (++index < length) {
-        var entry = entries[index];
-        this.set(entry[0], entry[1]);
-      }
-    }
-    ListCache.prototype.clear = listCacheClear;
-    ListCache.prototype["delete"] = listCacheDelete;
-    ListCache.prototype.get = listCacheGet;
-    ListCache.prototype.has = listCacheHas;
-    ListCache.prototype.set = listCacheSet;
-    module.exports = ListCache;
-  }
-});
-
-// node_modules/lodash/_Map.js
-var require_Map = __commonJS({
-  "node_modules/lodash/_Map.js"(exports, module) {
-    var getNative = require_getNative();
-    var root = require_root();
-    var Map2 = getNative(root, "Map");
-    module.exports = Map2;
-  }
-});
-
-// node_modules/lodash/_mapCacheClear.js
-var require_mapCacheClear = __commonJS({
-  "node_modules/lodash/_mapCacheClear.js"(exports, module) {
-    var Hash = require_Hash();
-    var ListCache = require_ListCache();
-    var Map2 = require_Map();
-    function mapCacheClear() {
-      this.size = 0;
-      this.__data__ = {
-        "hash": new Hash(),
-        "map": new (Map2 || ListCache)(),
-        "string": new Hash()
-      };
-    }
-    module.exports = mapCacheClear;
-  }
-});
-
-// node_modules/lodash/_isKeyable.js
-var require_isKeyable = __commonJS({
-  "node_modules/lodash/_isKeyable.js"(exports, module) {
-    function isKeyable(value) {
-      var type = typeof value;
-      return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
-    }
-    module.exports = isKeyable;
-  }
-});
-
-// node_modules/lodash/_getMapData.js
-var require_getMapData = __commonJS({
-  "node_modules/lodash/_getMapData.js"(exports, module) {
-    var isKeyable = require_isKeyable();
-    function getMapData(map, key) {
-      var data = map.__data__;
-      return isKeyable(key) ? data[typeof key == "string" ? "string" : "hash"] : data.map;
-    }
-    module.exports = getMapData;
-  }
-});
-
-// node_modules/lodash/_mapCacheDelete.js
-var require_mapCacheDelete = __commonJS({
-  "node_modules/lodash/_mapCacheDelete.js"(exports, module) {
-    var getMapData = require_getMapData();
-    function mapCacheDelete(key) {
-      var result = getMapData(this, key)["delete"](key);
-      this.size -= result ? 1 : 0;
-      return result;
-    }
-    module.exports = mapCacheDelete;
-  }
-});
-
-// node_modules/lodash/_mapCacheGet.js
-var require_mapCacheGet = __commonJS({
-  "node_modules/lodash/_mapCacheGet.js"(exports, module) {
-    var getMapData = require_getMapData();
-    function mapCacheGet(key) {
-      return getMapData(this, key).get(key);
-    }
-    module.exports = mapCacheGet;
-  }
-});
-
-// node_modules/lodash/_mapCacheHas.js
-var require_mapCacheHas = __commonJS({
-  "node_modules/lodash/_mapCacheHas.js"(exports, module) {
-    var getMapData = require_getMapData();
-    function mapCacheHas(key) {
-      return getMapData(this, key).has(key);
-    }
-    module.exports = mapCacheHas;
-  }
-});
-
-// node_modules/lodash/_mapCacheSet.js
-var require_mapCacheSet = __commonJS({
-  "node_modules/lodash/_mapCacheSet.js"(exports, module) {
-    var getMapData = require_getMapData();
-    function mapCacheSet(key, value) {
-      var data = getMapData(this, key), size = data.size;
-      data.set(key, value);
-      this.size += data.size == size ? 0 : 1;
-      return this;
-    }
-    module.exports = mapCacheSet;
-  }
-});
-
-// node_modules/lodash/_MapCache.js
-var require_MapCache = __commonJS({
-  "node_modules/lodash/_MapCache.js"(exports, module) {
-    var mapCacheClear = require_mapCacheClear();
-    var mapCacheDelete = require_mapCacheDelete();
-    var mapCacheGet = require_mapCacheGet();
-    var mapCacheHas = require_mapCacheHas();
-    var mapCacheSet = require_mapCacheSet();
-    function MapCache(entries) {
-      var index = -1, length = entries == null ? 0 : entries.length;
-      this.clear();
-      while (++index < length) {
-        var entry = entries[index];
-        this.set(entry[0], entry[1]);
-      }
-    }
-    MapCache.prototype.clear = mapCacheClear;
-    MapCache.prototype["delete"] = mapCacheDelete;
-    MapCache.prototype.get = mapCacheGet;
-    MapCache.prototype.has = mapCacheHas;
-    MapCache.prototype.set = mapCacheSet;
-    module.exports = MapCache;
-  }
-});
-
-// node_modules/lodash/memoize.js
-var require_memoize = __commonJS({
-  "node_modules/lodash/memoize.js"(exports, module) {
-    var MapCache = require_MapCache();
-    var FUNC_ERROR_TEXT = "Expected a function";
-    function memoize2(func, resolver) {
-      if (typeof func != "function" || resolver != null && typeof resolver != "function") {
-        throw new TypeError(FUNC_ERROR_TEXT);
-      }
-      var memoized = function() {
-        var args = arguments, key = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
-        if (cache.has(key)) {
-          return cache.get(key);
-        }
-        var result = func.apply(this, args);
-        memoized.cache = cache.set(key, result) || cache;
-        return result;
-      };
-      memoized.cache = new (memoize2.Cache || MapCache)();
-      return memoized;
-    }
-    memoize2.Cache = MapCache;
-    module.exports = memoize2;
   }
 });
 
@@ -27101,7 +26587,6 @@ var PromisePool_default = PromisePool;
 var context2 = new Context();
 
 // .github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts
-var import_memoize = __toESM(require_memoize(), 1);
 function getDeployTableMessage(platformResult) {
   switch (platformResult) {
     case "success":
@@ -27133,8 +26618,19 @@ async function commentPR(PR, message, repo = context2.repo.repo) {
   }
 }
 var workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-var getCommit = (0, import_memoize.default)(GithubUtils_default.octokit.git.getCommit);
-async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDeployMessage) {
+async function commentOnDeployChecklistPRs(prList, repoName, commits, getDeployMessage) {
+  if (prList.length === 0) {
+    return;
+  }
+  const cherryPicks = /* @__PURE__ */ new Map();
+  for (const { subject } of commits) {
+    const cherryPickedPR = subject.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/)?.at(1);
+    if (!cherryPickedPR) {
+      continue;
+    }
+    const cpActor = subject.match(/.*\(cherry-picked to staging by (.*)\)/)?.at(1);
+    cherryPicks.set(Number.parseInt(cherryPickedPR, 10), cpActor);
+  }
   const pool = new PromisePool_default(8);
   const commentPromises = prList.map(
     (prNumber) => pool.add(async () => {
@@ -27144,24 +26640,11 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
           repo: repoName,
           pull_number: prNumber
         });
-        const isCP = pr.labels.some(({ name: labelName }) => labelName === CONST_default.LABELS.CP_STAGING);
+        const isCP = cherryPicks.has(prNumber);
+        const cpActor = cherryPicks.get(prNumber);
         let deployer = pr.merged_by?.login;
-        if (isCP) {
-          for (const tag of recentTags) {
-            const { data: commit } = await getCommit({
-              owner: CONST_default.GITHUB_OWNER,
-              repo: repoName,
-              commit_sha: tag.commit.sha
-            });
-            const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
-            if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-              const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
-              if (cpActor) {
-                deployer = cpActor;
-              }
-              break;
-            }
-          }
+        if (isCP && cpActor) {
+          deployer = cpActor;
         }
         const title = pr.title;
         const deployMessage = deployer ? getDeployMessage(deployer, isCP ? "Cherry-picked" : "Deployed", title) : "";
@@ -27255,32 +26738,25 @@ _Note:_ ${note}`;
     }
     return;
   }
-  const { data: appRecentTags } = await GithubUtils_default.octokit.repos.listTags({
-    owner: CONST_default.GITHUB_OWNER,
-    repo: CONST_default.APP_REPO,
-    per_page: 100
-  });
-  let mobileExpensifyRecentTags = [];
+  const previousTag = getInput("PREVIOUS_TAG", { required: true });
+  const stagingTag = `${version}-staging`;
+  const appCommits = prList.length > 0 ? await GithubUtils_default.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST_default.APP_REPO) : [];
+  let mobileExpensifyCommits = [];
   if (mobileExpensifyPRList.length > 0) {
     try {
-      const response = await GithubUtils_default.octokit.repos.listTags({
-        owner: CONST_default.GITHUB_OWNER,
-        repo: CONST_default.MOBILE_EXPENSIFY_REPO,
-        per_page: 100
-      });
-      mobileExpensifyRecentTags = response.data;
+      mobileExpensifyCommits = await GithubUtils_default.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST_default.MOBILE_EXPENSIFY_REPO);
     } catch (error2) {
       if (process.env.GITHUB_REPOSITORY !== `${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO}`) {
-        console.warn("Unable to fetch Mobile-Expensify tags from forked repository. This is expected.");
+        console.warn("Unable to fetch Mobile-Expensify deployment commits from forked repository. This is expected.");
       } else {
-        console.error("Failed to fetch Mobile-Expensify tags:", error2);
+        console.error("Failed to fetch Mobile-Expensify deployment commits:", error2);
       }
     }
   }
-  await commentOnDeployChecklistPRs(prList, CONST_default.APP_REPO, appRecentTags, getDeployMessage);
+  await commentOnDeployChecklistPRs(prList, CONST_default.APP_REPO, appCommits, getDeployMessage);
   console.log(`\u2705 Added staging deploy comment ${prList.length} App PRs`);
   if (mobileExpensifyPRList.length > 0) {
-    await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST_default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+    await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST_default.MOBILE_EXPENSIFY_REPO, mobileExpensifyCommits, getDeployMessage);
     console.log(`\u2705 Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
   }
 }

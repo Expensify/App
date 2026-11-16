@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function DynamicWorkspaceCurrencySelectionPage() {
@@ -29,20 +29,17 @@ function DynamicWorkspaceCurrencySelectionPage() {
 
     const value = workspaceConfirmationFormDraft?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const onSelect = useCallback(
-        (option: CurrencyListItem) => {
-            setWorkspaceConfirmationCurrency(option.currencyCode);
-            // After selecting, don't restore focus to the currency menu item on the confirmation page —
-            // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
-            // page instead of creating the workspace. The header Back button keeps the default focus restore.
-            Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
-        },
-        [backPath],
-    );
+    const onSelect = (option: CurrencyListItem) => {
+        setWorkspaceConfirmationCurrency(option.currencyCode);
+        // After selecting, don't restore focus to the currency menu item on the confirmation page —
+        // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
+        // page instead of creating the workspace. The header Back button keeps the default focus restore.
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
+    };
 
     return (
         <ScreenWrapper testID="DynamicWorkspaceCurrencySelectionPage">

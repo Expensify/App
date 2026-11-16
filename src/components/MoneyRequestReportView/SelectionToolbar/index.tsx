@@ -1,16 +1,15 @@
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -31,6 +30,8 @@ import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,11 +39,9 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {ValueOf} from 'type-fest';
-
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React from 'react';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionBulkActionBar from './SelectionBulkActionBar';
@@ -63,6 +62,9 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
+    const {collapsedHeaderHeightSV} = useActionListContext();
+    // With the report header collapsed the toolbar becomes the top of the page, so it needs its own space above the buttons.
+    const collapsedHeaderSpacingStyle = useAnimatedStyle(() => (collapsedHeaderHeightSV.get() > 0 ? styles.pt3 : styles.pt0));
     const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -91,10 +93,23 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
 
     const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
     // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
@@ -102,7 +117,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
         if (isOffline) {
-            setOfflineModalVisible(true);
+            showOfflineModal();
             return;
         }
 
@@ -164,8 +179,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
@@ -181,16 +196,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
-        isHoldMenuVisible,
-        requestType,
-        paymentType,
-        selectedVBBAToPayFromHoldMenu,
-        handleHoldMenuClose,
-        handleHoldMenuConfirm,
-        hasOnlyHeldExpenses,
-        nonHeldAmount,
-        fullAmount,
-        hasValidNonHeldAmount,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -201,6 +206,19 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         transactions: transactionsWithoutPendingDelete,
         selectedTransactionIDs,
     });
+
+    const dismissRejectModalAndOpenBulkReject = () => {
+        dismissRejectUseExplanation();
+        if (report?.reportID) {
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                    reportID: report.reportID,
+                }),
+            );
+        }
+    };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
 
     const selectedTransactionsOptions = (() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
@@ -216,7 +234,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         if (dismissedRejectUseExplanation) {
                             option.onSelected?.();
                         } else {
-                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                            showHoldOrRejectEducationalModal().finally(dismissRejectModalAndOpenBulkReject);
                         }
                     },
                 };
@@ -232,20 +250,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
-    const dismissRejectModalBasedOnAction = () => {
-        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
-            dismissRejectUseExplanation();
-            if (report?.reportID) {
-                Navigation.navigate(
-                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
-                        reportID: report.reportID,
-                    }),
-                );
-            }
-        }
-        setRejectModalAction(null);
-    };
-
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
     // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
     const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
@@ -260,12 +264,18 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     searchData={undefined}
                     onHandlerReady={setDuplicateHandler}
                     onAfterDuplicate={() => clearSelectedTransactions(true)}
+                    sourceReport={report}
+                    sourceChatReport={chatReport}
+                    sourcePolicy={policy}
                 />
             )}
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    <View
-                        style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
+                    <Reanimated.View
+                        style={[
+                            isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn,
+                            collapsedHeaderSpacingStyle,
+                        ]}
                     >
                         <ReportSubmitToPopoverAnchor reportID={reportID}>
                             <SelectionDropdown
@@ -290,7 +300,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                             onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
                             onClearAll={() => clearSelectedTransactions(true)}
                         />
-                    </View>
+                    </Reanimated.View>
                 </OfflineWithFeedback>
             )}
             {shouldShowBulkActionBar && (
@@ -304,45 +314,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onWorkspacePolicySelect={handleWorkspaceSelected}
                     kycWallRef={kycWallRef}
                     onClearSelection={() => clearSelectedTransactions(true)}
-                />
-            )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
-            {!!rejectModalAction && (
-                <HoldOrRejectEducationalModal
-                    onClose={dismissRejectModalBasedOnAction}
-                    onConfirm={dismissRejectModalBasedOnAction}
-                />
-            )}
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    fullAmount={fullAmount}
-                    onClose={handleHoldMenuClose}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={report}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={handleHoldMenuConfirm}
-                    transactionCount={transactions.length}
                 />
             )}
         </>

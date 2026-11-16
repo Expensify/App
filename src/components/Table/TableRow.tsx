@@ -7,6 +7,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
@@ -22,7 +24,7 @@ import CONST from '@src/CONST';
 
 import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -30,7 +32,7 @@ import {rendersColumnHeader} from './buildTableListData';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext, useTableRowSemanticID} from './TableContext';
+import {TableActionsContext, useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -78,6 +80,8 @@ export default function TableRow({
     focusable,
     fullDisabled,
     tabIndex,
+    shouldAllowTextSelection = false,
+    dataSet,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -101,6 +105,8 @@ export default function TableRow({
         shouldFooterRenderAsLastRow,
         rowWidth,
     } = useTableContext();
+    const {showSelectionMenu} = useContext(TableActionsContext);
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress} = useCopyableTextRowPress();
     const semanticRowID = useTableRowSemanticID();
 
     // Inline cell editing shares this app-global state. While any cell is being edited, a row press is the click that
@@ -136,6 +142,7 @@ export default function TableRow({
     // the static ones. They're only ever set on wide web layouts.
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
+    const rowDataSet = {...dataSet, ...TABLE_ROW_DATA_SET, ...(shouldAllowTextSelection ? COPYABLE_ROW_DATA_SET : {})};
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
@@ -176,7 +183,7 @@ export default function TableRow({
         // The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
         !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
         isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
-        styles.userSelectNone,
+        !shouldAllowTextSelection && styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -201,7 +208,9 @@ export default function TableRow({
         styles.dFlex,
         rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
+        // The grid must not grow, because rowContentHeightStyle already gives it the row's min height. In older Safari (17.5), a growing grid
+        // inside the list's absolutely positioned cell centers the first row's cells against the whole list's height, behind the next row.
+        !shouldUseNarrowTableLayout && [styles.dGrid, styles.flexGrow0, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
 
     const tableRowPressableHoverStyle = (() => {
@@ -239,6 +248,7 @@ export default function TableRow({
     const renderSelectionCheckbox = () => {
         const checkbox = checkboxReplacementElement ?? (
             <Checkbox
+                sentryLabel={CONST.SENTRY_LABEL.TABLE.ROW_CHECKBOX}
                 // While editing, let mousedown reach the row so it can snapshot the dismiss tap
                 // and skip preventDefault. Spend checkboxes do the same.
                 shouldStopMouseDownPropagation={!isEditingCell}
@@ -277,30 +287,39 @@ export default function TableRow({
             return;
         }
 
-        if (isDisabled || !interactive) {
-            return;
-        }
+        handleCopyableTextRowPress(
+            () => {
+                if (isDisabled || !interactive) {
+                    return;
+                }
 
-        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.(event);
-            return;
-        }
+                if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+                    onPress?.(event);
+                    return;
+                }
 
-        if (item.disabled) {
-            return;
-        }
+                if (item.disabled) {
+                    return;
+                }
 
-        if (!item.isSelectionDisabled) {
-            handleCheckboxPress(event);
-        }
+                if (!item.isSelectionDisabled) {
+                    handleCheckboxPress(event);
+                }
+            },
+            {shouldCheck: shouldAllowTextSelection},
+        );
     };
 
     const handleRowLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress(shouldAllowTextSelection)) {
+            return;
+        }
+
         if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
 
-        tableMethods.setMobileSelectionModalRowKey(item.keyForList);
+        showSelectionMenu(item.keyForList);
     };
 
     // Snapshot at pointer down because blur clears isEditingCell before onPress.
@@ -328,17 +347,23 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
+                shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 onHoverIn={enableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                dataSet={TABLE_ROW_DATA_SET}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     captureEditingOnMouseDown();
 
                     const target = e?.target;
+                    const isCopyableTextMouseDown = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown, {shouldSuppressNextPress: e.detail > 1});
+
+                    if (isCopyableTarget) {
+                        return;
+                    }
 
                     // Inputs must receive the mousedown so they can take focus.
                     if (target instanceof HTMLElement && target.tagName === CONST.ELEMENT_NAME.INPUT) {
@@ -350,6 +375,10 @@ export default function TableRow({
                         e.preventDefault();
                     }
                 }}
+                onTouchStart={(e) => {
+                    const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
+                }}
                 onPress={(event) => handleRowPress(event)}
                 onPressIn={(event) => {
                     captureEditingOnPressIn();
@@ -358,6 +387,7 @@ export default function TableRow({
                 onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}
+                dataSet={rowDataSet}
                 focusable={isAccessibilityHidden ? false : focusable}
                 fullDisabled={isAccessibilityHidden || fullDisabled}
                 tabIndex={isAccessibilityHidden ? -1 : tabIndex}

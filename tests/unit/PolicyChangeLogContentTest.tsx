@@ -54,6 +54,30 @@ describe('PolicyChangeLogContent', () => {
         expect(orphaned).toEqual([]);
     });
 
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
+    ] as const)('renders the workspace history message for %s', async (actionName, message) => {
+        // Given a backend changelog without pre-rendered text, the client must resolve its action type.
+        const action = createMock<ReportAction>({actionName, originalMessage: {}});
+
+        // When the changelog is displayed in the admins room.
+        render(
+            <NavigationContainer>
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PolicyChangeLogContent
+                        action={action}
+                        policyID={mockPolicy.id}
+                    />
+                </ComposeProviders>
+            </NavigationContainer>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then admins can read the specific archive or unarchive event.
+        expect(screen.getByText(message)).toBeOnTheScreen();
+    });
+
     it.each(handledTypes)('renders non-null for handled type %s', async (type) => {
         const fakeAction = createMock<ReportAction>({actionName: type, originalMessage: {}});
 

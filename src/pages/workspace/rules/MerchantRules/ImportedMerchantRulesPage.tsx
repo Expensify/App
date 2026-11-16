@@ -15,10 +15,11 @@ import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
 import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
+import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {getExpenseDefaultFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -36,15 +37,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ImportedSpreadsheet, Policy, PolicyCategories, Rule} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyVendors, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -62,14 +62,20 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string {
+function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): string {
     return JSON.stringify([
         formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         formValues.merchantToMatch?.toLowerCase() ?? '',
+        // A spreadsheet can't set these conditions, but a rule the policy already has can carry them, and a rule
+        // that matches on more than the row does is a different rule.
+        formValues.categoriesToMatch ?? [],
+        formValues.tagsToMatch ?? [],
         formValues.merchant ?? '',
         formValues.category ?? '',
         formValues.tag ?? '',
         formValues.comment ?? '',
+        formValues.amount ?? null,
+        formValues.tax ?? null,
         formValues.reimbursable ?? null,
         formValues.billable ?? null,
         formValues.vendorID ?? null,
@@ -121,9 +127,12 @@ function buildImportedCategoryLookup(policyCategories: OnyxEntry<PolicyCategorie
  * imported cells are matched against a trimmed, case-insensitive name lookup. A name shared by more than one
  * active vendor maps to `null` so the importer treats it as ambiguous instead of guessing which one was meant.
  */
-function buildImportedVendorLookup(policy: OnyxEntry<Policy>): Map<string, string | null> {
+function buildImportedVendorLookup(policy: OnyxEntry<Policy>, policyVendors?: OnyxEntry<PolicyVendors>): Map<string, string | null> {
     const lookup = new Map<string, string | null>();
     for (const vendor of getMatchingVendors(policy)) {
+        if (policyVendors?.[vendor.id]?.enabled === false) {
+            continue;
+        }
         const normalizedName = vendor.name.trim().toLowerCase();
         lookup.set(normalizedName, lookup.has(normalizedName) ? null : vendor.id);
     }
@@ -173,6 +182,7 @@ function parseSpreadsheetRules(
     policyCategories: OnyxEntry<PolicyCategories>,
     existingRules: OnyxCollection<Rule>,
     isVendorListReady: boolean,
+    policyVendors?: OnyxEntry<PolicyVendors>,
 ): ParsedSpreadsheetRules {
     const columns = Object.values(spreadsheet?.columns ?? {});
     const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
@@ -200,7 +210,7 @@ function parseSpreadsheetRules(
     const seenRuleKeys = new Set(
         getPolicyExpenseDefaultRules(existingRules, policy?.id)
             .filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map(({rule}) => getMerchantRuleFormValues(rule))
+            .map(({rule}) => getExpenseDefaultFormValues(rule))
             .filter((formValues) => !!formValues)
             .map(getRuleContentKey),
     );
@@ -208,7 +218,7 @@ function parseSpreadsheetRules(
 
     const categoryLookup = buildImportedCategoryLookup(policyCategories);
     const invalidCategoryNames = new Set<string>();
-    const vendorLookup = buildImportedVendorLookup(policy);
+    const vendorLookup = buildImportedVendorLookup(policy, policyVendors);
     const invalidVendorNames = new Set<string>();
 
     const rules: Record<string, ImportedMerchantRule> = {};
@@ -244,7 +254,7 @@ function parseSpreadsheetRules(
             continue;
         }
 
-        const formValues: Partial<MerchantRuleFormValues> = {
+        const formValues: Partial<ExpenseDefaultFormValues> = {
             merchantToMatch,
             matchType: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             ...(updatedMerchant && {merchant: updatedMerchant}),
@@ -298,36 +308,51 @@ type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingRules, setIsImportingRules] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isBetaEnabled} = usePermissions();
     const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
 
     const {isFetchNeeded: isVendorConnectionsFetchNeeded, isLoadingFetchedFlag: isVendorConnectionsFetchedFlagLoading} = usePolicyConnectionsPrefetch(policy, true);
-    const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading;
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
-    const fetchPolicyCategories = useCallback(() => {
+    const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
-    useNetwork({onReconnect: fetchPolicyCategories});
+    const fetchPolicyVendors = () => {
+        if (!isVendorFeatureAvailable || policyVendors !== undefined) {
+            return;
+        }
+        openPolicyVendorsPage(policyID);
+    };
+
+    const fetchDependencies = () => {
+        fetchPolicyCategories();
+        fetchPolicyVendors();
+    };
+
+    const {isOffline} = useNetwork({onReconnect: fetchDependencies});
 
     useFocusEffect(
         useCallback(() => {
-            fetchPolicyCategories();
-        }, [fetchPolicyCategories]),
+            fetchDependencies();
+        }, [fetchDependencies]),
     );
+
+    const isVendorPolicyListLoading = isVendorFeatureAvailable && !isOffline && policyVendors === undefined;
+    const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading || isVendorPolicyListLoading;
 
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
@@ -384,14 +409,11 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
-    const isVendorListReady = !isVendorFeatureAvailable || isMatchingVendorListLoaded(policy);
+    const isVendorListReady = !isVendorFeatureAvailable || (isMatchingVendorListLoaded(policy) && (isOffline || policyVendors !== undefined));
 
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(
-        () => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady),
-        [spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady],
-    );
+    const parsedRules = parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors);
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
@@ -436,10 +458,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
 

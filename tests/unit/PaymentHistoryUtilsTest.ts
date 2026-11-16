@@ -1,10 +1,21 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
-import {formatDate, getBadgeText, getPaymentDetailsBadge, getPaymentHistoryRow, getPaymentHistoryRows} from '@libs/PaymentHistoryUtils';
+import {
+    getActiveUserAccountIDs,
+    getBadgeText,
+    getPaymentDetailsBadge,
+    getPaymentHistoryRow,
+    getPaymentHistoryRows,
+    getReceiptFileName,
+    getReceiptSource,
+    isInvoiceBilling,
+} from '@libs/PaymentHistoryUtils';
 
 import CONST from '@src/CONST';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
+
+import createMock from '../utils/createMock';
 
 function createPurchase(purchaseID: number, created: string, message: Purchase['message'] = {}, amount = 1000): Purchase {
     return {
@@ -86,6 +97,26 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.at(0)?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
     });
 
+    it('marks a plain invoicing2018 bill as an unsettled invoice, so the table can hide its Paid badge', () => {
+        // Given a plain invoice bill, an ordinary paid bill, and an invoice that was later refunded
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(2, '2026-03-01'),
+            createPurchase(3, '2026-04-01', {billingType: CONST.BILLING.TYPE_INVOICING}),
+            createPurchase(4, '2026-05-01', {billingType: CONST.BILLING.TYPE_REFUND, refundPurchaseID: 3}),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then only the plain invoice is flagged: the ordinary paid bill is not, and the refunded invoice keeps its refund state instead of Paid
+        expect(rows.find((row) => row.purchaseID === 1)?.isUnsettledInvoice).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 2)?.isUnsettledInvoice).toBe(false);
+        const refundedInvoice = rows.find((row) => row.purchaseID === 3);
+        expect(refundedInvoice?.isUnsettledInvoice).toBe(false);
+        expect(refundedInvoice?.state).toBe(CONST.PAYMENT_HISTORY.STATE.REFUNDED);
+    });
+
     it('marks failed bills and shows tax only when it was charged', () => {
         // Given a failed bill that includes tax, a taxed bill for an exempt account, and a plain paid bill
         const purchaseList = [
@@ -124,6 +155,85 @@ describe('getPaymentHistoryRows', () => {
 
         // Then the repeated person is counted once
         expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('counts members only on bills that were on Collect 2025 pricing', () => {
+        // Given a bill on Collect 2025 pricing and an older bill that wasn't
+        const purchaseList = [createPurchase(1, '2026-02-01'), createPurchase(2, '2026-08-01', {isTeam2025Pricing: true})];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row follows its own bill's pricing, so a plan change doesn't relabel past bills
+        expect(rows.find((row) => row.purchaseID === 2)?.countsMembers).toBe(true);
+        expect(rows.find((row) => row.purchaseID === 1)?.countsMembers).toBe(false);
+    });
+
+    it('uses totalActorCount on a legacy bill even when totalUniqueMembersCount is higher', () => {
+        // Given a legacy bill where totalUniqueMembersCount counts every member of every workspace (including archived),
+        // while totalActorCount reflects the users actually billed — Classic shows the billed count, so we must too.
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: 2,
+                totalUniqueMembersCount: 5,
+                billablePolicies: {
+                    first: {actorList: 'ada@example.com', corporate: true},
+                    second: {actorList: 'bob@example.com', corporate: false},
+                },
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the row shows the billed-actor count, matching the details page
+        expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('uses the larger of teamActorCount and totalUniqueMembersCount on a Team 2025 bill', () => {
+        // Given a Team 2025 bill where a force-upgraded policy inflated teamActorCount above totalUniqueMembersCount
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 7,
+                totalUniqueMembersCount: 4,
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 2,
+                totalUniqueMembersCount: 6,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row uses the larger count — team actors in the first case, unique members in the second
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(7);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(6);
+    });
+
+    it('coerces string actor counts from Auth into numbers', () => {
+        // Given counts that arrive as strings from Auth (totalActorCount / teamActorCount are serialized as strings there)
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: '3',
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: '4',
+                totalUniqueMembersCount: 2,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the counts are numeric and compared correctly
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(3);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(4);
     });
 });
 
@@ -273,8 +383,250 @@ describe('getBadgeText', () => {
             JSON.stringify({
                 key: 'subscription.paymentHistory.badge.refundedAmountOn',
                 amount: convertAmountToDisplayString(500, CONST.CURRENCY.USD),
-                date: formatDate('2026-03-01', undefined),
+                date: 'March 1, 2026',
             }),
         );
+    });
+});
+
+describe('getReceiptSource', () => {
+    it('returns the source when the purchase has a receipt', () => {
+        // Given a purchase with a resolved receipt
+        const purchase = createPurchase(1, '2026-02-01');
+        purchase.receipt = {receiptID: 100, source: 'https://expensify.com/receipts/receipt.pdf'};
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then the source URL is returned
+        expect(source).toBe('https://expensify.com/receipts/receipt.pdf');
+    });
+
+    it('returns null when the purchase has no receipt', () => {
+        // Given a purchase without a receipt
+        const purchase = createPurchase(1, '2026-02-01');
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('returns null when the receipt source is null', () => {
+        // Given a purchase whose receipt has no source
+        const purchase = createPurchase(1, '2026-02-01');
+        purchase.receipt = {receiptID: 100, source: null};
+
+        // When the receipt source is resolved
+        const source = getReceiptSource(toPurchases([purchase]), 1);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('follows failedPurchaseID chain for cleared bills', () => {
+        // Given a failed purchase with a receipt, cleared by a later purchase
+        const failed = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        failed.receipt = {receiptID: 200, source: 'https://expensify.com/receipts/failed-receipt.pdf'};
+        const clear = createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([failed, clear]), 20);
+
+        // Then the failed purchase's receipt source is returned
+        expect(source).toBe('https://expensify.com/receipts/failed-receipt.pdf');
+    });
+
+    it('follows a multi-hop failedPurchaseID chain', () => {
+        // Given a chain of failed purchases where the original has the receipt
+        const original = createPurchase(10, '2026-01-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        original.receipt = {receiptID: 300, source: 'https://expensify.com/receipts/original.pdf'};
+        const retry = createPurchase(20, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, failedPurchaseID: 10});
+        const clear = createPurchase(30, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 20});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([original, retry, clear]), 30);
+
+        // Then the original purchase's receipt source is found through the chain
+        expect(source).toBe('https://expensify.com/receipts/original.pdf');
+    });
+
+    it('returns null when the chain leads to a purchase without a receipt', () => {
+        // Given a clear purchase pointing to a failed purchase with no receipt
+        const failed = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED});
+        const clear = createPurchase(20, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When the clear purchase's receipt source is resolved
+        const source = getReceiptSource(toPurchases([failed, clear]), 20);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+
+    it('returns null for an unknown purchaseID', () => {
+        // Given a purchases map that does not contain the requested ID
+        const purchases = toPurchases([createPurchase(1, '2026-02-01')]);
+
+        // When resolving a receipt source for a non-existent purchase
+        const source = getReceiptSource(purchases, 999);
+
+        // Then null is returned
+        expect(source).toBeNull();
+    });
+});
+
+describe('incomplete receipt purchases', () => {
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {}}},
+        {name: 'missing message', purchase: {purchaseID: 1}},
+    ])('rejects a $name with and without a receipt', ({purchase}) => {
+        // Given partial persisted data that must not be treated as a valid receipt carrier
+        const purchaseID = 1;
+        for (const receipt of [undefined, {receiptID: 100, source: 'https://example.com/receipt.pdf'}]) {
+            const purchases = createMock<Record<string, Purchase>>({[purchaseID]: {...purchase, receipt}});
+
+            // When either receipt helper resolves the incomplete purchase
+            const source = getReceiptSource(purchases, 1);
+            const isInvoice = isInvoiceBilling(purchases, 1);
+
+            // Then neither helper accepts the entry or dereferences its missing message
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it.each([
+        {name: 'loaded placeholder', purchase: {isLoaded: true}},
+        {name: 'missing ID', purchase: {message: {failedPurchaseID: 10}}},
+        {name: 'missing message', purchase: {purchaseID: 20}},
+    ])('stops a receipt chain at a $name', ({purchase}) => {
+        // Given a cleared bill whose chain contains an invalid entry before a valid invoice
+        const failedPurchaseID = 20;
+        const original = createPurchase(10, '2026-01-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        original.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(30, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID});
+        for (const receipt of [undefined, original.receipt]) {
+            const purchases = createMock<Record<string, Purchase>>({...toPurchases([original, clear]), [failedPurchaseID]: {...purchase, receipt}});
+
+            // When either helper traverses the invalid link, even one carrying a receipt
+            const source = getReceiptSource(purchases, 30);
+            const isInvoice = isInvoiceBilling(purchases, 30);
+
+            // Then resolution stops safely rather than accepting or following the invalid entry
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('rejects a null message at the root or a linked purchase', () => {
+        // Given persisted data with a null message, including a direct receipt source
+        const invalid = createPurchase(1, '2026-01-01');
+        invalid.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
+        Reflect.set(invalid, 'message', null);
+        const clear = createPurchase(2, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 1});
+        const purchases = toPurchases([invalid, clear]);
+
+        // When resolving the invalid purchase directly or through a cleared bill
+        for (const purchaseID of [1, 2]) {
+            const source = getReceiptSource(purchases, purchaseID);
+            const isInvoice = isInvoiceBilling(purchases, purchaseID);
+
+            // Then neither path treats the receipt as safe for billing classification
+            expect(source).toBeNull();
+            expect(isInvoice).toBe(false);
+        }
+    });
+
+    it('terminates a cyclic receipt chain', () => {
+        // Given a chain with no receipt that eventually points back to the cleared bill
+        const clear = createPurchase(1, '2026-03-01', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 2});
+        const failed = createPurchase(2, '2026-02-01', {billingType: CONST.BILLING.TYPE_FAILED, failedPurchaseID: 1});
+        const purchases = toPurchases([clear, failed]);
+
+        // When the receipt helpers traverse the cycle
+        const source = getReceiptSource(purchases, 1);
+        const isInvoice = isInvoiceBilling(purchases, 1);
+
+        // Then the existing cycle protection still returns an empty result
+        expect(source).toBeNull();
+        expect(isInvoice).toBe(false);
+    });
+});
+
+describe('isInvoiceBilling', () => {
+    it('returns true for an invoice bill with a receipt', () => {
+        // Given an invoice purchase with a receipt source
+        const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/invoice.pdf'};
+
+        // When checking if the purchase is invoice billing
+        // Then it returns true
+        expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(true);
+    });
+
+    it('returns true for a cleared invoice by following the failedPurchaseID chain', () => {
+        // Given a cleared invoice bill whose original failed invoice holds the receipt
+        const failedInvoice = createPurchase(10, '2026-02-01', {billingType: CONST.BILLING.TYPE_INVOICING});
+        failedInvoice.receipt = {receiptID: 200, source: 'https://example.com/invoice.pdf'};
+        const clear = createPurchase(20, '2026-02-05', {billingType: CONST.BILLING.TYPE_CLEAR, failedPurchaseID: 10});
+
+        // When checking if the clear purchase is invoice billing
+        // Then it follows the chain to the failed invoice and returns true
+        expect(isInvoiceBilling(toPurchases([failedInvoice, clear]), 20)).toBe(true);
+    });
+
+    it('returns false for non-invoicing billing type', () => {
+        // Given a non-invoicing purchase with a receipt
+        const purchase = createPurchase(1, '2026-02-01', {billingType: CONST.BILLING.TYPE_CLEAR});
+        purchase.receipt = {receiptID: 100, source: 'https://example.com/receipt.pdf'};
+
+        // When checking if the purchase is invoice billing
+        // Then it returns false
+        expect(isInvoiceBilling(toPurchases([purchase]), 1)).toBe(false);
+    });
+});
+
+describe('getReceiptFileName', () => {
+    it('extracts filename from valid URL', () => {
+        // Given a receipt URL with a filename
+        // When extracting the filename
+        // Then it returns the last path segment
+        expect(getReceiptFileName('https://expensify.com/receipts/w_abc123.pdf', 42)).toBe('w_abc123.pdf');
+    });
+
+    it('falls back to receipt-purchaseID for invalid URL', () => {
+        // Given an invalid URL string
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('not-a-url', 42)).toBe('receipt-42');
+    });
+
+    it('falls back to receipt-purchaseID for empty path', () => {
+        // Given a URL with no path segments
+        // When extracting the filename
+        // Then it falls back to receipt-{purchaseID}
+        expect(getReceiptFileName('https://expensify.com/', 7)).toBe('receipt-7');
+    });
+});
+
+describe('getActiveUserAccountIDs', () => {
+    it('dedupes users billed under more than one workspace', () => {
+        // Given a purchase whose active users repeat, because one person was billed under two workspaces
+        const purchase = {...createPurchase(1, '2026-02-01'), activeUsers: [10, 20, 10, 30]};
+
+        // When the active users for the Activity list are read
+        // Then each person is listed once, so the count under the Activity header matches the list
+        expect(getActiveUserAccountIDs(purchase)).toEqual([10, 20, 30]);
+    });
+
+    it('returns no users when the details have not loaded or nobody was billed', () => {
+        // Given a missing purchase, a purchase without active users, and a purchase with an empty list
+        // When the active users are read
+        // Then the list is empty, so the page hides the Activity section
+        expect(getActiveUserAccountIDs(undefined)).toEqual([]);
+        expect(getActiveUserAccountIDs(createPurchase(1, '2026-02-01'))).toEqual([]);
+        expect(getActiveUserAccountIDs({...createPurchase(1, '2026-02-01'), activeUsers: []})).toEqual([]);
     });
 });

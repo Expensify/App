@@ -26,11 +26,9 @@ To connect your Workspace:
 
 1. From the left-hand menu, select **Settings**.
 2. Choose **Workspaces**, then select your Workspace.
-3. Select **More features** from the Workspace menu.
-4. In the **Integrate** section, toggle on **Accounting**.
-5. Click **Accounting** in the menu.
-6. Click **Set up** next to **Xero**.
-7. Log in to your Xero account to complete the connection.
+3. In the navigation menu, select **Connections**.
+4. Select **Xero**.
+5. Log in to your Xero account to complete the connection.
 
 This will import your Xero settings into Expensify.
 
@@ -47,8 +45,8 @@ This will import your Xero settings into Expensify.
 ## How do I disconnect Xero from Expensify?
 
 1. From the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
-2. Click **Accounting** in the Workspace menu.
-3. Click the three-dot menu next to **Xero**.
+2. In the navigation menu, select **Connections**, then select **Configure** next to Xero.
+3. Select **More (⋮)**.
 4. Select **Disconnect**, then click **Disconnect** again to confirm.
 
 After disconnecting, data previously imported from Xero will no longer appear in your Workspace.

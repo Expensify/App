@@ -4,6 +4,7 @@ import Text from '@components/Text';
 
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {AuthScreensParamList, PublicScreensParamList} from '@libs/Navigation/types';
+import {setHasRadio} from '@libs/NetworkState';
 
 import DelegatorConnectGuard from '@navigation/AppNavigator/DelegatorConnectGate';
 
@@ -155,6 +156,34 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
 
             // Then no "Go Back" is drawn. There is no history to pop on a cold deep link.
             expectNoGoBackButton();
+        });
+
+        it('ValidateLoginPage (magic link) shows the offline message instead of a bare loader while offline', async () => {
+            // Given a signed-out user who is offline, so the sign-in request stays queued and never resolves
+            setHasRadio(false);
+
+            try {
+                // When they open a magic link carrying exitTo
+                render(
+                    <NavigationContainer>
+                        <PublicStack.Navigator>
+                            <PublicStack.Screen
+                                name={SCREENS.VALIDATE_LOGIN}
+                                component={ValidateLoginPage}
+                                initialParams={{accountID: '1', validateCode: '123456', exitTo: 'concierge'}}
+                            />
+                        </PublicStack.Navigator>
+                    </NavigationContainer>,
+                );
+                await waitPastLoaderTimeout();
+
+                // Then they see why the page is stuck, not a spinner with nothing else on screen
+                expect(screen.getByText('common.youAppearToBeOffline')).toBeOnTheScreen();
+                expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+            } finally {
+                // Network state is module-level, so restore it even if an assertion fails
+                setHasRadio(true);
+            }
         });
 
         it('UnlinkLoginPage never offers a way back', async () => {

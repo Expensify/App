@@ -82,6 +82,7 @@ type MultifactorAuthenticationScenarioResponse = {
  */
 type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknown>> = (
     params: MultifactorAuthenticationActionParams<T, 'signedChallenge'>,
+    context?: {signal: AbortSignal},
 ) => Promise<MultifactorAuthenticationScenarioResponse>;
 
 /**

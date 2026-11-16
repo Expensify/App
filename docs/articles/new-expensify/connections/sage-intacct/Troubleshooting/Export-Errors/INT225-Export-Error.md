@@ -43,7 +43,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**.
 4. Click **Configure**.
 5. Open the **Coding** tab.
 6. Confirm **Tax** is enabled for import.
@@ -53,7 +53,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**.
 4. Tap **Configure**.
 5. Open the **Coding** tab.
 6. Enable **Tax**.
@@ -83,8 +83,9 @@ Delete any manually entered tax rates.
 1. Log in to Sage Intacct.
 2. Confirm the required tax rates exist and are active.
 3. Return to the Workspace.
-4. Go to **Accounting**.
-5. Click **Sync Now**.
+4. Select **Connections**, then select **Configure** next to Sage Intacct.
+5. Select **More (⋮)**.
+6. Select **Sync now**.
 
 This imports tax rates from Sage Intacct into the Workspace.
 

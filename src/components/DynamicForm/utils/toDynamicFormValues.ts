@@ -1,6 +1,8 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {FormValue} from '@components/Form/types';
 
+import {isListItem} from './listItems';
+
 function isFormValue(value: unknown): value is FormValue {
     if (typeof value === 'string' || typeof value === 'boolean' || value instanceof Date) {
         return true;
@@ -12,7 +14,8 @@ function isFormValue(value: unknown): value is FormValue {
     return (
         items.every((item) => typeof item === 'string') ||
         items.every((item) => typeof item === 'boolean') ||
-        items.every((item) => typeof item === 'object' && item !== null && ('name' in item || 'uri' in item))
+        items.every((item) => typeof item === 'object' && item !== null && ('name' in item || 'uri' in item)) ||
+        items.every(isListItem)
     );
 }
 
