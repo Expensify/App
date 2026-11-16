@@ -6,6 +6,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -49,13 +51,12 @@ function WalletPromptRow({message, shouldShowSuccessMessage = true, buttonText, 
                 />
                 <Text style={[styles.mutedNormalTextLabel, styles.label, shouldShowSuccessMessage && styles.textSuccess, styles.flexShrink1]}>{message}</Text>
             </View>
-            {/* The props type requires buttonSentryLabel with onButtonPress, checking it only narrows the type. */}
-            {!!buttonText && !!onButtonPress && !!buttonSentryLabel && (
+            {!!buttonText && !!onButtonPress && (
                 <Button
                     size={CONST.BUTTON_SIZE.SMALL}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onButtonPress}
-                    sentryLabel={buttonSentryLabel}
+                    sentryLabel={castToSentryLabel(buttonSentryLabel)}
                 >
                     <Button.Text>{buttonText}</Button.Text>
                 </Button>

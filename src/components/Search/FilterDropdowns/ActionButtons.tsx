@@ -3,6 +3,8 @@ import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import CONST from '@src/CONST';
 import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -23,13 +25,12 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, shou
 
     return (
         <View style={containerStyle}>
-            {/* The props type requires resetSentryLabel with onReset, checking it only narrows the type. */}
-            {!!onReset && !!resetSentryLabel && (
+            {!!onReset && (
                 <Button
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     style={[styles.flex1]}
                     onPress={onReset}
-                    sentryLabel={resetSentryLabel}
+                    sentryLabel={castToSentryLabel(resetSentryLabel)}
                 >
                     <Button.Text>{translate('common.reset')}</Button.Text>
                 </Button>

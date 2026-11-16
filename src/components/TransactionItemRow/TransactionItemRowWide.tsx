@@ -25,6 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -763,8 +764,7 @@ function TransactionItemRowWide({
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
-                    {/* CheckboxSentryLabelProps requires the label on every wide row, checking it only narrows the type. */}
-                    {!shouldShowRadioButton && !!checkboxSentryLabel && (
+                    {!shouldShowRadioButton && (
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
@@ -774,7 +774,7 @@ function TransactionItemRowWide({
                             isChecked={isSelected}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={checkboxSentryLabel}
+                            sentryLabel={castToSentryLabel(checkboxSentryLabel)}
                         />
                     )}
                     {columns?.map(renderColumn)}

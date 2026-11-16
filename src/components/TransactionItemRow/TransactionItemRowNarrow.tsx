@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {isScanning} from '@libs/TransactionUtils';
 
@@ -103,8 +104,7 @@ function TransactionItemRowNarrow({
                 testID="transaction-item-row"
             >
                 <View style={[styles.flexRow]}>
-                    {/* CheckboxSentryLabelProps requires the label with shouldShowCheckbox, checking it only narrows the type. */}
-                    {shouldShowCheckbox && !!checkboxSentryLabel && (
+                    {shouldShowCheckbox && (
                         <Checkbox
                             disabled={isDisabled}
                             onPress={(event) => {
@@ -115,7 +115,7 @@ function TransactionItemRowNarrow({
                             style={styles.mr3}
                             containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
-                            sentryLabel={checkboxSentryLabel}
+                            sentryLabel={castToSentryLabel(checkboxSentryLabel)}
                         />
                     )}
                     <ReceiptCell

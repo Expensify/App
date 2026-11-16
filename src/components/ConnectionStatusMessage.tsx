@@ -3,6 +3,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import CONST from '@src/CONST';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
@@ -54,8 +56,7 @@ function ConnectionStatusMessage({
     if (shouldIncludeHorizontalPadding) {
         statusMessageRowPadding = cardPaddingHorizontal;
     }
-    // The props type requires actionSentryLabel with onActionPress, checking it only narrows the type.
-    const shouldShowActionButton = !!actionText && !!onActionPress && !!actionSentryLabel;
+    const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const isSuccessStatus = statusTone === 'success';
     let messageTag;
@@ -94,7 +95,7 @@ function ConnectionStatusMessage({
             onPress={onActionPress}
             isDisabled={isActionDisabled}
             accessibilityLabel={actionAccessibilityLabel}
-            sentryLabel={actionSentryLabel}
+            sentryLabel={castToSentryLabel(actionSentryLabel)}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>

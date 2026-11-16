@@ -1,8 +1,6 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
-
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -65,7 +63,7 @@ function Badge({
     error = false,
     isStrong = false,
     isCondensed = false,
-    pressable = false,
+    pressable,
     text,
     environment = CONST.ENVIRONMENT.DEV,
     badgeStyles,
@@ -101,7 +99,7 @@ function Badge({
         return null;
     }
 
-    const pressProps = pressable ? {sentryLabel: castToSentryLabel(sentryLabel), onPress} : {};
+    const pressProps = pressable ? {sentryLabel, onPress} : {};
 
     return (
         <Wrapper

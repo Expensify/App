@@ -3,6 +3,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 
 import CONST from '@src/CONST';
@@ -47,8 +49,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
     const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    // The props type requires ctaSentryLabel with onCtaPress, checking it only narrows the type.
-    const hasCta = !!ctaText && !!onCtaPress && !!ctaSentryLabel;
+    const hasCta = !!ctaText && !!onCtaPress;
 
     const titleNode = (
         <View style={[styles.flexRow, styles.flexShrink1]}>
@@ -75,7 +76,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onCtaPress}
-                        sentryLabel={ctaSentryLabel}
+                        sentryLabel={castToSentryLabel(ctaSentryLabel)}
                     >
                         <Button.Text>{ctaText ?? ''}</Button.Text>
                     </Button>
@@ -84,7 +85,7 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onCtaPress}
-                    sentryLabel={ctaSentryLabel}
+                    sentryLabel={castToSentryLabel(ctaSentryLabel)}
                 >
                     <Button.Text>{ctaText ?? ''}</Button.Text>
                 </Button>

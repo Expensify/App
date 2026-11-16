@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
@@ -109,16 +110,14 @@ function CategoryPickerModal({
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
             shouldShowHeader={!!onAddCategory}
             headerActions={
-                // The props type requires addCategorySentryLabel with onAddCategory, checking it only narrows the type.
-                !!onAddCategory &&
-                !!addCategorySentryLabel && (
+                !!onAddCategory && (
                     <Tooltip text={translate('workspace.categories.addCategory')}>
                         <PressableWithFeedback
                             accessibilityLabel={translate('workspace.categories.addCategory')}
                             role={CONST.ROLE.BUTTON}
                             onPress={onAddCategory}
                             shouldUseAutoHitSlop
-                            sentryLabel={addCategorySentryLabel}
+                            sentryLabel={castToSentryLabel(addCategorySentryLabel)}
                         >
                             <Icon
                                 src={icons.Plus}
