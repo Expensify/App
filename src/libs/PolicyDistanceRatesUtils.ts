@@ -534,6 +534,18 @@ function getCurrentGovernmentRateID(customUnit: CustomUnit | undefined, country:
     return currentRateID;
 }
 
+/** Auto-update would add the current government rate straight back, so deleting it opts the workspace out of auto-update. */
+function shouldDeletingRatesTurnOffAutoUpdate(
+    policy: OnyxEntry<Policy>,
+    customUnit: CustomUnit | undefined,
+    rateIDsToDelete: string[],
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+): boolean {
+    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
+    const currentGovernmentRateID = autoUpdateCountry ? getCurrentGovernmentRateID(customUnit, autoUpdateCountry, today) : undefined;
+    return !!currentGovernmentRateID && rateIDsToDelete.includes(currentGovernmentRateID);
+}
+
 /** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
 function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country | undefined): string {
     if (!country) {
@@ -827,6 +839,7 @@ export {
     getEuroDistanceRateCountryOptions,
     getCurrentGovernmentMileageRate,
     getCurrentGovernmentRateID,
+    shouldDeletingRatesTurnOffAutoUpdate,
     getNoGovernmentRateNote,
     getGovernmentRateAmountForUnit,
     isEuroDistanceRateCountry,

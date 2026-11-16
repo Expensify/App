@@ -9141,6 +9141,10 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            areYouSureDeleteGovernmentRate: () => ({
+                one: 'Deleting this rate will turn off auto-update for government rates. Are you sure?',
+                other: 'Deleting these rates will turn off auto-update for government rates. Are you sure?',
+            }),
             amountPerUnit: (unit: string) => `Amount per ${unit}`,
             startDate: 'Start date',
             endDate: 'End date',

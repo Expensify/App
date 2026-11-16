@@ -38,7 +38,7 @@ import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/act
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
+import {getTaxReclaimableAmount, shouldDeletingRatesTurnOffAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
@@ -331,7 +331,12 @@ function PolicyDistanceRatesPage({
                     }
                     const {action} = await showConfirmModal({
                         title: translate('workspace.distanceRates.deleteDistanceRate'),
-                        prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
+                        prompt: translate(
+                            shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, selectedDistanceRates)
+                                ? 'workspace.distanceRates.areYouSureDeleteGovernmentRate'
+                                : 'workspace.distanceRates.areYouSureDelete',
+                            {count: selectedDistanceRates.length},
+                        ),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,

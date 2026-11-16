@@ -22,7 +22,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
+import {getTaxReclaimableAmount, shouldDeletingRatesTurnOffAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -299,7 +299,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 }
                                 const {action} = await showConfirmModal({
                                     title: translate('workspace.distanceRates.deleteDistanceRate'),
-                                    prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
+                                    prompt: translate(
+                                        shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, [rateID])
+                                            ? 'workspace.distanceRates.areYouSureDeleteGovernmentRate'
+                                            : 'workspace.distanceRates.areYouSureDelete',
+                                        {count: 1},
+                                    ),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
                                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,

@@ -23,12 +23,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-import {
-    buildOnyxDataForGovernmentRateAutoUpdate,
-    buildOnyxDataForPolicyDistanceRateUpdates,
-    getAutoUpdateGovernmentRateCountry,
-    getCurrentGovernmentRateID,
-} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates, shouldDeletingRatesTurnOffAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -459,10 +454,7 @@ function deletePolicyDistanceRates(
     const optimisticRates: Record<string, Partial<Rate>> = {};
     const failureRates: Record<string, Partial<Rate>> = {};
 
-    // Auto-update would add the current government rate straight back, so deleting it opts the workspace out of auto-update
-    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
-    const currentGovernmentRateID = autoUpdateCountry ? getCurrentGovernmentRateID(customUnit, autoUpdateCountry) : undefined;
-    const shouldTurnOffAutoUpdate = !!currentGovernmentRateID && rateIDsToDelete.includes(currentGovernmentRateID);
+    const shouldTurnOffAutoUpdate = shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, rateIDsToDelete);
 
     for (const rateID of rateIDsToDelete) {
         optimisticRates[rateID] = {
