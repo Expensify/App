@@ -142,6 +142,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                     closeModal();
                 }
                 closePrompt();
+                dismissedViaBackdropRef.current = false;
                 return;
             }
 
