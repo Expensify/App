@@ -6,6 +6,8 @@ import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {deepEqual} from 'fast-equals';
+
 const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isActionLoading ?? false;
 
 const hasOnceLoadedReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.hasOnceLoadedReportActions;
@@ -41,7 +43,8 @@ const NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS: Readonly<Record<string, string[]>> =
 
 // Single-entry cache keyed on the collection reference, so every subscriber gets the same result while the collection
 // is unchanged. Onyx hands every collection subscriber the same snapshot and rebuilds it only when a member changes
-// (OnyxCache.getCollectionData in react-native-onyx).
+// (OnyxCache.getCollectionData in react-native-onyx). A new snapshot with the same pending removals keeps the previous
+// result, because the option list cache downstream compares its inputs by reference.
 let cachedReportMetadataCollection: OnyxCollection<ReportMetadata>;
 let cachedPendingDeleteMemberAccountIDsByReportID: Readonly<Record<string, string[]>> = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
 
@@ -72,7 +75,11 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
     }
 
     cachedReportMetadataCollection = reportMetadata;
-    cachedPendingDeleteMemberAccountIDsByReportID = Object.keys(result).length > 0 ? result : NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+    if (Object.keys(result).length === 0) {
+        cachedPendingDeleteMemberAccountIDsByReportID = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+    } else if (!deepEqual(result, cachedPendingDeleteMemberAccountIDsByReportID)) {
+        cachedPendingDeleteMemberAccountIDsByReportID = result;
+    }
     return cachedPendingDeleteMemberAccountIDsByReportID;
 };
 

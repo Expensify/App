@@ -1,3 +1,7 @@
+import {act, renderHook} from '@testing-library/react-native';
+
+import useOnyx from '@hooks/useOnyx';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
@@ -11,6 +15,9 @@ import {
     pendingDeleteMemberAccountIDsByReportIDSelector,
     reportActionsListLoadingStateSelector,
 } from '@selectors/ReportMetaData';
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 describe('isActionLoadingSelector', () => {
     it('returns true when isActionLoading is true', () => {
@@ -130,5 +137,72 @@ describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
 
         // Then the cached result for the old snapshot is not reused, so the member does not stay hidden
         expect(result).toEqual({});
+    });
+
+    it('keeps the previous result when a new snapshot has the same pending removals', () => {
+        // Given a pending removal read from one snapshot
+        const key = `${ONYXKEYS.COLLECTION.REPORT_METADATA}3` as const;
+        const pendingEntry: ReportMetadata = {pendingChatMembers: [{accountID: '9', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]};
+        const first = pendingDeleteMemberAccountIDsByReportIDSelector({[key]: pendingEntry});
+
+        // When Onyx hands out a new snapshot because unrelated metadata of another report changed
+        const next = pendingDeleteMemberAccountIDsByReportIDSelector({[key]: pendingEntry, [`${ONYXKEYS.COLLECTION.REPORT_METADATA}4`]: {isOptimisticReport: true}});
+
+        // Then the same object comes back, so the option list cache keeps hitting while the removal is pending
+        expect(next).toBe(first);
+    });
+});
+
+describe('pendingDeleteMemberAccountIDsByReportIDSelector through useOnyx', () => {
+    const REPORT_ID = '10';
+    const METADATA_KEY = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT_ID}` as const;
+    const OTHER_METADATA_KEY = `${ONYXKEYS.COLLECTION.REPORT_METADATA}11` as const;
+    const useSelectedPendingDeletes = () => useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector})[0];
+
+    beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
+    afterEach(async () => {
+        await act(async () => Onyx.clear());
+    });
+
+    it('gives every subscriber of the same collection snapshot the same result', async () => {
+        // Given a collection with a member pending removal. The selector cache only hits if Onyx hands every subscriber the same collection object
+        await act(async () => {
+            await Onyx.set(METADATA_KEY, {pendingChatMembers: [{accountID: '5', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]});
+        });
+
+        // When two components subscribe with the selector, as useFilteredOptions and InSelector do
+        const first = renderHook(useSelectedPendingDeletes);
+        const second = renderHook(useSelectedPendingDeletes);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both get the same object, so the reference-keyed option list cache can hit for either of them
+        expect(first.result.current).toEqual({[REPORT_ID]: ['5']});
+        expect(second.result.current).toBe(first.result.current);
+        first.unmount();
+        second.unmount();
+    });
+
+    it('gives a subscriber mounted after an unrelated metadata change the same result as one that stayed mounted', async () => {
+        // Given a mounted subscriber while a member removal is pending
+        await act(async () => {
+            await Onyx.set(METADATA_KEY, {pendingChatMembers: [{accountID: '5', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]});
+        });
+        const mounted = renderHook(useSelectedPendingDeletes);
+        await waitForBatchedUpdatesWithAct();
+        const before = mounted.result.current;
+
+        // When metadata of another report changes, so Onyx builds a new collection snapshot, and the Search Router mounts a new subscriber
+        await act(async () => {
+            await Onyx.merge(OTHER_METADATA_KEY, {isOptimisticReport: true});
+        });
+        const remounted = renderHook(useSelectedPendingDeletes);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both hold the result from before the change, so reopening the Search Router still hits the option list cache
+        expect(mounted.result.current).toBe(before);
+        expect(remounted.result.current).toBe(before);
+        mounted.unmount();
+        remounted.unmount();
     });
 });

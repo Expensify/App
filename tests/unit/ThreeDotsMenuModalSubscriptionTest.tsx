@@ -48,7 +48,7 @@ describe('ThreeDotsMenu modal subscription', () => {
     });
 
     // Renders a menu and opens its popover, because many of these menus stay mounted on the Workspaces tab while the user navigates
-    async function renderOpenMenu() {
+    async function renderOpenMenu(shouldOverlay = false) {
         const onRender = jest.fn();
         render(
             <Profiler
@@ -57,6 +57,7 @@ describe('ThreeDotsMenu modal subscription', () => {
             >
                 <ThreeDotsMenu
                     shouldSelfPosition
+                    shouldOverlay={shouldOverlay}
                     testID="three-dots-menu"
                     anchorAlignment={anchorAlignment}
                     menuItems={menuItems}
@@ -114,5 +115,17 @@ describe('ThreeDotsMenu modal subscription', () => {
 
         // Then the menu stays closed, because being covered closed it rather than only hiding it
         expect(screen.getByTestId('popover-closed')).toBeOnTheScreen();
+    });
+
+    it('stays open under an alert modal when it is rendered as an overlay', async () => {
+        // Given an overlay menu with its popover open
+        await renderOpenMenu(true);
+
+        // When an alert modal is about to become visible
+        willAlertModalBecomeVisible(true);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the popover stays open, because a menu that overlays the current view is not treated as covered by the modal
+        expect(screen.getByTestId('popover-open')).toBeOnTheScreen();
     });
 });

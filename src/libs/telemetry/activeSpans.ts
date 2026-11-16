@@ -12,7 +12,7 @@ type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
     spanName: string;
     startTimeForLog: number;
-    /** Set by cancelSpan, so endSpan can skip benchmark logging without the span's attributes, which it reads only in development builds. */
+    /** Set by cancelSpan. endSpan reads this instead of the span's canceled attribute, because it calls spanToJSON only in development builds. */
     isCanceled?: boolean;
 };
 

@@ -90,7 +90,7 @@ describe('ProductTrainingContextProvider', () => {
     mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
 
     describe('Basic Tooltip Registration', () => {
-        it('should not register tooltips when app is loading', async () => {
+        it('should not show tooltips when app is loading', async () => {
             // When app is loading
             Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
@@ -102,7 +102,7 @@ describe('ProductTrainingContextProvider', () => {
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
 
-        it('should not register tooltips when onboarding is not completed', async () => {
+        it('should not show tooltips when onboarding is not completed', async () => {
             // When onboarding is not completed
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
@@ -422,9 +422,10 @@ describe('ProductTrainingContextProvider', () => {
             setModalVisibility(true);
             await waitForBatchedUpdatesWithAct();
 
-            // Then each consumer renders once and the in-modal tooltip shows right away, so there is no frame where neither tooltip shows
-            expect(onAccountSwitcherRender.mock.calls).toEqual([[false]]);
-            expect(onScanRender.mock.calls).toEqual([[true]]);
+            // Then the in-modal tooltip shows in the same render that hides the other one, so there is no frame where neither tooltip shows
+            expect(onAccountSwitcherRender).toHaveBeenLastCalledWith(false);
+            expect(onScanRender).not.toHaveBeenCalledWith(false);
+            expect(onScanRender).toHaveBeenLastCalledWith(true);
 
             // When the modal closes
             setModalVisibility(false);
@@ -435,30 +436,45 @@ describe('ProductTrainingContextProvider', () => {
             expect(onScanRender).toHaveBeenLastCalledWith(false);
         });
 
-        it('keeps a tooltip visible while another consumer sharing its name unmounts', async () => {
-            // Given two consumers of the same tooltip, like the rows of a list that each ask for one tooltip name
+        it('keeps a tooltip visible while another consumer sharing its name unmounts and releases it after the last one unmounts', async () => {
+            // Given two consumers of the same tooltip, like the rows of a list that each ask for one tooltip name, next to a lower-priority tooltip
             const ref = createRef<ProductTrainingRef>();
-            const renderConsumers = (shouldMountSecond: boolean) =>
+            const lowerPriorityRef = createRef<ProductTrainingRef>();
+            const renderConsumers = (mountedCount: number) =>
                 wrapper({
                     children: (
                         <>
+                            {mountedCount > 0 && (
+                                <ProductTraining
+                                    ref={ref}
+                                    tooltipName={ACCOUNT_SWITCHER}
+                                />
+                            )}
+                            {mountedCount > 1 && <ProductTraining tooltipName={ACCOUNT_SWITCHER} />}
                             <ProductTraining
-                                ref={ref}
-                                tooltipName={ACCOUNT_SWITCHER}
+                                ref={lowerPriorityRef}
+                                tooltipName={GPS_TOOLTIP}
                             />
-                            {shouldMountSecond && <ProductTraining tooltipName={ACCOUNT_SWITCHER} />}
                         </>
                     ),
                 });
-            const {rerender} = render(renderConsumers(true));
+            const {rerender} = render(renderConsumers(2));
             await waitForBatchedUpdatesWithAct();
 
             // When one of them unmounts, as a virtualized row does when it scrolls out of view
-            rerender(renderConsumers(false));
+            rerender(renderConsumers(1));
             await waitForBatchedUpdatesWithAct();
 
             // Then the tooltip stays visible for the consumer that is still mounted
             expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+            expect(lowerPriorityRef.current?.shouldShowProductTrainingTooltip).toBe(false);
+
+            // When the last consumer of that tooltip unmounts
+            rerender(renderConsumers(0));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the lower-priority tooltip takes the slot, because the shared registration was fully released
+            expect(lowerPriorityRef.current?.shouldShowProductTrainingTooltip).toBe(true);
         });
 
         it('hides tooltips under an alert modal and the mileage rate tooltip only under a popover', async () => {
@@ -497,6 +513,55 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then the mileage rate tooltip hides too
             expect(mileageRef.current?.shouldShowProductTrainingTooltip).toBe(false);
+        });
+
+        it('shows the mileage rate tooltip when a closed popover left its popover flag behind', async () => {
+            // Given the mileage rate tooltip under an open popover
+            const mileageRef = createRef<ProductTrainingRef>();
+            render(
+                wrapper({
+                    children: (
+                        <ProductTraining
+                            ref={mileageRef}
+                            tooltipName={MILEAGE_RATE_AUTO_UPDATED}
+                        />
+                    ),
+                }),
+            );
+            willAlertModalBecomeVisible(true, true);
+            await waitForBatchedUpdatesWithAct();
+            expect(mileageRef.current?.shouldShowProductTrainingTooltip).toBe(false);
+
+            // When the popover closes but leaves its popover flag behind
+            Onyx.merge(ONYXKEYS.MODAL, {isVisible: false, willAlertModalBecomeVisible: false, isPopover: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the tooltip shows again, because a popover flag alone does not mean anything covers the field
+            expect(mileageRef.current?.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
+        it('shows no tooltip while acting as a delegate', async () => {
+            // Given a visible tooltip
+            const ref = createRef<ProductTrainingRef>();
+            render(
+                wrapper({
+                    children: (
+                        <ProductTraining
+                            ref={ref}
+                            tooltipName={ACCOUNT_SWITCHER}
+                        />
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+
+            // When the user starts acting on behalf of another account as a copilot
+            Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'delegate@test.com'}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the tooltip hides, because product training must not show on behalf of another account
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(false);
         });
     });
 });

@@ -93,4 +93,15 @@ describe('activeSpans benchmark logging', () => {
         expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledTimes(1);
         expect(mockLogBenchmarkSpanEnd).toHaveBeenCalledWith('ManualOpenReport', expect.any(Number));
     });
+
+    it('skips the benchmark line of a canceled span in a development build', () => {
+        // Given a development build, where endSpan reads the span's attributes only to log them, and the mocked span reports no canceled attribute
+        startSpan('ManualOpenSearchRouter', {name: 'ManualOpenSearchRouter'});
+
+        // When the span is canceled, as a navigation the user abandons is
+        cancelSpan('ManualOpenSearchRouter');
+
+        // Then it does not reach the benchmark log, because the canceled state comes from the tracked entry rather than the attributes
+        expect(mockLogBenchmarkSpanEnd).not.toHaveBeenCalled();
+    });
 });

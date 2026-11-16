@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {isModalActiveSelector, isPopoverModalSelector} from '@selectors/Modal';
+import {activeModalKindSelector} from '@selectors/Modal';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect, useState} from 'react';
@@ -90,14 +90,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [isModalVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
-    const [isPopoverModal = false] = useOnyx(ONYXKEYS.MODAL, {selector: isPopoverModalSelector});
+    const [activeModalKind = 'none'] = useOnyx(ONYXKEYS.MODAL, {selector: activeModalKindSelector});
+    const isModalVisible = activeModalKind !== 'none';
 
-    const [activeTooltips, setActiveTooltips] = useState<Map<ProductTrainingTooltipName, number>>(new Map());
+    const [activeTooltips, setActiveTooltips] = useState<Map<ProductTrainingTooltipName, number>>(() => new Map());
 
-    // Registration counts the consumers mounted with shouldShow per tooltip name, because several consumers can share a name.
-    // Both callbacks must use nothing but the setter: consumers list them as effect dependencies, so a new identity would
-    // unregister and re-register every tooltip on each provider render.
+    // Counts consumers per tooltip name, since several can share one. Both callbacks must only call the setter:
+    // consumers list them as effect dependencies, so a new identity would re-register every tooltip.
     const registerTooltip = (tooltipName: ProductTrainingTooltipName) => {
         setActiveTooltips((prev) => new Map(prev).set(tooltipName, (prev.get(tooltipName) ?? 0) + 1));
     };
@@ -146,7 +145,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
         // Mileage rate tooltip is exempt from the general "hide when modal visible" rule so it can show on the confirmation surface.
         // Hide it when a popover or bottom sheet opens (e.g. inline date picker) since those set modal.isPopover.
-        if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && isModalVisible && isPopoverModal) {
+        if (tooltipName === CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MILEAGE_RATE_AUTO_UPDATED && activeModalKind === 'popover') {
             return false;
         }
 
