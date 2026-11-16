@@ -20,6 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type * as ReactNative from 'react-native';
+
 import {NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -52,6 +54,7 @@ let mockInitialURL = SUPPORT_TRANSITION_URL;
 jest.mock('@components/InitialURLContextProvider', () => ({
     useInitialURLState: () => ({
         initialURL: mockInitialURL,
+        isLoadingInitialURL: false,
     }),
 }));
 
@@ -69,6 +72,11 @@ jest.mock('@userActions/Session', () => ({
     signInWithSupportAuthToken: jest.fn(),
     signOutAndRedirectToSignIn: jest.fn(),
 }));
+
+jest.mock('@pages/ErrorPage/NotFoundPage', () => {
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    return () => <Text>NotFoundPage</Text>;
+});
 
 jest.mock('@components/Modal/ReanimatedModal', () => {
     const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
@@ -211,6 +219,23 @@ describe('LogOutPreviousUserPage', () => {
         // Then the transition route is on top when the previous account is signed out, so the public transition page can redeem the token from its params
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
+    });
+
+    it('shows the not-found page for a transition link that is not the launch URL', async () => {
+        // Given an account signed in to NewDot that was launched from a transition link for a different account
+        mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+        });
+
+        // When a transition link with another token is tapped inside the app
+        renderPage({shortLivedAuthToken: 'tappedtoken', email: 'tapped@test.com', exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page does not offer a switch based on the launch URL and shows the not-found page
+        expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
+        expect(screen.getByText('NotFoundPage')).toBeOnTheScreen();
+        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
     it('closes the switch prompt when the transition page unmounts', async () => {

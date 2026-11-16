@@ -49,8 +49,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {showConfirmModal, closeModalByID} = useConfirmModal();
     const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
+    // Linking.getInitialURL() only ever resolves the URL that launched the app, so only process this route when that URL carries its token.
+    // HybridApp doesn't update its launch URL for later links, so we skip this check there.
+    const isInitialURLForRoute = !!initialURL && (CONFIG.IS_HYBRID_APP || (!!shortLivedAuthToken && initialURL.includes(shortLivedAuthToken)));
+
     useEffect(() => {
-        if (!initialURL) {
+        if (!initialURL || !isInitialURLForRoute) {
             return;
         }
 
@@ -210,6 +214,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             return;
         }
 
+        if (!isInitialURLForRoute) {
+            return;
+        }
+
         const sessionEmail = session?.email;
         const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
@@ -230,10 +238,9 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading, hasCancelledSwitch]);
 
-    // Linking.getInitialURL() only ever resolves the URL that launched the app.
-    // If it's still unset once it has settled, this mount came from tapping a link inside the app (e.g. a link in a message), which this page can't process.
+    // Once the launch URL has settled without this route's link, this mount came from tapping a link inside the app (e.g. a link in a message), which this page can't process.
     // Show a not-found page instead of hanging here.
-    if (!isLoadingInitialURL && !initialURL) {
+    if (!isLoadingInitialURL && !isInitialURLForRoute) {
         return <NotFoundPage />;
     }
 
