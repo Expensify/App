@@ -17,7 +17,7 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -52,7 +52,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
+    const isDEW = hasDynamicExternalWorkflow(policy);
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(isDEW ? APPROVER_TYPE.BYPASS_APPROVER : APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -90,14 +91,15 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.dismissToPreviousRHP();
     };
 
-    const data: Array<ListItem<ApproverType>> = [
-        {
+    const data: Array<ListItem<ApproverType>> = [];
+    if (!isDEW) {
+        data.push({
             text: translate('iou.changeApprover.actions.addApprover'),
             keyForList: APPROVER_TYPE.ADD_APPROVER,
             alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
             isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-        },
-    ];
+        });
+    }
     if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.bypassApprovers'),
@@ -106,7 +108,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
         });
     }
-    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy) && !isDEW) {
         data.push({
             text: translate('iou.changeApprover.actions.reassignApprover'),
             keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
@@ -121,7 +123,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         !isPolicyAdmin(policy) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
-        isMoneyRequestReportPendingDeletion(report);
+        isMoneyRequestReportPendingDeletion(report) ||
+        approverTypes.length === 0;
 
     const confirmButtonOptions = {
         showButton: true,
