@@ -940,7 +940,8 @@ function buildAddMembersToWorkspaceOnyxData(
     const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs, newPersonalDetailAccountIDs);
 
     // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
-    const membersChats = canRoleCreateExpenses(effectiveRole)
+    const canCreateExpenses = canRoleCreateExpenses(effectiveRole);
+    const membersChats = canCreateExpenses
         ? createPolicyExpenseChats({
               policyID,
               invitedEmailsToAccountIDs,
@@ -963,10 +964,13 @@ function buildAddMembersToWorkspaceOnyxData(
             ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
         };
         successMembersState[email] = {pendingAction: null};
-        failureMembersState[email] = {
-            pendingAction: null,
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
-        };
+        // Roles that cannot create expenses show a dedicated modal on refusal, so remove the optimistic row on failure.
+        failureMembersState[email] = canCreateExpenses
+            ? {
+                  pendingAction: null,
+                  errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
+              }
+            : null;
     }
 
     const optimisticData: Array<
@@ -1051,6 +1055,7 @@ function buildAddMembersToWorkspaceOnyxData(
         },
     ];
     failureData.push(
+        ...(!canCreateExpenses ? (newPersonalDetailsOnyxData.finallyData ?? []) : []),
         ...membersChats.onyxFailureData,
         ...announceRoomChat.onyxFailureData,
         ...(announceRoomMembers.failureData ?? []),

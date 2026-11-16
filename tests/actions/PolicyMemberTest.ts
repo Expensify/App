@@ -1079,6 +1079,45 @@ describe('actions/PolicyMember', () => {
                 expect(findOptimisticCreatedAction(optimisticData)?.avatar).toBe(avatar);
             });
         });
+
+        it('removes optimistic member and personal details in failureData when inviting with approve-only role', () => {
+            // Given a corporate policy and a brand-new user being invited with the approve-only role
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
+            const newEmail = 'approveonly-new@example.com';
+            const optimisticAccountID = 9876;
+            const newPersonalDetailsOnyxData = getPersonalDetailsOnyxDataForOptimisticUsers([newEmail], [optimisticAccountID], TestHelper.formatPhoneNumber);
+
+            // When building the Onyx updates for adding the approve-only member
+            const {failureData} = Member.buildAddMembersToWorkspaceOnyxData(
+                {[newEmail]: optimisticAccountID},
+                newPersonalDetailsOnyxData,
+                policy,
+                [],
+                CONST.POLICY.ROLE.APPROVE_ONLY,
+                currentUser,
+                undefined,
+            );
+
+            // Then failureData clears the optimistic member row and optimistic personal details because the blocked-role modal handles the refusal
+            expect(failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                        value: {
+                            employeeList: {
+                                [newEmail]: null,
+                            },
+                        },
+                    }),
+                    expect.objectContaining({
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [optimisticAccountID]: null,
+                        },
+                    }),
+                ]),
+            );
+        });
     });
 
     describe('removeMembers', () => {
