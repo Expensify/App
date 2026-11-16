@@ -4303,7 +4303,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNPermissions (5.4.0):
+  - RNPermissions (5.6.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -5537,7 +5537,7 @@ SPEC CHECKSUMS:
   RNLocalize: 84929fccb683a26d82ecb0009e6b809beac68328
   rnmapbox-maps: 17be3b1751d07dc487a3a576696e25c7dc49ff22
   RNNitroSQLite: 91142352bd5e6742427066a51a6fbaa8fb598b4d
-  RNPermissions: 519b33720ef8eb5bd3dbd3a30c7ba0ef081566c6
+  RNPermissions: 77054fce4c26412ef446b7a404d50874cfb8e0ab
   RNReactNativeHapticFeedback: 7aa9439efe741132bdaec9309572e7974a34632c
   RNReanimated: 2842718b677e9535537cd8ef2acc5b6b3d332c5d
   RNScreens: a4e05326b5a6084e87bedb6734c6daacc84da966

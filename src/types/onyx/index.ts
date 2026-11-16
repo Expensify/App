@@ -50,7 +50,6 @@ import type {
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
-import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -221,6 +220,7 @@ import type Response from './Response';
 import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
+import type RuleMatchingTransaction from './RuleMatchingTransaction';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
@@ -573,7 +573,7 @@ export type {
     DomainSecurityGroup,
     ChronosTimeTracking,
     CloudflareSession,
-    CodingRuleMatchingTransaction,
+    RuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
