@@ -126,7 +126,7 @@ function ProfilePage() {
         onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
-        sentryLabel?: SentryLabel;
+        sentryLabel: SentryLabel;
 
         /** Replaces the default name and value line, for a value that is not plain text */
         content?: ReactNode;
