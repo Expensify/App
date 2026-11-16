@@ -16,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useRef} from 'react';
 
@@ -26,13 +25,12 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
 function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const isPolicyLoading = isLoadingOnyxValue(policyResult);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (isUnmounted.current || isPolicyLoading) {
+        if (isUnmounted.current) {
             return;
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
@@ -49,8 +47,8 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
             }
             navigateAfterJoinRequest();
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
-    }, [isPolicyLoading]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this once on mount
+    }, []);
 
     useEffect(
         () => () => {
