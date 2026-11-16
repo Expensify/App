@@ -105,7 +105,7 @@ describe('registration', () => {
         await jest.runAllTimersAsync();
 
         // Then the three tools are registered, in order
-        expect(jest.mocked(registerTool).mock.calls.map(([tool]) => tool.name)).toEqual(['get_state', 'sign_in', 'complete_onboarding']);
+        expect(jest.mocked(registerTool).mock.calls.map(([tool]) => tool.name)).toEqual(['get_state', 'sign_in', 'complete_onboarding', 'create_workspace', 'invite_members']);
     });
 });
 
