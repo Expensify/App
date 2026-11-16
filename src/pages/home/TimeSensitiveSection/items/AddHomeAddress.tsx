@@ -15,6 +15,8 @@ function AddHomeAddress() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_HOME_ADDRESS}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_HOME_ADDRESS}
             icon={icons.Home}
             title={translate('homePage.timeSensitiveSection.addHomeAddress.title')}
             subtitle={translate('homePage.timeSensitiveSection.addHomeAddress.subtitle')}

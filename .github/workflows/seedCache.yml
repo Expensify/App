@@ -11,8 +11,15 @@ concurrency:
 
 jobs:
   seedStandalone:
-    name: Seed standalone node_modules
+    name: Seed standalone node_modules (${{ matrix.workspaces }})
     runs-on: blacksmith-2vcpu-ubuntu-2404
+    strategy:
+      matrix:
+        workspaces:
+          - '[]'
+          - '["web/cloudflare-worker"]'
+          - '["server/victory-chart-renderer"]'
+          - '["server/victory-chart-renderer", "web/cloudflare-worker"]'
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -21,6 +28,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           SEED_STICKY_DISKS: 'true'
+          WORKSPACES: ${{ matrix.workspaces }}
 
   seedHybrid:
     name: Seed hybrid node_modules

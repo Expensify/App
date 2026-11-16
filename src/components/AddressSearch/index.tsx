@@ -21,7 +21,6 @@ import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlace
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -284,7 +283,7 @@ function AddressSearch({
 
         if (inputID) {
             for (const [key, inputValue] of Object.entries(values)) {
-                const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
+                const inputKey = renamedInputKeys?.[key] ?? key;
                 if (!inputKey) {
                     continue;
                 }

@@ -21,6 +21,7 @@ function AmountSignFlipButton({isDisabled = false, onPress, style, testID, shoul
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.AMOUNT_ACTION_BUTTONS.SIGN_FLIP_BUTTON}
             accessibilityLabel={label}
             contentContainerStyle={styles.justifyContentCenter}
             isDisabled={isDisabled}

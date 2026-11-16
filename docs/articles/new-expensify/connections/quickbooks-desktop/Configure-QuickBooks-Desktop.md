@@ -115,6 +115,7 @@ These options manage syncing behavior, automation preferences, and additional ac
 
    * **Bill payment account**: Select the account for bill payments (defaults to the first option)
    * **Invoice collections account**: Select the account for invoice collections (defaults to the first option)
+   * **Currency conversion fee account**: Select the account for currency conversion (FX) fees. This setting appears only when **When to Export** is set to **Cash**, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, Expensify adds the conversion cost as an extra line on the reimbursable export, coded to the selected account. Select this account to export the conversion cost.
 
 ---
 
@@ -171,5 +172,4 @@ You can export to an employee record when exporting reports as **Journal Entries
 By default, we'll look for a vendor record with an email address matching the report submitter. If we don't find one, we'll look for an employee record. Employees must have a **Main Email** in QuickBooks Desktop that matches the email associated with their Expensify account. 
 
 If there is no vendor or employee record and **Auto-create entities** is enabled, we'll create a new vendor record for the submitter.
-
 

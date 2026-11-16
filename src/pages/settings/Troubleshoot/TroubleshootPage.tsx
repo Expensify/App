@@ -18,13 +18,14 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import {getErrorMessage} from '@libs/ErrorUtils';
@@ -59,6 +60,7 @@ type BaseMenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void | Promise<void>;
+    disabled?: boolean;
 };
 
 function TroubleshootPage() {
@@ -77,6 +79,8 @@ function TroubleshootPage() {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {isOffline} = useNetwork();
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic();
     const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
@@ -149,10 +153,11 @@ function TroubleshootPage() {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
+                      // If the exit survey was completed recently, Classic opens only after the server saves the switch, which can't happen offline
+                      disabled: isSwitchingToClassic || (isOffline && surveyCompletedWithinLastMonth),
                       action() {
                           if (surveyCompletedWithinLastMonth) {
-                              switchToOldDot('');
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              switchToClassic('');
                               return;
                           }
 
@@ -195,6 +200,7 @@ function TroubleshootPage() {
                 onPress: item.action,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 sentryLabel: item.sentryLabel,
+                disabled: item.disabled,
             }))
             .reverse();
     };

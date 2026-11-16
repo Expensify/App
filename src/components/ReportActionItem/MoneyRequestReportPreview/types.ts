@@ -95,9 +95,6 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Called with the transactions in the order the carousel renders them */
         onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
 
-        /** Cancels anything a carousel press staged, so opening the report cannot be overtaken by it */
-        onCancelPendingPress?: () => void;
-
         /** Callback called when the whole preview is pressed */
         onPress: () => void;
 

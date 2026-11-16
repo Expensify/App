@@ -7,11 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
-type SearchFiltersBarButtonProps = WithSentryLabel & {
+type SearchFiltersBarButtonProps = WithRequiredSentryLabel & {
     icon: IconAsset;
     text: string;
     onPress: () => void;

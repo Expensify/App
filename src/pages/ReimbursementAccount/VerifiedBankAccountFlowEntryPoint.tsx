@@ -72,9 +72,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 
-    /** Set step for USD flow */
-    setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
-
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
@@ -94,7 +91,6 @@ function VerifiedBankAccountFlowEntryPoint({
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
-    setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     isComingFromExpensifyCard,
     isChangingBankAccount,
@@ -231,7 +227,6 @@ function VerifiedBankAccountFlowEntryPoint({
     useResetBankAccountModal({
         reimbursementAccount,
         isNonUSDWorkspace,
-        setUSDBankAccountStep,
         setShouldShowContinueSetupButton,
         navigateAfterReset,
         backTo,
@@ -288,6 +283,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONTINUE_WITH_SETUP}
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
@@ -295,6 +291,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 {shouldShowChangeBankAccount && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CHANGE_BANK_ACCOUNT}
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
@@ -302,6 +299,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_START_OVER}
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
@@ -312,6 +310,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_WITH_PLAID}
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
                                         isDisabled={!!isPlaidDisabled}
@@ -319,6 +318,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_MANUALLY}
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
