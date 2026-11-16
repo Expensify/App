@@ -1,5 +1,6 @@
 import useSingleExecution from '@hooks/useSingleExecution';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import mergeRefs from '@libs/mergeRefs';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -86,13 +87,6 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
     return (
         // ref is accessed for MenuItem's ref initialization
         menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, ...menuItemProps}) => {
-            // MenuItem's label is still optional, so the handlers are passed on with or without one.
-            const pressProps = {
-                sentryLabel,
-                onPress: shouldUseSingleExecution ? singleExecution(onPress) : onPress,
-                onSecondaryInteraction:
-                    onSecondaryInteraction ?? (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined),
-            };
             return (
                 <OfflineWithFeedback
                     key={key ?? menuItemProps.title}
@@ -111,7 +105,12 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                         iconWidth={iconWidth}
                         iconHeight={iconHeight}
                         {...menuItemProps}
-                        {...pressProps}
+                        sentryLabel={castToSentryLabel(sentryLabel)}
+                        onPress={shouldUseSingleExecution ? singleExecution(onPress) : onPress}
+                        onSecondaryInteraction={
+                            onSecondaryInteraction ??
+                            (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined)
+                        }
                         disabled={!!menuItemProps.disabled || isExecuting}
                         shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
                         isFocused={isFocused}

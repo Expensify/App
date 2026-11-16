@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isSafari} from '@libs/Browser';
+import castToSentryLabel from '@libs/castToSentryLabel';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 
@@ -603,17 +604,6 @@ function BasePopoverMenu({
             onSecondaryInteraction,
             ...menuItemProps
         } = item;
-        // PopoverMenuItem requires a label unless the row has interactive: false, so a row without one isn't pressed.
-        // Destructuring sentryLabel and the press handlers out of the item drops the type that ties them together, so the
-        // label is checked here for TypeScript to accept the handlers with it.
-        // The item's own onPress still wins over selecting the item, as it did when the spread came after it.
-        const pressProps = sentryLabel
-            ? {
-                  sentryLabel,
-                  onPress: onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event)),
-                  onSecondaryInteraction,
-              }
-            : {};
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
 
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
@@ -663,7 +653,10 @@ function BasePopoverMenu({
                         role={CONST.ROLE.BUTTON}
                         // Spread other props dynamically
                         {...menuItemProps}
-                        {...pressProps}
+                        // The item's own onPress wins over selecting the item.
+                        sentryLabel={castToSentryLabel(sentryLabel)}
+                        onPress={onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event))}
+                        onSecondaryInteraction={onSecondaryInteraction}
                         shouldShowRadioButton={isRadioButtonMode}
                         hasSubMenuItems={!!subMenuItems?.length}
                         shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
