@@ -370,8 +370,23 @@ describe('getDynamicFieldErrors', () => {
         // When the form is validated
         const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
 
-        // Then nothing is flagged, since the picker only lists US states and Canadian provinces
+        // Then nothing is flagged, since the picker lists no UK states
         expect(errors).toEqual({});
+    });
+
+    it('asks again for a state the picker of the country does not list', () => {
+        // Given a required Australian address whose state holds the full name an older draft saved, which the picker cannot show
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const values = {homeAddress: '1 George Street', [addressKeys.city]: 'Sydney', [addressKeys.zipCode]: '2000', [addressKeys.country]: CONST.COUNTRY.AU};
+
+        // When the form is validated with that full name and with the state code the picker lists
+        const fullNameErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.state]: 'New South Wales'}, translateLocal);
+        const codeErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.state]: 'NSW'}, translateLocal);
+
+        // Then the full name is flagged as missing, so the user picks a state instead of submitting a name the server rejects
+        expect(fullNameErrors).toEqual({[addressKeys.state]: translateLocal('common.error.fieldRequired')});
+        expect(codeErrors).toEqual({});
     });
 
     it('accepts US and international phone numbers and rejects incomplete ones', () => {
