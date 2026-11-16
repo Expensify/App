@@ -147,6 +147,12 @@ function CreateDistanceRatePage({
         formRef.current?.resetForm({});
     };
 
+    // Errors from submitting one kind's form don't apply to the other kind
+    const selectKind = (selectedKind: DistanceRateKind) => {
+        setPickedKind(selectedKind);
+        formRef.current?.resetErrors();
+    };
+
     const navigateToWorkspaceOverview = () => {
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
@@ -323,7 +329,7 @@ function CreateDistanceRatePage({
                                             <TabSelectorBase
                                                 tabs={kindTabs}
                                                 activeTabKey={kind}
-                                                onTabPress={setPickedKind}
+                                                onTabPress={selectKind}
                                                 contentContainerStyles={[styles.ph0, styles.pb0]}
                                                 equalWidth
                                             />
