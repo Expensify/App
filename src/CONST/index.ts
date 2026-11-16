@@ -1146,6 +1146,8 @@ const CONST = {
         SOURCE_OF_WEALTH_LIST_KEY: 'sourceOfWealthList',
         /** The daily operations page's answer key: the picked sources that fund the business's daily operations, saved as each entry's `isSourceOfFund` */
         SOURCE_OF_FUNDS_KEY: 'sourceOfFunds',
+        /** Drafted as true while a newly picked source waits for the daily operations page, since the new source can fund daily operations too */
+        SOURCE_OF_FUNDS_REVIEW_KEY: 'shouldReviewSourceOfFunds',
         /** Wise's businessSourceOfWealthInfo values, in Wise's order */
         SOURCE_OF_WEALTH: {
             REVENUE: 'REVENUE',

@@ -45,9 +45,9 @@ import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
 import React, {useEffect, useEffectEvent, useState} from 'react';
 
-import {getKeptSourceOfFunds} from './forms/requirements/sourceOfFunds';
+import {getKeptSourceOfFunds, SOURCE_OF_FUNDS_PAGE_KEY} from './forms/requirements/sourceOfFunds';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
-import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep} from './getWiseOnboardingForm';
+import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey} from './getWiseOnboardingForm';
 import {getStringList} from './kycRequirementAttributes';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
@@ -231,17 +231,22 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             stepPage = {...stepPage, content: getVisibleContent(page.content, {...draftValues, ...answers}, getAllFields(getPages(form)))};
         } else if (step === CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO) {
             if (CONST.WISE.SOURCE_OF_FUNDS_KEY in answers) {
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY]: false});
                 stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]: draftValues[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]};
             } else {
                 // Editing from the confirmation page skips the daily operations page, so the sources page sends the kept answers, and a new source does not fund them until that page says so
                 const pickedSources = getStringList(answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY]);
                 const sourceOfFunds = getKeptSourceOfFunds(pickedSources, draftValues[CONST.WISE.SOURCE_OF_FUNDS_KEY]);
-                // A lone source's answer was filled in, not picked, so a second source leaves the daily operations page for the user to answer. The saved sources
-                // tell how many there were, since the sources input drafts each pick as it is made.
+                // A newly picked source can fund daily operations too, so the confirmation page asks the daily operations page again. A lone source's answer was filled in,
+                // not picked, so a second source leaves that page empty. The saved sources tell which were picked before, since the sources input drafts each pick as it is made.
                 const savedSourcesPage = isBusinessAccountForThisBank ? businessAccount?.data?.wise?.pages?.[CONST.WISE.KYC_REQUIREMENT.BUSINESS_SOURCE_OF_WEALTH_INFO] : undefined;
-                const savedSourceCount = getSourceOfWealthEntries(savedSourcesPage?.[CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]).length;
-                const isFirstChoiceOfFunds = savedSourceCount <= 1 && pickedSources.length > 1;
-                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {[CONST.WISE.SOURCE_OF_FUNDS_KEY]: isFirstChoiceOfFunds ? [] : sourceOfFunds});
+                const savedSources = getSourceOfWealthEntries(savedSourcesPage?.[CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY]).map((entry) => entry.businessSourceOfWealthInfo);
+                const isFirstChoiceOfFunds = savedSources.length <= 1 && pickedSources.length > 1;
+                const hasNewSource = pickedSources.length > 1 && pickedSources.some((source) => !savedSources.includes(source));
+                saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {
+                    [CONST.WISE.SOURCE_OF_FUNDS_KEY]: isFirstChoiceOfFunds ? [] : sourceOfFunds,
+                    [CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY]: hasNewSource,
+                });
                 stepAnswers = {...answers, [CONST.WISE.SOURCE_OF_FUNDS_KEY]: sourceOfFunds};
             }
         }
@@ -249,9 +254,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     };
     const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
 
-    // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page
+    // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page.
+    // A newly picked source takes the user to the daily operations page, with the answers kept so far.
+    const sourceOfFundsReviewPageKey = draftValues[CONST.WISE.SOURCE_OF_FUNDS_REVIEW_KEY] === true ? getRoutePageKey(form, SOURCE_OF_FUNDS_PAGE_KEY) : undefined;
     const unansweredRequirementPageKey =
-        isPrefillDone && route.params.subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY ? getFirstUnansweredRequirementPageKey(form, draftValues) : undefined;
+        isPrefillDone && route.params.subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY
+            ? (sourceOfFundsReviewPageKey ?? getFirstUnansweredRequirementPageKey(form, draftValues))
+            : undefined;
     useEffect(() => {
         if (!unansweredRequirementPageKey) {
             return;

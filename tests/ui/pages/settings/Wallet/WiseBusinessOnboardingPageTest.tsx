@@ -974,8 +974,60 @@ describe('WiseBusinessOnboardingPage', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the user's own answer stays, so the confirmation page does not ask it again
-        expect((await readDraft())?.sourceOfFunds).toEqual([CONST.WISE.SOURCE_OF_WEALTH.REVENUE]);
+        // Then the user's own answer stays to be shown on the daily operations page, and that page is marked to be asked again, since donations can fund daily operations too
+        const draftAfterSave = await readDraft();
+        expect(draftAfterSave?.sourceOfFunds).toEqual([CONST.WISE.SOURCE_OF_WEALTH.REVENUE]);
+        expect(draftAfterSave?.shouldReviewSourceOfFunds).toBe(true);
+    });
+
+    it('does not ask the daily operations page again when no source is added', async () => {
+        // Given revenue, grants and donations saved, with revenue funding daily operations
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+        });
+        await renderPage({
+            reimbursementAccount: {
+                achData: {
+                    ...REIMBURSEMENT_ACCOUNT.achData,
+                    wise: {
+                        kycRequirements: ENHANCED_DUE_DILIGENCE,
+                        pages: getSavedSourcesPages([CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS]),
+                    },
+                },
+            },
+            subPage: 'business',
+        });
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        const sourcesPage: DynamicFormPage = {key: 'business-source-of-wealth-info', content: []};
+
+        // When the user removes donations from the confirmation page
+        act(() => flowProps?.onPageSubmit?.(sourcesPage, {businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS]}, {}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the daily operations page is not asked again, since its answer still covers every picked source
+        expect((await readDraft())?.shouldReviewSourceOfFunds).toBe(false);
+    });
+
+    it('takes the user from the confirmation page to the daily operations page after a source is added', async () => {
+        // Given three picked sources with revenue funding daily operations, and donations just added from the confirmation page
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            businessSourceOfWealthInfo: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE, CONST.WISE.SOURCE_OF_WEALTH.GRANTS, CONST.WISE.SOURCE_OF_WEALTH.DONATIONS],
+            sourceOfFunds: [CONST.WISE.SOURCE_OF_WEALTH.REVENUE],
+            shouldReviewSourceOfFunds: true,
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens
+        await renderPage({
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the user is sent to the daily operations page, so they can say whether donations fund daily operations too
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-funds'), {forceReplace: true});
     });
 
     it('takes the user from the confirmation page to the daily operations page when its answer is empty', async () => {
@@ -1016,5 +1068,9 @@ describe('WiseBusinessOnboardingPage', () => {
             {...answers, businessSourceOfWealthInfo: pickedSources},
             {},
         );
+
+        // And the page is no longer marked to be asked again, since the user just answered it
+        await waitForBatchedUpdatesWithAct();
+        expect((await readDraft())?.shouldReviewSourceOfFunds).toBe(false);
     });
 });

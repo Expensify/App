@@ -40,6 +40,12 @@ function getOnboardingStep(form: WiseOnboardingForm, routePageKey: string): stri
     return STEP_BY_PAGE_KEY[pageKey] ?? pageKey;
 }
 
+/** The URL-safe key of a page the schema names by its own key */
+function getRoutePageKey(form: WiseOnboardingForm, pageKey: string): string | undefined {
+    const pageIndex = form.pages.findIndex((page) => page.key === pageKey);
+    return pageIndex === -1 ? undefined : getPages(form).at(pageIndex)?.key;
+}
+
 function hasAnswer(answer: DynamicFormValues[string]): boolean {
     return !!answer && !(Array.isArray(answer) && answer.length === 0);
 }
@@ -58,4 +64,4 @@ function getFirstUnansweredRequirementPageKey(form: WiseOnboardingForm, answers:
 }
 
 export default getWiseOnboardingForm;
-export {getFirstUnansweredRequirementPageKey, getOnboardingStep};
+export {getFirstUnansweredRequirementPageKey, getOnboardingStep, getRoutePageKey};
