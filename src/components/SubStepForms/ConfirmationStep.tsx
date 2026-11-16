@@ -175,7 +175,7 @@ function ConfirmationStep({
     shouldApplySafeAreaPaddingBottom = true,
     shouldMarkTitleAsHeading = false,
     shouldAnnounceSubmitState = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
     children,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
@@ -229,6 +229,7 @@ function ConfirmationStep({
                     fsClass={forwardedFSClass}
                 >
                     <MenuItemAvatarNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                         testID={row.id}
                         title={row.title}
                         description={row.description}

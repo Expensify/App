@@ -21,6 +21,13 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+const DIMENSION_ROW_SENTRY_LABELS = {
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION1]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_1,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION2]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_2,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION3]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_3,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION4]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_4,
+};
+
 function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -57,6 +64,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAGS_MAPPED_TO}
                             name={translate('workspace.certinia.import.tagsMappedTo')}
                             onPress={() => {
                                 if (!policyID) {
@@ -109,6 +117,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([dimension], config?.pendingFields)}
                         >
                             <MenuItemField
+                                sentryLabel={DIMENSION_ROW_SENTRY_LABELS[dimension]}
                                 name={getDimensionLabel(dimension, translate)}
                                 onPress={() => {
                                     if (!policyID) {

@@ -63,6 +63,7 @@ function TravelMenuItem() {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}
             itemId={ITEM_ID}
             isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}

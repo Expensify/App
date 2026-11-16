@@ -18,6 +18,8 @@ type TabIconLayout = {
     iconBoxSize: number;
     /** Whether the label is drawn under the glyph or beside it, as UIKit lays out a tab in landscape. */
     direction: 'stacked' | 'inline';
+    /** Transparent space after the label of an inline icon. */
+    trailingInset?: number;
 };
 
 type TabIconLabel = {
@@ -130,7 +132,7 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
     if (layout.direction === 'inline') {
         const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
         return {
-            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth : 0)),
+            canvasWidth: Math.ceil(boxSize + (hasLabel ? labelGap + labelWidth + (layout.trailingInset ?? 0) * scale : 0)),
             canvasHeight,
             contentLeft: (boxSize - contentSize) / 2,
             contentTop: (canvasHeight - contentSize) / 2,

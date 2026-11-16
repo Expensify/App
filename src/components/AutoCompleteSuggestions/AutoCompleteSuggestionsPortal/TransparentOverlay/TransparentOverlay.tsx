@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {ComponentRef} from 'react';
@@ -15,7 +16,7 @@ import type {PointerEvent, StyleProp, ViewStyle} from 'react-native';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
-type TransparentOverlayProps = {
+type TransparentOverlayProps = WithRequiredSentryLabel & {
     onPress: () => void;
 
     /** Additional styles for the overlay */
@@ -24,7 +25,7 @@ type TransparentOverlayProps = {
 
 type OnPressHandler = PressableProps['onPress'];
 
-function TransparentOverlay({onPress: onPressProp, style}: TransparentOverlayProps) {
+function TransparentOverlay({onPress: onPressProp, style, sentryLabel}: TransparentOverlayProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const dropZone = useRef<HTMLDivElement | ComponentRef<typeof View>>(null);
@@ -62,6 +63,7 @@ function TransparentOverlay({onPress: onPressProp, style}: TransparentOverlayPro
             ref={viewRef(dropZone)}
         >
             <PressableWithoutFeedback
+                sentryLabel={sentryLabel}
                 onPress={onPress}
                 style={[styles.flex1, styles.cursorDefault, overlay]}
                 accessibilityLabel={translate('common.close')}

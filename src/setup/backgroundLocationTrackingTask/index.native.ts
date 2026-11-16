@@ -1,5 +1,6 @@
 import {addGpsPoints, setStartWaypointAddress} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, coordinatesToString, getGpsPoints, getTotalGpsTripPointsInLastSegment} from '@libs/GPSDraftDetailsUtils';
+import isIgnorableLocationTaskError from '@libs/isIgnorableLocationTaskError';
 
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 
@@ -35,6 +36,10 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     const {data, error} = body;
 
     if (error) {
+        if (isIgnorableLocationTaskError(error)) {
+            return;
+        }
+
         console.error('[GPS distance request] Long-running task error: ', {error, data});
         return;
     }

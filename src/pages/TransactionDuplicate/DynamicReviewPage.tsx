@@ -311,6 +311,7 @@ function DynamicReviewPage() {
                     </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_ALL_BUTTON}
                             variant={hasSettledOrApprovedTransaction ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={keepAll}
@@ -319,6 +320,7 @@ function DynamicReviewPage() {
                         </Button>
                         {!hasSettledOrApprovedTransaction && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_SELECTED_BUTTON}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={keepSelected}

@@ -3075,6 +3075,22 @@ describe('actions/Report', () => {
             expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
         });
 
+        it('keeps the names of users the parked edit mentions by login', async () => {
+            // Given a comment whose attachment is still uploading, and the names of every known user
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            await seedUploadingComment();
+            const accountIDToName = {'1001': 'alice@expensify.com', '1002': 'bob@expensify.com'};
+
+            // When an edit that mentions Alice as @login, the only form a draft has, is parked on the upload
+            const editMentioningAlice = `hello @alice@expensify.com\n\n[file.csv](${localSource})`;
+            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1, undefined, undefined, accountIDToName);
+            await waitForBatchedUpdates();
+
+            // Then only Alice's name is saved with it, so the replay can read her accountID mention in the synced copy back as @login
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.accountIDToName).toEqual({'1001': 'alice@expensify.com'});
+        });
+
         it('leaves a failed upload showing as failed when it drops the parked edit', async () => {
             // Given a comment whose attachment is still uploading, with an edit parked on it
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -4955,6 +4971,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUserAccountID: 1,
@@ -4993,6 +5010,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5057,6 +5075,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5131,6 +5150,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5231,6 +5251,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5319,6 +5340,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -6334,6 +6356,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6344,6 +6367,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
             });
         });
 
@@ -6372,6 +6396,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6403,6 +6428,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6452,6 +6478,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Find the transaction optimistic data
@@ -6520,6 +6547,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6572,6 +6600,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6637,6 +6666,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6705,6 +6735,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6790,6 +6821,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;

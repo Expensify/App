@@ -104,6 +104,7 @@ type TransactionItemRowProps = {
     radioButtonContainerStyle?: StyleProp<ViewStyle>;
     radioButtonWrapperStyle?: StyleProp<ViewStyle>;
     shouldShowErrors?: boolean;
+    shouldShowCategoryOnNarrowLayout?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     shouldDisableActionPointerEvents?: boolean;
@@ -130,7 +131,8 @@ type TransactionItemRowProps = {
     onEditDate?: (newDate: string) => InlineEditSaveResult;
     onEditMerchant?: (newMerchant: string) => InlineEditSaveResult;
     onEditDescription?: (newDescription: string) => InlineEditSaveResult;
-    onEditCategory?: (newCategory: string) => InlineEditSaveResult;
+    /** The optional categories include a category just created, before Onyx subscribers have rendered it. */
+    onEditCategory?: (newCategory: string, updatedPolicyCategories?: PolicyCategories) => InlineEditSaveResult;
     onEditAmount?: (newAmount: number) => InlineEditSaveResult;
     onEditTag?: (newTag: string) => InlineEditSaveResult;
 

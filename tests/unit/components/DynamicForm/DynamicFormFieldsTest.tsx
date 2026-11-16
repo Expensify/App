@@ -382,10 +382,12 @@ describe('DynamicFormFields', () => {
         // When the fields render
         const rendered = renderFields([readonlyCountry], {nationality: 'GB'});
 
-        // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal
+        // Then no input is drawn, and the row shows the translated country, masked in session recordings since a prefilled answer is still personal,
+        // while the field name stays readable
         expect(rendered.size).toBe(0);
         expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
-        expect(isMasked(screen.UNSAFE_getByType(MenuItemField))).toBe(true);
+        expect(isMasked(screen.getByText('allCountries.GB'))).toBe(true);
+        expect(isMasked(screen.UNSAFE_getByType(MenuItemField))).toBe(false);
     });
 
     it('draws a heading with its description above the fields that follow it', () => {
@@ -468,6 +470,18 @@ describe('DynamicFormFields', () => {
 
         // Then the push row allows several choices, and the answer is a list of option keys
         expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
+    });
+
+    it('keeps the label above an input readable in session recordings while masking the input', () => {
+        // Given a file field, which names the field above its upload button
+        const proofOfFunds: DynamicFormField = {key: 'proofOfFunds', label: 'Source of funds document', type: 'file', required: true};
+
+        // When it renders
+        renderFields([proofOfFunds]);
+
+        // Then reviewers can still see which field it is, while the upload itself stays masked
+        expect(isMasked(screen.getByText('Source of funds document'))).toBe(false);
+        expect(isMasked(screen.UNSAFE_getByProps({inputID: 'proofOfFunds'}))).toBe(true);
     });
 
     it('takes one file unless the schema allows more, and names the field above the upload button', () => {
@@ -887,8 +901,20 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'GB'});
 
-        // Then there is no state input, since the picker only lists US states and Canadian provinces
+        // Then there is no state input, since the picker only lists states for the US, Canada, Australia and Brazil
         expect(rendered.has(addressKeys.state)).toBe(false);
+    });
+
+    it('lists Australian states for an address in Australia', () => {
+        // Given an address whose draft holds a country the state picker has its own list for
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress], {[addressKeys.country]: 'AU'});
+
+        // Then the state is asked from the Australian list, not from US states
+        expect(rendered.get(addressKeys.state)?.optionsList).toHaveProperty('NSW');
     });
 
     it('lists Canadian provinces for an address restored with Canada as its country', () => {

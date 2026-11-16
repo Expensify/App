@@ -9,8 +9,8 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNextStep from '@hooks/useNextStep';
 import useOnyx from '@hooks/useOnyx';
-import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReportStatusPage} from '@libs/actions/Report';
@@ -53,7 +53,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const nextStep = useOptimisticNextStep(report.reportID);
+    const nextStep = useNextStep(report.reportID);
     const {isOffline} = useNetwork({onReconnect: () => openReportStatusPage(report.reportID)});
 
     useEffect(() => {

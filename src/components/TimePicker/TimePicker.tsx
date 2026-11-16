@@ -709,6 +709,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const renderedAmPmButtons = (
         <View style={isInLandscapeMode ? [styles.flexRow, styles.justifyContentCenter, styles.gap2] : styles.timePickerSwitcherContainer}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.AM}
                 enableHapticFeedback
                 innerStyles={styleForAM}
                 style={isInLandscapeMode && styles.minWidth18}
@@ -724,6 +725,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 <Button.Text>{translate('common.am')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.PM}
                 enableHapticFeedback
                 innerStyles={[styleForPM, !isInLandscapeMode && styles.ml1]}
                 style={isInLandscapeMode && styles.minWidth18}
@@ -857,6 +859,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
 
     const renderedSaveButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.SAVE_BUTTON}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
             style={isInLandscapeMode ? [styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0] : [styles.mb5, styles.mh5]}
