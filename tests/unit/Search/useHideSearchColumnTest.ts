@@ -156,6 +156,37 @@ describe('useHideSearchColumn', () => {
         ]);
     });
 
+    it('keeps the conversion amount columns the table drops when a grouped search with no saved columns hides a column', () => {
+        // Given a search grouped by withdrawal with no saved columns, where no withdrawal has a conversion amount,
+        // so the table drops Amount debited and Amount reimbursed
+        const shownColumns: SearchColumnType[] = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        ];
+        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:withdrawal-id'), shownColumns));
+
+        // When Expenses is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
+
+        // Then the conversion amount columns are saved in their default place, so they show once a withdrawal has a conversion amount
+        // and the Columns page shows them checked, the same as saving from it
+        expect(getSavedColumns()).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+            CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        ]);
+    });
+
     it('saves no expense columns with the group columns when a grouped search has no saved columns', () => {
         // Given a grouped search with no saved columns, so its expanded groups derive their expense columns from the data
         const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));

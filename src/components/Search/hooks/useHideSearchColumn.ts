@@ -2,7 +2,7 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 type HideSearchColumn = {
     /** The shown columns users can hide from their menu. */
@@ -23,9 +23,13 @@ function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnTy
     const savedColumns = [queryJSON.columns ?? []].flat().filter((column) => selectableColumns.has(column));
     const savedTableColumns = savedColumns.filter((column) => tableLevelColumns.has(column));
     const hasSavedTableColumns = savedTableColumns.length > 0;
-    // With none of this table's columns saved, the shown ones join the saved expense columns, so those keep applying to expanded groups.
+    // A grouped table with none saved shows its default group columns minus the ones it drops, e.g. Amount debited when no group has one.
+    // Starting from the defaults keeps those, the way the Columns page does.
+    const defaultGroupColumns = groupBy ? getCustomColumnDefault(groupBy) : [];
+    const unsavedTableColumns = [...shownColumns.filter((column) => !defaultGroupColumns.includes(column)), ...defaultGroupColumns];
+    // With none of this table's columns saved, they join the saved expense columns, so those keep applying to expanded groups.
     // Expense columns are never added here: with none saved, expanded groups derive them from their data.
-    const columnsToSave = hasSavedTableColumns ? savedColumns : [...shownColumns, ...savedColumns];
+    const columnsToSave = hasSavedTableColumns ? savedColumns : [...unsavedTableColumns, ...savedColumns];
     const requiredColumns: ReadonlySet<SearchColumnType> = getRequiredSearchColumns(queryHasViolationFilter(queryJSON));
 
     const canHideAnyColumn = (hasSavedTableColumns ? savedTableColumns : shownColumns).length > 1;
