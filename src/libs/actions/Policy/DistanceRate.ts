@@ -23,7 +23,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates, shouldDeletingRatesTurnOffAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {buildOnyxDataForGovernmentRateAutoUpdate, buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -448,13 +448,10 @@ function deletePolicyDistanceRates(
     rateIDsToDelete: string[],
     transactionIDsAffected: string[],
     transactionViolations: OnyxCollection<TransactionViolation[]>,
-    policy?: OnyxEntry<Policy>,
 ) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Partial<Rate>> = {};
     const failureRates: Record<string, Partial<Rate>> = {};
-
-    const shouldTurnOffAutoUpdate = shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, rateIDsToDelete);
 
     for (const rateID of rateIDsToDelete) {
         optimisticRates[rateID] = {
@@ -473,9 +470,6 @@ function deletePolicyDistanceRates(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...(shouldTurnOffAutoUpdate
-                    ? {shouldAutoUpdateGovernmentDistanceRates: null, pendingFields: {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}
-                    : {}),
                 customUnits: {
                     [customUnit.customUnitID]: {
                         rates: optimisticRates,
@@ -485,22 +479,11 @@ function deletePolicyDistanceRates(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldTurnOffAutoUpdate
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                  value: {pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null}},
-              },
-          ]
-        : [];
-
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...(shouldTurnOffAutoUpdate ? {shouldAutoUpdateGovernmentDistanceRates: true, pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null}} : {}),
                 customUnits: {
                     [customUnit.customUnitID]: {
                         rates: failureRates,
@@ -548,7 +531,7 @@ function deletePolicyDistanceRates(
         customUnitRateID: rateIDsToDelete,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, failureData});
 }
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {

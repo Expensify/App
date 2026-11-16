@@ -500,39 +500,6 @@ function getCurrentGovernmentMileageRate(
     return currentRate;
 }
 
-/**
- * The workspace rate copied from the government rate in effect today for the country. Auto-update copies this rate back
- * while it is on, which older or future government rates don't affect.
- */
-function getCurrentGovernmentRateID(customUnit: CustomUnit | undefined, country: GovernmentRateCountry, today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING)): string | undefined {
-    let currentRateID: string | undefined;
-    let currentStartDate: string | undefined;
-    for (const [rateID, rate] of Object.entries(customUnit?.rates ?? {})) {
-        const governmentRate = rate.attributes?.governmentRate;
-        const startDate = governmentRate?.startDate;
-        if (!governmentRate?.sourceRateID || !startDate || governmentRate.sourceRateID.split('_').at(0) !== country || isFuelBandGovernmentRate(governmentRate.sourceRateID)) {
-            continue;
-        }
-        if (startDate <= today && (!currentStartDate || startDate > currentStartDate)) {
-            currentRateID = rateID;
-            currentStartDate = startDate;
-        }
-    }
-    return currentRateID;
-}
-
-/** Auto-update would add the current government rate straight back, so deleting it opts the workspace out of auto-update. */
-function shouldDeletingRatesTurnOffAutoUpdate(
-    policy: OnyxEntry<Policy>,
-    customUnit: CustomUnit | undefined,
-    rateIDsToDelete: string[],
-    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-): boolean {
-    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
-    const currentGovernmentRateID = autoUpdateCountry ? getCurrentGovernmentRateID(customUnit, autoUpdateCountry, today) : undefined;
-    return !!currentGovernmentRateID && rateIDsToDelete.includes(currentGovernmentRateID);
-}
-
 /** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
 function getNoGovernmentRateNote(translate: LocalizedTranslate, country: Country | undefined): string {
     if (!country) {
@@ -825,8 +792,6 @@ export {
     getDefaultEuroDistanceRateCountry,
     getEuroDistanceRateCountryOptions,
     getCurrentGovernmentMileageRate,
-    getCurrentGovernmentRateID,
-    shouldDeletingRatesTurnOffAutoUpdate,
     getNoGovernmentRateNote,
     getGovernmentRateAmountForUnit,
     isEuroDistanceRateCountry,

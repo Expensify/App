@@ -41,7 +41,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTaxReclaimableAmount, shouldDeletingRatesTurnOffAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
+import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
@@ -254,7 +254,7 @@ function PolicyDistanceRatesPage({
 
         const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
-        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations, policy);
+        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
         setSelectedDistanceRates([]);
     };
 
@@ -350,12 +350,7 @@ function PolicyDistanceRatesPage({
                     }
                     const {action} = await showConfirmModal({
                         title: translate('workspace.distanceRates.deleteDistanceRate'),
-                        prompt: translate(
-                            shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, selectedDistanceRates)
-                                ? 'workspace.distanceRates.areYouSureDeleteGovernmentRate'
-                                : 'workspace.distanceRates.areYouSureDelete',
-                            {count: selectedDistanceRates.length},
-                        ),
+                        prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,

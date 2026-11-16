@@ -1,7 +1,5 @@
 import {
     getCurrentGovernmentMileageRate,
-    getCurrentGovernmentRateID,
-    shouldDeletingRatesTurnOffAutoUpdate,
     getDefaultEuroDistanceRateCountry,
     getDistanceExpenseTypeForPolicy,
     getDistanceRateCountryForCurrency,
@@ -551,82 +549,6 @@ describe('PolicyDistanceRatesUtils', () => {
             // When we look up a euro country with no rate in the list
             // Then nothing is returned, so the page keeps its skeleton and Save stays disabled
             expect(getCurrentGovernmentMileageRate(rates, 'EUR', 'NL', '2026-11-11')).toBeUndefined();
-        });
-    });
-
-    describe('getCurrentGovernmentRateID', () => {
-        const getRate = (customUnitRateID: string, governmentRate?: GovernmentRateSnapshot): Rate => ({
-            customUnitRateID,
-            rate: 50,
-            currency: 'EUR',
-            enabled: true,
-            attributes: governmentRate ? {governmentRate} : undefined,
-        });
-        const customUnit: CustomUnit = {
-            customUnitID: 'distance',
-            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-            rates: {
-                germany2025: getRate('germany2025', {sourceRateID: 'DE_2025-01-01', rate: 30, startDate: '2025-01-01'}),
-                germany2026: getRate('germany2026', {sourceRateID: 'DE_2026-01-01', rate: 30, startDate: '2026-01-01'}),
-                germany2027: getRate('germany2027', {sourceRateID: 'DE_2027-01-01', rate: 32, startDate: '2027-01-01'}),
-                spain2026: getRate('spain2026', {sourceRateID: 'ES_2026-06-01', rate: 26, startDate: '2026-06-01'}),
-                custom: getRate('custom'),
-            },
-        };
-
-        it('picks the copied rate that is in effect today for the country', () => {
-            // Given past, current and future German rates, a newer Spanish rate and a custom rate
-            // When we look up the current German rate on a date in 2026
-            // Then the 2026 rate is used, not the future one or the other country's
-            expect(getCurrentGovernmentRateID(customUnit, 'DE', '2026-11-11')).toBe('germany2026');
-        });
-
-        it('returns undefined when the country has no copied rate yet', () => {
-            // Given a workspace with no Dutch government rate
-            // When we look up the current Dutch rate
-            // Then nothing is returned, so deleting a rate never turns auto-update off
-            expect(getCurrentGovernmentRateID(customUnit, 'NL', '2026-11-11')).toBeUndefined();
-        });
-    });
-
-    describe('shouldDeletingRatesTurnOffAutoUpdate', () => {
-        const governmentRate: GovernmentRateSnapshot = {sourceRateID: 'DE_2026-01-01', rate: 30, startDate: '2026-01-01'};
-        const customUnit: CustomUnit = {
-            customUnitID: 'distance',
-            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
-            rates: {
-                germany2026: {customUnitRateID: 'germany2026', rate: 30, currency: 'EUR', enabled: true, attributes: {governmentRate}},
-                custom: {customUnitRateID: 'custom', rate: 50, currency: 'EUR', enabled: true},
-            },
-        };
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            outputCurrency: CONST.CURRENCY.EUR,
-            shouldAutoUpdateGovernmentDistanceRates: true,
-            autoUpdateGovernmentRateCountry: 'DE',
-        };
-
-        it('is true when the selection includes the current government rate', () => {
-            // Given a German workspace that auto-updates its government rate
-            // When the admin deletes the current German rate along with a custom one
-            // Then the delete modal warns that auto-update will turn off
-            expect(shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, ['custom', 'germany2026'], '2026-11-11')).toBe(true);
-        });
-
-        it('is false when only other rates are deleted', () => {
-            // Given the same workspace
-            // When the admin deletes only a custom rate
-            // Then the plain delete modal is shown because auto-update stays on
-            expect(shouldDeletingRatesTurnOffAutoUpdate(policy, customUnit, ['custom'], '2026-11-11')).toBe(false);
-        });
-
-        it('is false when auto-update is already off', () => {
-            // Given a workspace with auto-update off
-            // When the admin deletes the government rate
-            // Then there is no setting to turn off, so the plain modal is shown
-            expect(shouldDeletingRatesTurnOffAutoUpdate({...policy, shouldAutoUpdateGovernmentDistanceRates: false}, customUnit, ['germany2026'], '2026-11-11')).toBe(false);
         });
     });
 
