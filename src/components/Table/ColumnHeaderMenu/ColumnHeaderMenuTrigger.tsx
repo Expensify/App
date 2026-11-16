@@ -2,7 +2,6 @@
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import RESIZE_HANDLE_COLUMN_OVERLAP from '@components/Table/columnResize/resizeHandleColumnOverlap';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,17 +39,15 @@ type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     children: React.ReactNode;
 };
 
-/** The horizontal padding and border a style puts around the label row's content. */
-function getHorizontalInset(style: StyleProp<ViewStyle>): number {
+/** The padding and border a style puts on each side of the label row's content. */
+function getHorizontalInsets(style: StyleProp<ViewStyle>): {left: number; right: number} {
     const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
         StyleSheet.flatten(style) ?? {};
     const toNumber = (value: unknown) => (typeof value === 'number' ? value : 0);
-    return (
-        toNumber(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) +
-        toNumber(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) +
-        toNumber(borderLeftWidth ?? borderStartWidth ?? borderWidth) +
-        toNumber(borderRightWidth ?? borderEndWidth ?? borderWidth)
-    );
+    return {
+        left: toNumber(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) + toNumber(borderLeftWidth ?? borderStartWidth ?? borderWidth),
+        right: toNumber(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) + toNumber(borderRightWidth ?? borderEndWidth ?? borderWidth),
+    };
 }
 
 function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
@@ -61,20 +58,30 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const isMenuVisible = PopoverMenu.useIsPopoverVisible();
 
-    // An end-aligned label with no room for the caret before it is laid out as start-aligned, so hovering never moves it.
-    const [hasRoomForCaretBeforeLabel, setHasRoomForCaretBeforeLabel] = useState(true);
+    const [headingWidth, setHeadingWidth] = useState<number | null>(null);
+    const [restingLabel, setRestingLabel] = useState<{start: number; width: number} | null>(null);
+
+    const isEndAligned = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
     // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
-    const labelWidth = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END ? measureSearchHeaderLabelWidth(columnLabel, styles.gap1.gap) : null;
-    const updateCaretRoom =
-        labelWidth === null
-            ? undefined
-            : (event: LayoutChangeEvent) => {
-                  const caretWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
-                  setHasRoomForCaretBeforeLabel(event.nativeEvent.layout.width >= labelWidth + caretWidth + getHorizontalInset(labelRowStyle));
-              };
-    const layoutAlignment = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END && !hasRoomForCaretBeforeLabel ? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START : alignment;
-    // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
-    const isCaretBeforeLabel = layoutAlignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
+    const labelWidth = isEndAligned ? measureSearchHeaderLabelWidth(columnLabel, styles.gap1.gap) : null;
+    const labelRowInsets = getHorizontalInsets(labelRowStyle);
+    // The grip fills the cell's last pixels, so the caret after the label ends as far from the grip as it sits from the sort arrow.
+    const caretToGripPadding = Math.max(CONST.RESIZE_HANDLE.INDICATOR_WIDTH + styles.ml1.marginLeft - labelRowInsets.right, 0);
+    const updateHeadingWidth = labelWidth === null ? undefined : (event: LayoutChangeEvent) => setHeadingWidth(event.nativeEvent.layout.width);
+    const labelRowContentWidth = headingWidth === null ? null : headingWidth - labelRowInsets.left - labelRowInsets.right;
+    const caretBeforeLabelWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
+    const hasRoomForCaretBeforeLabel = labelWidth === null || labelRowContentWidth === null || labelRowContentWidth >= labelWidth + caretBeforeLabelWidth;
+    // The caret goes on the side away from the edge the label is pinned to when it fits, so revealing it on hover doesn't move the label.
+    // An end-aligned label with no room for it there gets it after its sort arrow instead, staying end-aligned.
+    const isCaretBeforeLabel = isEndAligned && hasRoomForCaretBeforeLabel;
+    // An end-aligned label with the caret after it keeps the start it rests at, so the caret truncates it instead of sliding it left.
+    const shouldKeepLabelStart = isEndAligned && !isCaretBeforeLabel;
+    // A label that filled its row at rest still fills it. Otherwise its natural width is known, which keeps the start right if the heading resizes during hover.
+    const restingLabelStart = labelRowContentWidth === null || restingLabel === null || restingLabel.start <= 0 ? 0 : Math.max(labelRowContentWidth - restingLabel.width, 0);
+    const updateRestingLabel = (event: LayoutChangeEvent) => {
+        const {x, width} = event.nativeEvent.layout;
+        setRestingLabel({start: x - labelRowInsets.left, width});
+    };
 
     return (
         <PopoverMenu.Trigger>
@@ -83,7 +90,7 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
-                onWrapperLayout={updateCaretRoom}
+                onWrapperLayout={updateHeadingWidth}
                 // Fills the cell, so the whole heading opens the menu.
                 style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter]}
             >
@@ -100,17 +107,22 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
                         </View>
                     );
                     const labelRow = (
-                        // Keeps a caret after the label out of the resize handle's hit area. A caret before the label is already clear of it.
-                        <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, isCaretBeforeLabel && styles.justifyContentEnd, labelRowStyle]}>
+                        <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(caretToGripPadding)}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, isEndAligned && styles.justifyContentEnd, labelRowStyle]}>
                                 {isCaretBeforeLabel && caret}
-                                <View style={styles.flexShrink1}>{children}</View>
+                                <View
+                                    style={[styles.flexShrink1, shouldKeepLabelStart && isCaretVisible && StyleUtils.getPaddingLeft(restingLabelStart)]}
+                                    // Web only observes layout for a view that has `onLayout` when it mounts, so this can't wait for `shouldKeepLabelStart`.
+                                    onLayout={labelWidth !== null && !isCaretVisible ? updateRestingLabel : undefined}
+                                >
+                                    {children}
+                                </View>
                                 {!isCaretBeforeLabel && caret}
                             </View>
                         </View>
                     );
 
-                    if (layoutAlignment !== CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER) {
+                    if (alignment !== CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER) {
                         return labelRow;
                     }
 
