@@ -2,6 +2,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
@@ -12,7 +13,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
-import ValuePicker from '@components/ValuePicker';
 
 import CONST from '@src/CONST';
 
@@ -96,38 +96,21 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
         const title = getFieldLabel(field, translate);
         const label = getInputLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
-        const isLong = choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS;
         if (field.presentation === 'tabs') {
             return renderTabs(label, choices, inputProps, isLoneField);
         }
         if (isLoneField) {
-            return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: false, isSearchable: isLong});
-        }
-        if (isLong) {
-            return {
-                isMenuRow: true,
-                input: (
-                    <InputWrapper
-                        InputComponent={PushRowWithModal}
-                        {...inputProps}
-                        optionsList={getChoiceOptionsList(choices)}
-                        description={label}
-                        modalHeaderTitle={title}
-                        searchInputTitle={title}
-                    />
-                ),
-            };
+            return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: false, isSearchable: choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS});
         }
         return {
-            isMenuRow: true,
+            isMenuRow: false,
             input: (
                 <InputWrapper
-                    InputComponent={ValuePicker}
+                    InputComponent={DropdownChoiceAdapter}
                     {...inputProps}
                     label={label}
-                    modalHeaderTitle={title}
+                    title={title}
                     items={choices}
-                    shouldReadErrorWithLabel
                 />
             ),
         };

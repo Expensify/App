@@ -7,6 +7,7 @@ import CountryPicker from '@components/CountryPicker';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
@@ -22,7 +23,6 @@ import PercentageForm from '@components/PercentageForm';
 import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 
 import variables from '@styles/variables';
 
@@ -138,7 +138,7 @@ const otherQuestion: DynamicFormField = {key: 'otherQuestion', type: 'text', req
 const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>> = {
     text: TextInput,
     number: TextInput,
-    select: ValuePicker,
+    select: DropdownChoiceAdapter,
     radio: RadioButtons,
     date: DatePicker,
     boolean: YesNoAdapter,
@@ -296,35 +296,18 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('accountType')?.items).toEqual([{value: 'CHECKING', label: 'Checking'}]);
     });
 
-    it('opens a searchable list for a select with more options than fit in a picker', () => {
-        // Given a select with one option more than the standard list limit, next to another question
-        const options = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 1}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
-        const longSelect: DynamicFormField = {
-            key: 'industry',
-            label: 'Industry',
-            type: 'select',
-            required: true,
-            values: options,
-        };
-
-        // When the fields render
-        const rendered = renderFields([longSelect, otherQuestion]);
-
-        // Then it uses the push row with a searchable modal
-        expect(rendered.get('industry')?.InputComponent).toBe(PushRowWithModal);
-        expect(Object.keys(rendered.get('industry')?.optionsList ?? {})).toHaveLength(options.length);
-    });
-
-    it('keeps a select as a picker up to the number of options a shared page takes', () => {
-        // Given a select with as many options as pagination still lets share a page, next to another question
-        const options = Array.from({length: CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
+    it.each([2, CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS, CONST.STANDARD_LIST_ITEM_LIMIT + 1])('draws a select with %i options as a dropdown row', (optionCount) => {
+        // Given a select next to another question, short or long, since every choice field on a shared page uses the
+        // same dropdown the expense form uses for its category, tag and tax
+        const options = Array.from({length: optionCount}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
         const accountType: DynamicFormField = {key: 'accountType', label: 'Account type', type: 'select', required: true, values: options};
 
         // When the fields render
         const rendered = renderFields([accountType, otherQuestion]);
 
-        // Then it stays a picker, since a searchable list is kept for selects that pagination puts on their own page
-        expect(rendered.get('accountType')?.InputComponent).toBe(ValuePicker);
+        // Then it is the dropdown row, offering every option
+        expect(rendered.get('accountType')?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get('accountType')?.items).toHaveLength(optionCount);
     });
 
     it('hints a text field with its example when it has no description', () => {

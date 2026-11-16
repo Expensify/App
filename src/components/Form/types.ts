@@ -9,6 +9,7 @@ import type CurrencyPicker from '@components/CurrencyPicker';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import type DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import type FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import type InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
@@ -99,6 +100,7 @@ type ValidInputs =
     | typeof TimeModalPicker
     | typeof FileUploadAdapter
     | typeof InlineSelectionListAdapter
+    | typeof DropdownChoiceAdapter
     | typeof CurrencyInlineListAdapter
     | typeof YesNoAdapter
     | typeof TabsAdapter
