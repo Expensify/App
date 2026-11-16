@@ -1,8 +1,7 @@
 import * as Browser from '@libs/Browser';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
-
-import Clipboard from '@react-native-clipboard/clipboard';
 
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
@@ -102,9 +101,9 @@ function setHTMLSync(html: string, text: string) {
 /**
  * Writes the content as HTML if the web client supports it.
  */
-const setHtml: SetHtml = (html: string, text: string) => {
+const setHtml: SetHtml = async (html: string, text: string): Promise<boolean> => {
     if (!html || !text) {
-        return;
+        return false;
     }
 
     if (!canSetHtml()) {
@@ -117,26 +116,71 @@ const setHtml: SetHtml = (html: string, text: string) => {
         // contents as HTML and keep whitespaces in the start of line on Safari.
         // See https://webkit.org/blog/10855/async-clipboard-api/ for more details.
         setHTMLSync(html, text);
-    } else {
-        const htmlNonClosingTags = html
-            .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
-            .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+        return true;
+    }
 
-        navigator.clipboard.write([
+    const htmlNonClosingTags = html
+        .replaceAll(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+        .replaceAll(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+
+    try {
+        await navigator.clipboard.write([
             new ClipboardItem({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);
+        return true;
+    } catch (error) {
+        Log.warn('Failed to copy html using navigator.clipboard.write, falling back to setHTMLSync', {error});
+        setHTMLSync(html, text);
+        return true;
     }
 };
 
 /**
- * Sets a string on the Clipboard object via react-native-web
+ * Sets a string on the Clipboard object.
+ * Attempts navigator.clipboard.writeText first, catching any NotAllowedError (e.g. document not focused).
+ * Falls back to execCommand('copy') with plain text.
  */
-const setString: SetString = (text) => {
-    Clipboard.setString(text);
+const setString: SetString = async (text: string): Promise<boolean> => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (error) {
+            Log.warn('Failed to copy text using navigator.clipboard.writeText', {error});
+        }
+    }
+
+    try {
+        const node = document.createElement('span');
+        node.textContent = text;
+        node.style.all = 'unset';
+        node.style.opacity = '0';
+        node.style.position = 'absolute';
+        node.style.whiteSpace = 'pre-wrap';
+        node.style.userSelect = 'text';
+        document.body.appendChild(node);
+
+        const selection = window?.getSelection();
+        if (selection) {
+            selection.removeAllRanges();
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            selection.addRange(range);
+        }
+
+        const success = document.execCommand('copy');
+        if (selection) {
+            selection.removeAllRanges();
+        }
+        document.body.removeChild(node);
+        return success;
+    } catch (e) {
+        return false;
+    }
 };
 
 export default {

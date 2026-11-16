@@ -205,11 +205,15 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
                                             textChecked={translate('common.copied')}
                                             icon={icons.Copy}
                                             inline={false}
-                                            onPress={() => {
-                                                Clipboard.setString(account?.recoveryCodes ?? '');
+                                            onPress={async () => {
+                                                const success = await Clipboard.setString(account?.recoveryCodes ?? '');
+                                                if (!success) {
+                                                    return false;
+                                                }
                                                 setError('');
                                                 setCodesAreCopied();
                                                 announceStatus(translate('common.copied'));
+                                                return true;
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}

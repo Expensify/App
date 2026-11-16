@@ -133,7 +133,7 @@ function DynamicVerifyPage() {
                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.secretKey')}`}
                             icon={icons.Copy}
                             inline={false}
-                            onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
+                            onPress={() => { Clipboard.setString(account?.twoFactorAuthSecretKey ?? ''); }}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}

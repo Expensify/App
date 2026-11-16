@@ -7,11 +7,12 @@ import type {CanSetHtml, SetHtml, SetString} from './types';
  */
 const setString: SetString = (text) => {
     Clipboard.setString(text);
+    return Promise.resolve(true);
 };
 
 // We don't want to set HTML on native platforms so noop them.
 const canSetHtml: CanSetHtml = () => false;
-const setHtml: SetHtml = () => {};
+const setHtml: SetHtml = () => Promise.resolve(false);
 
 export default {
     setString,

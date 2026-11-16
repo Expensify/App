@@ -63,7 +63,7 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     accessibilityLabel={translate('twoFactorAuth.copy')}
                     icon={icons.Copy}
                     inline={false}
-                    onPress={() => Clipboard.setString(secretKey)}
+                    onPress={() => { Clipboard.setString(secretKey); }}
                     styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                     textStyles={[styles.buttonMediumText]}
                     sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SECRET_COPY}
