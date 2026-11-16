@@ -1269,6 +1269,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Średnia dla wszystkich sprzedawców',
             allCategoryAverage: 'Średnia dla wszystkich kategorii',
             averageValue: (amount: string) => `średnio ${amount}`,
+            allViolationAverage: 'Średnia wszystkich naruszeń',
+            noChange: 'Bez zmian',
+            percentChange: '% zmiana',
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
@@ -1293,6 +1296,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        share: 'Udział',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

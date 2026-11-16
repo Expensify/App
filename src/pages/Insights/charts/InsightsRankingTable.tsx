@@ -221,7 +221,7 @@ function InsightsRankingTable({
                         {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 5)}
                     >
                         <SortableHeaderLabel
-                            text={translate('insightsPage.percentChange')}
+                            text={translate('insightsPage.compare.percentChange')}
                             isActive={false}
                             sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
                             innerContainerStyle={headerLabelStyle}

@@ -1231,6 +1231,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: '全加盟店の平均',
             allCategoryAverage: '全カテゴリ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
+            allViolationAverage: 'すべての違反の平均',
+            noChange: '変更なし',
+            percentChange: '％ 変化',
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
@@ -1255,6 +1258,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        share: 'シェア割合',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

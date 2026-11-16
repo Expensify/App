@@ -1375,7 +1375,6 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
-        percentChange: '% change',
         // @context Column header for each group's portion of the total, as a percentage. A noun, not the verb "to share".
         share: 'Share',
         efficiency: 'Efficiency',
@@ -1405,6 +1404,7 @@ const translations = {
             quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
             yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
             noChange: 'No change',
+            percentChange: '% change',
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
