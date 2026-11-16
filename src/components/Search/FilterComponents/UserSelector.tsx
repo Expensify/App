@@ -32,8 +32,15 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
+type PaginationState = {
+    searchKey: string | undefined;
+    hasMore: boolean;
+    nextCursor: string;
+    isLoadingMore: boolean;
+};
+
 // The pagination state is always replaced wholesale, never mutated, so every reset can share this object.
-const EMPTY_PAGINATION = {hasMore: false, nextCursor: '', isLoadingMore: false};
+const EMPTY_PAGINATION: PaginationState = {searchKey: undefined, hasMore: false, nextCursor: '', isLoadingMore: false};
 
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
@@ -43,7 +50,6 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [isSearching, setIsSearching] = useState(ready && !isOffline);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [pagination, setPagination] = useState(EMPTY_PAGINATION);
     const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
@@ -118,28 +124,31 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     });
 
     const trimmedSearchTerm = debouncedSearchTerm.trim();
+    const searchKey = `${policyIDs}\0${trimmedSearchTerm}`;
+    // Keying pagination on the active search resets the cursor and shows the spinner synchronously when
+    // the search term, workspace scope, or readiness changes.
+    const hasLoadedCurrentSearch = pagination.searchKey === searchKey;
+    const isSearching = ready && !isOffline && !hasLoadedCurrentSearch;
+    const hasMore = hasLoadedCurrentSearch && pagination.hasMore;
+    const isLoadingMore = hasLoadedCurrentSearch && pagination.isLoadingMore;
 
-    // Reset pagination synchronously (without an effect) whenever the search params change, so a new
-    // search never reuses the previous query's cursor. See https://react.dev/reference/react/useState#storing-information-from-previous-renders
-    const [prevSearchParams, setPrevSearchParams] = useState({trimmedSearchTerm, policyIDs, isOffline});
-    if (prevSearchParams.trimmedSearchTerm !== trimmedSearchTerm || prevSearchParams.policyIDs !== policyIDs || prevSearchParams.isOffline !== isOffline) {
-        setPrevSearchParams({trimmedSearchTerm, policyIDs, isOffline});
-        setPagination(EMPTY_PAGINATION);
-        setIsSearching(ready && !isOffline);
-    }
-
-    const applyUserFiltersResponse = (requestSeq: number, {hasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
+    const applyUserFiltersResponse = (requestSeq: number, {hasMore: nextHasMore, nextCursor, logins}: {hasMore: boolean; nextCursor: string; logins: string[]}) => {
         if (requestSeq !== requestSeqRef.current) {
             return;
         }
-        setIsSearching(false);
         if (policyIDs && logins.length > 0) {
-            setServerScopedLoginsByPolicy((prev) => ({
-                policyIDs,
-                logins: prev.policyIDs === policyIDs ? Array.from(new Set([...prev.logins, ...logins])) : logins,
-            }));
+            setServerScopedLoginsByPolicy((prev) => {
+                if (prev.policyIDs !== policyIDs) {
+                    return {policyIDs, logins: Array.from(new Set(logins))};
+                }
+                const mergedLogins = Array.from(new Set([...prev.logins, ...logins]));
+                if (mergedLogins.length === prev.logins.length) {
+                    return prev;
+                }
+                return {policyIDs, logins: mergedLogins};
+            });
         }
-        setPagination({hasMore, nextCursor, isLoadingMore: false});
+        setPagination({searchKey, hasMore: nextHasMore, nextCursor, isLoadingMore: false});
     };
 
     // Shared by the effect that fetches the first page and by loadMoreUsers. An empty cursor means a new
@@ -153,26 +162,31 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                     return;
                 }
                 if (isFirstPage) {
-                    setIsSearching(false);
-                    setPagination(EMPTY_PAGINATION);
+                    setPagination({searchKey, hasMore: false, nextCursor: '', isLoadingMore: false});
                 } else {
                     setPagination((prev) => ({...prev, isLoadingMore: false}));
                 }
             });
     };
 
+    const invalidateInFlightRequests = () => {
+        requestSeqRef.current++;
+    };
+
     useEffect(() => {
-        if (!ready || isOffline) {
+        if (!ready || isOffline || hasLoadedCurrentSearch) {
             return;
         }
 
         const requestSeq = ++requestSeqRef.current;
 
         fetchUserFiltersPage('', requestSeq);
-    }, [ready, isOffline, trimmedSearchTerm, policyIDs, fetchUserFiltersPage]);
+
+        return invalidateInFlightRequests;
+    }, [ready, isOffline, hasLoadedCurrentSearch, trimmedSearchTerm, policyIDs, fetchUserFiltersPage]);
 
     const loadMoreUsers = () => {
-        if (isOffline || !pagination.hasMore || pagination.isLoadingMore || isSearching) {
+        if (isOffline || !hasMore || isLoadingMore || isSearching) {
             return;
         }
 
@@ -195,13 +209,15 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         initialSelectedValues,
     );
 
-    const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !ready;
+    const isSearchPending = !isOffline && searchTerm.trim() !== trimmedSearchTerm;
+    const headerMessage = !shouldShowLoadingPlaceholder && !isSearching && !isSearchPending && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const selectUser = (option: OptionData) => {
         toggleSelection(option);
     };
 
-    const isLoadingNewOptions = isSearching || pagination.isLoadingMore;
+    const isLoadingNewOptions = isSearching || isLoadingMore;
 
     const textInputOptions = {
         value: searchTerm,
@@ -228,8 +244,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 onSelectRow={selectUser}
                 shouldUpdateFocusedIndex
                 isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
-                onEndReached={pagination.hasMore && !isOffline ? loadMoreUsers : undefined}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                onEndReached={hasMore && !isOffline ? loadMoreUsers : undefined}
                 onEndReachedThreshold={0.75}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
