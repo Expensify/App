@@ -1,5 +1,6 @@
 import DateFilterContent from '@components/Search/FilterComponents/AdvancedFilters/DateFilterContent';
 import type {DateFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import RangeDateInputs from '@components/Search/FilterComponents/RangeDateInputs';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,6 +26,7 @@ function DateFilterContentPopupWrapper({baseFilterKey, value, hasFeed, onChange}
                 value={value}
                 hasFeed={hasFeed}
                 selectedDateModifier={selectedDateModifier}
+                RangePicker={RangeDateInputs}
                 style={[styles.flexShrink1]}
                 sentryLabel={applySentryLabel}
                 onDateModifierSelected={setSelectedDateModifier}

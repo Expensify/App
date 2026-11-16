@@ -16,11 +16,13 @@ import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUt
 
 import CONST from '@src/CONST';
 
-import type {Ref} from 'react';
+import type {ComponentType, Ref} from 'react';
 
 import {format} from 'date-fns';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import type {RangeDatePickerProps} from './RangeDatePicker';
 
 import RangeDatePicker from './RangeDatePicker';
 
@@ -113,6 +115,9 @@ type DatePresetFilterBaseProps = {
     /** Force vertical stacking of calendars in range picker */
     forceVerticalCalendars?: boolean;
 
+    /** Replaces the built-in range calendars without changing how range values are saved. */
+    RangePicker?: ComponentType<RangeDatePickerProps>;
+
     ref: Ref<DatePresetFilterBaseHandle>;
 };
 
@@ -134,6 +139,7 @@ function DatePresetFilterBase({
     onDateValuesChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
+    RangePicker = RangeDatePicker,
     ref,
 }: DatePresetFilterBaseProps) {
     const theme = useTheme();
@@ -443,7 +449,7 @@ function DatePresetFilterBase({
 
     if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
         return (
-            <RangeDatePicker
+            <RangePicker
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {

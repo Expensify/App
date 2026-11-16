@@ -64,3 +64,4 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
 }
 
 export default RangeDatePicker;
+export type {RangeDatePickerProps};
