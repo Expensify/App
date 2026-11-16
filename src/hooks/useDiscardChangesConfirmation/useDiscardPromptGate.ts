@@ -51,7 +51,9 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldCloseRHPOnDiscard = f
     // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
     const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState());
 
-    const getActionToReplay = (action: NavigationAction) => (shouldCloseRHPOnDiscard ? getNavigationActionForReplay(action) : action);
+    // The first screen of a flow guards the whole flow, so Discard after a click outside always closes the whole RHP
+    const shouldReplayAtRoot = shouldCloseRHPOnDiscard || shouldPromptWhenUnfocused;
+    const getActionToReplay = (action: NavigationAction) => (shouldReplayAtRoot ? getNavigationActionForReplay(action) : action);
 
     const suppressDiscardPrompt = (shouldSuppress = true) => {
         isSavingRef.current = shouldSuppress;

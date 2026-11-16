@@ -414,6 +414,19 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
+        it('replays a click outside the RHP at the root on Discard, so the whole flow closes', async () => {
+            // Given a dirty flow root covered by a later step, without `shouldCloseRHPOnDiscard`
+            mockIsFocused = false;
+            renderFlowRootHook();
+
+            // When the user clicks outside the RHP and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then the replay targets the root, so the whole RHP closes instead of only the step on top
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
         it('lets the removal through when the flow itself is not visible', () => {
             // Given a dirty flow root whose flow is covered by another RHP or a fullscreen
             mockIsFocused = false;
