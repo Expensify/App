@@ -72,22 +72,6 @@ jest.mock('@src/components/Avatar/WorkspaceAvatar', () => {
     };
 });
 
-// Mock ReportActionAvatars component to prevent act() warnings
-jest.mock('@src/components/ReportActionAvatars', () => {
-    const {View} = require('react-native');
-    return ({participants, size = 'default'}: {participants?: unknown[]; size?: string}) => {
-        return (
-            <View
-                dataSet={{
-                    participants: Array.isArray(participants) ? participants.length : 0,
-                    size,
-                }}
-                testID="MockedReportActionAvatars"
-            />
-        );
-    };
-});
-
 // Mock Indicator component to prevent act() warnings
 jest.mock('@src/components/Indicator', () => {
     const {View} = require('react-native');
