@@ -70,16 +70,13 @@
         "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
-        "eslint-plugin-react-hooks",
-        "eslint-plugin-jsdoc",
-        "eslint-plugin-storybook",
+        "eslint-plugin-es",
         "shellcheck",
         "patch-package",
         "diff-so-fancy"
     ],
     "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
     "ignoreIssues": {
-        "config/oxlint/ruleNames.mjs": ["exports"],
         "rock.config.mjs": ["unlisted"],
         "src/libs/SearchParser/searchParser.js": ["exports"],
         "src/libs/SearchParser/autocompleteParser.js": ["exports"],
