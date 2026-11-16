@@ -15,6 +15,7 @@ import {getDBTimeWithSkew} from '@libs/NetworkState';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getAllPersonalDetailLogins, getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -1336,7 +1337,7 @@ function getShareDestination(
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
-    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, undefined);
 
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -1358,20 +1359,7 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(
-            report,
-            formatPhoneNumber,
-            translate,
-            personalDetails,
-            FallbackAvatar,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            pendingDeleteMemberAccountIDs,
-            conciergeReportID,
-        ),
+        icons: ReportUtils.getIcons({report, formatPhoneNumber, translate, personalDetails, defaultIcon: FallbackAvatar, pendingDeleteMemberAccountIDs, conciergeReportID}),
         displayName: getReportName(report, reportName),
         subtitle,
         displayNamesWithTooltips,
@@ -1473,6 +1461,34 @@ function canActionTask(
     return false;
 }
 
+/**
+ * Check if a workspace admin can delete a task in a workspace room, even when they don't own it
+ */
+function canDeleteTaskAsPolicyAdmin(
+    taskReport: OnyxEntry<OnyxTypes.Report>,
+    parentReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    guideAccountIDs: OnyxEntry<number[]>,
+    isParentReportArchived = false,
+): boolean {
+    if (!isPolicyAdmin(policy) || policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return false;
+    }
+
+    if (!ReportUtils.isUserCreatedPolicyRoom(parentReport) && !ReportUtils.isDefaultRoom(parentReport)) {
+        return false;
+    }
+
+    if (isParentReportArchived) {
+        return false;
+    }
+
+    // Guide/Concierge setup tasks in #admins are completed by the onboarding flow, so admins should not delete them
+    const isTaskOwnedByGuideOrConcierge =
+        taskReport?.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE || (!!taskReport?.ownerAccountID && !!guideAccountIDs?.includes(taskReport.ownerAccountID));
+    return !(ReportUtils.isAdminRoom(parentReport) && isTaskOwnedByGuideOrConcierge);
+}
+
 /** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
 type OnboardingTaskInformation = {
     taskReport: OnyxEntry<OnyxTypes.Report>;
@@ -1501,6 +1517,27 @@ function getReviewWorkspaceSettingsTaskCompletionData(taskInformation: Onboardin
         undefined,
         false,
         CONST.ACCOUNT_ID.CONCIERGE,
+    );
+}
+
+/**
+ * Complete the "Review your workspace settings" onboarding task on its own, for a command the backend does not
+ * complete it as a side effect of.
+ *
+ * `CompleteTask` carries the tick here, so the actor is the admin doing the saving rather than Concierge, and the
+ * task survives on its own rather than riding another command's success.
+ */
+function completeReviewWorkspaceSettingsTask(taskInformation: OnboardingTaskInformation, currentUserAccountID: number) {
+    const {taskReport, taskParentReport, isOnboardingTaskParentReportArchived, hasOutstandingChildTask, parentReportAction} = taskInformation;
+    getFinishOnboardingTaskOnyxData(
+        taskReport,
+        taskParentReport,
+        isOnboardingTaskParentReportArchived,
+        currentUserAccountID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        // delegateEmail: matches getReviewWorkspaceSettingsTaskCompletionData, which leaves it to the module-level fallback
+        undefined,
     );
 }
 
@@ -1630,6 +1667,7 @@ export {
     buildTaskData,
     completeTask,
     completeTaskAfterSuccessfulSideEffect,
+    completeReviewWorkspaceSettingsTask,
     getReviewWorkspaceSettingsTaskCompletionData,
     withReviewWorkspaceSettingsTaskData,
     clearOutTaskInfoAndNavigate,
@@ -1640,6 +1678,7 @@ export {
     getTaskAssigneeAccountID,
     canModifyTask,
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     getFinishOnboardingTaskOnyxData,
     getOnboardingTaskCompletionOnSuccessData,
     completeTestDriveTask,

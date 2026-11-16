@@ -18,6 +18,12 @@ const thirdPartyErrorFilterIntegration = undefined;
 // reads a tag only the web integration above sets. Stub for export shape parity; filtered out of the list here.
 const classCallCheckNoiseFilterIntegration = undefined;
 
+// Web-only, stub for export shape parity.
+const googleTranslateRecursionNoiseFilterIntegration = undefined;
+
+// CanvasKit initialization only runs on web.
+const canvasKitNoiseFilterIntegration = undefined;
+
 export {
     navigationIntegration,
     tracingIntegration,
@@ -27,4 +33,6 @@ export {
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
     classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
 };

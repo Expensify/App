@@ -17,7 +17,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,11 +25,13 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {domainAccountID, accountID} = route.params;
 
     const {translate, formatPhoneNumber} = useLocalize();
@@ -76,6 +78,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.RESET_DOMAIN}
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
@@ -83,8 +86,9 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.REVOKE_ADMIN_ACCESS}
                     isDisabled={isCurrentUserPrimaryContact}
-                    onPress={callFunctionIfActionIsAllowed(handleRevokeAdminAccess)}
+                    onPress={callIfAuthenticated(handleRevokeAdminAccess, session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

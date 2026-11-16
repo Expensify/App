@@ -25,6 +25,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/actions/Report', () => ({
     createNewReport: jest.fn(() => ({reportID: 'new-report-id'})),
+    openRecipientPicker: jest.fn(),
 }));
 
 const mockOpenCreateReportConfirmation = jest.fn();

@@ -32,7 +32,14 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [customUnit] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: (policy) => getDistanceRateCustomUnit(policy)});
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [distanceRateData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => ({
+            customUnit: getDistanceRateCustomUnit(policy),
+            commuterExclusions: policy?.commuterExclusions,
+        }),
+    });
+    const customUnit = distanceRateData?.customUnit;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
 
@@ -41,7 +48,7 @@ function PolicyDistanceRateUnitPage({route}: PolicyDistanceRateUnitPageProps) {
             return;
         }
         const attributes = {...customUnit.attributes, unit: unit.value};
-        setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
+        setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes}, distanceRateData?.commuterExclusions);
         Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
     };
 

@@ -123,7 +123,7 @@ describe('addComment thread summary attribution', () => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 callback: (value) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(value);
                 },
             });

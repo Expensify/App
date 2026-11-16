@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -75,14 +76,16 @@ function CardNameStep({route}: CardNameStepProps) {
                 shouldEnablePickerAvoiding={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.companyCards.cardName')}
-                    onBackButtonPress={() => {
-                        setAssignCardStepAndData({isEditing: false});
-                        Navigation.goBack();
-                    }}
-                />
-                <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('workspace.moreFeatures.companyCards.cardName')}
+                        onBackButtonPress={() => {
+                            setAssignCardStepAndData({isEditing: false});
+                            Navigation.goBack();
+                        }}
+                    />
+                    <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     key={cardToAssign?.customCardName}
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}

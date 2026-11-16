@@ -1,8 +1,9 @@
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -16,13 +17,15 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {hasOfficeLocations} from '@libs/OfficeLocationUtils';
 import {getDistanceRateCustomUnit, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -58,6 +61,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const isWorkArrangementEnabled = isCommuterExclusionsEnabled && isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
@@ -65,7 +69,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         selector: (policy) => ({
             commuterExclusions: policy?.commuterExclusions,
             unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
-            hasWorkspaceAddress: !!policy?.address?.addressStreet?.trim(),
+            hasOfficeLocations: hasOfficeLocations(policy),
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
         }),
@@ -100,7 +104,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         if (item.keyForList === selectedKey) {
             return;
         }
-        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasOfficeLocations) {
             confirmModal.showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
                 prompt: (
@@ -149,7 +153,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         }
 
         if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
-            if (!policyData?.hasWorkspaceAddress) {
+            if (!policyData?.hasOfficeLocations) {
                 return;
             }
             if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
@@ -212,19 +216,37 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         </View>
     );
 
+    const footer = (
+        <FixedFooter addBottomSafeAreaPadding>
+            {!!inlineError && (
+                <FormHelpMessage
+                    message={inlineError}
+                    style={styles.mb3}
+                />
+            )}
+            <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_SAVE}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={onSave}
+            >
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
+        </FixedFooter>
+    );
+
     const isHomeAndOfficeSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
     const workArrangementFooter = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={translate(
+        <MenuItemField
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT}
+            name={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
+            value={translate(
                 hasOfficeWorkArrangement(existingCommuterExclusions)
                     ? 'workspace.distanceRates.commuterExclusions.workArrangement.officeBasedTitle'
                     : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
             )}
-            description={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID))}
-            wrapperStyle={[styles.ph5, styles.pt3]}
         />
     );
 
@@ -264,10 +286,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 testID="PolicyCommuterExclusionsPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.distanceRates.commuterExclusions.title')}
-                    onBackButtonPress={goBackToSettings}
-                />
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('workspace.distanceRates.commuterExclusions.title')}
+                        onBackButtonPress={goBackToSettings}
+                    />
+                </CollapsibleHeaderOnKeyboard>
                 <OfflineWithFeedback
                     errors={getLatestErrorField(policyData ?? {}, 'commuterExclusions')}
                     pendingAction={policyData?.pendingFields?.commuterExclusions}
@@ -285,23 +309,10 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                         shouldUpdateFocusedIndex
                         alternateNumberOfSupportedLines={2}
                         disableKeyboardShortcuts
+                        listFooterContent={shouldFooterBeInsideList ? footer : undefined}
                     />
                 </OfflineWithFeedback>
-                <FixedFooter addBottomSafeAreaPadding>
-                    {!!inlineError && (
-                        <FormHelpMessage
-                            message={inlineError}
-                            style={styles.mb3}
-                        />
-                    )}
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={onSave}
-                    >
-                        <Button.Text>{translate('common.save')}</Button.Text>
-                    </Button>
-                </FixedFooter>
+                {!shouldFooterBeInsideList && footer}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -28,11 +28,9 @@ import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasUpdatedTotal, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -271,6 +269,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: submitButtonText,
                       icon: expensifyIcons.Send,
                       value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.SUBMIT,
                       onSelected: () => handleSubmitReport(true),
                   },
               ]
@@ -281,6 +280,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: approveButtonText,
                       icon: expensifyIcons.ThumbsUp,
                       value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.APPROVE,
                       rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
                       backButtonText: shouldShowApproveSubMenu ? approveButtonText : undefined,
                       subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
@@ -296,6 +296,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                       text: translate('iou.settlePayment', totalAmount),
                       icon: expensifyIcons.Cash,
                       value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_MENU.PAY,
                       rightIcon: expensifyIcons.ArrowRight,
                       backButtonText: translate('iou.settlePayment', totalAmount),
                       subMenuItems: paymentSubMenuItems,
@@ -346,6 +347,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             searchData={undefined}
             onHandlerReady={setDuplicateHandler}
             onAfterDuplicate={() => clearSelectedTransactions(true)}
+            sourceReport={moneyRequestReport}
+            sourceChatReport={chatReport}
+            sourcePolicy={policy}
         />
     ) : null;
 
@@ -374,6 +378,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         <>
             {bulkDuplicateHandler}
             <ButtonWithDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SELECTION_DROPDOWN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 options={selectedTransactionsOptions}

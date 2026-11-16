@@ -1,9 +1,7 @@
 import type {NativeEventSubscription} from 'react-native';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
-
-import type {Route} from './ROUTES';
 
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
@@ -23,7 +21,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
     /** Callback to set the initial URL resolved from deep linking */
-    onInitialUrl: (url: Route | null) => void;
+    onInitialUrl: (url: string | null) => void;
 };
 
 /**
@@ -63,14 +61,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
-    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+    const trackPendingPublicRoomFromDeepLink = (url: string, isCurrentlyAuthenticated: boolean) => {
         const deepLinkReportID = getReportIDFromLink(url);
         if (!deepLinkReportID || isCurrentlyAuthenticated) {
             return;
         }
         pendingPublicRoomReportID.current = deepLinkReportID;
         hasRefetchedPublicRoom.current = false;
-    }, []);
+    };
 
     useEffect(() => {
         if (
@@ -122,7 +120,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 }
 
                 initialUrlProcessed.current = true;
-                onInitialUrl(url as Route);
+                onInitialUrl(url);
 
                 if (url) {
                     if (conciergeReportID === undefined) {
@@ -141,6 +139,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         conciergeReportID,
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
+                        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         reportNameValuePairsRef.current,
                         conciergePersonalDetailsRef.current,
@@ -179,7 +178,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
             // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
             if (hasSecureLinkKey(state.url)) {
-                onInitialUrl(state.url as Route);
+                onInitialUrl(state.url);
             }
             openReportFromDeepLink(
                 state.url,
@@ -188,6 +187,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 conciergeReportID,
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
+                guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportNameValuePairsRef.current,
                 conciergePersonalDetailsRef.current,
@@ -228,10 +228,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous user opening a public room via a cold deep link loads the room (OpenReport), but the
     // OpenApp that follows anonymous session creation drops it from Onyx, so it never reaches the LHN.
+    const isAnonymous = isAnonymousUser(session);
+
     // Once OpenApp settles, re-fetch the room if it went missing so it shows up in the LHN. See #92672.
     useEffect(() => {
         const reportID = pendingPublicRoomReportID.current;
-        if (!reportID || isLoadingApp || !isAnonymousUser()) {
+        if (!reportID || isLoadingApp || !isAnonymous) {
             return;
         }
         // The room made it into Onyx, so the cold-start race is over - stop tracking it.
@@ -255,7 +257,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
+    }, [
+        isLoadingApp,
+        isAnonymous,
+        allReports,
+        introSelected,
+        conciergeChat,
+        session?.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     return null;
 }

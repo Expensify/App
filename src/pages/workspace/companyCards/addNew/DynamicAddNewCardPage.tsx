@@ -26,9 +26,8 @@ import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/Compa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -46,7 +45,7 @@ import SelectFeedType from './SelectFeedType';
 function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCardFeed] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {currentStep} = addNewCardFeed ?? {};
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading, cardFeeds, workspaceAccountID} = useIsBlockedToAddFeed(policyID);
     const {showConfirmModal} = useConfirmModal();
@@ -54,12 +53,12 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-
-    const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds) {
@@ -83,7 +82,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         openPolicyAddCardFeedPage(policyID);
     }, [policyID]);
 
-    if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
+    if (isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -110,7 +109,15 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: false});
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     };
 
@@ -123,7 +130,13 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <SelectFeedType />;
             break;
         case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            CurrentStep = <CardTypeStep />;
+            CurrentStep = (
+                <CardTypeStep
+                    policyID={policyID}
+                    cardFeeds={cardFeeds}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
             CurrentStep = <BankConnection policyID={policyID} />;

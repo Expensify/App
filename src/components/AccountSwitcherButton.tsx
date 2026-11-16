@@ -15,6 +15,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -26,18 +27,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
+import useNavigationBarWidth from './Navigation/FlatNavigationBar/useNavigationBarWidth';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Tooltip from './Tooltip';
@@ -48,7 +51,17 @@ type AccountSwitcherButtonProps = {
     isScreenFocused: boolean;
 };
 
-const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
+type AccountSwitcherMenuItem = PopoverMenuItem & {
+    /** The account's unformatted login with the SMS domain stripped, so search still matches typed digits or the bare login even though `description` is reformatted for readability via formatPhoneNumber. */
+    rawLogin: string;
+};
+
+const filterMenuItem = (item: AccountSwitcherMenuItem, searchInput: string) =>
+    tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '', option.rawLogin]).length > 0;
+
+// PopoverMenu spreads every field it doesn't explicitly destructure onto the rendered MenuItem, so rawLogin (search-only,
+// never rendered) has to be stripped before an item is handed to it, or it leaks through as an unrecognized prop.
+const stripRawLogin = ({rawLogin: _rawLogin, ...item}: AccountSwitcherMenuItem): PopoverMenuItem => item;
 
 /** The "Switch" button and its delegator menu. Renders nothing for accounts that have no other account to switch to. */
 function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
@@ -66,6 +79,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const delegate = account?.delegatedAccess?.delegate;
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -78,9 +93,22 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
+    const navigationBarWidth = useNavigationBarWidth();
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = canSwitchAccountsSelector(account);
+
+    // Switching accounts resets ONYXKEYS.ACCOUNT until OpenApp reloads it, which would otherwise make the button
+    // disappear briefly for the length of the reload.
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
+    }
+    const isWaitingForAccountData = !canSwitchAccounts && isAccountSwitchInFlight && wasAbleToSwitchAccounts;
+
+    // Covers the gap between selecting an account and OpenApp starting, before isAccountSwitchInFlight turns on.
+    const [isSwitchRequestPending, setIsSwitchRequestPending] = useState(false);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -98,8 +126,17 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         });
     };
 
+    const startSwitch = (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const switchPromise = switchAccount();
+        if (!switchPromise) {
+            return;
+        }
+        setIsSwitchRequestPending(true);
+        switchPromise.finally(() => setIsSwitchRequestPending(false));
+    };
+
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-        const result = await showConfirmModal({
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
             title: translate('gps.switchAccountWarningTripInProgress.title'),
             prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
             confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
@@ -112,18 +149,15 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
         await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
-        switchAccount();
+        startSwitch(switchAccount);
     };
 
     // Anchor the menu to the bottom-left of the Switch button so it opens directly below it.
-    const measureDelegatorMenuPosition = useCallback(
-        () =>
-            calculatePopoverPosition(buttonRef, {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            }),
-        [calculatePopoverPosition],
-    );
+    const measureDelegatorMenuPosition = () =>
+        calculatePopoverPosition(buttonRef, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        });
 
     // Keep the menu anchored to the button if the window is resized while it is open.
     useLayoutEffect(() => {
@@ -135,13 +169,14 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
+        errors: Errors | undefined,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> & WithRequiredSentryLabel,
+    ): AccountSwitcherMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
             text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
+            description: formatPhoneNumber(personalDetails?.login ?? ''),
+            rawLogin: Str.removeSMSDomain(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
@@ -155,8 +190,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         };
     };
 
-    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
-    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true, sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.CURRENT_ACCOUNT});
+    const delegatorMenuItems: AccountSwitcherMenuItem[] = sortAlphabetically(
         delegators
             .filter(({email}) => email !== currentUserPersonalDetails.login)
             .map(({email, role}) => {
@@ -165,6 +200,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 const personalDetails = personalDetailsByLogin[email];
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', role),
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_TO_DELEGATOR,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -174,7 +210,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
                             return;
                         }
-                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                        startSwitch(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID}));
                     },
                 });
             }),
@@ -189,13 +225,14 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
         if (isActingAsDelegate) {
             // Avoid duplicating the current user in the list when switching accounts
             if (delegate === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
+                return [currentUserMenuItem].map(stripRawLogin);
             }
 
             const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
                 createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.ACCOUNT_MENU.SWITCH_BACK,
                     onSelected: () => {
                         if (isOffline) {
                             close(showOfflineModal);
@@ -207,14 +244,14 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                             return;
                         }
 
-                        disconnect({stashedCredentials, stashedSession});
+                        startSwitch(() => disconnect({stashedCredentials, stashedSession}));
                     },
                 }),
                 currentUserMenuItem,
-            ];
+            ].map(stripRawLogin);
         }
 
-        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
+        return (shouldShowSearchInput ? filteredMenuItems : allMenuItems).map(stripRawLogin);
     };
 
     const hideDelegatorMenu = () => {
@@ -242,38 +279,31 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const isButtonTrailingItemOfRow = shouldUseNarrowLayout && isInLandscapeMode;
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
-    const tooltipProps = shouldShowProductTrainingTooltip
-        ? {
-              shouldRender: shouldShowProductTrainingTooltip,
-              renderTooltipContent: renderProductTrainingTooltip,
-              anchorAlignment: {
-                  // Center on the button so the pointer lands on the button's center rather than off by its right edge.
-                  // The tooltip is wider than the room left of the window gutter, so the body still gets pulled left and
-                  // only the pointer ends up truly centered.
-                  horizontal: isButtonTrailingItemOfRow ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-              },
-              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              // The nudge squares the right-aligned tooltip up against the gutter. Centered alignment subtracts it back
-              // out of the pointer offset, which would drag the pointer off the button's center, so drop it.
-              shiftHorizontal: isButtonTrailingItemOfRow ? variables.accountSwitcherTooltipShiftHorizontal : 0,
-              // Native ignores the keep-on-screen clamp unless we opt in.
-              computeHorizontalShiftForNative: true,
-              wrapperStyle: styles.productTrainingTooltipWrapper,
-              onTooltipPress: onPressSwitcher,
-              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
-              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
-              shouldHideOnNavigate: false,
-              // On narrow layouts the switcher scrolls away with the settings list, so the tooltip has to follow it or get out of the way.
-              // On wide layouts it sits in the fixed top bar, where scrolling never moves the anchor.
-              shouldHideOnScroll: shouldUseNarrowLayout,
-          }
-        : {
-              text: translate('delegate.copilotAccess'),
-              shouldRender: canSwitchAccounts,
-          };
+    let tooltipProps;
+    if (shouldShowProductTrainingTooltip) {
+        tooltipProps = {
+            shouldRender: shouldShowProductTrainingTooltip,
+            renderTooltipContent: renderProductTrainingTooltip,
+            anchorAlignment: {
+                horizontal: isButtonTrailingItemOfRow ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            },
+            shiftVertical: variables.accountSwitcherTooltipShiftVertical,
+            shiftHorizontal: isButtonTrailingItemOfRow ? variables.accountSwitcherTooltipShiftHorizontal : 0,
+            computeHorizontalShiftForNative: true,
+            wrapperStyle: styles.productTrainingTooltipWrapper,
+            onTooltipPress: onPressSwitcher,
+            shouldHideOnNavigate: false,
+            shouldHideOnScroll: shouldUseNarrowLayout,
+        };
+    } else {
+        tooltipProps = {
+            text: translate('delegate.copilotAccess'),
+            shouldRender: canSwitchAccounts || isWaitingForAccountData,
+        };
+    }
 
-    if (!canSwitchAccounts) {
+    if (!canSwitchAccounts && !isWaitingForAccountData) {
         return null;
     }
 
@@ -286,6 +316,8 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                         size={CONST.BUTTON_SIZE.SMALL}
                         ref={buttonRef}
                         onPress={onPressSwitcher}
+                        isDisabled={isWaitingForAccountData || isSwitchRequestPending}
+                        stayNormalOnDisable
                         sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                     >
                         <Button.Text>{translate('delegate.switch')}</Button.Text>
@@ -298,7 +330,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 onClose={hideDelegatorMenu}
                 onItemSelected={hideDelegatorMenu}
                 anchorRef={buttonRef}
-                anchorPosition={popoverPosition ?? CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
+                anchorPosition={popoverPosition ?? {...CONST.POPOVER_ACCOUNT_SWITCHER_POSITION, horizontal: CONST.POPOVER_ACCOUNT_SWITCHER_POSITION.horizontal + navigationBarWidth}}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

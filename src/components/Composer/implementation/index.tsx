@@ -1,4 +1,4 @@
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
+import type {ComposerProps, WebComposerRef} from '@components/Composer/types';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -20,12 +20,14 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
-import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
+
+type WebMarkdownInput = HTMLDivElement & Pick<TextInput, 'clear' | 'isFocused'> & {value?: string};
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -69,7 +71,7 @@ function Composer({
     const addAuthTokenToImageURL = useCallback((url: string) => addEncryptedAuthTokenToURL(url, encryptedAuthToken), [encryptedAuthToken]);
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
-    const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
+    const textInputRef = useRef<WebMarkdownInput | null>(null);
     const [selection, setSelection] = useState<
         | {
               start: number;
@@ -156,7 +158,7 @@ function Composer({
             }
 
             if (textInputRef.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
-                const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+                const eventTarget = event.target instanceof HTMLElement ? event.target : null;
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === CONST.ELEMENT_NAME.INPUT || eventTarget?.nodeName === CONST.ELEMENT_NAME.TEXTAREA || eventTarget?.contentEditable === 'true';
@@ -290,7 +292,7 @@ function Composer({
             return;
         }
 
-        const currentText = textInputRef.current.value;
+        const currentText = textInputRef.current.value ?? '';
         textInputRef.current.clear();
 
         // We need to reset the selection to 0,0 manually after clearing the text input on web
@@ -301,14 +303,14 @@ function Composer({
                     end: 0,
                 },
             },
-        } as TextInputSelectionChangeEvent;
+        };
         onSelectionChange(selectionEvent);
         setSelection({start: 0, end: 0});
 
         onClear(currentText);
     }, [onClear, onSelectionChange]);
 
-    useImperativeHandle(ref, () => {
+    useImperativeHandle(ref, (): WebComposerRef => {
         const textInput = textInputRef.current;
         if (!textInput) {
             throw new Error('textInput is not available. This should never happen and indicates a developer error.');
@@ -321,16 +323,17 @@ function Composer({
             // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
             blur: () => textInput.blur(),
             focus: () => textInput.focus(),
+            isFocused: () => textInput.isFocused(),
             get scrollTop() {
                 return textInput.scrollTop;
             },
-        } as ComposerRef;
+        };
     }, [clear]);
 
     const handleKeyPress = useCallback(
         (e: TextInputKeyPressEvent) => {
             // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-            if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
+            if (!onKeyPress || (e.nativeEvent instanceof KeyboardEvent && isEnterWhileComposition(e.nativeEvent))) {
                 return;
             }
 
@@ -366,7 +369,9 @@ function Composer({
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
-            ref={textInputRef}
+            ref={(element: AnimatedMarkdownTextInputRef | null) => {
+                textInputRef.current = element instanceof HTMLDivElement ? element : null;
+            }}
             selection={selection}
             style={[inputStyleMemo]}
             markdownStyle={markdownStyle}

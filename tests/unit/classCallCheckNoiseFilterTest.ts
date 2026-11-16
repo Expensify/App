@@ -1,9 +1,9 @@
-import classCallCheckNoiseFilterIntegration, {CLASS_CALL_CHECK_MESSAGE, isClassCallCheckNoise, THIRD_PARTY_CODE_TAG} from '@libs/telemetry/integrations/classCallCheckNoiseFilter';
+import classCallCheckNoiseFilterIntegration, {CLASS_CALL_CHECK_MESSAGE, isClassCallCheckNoise} from '@libs/telemetry/integrations/classCallCheckNoiseFilter';
 import {classCallCheckNoiseFilterIntegration as webClassCallCheckNoiseFilterIntegration} from '@libs/telemetry/integrations/index.web';
 
-import type {Client, ErrorEvent, Exception, StackFrame} from '@sentry/core';
+import type {ErrorEvent, StackFrame} from '@sentry/core';
 
-const THIRD_PARTY_TAGS: ErrorEvent['tags'] = {[THIRD_PARTY_CODE_TAG]: true};
+import {buildErrorEvent, sentryClientStub, THIRD_PARTY_TAGS} from '../utils/SentryEventTestUtils';
 
 /** The exact frames Sentry received for APP-JY0 on release 9.4.53-10. */
 const APP_JY0_FRAMES: StackFrame[] = [
@@ -11,13 +11,8 @@ const APP_JY0_FRAMES: StackFrame[] = [
     {filename: 'app:///', lineno: 156, colno: 384862, function: 'G'},
 ];
 
-/** `type: undefined` is what marks an error event in the SDK types, as opposed to `'transaction'`. */
-function buildEvent(values: Exception[], tags: ErrorEvent['tags'] = THIRD_PARTY_TAGS): ErrorEvent {
-    return {type: undefined, tags, exception: {values}};
-}
-
 function buildClassCallCheckEvent(frames: StackFrame[], tags: ErrorEvent['tags'] = THIRD_PARTY_TAGS): ErrorEvent {
-    return buildEvent([{type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE, stacktrace: {frames}}], tags);
+    return buildErrorEvent([{type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE, stacktrace: {frames}}], tags);
 }
 
 describe('classCallCheckNoiseFilter', () => {
@@ -47,7 +42,7 @@ describe('classCallCheckNoiseFilter', () => {
         });
 
         it('matches a chained error when every value is the signature and every frame is anonymous', () => {
-            const event = buildEvent([
+            const event = buildErrorEvent([
                 {type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE, stacktrace: {frames: [{filename: 'app:///'}]}},
                 {type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE, stacktrace: {frames: [{filename: '<anonymous>'}]}},
             ]);
@@ -57,7 +52,7 @@ describe('classCallCheckNoiseFilter', () => {
 
     describe('leaves everything else alone', () => {
         it('keeps a different error even when it is anonymous and tagged third-party', () => {
-            const event = buildEvent([{type: 'TypeError', value: "Cannot read properties of undefined (reading 'se')", stacktrace: {frames: [{filename: 'app:///'}]}}]);
+            const event = buildErrorEvent([{type: 'TypeError', value: "Cannot read properties of undefined (reading 'se')", stacktrace: {frames: [{filename: 'app:///'}]}}]);
             expect(isClassCallCheckNoise(event)).toBe(false);
         });
 
@@ -81,7 +76,7 @@ describe('classCallCheckNoiseFilter', () => {
         });
 
         it('keeps a chained error when only one value is the signature', () => {
-            const event = buildEvent([
+            const event = buildErrorEvent([
                 {type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE, stacktrace: {frames: [{filename: 'app:///'}]}},
                 {type: 'Error', value: 'something real', stacktrace: {frames: [{filename: 'app:///'}]}},
             ]);
@@ -93,7 +88,7 @@ describe('classCallCheckNoiseFilter', () => {
         });
 
         it('keeps the signature when it carries no frames at all', () => {
-            expect(isClassCallCheckNoise(buildEvent([{type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE}]))).toBe(false);
+            expect(isClassCallCheckNoise(buildErrorEvent([{type: 'TypeError', value: CLASS_CALL_CHECK_MESSAGE}]))).toBe(false);
         });
 
         it('keeps a transaction event, which never carries exception values', () => {
@@ -102,10 +97,7 @@ describe('classCallCheckNoiseFilter', () => {
     });
 
     describe('as a Sentry integration', () => {
-        // `processEvent` ignores its client argument, so an empty stub satisfies the signature without stubbing the SDK.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the filter never reads the client, this only satisfies the hook signature
-        const client = Object.create(null) as Client;
-        const processEvent = (event: ErrorEvent) => classCallCheckNoiseFilterIntegration.processEvent?.(event, {}, client);
+        const processEvent = (event: ErrorEvent) => classCallCheckNoiseFilterIntegration.processEvent?.(event, {}, sentryClientStub);
 
         it('is named so it can be identified in the integrations list', () => {
             expect(classCallCheckNoiseFilterIntegration.name).toBe('ClassCallCheckNoiseFilter');

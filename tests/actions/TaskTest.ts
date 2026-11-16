@@ -9,6 +9,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
+    canDeleteTaskAsPolicyAdmin,
     canModifyTask,
     completeTask,
     completeTestDriveTask,
@@ -323,6 +324,39 @@ describe('actions/Task', () => {
                     expect(canActionTask(taskReport, undefined, taskAssigneeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
                 });
             });
+        });
+    });
+
+    describe('canDeleteTaskAsPolicyAdmin', () => {
+        const adminAccountID = 1;
+        const employeeAccountID = 2;
+        const guideAccountID = 3;
+        const adminPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+        const policyRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM};
+        const adminsRoom: Report = {...getFakeReport([adminAccountID, employeeAccountID]), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+        const employeeTask: Report = {...getFakeReport([adminAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK, ownerAccountID: employeeAccountID};
+
+        it('lets an admin delete a task someone else created in a workspace room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [])).toBe(true);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, adminsRoom, adminPolicy, [])).toBe(true);
+        });
+
+        it('does not let a non-admin delete the task', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, role: CONST.POLICY.ROLE.USER}, [])).toBe(false);
+        });
+
+        it('does not apply to personal workspaces or to chats that are not workspace rooms', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, {...adminPolicy, type: CONST.POLICY.TYPE.PERSONAL}, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, getFakeReport([adminAccountID, employeeAccountID]), adminPolicy, [])).toBe(false);
+        });
+
+        it('does not let an admin delete a task in an archived room', () => {
+            expect(canDeleteTaskAsPolicyAdmin(employeeTask, policyRoom, adminPolicy, [], true)).toBe(false);
+        });
+
+        it('does not let an admin delete a Guide or Concierge setup task in #admins', () => {
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: CONST.ACCOUNT_ID.CONCIERGE}, adminsRoom, adminPolicy, [])).toBe(false);
+            expect(canDeleteTaskAsPolicyAdmin({...employeeTask, ownerAccountID: guideAccountID}, adminsRoom, adminPolicy, [guideAccountID])).toBe(false);
         });
     });
 
@@ -1941,6 +1975,70 @@ describe('actions/Task', () => {
 
             const cancelAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
             expect(cancelAction.delegateAccountID).toBeUndefined();
+        });
+
+        it("should resolve the parent report's last visible action from the acting user's own visibility", async () => {
+            const parentReportID = 'parent_report_delete_whisper';
+            const taskReportID = 'task_report_delete_whisper';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Whisper visibility task',
+                parentReportID,
+                parentReportActionID: '90001',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT};
+            const parentReportAction = createMock<OnyxEntry<ReportAction>>({reportActionID: '90001', reportID: parentReportID, childReportID: taskReportID});
+
+            const olderComment = createMock<ReportAction>({
+                reportActionID: '90002',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2027-03-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = createMock<ReportAction>({
+                reportActionID: '90003',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2027-03-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            });
+
+            // Given a parent report whose newest action is a whisper aimed at one account
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const deleteAsAndReadParentUpdate = async (currentUserAccountID: number) => {
+                mockWrite.mockClear();
+                deleteTask(taskReport, parentReport, false, currentUserAccountID, false, parentReportAction, 'concierge_123', undefined, undefined);
+                await waitForBatchedUpdatesWithAct();
+
+                const update = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const);
+                return 'value' in update && update.value && typeof update.value === 'object' && 'lastVisibleActionCreated' in update.value
+                    ? update.value.lastVisibleActionCreated
+                    : undefined;
+            };
+
+            // When the whispered-to account deletes the task, the whisper is the newest action they can see
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the older comment is tracked instead
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
         });
     });
 

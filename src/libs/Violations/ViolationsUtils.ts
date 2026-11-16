@@ -2,9 +2,9 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -21,18 +21,32 @@ import {
     isDefaultTagName,
     isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
-    isXeroActiveMatchingSource,
     resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {isRuleFilterNode} from '@libs/RuleUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {
+    Card,
+    CardList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    PolicyTags,
+    PolicyVendors,
+    Report,
+    ReportAction,
+    Transaction,
+    TransactionViolation,
+    ViolationName,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -59,6 +73,8 @@ type ViolationTranslationParams = {
     isMarkAsCash?: boolean;
     routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
+    policyVendors?: PolicyVendors;
+    transactionCurrency?: string;
 };
 
 /**
@@ -275,7 +291,214 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    return DateUtils.formatToLongDateInUTC(date, dateFnsLocale);
+}
+
+const RULE_VIOLATION_FILTER_ORDER = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC,
+];
+
+function flattenRuleViolationAndFilters(filters: RuleFilterNode, filtersByName: Map<string, RuleFilterNode[]>): boolean {
+    if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND) {
+        if (!isRuleFilterNode(filters.left) || !isRuleFilterNode(filters.right)) {
+            return false;
+        }
+        return flattenRuleViolationAndFilters(filters.left, filtersByName) && flattenRuleViolationAndFilters(filters.right, filtersByName);
+    }
+
+    if (typeof filters.left !== 'string' || !filters.left) {
+        return false;
+    }
+
+    filtersByName.set(filters.left, [...(filtersByName.get(filters.left) ?? []), filters]);
+    return true;
+}
+
+function normalizeRuleViolationFilterValues(value: RuleFilterNode['right']): string[] {
+    if (isRuleFilterNode(value)) {
+        return [];
+    }
+    return (Array.isArray(value) ? value : [value]).map(String);
+}
+
+function buildRuleViolationMessage(
+    filters: RuleFilterNode | undefined,
+    currency: string,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    translate: LocaleContextProps['translate'],
+    policyVendors?: PolicyVendors,
+): string {
+    if (!filters || !isRuleFilterNode(filters)) {
+        return translate('violations.ruleViolation.fallback');
+    }
+
+    const filtersByName = new Map<string, RuleFilterNode[]>();
+    if (!flattenRuleViolationAndFilters(filters, filtersByName)) {
+        return translate('violations.ruleViolation.fallback');
+    }
+
+    const phrases: string[] = [];
+    const adjectives: string[] = [];
+
+    let isAnyExpense = false;
+    let hasMerchant = false;
+
+    const orderedFilters = RULE_VIOLATION_FILTER_ORDER.flatMap((filterName) => filtersByName.get(filterName) ?? []);
+    for (const filter of orderedFilters) {
+        if (typeof filter.left !== 'string') {
+            continue;
+        }
+
+        const filterName = filter.left;
+        const values = normalizeRuleViolationFilterValues(filter.right);
+        if (values.length === 0) {
+            continue;
+        }
+
+        const firstValue = values.at(0) ?? '';
+        const hasSingleValue = values.length === 1;
+        const filterValuesString = values.join(` ${translate('common.or')} `);
+        const op = filter.operator;
+
+        if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
+            const expenseTypesString = values
+                .map((value) => (value === CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM ? translate('violations.ruleViolation.perDiem') : value))
+                .join(` ${translate('common.or')} `);
+
+            const capitalizedExpenseTypesString = `${expenseTypesString.charAt(0).toUpperCase()}${expenseTypesString.slice(1)}`;
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                adjectives.push(capitalizedExpenseTypesString);
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.notExpenseType', capitalizedExpenseTypesString));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+            if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && op !== CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                continue;
+            }
+
+            const isTrue = (firstValue === CONST.SEARCH.BOOLEAN.YES) !== (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+            if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+                adjectives.push(translate(isTrue ? 'violations.ruleViolation.billable.enabled' : 'violations.ruleViolation.billable.disabled'));
+            } else {
+                adjectives.push(translate(isTrue ? 'violations.ruleViolation.reimbursable.enabled' : 'violations.ruleViolation.reimbursable.disabled'));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+            if (op !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                continue;
+            }
+
+            if (hasSingleValue && (firstValue === CONST.SEARCH.CATEGORY_EMPTY_VALUE || firstValue === CONST.SEARCH.CATEGORY_DEFAULT_VALUE)) {
+                phrases.push(translate('violations.ruleViolation.withoutCategory'));
+            } else {
+                adjectives.push(filterValuesString);
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+            // If the merchant filter equals '.', we match on any merchant
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && hasSingleValue && firstValue === '.') {
+                isAnyExpense = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.fromMerchant', filterValuesString));
+                hasMerchant = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.notFromMerchant', filterValuesString));
+                hasMerchant = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS) {
+                phrases.push(translate('violations.ruleViolation.fromMerchantsContaining', filterValuesString));
+                hasMerchant = true;
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS) {
+                phrases.push(translate('violations.ruleViolation.notFromMerchantsContaining', filterValuesString));
+                hasMerchant = true;
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            const vendorNamesString = values.map((value) => policyVendors?.[value]?.name ?? value).join(` ${translate('common.or')} `);
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withVendor' : 'violations.ruleViolation.fromVendor';
+                phrases.push(translate(vendorTranslationKey, vendorNamesString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                const vendorTranslationKey = hasMerchant ? 'violations.ruleViolation.withoutVendor' : 'violations.ruleViolation.notFromVendor';
+                phrases.push(translate(vendorTranslationKey, vendorNamesString));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            const formattedAmountsString = values.map((value) => convertToDisplayString(Math.abs(Number(value)), currency)).join(` ${translate('common.or')} `);
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+                phrases.push(translate('violations.ruleViolation.overAmount', formattedAmountsString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.amountOrMore', formattedAmountsString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+                phrases.push(translate('violations.ruleViolation.underAmount', formattedAmountsString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.amountOrLess', formattedAmountsString));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                const phrase =
+                    hasSingleValue && firstValue === CONST.SEARCH.TAG_EMPTY_VALUE
+                        ? translate('violations.ruleViolation.withoutTag')
+                        : translate('violations.ruleViolation.tagged', filterValuesString);
+
+                phrases.push(phrase);
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.inCurrency', filterValuesString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.notInCurrency', filterValuesString));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
+            if (op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.paidInCurrency', filterValuesString));
+            } else if (op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
+                phrases.push(translate('violations.ruleViolation.notPaidInCurrency', filterValuesString));
+            }
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            const isNegated = op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
+            const isEqualToOp = op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+            const isContainsOp = op === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS || op === CONST.SEARCH.SYNTAX_OPERATORS.NOT_CONTAINS;
+
+            if (!isEqualToOp && !isContainsOp) {
+                continue;
+            }
+
+            const attributes = values.map((value) => {
+                if (value === CONST.SEARCH.HAS_VALUES.ATTACHMENT) {
+                    return translate('violations.ruleViolation.attachment');
+                }
+
+                const translationKey = HAS_VALUE_TRANSLATION_KEYS[value];
+
+                if (translationKey) {
+                    return translate('violations.ruleViolation.attribute', translate(translationKey).toLowerCase());
+                }
+
+                return translate('violations.ruleViolation.attribute', value.toLowerCase());
+            });
+
+            const attributesTranslationKey = isNegated ? 'violations.ruleViolation.withoutAttributes' : 'violations.ruleViolation.withAttributes';
+            phrases.push(translate(attributesTranslationKey, attributes.join(` ${translate('common.or')} `)));
+        } else if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC && op === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+            phrases.push(
+                translate('violations.ruleViolation.atMerchantCode', values.map((value) => translate('violations.ruleViolation.merchantCode', value)).join(` ${translate('common.or')} `)),
+            );
+        }
+    }
+
+    if (adjectives.length === 0 && phrases.length === 0) {
+        return isAnyExpense ? translate('violations.ruleViolation.anyExpense') : translate('violations.ruleViolation.fallback');
+    }
+
+    const message = translate('violations.ruleViolation.expense', adjectives.join(' '));
+    return phrases.length === 0 ? message : `${message} ${phrases.join(' ')}`;
 }
 
 /**
@@ -329,7 +552,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         policyTagLists,
         policyTaxRates,
         iouAttendees,
-        currentUserPersonalDetails,
+        ownerLogin,
         isAttendeeTrackingEnabled,
         isControlPolicy,
         mileageRate,
@@ -368,7 +591,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
-            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
+            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, ownerLogin, isAttendeeTrackingEnabled, isControlPolicy);
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
             if (!expenseDate || !mileageRate) {
@@ -444,6 +667,62 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
     );
 }
 
+/**
+ * Adds customUnitOutOfPolicy for a reported distance expense whose workspace rate is disabled.
+ * Disabling a rate does not write the violation, so this adds it at render time until the server
+ * sends it on the next report load or expense update.
+ * It never removes a violation. Clearing one hides warnings the server already wrote, such as a
+ * moved expense whose rate is still enabled on the original workspace, or a P2P rate whose
+ * participants field is missing when the expense is loaded from Search or another device.
+ */
+function syncCustomUnitOutOfPolicyViolation(
+    violations: TransactionViolation[],
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    distanceOriginalPolicy?: OnyxEntry<Policy>,
+): TransactionViolation[] {
+    if (!transaction || !TransactionUtils.isDistanceRequest(transaction) || TransactionUtils.isPerDiemRequest(transaction)) {
+        return violations;
+    }
+
+    // Unreported expenses are self-DM Track expenses (reportID '0'). Do not add the warning, and do not
+    // strip one already present. getViolationsOnyxData owns that case.
+    if (TransactionUtils.isExpenseUnreported(transaction)) {
+        return violations;
+    }
+
+    const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (!customUnitRateID || TransactionUtils.isCustomUnitRateIDForP2P(transaction)) {
+        return violations;
+    }
+
+    let policyForCustomUnitRate = policy;
+    if (!getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
+        policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
+    }
+
+    const customRate = getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
+
+    // A missing rate (deleted) or an enabled rate stays as Onyx left it. Removing the violation here
+    // would hide a server warning when the rate still exists on the workspace that owns it.
+    if (!customRate || customRate.enabled !== false) {
+        return violations;
+    }
+
+    if (violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
+        return violations;
+    }
+
+    return [
+        ...violations,
+        {
+            name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        },
+    ];
+}
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -464,6 +743,7 @@ const ViolationsUtils = {
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -480,6 +760,7 @@ const ViolationsUtils = {
         ownerLogin: string | undefined;
         /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
         isVendorMatchingBetaEnabled: boolean | undefined;
+        policyVendors?: OnyxEntry<PolicyVendors>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -520,6 +801,11 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
+        // A cleared category cannot be restricted, even when the policy does not require categories.
+        if (isCategoryMissing(updatedTransaction.category)) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
+        }
+
         // Calculate client-side category violations. Also run when the transaction has a category (not just
         // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
         const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
@@ -540,6 +826,13 @@ const ViolationsUtils = {
             // Remove 'categoryOutOfPolicy' violation if category is in policy
             if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
+            }
+
+            // Category restrictions belong to the expense owner, not the user editing the expense.
+            const ownerAccountID = iouReport?.ownerAccountID;
+            const hasRestrictedCategoryViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
+            if (hasRestrictedCategoryViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
@@ -588,46 +881,18 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
+                const isVendorInactive = !matchedVendor || isVendorDisabled;
+                const canConfirmVendorEnabled = policyVendorsParam !== undefined && !isVendorDisabled;
 
-                // Stamp Xero-specific copy on the violation so the render site can use the
-                // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
-                // "Vendor" wording.
-                const isSupplierViolation = isXeroActiveMatchingSource(policy);
-                if (!matchedVendor && !hasInactiveVendorViolation) {
+                if (isVendorInactive && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         showInReview: true,
-                        ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
                     });
-                } else if (matchedVendor && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && canConfirmVendorEnabled && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-                } else if (!matchedVendor && hasInactiveVendorViolation) {
-                    // Reconcile data.isSupplierViolation with the current active matching source.
-                    // Backfills the flag when Xero is now active (server-fired violation, or
-                    // persisted from before this code path existed). Strips a stale flag when the
-                    // workspace has switched back to QBO/Intacct as the active source — otherwise
-                    // the render layer would keep showing "Supplier" wording even though the picker
-                    // is back to "Vendor".
-                    const needsSupplierFlagReconciliation = newTransactionViolations.some(
-                        (violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && (violation.data?.isSupplierViolation === true) !== isSupplierViolation,
-                    );
-                    if (needsSupplierFlagReconciliation) {
-                        newTransactionViolations = newTransactionViolations.map((violation) => {
-                            if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
-                                return violation;
-                            }
-                            const currentFlag = violation.data?.isSupplierViolation === true;
-                            if (currentFlag === isSupplierViolation) {
-                                return violation;
-                            }
-                            if (isSupplierViolation) {
-                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
-                            }
-                            const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
-                            return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
-                        });
-                    }
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
@@ -658,16 +923,19 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
-                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                // The server returns customUnitOutOfPolicy for a disabled distance rate, a deleted rate, and a rate pending deletion.
+                const isDisabledDistanceRate = isDistanceRequestForCustomUnit && customRate?.enabled === false;
+                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDisabledDistanceRate;
                 if (customRate && isRateValid) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
-                } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                } else if ((isSelfDM || TransactionUtils.isExpenseUnreported(updatedTransaction)) && isDistanceRequestForCustomUnit) {
+                    // Unreported expenses are self-DM Track expenses. Keep them clear of this warning.
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                 } else {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -705,7 +973,6 @@ const ViolationsUtils = {
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
 
@@ -786,21 +1053,8 @@ const ViolationsUtils = {
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
-        // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
-        let attendeesMinusOwnerCount: number;
-        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = ownerLoginParam ?? getCurrentUserEmail();
-        if (ownerLogin) {
-            // Filter by login or email to identify owner
-            attendeesMinusOwnerCount = attendees.filter((a) => {
-                const attendeeIdentifier = a?.email;
-                return attendeeIdentifier !== ownerLogin;
-            }).length;
-        } else {
-            // Can't identify owner at all - if there are attendees, assume owner is one of them
-            // This means we need at least 2 attendees to have a non-owner attendee
-            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
-        }
+        // The expense is valid when at least one attendee isn't the owner. Use the current user as the owner when the report isn't available, e.g. for an expense created offline
+        const attendeesMinusOwnerCount = getAttendeesMinusOwnerCount(attendees, ownerLoginParam ?? getCurrentUserEmail());
 
         const shouldShowMissingAttendees =
             !isInvoiceTransaction &&
@@ -969,6 +1223,8 @@ const ViolationsUtils = {
             isMarkAsCash,
             routeDistanceMeters,
             distanceUnit,
+            policyVendors,
+            transactionCurrency,
         } = params;
         const {
             brokenBankConnection = false,
@@ -989,7 +1245,6 @@ const ViolationsUtils = {
             message = '',
             errorIndexes = [],
             missingFields = [],
-            isSupplierViolation = false,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -1001,6 +1256,8 @@ const ViolationsUtils = {
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
                 return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
+            case 'categoryNotAllowed':
+                return translate('violations.categoryNotAllowed');
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
@@ -1029,7 +1286,7 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'inactiveVendor':
-                return translate('violations.inactiveVendor', isSupplierViolation);
+                return translate('violations.inactiveVendor');
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
@@ -1075,6 +1332,8 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
+            case 'ruleViolation':
+                return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
@@ -1141,6 +1400,7 @@ const ViolationsUtils = {
         cardList,
         isMarkAsCash,
         canEdit = true,
+        policyVendors,
     }: {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -1155,6 +1415,7 @@ const ViolationsUtils = {
         cardList?: CardList;
         isMarkAsCash?: boolean;
         canEdit?: boolean;
+        policyVendors?: PolicyVendors;
     }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
@@ -1180,6 +1441,8 @@ const ViolationsUtils = {
                     isMarkAsCash,
                     routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
                     distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                    policyVendors,
+                    transactionCurrency: transaction.currency,
                 });
                 if (!message) {
                     return;
@@ -1233,6 +1496,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitOutOfPolicyViolation, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

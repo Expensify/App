@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 
@@ -41,7 +42,7 @@ describe('Navigation', () => {
                 />,
             );
 
-            expect(Navigation.isValidateLoginFlow()).toBe(true);
+            expect(Navigation.isValidateLoginFlow(navigationRef.getRootState())).toBe(true);
         });
     });
 });

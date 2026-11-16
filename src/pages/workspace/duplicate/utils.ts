@@ -47,6 +47,9 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.preventSelfApproval && !workflowApprovalsUnavailable) {
         total.push(translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'));
     }
+    if (policy?.preventPayoutNonReimbursableReports) {
+        total.push(translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'));
+    }
     if (policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable) {
         total.push(translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'));
     }

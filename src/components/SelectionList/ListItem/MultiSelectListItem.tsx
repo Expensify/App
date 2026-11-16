@@ -44,7 +44,8 @@ function MultiSelectListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact}
-            titleNumberOfLines={titleNumberOfLines}
+            // Rows are capped at two lines, so a subtitle keeps the title on one
+            titleNumberOfLines={item.alternateText ? 1 : titleNumberOfLines}
             alternateTextNumberOfLines={alternateTextNumberOfLines}
         />
     );

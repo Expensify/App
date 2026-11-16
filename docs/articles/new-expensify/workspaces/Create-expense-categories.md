@@ -117,8 +117,7 @@ Workspaces on the Control plan that have GL codes assigned to categories can dis
 1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Categories**.
 3. Select **More**.
-4. Select **Settings**.
-5. Enable **Show GL codes when categorizing expenses**.
+4. Enable **Show GL codes when categorizing expenses**.
 
 Once enabled, the GL code appears next to each category name when categorizing expenses. This setting is only available when categories are enabled and at least one category has a GL code assigned.
 
@@ -143,7 +142,7 @@ Everything else is created as a rule. The **Category rules** section at the bott
 2. In the **Category rules** section, click **Create new rule**.
 3. Choose what the rule should do:
    - **Flag for review** – Flag expenses in this category when the individual expense amount, or the daily category total on a report, goes above an amount you set.
-   - **Set field requirements** – Require a description, attendees, a receipt, or an itemized receipt for this category, or waive a receipt or itemized receipt requirement.
+   - **Require fields** – Require a description, attendees, a receipt, or an itemized receipt for this category, or waive a receipt or itemized receipt requirement.
    - **Apply expense defaults** – Set a default tax rate for this category ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 4. Configure the rule and click **Save rule**.
 
@@ -174,7 +173,7 @@ To remove the hint, clear the **Hint** field and select **Save**.
 
 The hint appears as text below the **Description** field on the expense, both while creating a new expense and while editing an existing one. It shows as soon as the member selects that category, and only members who use that category see it.
 
-The hint is a reminder, not a requirement. To make a description mandatory, create a **Set field requirements** rule for the category and require a description.
+The hint is a reminder, not a requirement. To make a description mandatory, create a **Require fields** rule for the category and require a description.
 
 ---
 
@@ -189,7 +188,7 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
-- This is on by default. To stop new expenses from being categorized automatically, a Workspace Admin can go to **Workspaces > [workspace name] > Categories > More > Settings** and disable **Auto-categorize new expenses**.
+- This is on by default. To stop new expenses from being categorized automatically, a Workspace Admin can go to **Workspaces > [workspace name] > Categories > More** and disable **Auto-categorize new expenses**.
 
 ## How to set default categories by MCC code
 
@@ -237,5 +236,5 @@ Alternatively, you can enable tags on the workspace to edit the category directl
 
 ## How can members see GL codes?
 
-GL codes are hidden from members by default. On the Control plan, a Workspace Admin can make them visible by going to **Workspaces > [Workspace name] > Categories > More > Settings** and enabling **Show GL codes when categorizing expenses**. Once enabled, the GL code appears next to each category name when categorizing expenses.
+GL codes are hidden from members by default. On the Control plan, a Workspace Admin can make them visible by going to **Workspaces > [workspace name] > Categories > More** and enabling **Show GL codes when categorizing expenses**. Once enabled, the GL code appears next to each category name when categorizing expenses.
 

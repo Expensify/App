@@ -3,15 +3,15 @@ import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import Log from '@libs/Log';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -25,10 +25,11 @@ import {useAllPersonalDetails} from './usePersonalDetails';
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
     allReports: OnyxCollection<Report> | undefined;
+    allTransactions: OnyxCollection<Transaction>;
     searchData: Record<string, unknown> | undefined;
 };
 
-function useBulkDuplicateReportAction({selectedReports, allReports, searchData}: UseBulkDuplicateReportActionParams) {
+function useBulkDuplicateReportAction({selectedReports, allReports, allTransactions, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -36,7 +37,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -49,20 +50,19 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const handleDuplicateReports = () => {
-        const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
-
         bulkDuplicateReports({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
             selectedReports,
             allReports: allReports ?? {},
             searchData,
             allPolicies,
+            allTransactions,
             allPolicyCategories,
             allPolicyTags,
             defaultExpensePolicy,

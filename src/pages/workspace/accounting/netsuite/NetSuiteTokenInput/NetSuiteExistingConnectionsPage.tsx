@@ -23,6 +23,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const policyID: string = route.params.policyID;
+    const accountingConnectionsRoute = ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID);
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToNetSuite} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, policyID);
 
     const menuItems = reusablePoliciesConnectedToNetSuite.map((policy) => {
@@ -34,10 +35,11 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             avatarID: policy.id,
             icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                Navigation.goBack(accountingConnectionsRoute);
             },
         };
     });
@@ -53,7 +55,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             titleStyle={styles.ph5}
             shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(accountingConnectionsRoute)}
         >
             <View style={[styles.flex1]}>
                 <MenuItemList

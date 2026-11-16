@@ -18,6 +18,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useIsFocused} from '@react-navigation/native';
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import React, {useEffect} from 'react';
 
@@ -128,6 +129,8 @@ ScanNewReceipt.displayName = 'ScanNewReceipt';
  * Asks for location permission when the scan screen opens, and caches the position once it is granted.
  */
 function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
+    // Hidden tabs stay mounted and remount on tab switches, so without this the prompt would open over other tabs
+    const isFocused = useIsFocused();
     const [shouldStartLocationPermissionFlow, shouldStartLocationPermissionFlowResult] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
@@ -135,15 +138,15 @@ function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
 
     // The prompt flow skips users inside the prompt window, so onGrant never caches a position for someone who granted it in OS settings
     useEffect(() => {
-        if (!gpsRequired || !isPromptCoolingDown) {
+        if (!isFocused || !gpsRequired || !isPromptCoolingDown) {
             return;
         }
         snapshotUserLocation();
-    }, [gpsRequired, isPromptCoolingDown]);
+    }, [isFocused, gpsRequired, isPromptCoolingDown]);
 
     return (
         <LocationPermissionModal
-            startPermissionFlow={gpsRequired && !!shouldStartLocationPermissionFlow}
+            startPermissionFlow={isFocused && gpsRequired && !!shouldStartLocationPermissionFlow}
             resetPermissionFlow={() => {}}
             onGrant={snapshotUserLocation}
             onDeny={(wasUserInitiated) => {

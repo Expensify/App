@@ -230,13 +230,13 @@ describe('MergeUtils', () => {
             [login]: {accountID: 42, login, ...overrides},
         });
 
-        it('returns "not set" when there is no final approver', () => {
+        it('returns undefined when there is no final approver', () => {
             // Given a connection with no final approver configured
             // When the approver's display name is resolved
-            // Then the missing approver is called out rather than left blank
-            expect(getMergeFinalApproverDisplayName(undefined, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
-            expect(getMergeFinalApproverDisplayName(null, {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
-            expect(getMergeFinalApproverDisplayName('', {}, translateLocal, formatPhoneNumber)).toBe('workspace.merge.notSet');
+            // Then the approver is undefined
+            expect(getMergeFinalApproverDisplayName(undefined, {}, translateLocal, formatPhoneNumber)).toBeUndefined();
+            expect(getMergeFinalApproverDisplayName(null, {}, translateLocal, formatPhoneNumber)).toBeUndefined();
+            expect(getMergeFinalApproverDisplayName('', {}, translateLocal, formatPhoneNumber)).toBeUndefined();
         });
 
         it('returns the display name when the approver is a known workspace member', () => {

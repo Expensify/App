@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import useAccountIDToNameMap, {getAccountIDToNameMapForMentionsInMarkdown, useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -34,16 +34,16 @@ const renderAccountIDToNameMap = async () => {
     return hook;
 };
 
+beforeAll(() => {
+    Onyx.init({keys: ONYXKEYS});
+});
+
+beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
+});
+
 describe('useAccountIDToNameMap', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
-
     it('returns an empty object when personalDetailsList is not set', async () => {
         const {result} = await renderAccountIDToNameMap();
         expect(result.current).toEqual({});
@@ -109,5 +109,104 @@ describe('useAccountIDToNameMap', () => {
         });
 
         expect(result.current).toBe(firstResult);
+    });
+});
+
+describe('useMentionedAccountIDToNameMap', () => {
+    it('returns only mentioned account IDs when html is provided', async () => {
+        await Onyx.set(
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            buildList([
+                [1001, createPersonalDetails(1001, {login: 'alice@expensify.com', displayName: 'Alice'})],
+                [1002, createPersonalDetails(1002, {login: 'bob@expensify.com', displayName: 'Bob'})],
+                [1003, createPersonalDetails(1003, {login: undefined, displayName: 'Carol'})],
+            ]),
+        );
+
+        const html = 'Review PR with <mention-user accountID="1001"></mention-user> and <mention-user accountID=1003/>';
+        const hook = renderHook(() => useMentionedAccountIDToNameMap(html));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Given only account IDs 1001 and 1003 are mentioned in the HTML
+        // Then the map should only contain those two accounts
+        expect(hook.result.current['1001']).toBe('alice@expensify.com');
+        expect(hook.result.current['1003']).toBe('Carol');
+        expect(Object.keys(hook.result.current)).toHaveLength(2);
+        // When account 1002 is not mentioned
+        // Then it should not appear in the map
+        expect(hook.result.current['1002']).toBeUndefined();
+    });
+
+    it('returns an empty map when html has no mentions', async () => {
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+
+        const hook = renderHook(() => useMentionedAccountIDToNameMap('Buy milk'));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Given the HTML contains no mention-user tags
+        // Then the map should be empty
+        expect(hook.result.current).toEqual({});
+    });
+});
+
+describe('getAccountIDToNameMapForMentionsInMarkdown', () => {
+    const ALICE_ID = '1001';
+    const BOB_ID = '1002';
+    const CAROL_ID = '1003';
+
+    const fullMap = {
+        [ALICE_ID]: 'alice@expensify.com',
+        [BOB_ID]: 'bob@expensify.com',
+        [CAROL_ID]: 'carol@expensify.com',
+    };
+
+    it('returns undefined when accountIDToName is undefined', () => {
+        // Given accountIDToName is undefined
+        // When filtering by markdown with a mention
+        // Then it should return undefined, because there are no names to scope
+        expect(getAccountIDToNameMapForMentionsInMarkdown(undefined, 'Hi @alice@expensify.com')).toBeUndefined();
+    });
+
+    it('returns undefined when the markdown has no mentions', () => {
+        // Given a full accountIDToName map
+        // When the markdown contains no @ mentions
+        // Then it should return undefined, so nothing extra is saved with the deferred edit
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, 'Plain text with no mentions')).toBeUndefined();
+    });
+
+    it('returns only entries for users mentioned as @login', () => {
+        // Given a draft, as typed in the composer, that mentions Alice and Carol by login
+        const markdown = 'Hello @alice@expensify.com and @carol@expensify.com';
+
+        // When filtering the full map by that draft
+        const result = getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown);
+
+        // Then only Alice and Carol are kept, so the replay can turn their accountID mentions in the synced copy back into @login
+        expect(result).toEqual({
+            [ALICE_ID]: 'alice@expensify.com',
+            [CAROL_ID]: 'carol@expensify.com',
+        });
+    });
+
+    it('ignores a login that appears without a leading @', () => {
+        // Given a draft that contains Bob's login as plain text, not as a mention
+        const markdown = 'Email bob@expensify.com for details';
+
+        // When filtering the full map by that draft
+        // Then nothing is kept, because only @login is a user mention
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown)).toBeUndefined();
+    });
+
+    it('returns undefined when the mentioned users are not in the map', () => {
+        // Given a draft that mentions a user who is not in the map
+        const markdown = 'Hi @dave@expensify.com';
+
+        // When filtering the full map by that draft
+        // Then it should return undefined, since no matching entry exists
+        expect(getAccountIDToNameMapForMentionsInMarkdown(fullMap, markdown)).toBeUndefined();
     });
 });

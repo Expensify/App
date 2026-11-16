@@ -4,8 +4,9 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, addMonths, differenceInCalendarDays, format, parseISO} from 'date-fns';
+import {addDays, addMonths, differenceInCalendarDays, format} from 'date-fns';
 
+import DateUtils from './DateUtils';
 import {replaceCommasWithPeriod} from './MoneyRequestUtils';
 import {getReportActionText} from './ReportActionsUtils';
 
@@ -73,24 +74,13 @@ function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[],
 }
 
 /**
- * Parse a YYYY-MM-DD string into a Date, returning null when invalid.
- */
-function parseDate(value: string): Date | null {
-    if (!value) {
-        return null;
-    }
-    const parsed = parseISO(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-/**
  * Computes the calendar end date to display for a start date and duration. Day, week, and month
  * durations use whole units and end on the last covered calendar day; hour durations are sub-day, so
  * the OOO ends on the start day. Returns an empty string for an invalid start date and the start date
  * itself for a non-positive duration.
  */
 function computeEndDate(startDate: string, durationAmount: string, durationUnit: string): string {
-    const start = parseDate(startDate);
+    const start = DateUtils.parseCalendarDate(startDate);
     if (!start) {
         return '';
     }
@@ -120,8 +110,8 @@ function computeEndDate(startDate: string, durationAmount: string, durationUnit:
  * Returns null when the dates are missing or the end precedes the start.
  */
 function computeDurationDays(startDate: string, endDate: string): number | null {
-    const start = parseDate(startDate);
-    const end = parseDate(endDate);
+    const start = DateUtils.parseCalendarDate(startDate);
+    const end = DateUtils.parseCalendarDate(endDate);
     if (!start || !end) {
         return null;
     }
@@ -166,4 +156,4 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export {buildOOOCommand, computeDurationDays, computeEndDate, isChronosOOOListAction, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction, parseDate};
+export {buildOOOCommand, computeDurationDays, computeEndDate, isChronosOOOListAction, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction};

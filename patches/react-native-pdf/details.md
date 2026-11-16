@@ -77,3 +77,37 @@
 - Upstream PR/issue: https://github.com/wonday/react-native-pdf/issues/674
 - E/App issue: https://github.com/Expensify/App/issues/101895
 - PR introducing patch: https://github.com/Expensify/App/pull/102389
+
+
+### [react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch](react-native-pdf+7.0.2+006+fix-scale-changed-on-resize.patch)
+
+- Reason:
+
+    ```
+    This patch stops onScaleChanged on Android from reporting a zoom change when the PDF view is resized, e.g. when rotating the device between portrait and landscape.
+
+    Android reported the scale as the drawn page width divided by the page width of the first draw. A resize changes the page width, so after rotating the scale was reported as e.g. 2 or 0.5 even though the user didn't zoom. The patch reports the viewer's zoom (getZoom()) instead, which is relative to the page size fitted to the current view size, and only emits the event when the zoom changes. This matches iOS, which recalculates its base scale factor for the new view size on every resize.
+
+    In the attachment carousel a scale different from 1 is treated as zoomed in, which hid the carousel arrows and disabled swiping between attachments after rotating.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1050, https://github.com/wonday/react-native-pdf/issues/1049
+- E/App issue: https://github.com/Expensify/App/issues/103207
+- PR introducing patch: https://github.com/Expensify/App/pull/103781
+
+
+### [react-native-pdf+7.0.2+007+fix-cancel-download-task.patch](react-native-pdf+7.0.2+007+fix-cancel-download-task.patch)
+
+- Reason:
+
+    ```
+    This patch fixes an unhandled "TypeError: undefined is not a function" from `this.lastRNBFTask.cancel()` when the PDF source changes while a download is still running, e.g. when the encrypted auth token in a receipt URL is refreshed after reauthentication.
+
+    `_downloadFile` stored the promise returned by `.catch()` in `lastRNBFTask` instead of the react-native-blob-util task, so it had no `cancel()`. `componentDidUpdate` then loaded the new source without canceling, and the next `_downloadFile` called `lastRNBFTask.cancel()` and threw. `_prepareFile` doesn't await `_downloadFile`, so the error became an unhandled promise rejection.
+
+    The patch stores the task itself and checks `cancel()` before calling it. Each download gets an id, and a canceled or replaced download ignores its result, so a cancellation isn't reported to `onError` and an old download can't replace the current PDF. `componentDidUpdate` loads the new source right away instead of in the cancel callback, which react-native-blob-util doesn't call when the request has already finished. A failed download is now reported to `onError` once, instead of also being copied to the cache and shown. A cache check that ends after the source changed is ignored too, so it can't start a download of the old source that cancels the new one.
+    ```
+
+- Upstream PR/issue: https://github.com/wonday/react-native-pdf/pull/1057. Since 7.0.5, react-native-pdf stores the cancelable task (https://github.com/wonday/react-native-pdf/pull/1031) but still reports a canceled download to `onError`. This patch can be dropped once #1057 is released.
+- E/App issue: https://github.com/Expensify/App/issues/106338
+- PR introducing patch: https://github.com/Expensify/App/pull/106351

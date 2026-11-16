@@ -47,7 +47,10 @@ type AmountTextInputProps = {
 
     /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
     rightHandSideComponent?: React.ReactNode;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
+} & Pick<
+    BaseTextInputProps,
+    'autoFocus' | 'autoGrowExtraSpace' | 'containerStyles' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel' | 'shouldAllowFocusInLandscapeMode'
+>;
 
 function AmountTextInput({
     formattedAmount,

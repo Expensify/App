@@ -13,7 +13,14 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined) => void;
+    showCommentNotification: (
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        derivedReportName: string | undefined,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        reportIDToName?: Record<string, string>,
+    ) => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
 };

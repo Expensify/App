@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type BasePolicyParams from '@userActions/IOU/types/BasePolicyParams';
 
-import type {Report, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {IntroSelected, Report, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -53,6 +53,8 @@ type ReceiptRetryContext = {
     transactionViolations: OnyxEntry<TransactionViolations>;
 
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+
+    introSelected: OnyxEntry<IntroSelected>;
 };
 
 type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed';

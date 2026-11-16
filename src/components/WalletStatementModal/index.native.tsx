@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -28,8 +29,11 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const delegateAccountID = useDelegateAccountID();
 
     const webViewRef = useRef<WebView>(null);
 
@@ -52,7 +56,17 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         if (!webViewRef.current || !parsedData) {
             return;
         }
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, conciergePersonalDetails, parsedData.type, parsedData.url);
+        handleWalletStatementNavigation(
+            conciergeReportID,
+            introSelected,
+            session?.accountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails,
+            delegateAccountID,
+            parsedData.type,
+            parsedData.url,
+        );
     };
 
     return (

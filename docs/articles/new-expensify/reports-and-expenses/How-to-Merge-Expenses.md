@@ -27,7 +27,8 @@ If you want to learn why duplicate expenses happen, see [Why Expenses Duplicate]
 You can merge duplicate expenses if you can edit both expenses.
 
 - Submitters can merge their own unreported expenses, expenses on Draft reports, and expenses on Outstanding reports.
-- Approvers and Workspace Admins can merge expenses on the same Draft or Outstanding report. 
+- Approvers can merge expenses on the same Draft or Outstanding report.
+- Workspace admins can merge a member's expenses across that member's Draft and Outstanding reports.
 
 You can't merge expenses that are Approved or Paid. Learn more about [expense statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions). 
 

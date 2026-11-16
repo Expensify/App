@@ -10,8 +10,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
+import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,7 +45,7 @@ function isConciergePersonalDetail(details: PersonalDetails | null | undefined):
 }
 
 function HelpPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'ConciergeAvatar', 'NewWindow', 'Monitor']);
     const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
@@ -62,6 +64,8 @@ function HelpPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const {openSupportTicketOrConcierge} = useOpenSupportTicket();
+    const {isOffline} = useNetwork();
 
     // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
     // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
@@ -194,7 +198,20 @@ function HelpPage() {
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
     };
 
-    const moreResourcesItems = hasActiveItem ? [helpSiteItem] : [conciergeItem, helpSiteItem];
+    const talkToAHumanItem = {
+        key: 'initialSettingsPage.talkToAHuman',
+        title: translate('initialSettingsPage.talkToAHuman'),
+        description: translate('initialSettingsPage.helpPage.talkToAHumanDescription'),
+        icon: icons.ChatBubbles,
+        iconType: CONST.ICON_TYPE_ICON,
+        onPress: openSupportTicketOrConcierge,
+        disabled: isOffline,
+        shouldShowRightIcon: true,
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,
+    };
+
+    const moreResourcesItems = [...(hasActiveItem ? [] : [conciergeItem]), talkToAHumanItem, helpSiteItem];
 
     useEffect(() => {
         openHelpPage();

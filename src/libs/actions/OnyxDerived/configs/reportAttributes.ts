@@ -1,16 +1,16 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import computeReportName from '@libs/computeReportName';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
 import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getLinkedTransactionID, getOriginalMessage, isActionableCardFraudAlert, isDeletedAction, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import {
     generateIsEmptyReport,
     generateReportAttributes,
@@ -21,6 +21,7 @@ import {
     isPolicyAdmin,
     isPolicyExpenseChat,
     isProcessingReport,
+    isSupportTicket,
     getPendingDeleteMemberAccountIDs,
     isValidReport,
 } from '@libs/ReportUtils';
@@ -33,7 +34,18 @@ import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    CardList,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -46,6 +58,9 @@ let previousPolicies: OnyxCollection<Policy>;
 let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 let previousFraudAlertReportIDs: Set<string> | undefined;
 let previousCardList: OnyxEntry<CardList>;
+let previousChildReportIDsWithError: Set<string> | undefined;
+let previousChildReportIDsByChat: Map<string, Set<string>> | undefined;
+let previousChatReportIDByChildReportID: Map<string, string> | undefined;
 
 const RECOMPUTE_ALL = 'all' as const;
 
@@ -167,32 +182,71 @@ const reportReferencesAccountIDs = (report: Report, accountIDs: Set<number>): bo
     return false;
 };
 
+// A chat's actions keep the same object until they change, so each chat's index is reused across computes.
+const previewActionsByChatReportActions = new WeakMap<ReportActions, Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>();
+
+// Keeps the first preview action for each child report, the one getReportPreviewReportAction finds.
+const getPreviewActionsByChildReportID = (chatReportActions: ReportActions) => {
+    const cachedPreviewActions = previewActionsByChatReportActions.get(chatReportActions);
+    if (cachedPreviewActions) {
+        return cachedPreviewActions;
+    }
+    const previewActions = new Map<string, ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>();
+    for (const reportAction of Object.values(chatReportActions)) {
+        if (!reportAction || !isReportPreviewAction(reportAction)) {
+            continue;
+        }
+        const linkedReportID = getOriginalMessage(reportAction)?.linkedReportID;
+        if (linkedReportID && !previewActions.has(linkedReportID)) {
+            previewActions.set(linkedReportID, reportAction);
+        }
+    }
+    previewActionsByChatReportActions.set(chatReportActions, previewActions);
+    return previewActions;
+};
+
 // Returns the report-preview action ID of the oldest child in `reportIDs` matching `predicate`
 // (oldest by preview-action creation time), or undefined when none match.
 const getOldestPreviewActionID = (
-    chatReportID: string,
-    reportIDs: string[] | undefined,
+    reportIDs: Iterable<string> | undefined,
     reports: OnyxCollection<Report>,
     chatReportActions: OnyxEntry<ReportActions>,
     predicate?: (childReport: OnyxEntry<Report>) => boolean,
 ) => {
+    if (!chatReportActions) {
+        return undefined;
+    }
+    // A busy chat has thousands of actions, so they're indexed once instead of searched again for every child.
+    const previewActionsByChildReportID = getPreviewActionsByChildReportID(chatReportActions);
     let oldestCreated: string | undefined;
     let targetReportActionID: string | undefined;
     for (const childReportID of reportIDs ?? []) {
         if (predicate && !predicate(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`])) {
             continue;
         }
-        const reportPreviewAction = getReportPreviewReportAction(chatReportID, childReportID, chatReportActions);
+        const reportPreviewAction = previewActionsByChildReportID.get(childReportID);
         if (!reportPreviewAction) {
             continue;
         }
-        if (oldestCreated === undefined || reportPreviewAction.created < oldestCreated) {
+        // Ties go to the lower reportActionID, so the pick doesn't depend on the order reports were stored in.
+        const isOlder = oldestCreated === undefined || reportPreviewAction.created < oldestCreated;
+        const isSameAgeWithLowerID = !!targetReportActionID && reportPreviewAction.created === oldestCreated && reportPreviewAction.reportActionID < targetReportActionID;
+        if (isOlder || isSameAgeWithLowerID) {
             oldestCreated = reportPreviewAction.created;
             targetReportActionID = reportPreviewAction.reportActionID;
         }
     }
     return targetReportActionID;
 };
+
+// The child's own brickRoadStatus is hidden when its workspace chat is accessible, so needsParentChatErrorPropagation is read too.
+const needsErrorOnParentChat = (report: OnyxEntry<Report>, attributes: ReportAttributesDerivedValue['reports'][string] | undefined) =>
+    !!report?.reportID &&
+    !!report.chatReportID &&
+    report.reportID !== report.chatReportID &&
+    (!!attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+const getParentChatReportID = (report: OnyxEntry<Report>) => (report?.reportID && report.chatReportID && report.reportID !== report.chatReportID ? report.chatReportID : undefined);
 
 const isActionable = (childReport: OnyxEntry<Report>) => isOpenReport(childReport) || isProcessingReport(childReport);
 
@@ -221,6 +275,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
         ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.COUNTRY_CODE,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -241,6 +296,7 @@ export default createOnyxDerivedValueConfig({
         [
             reports,
             preferredLocale,
+            countryCodeByIP,
             transactionViolations,
             reportActions,
             reportNameValuePairs,
@@ -258,10 +314,12 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        // Read the in-memory offline state directly. NETWORK is a dependency, but a NETWORK-only change finds no report updates and hits the
+        // "No updates to process" early return below, so existing attributes (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
+        const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP ?? CONST.DEFAULT_COUNTRY_CODE);
         // Non-React computation: there is no component to inject the currency formatters from CurrencyListContextProvider,
         // so mirror the provider's implementations here using the CURRENCY_LIST dependency and the preferred locale.
         const getCurrencyDecimals = (currencyCode: string): number => currencyList?.[currencyCode]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
@@ -461,7 +519,7 @@ export default createOnyxDerivedValueConfig({
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
 
-        let dataToIterate = Object.keys(reports);
+        let dataToIterate = useIncrementalUpdates ? [] : Object.keys(reports);
         // check if there are any report-related updates
 
         const reportUpdatesRelatedToReportActions = new Set<string>();
@@ -661,10 +719,19 @@ export default createOnyxDerivedValueConfig({
                     cardList,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     currentUserLogin: session?.email ?? '',
+                    isOffline,
+                    reportsTransactions,
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID, rules);
+                const hasFieldViolations = hasVisibleReportFieldViolations(
+                    report,
+                    policy,
+                    session?.accountID,
+                    rules,
+                    getLoginByAccountID(report.ownerAccountID, personalDetails),
+                    reportNameValuePair,
+                );
 
                 let brickRoadStatus;
                 let actionBadge;
@@ -672,6 +739,7 @@ export default createOnyxDerivedValueConfig({
                 let needsParentChatErrorPropagation = false;
                 const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
+                    policy,
                     chatReport,
                     reportActions: reportActionsList,
                     hasViolations: hasAnyViolations || hasFieldViolations,
@@ -690,7 +758,7 @@ export default createOnyxDerivedValueConfig({
 
                 // if report has errors or violations, show red dot
                 // Also skip setting ERROR when we'll show the green Submit badge — let the user submit without fix.
-                if (reasonAndReportAction && !willShowGreenSubmit) {
+                if (!isSupportTicket(report) && reasonAndReportAction && !willShowGreenSubmit) {
                     needsParentChatErrorPropagation = true;
 
                     // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already
@@ -741,6 +809,7 @@ export default createOnyxDerivedValueConfig({
                               convertToDisplayStringWithoutCurrency,
                               getCurrencySymbol,
                               pendingDeleteMemberAccountIDs,
+                              formatPhoneNumber,
                               rules,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
@@ -761,16 +830,34 @@ export default createOnyxDerivedValueConfig({
         // Propagate errors from IOU reports to their parent chat reports.
         const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const currentUserEmail = session?.email ?? '';
+
+        // Only the reports recomputed in this run can start or stop needing their error shown on the parent chat.
+        let childReportIDsWithError = previousChildReportIDsWithError;
+        if (!useIncrementalUpdates || !childReportIDsWithError) {
+            childReportIDsWithError = new Set();
+            for (const report of Object.values(reports)) {
+                if (report && needsErrorOnParentChat(report, reportAttributes[report.reportID])) {
+                    childReportIDsWithError.add(report.reportID);
+                }
+            }
+        } else {
+            for (const key of dataToIterate) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (needsErrorOnParentChat(reports[key], reportAttributes[reportID])) {
+                    childReportIDsWithError.add(reportID);
+                } else {
+                    childReportIDsWithError.delete(reportID);
+                }
+            }
+        }
+        previousChildReportIDsWithError = childReportIDsWithError;
+
         const erroredChildReportIDsByChat = new Map<string, string[]>();
-        const childReportIDsByChat = new Map<string, string[]>();
-        for (const report of Object.values(reports)) {
-            if (!report?.reportID || !report.chatReportID || report.reportID === report.chatReportID) {
+        for (const reportID of childReportIDsWithError) {
+            const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (!report?.chatReportID) {
                 continue;
             }
-
-            const childReportIDs = childReportIDsByChat.get(report.chatReportID) ?? [];
-            childReportIDs.push(report.reportID);
-            childReportIDsByChat.set(report.chatReportID, childReportIDs);
 
             // When the child IOU's parent action in the chat is deleted (e.g. another user deleted the request
             // while an optimistic pay was queued offline), the chat has no actionable surface for the error.
@@ -782,18 +869,50 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            // If this is an IOU report and its calculated attributes have an error,
-            // then we need to mark its parent chat report.
-            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
-            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
-            // we still need to propagate the error up so the parent shows the indicator.
-            const attributes = reportAttributes[report.reportID];
-            if (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
-                erroredChildReportIDs.push(report.reportID);
-                erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
-            }
+            const erroredChildReportIDs = erroredChildReportIDsByChat.get(report.chatReportID) ?? [];
+            erroredChildReportIDs.push(report.reportID);
+            erroredChildReportIDsByChat.set(report.chatReportID, erroredChildReportIDs);
         }
+
+        // Every child of a chat is only needed when none of its errored children can be acted on, so they're collected on first use.
+        // A settled report keeps its error across runs, so the list is kept too and updated with the reports changed in this run.
+        let childReportIDsByChat = useIncrementalUpdates ? previousChildReportIDsByChat : undefined;
+        let chatReportIDByChildReportID = useIncrementalUpdates ? previousChatReportIDByChildReportID : undefined;
+        const setParentChat = (reportID: string, chatReportID: string | undefined) => {
+            if (!childReportIDsByChat || !chatReportIDByChildReportID) {
+                return;
+            }
+            const previousChatReportID = chatReportIDByChildReportID.get(reportID);
+            if (previousChatReportID === chatReportID) {
+                return;
+            }
+            if (previousChatReportID) {
+                childReportIDsByChat.get(previousChatReportID)?.delete(reportID);
+            }
+            if (!chatReportID) {
+                chatReportIDByChildReportID.delete(reportID);
+                return;
+            }
+            chatReportIDByChildReportID.set(reportID, chatReportID);
+            const childReportIDs = childReportIDsByChat.get(chatReportID) ?? new Set<string>();
+            childReportIDs.add(reportID);
+            childReportIDsByChat.set(chatReportID, childReportIDs);
+        };
+        for (const key of childReportIDsByChat ? dataToIterate : []) {
+            setParentChat(key.replace(ONYXKEYS.COLLECTION.REPORT, ''), getParentChatReportID(reports[key]));
+        }
+        const getChildReportIDs = (chatReportID: string) => {
+            if (!childReportIDsByChat || !chatReportIDByChildReportID) {
+                childReportIDsByChat = new Map();
+                chatReportIDByChildReportID = new Map();
+                for (const report of Object.values(reports)) {
+                    if (report?.reportID) {
+                        setParentChat(report.reportID, getParentChatReportID(report));
+                    }
+                }
+            }
+            return childReportIDsByChat.get(chatReportID);
+        };
 
         // Apply the error status to the parent chat reports.
         for (const [chatReportID, erroredChildReportIDs] of erroredChildReportIDsByChat) {
@@ -806,8 +925,8 @@ export default createOnyxDerivedValueConfig({
             const chatReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`];
 
             actionTargetReportActionID =
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions, isActionable) ??
-                getOldestPreviewActionID(chatReportID, childReportIDsByChat.get(chatReportID), reports, chatReportActions, (childReport) =>
+                getOldestPreviewActionID(erroredChildReportIDs, reports, chatReportActions, isActionable) ??
+                getOldestPreviewActionID(getChildReportIDs(chatReportID), reports, chatReportActions, (childReport) =>
                     needsViolationFix(
                         childReport,
                         getLoginByAccountID(childReport?.ownerAccountID, personalDetails),
@@ -817,7 +936,7 @@ export default createOnyxDerivedValueConfig({
                         currentUserEmail,
                     ),
                 ) ??
-                getOldestPreviewActionID(chatReportID, erroredChildReportIDs, reports, chatReportActions) ??
+                getOldestPreviewActionID(erroredChildReportIDs, reports, chatReportActions) ??
                 actionTargetReportActionID;
 
             // Clone the entry before mutating — it may be a reference carried over from
@@ -828,7 +947,14 @@ export default createOnyxDerivedValueConfig({
                 actionBadge: CONST.REPORT.ACTION_BADGE.FIX,
                 actionTargetReportActionID,
             };
+            // A chat that is itself a child now has an error of its own to pass up on the next run.
+            if (needsErrorOnParentChat(reports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`], reportAttributes[chatReportID])) {
+                childReportIDsWithError.add(chatReportID);
+            }
         }
+
+        previousChildReportIDsByChat = childReportIDsByChat;
+        previousChatReportIDByChildReportID = chatReportIDByChildReportID;
 
         return {
             reports: reportAttributes,
@@ -844,6 +970,9 @@ export default createOnyxDerivedValueConfig({
         previousPolicies = undefined;
         previousFraudAlertReportIDs = undefined;
         previousCardList = undefined;
+        previousChildReportIDsWithError = undefined;
+        previousChildReportIDsByChat = undefined;
+        previousChatReportIDByChildReportID = undefined;
     },
 });
 

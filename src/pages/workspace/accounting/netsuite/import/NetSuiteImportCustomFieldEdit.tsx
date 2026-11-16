@@ -25,7 +25,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import NetSuiteCustomFieldMappingPicker from './NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
 
@@ -56,113 +56,99 @@ function NetSuiteImportCustomFieldEdit({
     const {inputCallbackRef} = useAutoFocusInput();
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
+    const allRecords = config?.syncOptions?.[importCustomField] ?? [];
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldValue = customField?.[fieldName as keyof CustomField] ?? '';
 
-    const updateRecord = useCallback(
-        (formValues: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>>) => {
-            const newValue = formValues[fieldName as keyof typeof formValues];
+    const updateRecord = (formValues: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>>) => {
+        const newValue = formValues[fieldName as keyof typeof formValues];
 
-            if (customField) {
-                const updatedRecords = allRecords.map((record, index) => {
-                    if (index === Number(valueIndex)) {
-                        return {
-                            ...record,
-                            [fieldName]: newValue,
-                        };
-                    }
-                    return record;
-                });
-
-                if (isNetSuiteCustomSegmentRecord(customField)) {
-                    updateNetSuiteCustomSegments(
-                        policyID,
-                        updatedRecords as NetSuiteCustomSegment[],
-                        allRecords as NetSuiteCustomSegment[],
-                        `${importCustomField}_${valueIndex}`,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    );
-                } else {
-                    updateNetSuiteCustomLists(
-                        policyID,
-                        updatedRecords as NetSuiteCustomList[],
-                        allRecords as NetSuiteCustomList[],
-                        `${importCustomField}_${valueIndex}`,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    );
+        if (customField) {
+            const updatedRecords = allRecords.map((record, index) => {
+                if (index === Number(valueIndex)) {
+                    return {
+                        ...record,
+                        [fieldName]: newValue,
+                    };
                 }
+                return record;
+            });
+
+            if (isNetSuiteCustomSegmentRecord(customField)) {
+                updateNetSuiteCustomSegments(
+                    policyID,
+                    updatedRecords as NetSuiteCustomSegment[],
+                    allRecords as NetSuiteCustomSegment[],
+                    `${importCustomField}_${valueIndex}`,
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                );
+            } else {
+                updateNetSuiteCustomLists(
+                    policyID,
+                    updatedRecords as NetSuiteCustomList[],
+                    allRecords as NetSuiteCustomList[],
+                    `${importCustomField}_${valueIndex}`,
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                );
             }
+        }
 
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
-        },
-        [allRecords, customField, fieldName, importCustomField, policyID, valueIndex],
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
+    };
+
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM> = {};
+
+        const key = fieldName as keyof typeof formValues;
+        const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
+        if (!formValues[key]) {
+            addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel));
+        } else if (
+            policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
+                (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
+            )
+        ) {
+            addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel));
+        }
+
+        return errors;
+    };
+
+    const renderForm = !!customField && (
+        <FormProvider
+            formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
+            style={[styles.flexGrow1, styles.ph5]}
+            validate={validate}
+            onSubmit={updateRecord}
+            submitButtonText={translate('common.save')}
+            shouldValidateOnBlur
+            shouldValidateOnChange
+            isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
+            shouldHideFixErrorsAlert
+        >
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={fieldName}
+                label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                aria-label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                role={CONST.ROLE.PRESENTATION}
+                spellCheck={false}
+                defaultValue={fieldValue ?? ''}
+                ref={inputCallbackRef}
+            />
+        </FormProvider>
     );
 
-    const validate = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM> = {};
-
-            const key = fieldName as keyof typeof formValues;
-            const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
-            if (!formValues[key]) {
-                addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel));
-            } else if (
-                policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
-                    (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
-                )
-            ) {
-                addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', fieldLabel));
-            }
-
-            return errors;
-        },
-        [fieldName, importCustomField, policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments, translate],
-    );
-
-    const renderForm = useMemo(
-        () =>
-            !!customField && (
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
-                    style={[styles.flexGrow1, styles.ph5]}
-                    validate={validate}
-                    onSubmit={updateRecord}
-                    submitButtonText={translate('common.save')}
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
-                    isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
-                    shouldHideFixErrorsAlert
-                >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={fieldName}
-                        label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                        aria-label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                        role={CONST.ROLE.PRESENTATION}
-                        spellCheck={false}
-                        defaultValue={fieldValue ?? ''}
-                        ref={inputCallbackRef}
-                    />
-                </FormProvider>
-            ),
-        [config?.pendingFields, customField, fieldName, fieldValue, importCustomField, inputCallbackRef, styles.flexGrow1, styles.ph5, translate, updateRecord, validate, valueIndex],
-    );
-
-    const renderSelection = useMemo(
-        () =>
-            !!customField && (
-                <NetSuiteCustomFieldMappingPicker
-                    onInputChange={(value) => {
-                        updateRecord({
-                            [fieldName]: value,
-                        });
-                    }}
-                    value={fieldValue}
-                />
-            ),
-        [customField, fieldName, fieldValue, updateRecord],
+    const renderSelection = !!customField && (
+        <NetSuiteCustomFieldMappingPicker
+            onInputChange={(value) => {
+                updateRecord({
+                    [fieldName]: value,
+                });
+            }}
+            value={fieldValue}
+        />
     );
 
     const renderMap: Record<string, React.JSX.Element> = {

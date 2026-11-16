@@ -54,8 +54,8 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
         isSelected: !defaultCompanyCardVendorID,
     };
     const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
-    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
-    const data: VendorListItem[] = shouldShowClearOption ? [clearOption, ...filteredVendorOptions] : filteredVendorOptions;
+    const searchableOptions: VendorListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData: data, textInputOptions} = useSelectionListSearch(searchableOptions, translate('common.noResultsFound'), true);
 
     const headerContent = (
         <View>
@@ -96,6 +96,7 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={defaultCompanyCardVendorID}

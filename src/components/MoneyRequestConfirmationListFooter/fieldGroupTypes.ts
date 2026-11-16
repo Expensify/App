@@ -30,6 +30,9 @@ type RequiredFlags = {
     isCategoryRequired: boolean;
     isMerchantRequired: boolean | undefined;
     isDescriptionRequired: boolean;
+
+    /** The selected category's description hint, empty when it shouldn't be shown */
+    descriptionHint: string;
 };
 
 /** Caller-supplied visibility decisions before they are merged with derived flags */
@@ -39,9 +42,6 @@ type VisibilityFlags = {
     shouldShowMerchant: boolean;
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
-
-    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible?: boolean;
 
     /**
      * Whether the list renders a participant section ("To" / "Paid by") above the footer. The manual form draws a

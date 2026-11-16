@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,8 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {WalletStatementMessage, WalletStatementProps} from './types';
@@ -23,24 +24,46 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const navigateRef = useRef<(event: MessageEvent<WalletStatementMessage>) => void>(null);
+    const delegateAccountID = useDelegateAccountID();
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const statementPageOrigin = new URL(statementPageURL).origin;
 
     /**
      * Handles in-app navigation for iframe links
      */
-    const navigate = useCallback(
-        (event: MessageEvent<WalletStatementMessage>) => {
-            const {data} = event;
-            const {type, url} = data || {};
-            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, conciergePersonalDetails, type, url);
-        },
-        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, conciergePersonalDetails],
-    );
+    const navigate = (event: MessageEvent<WalletStatementMessage>) => {
+        // Any page that holds a reference to this window can post a message to it,
+        // so we only act on messages sent by the statement page inside our iframe.
+        if (event.origin !== statementPageOrigin || event.source !== iframeRef.current?.contentWindow) {
+            return;
+        }
 
+        const {data} = event;
+        const {type, url} = data || {};
+        handleWalletStatementNavigation(
+            conciergeReportID,
+            introSelected,
+            session?.accountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails,
+            delegateAccountID,
+            type,
+            url,
+        );
+    };
+
+    // The statement page posts a message to this window when a link is clicked.
+    // This lets us handle the navigation in the app, outside of the iframe.
     useEffect(() => {
-        navigateRef.current = navigate;
+        window.addEventListener('message', navigate);
+        return () => {
+            window.removeEventListener('message', navigate);
+        };
     }, [navigate]);
 
     return (
@@ -51,6 +74,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                 </View>
             )}
             <iframe
+                ref={iframeRef}
                 src={`${statementPageURL}&authToken=${authToken}`}
                 title="Statements"
                 height="100%"
@@ -59,13 +83,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                 // frameBorder is deprecated in HTML5 but needed for consistent cross-browser iframe border removal
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 frameBorder="0"
-                onLoad={() => {
-                    setIsLoading(false);
-
-                    // We listen to a message sent from the iframe to the parent component when a link is clicked.
-                    // This lets us handle navigation in the app, outside of the iframe.
-                    window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
-                }}
+                onLoad={() => setIsLoading(false)}
             />
         </View>
     );

@@ -30,7 +30,7 @@ import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 import type {ComponentRef} from 'react';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ConfirmationStepProps = {
@@ -55,7 +55,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     const data = issueNewCard?.data;
     const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
     });
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -100,7 +99,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         }
     }, [issueNewCard, isSuccessful, policyID, buildDynamicRoute]);
 
-    const handleIssueCard = useCallback(() => {
+    const handleIssueCard = () => {
         if (!policyID) {
             return;
         }
@@ -113,7 +112,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             // Navigate to validateCode page
             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, assigneeTimeZone, buildDynamicRoute]);
+    };
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -188,27 +187,32 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate(cardReadyTranslationKey)}</Text>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARDHOLDER}
                     name={translate('workspace.card.issueNewCard.cardholder')}
                     onPress={!issueNewCard?.isChangeAssigneeDisabled ? () => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE) : undefined}
                     value={cardholder}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARD_TYPE}
                     name={translate('workspace.card.issueNewCard.cardType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
                     value={data?.cardType ? translate(`workspace.card.issueNewCard.${data.cardType}Card`) : undefined}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_LIMIT}
                     name={translate('workspace.card.issueNewCard.limit')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                     value={limitTitle}
                 />
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_LIMIT_TYPE}
                     name={translate('workspace.card.issueNewCard.limitType')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                     value={translationForLimitType ? translate(translationForLimitType) : undefined}
                 />
                 {!!expirationDateTitle && shouldShowExpirationDate && (
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_EXPIRATION_DATE}
                         name={translate('workspace.card.issueNewCard.expirationDate')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                         value={expirationDateTitle}
@@ -216,18 +220,21 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                 )}
                 {isSpendRuleApplied && areRulesEnabled && (
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_RESTRICTIONS}
                         name={translate('common.restrictions')}
                         onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SPEND_RULES)}
                         value={cardRuleRestrictionsTitle}
                     />
                 )}
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_CARD_NAME}
                     name={translate('workspace.card.issueNewCard.cardName')}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                     value={data?.cardTitle}
                 />
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CONFIRM_SUBMIT}
                         buttonRef={submitButton}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}

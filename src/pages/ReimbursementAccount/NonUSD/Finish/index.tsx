@@ -22,7 +22,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,14 +37,16 @@ function Finish() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, conciergePersonalDetails, shouldDismissModal: true});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -67,6 +69,7 @@ function Finish() {
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
                     <View style={styles.mhn5}>
                         <MenuItemNavigation
+                            sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.FINISH_CHAT_WITH_CONCIERGE}
                             icon={icons.ChatBubble}
                             title={translate('finishStep.iHaveA')}
                             onPress={handleNavigateToConciergeChat}
@@ -82,6 +85,7 @@ function Finish() {
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
                     <MenuItemSectionRoot
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.FINISH_ENABLE_TWO_FACTOR_AUTH}
                         onPress={() => {
                             Navigation.navigate(getTwoFactorAuthRoute());
                         }}

@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 /**
@@ -10,7 +10,7 @@ const useScrollEventEmitter = () => {
     const isScrollingRef = useRef<boolean>(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const triggerScrollEvent = useCallback(() => {
+    const triggerScrollEvent = () => {
         const emitScrolling = (isScrolling: boolean) => {
             DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, isScrolling);
         };
@@ -30,7 +30,7 @@ const useScrollEventEmitter = () => {
             emitScrolling(false);
             isScrollingRef.current = false;
         }, 250);
-    }, []);
+    };
 
     // Cleanup timeout on unmount
     useEffect(() => {

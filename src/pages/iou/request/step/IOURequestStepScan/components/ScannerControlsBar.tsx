@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -59,10 +60,10 @@ type ScannerControlsBarProps = {
     toggleMultiScan?: () => void;
 
     /** Sentry label for the gallery button. Defaults to the scan labels */
-    gallerySentryLabel?: string;
+    gallerySentryLabel?: SentryLabel;
 
     /** Sentry label for the shutter button. Defaults to the scan label */
-    shutterSentryLabel?: string;
+    shutterSentryLabel?: SentryLabel;
 };
 
 function ScannerControlsBar({

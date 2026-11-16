@@ -123,7 +123,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     };
 
     const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage = getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
+    const headerMessage = getHeaderMessage(translate, data.length !== 0, false, searchValue, countryCode);
 
     const textInputOptions = {
         label: textInputLabel,

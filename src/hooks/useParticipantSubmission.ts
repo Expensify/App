@@ -245,12 +245,10 @@ function useParticipantSubmission({
         const selectedPolicyID =
             firstParticipant?.policyID ??
             (firstParticipant?.reportID
-                ? getReportOrDraftReport(
-                      firstParticipant.reportID,
-                      undefined,
-                      undefined,
-                      dataRef.current.reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${firstParticipant.reportID}`] ?? {},
-                  )?.policyID
+                ? getReportOrDraftReport({
+                      reportID: firstParticipant.reportID,
+                      reportDraft: dataRef.current.reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${firstParticipant.reportID}`] ?? {},
+                  })?.policyID
                 : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
@@ -342,7 +340,6 @@ function useParticipantSubmission({
         if (isInvoice) {
             selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
         } else {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         }
     };
@@ -395,13 +392,7 @@ function useParticipantSubmission({
             const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-            setMoneyRequestCategory(
-                transaction.transactionID,
-                category,
-                isMovingTransactionFromTrackExpense ? movingPolicy : undefined,
-                getCurrencyDecimals,
-                isMovingTransactionFromTrackExpense,
-            );
+            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
 
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);

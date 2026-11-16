@@ -2,8 +2,10 @@ import SENTRY_APPLICATION_KEY from '@libs/telemetry/sentryApplicationKey';
 
 import * as SentryReact from '@sentry/react';
 
+import canvasKitNoiseFilterIntegration from './canvasKitNoiseFilter';
 import classCallCheckNoiseFilterIntegration from './classCallCheckNoiseFilter';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
+import googleTranslateRecursionNoiseFilterIntegration from './googleTranslateRecursionNoiseFilter';
 
 /**
  * `typeof` guard rather than a bare read: the define is absent from bundles that do not go through
@@ -35,9 +37,9 @@ const reportingObserverIntegration = SentryReact.reportingObserverIntegration({
 });
 
 /**
- * Tags errors whose stack holds no frame from our own bundle with `third_party_code: true`, so noise
- * thrown by injected code (consent tools, tag managers, browser extensions) can be told apart from our
- * own errors in issue search (GH #93837).
+ * Tags errors whose stack holds no frame from our own bundle with `third_party_code: true`
+ * (`CONST.TELEMETRY.TAGS.THIRD_PARTY_CODE`), so noise thrown by injected code (consent tools, tag managers,
+ * browser extensions) can be told apart from our own errors in issue search (GH #93837).
  *
  * Our bundle is recognized by the application key `@sentry/webpack-plugin` embeds in every chunk.
  * Without a stamped key every frame looks foreign and *all* our errors get mislabeled, so the guard
@@ -59,4 +61,6 @@ export {
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
     classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
 };

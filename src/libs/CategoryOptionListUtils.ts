@@ -95,6 +95,7 @@ function getCategoryListSections({
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     translate,
     shouldShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: {
     categories: PolicyCategories;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -104,6 +105,7 @@ function getCategoryListSections({
     maxRecentReportsToShow?: number;
     translate: LocalizedTranslate;
     shouldShowGLCode?: boolean;
+    searchInputThreshold?: number;
 }): CategoryTreeSection[] {
     const withGLCode = (category: Category): Category => (shouldShowGLCode ? {...category, glCode: getCategoryGLCode(categories, category.name)} : category);
     const sortedCategories = sortCategories(categories, localeCompare);
@@ -202,7 +204,7 @@ function getCategoryListSections({
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
-    if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    if (numberOfEnabledCategories < searchInputThreshold) {
         const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode);
         categorySections.push({
             // "All" section when items amount less than the threshold
@@ -256,7 +258,10 @@ function getCategoryListSections({
  */
 function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextProps['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
-    const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
+    // Onyx can hold partial entries without a name (e.g. a merge keyed by a category that was renamed or deleted), so skip them.
+    const sortedCategories = Object.values(categories)
+        .filter((category) => typeof category?.name === 'string')
+        .sort((a, b) => localeCompare(a.name, b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy: Hierarchy = {};

@@ -24,7 +24,7 @@ import type {Policy, ReimbursementAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -40,26 +40,24 @@ type FinishChatCardProps = {
     /** The policy which the user has access to and which the report is tied to */
     policy: OnyxEntry<Policy>;
 
-    /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep?: (step: string | null) => void;
-
     /** Route to return to when navigating back out of the flow */
     backTo?: Route;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, setUSDBankAccountStep, backTo}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, backTo}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     useResetBankAccountModal({
         reimbursementAccount,
         isNonUSDWorkspace: false,
-        setUSDBankAccountStep,
     });
 
     const handleNavigateToConciergeChat = () =>
@@ -68,6 +66,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             shouldDismissModal: true,
             reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
@@ -87,11 +86,13 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <View style={styles.mhn5}>
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_FINISH_IN_CHAT}
                         icon={icons.ChatBubble}
                         title={translate('workspace.bankAccount.finishInChat')}
                         onPress={handleNavigateToConciergeChat}
                     />
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_UPDATE_DETAILS}
                         icon={icons.Pencil}
                         title={translate('workspace.bankAccount.updateDetails')}
                         onPress={() => {
@@ -109,6 +110,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
                         }}
                     />
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_START_OVER}
                         icon={icons.RotateLeft}
                         title={translate('workspace.bankAccount.startOver')}
                         onPress={requestResetBankAccount}

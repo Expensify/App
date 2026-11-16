@@ -45,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {isLookingAroundUserSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 import type {AmountSubmitData} from './AmountSubmitDataSync';
@@ -111,19 +111,18 @@ function IOURequestStepAmount({
     // When editing, the `report` is the transaction thread which only has the current user as participant.
     // To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
     // (e.g., the 1:1 DM) via the IOU/expense report's chatReportID.
-    const chatReportForP2PCheck = useMemo(() => {
-        if (!isEditing) {
-            return report;
-        }
-        // When editing, report is the transaction thread. We need to get the actual chat report.
-        // Transaction thread's chatReportID points to the IOU/expense report,
-        // and the IOU/expense report's chatReportID points to the actual chat.
-        if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-            return actualChatReport;
-        }
+    let chatReportForP2PCheck;
+    if (!isEditing) {
+        chatReportForP2PCheck = report;
+    } else // When editing, report is the transaction thread. We need to get the actual chat report.
+    // Transaction thread's chatReportID points to the IOU/expense report,
+    // and the IOU/expense report's chatReportID points to the actual chat.
+    if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
+        chatReportForP2PCheck = actualChatReport;
+    } else {
         // Fallback to the passed report if we can't traverse
-        return report;
-    }, [isEditing, report, iouOrExpenseReport, actualChatReport]);
+        chatReportForP2PCheck = report;
+    }
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -132,7 +131,7 @@ function IOURequestStepAmount({
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
     const disableOppositeConversion = isCreateAction || (isSubmitType && isSubmitAction);
-    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
+    const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const [selectedCurrency, setSelectedCurrency] = useState(originalCurrency);
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
@@ -170,13 +169,7 @@ function IOURequestStepAmount({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (isSplitBill || !skipConfirmation || !report?.reportID) {
-            return false;
-        }
-
-        return !(isReportArchived || isPolicyExpenseChat(report));
-    }, [report, isSplitBill, skipConfirmation, isReportArchived]);
+    const shouldSkipConfirmation: boolean = !(isSplitBill || !skipConfirmation || !report?.reportID) && !(isReportArchived || isPolicyExpenseChat(report));
 
     // Both self-DM signals are ORed on purpose. The navigate half (IOUAmountSubmission) reads participants at submit time,
     // but on a quick-action flow they are not populated yet when this pre-mount decision runs, so the participants check
@@ -242,7 +235,7 @@ function IOURequestStepAmount({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
                   rules,
                   // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
                   pendingDeleteMemberAccountIDs: undefined,

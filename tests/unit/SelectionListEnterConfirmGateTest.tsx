@@ -262,3 +262,54 @@ describe.each([
         expect(getGatedFocusedIndex()).toBeGreaterThanOrEqual(0);
     });
 });
+
+describe('BaseSelectionListWithSections search input press', () => {
+    beforeEach(() => {
+        mockUseSelectionListShortcuts.mockClear();
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
+    });
+
+    function renderInviteLikeList(shouldAllowArrowUpToSearchInput: boolean) {
+        return render(
+            <OnyxListItemProvider>
+                <BaseSelectionListWithSections
+                    sections={[{data: mouseSelectedItems, sectionIndex: 0}]}
+                    ListItem={MultiSelectListItem}
+                    onSelectRow={jest.fn()}
+                    canSelectMultiple
+                    initiallyFocusedItemKey="0"
+                    shouldShowTextInput
+                    textInputOptions={{label: 'common.search', value: '', onChangeText: jest.fn()}}
+                    confirmButtonOptions={{onConfirm: jest.fn()}}
+                    footerContent={footerContent}
+                    shouldAllowArrowUpToSearchInput={shouldAllowArrowUpToSearchInput}
+                />
+            </OnyxListItemProvider>,
+        );
+    }
+
+    it('clears the focused row when the search input is pressed, so plain Enter reaches the confirm button again', () => {
+        // Given the invite list after keyboard navigation, where Enter would toggle the focused row
+        renderInviteLikeList(true);
+        fireEvent(screen.getByTestId('selection-list-text-input'), 'keyPress', {nativeEvent: {key: 'Tab'}});
+        expect(getGatedFocusedIndex()).toBeGreaterThanOrEqual(0);
+
+        // When the user presses the search input with the mouse
+        fireEvent.press(screen.getByTestId('selection-list-text-input'));
+
+        // Then no row is focused, so Enter in the search input goes to the confirm button
+        expect(getGatedFocusedIndex()).toBe(-1);
+    });
+
+    it('keeps the focused row when the search input is pressed and the list does not opt in', () => {
+        // Given a list that has not opted in, after keyboard navigation
+        renderInviteLikeList(false);
+        fireEvent(screen.getByTestId('selection-list-text-input'), 'keyPress', {nativeEvent: {key: 'Tab'}});
+
+        // When the user presses the search input
+        fireEvent.press(screen.getByTestId('selection-list-text-input'));
+
+        // Then the focused row still owns Enter, preserving existing behavior for other lists
+        expect(getGatedFocusedIndex()).toBeGreaterThanOrEqual(0);
+    });
+});

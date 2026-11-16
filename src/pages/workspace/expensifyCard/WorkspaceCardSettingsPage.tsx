@@ -12,9 +12,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
+import {clearCashbackToBillError, clearSettlementAccountError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardProgramKey, getCardSettings, toMonthlySettlementDate} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings, getSettlementAccountErrors, toMonthlySettlementDate} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -25,13 +25,14 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
@@ -39,6 +40,7 @@ import {View} from 'react-native';
 type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>;
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const policyID = route.params?.policyID;
@@ -59,6 +61,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
+    const settlementAccountErrors = getSettlementAccountErrors(cardSettings, programKey);
     const settlementDate = toMonthlySettlementDate(settings?.monthlySettlementDate);
     // Nothing is shown when the settlement date can't be resolved to a real day — an empty hint beats a wrong settlement date.
     const monthlySettlementDateText =
@@ -85,8 +88,18 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                     addBottomSafeAreaPadding
                 >
                     <View>
-                        <OfflineWithFeedback errorRowStyles={styles.mh5}>
+                        <OfflineWithFeedback
+                            errors={settlementAccountErrors}
+                            onClose={() => {
+                                if (!programKey) {
+                                    return;
+                                }
+                                clearSettlementAccountError(defaultFundID, programKey);
+                            }}
+                            errorRowStyles={styles.mh5}
+                        >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTINGS_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.expensifyCard.settlementAccount')}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path))}
                                 value={bankAccountNumber ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(bankAccountNumber)}` : undefined}
@@ -94,10 +107,11 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTINGS_SETTLEMENT_FREQUENCY}
                                 onPress={
                                     isSettlementFrequencyBlocked
                                         ? undefined
-                                        : callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)))
+                                        : callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID)), session)
                                 }
                             >
                                 <MenuItemField.Row
@@ -131,6 +145,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 title={translate('workspace.expensifyCard.applyCashbackToBill')}
                                 subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
                                 switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.APPLY_CASHBACK_TO_BILL_SWITCH}
                                 isActive={shouldApplyCashbackToBill}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={[styles.mv3, styles.mh5]}

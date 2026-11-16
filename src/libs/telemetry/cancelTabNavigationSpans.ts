@@ -1,4 +1,8 @@
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 import {cancelSpan} from './activeSpans';
 
@@ -11,6 +15,10 @@ const REPORTS_TAB_SPAN_IDS: readonly string[] = [
 ];
 const INBOX_TAB_SPAN_IDS: readonly string[] = [CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB];
 const TAB_NAVIGATION_SPAN_IDS: readonly string[] = [...REPORTS_TAB_SPAN_IDS, ...INBOX_TAB_SPAN_IDS];
+const NAVIGATION_TAB_TO_SPANS: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, readonly string[]>> = {
+    [NAVIGATION_TABS.INBOX]: INBOX_TAB_SPAN_IDS,
+    [NAVIGATION_TABS.SEARCH]: REPORTS_TAB_SPAN_IDS,
+};
 
 /**
  * Cancels running tab-navigation spans so an abandoned tap does not leave one ticking until the user returns.
@@ -26,4 +34,4 @@ function cancelTabNavigationSpans(preserve: readonly string[] = []) {
 }
 
 export default cancelTabNavigationSpans;
-export {REPORTS_TAB_SPAN_IDS, INBOX_TAB_SPAN_IDS, TAB_NAVIGATION_SPAN_IDS};
+export {TAB_NAVIGATION_SPAN_IDS, NAVIGATION_TAB_TO_SPANS};

@@ -5,9 +5,9 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
@@ -21,7 +21,6 @@ import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -34,14 +33,18 @@ import {View} from 'react-native';
 import ExpenseFieldRow from './ExpenseFieldRow';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
     isDescriptionRequired: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The selected category's description hint, shown below the input */
+    descriptionHint?: string;
 };
 
-function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
+function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
     const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
@@ -51,13 +54,14 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
     // top border and label — into view rather than just the inner text area.
     const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
+    const rawDescription = descriptionState?.description ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(rawDescription);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
-    const iouComment = Parser.htmlToMarkdown(descriptionState?.description ?? '');
+    const iouComment = Parser.htmlToMarkdown(rawDescription, {accountIDToName});
     const transactionHasReceipt = descriptionState?.hasReceipt ?? false;
 
     const contextMenuStateValue = {
@@ -91,7 +95,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(transactionID, baseTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -116,7 +120,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
             name={translate('common.description')}
             valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
             hasValueComponent={!!descriptionHTML}
-            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML, {accountIDToName})}` : undefined}
             rightLabel={isDescriptionRequired ? translate('common.required') : ''}
             onPress={openDescriptionPage}
             isDisabled={didConfirm}
@@ -157,6 +161,8 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                    hint={descriptionHint}
+                                    shouldRenderHintAsHTML={!!descriptionHint}
                                 />
                             </View>
                         ) : (

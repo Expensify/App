@@ -36,6 +36,7 @@ jest.mock('@sentry/react-native', () => {
         captureMessage: () => {},
         captureException: () => {},
         addBreadcrumb: () => {},
+        setUser: () => {},
         getClient: () => undefined,
         getActiveSpan: () => undefined,
         startInactiveSpanCalls,

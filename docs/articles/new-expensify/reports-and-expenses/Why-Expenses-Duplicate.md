@@ -35,14 +35,14 @@ Expensify automatically merges a SmartScanned receipt with a matching card trans
 - The transaction dates match
 - The currencies match or fall within the allowed foreign exchange tolerance
 - Only one possible match exists
-- The card transaction posts within seven days of the receipt being SmartScanned
+- The card transaction posts within seven days of the receipt being SmartScanned. For cards connected through Plaid, the pending transaction can merge before it posts.
 
 **Expenses will not automatically merge if:** 
 
 - The receipt was not SmartScanned or SmartScan did not complete
-- Expense details were edited before the card transaction posted
+- Expense details were edited before the card transaction posted (or, for cards connected through Plaid, before the pending transaction imported)
 - The amount, date, or currency differs beyond tolerance
-- The card transaction posts after seven days
+- The card transaction posts after seven days (or, for cards connected through Plaid, the pending transaction imports after seven days)
 - The foreign exchange difference exceeds five percent
 - The receipt is already matched to another expense
 - Both expenses are card transactions
@@ -63,6 +63,24 @@ This may occur when:
 - A Copilot uploads an expense that had already been uploaded by the member
 
 Each upload creates a separate expense, even if the receipt details are identical.
+
+---
+
+## What Awaiting card match means
+
+**Awaiting card match** and **Receipt pending match with card transaction. Mark as cash to cancel** appear on SmartScanned receipt expenses when you have a credit card connected to Expensify and the receipt appears to be from a credit card purchase.
+
+Expensify waits seven days for the matching card transaction to import and merge with the receipt expense. The seven-day period starts from the expense date, not the receipt upload date. If you edit the expense date, the seven-day period is based on the updated date.
+
+## When Awaiting card match clears
+
+The status clears when any of the following happens:
+
+- The receipt expense merges with the matching card transaction.
+- The expense is more than seven days old.
+- You select **Mark as cash** to indicate that you paid with cash or a card that isn't connected to Expensify.
+
+**Note:** If your connected credit card has a connection issue, the expense may keep the **Awaiting card match** status even after seven days. [Learn how to fix a card connection issue](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/fix-card-connection-issues).
 
 ---
 
@@ -94,7 +112,7 @@ If both expenses are card transactions, they cannot be merged. Instead, [delete 
 This happens when the receipt and card transaction did not merge into a single expense. This is usually due to differences in amount, date, currency, or timing.
 
 ## Why didn’t my receipt merge with my card transaction? 
-SmartScan requires a close match in amount, date, and currency. If those details differ, or if the card transaction has not posted within seven days, the expenses will not merge automatically.
+SmartScan requires a close match in amount, date, and currency. If those details differ, or if the card transaction has not posted within seven days (for cards connected through Plaid, imported as pending within seven days), the expenses will not merge automatically.
 
 ## Can uploading the same receipt twice create duplicates?
 

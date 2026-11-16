@@ -41,6 +41,11 @@ type UseSearchSelectorConfig = {
     /** When set, only the logins in this set are turned into options */
     includeLoginsOnly?: Set<string>;
 
+    /**
+     * When set, only the agents in this set are turned into options.
+     */
+    agentsWhitelist?: Set<number>;
+
     includeRecentReports?: boolean;
     includeCurrentUser?: boolean;
     includeDomainEmail?: boolean;
@@ -187,6 +192,7 @@ function usePersonalDetailSearchSelectorBase({
     excludeLogins = CONST.EMPTY_OBJECT,
     excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeLoginsOnly,
+    agentsWhitelist,
     includeRecentReports = true,
     onSelectionChange,
     onSingleSelect,
@@ -203,7 +209,7 @@ function usePersonalDetailSearchSelectorBase({
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly, agentsWhitelist});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 

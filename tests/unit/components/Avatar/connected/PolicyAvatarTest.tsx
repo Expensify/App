@@ -205,7 +205,7 @@ describe('PolicyAvatar (connected)', () => {
         expect(mockGetContainerStyles).not.toHaveBeenCalled();
     });
 
-    // `ReportActionAvatars` never applied the single-avatar container style to a subscript stack, and the subscript
+    // The single-avatar container style has never applied to a subscript stack, and the subscript
     // frame supplies its own size-derived container, so forwarding it here would shift every workspace+member row.
     it('should not forward the container style to the subscript layout', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});

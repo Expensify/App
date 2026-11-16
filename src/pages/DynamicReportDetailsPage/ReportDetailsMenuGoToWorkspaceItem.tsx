@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {isChatRoom as isChatRoomUtil, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -41,7 +42,8 @@ function ReportDetailsMenuGoToWorkspaceItem({reportID}: ReportDetailsMenuGoToWor
     }
 
     return (
-        <MenuItem
+        <MenuItemNavigation
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.GO_TO_WORKSPACE}
             title={translate('workspace.common.goToWorkspace')}
             icon={expensifyIcons.Building}
             onPress={() => {
@@ -54,8 +56,6 @@ function ReportDetailsMenuGoToWorkspaceItem({reportID}: ReportDetailsMenuGoToWor
                     Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(report?.policyID));
                 }
             }}
-            isAnonymousAction={false}
-            shouldShowRightIcon
         />
     );
 }

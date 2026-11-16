@@ -6,11 +6,11 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getValidConnectedIntegration, isGroupPolicy} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, isPayer} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -47,6 +47,10 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // Read these exports lazily because PolicyUtils and TransactionUtils import each other.
+    isPolicyMember: (...args: Parameters<typeof PolicyUtils.isPolicyMember>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyMember(...args),
+    isPolicyAdmin: (...args: Parameters<typeof PolicyUtils.isPolicyAdmin>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin(...args),
+    isInstantSubmitEnabled: (...args: Parameters<typeof PolicyUtils.isInstantSubmitEnabled>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isInstantSubmitEnabled(...args),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
@@ -141,6 +145,158 @@ describe('getReportPreviewAction', () => {
                 rules: undefined,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it('canSubmit should return false for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.role = CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the preview action is resolved
+        const previewAction = getReportPreviewAction({
+            isReportArchived: isReportArchived.current,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            report,
+            policy,
+            transactions: [transaction],
+            bankAccountList: {},
+            reportMetadata: undefined,
+            ownerLogin: CURRENT_USER_EMAIL,
+            rules: undefined,
+        });
+
+        // Then it is not SUBMIT
+        expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    // The submitter keeps the SUBMIT action on a prevent-self-approval workspace, matching isSubmitAction in
+    // ReportPrimaryActionUtils. SubmitActionButton then mounts and renders itself disabled. Returning VIEW here instead
+    // would hide the preview's Submit button entirely while the report header still shows a disabled one.
+    it('canSubmit should return true for the submitter when the workspace prevents self-approval', async () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        // Self-approval: the submitter is their own approver, so getSubmitToAccountID resolves to the report owner.
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+        policy.approver = CURRENT_USER_EMAIL;
+        policy.preventSelfApproval = true;
+        policy.employeeList = {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, submitsTo: CURRENT_USER_EMAIL}};
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it('canSubmit should return false for a non-submitter when the workspace prevents self-approval', async () => {
+        const OWNER_ACCOUNT_ID = 2;
+        const OWNER_EMAIL = 'owner@mail.com';
+        const report: Report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: OWNER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+        policy.approver = OWNER_EMAIL;
+        policy.preventSelfApproval = true;
+        policy.employeeList = {[OWNER_EMAIL]: {email: OWNER_EMAIL, submitsTo: OWNER_EMAIL}};
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL}});
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: OWNER_EMAIL,
+                rules: undefined,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
     });
 
     it('canSubmit should return false when the report only has pending card transactions', async () => {
@@ -550,6 +706,110 @@ describe('getReportPreviewAction', () => {
     });
 
     describe('canApprove', () => {
+        it.each([
+            {
+                name: 'no violations',
+                violation: undefined,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'a violation outside the preview rows',
+                violation: CONST.VIOLATIONS.MISSING_CATEGORY,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: true,
+            },
+            {
+                name: 'a dismissed violation',
+                violation: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                isAdmin: true,
+                isDismissed: true,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'an auto-approval notice visible to an admin',
+                violation: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: true,
+            },
+            {
+                name: 'an auto-approval notice hidden from a non-admin',
+                violation: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT,
+                isAdmin: false,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+            {
+                name: 'an RTER warning hidden on a weekly workspace',
+                violation: CONST.VIOLATIONS.RTER,
+                isAdmin: true,
+                isDismissed: false,
+                shouldPrioritizeView: false,
+            },
+        ])('prioritizes View based on $name', ({violation, isAdmin, isDismissed, shouldPrioritizeView}) => {
+            // Given an approvable report with six expenses and a violation only on its last expense
+            const report = createMock<Report>({
+                reportID: `${REPORT_ID}`,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 2,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            const policy = createMock<Policy>({
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: isAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            });
+            const transactions = Array.from({length: 6}, (_, index) =>
+                createMock<Transaction>({
+                    transactionID: `${index + 1}`,
+                    reportID: `${REPORT_ID}`,
+                    amount: 100,
+                    merchant: 'Test Merchant',
+                    created: '2025-01-01',
+                    comment:
+                        violation && isDismissed
+                            ? {
+                                  dismissedViolations: {
+                                      [violation]: {[CURRENT_USER_EMAIL]: '2025-01-01'},
+                                  },
+                              }
+                            : {},
+                }),
+            );
+
+            // When the decision uses the full report's transactions and the current approver's visibility rules
+            const action = getReportPreviewAction({
+                isReportArchived: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions,
+                violationsData: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6`]: violation
+                        ? [
+                              createMock<TransactionViolation>({
+                                  name: violation,
+                                  type: violation === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT ? CONST.VIOLATION_TYPES.NOTICE : CONST.VIOLATION_TYPES.VIOLATION,
+                              }),
+                          ]
+                        : [],
+                },
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: 'submitter@example.com',
+                rules: undefined,
+            });
+
+            // Then approval remains available, with View promoted only for a visible violation
+            expect(action).toBe(shouldPrioritizeView ? CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS : CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        });
         it('should return true for report being processed', async () => {
             const report = {
                 ...createRandomReport(REPORT_ID, undefined),
@@ -660,6 +920,52 @@ describe('getReportPreviewAction', () => {
                 created: '2025-01-01',
             });
 
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                    rules: undefined,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return VIEW for report whose only expense failed SmartScan with missing fields', async () => {
+            // Given a submitted expense report whose only expense failed SmartScan and has no amount
+            const report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = createMock<Transaction>({
+                reportID: `${REPORT_ID}`,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                amount: 0,
+                merchant: 'Merchant',
+                created: '2025-01-01',
+            });
+
+            // When getting the report preview action
+            // Then it should be VIEW instead of APPROVE because the expense still needs its missing fields filled in
             expect(
                 getReportPreviewAction({
                     isReportArchived: false,
@@ -886,6 +1192,100 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    /**
+     * Builds a non-payer admin scenario: the current user is a workspace admin on a paid group policy, but someone else is the
+     * designated reimburser. The policy is written to Onyx (and referenced by `policyID`) because `isPayer` resolves the policy
+     * type through `ReportUtils.isPaidGroupPolicy`, which reads Onyx. Without it, `isPayer` falls back to a bare admin check and
+     * would report the user as the payer, hiding whatever `canAdminPayReport` decides.
+     */
+    async function setUpNonPayerAdminScenario(reimbursementChoice: Policy['reimbursementChoice']) {
+        const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = reimbursementChoice;
+        policy.achAccount = {
+            reimburser: DESIGNATED_PAYER_EMAIL,
+            bankAccountID: 1,
+            accountNumber: '1234567890',
+            routingNumber: '987654321',
+            addressName: 'Test Address',
+            bankName: 'Test Bank',
+        };
+
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: policy.id,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            ...createRandomTransaction(REPORT_ID),
+            reportID: `${REPORT_ID}`,
+        };
+
+        return {policy, report, transaction};
+    }
+
+    it('canPay should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
+        // Given an approved expense preview on a workspace with bank reimbursement enabled.
+        // When an admin who is not the designated payer opens the preview.
+        // Then the preview offers Pay using admin payment permission.
+        const {policy, report, transaction} = await setUpNonPayerAdminScenario(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // The Pay option must come from canAdminPayReport, not from isPayer.
+        expect(isPayer(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, report, {}, policy, false)).toBe(false);
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should not return PAY for non-payer admin when reimbursementChoice is not configured', async () => {
+        // Given an approved expense preview on a workspace without a reimbursement choice.
+        // When a non-payer admin opens the preview.
+        // Then Pay is unavailable because workspace reimbursement has not been configured.
+        const {policy, report, transaction} = await setUpNonPayerAdminScenario(undefined);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
     it('canPay should not return PAY for the expense owner in a 1:1 IOU on a personal policy with manual reimbursement', async () => {
         const managerAccountID = CURRENT_USER_ACCOUNT_ID + 1;
         const report = {
@@ -940,7 +1340,8 @@ describe('getReportPreviewAction', () => {
         }
     });
 
-    it('canPay should return false for Expense report with zero total amount', async () => {
+    it('canPay should return PAY for an expense report with a zero total that is ready to be paid', async () => {
+        // Given a submitted $0 expense report on a workspace without approvals, so it's ready to be paid and can only be marked as paid
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -955,6 +1356,7 @@ describe('getReportPreviewAction', () => {
         policy.role = CONST.POLICY.ROLE.ADMIN;
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        policy.approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = createMock<Transaction>({
@@ -962,7 +1364,9 @@ describe('getReportPreviewAction', () => {
         });
 
         await waitForBatchedUpdatesWithAct();
-        // Should not show PAY button for zero amount Expenses
+
+        // When the report preview action is computed
+        // Then PAY is shown so the report can be closed out by marking it as paid, matching Expensify Classic
         expect(
             getReportPreviewAction({
                 isReportArchived: false,
@@ -976,7 +1380,7 @@ describe('getReportPreviewAction', () => {
                 ownerLogin: CURRENT_USER_EMAIL,
                 rules: undefined,
             }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('canPay should return PAY for expense report with only non-reimbursable expenses when payments enabled', async () => {
@@ -1021,7 +1425,8 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
-    it('canPay should return VIEW for expense report with only non-reimbursable expenses when total is 0', async () => {
+    it('canPay should return PAY for expense report with only non-reimbursable expenses when total is 0', async () => {
+        // Given a closed $0 report whose only expense is non-reimbursable, so the approver still needs to close it out
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1037,6 +1442,54 @@ describe('getReportPreviewAction', () => {
         policy.role = CONST.POLICY.ROLE.ADMIN;
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
+        jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
+        jest.mocked(getValidConnectedIntegration).mockReturnValueOnce(undefined);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report preview action is computed
+        // Then PAY is shown so the report can be marked as paid, matching Expensify Classic
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('getReportPreviewAction should return VIEW for expense report with only non-reimbursable expenses when preventPayoutNonReimbursableReports is true', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            total: -3000,
+            nonReimbursableTotal: -3000,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        policy.preventPayoutNonReimbursableReports = true;
 
         jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
         jest.mocked(getValidConnectedIntegration).mockReturnValueOnce(undefined);
@@ -1291,6 +1744,47 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
+    it('canExport should return false while an export is still running', async () => {
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // Given a finished report that would otherwise offer Export
+        // When an export of it is still running
+        // Then the preview must not offer a second export
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                isExportInProgress: true,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
     describe('DEW (Dynamic External Workflow) submit pending', () => {
         it('should return VIEW action when DEW submit is pending and report is OPEN', async () => {
             // Given an open expense report with a corporate policy where DEW submit is pending
@@ -1527,5 +2021,50 @@ describe('getReportPreviewAction', () => {
             // Then it should return APPROVE because DEW approval is not pending
             expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
         });
+    });
+
+    it('canExport returns true on a cash-basis policy when every expense is non-reimbursable', async () => {
+        // Given an approved report whose expenses are all non-reimbursable, on a cash-basis NetSuite policy. Cash-basis
+        // reports normally wait until they are paid, but a card-only report has nothing to reimburse so it is never paid
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.connections = {
+            [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({
+                options: {config: {accountingMethod: 'CASH'}},
+            }),
+        };
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = createMock<Transaction>({reportID: `${REPORT_ID}`, reimbursable: false});
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the exporter views the report preview
+        // Then Export is offered right away, so the report is not stuck waiting for a payment that never comes
+        expect(
+            getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+                reportMetadata: undefined,
+                ownerLogin: CURRENT_USER_EMAIL,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 });

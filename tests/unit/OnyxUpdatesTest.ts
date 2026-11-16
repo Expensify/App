@@ -24,7 +24,12 @@ describe('OnyxUpdatesTest', () => {
         });
     });
 
-    beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
+    // Staged WRITE and catch-up updates live in module state, so drain them before Onyx.clear to keep tests isolated
+    beforeEach(() =>
+        flushQueue()
+            .then(() => Onyx.clear())
+            .then(waitForBatchedUpdates),
+    );
 
     let releaseHeldApply: (() => void) | undefined;
     afterEach(() => {
@@ -111,6 +116,78 @@ describe('OnyxUpdatesTest', () => {
         // Then the response should still be returned to the caller, not undefined
         expect(result).toBeDefined();
         expect(result?.jsonCode).toBe(200);
+    });
+
+    describe('pagination data', () => {
+        const reportID = '1';
+        const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        const pagesKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}` as const;
+        const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}` as const;
+        const reportActionID = '2';
+        const reportActions = {[reportActionID]: {reportActionID, created: '2026-11-11 10:00:00.000'}};
+
+        const paginatedReadResponse = (lastUpdateID: number): OnyxUpdatesFromServer<OnyxKey> => ({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID,
+            request: {
+                command: 'GetNewerActions',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [{onyxMethod: 'merge', key: loadingKey, value: {isLoadingNewerReportActions: false}}],
+            },
+            response: {
+                jsonCode: 200,
+                onyxData: [{onyxMethod: 'merge', key: actionsKey, value: reportActions}],
+                paginationOnyxData: [{onyxMethod: 'set', key: pagesKey, value: [[reportActionID, CONST.PAGINATION_END_ID]]}],
+            },
+        });
+
+        it('writes the pages after the items they list', async () => {
+            // Given a subscriber that records which report actions are stored when the pages change
+            let storedActions: unknown;
+            let actionsWhenPagesChanged: unknown;
+            const actionsConnection = Onyx.connectWithoutView({
+                key: actionsKey,
+                callback: (value) => {
+                    storedActions = value;
+                },
+            });
+            const pagesConnection = Onyx.connectWithoutView({
+                key: pagesKey,
+                callback: (pages) => {
+                    if (!pages) {
+                        return;
+                    }
+                    actionsWhenPagesChanged = storedActions;
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When a paginated read response is applied
+            await OnyxUpdates.apply(paginatedReadResponse(0));
+            await waitForBatchedUpdates();
+            actionsConnection.unsubscribe();
+            pagesConnection.unsubscribe();
+
+            // Then the pages are written after the items, so a list never reads a page whose items aren't stored yet
+            expect(actionsWhenPagesChanged).toStrictEqual(reportActions);
+        });
+
+        it('skips the pages together with the items of an already-applied response', async () => {
+            // Given the client already applied update 100
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+            await waitForBatchedUpdates();
+
+            // When a paginated read response that is already covered arrives
+            await OnyxUpdates.apply(paginatedReadResponse(100));
+            await waitForBatchedUpdates();
+
+            // Then neither the items nor the pages are written, because pages without their items would hide a gap in the list,
+            // while the request's own finallyData still clears its loading state
+            expect(await getOnyxValue(actionsKey)).toBeUndefined();
+            expect(await getOnyxValue(pagesKey)).toBeUndefined();
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({isLoadingNewerReportActions: false});
+        });
     });
 
     it('advances lastUpdateID only after the updates are successfully applied', async () => {
@@ -565,6 +642,87 @@ describe('OnyxUpdatesTest', () => {
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual({reportID});
 
         await flushQueue();
+    });
+
+    it.each([
+        ['GetMissingOnyxMessages', SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {updateIDFrom: 20, updateIDTo: 30}],
+        ['an incremental ReconnectApp', SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {updateIDFrom: 20}],
+    ])('queues a catch-up response of %s behind the staged WRITE updates it starts above', async (_name, command, data) => {
+        // Given the client is caught up to update 10 and a WRITE response up to update 20 is staged for the deferred
+        // flush, carrying the report summary as it was before the gap
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportID = NumberUtils.rand64();
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+        const stagedSummary = {reportID, lastMessageText: '', lastReadTime: '2026-10-19 06:18:51.498', lastVisibleActionCreated: '2026-10-19 06:18:51.498'};
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: WRITE_COMMANDS.CREATE_WORKSPACE, data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: stagedSummary}]},
+        });
+        await waitForBatchedUpdates();
+
+        // When the catch-up response for the gap right after the staged WRITE lands with the newer summary
+        const caughtUpSummary = {lastMessageText: 'Welcome to Expensify! What do you want to do first?', lastVisibleActionCreated: '2026-10-19 06:18:51.526'};
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 30,
+            request: {command, data},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: caughtUpSummary}]},
+        });
+        await waitForBatchedUpdates();
+
+        // Then it waits in the queue with the WRITE instead of landing ahead of it, and the gap is not reported again
+        expect(await getOnyxValue(reportKey)).toBeUndefined();
+        expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 30})).toBe(false);
+
+        // And the flush that runs once the sequential queue drains applies both in server order
+        await flushQueue();
+        await waitForBatchedUpdates();
+        expect(await getOnyxValue(reportKey)).toStrictEqual({...stagedSummary, ...caughtUpSummary});
+        expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
+    });
+
+    it('keeps catch-up responses queued behind a staged WRITE in arrival order', async () => {
+        // Given a WRITE response up to update 20 is staged for the deferred flush
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}` as const;
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: WRITE_COMMANDS.CREATE_WORKSPACE, data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'staged write'}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // When an older and then a newer catch-up response land before the flush
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 30,
+            request: {command: SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, data: {updateIDFrom: 20, updateIDTo: 30}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'older catch-up'}}]},
+        });
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 40,
+            request: {command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, data: {updateIDFrom: 20}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'newer catch-up'}}]},
+        });
+        await flushQueue();
+        await waitForBatchedUpdates();
+
+        // Then the newer catch-up is applied last and the watermark ends on it
+        expect(await getOnyxValue(reportKey)).toStrictEqual({lastMessageText: 'newer catch-up'});
+        expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(40);
     });
 
     describe('Pusher apply chain recovery', () => {
@@ -1085,7 +1243,8 @@ describe('OnyxUpdatesTest', () => {
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(45);
         });
 
-        it('does not release a failure sitting below the range a catch-up response covered', async () => {
+        it('releases a failure below a catch-up range once the staged WRITE queued ahead of it completes the chain', async () => {
+            // Given a staged WRITE covering 10 to 100 sits behind failures at 50 and 200
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
 
@@ -1095,33 +1254,53 @@ describe('OnyxUpdatesTest', () => {
             await failedOpenAppResponse(50);
             await failedReadResponse(200);
 
+            // When a catch-up response covers 100 to 220 and lands with the staged WRITE in the deferred flush
             await OnyxUpdates.apply(catchUpResponse(100, 220));
+            await flushQueue();
             await waitForBatchedUpdates();
 
-            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
-            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 220})).toBe(true);
-
-            await flushQueue().catch(() => {});
+            // Then the WRITE and the catch-up together cover the watermark through both failures, so the hold is released
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(220);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 220})).toBe(false);
         });
 
-        it('holds the watermark when a catch-up response cannot prove it covered the watermark', async () => {
+        it('holds the watermark when the deferred flush carrying a queued catch-up response fails', async () => {
+            // Given a staged WRITE covering 10 to 100 whose deferred flush will fail
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
             await waitForBatchedUpdates();
 
             await stagedWrite(100);
+
+            // When a catch-up response above it is queued behind the WRITE and the deferred flush fails
+            await OnyxUpdates.apply(catchUpResponse(100, 220));
+            const updateSpy = jest.spyOn(Onyx, 'update').mockRejectedValueOnce(new Error('storage write failed'));
+            await expect(flushQueue()).rejects.toThrow('storage write failed');
+            await waitForBatchedUpdates();
+            updateSpy.mockRestore();
+
+            // Then neither the WRITE nor the catch-up advanced the watermark, so the next gap check fetches the range again
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 220})).toBe(true);
+        });
+
+        it('holds the watermark when a catch-up response cannot prove it covered the watermark', async () => {
+            // Given a failure at 200 with nothing staged that could bridge the watermark at 10
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
             await failedReadResponse(200);
 
+            // When a catch-up response starts above the watermark
             await OnyxUpdates.apply(catchUpResponse(100, 220));
             await waitForBatchedUpdates();
 
+            // Then the hold stays until a catch-up response covers from the watermark
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
             expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 220})).toBe(true);
 
             await OnyxUpdates.apply(catchUpResponse(10, 220));
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(220);
-
-            await flushQueue().catch(() => {});
         });
 
         it('does not treat a previousUpdateID of the string zero as covering from zero', async () => {
