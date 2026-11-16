@@ -6,6 +6,8 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
+import {BUSINESS_ACTIVITY_FIELDS, getBusinessActivityAnswers} from '@pages/ReimbursementAccount/NonUSD/utils/getBusinessActivityAnswers';
+import isOtherCorpayPicklistSelection from '@pages/ReimbursementAccount/NonUSD/utils/isOtherCorpayPicklistSelection';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 
 import CONST from '@src/CONST';
@@ -18,6 +20,14 @@ import React from 'react';
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
+    DBA_OR_REGISTERED_TRADE_NAME,
+    DATE_OF_INCORPORATION,
+    SOURCE_OF_FUNDS,
+    OTHER_SOURCE_OF_FUNDS,
+    OTHER_BUSINESS_LEGAL_STRUCTURE,
+    NUMBER_OF_MONTHLY_TRANSACTION,
+    EXPECTED_FREQUENCY_OF_TRANSACTIONS,
+    CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO,
     COMPANY_WEBSITE,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     TAX_ID_EIN_NUMBER,
@@ -61,6 +71,15 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
+    const activities = getBusinessActivityAnswers(reimbursementAccountDraft, reimbursementAccount?.achData?.corpay);
+    const yes = translate('common.yes');
+    const no = translate('common.no');
+    const getActivityTitle = (value: boolean | undefined) => {
+        if (value === undefined) {
+            return '';
+        }
+        return value ? yes : no;
+    };
     const isBusinessTypeRequired = values[COMPANY_COUNTRY_CODE] !== CONST.COUNTRY.CA;
 
     const paymentVolume = displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], values[ANNUAL_VOLUME]);
@@ -68,6 +87,9 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
     const incorporationType = displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]);
     const tradeVolumeRange = displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], values[TRADE_VOLUME]);
     const businessType = displayStringValue(corpayOnboardingFields?.picklists.BusinessType ?? [], values[BUSINESS_TYPE_ID]);
+    const sourceOfFunds = displayStringValue(corpayOnboardingFields?.picklists.SourceOfFunds ?? [], values[SOURCE_OF_FUNDS]);
+    const frequency = displayStringValue(corpayOnboardingFields?.picklists.ExpectedFrequencyOfTransactions ?? [], values[EXPECTED_FREQUENCY_OF_TRANSACTIONS]);
+    const corpayAccountUse = displayStringValue(corpayOnboardingFields?.picklists.ClientIntendsToUseCorpayAccountTo ?? [], values[CLIENT_INTENDS_TO_USE_CORPAY_ACCOUNT_TO]);
 
     const summaryItems = [
         {
@@ -191,6 +213,83 @@ function Confirmation({onNext, onMove, isEditing}: SubPageProps) {
                 onMove(9);
             },
         },
+        ...(values[COMPANY_COUNTRY_CODE] === CONST.COUNTRY.AU
+            ? [
+                  {
+                      id: 'source-of-funds',
+                      title: sourceOfFunds,
+                      description: translate('businessInfoStep.sourceOfFunds'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(10),
+                  },
+                  ...(isOtherCorpayPicklistSelection(values[SOURCE_OF_FUNDS], 'SOURCE_OF_FUNDS')
+                      ? [
+                            {
+                                id: 'other-source-of-funds',
+                                title: values[OTHER_SOURCE_OF_FUNDS],
+                                description: translate('businessInfoStep.otherSourceOfFunds'),
+                                shouldShowRightIcon: true,
+                                onPress: () => onMove(10),
+                            },
+                        ]
+                      : []),
+                  ...(isOtherCorpayPicklistSelection(values[APPLICANT_TYPE_ID], 'APPLICANT_TYPE')
+                      ? [
+                            {
+                                id: 'other-business-structure',
+                                title: values[OTHER_BUSINESS_LEGAL_STRUCTURE],
+                                description: translate('businessInfoStep.otherBusinessLegalStructure'),
+                                shouldShowRightIcon: true,
+                                onPress: () => onMove(10),
+                            },
+                        ]
+                      : []),
+                  {
+                      id: 'monthly-transactions',
+                      title: values[NUMBER_OF_MONTHLY_TRANSACTION],
+                      description: translate('businessInfoStep.monthlyTransactions'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(10),
+                  },
+                  {
+                      id: 'frequency-of-transactions',
+                      title: frequency,
+                      description: translate('businessInfoStep.transactionFrequency'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(10),
+                  },
+                  {
+                      id: 'corpay-account-use',
+                      title: corpayAccountUse,
+                      description: translate('businessInfoStep.corpayAccountUse'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(10),
+                  },
+                  {
+                      id: 'registered-trade-name',
+                      title: values[DBA_OR_REGISTERED_TRADE_NAME],
+                      description: translate('businessInfoStep.registeredTradeName'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(11),
+                  },
+                  {
+                      id: 'date-of-incorporation',
+                      title: values[DATE_OF_INCORPORATION],
+                      description: translate('businessInfoStep.incorporationDate'),
+                      shouldShowRightIcon: true,
+                      onPress: () => onMove(11),
+                  },
+              ]
+            : []),
+        ...(values[COMPANY_COUNTRY_CODE] === CONST.COUNTRY.AU
+            ? BUSINESS_ACTIVITY_FIELDS.map(({inputID, label}) => ({
+                  id: inputID,
+                  title: getActivityTitle(activities[inputID]),
+                  description: translate(label),
+                  shouldShowRightIcon: true,
+                  onPress: () => onMove(12),
+              }))
+            : []),
     ];
 
     return (

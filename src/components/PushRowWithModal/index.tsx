@@ -3,6 +3,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import toggleArrayItem from '@libs/toggleArrayItem';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -22,7 +23,15 @@ type PushRowWithModalBaseProps = {
     description: string;
 
     modalHeaderTitle: string;
-    searchInputTitle: string;
+
+    /** Omit for short option lists that do not need a search input. */
+    searchInputTitle?: string;
+
+    /** Defaults to two lines; zero lets long questions wrap without truncation. */
+    numberOfLinesDescription?: number;
+
+    /** Defaults to the shared picker label when no flow-specific label is provided. */
+    sentryLabel?: SentryLabel;
 
     /** Whether the selected option is editable */
     shouldAllowChange?: boolean;
@@ -61,7 +70,19 @@ type PushRowWithModalMultipleProps = {
 type PushRowWithModalProps = PushRowWithModalBaseProps & (PushRowWithModalSingleProps | PushRowWithModalMultipleProps);
 
 function PushRowWithModal(props: PushRowWithModalProps) {
-    const {optionsList, wrapperStyles, description, modalHeaderTitle, searchInputTitle, shouldAllowChange = true, disabled = false, errorText, onBlur = () => {}} = props;
+    const {
+        optionsList,
+        wrapperStyles,
+        description,
+        modalHeaderTitle,
+        searchInputTitle,
+        numberOfLinesDescription,
+        sentryLabel = CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN,
+        shouldAllowChange = true,
+        disabled = false,
+        errorText,
+        onBlur = () => {},
+    } = props;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [pendingSelection, setPendingSelection] = useState<string[]>([]);
     const shouldBlurOnCloseRef = useRef(true);
@@ -113,6 +134,8 @@ function PushRowWithModal(props: PushRowWithModalProps) {
         <>
             <MenuItemWithTopDescription
                 description={description}
+                numberOfLinesDescription={numberOfLinesDescription}
+                sentryLabel={sentryLabel}
                 title={selection
                     .map((key) => optionsList[key])
                     .filter(Boolean)
@@ -122,7 +145,6 @@ function PushRowWithModal(props: PushRowWithModalProps) {
                 wrapperStyle={wrapperStyles}
                 interactive={shouldAllowChange}
                 disabled={disabled}
-                sentryLabel={CONST.SENTRY_LABEL.PUSH_ROW_WITH_MODAL.OPEN}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
             />

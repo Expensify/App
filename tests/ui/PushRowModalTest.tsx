@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
+import {View} from 'react-native';
 
 const mockUseState = React.useState;
 
@@ -142,5 +143,28 @@ describe('PushRowModal', () => {
         expect(onOptionChange).toHaveBeenCalledWith('option-1');
         expect(onClose).not.toHaveBeenCalled();
         expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the full yes/no question without a search input', () => {
+        // Given a long declaration that has only two possible answers.
+        const question = 'Are any company personnel or signatories, their family members, or close associates politically exposed?';
+
+        // When the picker opens without a search label.
+        render(
+            <PushRowModal
+                isVisible
+                selectedOptions={[]}
+                onOptionChange={jest.fn()}
+                onClose={jest.fn()}
+                optionsList={{true: 'Yes', false: 'No'}}
+                headerTitle={question}
+            />,
+        );
+
+        // Then the prompt is readable in the scrolling content, rather than truncated in the header.
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.textInputOptions).toBeUndefined();
+        const {getByText} = render(<View>{props?.customListHeaderContent}</View>);
+        expect(getByText(question)).toBeOnTheScreen();
     });
 });
