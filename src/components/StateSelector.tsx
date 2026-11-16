@@ -2,6 +2,7 @@ import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalState
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -26,7 +27,7 @@ import MenuItemField from './MenuItem/presets/MenuItemField';
 
 type State = keyof typeof COMMON_CONST.STATES;
 
-type StateSelectorProps = {
+type StateSelectorProps = ForwardedFSClassProps & {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
@@ -44,7 +45,7 @@ type StateSelectorProps = {
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, forwardedFSClass, ref}: StateSelectorProps) {
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -95,6 +96,7 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
             <MenuItemField.Row
                 name={label || translate('common.state')}
                 value={title}
+                forwardedFSClass={forwardedFSClass}
             >
                 {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                 <MenuItem.Chevron />

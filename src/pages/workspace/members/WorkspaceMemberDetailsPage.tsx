@@ -9,7 +9,6 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PromotedActions} from '@components/PromotedActionsBar';
@@ -86,12 +85,13 @@ import variables from '@styles/variables';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
-import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {callIfAuthenticated, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -171,6 +171,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserAdmin = policy?.employeeList?.[currentUserLogin]?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserLogin;
     const shouldShowOfficeLocation = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && hasOfficeLocations(policy);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
@@ -188,7 +189,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
-    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const shouldShowCategoryVisibility = isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
     const [policyCategoriesVisibility] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: policyCategoriesVisibilitySelector});
 
     const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(shouldShowCategoryVisibility ? policyID : undefined);
@@ -539,30 +540,34 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 />
                             </OfflineWithFeedback>
                             {shouldShowLocalTime && !!details.timezone && <AutoUpdateTime timezone={details.timezone} />}
-                            <MenuItemWithTopDescription
+                            <MenuItem.Root
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_ROLE}
-                                disabled={!canEditSelectedMemberRole}
-                                title={translate(`workspace.common.roleName`, member?.role)}
-                                interactive={canEditSelectedMemberRole}
-                                description={translate('common.role')}
-                                shouldShowRightIcon={canEditSelectedMemberRole}
-                                shouldGreyOutWhenDisabled={false}
-                                shouldUseDefaultCursorWhenDisabled
-                                pressableTestID="member-role-menu-item"
-                                onPress={() => {
-                                    if (
-                                        tryNavigateToSubmitWorkspaceUpgrade(
-                                            policy,
-                                            true,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
-                                            ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
-                                        )
-                                    ) {
-                                        return;
-                                    }
-                                    Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
-                                }}
-                            />
+                                testID="member-role-menu-item"
+                                onPress={
+                                    canEditSelectedMemberRole
+                                        ? callIfAuthenticated(() => {
+                                              if (
+                                                  tryNavigateToSubmitWorkspaceUpgrade(
+                                                      policy,
+                                                      true,
+                                                      CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+                                                      ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID),
+                                                  )
+                                              ) {
+                                                  return;
+                                              }
+                                              Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
+                                          }, session)
+                                        : undefined
+                                }
+                            >
+                                <MenuItemField.Row
+                                    name={translate('common.role')}
+                                    value={translate(`workspace.common.roleName`, member?.role)}
+                                >
+                                    {canEditSelectedMemberRole && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                            </MenuItem.Root>
                             {shouldShowCategoryVisibility && (
                                 <OfflineWithFeedback
                                     pendingAction={member?.pendingFields?.categoryVisibility}
@@ -622,18 +627,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 />
                             )}
                             {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && isWorkArrangementBetaEnabled && (
-                                <MenuItemWithTopDescription
+                                <MenuItem.Root
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_WORK_ARRANGEMENT}
-                                    disabled={!canWriteMembers}
-                                    title={getWorkArrangementLabel(translate, memberWorkArrangement)}
-                                    interactive={canWriteMembers}
-                                    description={translate('workspace.people.workArrangement')}
-                                    shouldShowRightIcon={canWriteMembers}
-                                    shouldGreyOutWhenDisabled={false}
-                                    shouldUseDefaultCursorWhenDisabled
-                                    pressableTestID="member-work-arrangement-menu-item"
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
-                                />
+                                    testID="member-work-arrangement-menu-item"
+                                    onPress={
+                                        canWriteMembers
+                                            ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID)), session)
+                                            : undefined
+                                    }
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workspace.people.workArrangement')}
+                                        value={getWorkArrangementLabel(translate, memberWorkArrangement)}
+                                    >
+                                        {canWriteMembers && <MenuItem.Chevron />}
+                                    </MenuItemField.Row>
+                                </MenuItem.Root>
                             )}
                             {isControlPolicy(policy) && (
                                 <>
