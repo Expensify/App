@@ -243,7 +243,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 whiteSpace: 'normal',
             },
 
-            // SearchActionHeader also renders this as a View style
             ol: {
                 maxWidth: '100%',
                 whiteSpace: 'normal',

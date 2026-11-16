@@ -14,11 +14,13 @@ function toDimensionValue(size: number | string): DimensionValue {
     return size as DimensionValue;
 }
 
+/** Returns the style unchanged, typed as a ViewStyle so react-native-web can render its web-only values */
 function toViewStyle(style: WebOnlyViewStyle): ViewStyle {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- react-native-web renders these CSS values, React Native's style types don't declare them
     return style as ViewStyle;
 }
 
+/** Returns the style unchanged, typed as a TextStyle so react-native-web can render its web-only values */
 function toTextStyle(style: WebOnlyTextStyle): TextStyle {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- react-native-web renders these CSS values, React Native's style types don't declare them
     return style as TextStyle;

@@ -4,7 +4,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {DimensionValue, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-// Not just numbers: previews take percentages, and on desktop a CSS `min()` expression typed with `toDimensionValue`
 type TransactionPreviewStyleType = {
     width: DimensionValue;
     maxWidth?: DimensionValue;
