@@ -89,8 +89,7 @@ describe.each([
         // When the user picks Discard
         resolveShowConfirmModal({action: MockModalActions.CONFIRM});
 
-        // Then the whole RHP closes, as the click asked, instead of only the step on top. The web hook sends the navigation
-        // again on the next animation frame, so wait for it.
+        // Then the whole RHP closes, as the click asked, instead of only the step on top.
         await waitFor(() => expect(getRootRouteNames()).toEqual([NAVIGATORS.TAB_NAVIGATOR]));
     });
 

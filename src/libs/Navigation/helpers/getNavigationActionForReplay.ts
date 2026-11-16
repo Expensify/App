@@ -12,12 +12,9 @@ const BACK_ACTION_TYPES = new Set<string>([CONST.NAVIGATION.ACTION_TYPE.GO_BACK,
 /**
  * Makes Discard close the whole RHP when the user clicked outside it.
  *
- * Clicking outside the RHP sends a "go back" with no target, which the top-level navigator handles by closing the RHP. After the
- * user picks Discard, that action is sent again, but this time react-navigation hands it to the innermost navigator, which only
- * closes the top screen and leaves the RHP open. Targeting the top-level navigator makes it close the RHP, like the original click.
- * An action with no target that came from one of the top-level navigator's own routes is how that click is recognized. Other
- * actions, such as a back sent from a screen inside the RHP, were handled by that screen's own stack, which gets the replay
- * too, so they're returned unchanged. The copy keeps react-navigation's hidden marker that stops the same screen from blocking it again.
+ * That click sends a "go back" with no target from the RHP's route, so the root closes the RHP. Sent again as is, the innermost
+ * navigator handles it and only closes the top screen, so it's aimed at the root instead. Other actions are returned unchanged.
+ * The copy keeps react-navigation's marker that stops the same screen from blocking it again.
  */
 function getNavigationActionForReplay(action: NavigationAction): NavigationAction {
     if (action.target || !action.source || !BACK_ACTION_TYPES.has(action.type)) {
