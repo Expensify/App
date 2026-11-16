@@ -577,6 +577,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the date has been explicitly picked by the user */
         isCreatedSet?: boolean;
 
+        /** Only on drafts. Set when the user changes a field that has no flag of its own above (category, tag, tax, billable, ...) */
+        hasUserEdits?: boolean;
+
         /** The original merchant name */
         merchant: string;
 
