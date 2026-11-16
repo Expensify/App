@@ -1,5 +1,5 @@
 /**
- * Prepares a navigation that a "Discard changes?" prompt blocked, so sending it again after Discard does what it first did.
+ * Prepares a navigation that a "Discard changes?" prompt blocked, so sending it again after Discard resumes it.
  */
 import navigationRef from '@libs/Navigation/navigationRef';
 
