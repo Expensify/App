@@ -1237,6 +1237,8 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '最长付款时间',
         share: '占比',
         averageDays: '平均天数',
+        generatingAIInsights: '正在生成 AI 洞察…',
+        generatingAIInsightsSubtitle: '这不会花费超过一分钟',
     },
     allSettingsScreen: {
         subscription: '订阅',

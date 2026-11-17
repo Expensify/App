@@ -1,10 +1,10 @@
-import Icon from '@components/Icon';
-import PulsingView from '@components/PulsingView';
+/** Explains the wait for AI insights without blocking the dashboard charts. */
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -12,12 +12,13 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-/** Explains the wait for AI insights without blocking the dashboard charts. */
+const ANIMATION_SIZE = 60;
+
 function InsightsAILoadingIndicator() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const StyleUtils = useStyleUtils();
+    const animationStyle = StyleUtils.getWidthAndHeightStyle(ANIMATION_SIZE);
 
     return (
         <View
@@ -25,15 +26,15 @@ function InsightsAILoadingIndicator() {
             role={CONST.ROLE.STATUS}
             accessibilityLiveRegion="polite"
         >
-            <PulsingView
-                shouldPulse
-                style={styles.mb4}
-            >
-                <Icon
-                    src={icons.Sparkles}
-                    fill={theme.icon}
+            <View style={styles.mb4}>
+                <Lottie
+                    source={LottieAnimations.SparkleRotate}
+                    autoPlay
+                    loop
+                    style={animationStyle}
+                    webStyle={animationStyle}
                 />
-            </PulsingView>
+            </View>
             <Text
                 variant="textStrong"
                 style={[styles.textAlignCenter, styles.mb1]}

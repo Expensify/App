@@ -1334,6 +1334,8 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        generatingAIInsights: 'Δημιουργία AI Insights...',
+        generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

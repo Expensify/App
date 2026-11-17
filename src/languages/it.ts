@@ -1291,6 +1291,8 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Tempo massimo per pagare',
         share: 'Quota%',
         averageDays: 'Giorni medi',
+        generatingAIInsights: 'Generazione di approfondimenti IA in corso...',
+        generatingAIInsightsSubtitle: 'Non dovrebbe volerci più di un minuto',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',

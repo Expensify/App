@@ -1276,6 +1276,8 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        generatingAIInsights: 'AI インサイトを生成しています…',
+        generatingAIInsightsSubtitle: '1 分もかからないはずです',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
