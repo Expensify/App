@@ -1190,6 +1190,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: '出張用のルールを設定する',
             addFirstReceipt: '最初のレシートを追加する',
             addFirstReceiptSubText: 'レシートをスキャンするか手入力します',
+            addName: '氏名を追加してください',
+            addNameSubText: 'Expensify でチームメイトにあなたを認識してもらいましょう。',
+            downloadApp: 'アプリをダウンロード',
+            downloadAppSubText: '領収書をスキャンして経費を提出し、外出先でもレポートを承認できます。',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -4218,7 +4222,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
-            hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
             cannotIncludeCommaOrSemicolon: '名前にコンマまたはセミコロンを含めることはできません',
             incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `使用可能な形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
@@ -4406,7 +4409,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             lastName: '有効な姓を入力してください',
             noDefaultDepositAccountOrDebitCardAvailable: 'デフォルトの入金口座またはデビットカードを追加してください',
             validationAmounts: '入力した検証用金額が正しくありません。銀行明細書をもう一度確認してから、再度お試しください。',
-            fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
             deletePaymentBankAccount: 'この銀行口座は Expensify カードの支払いに使用されているため、削除できません。この口座を削除したい場合は、Concierge までご連絡ください。',
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
