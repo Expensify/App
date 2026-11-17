@@ -374,6 +374,7 @@ describe('actions/App', () => {
             ['ReconnectApp with side effects', () => App.reconnectAppWithSideEffects()],
             ['the final ReconnectApp after reliable updates', () => App.finalReconnectAppAfterActivatingReliableUpdates()],
         ] as const)('is not set by %s, which can finish before the app start', async (_, sendRequest) => {
+            // Given an app that has loaded before, whose start request hasn't finished yet
             // When a request outside the app start succeeds
             await sendRequest();
             await waitForBatchedUpdates();

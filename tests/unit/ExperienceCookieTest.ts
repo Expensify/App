@@ -152,13 +152,14 @@ describe('ExperienceCookie', () => {
         mockEnvironment = CONST.ENVIRONMENT.PRODUCTION;
         mockExpensifyURL = 'https://www.expensify.com/';
 
+        // When the page is opened on expensify.com, New Expensify's host and Classic's host
+        const hostResults = ['expensify.com', 'new.expensify.com', 'www.expensify.com'].map((hostname) => {
+            arrangeHostname(hostname);
+            return isSharedProductHost();
+        });
+
         // Then only expensify.com serves both products, while New Expensify's and Classic's own hosts don't
-        arrangeHostname('expensify.com');
-        expect(isSharedProductHost()).toBe(true);
-        arrangeHostname('new.expensify.com');
-        expect(isSharedProductHost()).toBe(false);
-        arrangeHostname('www.expensify.com');
-        expect(isSharedProductHost()).toBe(false);
+        expect(hostResults).toEqual([true, false, false]);
     });
 
     it.each([
@@ -171,15 +172,22 @@ describe('ExperienceCookie', () => {
         // Given the cookies the browser sends for this page
         const cookieGetter = jest.spyOn(Document.prototype, 'cookie', 'get').mockReturnValue(cookie);
 
+        // When the app reads the experience cookie
+        const experience = readExperienceCookie();
+
         // Then only a known experience value is returned
-        expect(readExperienceCookie()).toBe(expected);
+        expect(experience).toBe(expected);
         cookieGetter.mockRestore();
     });
 
     it('never reads a cookie on native', () => {
         // Given the native implementation, which has no browser cookies
+        // When the app reads the cookie and checks the host
+        const experience = NativeExperienceCookie.readExperienceCookie();
+        const isShared = NativeExperienceCookie.isSharedProductHost();
+
         // Then there is no cookie and no shared product host
-        expect(NativeExperienceCookie.readExperienceCookie()).toBeUndefined();
-        expect(NativeExperienceCookie.isSharedProductHost()).toBe(false);
+        expect(experience).toBeUndefined();
+        expect(isShared).toBe(false);
     });
 });

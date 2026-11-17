@@ -23,12 +23,12 @@ import usePermissions from './usePermissions';
  * because Classic and New Expensify could disagree about the account and send the tab back and forth.
  */
 function claimRepairInThisTab(): boolean {
-    if (typeof sessionStorage === 'undefined') {
-        Log.hmmm('[ExperienceCookie] Not repairing the cookie because sessionStorage is unavailable');
-        return false;
-    }
-
+    // Reading sessionStorage throws when the browser blocks storage, so the probe stays inside the try
     try {
+        if (typeof sessionStorage === 'undefined') {
+            Log.hmmm('[ExperienceCookie] Not repairing the cookie because sessionStorage is unavailable');
+            return false;
+        }
         if (sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.EXPERIENCE_COOKIE_REPAIR) !== null) {
             Log.hmmm('[ExperienceCookie] Not repairing the cookie again in this tab, Classic and New Expensify may disagree about the account');
             return false;
@@ -43,11 +43,10 @@ function claimRepairInThisTab(): boolean {
 
 /** A start that keeps the user in New Expensify ends any back and forth, so the next mismatch in this tab can be repaired again */
 function releaseRepairInThisTab() {
-    if (typeof sessionStorage === 'undefined') {
-        return;
-    }
-
     try {
+        if (typeof sessionStorage === 'undefined') {
+            return;
+        }
         sessionStorage.removeItem(CONST.SESSION_STORAGE_KEYS.EXPERIENCE_COOKIE_REPAIR);
     } catch {
         // A mark that can't be removed only blocks a later repair in this tab, which leaves the cookie as it would be without this hook
@@ -63,11 +62,16 @@ function useRepairExperienceCookie() {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const openClassic = useOpenClassic();
 
-    // Only the first server response after start decides. Later changes in this session come from the user's own switch, which opens Classic itself.
+    // Only the first server response for an account decides. Later changes in this session come from the user's own switch, which opens Classic itself.
     const hasDecided = useRef(false);
 
     useEffect(() => {
-        if (hasDecided.current || !hasFreshAppData || !isSharedProductHost()) {
+        // Clearing Onyx, as an account switch does, resets the flag, so the next account's first response decides again
+        if (!hasFreshAppData) {
+            hasDecided.current = false;
+            return;
+        }
+        if (hasDecided.current || !isSharedProductHost()) {
             return;
         }
         hasDecided.current = true;

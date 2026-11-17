@@ -226,6 +226,23 @@ describe('useRepairExperienceCookie', () => {
         getItem.mockRestore();
     });
 
+    it('decides again for the account a Copilot returns to', async () => {
+        // Given a Copilot session, which never repairs the cookie because it belongs to the agent
+        await arrangeAccount({prefersClassic: true, session: {authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}});
+        await renderRepair();
+        await receiveFreshAppData();
+
+        // When the Copilot disconnects, which clears Onyx and restores their own account without remounting the app, and that account's data arrives
+        await act(async () => {
+            await Onyx.clear();
+            await arrangeAccount({prefersClassic: false});
+        });
+        await receiveFreshAppData(true);
+
+        // Then the restored account's first response decides, so its switch to Classic elsewhere still repairs the cookie
+        expect(mockOpenClassic).toHaveBeenCalledTimes(1);
+    });
+
     it('does nothing outside the host that serves both products', async () => {
         // Given New Expensify on its own host
         jest.mocked(isSharedProductHost).mockReturnValue(false);
