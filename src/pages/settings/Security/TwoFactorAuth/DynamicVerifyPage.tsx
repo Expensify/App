@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -22,6 +23,7 @@ import {getContactMethod} from '@libs/UserUtils';
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import {clearAccountMessages} from '@userActions/Session';
+import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +33,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
@@ -45,6 +47,8 @@ function DynamicVerifyPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
+    const [validateCode, setValidateCode] = useState<string>();
+    const [isValidateCodeRejected, setIsValidateCodeRejected] = useState(false);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path);
@@ -89,16 +93,47 @@ function DynamicVerifyPage() {
         });
     };
 
+    const goBackToRecoveryCodes = () => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath));
+    const stepCounter = {
+        step: 2,
+        text: translate('twoFactorAuth.stepVerify'),
+        total: 2,
+    };
+
+    // The server only turns on 2FA when it also gets a magic code emailed to the account, so someone with a stolen session
+    // can't lock the owner out. We ask for it before the authenticator code because that code expires within a minute,
+    // which isn't enough time to also wait for an email.
+    if (!validateCode) {
+        return (
+            <TwoFactorAuthWrapper
+                stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
+                title={translate('twoFactorAuth.headerTitle')}
+                stepCounter={stepCounter}
+                onBackButtonPress={goBackToRecoveryCodes}
+            >
+                <ValidateCodeActionForm
+                    // Reading contactMethod here would stop React Compiler from caching it for the QR code below, so it's computed again
+                    descriptionPrimary={translate('twoFactorAuth.enterSecurityCode', getContactMethod(account?.primaryLogin, session?.email))}
+                    descriptionSecondary={isValidateCodeRejected ? translate('twoFactorAuth.securityCodeRejected') : undefined}
+                    descriptionSecondaryStyles={styles.formError}
+                    sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.ENABLE_TWO_FACTOR_AUTH_VALIDATE_CODE_REASON})}
+                    handleSubmitForm={(code) => {
+                        setIsValidateCodeRejected(false);
+                        setValidateCode(code);
+                    }}
+                    clearError={clearAccountMessages}
+                    submitButtonText={translate('common.next')}
+                />
+            </TwoFactorAuthWrapper>
+        );
+    }
+
     return (
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
-            stepCounter={{
-                step: 2,
-                text: translate('twoFactorAuth.stepVerify'),
-                total: 2,
-            }}
-            onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath))}
+            stepCounter={stepCounter}
+            onBackButtonPress={goBackToRecoveryCodes}
             shouldEnableMaxHeight={false}
         >
             <ScrollView
@@ -151,6 +186,12 @@ function DynamicVerifyPage() {
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
                     <ToggleTwoFactorAuthForm
                         ref={formRef}
+                        validateCode={validateCode}
+                        onInvalidValidateCode={() => {
+                            // Showing the magic code step again emails a new code, since the rejected one may have expired
+                            setIsValidateCodeRejected(true);
+                            setValidateCode(undefined);
+                        }}
                         shouldAutoFocusOnMobile={false}
                         onFocus={handleInputFocus}
                     />

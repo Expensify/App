@@ -2885,6 +2885,8 @@ const translations = {
         `),
         errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
+        enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to set up two-factor authentication. It should arrive within a minute or two.`,
+        securityCodeRejected: 'That security code didn’t work, so we sent you a new one.',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',

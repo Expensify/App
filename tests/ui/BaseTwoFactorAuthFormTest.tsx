@@ -113,6 +113,32 @@ describe('BaseTwoFactorAuthForm', () => {
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledWith(false, '123456');
     });
 
+    it('sends the magic code along with the authenticator code when setting up 2FA', () => {
+        // Given the setup form, after the user entered the magic code emailed to them
+        const formRef = createRef<BaseTwoFactorAuthFormRef>();
+        const onInvalidValidateCode = jest.fn();
+        render(
+            <OnyxListItemProvider>
+                <ToggleTwoFactorAuthForm
+                    ref={formRef}
+                    validateCode="654321"
+                    onInvalidValidateCode={onInvalidValidateCode}
+                    shouldAutoFocusOnMobile={false}
+                />
+            </OnyxListItemProvider>,
+        );
+
+        // When the user submits the authenticator code
+        fireEvent.changeText(screen.getByTestId('twoFactorAuthCodeInput'), '123456');
+        act(() => {
+            formRef.current?.validateAndSubmitForm();
+        });
+
+        // Then both codes are sent, because the server requires the magic code before it turns on 2FA
+        expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
+        expect(mockValidateTwoFactorAuth).toHaveBeenCalledWith('123456', false, {shouldKeepTwoFactorAuthFlowOpen: false, validateCode: '654321', onInvalidValidateCode});
+    });
+
     it('allows submitting a recovery code after toggling inputs', async () => {
         const {formRef} = renderForm();
 
