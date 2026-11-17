@@ -1,12 +1,12 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberDefaultCategory,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
     getVisibleCategories,
@@ -20,7 +20,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -628,33 +627,6 @@ describe('getCategoryNameError', () => {
     });
 });
 
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
-    });
-
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
-    });
-
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
-        };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-});
-
 describe('getMemberVisibleCategoryNames', () => {
     const policyCategories: PolicyCategories = {
         Travel: {name: 'Travel', enabled: true, visibleTo: null},
@@ -757,5 +729,44 @@ describe('getVisibleCategories', () => {
 
         // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
         expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
+    });
+});
+
+describe('getMemberDefaultCategory', () => {
+    const policyCategories: PolicyCategories = {
+        Car: {name: 'Car', enabled: true, visibleTo: buildVisibleTo(2)},
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+    };
+
+    it('drops a default category hidden from the member', () => {
+        // Given a distance default of Car, which only member 2 can use
+        // When the default is resolved for member 1
+        const defaultCategory = getMemberDefaultCategory('Car', policyCategories, 1);
+
+        // Then no category is applied, so the expense isn't coded to a category the member can't pick
+        expect(defaultCategory).toBe('');
+    });
+
+    it('keeps a default category the member can use', () => {
+        // Given defaults that member 2 can use, one listing them and one open to everyone
+        // When the defaults are resolved for member 2
+        // Then both are applied as before
+        expect(getMemberDefaultCategory('Car', policyCategories, 2)).toBe('Car');
+        expect(getMemberDefaultCategory('Travel', policyCategories, 1)).toBe('Travel');
+    });
+
+    it("keeps the default while the category isn't loaded, since its visibility isn't known yet", () => {
+        // Given a default category that isn't in the loaded categories
+        // When the default is resolved
+        // Then it's kept, as it was before visibility existed
+        expect(getMemberDefaultCategory('Fuel', policyCategories, 1)).toBe('Fuel');
+        expect(getMemberDefaultCategory('Fuel', undefined, 1)).toBe('Fuel');
+    });
+
+    it('returns an empty category when the workspace has no default', () => {
+        // Given no default category
+        // When it's resolved
+        // Then nothing is applied
+        expect(getMemberDefaultCategory(undefined, policyCategories, 1)).toBe('');
     });
 });

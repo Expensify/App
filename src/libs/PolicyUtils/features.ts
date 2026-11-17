@@ -24,7 +24,7 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return (isControlPolicy(policy) && policy?.isAttendeeTrackingEnabled) ?? true;
 }
 
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, hasCategoryRules?: boolean): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
@@ -38,7 +38,7 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (!isControlPolicy(policy)) {
         return false;
     }
-    return hasAnyCategoryRules(policyCategories ?? undefined);
+    return hasCategoryRules ?? hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
 /**

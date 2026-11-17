@@ -71,6 +71,16 @@ jest.mock('@hooks/useHasTabBeenShown', () => jest.fn(() => true));
 
 jest.mock('@hooks/useSubscriptionPlan', () => jest.fn(() => null));
 
+const mockOpenClassic = jest.fn();
+jest.mock('@hooks/useOpenClassic', () => jest.fn(() => mockOpenClassic));
+
+// Mocked to check that the shortcut doesn't record another switch
+const mockSwitchToOldDot = jest.fn<void, unknown[]>();
+jest.mock('@libs/actions/ExitSurvey', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/ExitSurvey'),
+    switchToOldDot: (...args: unknown[]) => mockSwitchToOldDot(...args),
+}));
+
 jest.mock('@components/AccountSwitcher', () => {
     function MockAccountSwitcher() {
         return null;
@@ -104,17 +114,19 @@ jest.mock('@components/MenuItem', () => {
         badgeText,
         isBadgeSuccess,
         isBadgeCondensed,
+        onPress,
     }: {
         title: string;
         brickRoadIndicator?: string;
         badgeText?: string;
         isBadgeSuccess?: boolean;
         isBadgeCondensed?: boolean;
+        onPress?: () => void;
     }) =>
         ReactMock.createElement(
             ReactMock.Fragment,
             null,
-            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title),
+            ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`, onPress}, title),
             brickRoadIndicator ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-rbr`}, brickRoadIndicator) : null,
             badgeText ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge`}, badgeText) : null,
             isBadgeSuccess ? ReactMock.createElement(Text, {testID: `decoration-${String(title)}-badge-success`}) : null,
@@ -419,5 +431,59 @@ describe('InitialSettingsPage - scrolling', () => {
 
         expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.SCROLLING, true);
         emitSpy.mockRestore();
+    });
+});
+
+describe('InitialSettingsPage - Go to Expensify Classic', () => {
+    const accountID = 789;
+
+    beforeAll(async () => {
+        Onyx.init({keys: ONYXKEYS});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdatesWithAct();
+        jest.clearAllMocks();
+    });
+
+    it('opens Classic without recording another switch when the exit survey was completed within the last month', async () => {
+        // Given a user who dismissed New Expensify yesterday, so the server already keeps them in Classic
+        mockUseSubscriptionPlan.mockImplementation(() => null);
+        await TestHelper.signInWithTestUser(accountID, 'user@expensify.com');
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                classicRedirect: {
+                    dismissed: true,
+                    timestamp: subDays(new Date(), 1),
+                },
+                nudgeMigration: {
+                    timestamp: subDays(new Date(), 1),
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const goToClassicTitle = TestHelper.translateLocal('exitSurvey.goToExpensifyClassic');
+        await waitFor(() => {
+            expect(screen.getByTestId(`menu-item-${goToClassicTitle}`)).toBeDefined();
+        });
+
+        // When they choose to go to Classic
+        fireEvent.press(screen.getByTestId(`menu-item-${goToClassicTitle}`));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Classic opens right away, and no SwitchToOldDot adds a duplicate dismissed reason
+        expect(mockOpenClassic).toHaveBeenCalledTimes(1);
+        expect(mockSwitchToOldDot).not.toHaveBeenCalled();
     });
 });

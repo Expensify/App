@@ -185,4 +185,4 @@ export default function WorkspaceCategoriesTable({
     );
 }
 
-export type {WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey};
+export type {WorkspaceCategoryTableRowData};
