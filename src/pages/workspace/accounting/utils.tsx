@@ -852,6 +852,7 @@ function getSynchronizationErrorMessage(
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.AUTHENTICATION_ERROR_LEARN_MORE_LINK}
                             style={[styles?.link, styles?.fontSizeLabel]}
                             href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
                         >
