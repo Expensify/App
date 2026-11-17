@@ -1,6 +1,13 @@
-import useDistanceSubmission from '@pages/iou/request/step/confirmation/submission/useDistanceSubmission';
+import {act, renderHook} from '@testing-library/react-native';
 
-import {createDistanceRequest} from '@userActions/IOU/Split';
+import type {WriteReadyBarrier} from '@libs/API';
+import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+
+import useDistanceSubmission from '@pages/iou/request/step/confirmation/submission/useDistanceSubmission';
+import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
+import type * as ResolveChatTarget from '@pages/iou/request/step/resolveChatTarget';
+
+import {commitDistanceRequest, planDistanceRequest} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,11 +26,19 @@ import {
     OTHER_USER_PARTICIPANT,
     renderAndSubmit,
 } from '../../utils/expenseSubmissionTestUtils';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@userActions/IOU/Split', () => ({createDistanceRequest: jest.fn()}));
+jest.mock('@userActions/IOU/Split', () => ({planDistanceRequest: jest.fn(), commitDistanceRequest: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@pages/iou/request/step/resolveChatTarget', () => {
+    const actual = jest.requireActual<typeof ResolveChatTarget>('@pages/iou/request/step/resolveChatTarget');
+    return {...actual, resolveChatTargetForSubmitCleanup: jest.fn(actual.resolveChatTargetForSubmitCleanup)};
+});
 
-const mockCreateDistanceRequestAction = jest.mocked(createDistanceRequest);
+const mockPlanDistanceRequest = jest.mocked(planDistanceRequest);
+const mockCommitDistanceRequest = jest.mocked(commitDistanceRequest);
+const mockCleanupAndNavigateAfterExpenseCreate = jest.mocked(cleanupAndNavigateAfterExpenseCreate);
+const mockResolveChatTargetForSubmitCleanup = jest.mocked(resolveChatTargetForSubmitCleanup);
 
 type UseDistanceSubmissionParams = Parameters<typeof useDistanceSubmission>[0];
 
@@ -66,7 +81,7 @@ function buildCommuterExclusionTransaction(commuterExclusion: number) {
 }
 
 function getSubmittedTransactionParams() {
-    return mockCreateDistanceRequestAction.mock.calls.at(-1)?.at(0)?.transactionParams;
+    return mockPlanDistanceRequest.mock.calls.at(-1)?.at(0)?.transactionParams;
 }
 
 describe('useDistanceSubmission', () => {
@@ -77,7 +92,13 @@ describe('useDistanceSubmission', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        mockCreateDistanceRequestAction.mockReturnValue({iouReport: buildChatReport({reportID: 'distance-iou-1'}), chatReportID: 'distance-chat-1', transactionID: 'distance-transaction-1'});
+        mockPlanDistanceRequest.mockReturnValue(
+            createMock<ReturnType<typeof planDistanceRequest>>({
+                iouReport: buildChatReport({reportID: 'distance-iou-1'}),
+                chatReportID: 'distance-chat-1',
+                transactionID: 'distance-transaction-1',
+            }),
+        );
     });
 
     it('omits the modified fields when no commuter exclusion is applied', async () => {
@@ -114,7 +135,7 @@ describe('useDistanceSubmission', () => {
         await submit(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true}));
 
         // Then the reserved ID is forwarded, so the chat is built at the ID the screen subscribes to
-        expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+        expect(mockPlanDistanceRequest).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
     });
 
     it('sends the overridden distance when submitting a map distance expense through CreateDistanceRequest', async () => {
@@ -157,5 +178,45 @@ describe('useDistanceSubmission', () => {
                 distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
             }),
         );
+    });
+
+    it('navigates to the chat its plan writes to instead of resolving the chat again', async () => {
+        // Given a distance expense whose plan names the chat it writes to
+        const distanceTransaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL});
+
+        // When it is submitted from the confirmation page, leaving navigation to cleanup
+        await submit(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true}));
+
+        // Then cleanup opens that chat, because only the planner knows which chat it found or built, such as a workspace chat
+        expect(mockResolveChatTargetForSubmitCleanup).not.toHaveBeenCalled();
+        expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'distance-chat-1'}));
+    });
+
+    it('commits the plan it built and gives cleanup the transaction ID from that plan', async () => {
+        // Given a distance expense, which the plan writes under a new transaction ID rather than the draft's
+        const distanceTransaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL});
+
+        // When it is submitted from the confirmation page, leaving navigation to cleanup
+        await submit(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true}));
+
+        // Then the plan that is written is the one cleanup reads, so the highlight and growl target the transaction that was written
+        expect(mockCommitDistanceRequest).toHaveBeenCalledWith(mockPlanDistanceRequest.mock.results.at(0)?.value, undefined);
+        expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({transactionID: 'distance-transaction-1'}));
+    });
+
+    it('passes the write barrier from the caller to the commit', async () => {
+        // Given a distance expense submitted after the screen started navigating, so the caller hands in a barrier
+        const writeBarrier: WriteReadyBarrier = () => Promise.resolve();
+        const distanceTransaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL});
+        const {result} = renderHook(() => useDistanceSubmission(buildParams({transaction: distanceTransaction, transactions: [distanceTransaction], isManualDistanceRequest: true})));
+        await waitForBatchedUpdatesWithAct();
+
+        // When it is submitted with that barrier
+        await act(async () => {
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false, writeBarrier});
+        });
+
+        // Then the write waits on it, so it doesn't land in the middle of the transition
+        expect(mockCommitDistanceRequest).toHaveBeenCalledWith(expect.anything(), writeBarrier);
     });
 });

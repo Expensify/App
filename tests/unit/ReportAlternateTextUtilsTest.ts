@@ -42,6 +42,7 @@ import {
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
+    resolveLastActionContext,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
 import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
@@ -126,6 +127,7 @@ type AlternateTextCase = {
 
 function getAlternateText({report = makeReport(), lastAction, lastMessageTextFromReport = 'Fixture last message', isReportArchived = false}: AlternateTextCase): string | undefined {
     return getReportAlternateText({
+        lastOriginalAction: undefined,
         report,
         lastAction,
         lastActionReport: undefined,
@@ -442,6 +444,73 @@ describe('ReportAlternateTextUtils', () => {
         });
     });
 
+    describe('resolveLastActionContext', () => {
+        const parentReportID = '9001';
+        const transactionThreadReportID = '9002';
+        const chatReportID = '9003';
+        const makeCommentAction = (reportActionID: string, created: string): ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 1,
+            created,
+            message: [{type: 'COMMENT', html: reportActionID, text: reportActionID}],
+            person: [{type: 'TEXT', style: 'strong', text: 'User'}],
+            shouldShow: true,
+        });
+        const parentComment = makeCommentAction('9100', '2024-01-01 10:00:00.000');
+        const iouAction: ReportAction = {
+            reportActionID: '9101',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: 1,
+            childReportID: transactionThreadReportID,
+            created: '2024-01-01 09:00:00.000',
+            message: [{type: 'COMMENT', html: '$1.00', text: '$1.00'}],
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry an IOU originalMessage so the module cache maps the report to its transaction thread
+            originalMessage: {
+                IOUTransactionID: 'txn9101',
+                IOUReportID: parentReportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+            shouldShow: true,
+        };
+        const threadComment = makeCommentAction('9200', '2024-01-02 10:00:00.000');
+        const expenseReport: Report = {
+            ...createRandomReport(Number(parentReportID), undefined),
+            reportID: parentReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+        };
+
+        beforeEach(async () => {
+            // Seed a one-transaction expense report whose transaction thread has the newest comment
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {...createRandomReport(Number(chatReportID), undefined), reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentComment.reportActionID]: parentComment, [iouAction.reportActionID]: iouAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[threadComment.reportActionID]: threadComment});
+            await waitForBatchedUpdates();
+        });
+
+        it('returns the transaction thread action when the one-transaction thread ID is passed', () => {
+            // Given the caller resolved the one-transaction thread ID from the sorted report actions derived value
+            // When the last action context is resolved
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, transactionThreadReportID);
+
+            // Then the newer action from the transaction thread wins
+            expect(lastAction?.reportActionID).toBe(threadComment.reportActionID);
+        });
+
+        it('only uses the parent report actions when the report has no one-transaction thread', () => {
+            // Given the caller has no one-transaction thread for the report (e.g. the derived value has no entry for it)
+            // When the last action context is resolved without a thread ID
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, undefined);
+
+            // Then only the parent's own actions are considered, because the thread ID is no longer read from a module-level cache
+            expect(lastAction?.reportActionID).toBe(parentComment.reportActionID);
+        });
+    });
+
     describe('getReportAlternateText', () => {
         it('should prefix a room comment with the actor display name', () => {
             expect(getAlternateText({lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT)})).toBe('Alice: Fixture last message');
@@ -494,6 +563,7 @@ describe('ReportAlternateTextUtils', () => {
 
         // When report and sidebar previews resolve the action.
         const lastMessage = getLastMessageTextForReport({
+            lastOriginalAction: undefined,
             dateFnsLocale: undefined,
             conciergeReportID: undefined,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -572,6 +642,7 @@ describe('ReportAlternateTextUtils', () => {
             };
 
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -703,6 +774,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -773,6 +845,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -828,6 +901,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -883,6 +957,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -938,6 +1013,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -992,6 +1068,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1034,6 +1111,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1102,6 +1180,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1156,6 +1235,7 @@ describe('ReportAlternateTextUtils', () => {
                 await waitForBatchedUpdates();
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1239,6 +1319,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     lastAction: createdAction,
+                    lastOriginalAction: undefined,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
                 });
@@ -1269,6 +1350,7 @@ describe('ReportAlternateTextUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1303,6 +1385,7 @@ describe('ReportAlternateTextUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1337,6 +1420,7 @@ describe('ReportAlternateTextUtils', () => {
                     [approvedAction.reportActionID]: approvedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1373,6 +1457,7 @@ describe('ReportAlternateTextUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1406,6 +1491,7 @@ describe('ReportAlternateTextUtils', () => {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1437,6 +1523,7 @@ describe('ReportAlternateTextUtils', () => {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -1467,6 +1554,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1496,6 +1584,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1530,6 +1619,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When getting the last message text of the report
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1561,6 +1651,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1590,6 +1681,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1619,6 +1711,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1651,6 +1744,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1680,6 +1774,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1709,6 +1804,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1741,6 +1837,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1773,6 +1870,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When the sidebar resolves the report's last message
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1824,6 +1922,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When the sidebar resolves the report's last message
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1855,6 +1954,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1894,6 +1994,7 @@ describe('ReportAlternateTextUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 lastAction: action,
+                lastOriginalAction: undefined,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
             });
@@ -1924,6 +2025,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1953,6 +2055,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -1982,6 +2085,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2011,6 +2115,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2040,6 +2145,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2073,6 +2179,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2106,6 +2213,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2138,6 +2246,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2171,6 +2280,7 @@ describe('ReportAlternateTextUtils', () => {
                 [action.reportActionID]: action,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2200,6 +2310,7 @@ describe('ReportAlternateTextUtils', () => {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2229,6 +2340,7 @@ describe('ReportAlternateTextUtils', () => {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2258,6 +2370,7 @@ describe('ReportAlternateTextUtils', () => {
                 [movedAction.reportActionID]: movedAction,
             });
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2291,6 +2404,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2326,6 +2440,7 @@ describe('ReportAlternateTextUtils', () => {
 
             const expectedVisibleText = '';
             const result = getLastMessageTextForReport({
+                lastOriginalAction: whisperAction,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2380,6 +2495,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When we get the last message text while the mentioned user is absent from personal details
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2408,6 +2524,7 @@ describe('ReportAlternateTextUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             const lastMessage = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2446,6 +2563,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                lastOriginalAction: undefined,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2497,6 +2615,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getLastMessageTextForReport({
+                lastOriginalAction: fraudAction,
                 rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -2549,6 +2668,7 @@ describe('ReportAlternateTextUtils', () => {
                     [submittedAction.reportActionID]: submittedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2592,6 +2712,7 @@ describe('ReportAlternateTextUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2630,6 +2751,7 @@ describe('ReportAlternateTextUtils', () => {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2676,6 +2798,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: closedAction,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2721,6 +2844,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: closedAction,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2763,6 +2887,7 @@ describe('ReportAlternateTextUtils', () => {
                     path === 'workspace.common.unavailable' ? 'UnavailableMarker' : translateLocal(path, ...parameters);
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: closedAction,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2802,6 +2927,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2840,6 +2966,7 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2878,6 +3005,7 @@ describe('ReportAlternateTextUtils', () => {
                     [action.reportActionID]: action,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
@@ -2915,6 +3043,7 @@ describe('ReportAlternateTextUtils', () => {
                     [action.reportActionID]: action,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    lastOriginalAction: undefined,
                     rules: undefined,
                     dateFnsLocale: undefined,
                     convertToDisplayString,

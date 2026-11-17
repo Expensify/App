@@ -1,4 +1,5 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import {getEffectiveEndPoint, getFirstGpsPoint, getTotalGpsTripPoints, isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -79,25 +81,29 @@ function Waypoints({unit, isInLandscapeMode, action, iouType, transactionID, rep
                 />
             </View>
 
-            <MenuItemWithTopDescription
-                interactive={false}
-                description={translate('gps.start')}
-                shouldShowLoadingSpinnerIcon={shouldShowLoadingStartAddress}
-                title={shouldShowLoadingStartAddress ? '...' : firstPoint?.address?.value}
-                icon={icons.DotIndicatorUnfilled}
+            <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM}
                 style={styles.pv3}
-                shouldIconUseAutoWidthStyle
-            />
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>{shouldShowLoadingStartAddress ? <MenuItem.SpinnerNarrow /> : <MenuItem.IconNarrow src={icons.DotIndicatorUnfilled} />}</MenuItem.Leading>
+                    <MenuItemField.Content name={translate('gps.start')}>
+                        <MenuItem.FieldValue>{shouldShowLoadingStartAddress ? '...' : (firstPoint?.address?.value ?? '')}</MenuItem.FieldValue>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
 
-            <MenuItemWithTopDescription
-                interactive={false}
-                description={translate('gps.stop')}
-                shouldShowLoadingSpinnerIcon={shouldShowLoadingEndAddress}
-                title={getEndAddressTitle()}
-                icon={icons.Location}
+            <MenuItem.Root
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM}
                 style={styles.pv3}
-                shouldIconUseAutoWidthStyle
-            />
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>{shouldShowLoadingEndAddress ? <MenuItem.SpinnerNarrow /> : <MenuItem.IconNarrow src={icons.Location} />}</MenuItem.Leading>
+                    <MenuItemField.Content name={translate('gps.stop')}>
+                        <MenuItem.FieldValue>{getEndAddressTitle() ?? ''}</MenuItem.FieldValue>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         </Wrapper>
     );
 }

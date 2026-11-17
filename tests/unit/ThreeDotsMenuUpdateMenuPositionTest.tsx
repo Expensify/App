@@ -25,7 +25,7 @@ const mockPopoverPosition = {
     },
 };
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
-const menuItems = [{text: 'Delete', onSelected: () => {}}];
+const menuItems = [{text: 'Delete', onSelected: () => {}, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
 
 jest.mock('@hooks/usePopoverPosition', () => () => mockPopoverPosition);
 
@@ -81,6 +81,7 @@ const renderMenu = () => {
             threeDotsMenuRef={menuRef}
             anchorAlignment={anchorAlignment}
             menuItems={menuItems}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />,
     );
     return menuRef;
