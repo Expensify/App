@@ -85,14 +85,13 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
                 enabledWhenOffline
                 submitButtonStyles={[styles.ph5]}
             >
-                <View style={styles.mb5}>
+                <View style={[styles.mb5, styles.ph5]}>
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH}
                         label={translate('common.date')}
                         defaultValue={currentValue}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                        containerStyles={[styles.ph5]}
                     />
                 </View>
                 <MenuItemField
