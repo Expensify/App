@@ -554,10 +554,6 @@ function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
 }
 
-function isAddExpenseOnSubmittedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED);
-}
-
 function isDynamicExternalWorkflowSubmitAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
@@ -6469,7 +6465,6 @@ export {
     isTripPreview,
     isHoldAction,
     isWhisperAction,
-    isAddExpenseOnSubmittedAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,

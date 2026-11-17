@@ -81,7 +81,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ViolationsSnapshot} from '@src/types/onyx/OriginalMessage';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -169,11 +168,6 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isResolvedActionableWhisper,
-    isAddExpenseOnSubmittedAction,
-    isApprovedAction,
-    isForwardedAction,
-    isSubmittedAction,
-    isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
@@ -274,7 +268,6 @@ import {
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
-import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchSortBy, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -5812,22 +5805,6 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
     }
 }
 
-function collectViolationNamesForTransaction(violationNames: Set<string>, violations: ViolationsSnapshot['transactions'] | undefined, transactionID: string) {
-    const transactionViolations = violations?.[transactionID];
-    if (!transactionViolations?.length) {
-        return;
-    }
-
-    // Search and Insights apply the receipt rule within each snapshot, so an expense whose earlier snapshot has only
-    // receipt required still shows it here.
-    for (const violation of filterReceiptViolations(transactionViolations)) {
-        // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
-        if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
-            violationNames.add(violation.name);
-        }
-    }
-}
-
 function formatTransactionViolationNames(violationNames: Set<string>, translate?: LocalizedTranslate): string | undefined {
     if (violationNames.size === 0) {
         return undefined;
@@ -5839,66 +5816,6 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
     }
 
     return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
-}
-
-function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
-    for (const action of reportActions) {
-        // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
-        // so its violations live on their own add-expense-on-submitted action instead.
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
-            continue;
-        }
-
-        collectViolationNamesForTransaction(violationNames, getOriginalMessage(action)?.violations?.transactions, transactionID);
-    }
-}
-
-function collectApprovedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
-    for (const action of reportActions) {
-        if (!isApprovedAction(action) && !isForwardedAction(action)) {
-            continue;
-        }
-
-        collectViolationNamesForTransaction(violationNames, getOriginalMessage(action)?.violations?.transactions, transactionID);
-    }
-}
-
-/**
- * Collects a transaction's submitted violations from its report's submit actions.
- * A report can be submitted more than once, so this aggregates across every submit action,
- * dedupes by violation name, and returns a comma-separated display string.
- * When `translate` is provided, violation identifiers are converted to localized short labels.
- *
- * Itemized receipt required supersedes receipt required within each submit action,
- * so both are shown only when they come from different submit actions.
- */
-function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
-    const violationNames = new Set<string>();
-    collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    return formatTransactionViolationNames(violationNames, translate);
-}
-
-/**
- * Collects a transaction's approved violations from its report's approved and forwarded actions.
- * A report can be approved or forwarded more than once, so this aggregates across every matching action,
- * dedupes by violation name, and returns a comma-separated display string.
- * When `translate` is provided, violation identifiers are converted to localized short labels.
- *
- * Itemized receipt required supersedes receipt required within each approved or forwarded action,
- * so both are shown only when they come from different actions.
- */
-function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
-    const violationNames = new Set<string>();
-    collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    return formatTransactionViolationNames(violationNames, translate);
 }
 
 /**
@@ -8561,8 +8478,6 @@ export {
     getHasOptions,
     getHasOptionAvailability,
     getViolationFilterOptions,
-    getSubmittedViolationsForTransaction,
-    getApprovedViolationsForTransaction,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
