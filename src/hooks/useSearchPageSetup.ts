@@ -7,6 +7,7 @@ import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -14,6 +15,7 @@ import {useCallback, useEffect, useRef} from 'react';
 
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
@@ -35,6 +37,7 @@ function dropPageRequestOnBlur() {
  * - Re-fires openSearch() when coming back online
  */
 function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -95,7 +98,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     useEffect(() => {
         // A preloaded tab builds from cached results only. The request, saved params and recent search wait until it is opened.
-        if (!queryJSON || hash === undefined || isOffline || isInPreloadedTab) {
+        // Account switches clear snapshots before replacing the retained page's query.
+        if (isLoadingApp || !queryJSON || hash === undefined || isOffline || isInPreloadedTab) {
             return;
         }
 
@@ -161,6 +165,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         shouldCalculateTotals,
         shouldReturnTripRooms,
         isInPreloadedTab,
+        isLoadingApp,
     ]);
 
     useFocusEffect(dropPageRequestOnBlur);
@@ -174,12 +179,12 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
     // Drop an error this page inherited rather than produced, so the effect above can request the query again.
     useEffect(() => {
-        if (!hasErrorToClear || hash === undefined || requestedHashesRef.current.has(hash)) {
+        if (isLoadingApp || !hasErrorToClear || hash === undefined || requestedHashesRef.current.has(hash)) {
             return;
         }
         requestedHashesRef.current.add(hash);
         openSearch(undefined, hash);
-    }, [hasErrorToClear, hash]);
+    }, [hasErrorToClear, hash, isLoadingApp]);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
