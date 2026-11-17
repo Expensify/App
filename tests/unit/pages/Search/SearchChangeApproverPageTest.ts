@@ -1,4 +1,4 @@
-import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
+import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 import {canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
@@ -18,6 +18,35 @@ function buildReport(reportID: string): Report {
 }
 
 describe('SearchChangeApproverPage', () => {
+    describe('getSelectedApproverType', () => {
+        it('should keep the selected approver type when it remains available', () => {
+            expect(
+                getSelectedApproverType({
+                    approverTypes: [ADD_APPROVER_OPTION, BYPASS_APPROVER_OPTION],
+                    selectedApproverType: APPROVER_TYPE.BYPASS_APPROVER,
+                }),
+            ).toBe(APPROVER_TYPE.BYPASS_APPROVER);
+        });
+
+        it('should fall back to the first available option when the selected option is hidden', () => {
+            expect(
+                getSelectedApproverType({
+                    approverTypes: [BYPASS_APPROVER_OPTION],
+                    selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
+                }),
+            ).toBe(APPROVER_TYPE.BYPASS_APPROVER);
+        });
+
+        it('should fall back to add approver when there are no available options', () => {
+            expect(
+                getSelectedApproverType({
+                    approverTypes: [],
+                    selectedApproverType: APPROVER_TYPE.REASSIGN_APPROVER,
+                }),
+            ).toBe(APPROVER_TYPE.ADD_APPROVER);
+        });
+    });
+
     describe('canReassignAllReports', () => {
         const policyID = 'policyA';
         const policy = createMock<Policy>({
@@ -50,6 +79,20 @@ describe('SearchChangeApproverPage', () => {
                     selectedReports: [{reportID: report.reportID, policyID}],
                     onyxReports: {[report.reportID]: {...report, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}},
                     allPolicies,
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when a selected policy uses dynamic external workflow', () => {
+            const dewwPolicy = createMock<Policy>({
+                ...policy,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            });
+            expect(
+                canReassignAllReports({
+                    selectedReports: [{reportID: report.reportID, policyID}],
+                    onyxReports: {[report.reportID]: report},
+                    allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: dewwPolicy},
                 }),
             ).toBe(false);
         });

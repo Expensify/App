@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
-import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
+import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
 
 import CONST from '@src/CONST';
@@ -93,6 +93,7 @@ function canReassignAllReports({
             return (
                 !!policy &&
                 !!report &&
+                !hasDynamicExternalWorkflow(policy) &&
                 isPolicyAdmin(policy) &&
                 !isPendingDeletePolicy(policy) &&
                 isMoneyRequestReport(report) &&
@@ -175,8 +176,59 @@ function SearchChangeApproverPage() {
     const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
     const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
+    const getApproverTypes = () => {
+        const data: Array<ListItem<ApproverType>> = [];
+
+        if (!hasSelectedDEWEnabledPolicy) {
+            data.push({
+                text: translate('iou.changeApprover.actions.addApprover'),
+                keyForList: APPROVER_TYPE.ADD_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        const hasAdminPermission = selectedReports.every((selectedReport) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+        });
+        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
+
+        const isAllowedToBypassApprovers =
+            hasAdminPermission &&
+            selectedReports.every((selectedReport) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+
+                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            });
+
+        if (isAllowedToBypassApprovers) {
+            data.push({
+                text: translate('iou.changeApprover.actions.bypassApprovers'),
+                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        if (canReassign && !hasSelectedDEWEnabledPolicy) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: false,
+            });
+        }
+
+        const activeApproverType = getSelectedApproverType({approverTypes: data, selectedApproverType});
+        return data.map((item) => ({...item, isSelected: item.keyForList === activeApproverType}));
+    };
+    const approverTypes = getApproverTypes();
+    const activeApproverType = getSelectedApproverType({approverTypes, selectedApproverType});
+
     const changeApprover = () => {
-        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+        if (activeApproverType === APPROVER_TYPE.ADD_APPROVER) {
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
@@ -201,7 +253,7 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+        if (activeApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             Navigation.navigate(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
             return;
         }
@@ -231,55 +283,6 @@ function SearchChangeApproverPage() {
         clearSelectedTransactions();
     };
 
-    const getApproverTypes = () => {
-        const data: Array<ListItem<ApproverType>> = [];
-
-        if (!hasSelectedDEWEnabledPolicy) {
-            data.push({
-                text: translate('iou.changeApprover.actions.addApprover'),
-                keyForList: APPROVER_TYPE.ADD_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-            });
-        }
-
-        const hasAdminPermission = selectedReports.every((selectedReport) => {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
-        });
-        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
-
-        const isAllowedToBypassApprovers =
-            hasAdminPermission &&
-            selectedReports.every((selectedReport) => {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-
-                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
-            });
-
-        if (isAllowedToBypassApprovers) {
-            data.push({
-                text: translate('iou.changeApprover.actions.bypassApprovers'),
-                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
-            });
-        }
-
-        if (canReassign && !hasSelectedDEWEnabledPolicy) {
-            data.push({
-                text: translate('iou.changeApprover.actions.reassignApprover'),
-                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
-            });
-        }
-
-        return data;
-    };
-    const approverTypes = getApproverTypes();
-
     // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
@@ -303,7 +306,7 @@ function SearchChangeApproverPage() {
         selectedReports,
         onyxReports,
         approverTypes,
-        selectedApproverType,
+        selectedApproverType: activeApproverType,
         areSelectedPoliciesLoaded,
     });
 
@@ -367,7 +370,7 @@ function SearchChangeApproverPage() {
                     confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
                     customListHeader={listHeader}
-                    initiallyFocusedItemKey={selectedApproverType}
+                    initiallyFocusedItemKey={activeApproverType}
                 />
             )}
         </ScreenWrapper>
