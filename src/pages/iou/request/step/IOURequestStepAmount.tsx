@@ -150,7 +150,6 @@ function IOURequestStepAmount({
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
-        shouldCloseRHPOnDiscard: isCreateAction,
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
                 typedAmount: typedAmount ?? baselineAmount,
