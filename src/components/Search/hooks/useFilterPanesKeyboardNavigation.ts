@@ -196,6 +196,32 @@ function useFilterPanesKeyboardNavigation<Row>({
         contentContainer.addEventListener('keydown', onUnhandledKeyDown, true);
         return () => contentContainer.removeEventListener('keydown', onUnhandledKeyDown, true);
     }, [contentContainerRef]);
+
+    // A filter can swap its view, like a report field opening its values, and take the focused row away with it. The
+    // focus then falls to the page, where the arrow keys do nothing and Enter presses Apply, so it goes to the new view.
+    useEffect(() => {
+        const contentContainer = contentContainerRef.current;
+        if (!(contentContainer instanceof HTMLElement)) {
+            return;
+        }
+        let focusedContentElement: Element | null = null;
+        const onFocusIn = (event: FocusEvent) => {
+            focusedContentElement = event.target instanceof Element && contentContainer.contains(event.target) ? event.target : null;
+        };
+        const observer = new MutationObserver(() => {
+            if (!focusedContentElement || focusedContentElement.isConnected || document.activeElement !== document.body) {
+                return;
+            }
+            focusedContentElement = null;
+            focusFirstShownControl(contentContainer);
+        });
+        document.addEventListener('focusin', onFocusIn);
+        observer.observe(contentContainer, {childList: true, subtree: true});
+        return () => {
+            document.removeEventListener('focusin', onFocusIn);
+            observer.disconnect();
+        };
+    }, [contentContainerRef]);
 }
 
 export default useFilterPanesKeyboardNavigation;

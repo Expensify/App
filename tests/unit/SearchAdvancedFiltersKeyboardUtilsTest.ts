@@ -273,6 +273,40 @@ describe('focusAdjacentShownRow', () => {
         expect(document.activeElement).toBe(customDateButton);
     });
 
+    it('moves between the rows and the button rows marked under them', () => {
+        // Given "Custom date" and "Custom range" buttons marked as rows under the presets, with the focus on the last preset
+        const {container, lastRow, customDateButton} = createRows();
+        const buttonRows = document.createElement('div');
+        buttonRows.setAttribute(`data-${CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT}`, 'true');
+        const createButtonRow = () => {
+            const buttonRow = document.createElement('div');
+            buttonRow.tabIndex = 0;
+            buttonRow.setAttribute('role', CONST.ROLE.BUTTON);
+            setShown(buttonRow, true);
+            return buttonRow;
+        };
+        const customDateRow = createButtonRow();
+        const customRangeRow = createButtonRow();
+        buttonRows.append(customDateRow, customRangeRow);
+        customDateButton.before(buttonRows);
+        lastRow.focus();
+
+        // When moving down twice, then up from the first button row
+        focusAdjacentShownRow(container, lastRow, 1);
+        const focusedAfterFirstDown = document.activeElement;
+        focusAdjacentShownRow(container, customDateRow, 1);
+        const focusedAfterSecondDown = document.activeElement;
+        const movedPastEnd = focusAdjacentShownRow(container, customRangeRow, 1);
+        focusAdjacentShownRow(container, customRangeRow, -1);
+        focusAdjacentShownRow(container, customDateRow, -1);
+
+        // Then the button rows continue the presets, and the unmarked button after them is still left to Tab
+        expect(focusedAfterFirstDown).toBe(customDateRow);
+        expect(focusedAfterSecondDown).toBe(customRangeRow);
+        expect(movedPastEnd).toBe(false);
+        expect(document.activeElement).toBe(lastRow);
+    });
+
     it('moves through an input that sits between the rows', () => {
         // Given an amount input under the first row, with the focus in it
         const {container, firstRow, middleRow} = createRows();

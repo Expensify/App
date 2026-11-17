@@ -24,6 +24,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import React, {useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ReportFieldList from './ReportFieldList';
 import ReportFieldText from './ReportFieldText';
@@ -290,17 +291,19 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
 
     return (
         <ScrollView contentContainerStyle={[style]}>
-            {listItems.map((item) => (
-                <MenuItem
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_FIELD_ITEM}
-                    key={item.key}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={item.name}
-                    description={item.value}
-                    onPress={() => onFieldSelected(item.field)}
-                />
-            ))}
+            <View dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}>
+                {listItems.map((item) => (
+                    <MenuItem
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_FIELD_ITEM}
+                        key={item.key}
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={item.name}
+                        description={item.value}
+                        onPress={() => onFieldSelected(item.field)}
+                    />
+                ))}
+            </View>
         </ScrollView>
     );
 }

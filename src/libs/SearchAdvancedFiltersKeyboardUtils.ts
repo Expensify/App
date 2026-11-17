@@ -31,6 +31,8 @@ const FILTER_TEXT_SELECTOR = 'input, textarea, [role="textbox"]';
 /** Rows outside a selection list, like the date presets. A row can hold a checkbox that only a pointer reaches, so a row has to be a tab stop. */
 const FILTER_ROW_SELECTOR = '[role="option"][tabindex="0"], [role="checkbox"][tabindex="0"], [role="radio"][tabindex="0"]';
 
+const BUTTON_ROW_SELECTOR = `[data-${CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT}] [role="button"][tabindex="0"]`;
+
 const findShown = (container: HTMLElement, selector: string) => Array.from(container.querySelectorAll<HTMLElement>(selector)).filter((element) => element.getClientRects().length > 0);
 
 const isOutsideNegationToggle = (element: HTMLElement) => !element.closest(`[data-${CONST.ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT}]`);
@@ -52,14 +54,16 @@ function focusFirstShownControl(container: HTMLElement): boolean {
 /**
  * Focuses the shown row next to the given one, among the rows of its kind, and stops at the ends. A single line input
  * between the rows, like the amount under "Equal to", is a stop too, since the arrow keys have no lines to move through in it.
+ * Button rows go with the rows around them, like "Custom date" under the date presets.
  */
 function focusAdjacentShownRow(container: HTMLElement, row: HTMLElement, step: 1 | -1): boolean {
     const isInput = row instanceof HTMLInputElement;
-    if (!isInput && !row.matches(FILTER_ROW_SELECTOR)) {
+    const isButtonRow = row.matches(BUTTON_ROW_SELECTOR);
+    if (!isInput && !isButtonRow && !row.matches(FILTER_ROW_SELECTOR)) {
         return false;
     }
-    const rowsOfKind = findShown(container, `${FILTER_ROW_SELECTOR}, input`).filter(
-        (element) => isInput || element instanceof HTMLInputElement || element.getAttribute('role') === row.getAttribute('role'),
+    const rowsOfKind = findShown(container, `${FILTER_ROW_SELECTOR}, ${BUTTON_ROW_SELECTOR}, input`).filter(
+        (element) => isInput || isButtonRow || element instanceof HTMLInputElement || element.matches(BUTTON_ROW_SELECTOR) || element.getAttribute('role') === row.getAttribute('role'),
     );
     const adjacentIndex = rowsOfKind.indexOf(row) + step;
     // A negative index would count from the end, so the first row stays put on the up arrow.

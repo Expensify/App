@@ -230,4 +230,40 @@ describe('useFilterPanesKeyboardNavigation', () => {
         expect(enter.defaultPrevented).toBe(false);
         expect(document.activeElement).toBe(panes.clearButton);
     });
+
+    it('moves the focus into the new view when the content takes away the focused row', async () => {
+        // Given the focus on a report field row in the content
+        const panes = createPanes();
+        renderNavigation(panes);
+        const fieldRow = document.createElement('button');
+        markShown(fieldRow);
+        panes.contentContainer.replaceChildren(fieldRow);
+        fieldRow.focus();
+
+        // When opening the field swaps the row for the field's values
+        const valueRow = document.createElement('button');
+        markShown(valueRow);
+        panes.contentContainer.replaceChildren(valueRow);
+        await Promise.resolve();
+
+        // Then the focus goes to the new view instead of staying on the page, where Enter would press Apply
+        expect(document.activeElement).toBe(valueRow);
+    });
+
+    it('leaves the focus alone when the content changes while the focus is elsewhere', async () => {
+        // Given the focus in the filter search, after having been in the content
+        const panes = createPanes();
+        renderNavigation(panes);
+        panes.contentInput.focus();
+        panes.searchInput.focus();
+
+        // When the content swaps its view
+        const valueRow = document.createElement('button');
+        markShown(valueRow);
+        panes.contentContainer.replaceChildren(valueRow);
+        await Promise.resolve();
+
+        // Then the focus stays in the filter search
+        expect(document.activeElement).toBe(panes.searchInput);
+    });
 });

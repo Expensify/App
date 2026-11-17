@@ -419,24 +419,26 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                {shouldShowCustomDate && (
+                <View dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}>
+                    {shouldShowCustomDate && (
+                        <MenuItem
+                            sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
+                            shouldShowRightIcon
+                            viewMode={CONST.OPTION_MODE.COMPACT}
+                            title={customDateTitle}
+                            description={customDateDescription}
+                            onPress={selectCustomDateMode}
+                        />
+                    )}
                     <MenuItem
-                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
+                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
                         shouldShowRightIcon
                         viewMode={CONST.OPTION_MODE.COMPACT}
-                        title={customDateTitle}
-                        description={customDateDescription}
-                        onPress={selectCustomDateMode}
+                        title={customRangeTitle}
+                        description={rangeDescription}
+                        onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
                     />
-                )}
-                <MenuItem
-                    sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customRangeTitle}
-                    description={rangeDescription}
-                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
-                />
+                </View>
             </>
         );
     }
