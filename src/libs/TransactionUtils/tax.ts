@@ -10,7 +10,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {formatTaxRateName, getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Rule, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -134,7 +134,8 @@ function transformedTaxRates(translate: LocalizedTranslate, policy: OnyxEntry<Po
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translate('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${formatTaxRateName(data.name, data.value)}${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translate('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
