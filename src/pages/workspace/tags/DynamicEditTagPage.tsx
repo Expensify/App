@@ -11,6 +11,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,6 +52,7 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const currentTagName = getCleanedTagName(route.params.tagName);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
@@ -68,7 +70,7 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
         const tagName = StringUtils.sanitizeName(values.tagName);
         // Do not call the API if the edited tag name is the same as the current tag name
         if (currentTagName !== tagName) {
-            renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled);
+            renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
         }
         Keyboard.dismiss();
         Navigation.goBack(backPath);

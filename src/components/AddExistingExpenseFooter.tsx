@@ -140,6 +140,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ADD_EXISTING_EXPENSE.CONFIRM_BUTTON}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}

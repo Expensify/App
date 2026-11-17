@@ -1149,10 +1149,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
         policyID: string;
         approverIndex: number;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
-        policyID: string;
-        approverIndex: number;
+
+        /** Whether the page was reached by picking a new approver, rather than by opening an approver already in the workflow */
+        isAddingApprover?: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
         policyID: string;
@@ -1613,11 +1612,20 @@ type InsightsDetailsParamList = {
         /** Chart the clicked point was plotted on */
         graphKey: string;
 
-        /** The clicked member's account ID, merchant, category, or the first day of the clicked period */
+        /** The clicked member's account ID, merchant, category, tag, or the first day of the clicked period */
         item: string;
 
         /** Last day of the clicked period, trimmed to the date range like the chart's label */
         end?: string;
+
+        /** Tag level of the clicked tag, absent when the chart groups by every level of the tag together */
+        level?: string;
+
+        /** Encoded parent tags of the clicked dependent tag */
+        parent?: string;
+
+        /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
+        asOf?: string;
     };
 };
 

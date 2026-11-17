@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ComposerLocalTime from '@pages/inbox/report/ReportActionCompose/ComposerLocalTime';
 import ComposerProvider from '@pages/inbox/report/ReportActionCompose/ComposerProvider';
+import ComposerSendButton from '@pages/inbox/report/ReportActionCompose/ComposerSendButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +20,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const CURRENT_USER_ACCOUNT_ID = 1;
 const RECIPIENT_ACCOUNT_ID = 2;
 const REPORT_ID = '1';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useRoute: () => ({name: 'Report', key: 'test-report', params: {reportID: '1'}}),
+}));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -134,5 +140,13 @@ describe('ComposerLocalTime', () => {
 
         // Component should render nothing for custom agents.
         expect(toJSON()).toBeNull();
+    });
+    it('exposes the empty composer Send button as disabled', async () => {
+        // Given an empty composer with the actual Send component and its children
+        renderWithProviders(<ComposerSendButton />, REPORT_ID);
+        // When pending provider updates settle
+        await waitForBatchedUpdates();
+        // Then the accessible button must expose its disabled state
+        expect(screen.getByRole('button', {name: 'Send'})).toBeDisabled();
     });
 });

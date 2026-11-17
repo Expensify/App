@@ -2,17 +2,21 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {isPolicyPayer} from '@libs/PolicyUtils';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as NetworkState from '@libs/NetworkState';
+import {isPolicyPayer, shouldShowUKFuelRateTaxError} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on ReportUtils without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {setWorkspaceDistanceAutoUpdate} from '@src/libs/actions/Policy/DistanceRate';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     GovernmentMileageRate,
     Onboarding,
     PolicyJoinMember,
@@ -24,6 +28,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {Rate} from '@src/types/onyx/Policy';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 import type Rule from '@src/types/onyx/Rule';
 
@@ -36,6 +41,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import {
@@ -790,6 +796,59 @@ describe('actions/Policy', () => {
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
+        });
+
+        it('duplicate workspace keeps Rules off when the DuplicatePolicy response turns it on after the policy merge', async () => {
+            // Given a Control workspace with Rules disabled
+            const fakePolicy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areRulesEnabled: false};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // And a DuplicatePolicy response that, like production when categories are copied, merges the new policy with Rules off
+            // and then sends a single {areRulesEnabled: true} merge for the same policy
+            mockFetch.mockAPICommand('DuplicatePolicy', () => ({
+                onyxData: [
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: false}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: true}},
+                ],
+            }));
+            mockFetch.pause();
+
+            // When the workspace is duplicated with Categories selected and Rules unselected
+            Policy.duplicateWorkspace(fakePolicy, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Rules Off Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                personalDetailsByLogins: {},
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: true,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    codingRules: false,
+                },
+                localCurrency: 'USD',
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then Rules is still off after the response is applied, so it never shows in the new workspace's menu
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(policy?.areRulesEnabled).toBe(false);
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
@@ -5722,6 +5781,9 @@ describe('actions/Policy', () => {
         const FAKE_POLICY_ID = 'FAKE_POLICY';
         const FAKE_REIMBURSER_EMAIL = 'admin@example.com';
         const FAKE_BANK_ACCOUNT_ID = 12345;
+        const SHARED_BANK_ACCOUNT_ID = 23456;
+        const INCOMPLETE_BANK_ACCOUNT_ID = 34567;
+        const OTHER_BANK_ACCOUNT_ID = 45678;
         const FAKE_ACCOUNT_NUMBER = '****1234';
         const FAKE_ADDRESS_NAME = 'Test Bank Account';
         const FAKE_BANK_NAME = 'Test Bank';
@@ -6031,6 +6093,153 @@ describe('actions/Policy', () => {
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, 0);
         });
 
+        it.each([true, false])('detaches workspace bank accounts before the disable request completes (has ACH account: %s)', async (hasAchAccount) => {
+            // Given bank accounts with both association forms, including accounts shared with another workspace
+            mockFetch.pause();
+            const otherPolicyID = 'OTHER_POLICY';
+            const bankAccountList = createMock<BankAccountList>({
+                [FAKE_BANK_ACCOUNT_ID]: {
+                    methodID: FAKE_BANK_ACCOUNT_ID,
+                    accountData: {
+                        policyIDs: [FAKE_POLICY_ID, otherPolicyID],
+                        additionalData: {policyID: FAKE_POLICY_ID, currency: CONST.CURRENCY.USD},
+                    },
+                },
+                [SHARED_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [FAKE_POLICY_ID, otherPolicyID], additionalData: {policyID: otherPolicyID}},
+                },
+                [INCOMPLETE_BANK_ACCOUNT_ID]: {
+                    accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {policyID: FAKE_POLICY_ID}},
+                },
+                [OTHER_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [otherPolicyID], additionalData: {policyID: otherPolicyID}},
+                },
+            });
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.achAccount = hasAchAccount
+                ? {
+                      bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                      accountNumber: FAKE_ACCOUNT_NUMBER,
+                      routingNumber: '111000025',
+                      addressName: FAKE_ADDRESS_NAME,
+                      bankName: FAKE_BANK_NAME,
+                      reimburser: FAKE_REIMBURSER_EMAIL,
+                      state: FAKE_BANK_STATE,
+                  }
+                : undefined;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+
+            // When Payments is disabled, the pending request must not leave a bank available for automatic reconnection
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                bankAccountID: fakePolicy.achAccount?.bankAccountID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only this workspace is detached, even when the bank is already selected or there is no ACH account
+            const disabledPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            const detachedBankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(disabledPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+            expect(disabledPolicy?.achAccount).toBeUndefined();
+            expect(detachedBankAccountList?.[FAKE_BANK_ACCOUNT_ID]?.accountData).toEqual({
+                policyIDs: [otherPolicyID],
+                additionalData: {currency: CONST.CURRENCY.USD},
+            });
+            expect(detachedBankAccountList?.[SHARED_BANK_ACCOUNT_ID]?.accountData).toEqual({policyIDs: [otherPolicyID], additionalData: {policyID: otherPolicyID}});
+            expect(detachedBankAccountList?.[INCOMPLETE_BANK_ACCOUNT_ID]?.accountData).toEqual({state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {}});
+            expect(detachedBankAccountList?.[OTHER_BANK_ACCOUNT_ID]).toEqual(bankAccountList[OTHER_BANK_ACCOUNT_ID]);
+            expect(Object.keys(detachedBankAccountList ?? {})).toHaveLength(4);
+
+            // When Payments is enabled again while the disable request is still pending
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: disabledPolicy?.achAccount,
+                currentReimbursementChoice: disabledPolicy?.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList: detachedBankAccountList,
+            });
+            await waitForBatchedUpdates();
+
+            // Then neither the optimistic enable nor successful responses reconnects the previous bank
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount?.bankAccountID).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(detachedBankAccountList);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount?.bankAccountID).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(detachedBankAccountList);
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT);
+            expect(calls).toHaveLength(2);
+            const body = readProperty(requireCallArgument(calls.at(0), 1), 'body');
+            expect(body instanceof FormData ? body.get('bankAccountID') : undefined).toBe('0');
+        });
+
+        it.each([true, false])('restores bank associations and the complete ACH account after a failed disable (has ACH account: %s)', async (hasAchAccount) => {
+            // Given a bank with ACH fields that must survive clearing the entire connection, and an incomplete setup on another bank
+            mockFetch.pause();
+            const bankAccountList = createMock<BankAccountList>({
+                [FAKE_BANK_ACCOUNT_ID]: {
+                    accountData: {policyIDs: [FAKE_POLICY_ID, 'OTHER_POLICY'], additionalData: {policyID: FAKE_POLICY_ID, currency: CONST.CURRENCY.USD}},
+                },
+                [SHARED_BANK_ACCOUNT_ID]: {accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP, additionalData: {policyID: FAKE_POLICY_ID}}},
+            });
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+            fakePolicy.isCollectDepositAccountsEnabled = true;
+            fakePolicy.reimbursement = {countries: {US: {}}} as PolicyType['reimbursement'];
+            fakePolicy.achAccount = hasAchAccount
+                ? {
+                      bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                      accountNumber: FAKE_ACCOUNT_NUMBER,
+                      routingNumber: '111000025',
+                      addressName: FAKE_ADDRESS_NAME,
+                      bankName: FAKE_BANK_NAME,
+                      reimburser: FAKE_REIMBURSER_EMAIL,
+                      state: FAKE_BANK_STATE,
+                  }
+                : undefined;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, bankAccountList);
+
+            // When the optimistic disconnect is applied and then rejected by the server
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                currentIsCollectDepositAccountsEnabled: fakePolicy.isCollectDepositAccountsEnabled,
+                currentReimbursementCountries: fakePolicy.reimbursement?.countries,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                bankAccountID: fakePolicy.achAccount?.bankAccountID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                bankAccountList,
+            });
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`))?.achAccount).toBeUndefined();
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then rollback restores the original state, including routing details and previously absent fields
+            const restoredPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(restoredPolicy?.achAccount).toEqual(fakePolicy.achAccount);
+            expect(restoredPolicy?.reimbursementChoice).toBe(fakePolicy.reimbursementChoice);
+            expect(restoredPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(restoredPolicy?.reimbursement?.countries).toEqual(fakePolicy.reimbursement?.countries);
+            expect(restoredPolicy?.pendingFields?.reimbursementChoice).toBeFalsy();
+            expect(restoredPolicy?.errorFields?.reimbursementChoice).toBeDefined();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).toEqual(bankAccountList);
+            mockFetch.succeed();
+        });
+
         it('turns off deposit account collection and clears countries when switching to None', async () => {
             mockFetch?.pause?.();
 
@@ -6193,7 +6402,401 @@ describe('actions/Policy', () => {
         });
     });
 
+    function testGovernmentRatesOnTaxEnable(toggle: 'workspace' | 'distance') {
+        describe('government fuel bands', () => {
+            const customUnitID = 'distance';
+            const standardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'Standard', rate: 45, startDate: '2011-04-06'};
+            const petrolRate: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                currency: 'GBP',
+                name: 'Petrol',
+                rate: 45,
+                startDate: '2026-09-01',
+                taxClaimablePercentage: 13 / 45,
+            };
+            const dieselRate: GovernmentMileageRate = {...petrolRate, sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-09-01', name: 'Diesel', taxClaimablePercentage: 11 / 45};
+            const referenceRates = [standardRate, petrolRate, dieselRate];
+            const existingRate: Rate = {customUnitRateID: 'existing', name: 'Custom rate', currency: 'GBP', rate: 50, enabled: true};
+
+            const buildPolicy = (): PolicyType => ({
+                ...createRandomPolicy(1),
+                outputCurrency: CONST.CURRENCY.GBP,
+                shouldAutoUpdateGovernmentDistanceRates: true,
+                autoUpdateGovernmentRateCountry: 'DE',
+                tax: {trackingEnabled: toggle === 'distance'},
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: toggle === 'workspace'},
+                        rates: {existing: existingRate},
+                    },
+                },
+            });
+            const toggleTax = (policy: PolicyType, rates: GovernmentMileageRate[] | undefined = referenceRates, enabled = true) => {
+                if (toggle === 'workspace') {
+                    Policy.enablePolicyTaxes(policy.id, enabled, false, {policy, governmentMileageRates: rates});
+                    return;
+                }
+                const attributes = policy.customUnits?.[customUnitID]?.attributes;
+                Policy.enableDistanceRequestTax(
+                    policy,
+                    CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: enabled},
+                    attributes,
+                    rates,
+                );
+            };
+            const getRates = (policy: OnyxEntry<PolicyType>) => Object.values(policy?.customUnits?.[customUnitID]?.rates ?? {});
+            const expectSettingsUnchanged = (policy: OnyxEntry<PolicyType>, initialPolicy: PolicyType) => {
+                expect(policy?.shouldAutoUpdateGovernmentDistanceRates).toBe(initialPolicy.shouldAutoUpdateGovernmentDistanceRates);
+                expect(policy?.autoUpdateGovernmentRateCountry).toBe(initialPolicy.autoUpdateGovernmentRateCountry);
+                expect(policy?.pendingFields?.autoUpdateGovernmentRateCountry).toEqual(initialPolicy.pendingFields?.autoUpdateGovernmentRateCountry);
+                expect(policy?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates);
+                expect(policy?.errorFields?.shouldAutoUpdateGovernmentDistanceRates).toEqual(initialPolicy.errorFields?.shouldAutoUpdateGovernmentDistanceRates);
+            };
+
+            afterEach(async () => {
+                jest.restoreAllMocks();
+                await mockFetch.resume();
+            });
+
+            it('switches km to mi with unconverted bands and clears pending fields on success', async () => {
+                // Given a GBP workspace about to become eligible, using kilometers and holding unrelated auto-update feedback
+                const policy = buildPolicy();
+                policy.errorFields = {shouldAutoUpdateGovernmentDistanceRates: {previous: 'Previous auto-update error'}};
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When enabling the missing tax setting
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+
+                // Then the unit matches the server and only bands are added, with the published per-mile amounts and request IDs
+                let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const newRates = getRates(updatedPolicy).filter((rate) => rate.customUnitRateID !== existingRate.customUnitRateID);
+                expect(newRates).toHaveLength(2);
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                const ids = parseJSONRecord(params.optimisticRateIDs);
+                expect(Object.keys(ids).sort()).toEqual([petrolRate.sourceRateID, dieselRate.sourceRateID].sort());
+                for (const rate of newRates) {
+                    const snapshot = rate.attributes?.governmentRate;
+                    const sourceRateID = snapshot?.sourceRateID;
+                    expect(snapshot).toBeDefined();
+                    expect(rate.customUnitRateID).toBe(sourceRateID ? ids[sourceRateID] : undefined);
+                    expect(rate.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    expect(rate.attributes?.taxClaimablePercentage).toBe(snapshot?.taxClaimablePercentage);
+                    expect(rate.rate).toBe(petrolRate.rate);
+                    expect(snapshot?.rate).toBe(petrolRate.rate);
+                    expect(rate.attributes?.taxRateExternalID).toBeUndefined();
+                }
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.rates?.existing).toEqual(existingRate);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expectSettingsUnchanged(updatedPolicy, policy);
+
+                // When the request succeeds
+                await mockFetch.resume();
+                await waitForBatchedUpdates();
+
+                // Then all copied rates remain without pending actions or duplicate IDs
+                updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toHaveLength(3);
+                expect(getRates(updatedPolicy).every((rate) => !rate.pendingAction)).toBe(true);
+                expect(
+                    getRates(updatedPolicy)
+                        .filter((rate) => rate.customUnitRateID !== existingRate.customUnitRateID)
+                        .map((rate) => rate.rate),
+                ).toEqual([petrolRate.rate, dieselRate.rate]);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each(['auto-update', 'currency', 'workspace tax', 'distance tax'])('waits for server rates while %s is pending', async (prerequisite) => {
+                // Given eligibility that depends on an earlier request which can still fail
+                const policy = buildPolicy();
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (prerequisite === 'auto-update') {
+                    policy.pendingFields = {shouldAutoUpdateGovernmentDistanceRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (prerequisite === 'currency') {
+                    policy.pendingFields = {outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (prerequisite === 'workspace tax') {
+                    policy.pendingFields = {tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                } else if (customUnit) {
+                    customUnit.pendingFields = {taxEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When the other tax setting is enabled before the prerequisite completes
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+
+                // Then the tax write proceeds without generating IDs that the server might not persist
+                expect(apiWriteSpy).toHaveBeenCalledTimes(1);
+                expect(requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1)).optimisticRateIDs).toBeUndefined();
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual([existingRate]);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(true);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each([
+                {prerequisite: 'auto-update', succeeds: false},
+                {prerequisite: 'auto-update', succeeds: true},
+                {prerequisite: 'other tax', succeeds: false},
+                {prerequisite: 'other tax', succeeds: true},
+            ])('handles offline $prerequisite completion (success=$succeeds) before tax success', async ({prerequisite, succeeds}) => {
+                // Given two offline writes whose eligibility depends on the first request succeeding
+                const policy = buildPolicy();
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (prerequisite === 'auto-update') {
+                    policy.shouldAutoUpdateGovernmentDistanceRates = false;
+                } else if (toggle === 'workspace' && customUnit?.attributes) {
+                    customUnit.attributes.taxEnabled = false;
+                } else {
+                    policy.tax = {trackingEnabled: false};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                let prerequisiteCommand:
+                    | typeof WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE
+                    | typeof WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX
+                    | typeof WRITE_COMMANDS.ENABLE_POLICY_TAXES = WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE;
+                if (prerequisite !== 'auto-update') {
+                    prerequisiteCommand = toggle === 'workspace' ? WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX : WRITE_COMMANDS.ENABLE_POLICY_TAXES;
+                }
+                const taxCommand = toggle === 'workspace' ? WRITE_COMMANDS.ENABLE_POLICY_TAXES : WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX;
+                const serverRate: Rate = {...existingRate, customUnitRateID: 'serverBand', attributes: {governmentRate: petrolRate}};
+                mockFetch.mockAPICommand(prerequisiteCommand, () => ({jsonCode: succeeds ? 200 : 400}));
+                mockFetch.mockAPICommand(taxCommand, () => ({
+                    jsonCode: 200,
+                    onyxData: succeeds
+                        ? [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, value: {customUnits: {[customUnitID]: {rates: {serverBand: serverRate}}}}}]
+                        : [],
+                }));
+                const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(true);
+
+                try {
+                    // When the prerequisite and tax change are queued using the latest optimistic policy
+                    if (prerequisite === 'auto-update') {
+                        setWorkspaceDistanceAutoUpdate(policy, true, referenceRates);
+                    } else if (toggle === 'workspace') {
+                        Policy.enableDistanceRequestTax(
+                            policy,
+                            CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true},
+                            customUnit?.attributes,
+                            referenceRates,
+                        );
+                    } else {
+                        Policy.enablePolicyTaxes(policy.id, true, false, {policy, governmentMileageRates: referenceRates});
+                    }
+                    await waitForBatchedUpdates();
+                    const pendingPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                    expect(pendingPolicy).toBeDefined();
+                    if (!pendingPolicy) {
+                        throw new Error('Expected the prerequisite optimistic policy');
+                    }
+                    toggleTax(pendingPolicy);
+                    await waitForBatchedUpdates();
+
+                    // Then both writes remain queued, but the later tax write does not create fuel bands
+                    const requests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+                    expect(requests?.map((request) => request.command)).toEqual([prerequisiteCommand, taxCommand]);
+                    expect(requests?.at(-1)?.data?.optimisticRateIDs).toBeUndefined();
+                    expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`)).some((rate) => rate.attributes?.governmentRate?.taxClaimablePercentage)).toBe(false);
+                } finally {
+                    offlineSpy.mockRestore();
+                }
+
+                // When the prerequisite completes and the tax request succeeds on reconnect
+                SequentialQueue.flush();
+                await waitForBatchedUpdates();
+
+                // Then only server-confirmed fuel bands remain, even when the prerequisite rolls back
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const fuelBands = getRates(updatedPolicy).filter((rate) => rate.attributes?.governmentRate?.taxClaimablePercentage);
+                expect(fuelBands).toEqual(succeeds ? [serverRate] : []);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.rates?.existing).toEqual(existingRate);
+                expect(!!updatedPolicy?.shouldAutoUpdateGovernmentDistanceRates).toBe(prerequisite === 'auto-update' ? succeeds : true);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(toggle === 'workspace' || prerequisite === 'auto-update' || succeeds);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(toggle === 'distance' || prerequisite === 'auto-update' || succeeds);
+                expect(toggle === 'workspace' ? updatedPolicy?.pendingFields?.tax : updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeUndefined();
+            });
+
+            it('deletes new bands and restores km on failure without touching auto-update feedback', async () => {
+                // Given a workspace about to become eligible with no auto-update error
+                const policy = buildPolicy();
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                mockFetch.pause();
+                mockFetch.fail();
+
+                // When the tax toggle adds bands optimistically and then fails
+                toggleTax(policy);
+                await waitForBatchedUpdates();
+                const optimisticPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(optimisticPolicy)).toHaveLength(3);
+                expect(optimisticPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+                expect(optimisticPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                await mockFetch.resume();
+                await waitForBatchedUpdates();
+
+                // Then no empty rate objects or errors on the auto-update toggle remain
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual([existingRate]);
+                expect(updatedPolicy?.tax?.trackingEnabled).toBe(policy.tax?.trackingEnabled);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes).toEqual(policy.customUnits?.[customUnitID]?.attributes);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it.each([
+                'auto-update off',
+                'non-GBP',
+                'other tax off',
+                'already eligible',
+                'disabling',
+                'no references',
+                'empty references',
+                'wrong currency',
+                'wrong country',
+                'missing custom unit',
+            ])('does not copy rates for %s', async (scenario) => {
+                // Given a toggle that cannot make the workspace newly eligible with matching cached GB references
+                const policy = buildPolicy();
+                let rates: GovernmentMileageRate[] | undefined = referenceRates;
+                if (scenario === 'auto-update off') {
+                    policy.shouldAutoUpdateGovernmentDistanceRates = false;
+                } else if (scenario === 'non-GBP') {
+                    policy.outputCurrency = CONST.CURRENCY.USD;
+                } else if (scenario === 'other tax off') {
+                    if (toggle === 'workspace') {
+                        delete policy.customUnits?.[customUnitID]?.attributes?.taxEnabled;
+                    } else {
+                        policy.tax = {trackingEnabled: false};
+                    }
+                } else if (scenario === 'already eligible' || scenario === 'disabling') {
+                    policy.tax = {trackingEnabled: true};
+                    const customUnit = policy.customUnits?.[customUnitID];
+                    if (customUnit) {
+                        customUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, taxEnabled: true};
+                    }
+                } else if (scenario === 'no references') {
+                    rates = undefined;
+                } else if (scenario === 'empty references') {
+                    rates = [];
+                } else if (scenario === 'wrong currency') {
+                    rates = [{...petrolRate, currency: CONST.CURRENCY.USD}];
+                } else if (scenario === 'wrong country') {
+                    rates = [{...petrolRate, sourceRateID: 'US_2026-01-01'}];
+                } else if (scenario === 'missing custom unit') {
+                    policy.customUnits = {};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When the tax setting is toggled
+                if (toggle === 'workspace') {
+                    Policy.enablePolicyTaxes(policy.id, scenario !== 'disabling', false, {policy, governmentMileageRates: rates});
+                } else {
+                    const attributes = policy.customUnits?.[customUnitID]?.attributes;
+                    Policy.enableDistanceRequestTax(
+                        policy,
+                        CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID,
+                        {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, ...attributes, taxEnabled: scenario !== 'disabling'},
+                        attributes,
+                        rates,
+                    );
+                }
+                await waitForBatchedUpdates();
+
+                // Then the request omits optimistic IDs and does not add government rates
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+                const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                expect(getRates(updatedPolicy)).toEqual(scenario === 'missing custom unit' ? [] : [existingRate]);
+                if (policy.customUnits?.[customUnitID]) {
+                    expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.unit).toBe(policy.customUnits[customUnitID]?.attributes?.unit);
+                }
+                expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.attributes).toBeUndefined();
+                expectSettingsUnchanged(updatedPolicy, policy);
+            });
+
+            it('preserves existing source IDs and omits the map when all bands are already copied', async () => {
+                // Given a policy already holding one fuel band
+                const policy = buildPolicy();
+                const copiedRate: Rate = {...existingRate, attributes: {governmentRate: {...petrolRate}}};
+                const customUnit = policy.customUnits?.[customUnitID];
+                if (customUnit) {
+                    customUnit.rates = {existing: copiedRate};
+                }
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const apiWriteSpy = jest.spyOn(APIModule, 'write');
+                mockFetch.pause();
+
+                // When enabling tax with only the existing band in the reference list
+                toggleTax(policy, [standardRate, petrolRate]);
+                await waitForBatchedUpdates();
+
+                // Then the existing rate is untouched and no replacement ID is sent
+                const params = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                expect(params.optimisticRateIDs).toBeUndefined();
+                expect(getRates(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))).toEqual([copiedRate]);
+            });
+        });
+    }
+
     describe('enablePolicyTaxes', () => {
+        testGovernmentRatesOnTaxEnable('workspace');
+        it('should retain opposite offline toggles and their completion data', async () => {
+            // Given a workspace with taxes disabled and requests queued offline
+            const policyID = '1';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, tax: {trackingEnabled: false}});
+            const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(true);
+            await waitForBatchedUpdates();
+
+            try {
+                // When taxes are enabled and disabled before reconnecting
+                Policy.enablePolicyTaxes(policyID, true, false, {});
+                await waitForBatchedUpdates();
+                Policy.enablePolicyTaxes(policyID, false, false, {});
+                await waitForBatchedUpdates();
+
+                // Then both requests retain their success and failure data instead of cancelling each other
+                const requests = (await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS))?.filter((request) => request.command === WRITE_COMMANDS.ENABLE_POLICY_TAXES);
+                expect(requests).toHaveLength(2);
+                for (const request of requests ?? []) {
+                    expect(request.successData?.length).toBeGreaterThan(0);
+                    expect(request.failureData?.length).toBeGreaterThan(0);
+                }
+            } finally {
+                offlineSpy.mockRestore();
+            }
+
+            // When the connection returns, completion clears the optimistic default tax rates' pending state
+            SequentialQueue.flush();
+            await waitForBatchedUpdates();
+
+            // Then the final disabled state is preserved with no stranded pending fields
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.tax?.trackingEnabled).toBe(false);
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
+            for (const tax of Object.values(updatedPolicy?.taxRates?.taxes ?? {})) {
+                expect(tax.pendingAction).toBeUndefined();
+            }
+        });
+
         it('should enable policy taxes optimistically and succeed', async () => {
             // Given a policy with taxes disabled
             const policyID = '1';
@@ -6208,7 +6811,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called to enable taxes
             mockFetch.pause();
-            Policy.enablePolicyTaxes(policyID, true, false, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, {});
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be updated optimistically
@@ -6244,7 +6847,7 @@ describe('actions/Policy', () => {
 
             // When enablePolicyTaxes is called and fails
             mockFetch.fail();
-            Policy.enablePolicyTaxes(policyID, true, false, undefined);
+            Policy.enablePolicyTaxes(policyID, true, false, {});
             await waitForBatchedUpdates();
 
             // Then the policy tax tracking should be reverted
@@ -6312,7 +6915,81 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
         });
     });
+    describe('dismissUKFuelRateTaxError', () => {
+        it.each([false, true])('clears a dismissal failure locally before allowing retry, with warning already dismissed: %s', async (isDismissed) => {
+            // Given a failed dismissal plus unrelated workspace and rate-save errors
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit?.attributes) {
+                throw new Error('Expected distance unit attributes');
+            }
+            unit.attributes.isUKFuelRateTaxErrorDismissed = isDismissed;
+            unit.errorFields = {isUKFuelRateTaxErrorDismissed: {dismissalFailure: 'Dismissal failed'}, taxEnabled: {taxSettingFailure: 'Tax setting failed'}};
+            unit.rates.fuel.errorFields = {taxRateExternalID: {rateSaveFailure: 'Rate-save failed'}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            try {
+                // When the admin closes the error row
+                Policy.dismissUKFuelRateTaxError(policy.id, unit);
+                await waitForBatchedUpdates();
+                const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+                const updatedUnit = updated?.customUnits?.distance;
+
+                // Then only the request error clears, without another API call or changes to the warning/save errors
+                expect(apiWriteSpy).not.toHaveBeenCalled();
+                expect(updatedUnit?.errorFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+                expect(updatedUnit?.attributes?.isUKFuelRateTaxErrorDismissed).toBe(isDismissed);
+                expect(shouldShowUKFuelRateTaxError(updated)).toBe(!isDismissed);
+                expect(updatedUnit?.errorFields?.taxEnabled).toEqual({taxSettingFailure: 'Tax setting failed'});
+                expect(updatedUnit?.rates.fuel.errorFields?.taxRateExternalID).toEqual({rateSaveFailure: 'Rate-save failed'});
+
+                // When the warning is closed again after clearing the failure
+                if (!updatedUnit) {
+                    throw new Error('Expected updated distance unit');
+                }
+                Policy.dismissUKFuelRateTaxError(policy.id, updatedUnit);
+
+                // Then a retry can reach the API normally
+                expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR, expect.anything(), expect.anything());
+            } finally {
+                apiWriteSpy.mockRestore();
+            }
+        });
+
+        it.each([false, true])('hides the warning optimistically and handles failure: %s', async (shouldFail) => {
+            // Given a workspace with an invalid UK fuel VAT mapping
+            const policy = createUKFuelRateTaxPolicy();
+            const unit = policy.customUnits?.distance;
+            if (!unit) {
+                throw new Error('Expected distance unit');
+            }
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+            mockFetch.pause();
+            if (shouldFail) {
+                mockFetch.fail();
+            }
+            // When the admin dismisses the warning
+            Policy.dismissUKFuelRateTaxError(policy.id, unit);
+            await waitForBatchedUpdates();
+            let updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            // Then the warning disappears immediately, with the unit's other attributes preserved
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(false);
+            expect(updated?.customUnits?.distance.attributes?.isUKFuelRateTaxErrorDismissed).toBe(true);
+            expect(updated?.customUnits?.distance.attributes?.taxEnabled).toBe(true);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            await mockFetch.resume();
+            updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(shouldShowUKFuelRateTaxError(updated)).toBe(shouldFail);
+            expect(updated?.customUnits?.distance.pendingFields?.isUKFuelRateTaxErrorDismissed).toBeUndefined();
+            expect(!!updated?.customUnits?.distance.errorFields?.isUKFuelRateTaxErrorDismissed).toBe(shouldFail);
+        });
+    });
+
     describe('enableDistanceRequestTax', () => {
+        testGovernmentRatesOnTaxEnable('distance');
         it('should enable distance request tax optimistically and succeed', async () => {
             // Given a policy with a custom unit and tax disabled
             const policyID = '1';
@@ -6326,6 +7003,7 @@ describe('actions/Policy', () => {
                         customUnitID,
                         name: customUnitName,
                         attributes: initialAttributes,
+                        rates: {},
                     },
                 },
             };
@@ -6335,7 +7013,7 @@ describe('actions/Policy', () => {
             // When enableDistanceRequestTax is called to enable tax
             mockFetch.pause();
             const newAttributes = {...initialAttributes, taxEnabled: true};
-            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            Policy.enableDistanceRequestTax({...createRandomPolicy(1), ...fakePolicy}, customUnitName, customUnitID, newAttributes, initialAttributes, undefined);
             await waitForBatchedUpdates();
 
             // Then taxEnabled should be true optimistically
@@ -6364,6 +7042,7 @@ describe('actions/Policy', () => {
                         customUnitID,
                         name: customUnitName,
                         attributes: initialAttributes,
+                        rates: {},
                     },
                 },
             };
@@ -6373,7 +7052,7 @@ describe('actions/Policy', () => {
             // When enableDistanceRequestTax is called to disable tax and fails
             mockFetch.fail();
             const newAttributes = {...initialAttributes, taxEnabled: false};
-            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            Policy.enableDistanceRequestTax({...createRandomPolicy(1), ...fakePolicy}, customUnitName, customUnitID, newAttributes, initialAttributes, undefined);
             await waitForBatchedUpdates();
 
             // Then taxEnabled should be reverted to true

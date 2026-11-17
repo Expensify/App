@@ -36,6 +36,7 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {getBankAccountConnectionStatus, isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -49,12 +50,12 @@ import WorkspaceWiseGlobalReimbursementsBanner from '@pages/workspace/workflows/
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
@@ -137,7 +138,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         if (!policy) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.getRoute({isForcedToChangeCurrency: true})));
     };
 
     const workflowsBackTo = ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
@@ -317,6 +318,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             addressName: policy?.achAccount?.addressName,
             bankName: policy?.achAccount?.bankName,
             state: policy?.achAccount?.state,
+            bankAccountList,
         });
     };
 
@@ -380,6 +382,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
                                                     onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    actionSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT_CONNECTION_ACTION}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
                                                     shouldIncludeHorizontalPadding={false}
@@ -424,11 +427,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={
-                                        canChangePayer
-                                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID)), false, session)
-                                            : undefined
-                                    }
+                                    onPress={canChangePayer ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID)), session) : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                 >
                                     <MenuItemField.Row
@@ -453,7 +452,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
                                 <MenuItemSectionRoot
-                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)), false, session)}
+                                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)), session)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
                                 >
                                     <MenuItemField.Row
@@ -496,11 +495,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     <MenuItemSectionRoot
                                         onPress={
                                             canWritePayments
-                                                ? callFunctionIfActionIsAllowed(
-                                                      () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)),
-                                                      false,
-                                                      session,
-                                                  )
+                                                ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)), session)
                                                 : undefined
                                         }
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}

@@ -68,6 +68,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         <View style={[styles.ph5]}>
                             <Text style={[styles.textAlignCenter]}>
                                 <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                     style={styles.link}
                                     onPress={() => {
                                         openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
@@ -85,6 +86,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     <View style={[styles.ph5]}>
                         <Text style={[styles.textAlignLeft]}>
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                 style={styles.link}
                                 onPress={() => {
                                     openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
@@ -102,6 +104,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSION_ROW}
                                     name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
                                     value={userDimension.dimension}
@@ -120,6 +123,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.ADD_USER_DIMENSION}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={addUserDefinedDimension}
                     size={CONST.BUTTON_SIZE.LARGE}
