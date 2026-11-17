@@ -42,12 +42,13 @@ function PersonalCardWarning() {
                 return;
             }
             // The workspace chat is only needed on press, so read it once here instead of subscribing to every report.
-            // A non-admin has no admin card feeds, so without the chat this falls back to the workspaces list.
             // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces getPolicyExpenseChat's module-level Onyx.connect fallback, which never read a Search snapshot
             const reports = await Onyx.get(ONYXKEYS.COLLECTION.REPORT);
             const expenseChatReportID = getPolicyExpenseChat(accountID, policyID, reports)?.reportID;
-            Navigation.navigate(expenseChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID) : ROUTES.WORKSPACES_LIST.route);
-            return;
+            if (expenseChatReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID));
+                return;
+            }
         }
         if (adminPoliciesCountInCardFeeds === 1) {
             const adminPolicyID = adminPolicyIdsInCardFeeds.at(0);
