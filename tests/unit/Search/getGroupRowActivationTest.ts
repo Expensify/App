@@ -70,4 +70,15 @@ describe('getGroupRowActivation', () => {
         // Then nothing happens
         expect(activation).toEqual({shouldSelect: false, shouldToggle: false});
     });
+
+    it('does nothing for a group that is pending delete', () => {
+        // Given a group deleted offline, which stays in the list until it syncs and may still be selected
+        const group = {...buildCategoryGroup('Advertising', transactions), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When the row is activated, in a search type that would otherwise toggle it
+        const activation = getGroupRowActivation(group, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
+        // Then nothing happens, because Search ignores taps and Enter on any row that is pending delete
+        expect(activation).toEqual({shouldSelect: false, shouldToggle: false});
+    });
 });

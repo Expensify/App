@@ -758,8 +758,8 @@ function Search({
                 }
             }
 
-            // A group that isn't a report has nothing to navigate to: clicking it or pressing Enter on it opens and closes it
-            // instead. Without this return, such a group would fall through to the report navigation below.
+            // The list opens and closes groups that aren't reports itself, so they shouldn't reach here. If one does, stop
+            // before the report navigation below, since it has no report to open.
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
                 return;
             }

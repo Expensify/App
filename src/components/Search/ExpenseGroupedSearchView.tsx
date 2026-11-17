@@ -205,11 +205,6 @@ function ExpenseGroupedSearchView({
             return;
         }
 
-        // A click can't reach a group that is pending delete, because its pressable is disabled, so Enter must not open it either.
-        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
-
         // A split header row carries a prefixed key, but selection and open state are tracked by the group's own key.
         const groupKey = isGroupHeaderItem(item) ? item.groupKeyForList : item.keyForList;
         const {shouldSelect, shouldToggle} = getGroupRowActivation(item, type);

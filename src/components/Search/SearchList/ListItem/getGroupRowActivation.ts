@@ -19,9 +19,10 @@ type GroupRowActivation = {
 /**
  * A report group opens the report, any other group opens or closes in place, and a cash back row has nothing to show.
  * An empty group with nothing to fetch also goes to onSelectRow, so selection mode can still select it.
+ * A group that is pending delete does nothing, like any other Search row that is pending delete.
  */
 function getGroupRowActivation(item: TransactionGroupListItemType, searchType: SearchDataTypes | undefined): GroupRowActivation {
-    if (isCashBackWithdrawalGroup(item)) {
+    if (isCashBackWithdrawalGroup(item) || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return {shouldSelect: false, shouldToggle: false};
     }
 
