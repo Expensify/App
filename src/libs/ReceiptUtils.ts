@@ -99,7 +99,7 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
 }
 
 const shouldValidateFile = (file: ShareTempFile | undefined) => {
-    return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
+    return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIF || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
 };
 
 export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename};

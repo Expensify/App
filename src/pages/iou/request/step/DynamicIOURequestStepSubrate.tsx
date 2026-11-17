@@ -241,6 +241,7 @@ function DynamicIOURequestStepSubrate({
                                         handleDeleteSubrate();
                                     },
                                     shouldCallAfterModalHide: true,
+                                    sentryLabel: CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SUBRATE_DELETE,
                                 },
                             ]}
                             shouldSetModalVisibility={false}
