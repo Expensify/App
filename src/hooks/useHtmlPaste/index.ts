@@ -52,10 +52,10 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 /**
- * Identifies emoji images using explicit metadata or known emoji asset formats.
+ * Identifies pasted emoji images using metadata supplied by the source app or known `src` URL patterns.
  *
  * @param image The image element to inspect.
- * @returns Whether the image has enough emoji-specific information to use its text.
+ * @returns True if the image has recognized emoji data attributes or its `src` matches a known emoji image URL pattern.
  */
 function isEmojiImage(image: HTMLImageElement): boolean {
     const dataset = image.dataset;
@@ -64,7 +64,8 @@ function isEmojiImage(image: HTMLImageElement): boolean {
         return true;
     }
 
-    // Some sources omit data-* fields, so alt text alone must not identify an image as an emoji.
+    // Some sources omit emoji data-* fields, and alt text alone is not reliable.
+    // Check the image's src against known emoji URL patterns instead.
     const source = image.getAttribute('src') ?? '';
     const patterns = CONST.REGEX.EMOJI_IMAGE_SOURCE;
     return patterns.TEAMS.test(source) || patterns.DISCOURSE.test(source) || patterns.META.test(source) || patterns.YOUTUBE.test(source);
