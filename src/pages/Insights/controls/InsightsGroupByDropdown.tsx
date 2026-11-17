@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {getFittingGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
@@ -27,10 +27,13 @@ type InsightsGroupByDropdownProps = {
     /** Per-period time buckets that fit the date range */
     options: InsightsTimeGroupBy[];
 
+    /** Grouping the dashboard starts from, which Reset returns to */
+    defaultGroupBy: GroupByValue;
+
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -44,9 +47,15 @@ function InsightsGroupByDropdown({groupBy, options, onChange}: InsightsGroupByDr
 
     const groupByPopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsGroupByPopup
-            optionGroups={[options.map((value) => ({value, label: translate(`search.filters.groupBy.${value}`)})), [{value: INSIGHTS_RUNNING_TOTAL_GROUP_BY, label: runningTotalText}]]}
+            optionGroups={[
+                options.map((value) => ({
+                    value,
+                    label: translate(`search.filters.groupBy.${value}`),
+                })),
+                [{value: INSIGHTS_RUNNING_TOTAL_GROUP_BY, label: runningTotalText}],
+            ]}
             selectedValue={selectedValue}
-            defaultValue={DEFAULT_INSIGHTS_FILTERS.groupBy}
+            defaultValue={defaultGroupBy}
             label={label}
             resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY}
             applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY}

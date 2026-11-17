@@ -18,6 +18,7 @@ import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAmountFilterFormValues, getAmountFilterValues} from '@libs/SearchAmountFilterUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {isSearchQuerySavable, removeNegation} from '@libs/SearchQueryUtils';
 import {
@@ -80,11 +81,7 @@ function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, close
     };
 
     if (isAmountFilterKey(baseFilterKey)) {
-        const value = {
-            [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: searchAdvancedFiltersForm[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`],
-            [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: searchAdvancedFiltersForm[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
-            [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: searchAdvancedFiltersForm[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
-        };
+        const value = getAmountFilterValues(baseFilterKey, searchAdvancedFiltersForm);
         return (
             <AmountPopup
                 baseFilterKey={baseFilterKey}
@@ -203,10 +200,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                     ? undefined
                     : () => {
                           if (isAmountFilterKey(filterKey)) {
-                              const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
-                              const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-                              const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-                              updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
+                              updateFilterQueryParams(getAmountFilterFormValues(filterKey));
                               return;
                           }
 

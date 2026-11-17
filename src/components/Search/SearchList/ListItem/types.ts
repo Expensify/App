@@ -24,6 +24,7 @@ import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -561,6 +562,11 @@ type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupe
         formattedPaidBy?: string;
     };
 
+type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE} & SearchWorkflowStageGroup & {
+        /** Stage name translated for display */
+        formattedWorkflowStage: string;
+    };
+
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
         /** Whether the item's action is loading */
@@ -636,6 +642,7 @@ type GroupHeaderItemType =
     | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
     | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWorkflowStageGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -698,6 +705,7 @@ export type {
     TransactionApproverGroupListItemType,
     TransactionViolationGroupListItemType,
     TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

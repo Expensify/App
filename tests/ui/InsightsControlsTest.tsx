@@ -9,6 +9,7 @@ import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
+import InsightsCompareControl from '@pages/Insights/controls/InsightsCompareControl';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
@@ -205,6 +206,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -278,12 +280,13 @@ describe('Insights controls', () => {
         expect(onChange).toHaveBeenCalledWith({tagLevel: 1});
     });
 
-    it('resets the grouping to month', async () => {
-        // Given the headline chart grouped by quarter
+    it('resets the grouping to the dashboard default', async () => {
+        // Given the headline chart grouped by quarter on a dashboard that starts on Running total
         const onChange = jest.fn();
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.QUARTER}
+                defaultGroupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -294,8 +297,28 @@ describe('Insights controls', () => {
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart goes back to the default monthly buckets with running total off
-        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH});
+        // Then the chart goes back to the grouping the dashboard starts from
+        expect(onChange).toHaveBeenCalledWith({groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
+    });
+
+    it('resets Compare to the dashboard default', async () => {
+        // Given a dashboard that starts on Previous period, compared against the average instead
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsCompareControl
+                value={CONST.SEARCH.COMPARE.AVERAGE}
+                defaultValue={CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the control
+        await openPill(/(Average|insightsPage\.compare\.average)/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the charts go back to the Compare mode the dashboard starts from
+        expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD);
     });
 
     it('only offers the groupings that fit the date range', async () => {
@@ -304,6 +327,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.WEEK}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions(date)}
                 onChange={jest.fn()}
             />,
@@ -325,6 +349,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.DAY}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions(date)}
                 onChange={onChange}
             />,
@@ -345,6 +370,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -365,6 +391,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={jest.fn()}
             />,

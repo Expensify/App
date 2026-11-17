@@ -101,6 +101,7 @@ function BusinessCentralSetupPage({route}: BusinessCentralSetupPageProps) {
                             autoCapitalize="none"
                             secureTextEntry={formItem === INPUT_IDS.CLIENT_SECRET}
                             autoCorrect={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 ))}

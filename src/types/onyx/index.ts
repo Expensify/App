@@ -4,12 +4,14 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AccountingIntegrationWaitlist from './AccountingIntegrationWaitlist';
+import type AccountingIntegrationWaitlistRequests from './AccountingIntegrationWaitlistRequests';
 import type Agent from './Agent';
 import type AgentNewAvatarDraft from './AgentNewAvatarDraft';
 import type AppReview from './AppReview';
 import type {AppReviewLastPrompt} from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard, AssignCardData} from './AssignCard';
+import type {AssignCard} from './AssignCard';
 import type Attachment from './Attachment';
 import type AvatarCropDraft from './AvatarCropDraft';
 import type {AvatarCropMaskType} from './AvatarCropDraft';
@@ -33,8 +35,6 @@ import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {
     AddNewCompanyCardFeed,
-    CardFeed,
-    CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CardFeedWithDomainID,
     CombinedCardFeed,
@@ -43,12 +43,10 @@ import type {
     CompanyCardFeedWithDomainID,
     DomainSettings,
     FundID,
-    WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
-import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -56,7 +54,6 @@ import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
-import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
@@ -136,8 +133,9 @@ import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
+import type LocallyProcessedFraudTransactionReviews from './LocallyProcessedFraudTransactionReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
-import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
+import type {PasskeyCredential} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -169,7 +167,7 @@ import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetai
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
-import type {AutoReportingOffset, PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
+import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import type PolicyDataLoadingState from './PolicyDataLoadingState';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -199,7 +197,6 @@ import type Report from './Report';
 import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
-import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportLastVisitTimes from './ReportLastVisitTimes';
 import type {GroupedTransactions, ReportLayoutGroupBy, ReportLayoutOption, ReportLayoutSelection} from './ReportLayout';
@@ -213,11 +210,12 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
 import type Request from './Request';
 import type {AnyRequest} from './Request';
+import type RequestsKeptOnSAMLSignOut from './RequestsKeptOnSAMLSignOut';
 import type Response from './Response';
 import type ReusableDistanceRoute from './ReusableDistanceRoute';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type Rule from './Rule';
-import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
+import type RuleMatchingTransaction from './RuleMatchingTransaction';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
@@ -244,6 +242,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelBillingStatement from './TravelBillingStatement';
@@ -280,9 +279,12 @@ export type {
     AvatarCropResult,
     Account,
     AccountData,
+    AccountingIntegrationWaitlist,
+    AccountingIntegrationWaitlistRequests,
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
+    TransactionsPendingFraudReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -297,7 +299,6 @@ export type {
     ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
-    Currency,
     CurrencyList,
     CustomStatusDraft,
     DatabaseSizeMeasurement,
@@ -334,14 +335,12 @@ export type {
     InsightsSearchKey,
     IntroSelected,
     IssueNewCard,
-    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CombinedCardFeed,
     CombinedCardFeeds,
     CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
-    CardFeed,
     CardFeedWithDomainID,
     LastExportMethod,
     Locale,
@@ -352,7 +351,6 @@ export type {
     NewLogin,
     Logins,
     PasskeyCredential,
-    PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
     MarketingAttribution,
@@ -384,7 +382,6 @@ export type {
     PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyOwnershipChangeChecks,
-    AutoReportingOffset,
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
@@ -394,8 +391,6 @@ export type {
     QuickAction,
     ShareBankAccount,
     RecentWaypoint,
-    SavedCSVColumnLayoutList,
-    SavedCSVColumnLayoutData,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
@@ -406,7 +401,6 @@ export type {
     ReportAction,
     ReportActionReactions,
     ReportActions,
-    ReportActionsDraft,
     ReportActionsDrafts,
     DeferredAttachmentEdits,
     ReportLastVisitTimes,
@@ -420,6 +414,7 @@ export type {
     ReportLayoutSelection,
     GroupedTransactions,
     AnyRequest,
+    RequestsKeptOnSAMLSignOut,
     Request,
     Response,
     ScreenShareRequest,
@@ -480,13 +475,11 @@ export type {
     CancellationDetails,
     ApprovalWorkflowOnyx,
     CardFeeds,
-    CardFeedsStatus,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
     ReceiptTranslation,
     ReceiptTranslationState,
     TranslatedReceiptRow,
-    WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
     SearchFilters,
@@ -564,10 +557,11 @@ export type {
     DomainSecurityGroup,
     ChronosTimeTracking,
     CloudflareSession,
-    CodingRuleMatchingTransaction,
+    RuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
     LocallyProcessed3DSChallengeReviews,
+    LocallyProcessedFraudTransactionReviews,
     InitiatingBankAccountUnlock,
     AgentNewAvatarDraft,
     Agent,

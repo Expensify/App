@@ -5,7 +5,7 @@ import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems, TRANSACTION_M
 import CONST from '@src/CONST';
 
 function makeItem(value: string): DropdownOption<string> {
-    return {text: value, value};
+    return {text: value, value, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL};
 }
 
 describe('sortAndSectionPopoverMenuItems', () => {
@@ -50,7 +50,7 @@ describe('sortAndSectionPopoverMenuItems', () => {
     it('handles single item without separator', () => {
         const result = sortAndSectionPopoverMenuItems([makeItem('D')], sections);
 
-        expect(result).toEqual([{text: 'D', value: 'D'}]);
+        expect(result).toEqual([{text: 'D', value: 'D', sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]);
     });
 
     it('keeps the received payment action in the first section instead of pushing it to the end', () => {
