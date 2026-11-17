@@ -22,7 +22,7 @@ To connect Zoho Books, you must:
 ## How to connect Zoho Books to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Connections**.
-2. Find **Zoho Books** and select **Connect**.
+2. Select **Zoho Books**.
 3. If an existing connection is offered, select it to reuse it, or select **Create new connection** to authorize another connection.
 4. Follow the prompts to sign in to Zoho and authorize the connection to Expensify.
 5. After connecting, select **Configure** next to Zoho Books to review the connected organization.
