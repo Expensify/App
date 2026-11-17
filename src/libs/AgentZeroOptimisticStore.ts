@@ -74,6 +74,11 @@ function getPendingCount(entry: OptimisticEntry | undefined): number {
     return entry ? entry.count + entry.turns.length : 0;
 }
 
+/** Whether the entry is still waiting on at least one sent message. */
+function hasPendingTurns(entry: OptimisticEntry | undefined): boolean {
+    return !!entry?.turns.length;
+}
+
 /**
  * Get the current entry for an agent in a report, or undefined if none exists or the entry is
  * past its MAX_AGE_MS window. Stale entries are left in the map — the next increment/clear
@@ -95,8 +100,7 @@ function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | u
  */
 function addToEntry(reportID: string, agentAccountID: number, baselineActionID: string | null, kickoffCount: number, turns: PendingTurn[]) {
     const key = getAgentStoreKey(reportID, agentAccountID);
-    const existing = store.get(key);
-    const freshEntry = existing && isFresh(existing) ? existing : undefined;
+    const freshEntry = getEntry(reportID, agentAccountID);
     const knownQuestionIDs = new Set(freshEntry?.turns.map((turn) => turn.questionReportActionID));
     store.set(key, {
         reportID,
@@ -159,6 +163,7 @@ function completeTurn(questionReportActionID: string) {
  * safety window.
  */
 function moveTurn(questionReportActionID: string, destinationReportID: string) {
+    // The server can repeat its decision, so a message already on the destination stays where it is.
     const source = [...store.values()].find((entry) => entry.reportID !== destinationReportID && entry.turns.some((turn) => turn.questionReportActionID === questionReportActionID));
     if (!source) {
         return;
@@ -168,14 +173,14 @@ function moveTurn(questionReportActionID: string, destinationReportID: string) {
         return;
     }
     const key = getAgentStoreKey(destinationReportID, source.agentAccountID);
-    const existing = store.get(key);
-    const destination = existing && isFresh(existing) ? existing : undefined;
+    const destination = getEntry(destinationReportID, source.agentAccountID);
     store.set(key, {
         reportID: destinationReportID,
         agentAccountID: source.agentAccountID,
         count: destination?.count ?? 0,
         startedAt: Math.max(destination?.startedAt ?? 0, source.startedAt),
         baselineActionID: destination ? destination.baselineActionID : source.baselineActionID,
+        // Two tabs can predict different destinations for one message, so the destination keeps one entry per message.
         turns: [...(destination?.turns ?? []).filter((turn) => turn.questionReportActionID !== questionReportActionID), removed.turn],
     });
     notifyListeners(destinationReportID, source.agentAccountID);
@@ -213,6 +218,7 @@ function subscribeToEntry(reportID: string, agentAccountID: number, onChange: ()
 export default {
     getEntry,
     getPendingCount,
+    hasPendingTurns,
     increment,
     addTurn,
     clear,

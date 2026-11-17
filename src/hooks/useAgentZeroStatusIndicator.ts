@@ -1,5 +1,6 @@
 import {clearAgentZeroProcessingIndicator, getNewerActions} from '@libs/actions/Report';
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
+import type {PendingTurn} from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
 
@@ -11,7 +12,7 @@ import type {NewestReportAction} from '@selectors/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {answeredTurnQuestionIDsSelector, getNewestReportActionSelector} from '@selectors/ReportAction';
-import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
+import {getAgentZeroProcessingLabel, hasPersistedAgentZeroProcessingLabelSelector} from '@selectors/ReportNameValuePairs';
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 import useLocalize from './useLocalize';
@@ -55,12 +56,34 @@ const DEBOUNCE_DELAY = 150; // ms
  *   decide when its final reply has landed: the indicator only clears once the newest
  *   reportAction's actorAccountID matches this agent AND the server NVP signals done.
  */
+/**
+ * Finishes each sent message once its reply is saved under the ID the client reserved for it, so an older reply
+ * never finishes a newer message and a missed completion event does not leave the message waiting. Reading the
+ * reply from Onyx also covers a reply that arrived while this tab was offline.
+ */
+function useCompleteAnsweredTurns(reportID: string, agentAccountID: number, pendingTurns: PendingTurn[] | undefined) {
+    const [answeredQuestionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: answeredTurnQuestionIDsSelector(pendingTurns, agentAccountID)});
+    useEffect(() => {
+        for (const questionReportActionID of answeredQuestionIDs ?? []) {
+            AgentZeroOptimisticStore.completeTurn(questionReportActionID);
+        }
+    }, [answeredQuestionIDs]);
+}
+
 function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
     // when its own label changes.
     const serverLabelSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID);
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
+
+    // A label the server saved on the report, such as the escalation notice, is cleared only by the server and comes
+    // back on the next OpenReport. The local safety clears read this through a ref because they run from a timer.
+    const [hasPersistedLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: hasPersistedAgentZeroProcessingLabelSelector});
+    const hasPersistedLabelRef = useRef<boolean>(!!hasPersistedLabel);
+    useEffect(() => {
+        hasPersistedLabelRef.current = !!hasPersistedLabel;
+    }, [hasPersistedLabel]);
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
     const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
@@ -79,16 +102,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     const optimisticEntry = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
     const pendingOptimisticRequests = AgentZeroOptimisticStore.getPendingCount(optimisticEntry);
     const pendingTurns = optimisticEntry?.turns;
-    const hasPendingTurns = !!pendingTurns?.length;
-
-    // A reply is saved under the ID the client reserved for it, so it finishes exactly its own message even when the
-    // server's completion event was missed. This also works when the reply arrived while this tab was offline.
-    const [answeredQuestionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: answeredTurnQuestionIDsSelector(pendingTurns, agentAccountID)});
-    useEffect(() => {
-        for (const questionReportActionID of answeredQuestionIDs ?? []) {
-            AgentZeroOptimisticStore.completeTurn(questionReportActionID);
-        }
-    }, [answeredQuestionIDs]);
+    const hasPendingTurns = AgentZeroOptimisticStore.hasPendingTurns(optimisticEntry);
+    useCompleteAnsweredTurns(reportID, agentAccountID, pendingTurns);
     // Debounced label shown to the user — smooths rapid server label changes.
     // displayedLabelRef mirrors state so the label-sync effect can read the current value
     // without including displayedLabel in its dependency array (avoids extra effect cycles).
@@ -135,6 +150,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_INDICATOR_DURATION_MS if no response has arrived.
+     * A label the server saved on the report is left alone, because only the server ends it.
      */
     const hardClearIndicator = () => {
         // If offline, don't clear — the response may arrive when reconnected
@@ -143,9 +159,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         }
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
-        displayedLabelRef.current = '';
-        setDisplayedLabel('');
-        clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        if (!hasPersistedLabelRef.current) {
+            displayedLabelRef.current = '';
+            setDisplayedLabel('');
+            clearAgentZeroProcessingIndicator(reportID, agentAccountID);
+        }
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
     };
 
@@ -184,7 +202,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         onReconnect: () => {
             const wasOptimistic = pendingOptimisticRequests > 0;
 
-            if (wasOptimistic) {
+            if (wasOptimistic && !hasPersistedLabelRef.current) {
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 

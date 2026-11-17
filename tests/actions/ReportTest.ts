@@ -390,6 +390,41 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
     });
 
+    it('does not start thinking for a pregenerated followup, which already shows its own scheduled reply', async () => {
+        // Given the network write has not completed.
+        apiWriteSpy.mockResolvedValue(undefined);
+        AgentZeroOptimisticStore.clear('300', CONST.ACCOUNT_ID.CONCIERGE);
+        const reportAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: '900',
+            actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            message: [
+                {
+                    html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text><followup-response>Go to Settings.</followup-response></followup></followup-list>',
+                    text: 'Here is help',
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                },
+            ],
+        });
+
+        // When a followup with a pregenerated response is chosen in the Concierge DM.
+        resolveSuggestedFollowup(
+            {...createRandomReport(300, undefined), reportID: '300'},
+            undefined,
+            reportAction,
+            {text: 'How do I set up QuickBooks?', response: 'Go to Settings.'},
+            CONST.DEFAULT_TIME_ZONE,
+            10,
+            'user@example.com',
+            undefined,
+            '300',
+        );
+
+        // Then nothing waits for Concierge, because the scheduled reply is already on its way.
+        expect(AgentZeroOptimisticStore.getEntry('300', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        expect(apiWriteSpy.mock.calls.at(-1)?.[2]?.conciergeProcessingReportID).toBeUndefined();
+        await waitForBatchedUpdates();
+    });
+
     it.each<[string, string, boolean]>([
         ['Concierge chat', '300', true],
         ['ordinary chat', '600', false],

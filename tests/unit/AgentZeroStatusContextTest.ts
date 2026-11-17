@@ -538,6 +538,30 @@ describe('AgentZeroStatusContext', () => {
             expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
         });
 
+        it('keeps a label the server saved on the report when a sent message times out', async () => {
+            // Given an escalated chat, whose label the server saved on the report, and a message whose completion was lost.
+            const escalationLabel = 'Concierge is escalating for human review...';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: escalationLabel});
+            await waitForBatchedUpdates();
+            jest.useFakeTimers();
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'escalated-question', responseReportActionID: 'escalated-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the safety window passes.
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the message stops waiting, and the saved label is left for the server to end.
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe(escalationLabel);
+        });
+
         it('should not clear optimistic state before the 2-minute timeout', async () => {
             jest.useFakeTimers();
 
@@ -1089,11 +1113,11 @@ describe('AgentZeroStatusContext', () => {
         });
 
         it('should auto-clear after 120s safety timeout when serverLabel is active', async () => {
-            // Given a Concierge chat where the server sets a processing indicator
+            // Given a Concierge chat where the server sends a live processing label, keyed by agent as the server does
             const serverLabel = 'Concierge is looking up categories...';
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-                agentZeroProcessingRequestIndicator: serverLabel,
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: serverLabel},
             });
 
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});

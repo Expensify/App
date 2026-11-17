@@ -152,7 +152,8 @@ function AgentZeroStatusGate({
 
     const subscribeToOptimisticStore = (onStoreChange: () => void) =>
         reportID && optimisticAgentAccountID !== undefined ? AgentZeroOptimisticStore.subscribeToEntry(reportID, optimisticAgentAccountID, onStoreChange) : () => {};
-    const getHasPendingTurnsSnapshot = () => !!reportID && optimisticAgentAccountID !== undefined && !!AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID)?.turns.length;
+    const getHasPendingTurnsSnapshot = () =>
+        !!reportID && optimisticAgentAccountID !== undefined && AgentZeroOptimisticStore.hasPendingTurns(AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID));
     const hasPendingTurns = useSyncExternalStore(subscribeToOptimisticStore, getHasPendingTurnsSnapshot, getHasPendingTurnsSnapshot);
 
     // The composer calls this before the server's processing-indicator NVP lands. Concierge and
