@@ -1305,15 +1305,16 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         invalidApprovalLimit: 'Goedkeuringslimieten moeten geldige bedragen in de valuta van de werkruimte zijn.',
         approverColumn: (position: number) => `Fiatteur ${position}`,
-        approverApprovalTypeColumn: (position: number) => `Goedkeuringstype van fiatteur ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Goedkeurder ${position} goedkeuringstype`,
         approverLimitColumn: (position: number) => `Limiet voor ${position} van goedkeurder`,
         approversOutOfOrder: (rowNumber: number) => `Oeps! Rij ${rowNumber} mist een fiatteur. Geef de fiatteurs op in volgorde, beginnend met Fiatteur 1, en probeer het opnieuw.`,
         approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan één keer. Controleer het en probeer het opnieuw.`,
-        invalidApprovalType: (rowNumber: number) => `Oeps! Rij ${rowNumber} heeft een goedkeuringstype dat niet "Always" of "Over limit" is. Controleer het en probeer het opnieuw.`,
-        firstApproverOverLimit: (rowNumber: number) => `Oeps! Rij ${rowNumber} zet Fiatteur 1 op "Over limit", maar elk rapport gaat naar Fiatteur 1. Controleer het en probeer het opnieuw.`,
-        approvalLimitMismatch: `Het goedkeuringstype en de goedkeuringslimiet van deze fiatteurs komen niet overeen. Pas dit aan en probeer het opnieuw. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Meer informatie</a>.`,
+        invalidApprovalType: (rowNumber: number) => `Oeps! Rij ${rowNumber} heeft een goedkeuringstype dat niet „Always” of „Over limit” is. Controleer het en probeer het opnieuw.`,
+        firstApproverOverLimit: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} stelt Goedkeurder 1 in op "Over limit", maar elk rapport gaat naar Goedkeurder 1. Controleer dit en probeer het opnieuw.`,
+        approvalLimitMismatch: `Er is een mismatch tussen het goedkeuringstype en de goedkeuringslimiet voor deze goedkeurders. Los dit op en probeer het opnieuw. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Meer informatie</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Oeps! Rij ${rowNumber} heeft een fiatteur met "Over limit" en een lagere limiet dan de fiatteur met "Over limit" direct ervoor. Controleer het en probeer het opnieuw.`,
+            `Oeps! Rij ${rowNumber} heeft een “Over limit”-fiatteur met een lagere limiet dan de “Over limit”-fiatteur direct daarvoor. Controleer dit en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oeps! Het veld („${fieldName}”) bevat een of meer waarden die langer zijn dan ${limit} tekens. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',

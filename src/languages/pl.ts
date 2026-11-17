@@ -1332,17 +1332,17 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         invalidApprovalLimit: 'Limity zatwierdzania muszą być prawidłowymi kwotami w walucie przestrzeni roboczej.',
         approverColumn: (position: number) => `Osoba zatwierdzająca ${position}`,
-        approverApprovalTypeColumn: (position: number) => `Typ zatwierdzania osoby zatwierdzającej ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Typ zatwierdzania przez osobę zatwierdzającą na stanowisku ${position}`,
         approverLimitColumn: (position: number) => `Limit osoby zatwierdzającej na stanowisku ${position}`,
         approversOutOfOrder: (rowNumber: number) =>
             `Ups! W wierszu ${rowNumber} brakuje akceptującego. Wymień akceptujących w kolejności, zaczynając od Akceptującego 1, i spróbuj ponownie.`,
         approverRepeated: (rowNumber: number) => `Ups! Wiersz ${rowNumber} zawiera tego samego akceptującego więcej niż raz. Sprawdź to i spróbuj ponownie.`,
         invalidApprovalType: (rowNumber: number) => `Ups! Wiersz ${rowNumber} ma typ zatwierdzania inny niż „Always” lub „Over limit”. Sprawdź to i spróbuj ponownie.`,
         firstApproverOverLimit: (rowNumber: number) =>
-            `Ups! Wiersz ${rowNumber} ustawia osobę zatwierdzającą 1 na „Over limit”, ale każdy raport trafia do osoby zatwierdzającej 1. Sprawdź to i spróbuj ponownie.`,
-        approvalLimitMismatch: `Typ zatwierdzania i limit zatwierdzania tych osób zatwierdzających nie są ze sobą zgodne. Popraw to i spróbuj ponownie. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Dowiedz się więcej</a>.`,
+            `Ups! Wiersz ${rowNumber} ustawia Osobę zatwierdzającą 1 na „Over limit”, ale każdy raport trafia do Osoby zatwierdzającej 1. Sprawdź ustawienia i spróbuj ponownie.`,
+        approvalLimitMismatch: `Typ zatwierdzania nie pasuje do limitu zatwierdzania dla tych zatwierdzających. Popraw to i spróbuj ponownie. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Dowiedz się więcej</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Ups! Wiersz ${rowNumber} ma osobę zatwierdzającą „Over limit” z niższym limitem niż osoba zatwierdzająca „Over limit” bezpośrednio przed nią. Sprawdź to i spróbuj ponownie.`,
+            `Ups! Wiersz ${rowNumber} ma zatwierdzającego „Over limit” z niższym limitem niż zatwierdzający „Over limit” bezpośrednio przed nim. Sprawdź to i spróbuj ponownie.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',

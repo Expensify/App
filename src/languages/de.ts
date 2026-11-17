@@ -1306,18 +1306,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
         invalidApprovalLimit: 'Genehmigungslimits müssen gültige Beträge in der Währung des Arbeitsbereichs sein.',
         approverColumn: (position: number) => `Genehmigende Person ${position}`,
-        approverApprovalTypeColumn: (position: number) => `Genehmigungsart für Position ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Genehmigertyp der Genehmigendenposition ${position}`,
         approverLimitColumn: (position: number) => `Genehmigerlimit für Position ${position}`,
         approversOutOfOrder: (rowNumber: number) =>
             `Ups! In Zeile ${rowNumber} fehlt eine approvierende Person. Bitte listen Sie die Genehmigenden der Reihe nach auf, beginnend mit Genehmiger 1, und versuchen Sie es erneut.`,
         approverRepeated: (rowNumber: number) => `Ups! In Zeile ${rowNumber} ist derselbe Genehmiger mehr als einmal aufgeführt. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
         invalidApprovalType: (rowNumber: number) =>
-            `Ups! Zeile ${rowNumber} hat eine Genehmigungsart, die weder „Always“ noch „Over limit“ ist. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
+            `Hoppla! Zeile ${rowNumber} hat einen Genehmigungstyp, der nicht „Always“ oder „Over limit“ ist. Bitte überprüfen Sie dies und versuchen Sie es erneut.`,
         firstApproverOverLimit: (rowNumber: number) =>
-            `Ups! Zeile ${rowNumber} setzt Genehmiger 1 auf „Over limit“, aber jeder Bericht geht an Genehmiger 1. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
-        approvalLimitMismatch: `Genehmigungsart und Genehmigungslimit dieser Genehmiger passen nicht zusammen. Bitte korrigieren Sie das und versuchen Sie es erneut. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Mehr erfahren</a>.`,
+            `Ups! Zeile ${rowNumber} setzt Genehmiger 1 auf „Over limit“, aber jeder Bericht geht an Genehmiger 1. Bitte überprüfen Sie dies und versuchen Sie es erneut.`,
+        approvalLimitMismatch: `Der Genehmigungstyp und das Genehmigungslimit passen für diese Genehmigenden nicht zusammen. Bitte beheben Sie das Problem und versuchen Sie es erneut. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Weitere Informationen</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Ups! Zeile ${rowNumber} hat einen Genehmiger mit „Over limit“, dessen Limit niedriger ist als das des Genehmigers mit „Over limit“ direkt davor. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
+            `Ups! Zeile ${rowNumber} hat eine*n „Over limit“-Genehmiger*in mit einem niedrigeren Limit als die*der „Over limit“-Genehmiger*in direkt davor. Bitte überprüfen Sie dies und versuchen Sie es erneut.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere Werte mit mehr als ${limit} Zeichen. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',

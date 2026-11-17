@@ -1312,12 +1312,12 @@ const translations: TranslationDeepObject<typeof en> = {
         approverLimitColumn: (position: number) => `Limite de aprovador ${position}`,
         approversOutOfOrder: (rowNumber: number) => `Opa! A linha ${rowNumber} está sem aprovador. Liste os aprovadores em ordem, começando pelo Aprovador 1, e tente novamente.`,
         approverRepeated: (rowNumber: number) => `Ops! A linha ${rowNumber} lista o mesmo aprovador mais de uma vez. Revise e tente novamente.`,
-        invalidApprovalType: (rowNumber: number) => `Ops! A linha ${rowNumber} tem um tipo de aprovação diferente de "Always" ou "Over limit". Revise e tente novamente.`,
+        invalidApprovalType: (rowNumber: number) => `Ops! A linha ${rowNumber} tem um tipo de aprovação que não é "Always" ou "Over limit". Revise e tente novamente.`,
         firstApproverOverLimit: (rowNumber: number) =>
-            `Ops! A linha ${rowNumber} define o Aprovador 1 como "Over limit", mas todo relatório vai para o Aprovador 1. Revise e tente novamente.`,
-        approvalLimitMismatch: `Há uma incompatibilidade entre o tipo de aprovação e o limite de aprovação desses aprovadores. Corrija isso e tente novamente. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Saiba mais</a>.`,
+            `Ops! A linha ${rowNumber} define o Aprovador 1 como "Over limit", mas todos os relatórios vão para o Aprovador 1. Revise e tente novamente.`,
+        approvalLimitMismatch: `Há uma incompatibilidade entre o tipo de aprovação e o limite de aprovação para esses aprovadores. Corrija isso e tente novamente. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Saiba mais</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Ops! A linha ${rowNumber} tem um aprovador "Over limit" com um limite menor que o do aprovador "Over limit" logo antes dele. Revise e tente novamente.`,
+            `Opa! A linha ${rowNumber} tem um aprovador "Over limit" com um limite menor do que o aprovador "Over limit" imediatamente anterior. Revise e tente novamente.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',

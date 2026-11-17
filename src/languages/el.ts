@@ -1352,17 +1352,17 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
         approverColumn: (position: number) => `Εγκριτής ${position}`,
-        approverApprovalTypeColumn: (position: number) => `Τύπος έγκρισης εγκρίνοντα ${position}`,
+        approverApprovalTypeColumn: (position: number) => `Τύπος έγκρισης του ${position} εγκρίνωντος`,
         approverLimitColumn: (position: number) => `Όριο εγκρίνοντα ${position}`,
         approversOutOfOrder: (rowNumber: number) =>
             `Ωχ! Η γραμμή ${rowNumber} δεν έχει εγκρίνων. Παρακαλούμε καταχωρίστε τους εγκρίνοντες με τη σειρά, ξεκινώντας με Εγκρίνων 1, και δοκιμάστε ξανά.`,
         approverRepeated: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τον ίδιο εγκρίνων πάνω από μία φορά. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
-        invalidApprovalType: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τύπο έγκρισης που δεν είναι «Always» ή «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        invalidApprovalType: (rowNumber: number) => `Ωχ! Η γραμμή ${rowNumber} έχει τύπο έγκρισης που δεν είναι «Always» ή «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         firstApproverOverLimit: (rowNumber: number) =>
-            `Ουπς! Η γραμμή ${rowNumber} ορίζει τον Εγκρίνοντα 1 ως «Over limit», αλλά κάθε αναφορά πηγαίνει στον Εγκρίνοντα 1. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
-        approvalLimitMismatch: `Ο τύπος έγκρισης και το όριο έγκρισης δεν ταιριάζουν για αυτούς τους εγκρίνοντες. Διορθώστε το και δοκιμάστε ξανά. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Μάθετε περισσότερα</a>.`,
+            `Ουπς! Η γραμμή ${rowNumber} ορίζει τον εγκριτή 1 σε «Over limit», αλλά κάθε αναφορά πηγαίνει στον εγκριτή 1. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitMismatch: `Υπάρχει αναντιστοιχία μεταξύ του τύπου έγκρισης και του ορίου έγκρισης για αυτά τα άτομα έγκρισης. Διορθώστε το και προσπαθήστε ξανά. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Μάθετε περισσότερα</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Ουπς! Η γραμμή ${rowNumber} έχει εγκρίνοντα «Over limit» με χαμηλότερο όριο από τον εγκρίνοντα «Over limit» ακριβώς πριν από αυτόν. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+            `Ουπς! Η γραμμή ${rowNumber} έχει έγκριση «Over limit» με χαμηλότερο όριο από την έγκριση «Over limit» ακριβώς πριν από αυτήν. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
