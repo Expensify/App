@@ -296,9 +296,7 @@
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestView.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	5
 "../../src/components/ReportActionItem/ReportActionItemImage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/components/ReportActionItem/SupportTicketView.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"@typescript-eslint/no-deprecated/fontSize"	2
 "../../src/components/ReportActionItem/TripDetailsView.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
@@ -1519,7 +1517,7 @@
 "../../src/pages/settings/Wallet/ShareBankAccount/ShareBankAccount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/TransactionsImportedPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/TransactionsImportedPage.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/settings/Wallet/TransferBalancePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
+"../../src/pages/settings/Wallet/TransferBalancePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Wallet/TransferBalancePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/TravelCVVPage/TravelCVVPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/TravelCVVPage/TravelCVVPage.tsx"	"rulesdir/no-onyx-loading-status"	2
