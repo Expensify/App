@@ -107,6 +107,7 @@ function LongTermsForm() {
                     src={icons.Printer}
                 />
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.LONG_TERMS_PRINTER_FRIENDLY_VIEW_LINK}
                     style={styles.ml1}
                     href={CONST.FEES_URL}
                 >

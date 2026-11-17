@@ -47,7 +47,6 @@ import {
     getReportOrDraftReport,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
-    hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -664,6 +663,9 @@ function getReportOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
+        // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -758,6 +760,9 @@ function getReportDisplayOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
+        // so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -828,6 +833,8 @@ function getPolicyExpenseReportOption(
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
+        // Passing transactionThreadIDs as undefined is intentional, it is only read to build the chat preview line, which `showChatPreviewLine: false` disables.
+        transactionThreadIDs: undefined,
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
@@ -1144,6 +1151,8 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            transactionThreadIDs: undefined,
             formatPhoneNumber,
         }),
         isHydrated: true,
@@ -1234,7 +1243,7 @@ function createFilteredOptionList(
          * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
          * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
          */
-        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
+        pendingDeleteMemberAccountIDsByReportID?: Readonly<Record<string, string[]>>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
         /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
         activePolicyID?: string;
@@ -1899,6 +1908,8 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
+        transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,
@@ -2038,11 +2049,6 @@ function isValidReport(
     }
 
     if (!canUserPerformWriteAction(option.item, option.private_isArchived) && !includeReadOnly) {
-        return false;
-    }
-
-    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 

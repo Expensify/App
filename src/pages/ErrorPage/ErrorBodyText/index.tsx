@@ -16,6 +16,7 @@ function ErrorBodyText() {
         <Text>
             {`${translate('genericErrorPage.body.helpTextMobile')} `}
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.ERROR_PAGE.NEW_EXPENSIFY_LINK}
                 href={CONST.NEW_EXPENSIFY_URL}
                 style={[styles.link]}
             >

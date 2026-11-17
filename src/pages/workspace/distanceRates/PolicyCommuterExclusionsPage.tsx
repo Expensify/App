@@ -110,7 +110,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 prompt: (
                     <Text>
                         {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptStart')}
-                        <TextLink onPress={goToWorkspaceOverview}>{translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}</TextLink>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORKSPACE_ADDRESS_LINK}
+                            onPress={goToWorkspaceOverview}
+                        >
+                            {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}
+                        </TextLink>
                         {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptEnd')}
                     </Text>
                 ),
