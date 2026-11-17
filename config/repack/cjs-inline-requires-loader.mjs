@@ -8,6 +8,11 @@
  * about 103k extra functions here, worth about 7MB of Hermes bytecode. Inlining the require at
  * the use site defers identically and emits no wrapper.
  *
+ * Every deferred require is memoized in a module-level variable, so only the first use calls into
+ * the module runtime. Re.Pack's runtime runs each `require()` through a guard with a try/catch, and
+ * render code reads imported values many times per render, so a require at every use made native
+ * renders measurably slower than Metro's output.
+ *
  * Needed as a separate stage because OXC transpiles only and has no CJS lowering.
  */
 import babel from '@babel/core';
@@ -22,53 +27,70 @@ const {inlineRequiresPlugin} = metroTransformPlugins;
 const INTEROP_HELPERS = new Set(['_interop_require_default', '_interop_require_wildcard']);
 
 /**
- * Extends inline-requires to SWC's interop-wrapped imports, which Metro's plugin alone cannot
- * defer: it requires `arguments[0]` to be a string literal (SWC passes a `require()` call) and
- * skips any call whose function is bound locally (SWC declares the helper in-file). Without this,
- * default and namespace imports stay hoisted and eager. That is about half of all imports here,
- * and exactly the cycle tolerance the loader exists to provide.
- *
- * Metro sidesteps the problem with a global `_$$_IMPORT_DEFAULT('x')` helper that resolves the
- * module id at runtime. That is not portable to webpack, which must see a literal `require('x')`
- * to add the module to the graph at all. So instead of hoisting the helper, we inline the whole
- * initializer (the interop call and the literal require together) down to each use site.
- *
- * Repeating the interop call per use site is cheap: `_interop_require_wildcard` early-returns for
- * `__esModule` objects and memoizes the rest in a WeakMap, and `_interop_require_default` is a
- * single object literal on the non-ESM path.
+ * Modules required once at the top of each importing module instead of at their first use. Hooks,
+ * JSX and the React Compiler's cache hook run on every render. None of these modules imports app
+ * code, so loading them eagerly cannot create an import cycle. Metro's `nonInlinedRequires` default
+ * keeps `react` and `react-native` at the top of the module for the same reason.
  */
-function inlineInteropRequiresPlugin({types: t}) {
-    const isInteropRequire = (node) =>
+const NON_INLINED_REQUIRES = ['react', 'react-native', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react/compiler-runtime'];
+const NON_INLINED_REQUIRES_SET = new Set(NON_INLINED_REQUIRES);
+
+/**
+ * Defers each top-level `require()` binding to its first use and memoizes it. A use becomes
+ * `(_x || (_x = require('x')))`, or `(_x || (_x = _interop_require_default(require('x'))))` for a
+ * default or namespace import, so the module still loads at its first use and every later use only
+ * reads the variable.
+ *
+ * Metro's plugin cannot defer the interop-wrapped form: it requires `arguments[0]` to be a string
+ * literal (SWC passes a `require()` call) and skips any call whose function is bound locally (SWC
+ * declares the helper in-file). Metro itself uses a global `_$$_IMPORT_DEFAULT('x')` helper that
+ * resolves the module id at runtime, which webpack cannot do: it must see a literal `require('x')`
+ * to add the module to the graph at all.
+ *
+ * Bare requires (named imports) are memoized here too, rather than with Metro's `memoizeCalls`.
+ * After the first use in a scope Metro reads the bare variable, which is still empty when that
+ * first use sits in a branch or a parameter default that did not run.
+ */
+function memoizeDeferredRequiresPlugin({types: t}) {
+    const isDeferrableRequire = (node) =>
         t.isCallExpression(node) &&
-        t.isIdentifier(node.callee) &&
-        INTEROP_HELPERS.has(node.callee.name) &&
-        node.arguments.length >= 1 &&
-        t.isCallExpression(node.arguments[0]) &&
-        t.isIdentifier(node.arguments[0].callee, {name: 'require'}) &&
-        node.arguments[0].arguments.length === 1 &&
-        t.isStringLiteral(node.arguments[0].arguments[0]);
+        t.isIdentifier(node.callee, {name: 'require'}) &&
+        node.arguments.length === 1 &&
+        t.isStringLiteral(node.arguments[0]) &&
+        !NON_INLINED_REQUIRES_SET.has(node.arguments[0].value);
+    const isInteropRequire = (node) =>
+        t.isCallExpression(node) && t.isIdentifier(node.callee) && INTEROP_HELPERS.has(node.callee.name) && node.arguments.length >= 1 && isDeferrableRequire(node.arguments[0]);
 
     return {
         visitor: {
             Program(programPath) {
                 for (const binding of Object.values(programPath.scope.bindings)) {
-                    if (!binding.path.isVariableDeclarator() || !isInteropRequire(binding.path.node.init)) {
+                    // A destructured require (`var {a} = require('x')`) has no single variable to memoize into.
+                    if (
+                        !binding.path.isVariableDeclarator() ||
+                        !t.isIdentifier(binding.path.node.id) ||
+                        !(isInteropRequire(binding.path.node.init) || isDeferrableRequire(binding.path.node.init))
+                    ) {
                         continue;
                     }
-                    // Reassignment would make the inlined copies diverge from the original binding.
+                    // Reassignment would make the memoized copies diverge from the original binding.
                     if (!binding.constant) {
                         continue;
                     }
-                    // With no references there is nothing to inline into, and dropping the
-                    // declaration would stop the module loading at all, since side-effect imports
-                    // rely on it. Metro's plugin does remove these, but we stay conservative here.
+                    // With no references there is nothing to defer, and dropping the require would stop the
+                    // module loading at all, which side-effect imports rely on.
                     if (binding.referencePaths.length === 0) {
                         continue;
                     }
+                    const init = binding.path.node.init;
+                    const name = binding.identifier.name;
                     for (const reference of binding.referencePaths) {
-                        reference.replaceWith(t.cloneNode(binding.path.node.init, true));
+                        reference.replaceWith(t.logicalExpression('||', t.identifier(name), t.assignmentExpression('=', t.identifier(name), t.cloneNode(init, true))));
                     }
-                    binding.path.remove();
+                    // `var` without an initializer only reserves the variable, so when the declaration runs after
+                    // a use has filled the variable, it does not clear it.
+                    binding.path.node.init = null;
+                    binding.path.parentPath.node.kind = 'var';
                 }
             },
         },
@@ -111,8 +133,8 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
             babelrc: false,
             configFile: false,
             filename: this.resourcePath,
-            // Interop-wrapped imports first, then Metro's plugin for the bare `require` form.
-            plugins: [inlineInteropRequiresPlugin, inlineRequiresPlugin],
+            // Top-level require bindings are memoized first; Metro's plugin then moves the remaining requires to their use sites.
+            plugins: [memoizeDeferredRequiresPlugin, [inlineRequiresPlugin, {ignoredRequires: NON_INLINED_REQUIRES}]],
             sourceMaps,
             // The minifier handles formatting; keeping newlines makes build output readable.
             compact: false,
