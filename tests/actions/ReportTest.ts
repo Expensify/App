@@ -11809,6 +11809,129 @@ describe('actions/Report', () => {
 
             expect(result).toBeUndefined();
         });
+
+        describe('when an invited admin reviews workspace settings before opening Concierge', () => {
+            const OTHER_REPORT_ID = '300';
+            const INVITED_ADMIN_INTRO_SELECTED: OnyxTypes.IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.ADMIN,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+                isInviteOnboardingComplete: false,
+            };
+
+            afterEach(async () => {
+                // Drop what the offline test queued and go back online, so later tests get their server responses
+                PersistedRequests.clear();
+                await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+                await waitForBatchedUpdates();
+            });
+
+            const getGuidedSetupTasks = (guidedSetupData: unknown) =>
+                parseGuidedSetupData(typeof guidedSetupData === 'string' ? guidedSetupData : '[]').filter((item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task');
+
+            it('should create only the review task already completed', async () => {
+                // Given an invited admin whose guided setup has not run yet
+                await setupUserWithConciergeChat();
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await waitForBatchedUpdates();
+
+                // When the guided setup runs because the admin saved a workspace setting
+                const result = Report.getGuidedSetupDataForOpenReport(INVITED_ADMIN_INTRO_SELECTED, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined, undefined, true);
+
+                // Then the review task is created completed, while the admin's other tasks stay open because nothing did them yet
+                const tasks = getGuidedSetupTasks(result?.guidedSetupData);
+                const reviewTask = tasks.find((task) => task.task === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+                const otherTasks = tasks.filter((task) => task !== reviewTask);
+                expect(reviewTask?.completedTaskReportActionID).toBeDefined();
+                expect(otherTasks.length).toBeGreaterThan(0);
+                expect(otherTasks.every((task) => !task.completedTaskReportActionID)).toBe(true);
+            });
+
+            it('should let a later OpenReport send the guided setup again when this one fails', async () => {
+                // Given an invited admin whose guided setup has not run yet
+                await setupUserWithConciergeChat();
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await waitForBatchedUpdates();
+
+                // When the guided setup data is built
+                const result = Report.getGuidedSetupDataForOpenReport(INVITED_ADMIN_INTRO_SELECTED, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined, undefined, true);
+
+                // Then a failed request clears the flag it set up front, because a flag left on would block every retry
+                expect(result?.optimisticData).toContainEqual({onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_INTRO_SELECTED, value: {isInviteOnboardingComplete: true}});
+                expect(result?.failureData).toContainEqual({onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_INTRO_SELECTED, value: {isInviteOnboardingComplete: false}});
+            });
+
+            /** Queues the guided setup offline by opening a chat other than Concierge, as an invited admin would */
+            async function queueGuidedSetupFromOtherChat() {
+                await setupUserWithConciergeChat();
+                await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+                await waitForBatchedUpdates();
+                Report.openReport({
+                    reportID: OTHER_REPORT_ID,
+                    introSelected: INVITED_ADMIN_INTRO_SELECTED,
+                    conciergeChat: CONCIERGE_CHAT,
+                    hasReportActions: false,
+                    personalDetails: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                });
+                await waitForBatchedUpdates();
+            }
+
+            /** Sends the OpenReport a workspace setting save triggers before the settings page has seen the queued guided setup */
+            async function saveWorkspaceSetting() {
+                Report.openReport({
+                    reportID: CONCIERGE_REPORT_ID,
+                    introSelected: INVITED_ADMIN_INTRO_SELECTED,
+                    conciergeChat: CONCIERGE_CHAT,
+                    hasReportActions: false,
+                    personalDetails: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    shouldMarkAsRead: false,
+                    shouldAutoCompleteReviewWorkspaceSettingsTask: true,
+                });
+                await waitForBatchedUpdates();
+            }
+
+            function getQueuedGuidedSetupRequests() {
+                return PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && !!request.data?.guidedSetupData);
+            }
+
+            function getQueuedReviewTask() {
+                return getGuidedSetupTasks(getQueuedGuidedSetupRequests().at(0)?.data?.guidedSetupData).find((task) => task.task === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+            }
+
+            it('should complete the review task in a guided setup that is already queued', async () => {
+                // Given an invited admin offline, with the guided setup already queued by opening another chat
+                await queueGuidedSetupFromOtherChat();
+
+                // When a workspace setting is saved before the settings page has seen the queued guided setup
+                await saveWorkspaceSetting();
+
+                // Then the queued request creates the task completed, because a second guided setup would never be sent
+                expect(getQueuedGuidedSetupRequests()).toHaveLength(1);
+                const reviewTask = getQueuedReviewTask();
+                expect(reviewTask?.completedTaskReportActionID).toBeDefined();
+
+                // And the task shows as completed while the request waits, so the admin sees it done even offline
+                const taskReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reviewTask?.taskReportID}`);
+                expect(taskReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(taskReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            });
+
+            it('should keep the first completion when another setting is saved while the guided setup is still queued', async () => {
+                // Given a queued guided setup that already creates the review task completed
+                await queueGuidedSetupFromOtherChat();
+                await saveWorkspaceSetting();
+                const firstCompletedTaskReportActionID = getQueuedReviewTask()?.completedTaskReportActionID;
+
+                // When the admin saves another setting before the queue is sent
+                await saveWorkspaceSetting();
+
+                // Then the task keeps its first completion, so the backend creates a single "marked as complete" action
+                expect(firstCompletedTaskReportActionID).toBeDefined();
+                expect(getQueuedReviewTask()?.completedTaskReportActionID).toBe(firstCompletedTaskReportActionID);
+            });
+        });
     });
 
     describe('createTransactionThreadReport', () => {

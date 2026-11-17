@@ -211,7 +211,7 @@ import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
-import {getAll} from '@userActions/PersistedRequests';
+import {getAll, update as updatePersistedRequest} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
 import type {CurrentUser} from '@userActions/Policy/Policy';
@@ -223,6 +223,7 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
+import {buildTaskData} from '@userActions/Task';
 import {getChangeTransactionsReportOnyxData} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -1674,6 +1675,15 @@ function buildParticipantInfoFromAccountIDs(accountIDs: number[], personalDetail
     });
 }
 
+function isOpenReportWithGuidedSetupData(request: AnyRequest): boolean {
+    return request.command === WRITE_COMMANDS.OPEN_REPORT && !!request.data?.guidedSetupData;
+}
+
+/** Returns the tasks with the one of the given type created already completed */
+function markTaskAsAutoCompleted(tasks: OnboardingMessage['tasks'], taskType: OnboardingMessage['tasks'][number]['type']): OnboardingMessage['tasks'] {
+    return tasks.map((task) => (task.type === taskType ? {...task, autoCompleted: true} : task));
+}
+
 /**
  * Prepares guided setup data for an OpenReport request when onboarding is not yet completed.
  * Returns the onyx data arrays and guidedSetupData string to include in the API parameters,
@@ -1699,7 +1709,7 @@ function getGuidedSetupDataForOpenReport(
     // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
     // Then we need to check the list request and prevent the guided setup data from being duplicated.
     const allPersistedRequests = getAll();
-    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
+    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some(isOpenReportWithGuidedSetupData);
 
     // Prepare guided setup data only when nvp_introSelected is set and regular onboarding is pending or a supported invite onboarding flow still needs to run.
     // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages.
@@ -1715,13 +1725,12 @@ function getGuidedSetupDataForOpenReport(
 
     const onboardingMessage = getOnboardingMessages().onboardingMessages[choice];
     if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
-        const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
-        onboardingMessage.tasks = updatedTasks;
+        onboardingMessage.tasks = markTaskAsAutoCompleted(onboardingMessage.tasks, CONST.ONBOARDING_TASK_TYPE.START_CHAT);
     }
 
     // The user already reviewed their workspace settings before this guided setup ran, so create that task already completed.
     if (shouldAutoCompleteReviewWorkspaceSettingsTask) {
-        onboardingMessage.tasks = onboardingMessage.tasks.map((task) => (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS ? {...task, autoCompleted: true} : task));
+        onboardingMessage.tasks = markTaskAsAutoCompleted(onboardingMessage.tasks, CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     }
 
     const onboardingData = prepareOnboardingOnyxData({
@@ -1752,9 +1761,83 @@ function getGuidedSetupDataForOpenReport(
             },
         ] as GuidedSetupOptimisticOnyxUpdate[],
         successData: onboardingData.successData as GuidedSetupSuccessOnyxUpdate[],
-        failureData: onboardingData.failureData as GuidedSetupFailureOnyxUpdate[],
+        failureData: [
+            ...onboardingData.failureData,
+            // Lets a later OpenReport run the guided setup again when this one fails.
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: false,
+                },
+            },
+        ] as GuidedSetupFailureOnyxUpdate[],
         guidedSetupData: JSON.stringify(onboardingData.guidedSetupData),
     };
+}
+
+function isGuidedSetupTask(item: unknown): item is GuidedSetupTask {
+    return typeof item === 'object' && item !== null && 'type' in item && item.type === 'task';
+}
+
+/**
+ * Completes the "Review your workspace settings" task inside an OpenReport that is already queued with guided setup data.
+ * No other OpenReport gets that data while it waits, so the queued one is what creates the task.
+ */
+function completeReviewWorkspaceSettingsTaskInQueuedGuidedSetup() {
+    const persistedRequests = getAll();
+    const requestIndex = persistedRequests.findIndex(isOpenReportWithGuidedSetupData);
+    if (requestIndex === -1) {
+        return;
+    }
+
+    const request = persistedRequests.at(requestIndex);
+    const queuedGuidedSetupData = request?.data?.guidedSetupData;
+    if (!request || typeof queuedGuidedSetupData !== 'string') {
+        return;
+    }
+
+    // This runs inside a settings save, so unreadable queued data must not stop the save
+    let guidedSetupData: unknown;
+    try {
+        guidedSetupData = JSON.parse(queuedGuidedSetupData);
+    } catch (error) {
+        Log.warn('[Report] Could not read the queued guided setup data', {error});
+        return;
+    }
+    if (!Array.isArray(guidedSetupData)) {
+        return;
+    }
+
+    const tasks = guidedSetupData.filter(isGuidedSetupTask);
+    const reviewWorkspaceSettingsTask = tasks.find((task) => task.task === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
+    if (!reviewWorkspaceSettingsTask || reviewWorkspaceSettingsTask.completedTaskReportActionID) {
+        return;
+    }
+
+    const {taskReportID, parentReportID, parentReportActionID} = reviewWorkspaceSettingsTask;
+    const hasOtherOpenTask = tasks.some((task) => task !== reviewWorkspaceSettingsTask && !task.completedTaskReportActionID);
+    const {optimisticData, successData, parameters} = buildTaskData(
+        {reportID: taskReportID, parentReportID, parentReportActionID},
+        taskReportID,
+        // The queued guided setup already marked Concierge as having open tasks, this one included
+        true,
+        hasOtherOpenTask,
+        undefined,
+        undefined,
+        // The guided setup posts its tasks as Concierge, so the backend attributes this completion to Concierge too.
+        CONST.ACCOUNT_ID.CONCIERGE,
+    );
+    const updatedGuidedSetupData = guidedSetupData.map((item: unknown) =>
+        item === reviewWorkspaceSettingsTask ? {...reviewWorkspaceSettingsTask, completedTaskReportActionID: parameters.completedTaskReportActionID} : item,
+    );
+
+    Onyx.update(optimisticData);
+    updatePersistedRequest(requestIndex, {
+        ...request,
+        data: {...request.data, guidedSetupData: JSON.stringify(updatedGuidedSetupData)},
+        successData: [...(request.successData ?? []), ...successData],
+    });
 }
 
 /**
@@ -2057,6 +2140,9 @@ function openReport(params: OpenReportActionParams) {
         successData.push(...guidedSetup.successData);
         failureData.push(...guidedSetup.failureData);
         parameters.guidedSetupData = guidedSetup.guidedSetupData;
+    } else if (shouldAutoCompleteReviewWorkspaceSettingsTask) {
+        // A guided setup already in the queue is the one that creates the task, so it has to create it completed
+        completeReviewWorkspaceSettingsTaskInQueuedGuidedSetup();
     }
 
     if (isFromDeepLink) {
