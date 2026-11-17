@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
@@ -74,7 +76,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
-        personalDetailsByLogins: {},
+        personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
         ...rest,
     });
 }
@@ -150,6 +152,9 @@ const CARLOS_ACCOUNT_ID = 1;
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 const RORY_CASH_CARD_ID = 777;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 
 const getTransactionAndExpenseReports = (reportID: string) => {
     const transactionReport = getReportOrDraftReport({reportID});
@@ -2107,7 +2112,7 @@ describe('actions/Transaction', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             });
             await waitForBatchedUpdates();
         };

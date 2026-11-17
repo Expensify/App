@@ -1,5 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import useOnyx from '@hooks/useOnyx';
 
 import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
@@ -71,6 +73,7 @@ type LegacyChangeTransactionsReportProps = Omit<
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     personalPolicyOutputCurrency?: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 type CapturedOnyxData = {
     optimisticData?: Array<{key: string; value: unknown}>;
@@ -87,7 +90,14 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    personalDetailsByLogins = CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+    ...rest
+}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -99,7 +109,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
         rules: undefined,
-        personalDetailsByLogins: {},
+        personalDetailsByLogins,
         ...rest,
     });
 }
@@ -126,6 +136,10 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [CURRENT_USER_EMAIL]: {accountID: CURRENT_USER_ID, login: CURRENT_USER_EMAIL},
+};
 const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
@@ -701,6 +715,92 @@ describe('Transaction', () => {
                 expect(sourceReportStateUpdate.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
+                mockAPIWrite.mockRestore();
+            }
+        });
+
+        it('updates the source submitted report next step to wait on the approver when it keeps other expenses', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const policyID = 'approvalPolicyMove';
+            const approverEmail = 'approver-move@example.com';
+            const approverAccountID = 555;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -300,
+                transactionCount: 3,
+            };
+
+            // Given a submitted report on a basic-approval workspace that keeps other expenses after the move
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[approverAccountID]: approverPersonalDetails});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+            await loadReports();
+
+            // When one of its expenses is moved to another report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                currentUserPersonalDetails,
+                newReport: report,
+                policy,
+                allTransactions,
+                policyTagList: undefined,
+                reports,
+                transactionViolations: {},
+                isTrackIntentUser: false,
+                cardList: undefined,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+            });
+            await waitForBatchedUpdates();
+
+            try {
+                // Then the source report stays submitted, so its optimistic next step waits on the workspace approver
+                const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
+                const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                if (!sourceReportUpdate) {
+                    throw new Error('Expected a typed source report update');
+                }
+
+                expect(sourceReportUpdate.value.nextStep).toEqual({
+                    actorAccountID: approverAccountID,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                });
+            } finally {
                 mockAPIWrite.mockRestore();
             }
         });
@@ -3584,7 +3684,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3652,7 +3752,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3733,7 +3833,7 @@ describe('Transaction', () => {
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3774,7 +3874,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 isTrackIntentUser: false,
-                personalDetailsByLogins: {},
+                personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3783,6 +3883,72 @@ describe('Transaction', () => {
             expect(optimisticViolations).toEqual([]);
 
             await mockFetch.resume();
+        });
+
+        it('should set the next step to wait on the approver when dismissing duplicates on a submitted report', async () => {
+            const transactionID = 'dismissTxnApprover';
+            const threadReportID = 'threadDismissApprover';
+            const policyID = 'approvalPolicyDismiss';
+            const approverEmail = 'approver-dismiss@example.com';
+            const approverAccountID = 556;
+            const approverPersonalDetails: PersonalDetails = {accountID: approverAccountID, login: approverEmail};
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: approverEmail,
+                employeeList: {},
+            };
+            const submittedReport: Report = {
+                ...createExpenseReport(8),
+                reportID: FAKE_OLD_REPORT_ID,
+                policyID,
+                ownerAccountID: CURRENT_USER_ID,
+                managerID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                transactionCount: 2,
+            };
+
+            mockFetch.pause();
+
+            // Given a submitted report on a basic-approval workspace whose only violation is a duplicate
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[approverAccountID]: approverPersonalDetails});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
+            const iouAction = generateIOUAction(transaction, FAKE_OLD_REPORT_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: {...iouAction, childReportID: threadReportID}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
+
+            // When the duplicate violation is dismissed
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [transactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: submittedReport,
+                policy,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                currentTransactionViolations: [{transactionID, violations: mockViolations}],
+                isTrackIntentUser: false,
+                personalDetailsByLogins: {...CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS, [approverEmail]: approverPersonalDetails},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the report stays submitted with no other violations, so its optimistic next step waits on the workspace approver
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
+            expect(optimisticReport?.nextStep).toEqual({
+                actorAccountID: approverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         describe('integration with useOnyx', () => {
@@ -3832,7 +3998,7 @@ describe('Transaction', () => {
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
                         isTrackIntentUser: false,
-                        personalDetailsByLogins: {},
+                        personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
                         rules: undefined,
                     });
                     await waitForBatchedUpdates();
