@@ -127,9 +127,8 @@ function PressableWithDelayToggle({
             }
         } catch {
             // Failed actions must not display checked feedback or delay a retry.
-        } finally {
-            isPendingRef.current = false;
         }
+        isPendingRef.current = false;
     };
 
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
