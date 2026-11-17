@@ -129,14 +129,6 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
 }
 
 /**
- * Whether to load the workspace's AU withdrawal account, which canPayViaABA needs.
- * Only admins of AUD workspaces in the Pay via ABA beta can pay via ABA, so nobody else needs it.
- */
-function shouldLoadPayViaABAData(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
-    return isPayViaABABetaEnabled && isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD;
-}
-
-/**
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
@@ -145,7 +137,7 @@ function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: 
     // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
     const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
 
-    return shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled) && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+    return isPayViaABABetaEnabled && isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
 }
 
 /** Get the ISO codes of the workspace's reimbursement countries, leaving out countries waiting to be deleted */
@@ -203,7 +195,6 @@ export {
     hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
-    shouldLoadPayViaABAData,
     canPayViaABA,
     getReimbursementCountryISOs,
     getPolicyBankAccountCountry,

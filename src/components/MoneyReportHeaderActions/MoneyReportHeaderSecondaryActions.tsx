@@ -55,7 +55,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
-import {shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -163,7 +163,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {isBetaEnabled} = usePermissions();
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
@@ -487,10 +486,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
-    const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
-
     const handleOptionsMenuShow = () => {
-        if (!shouldLoadABAData) {
+        if (!secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)) {
             return;
         }
         openPaymentMethods();

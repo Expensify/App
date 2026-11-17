@@ -407,22 +407,20 @@ describe('SettlementButton', () => {
             expect(screen.getByText(translateLocal('iou.payElsewhere', ''))).toBeTruthy();
         });
 
-        it('loads the payment methods when the options open on an AUD policy', async () => {
-            // Given an expense report on an AUD policy, which can be paid via ABA
-            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+        it('loads the payment methods when the options open', async () => {
+            // Given an expense report on a USD policy, which can't be paid via ABA
+            const expenseReport = createExpenseReport();
             const onPaymentOptionsShow = jest.fn();
             await setupOnyxState({
                 report: expenseReport,
                 chatReport: createChatReport(),
-                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
-                betas: [CONST.BETAS.PAY_VIA_ABA],
+                policy: createTestPolicy(),
             });
 
             render(
                 <SettlementButtonWrapper>
                     <SettlementButton
                         {...defaultProps}
-                        currency={CONST.CURRENCY.AUD}
                         iouReport={expenseReport}
                         onPaymentOptionsShow={onPaymentOptionsShow}
                     />
@@ -435,37 +433,9 @@ describe('SettlementButton', () => {
             showMeasuredPopover();
             await waitForBatchedUpdatesWithAct();
 
-            // Then the payment methods are loaded so the ABA option can be shown, and the caller still hears that the options opened
+            // Then the payment methods are still loaded, since the payment options can need them for more than paying via ABA, and the caller hears that the options opened
             expect(openPaymentMethods).toHaveBeenCalledTimes(1);
             expect(onPaymentOptionsShow).toHaveBeenCalledTimes(1);
-        });
-
-        it('does not load the payment methods when the options open on a non-AUD policy', async () => {
-            // Given an expense report on a USD policy, which can't be paid via ABA
-            const expenseReport = createExpenseReport();
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                    />
-                </SettlementButtonWrapper>,
-            );
-            await waitForBatchedUpdatesWithAct();
-
-            // When the payment options are opened
-            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
-            showMeasuredPopover();
-            await waitForBatchedUpdatesWithAct();
-
-            // Then nothing is loaded, since there's no ABA option to show
-            expect(openPaymentMethods).not.toHaveBeenCalled();
         });
 
         it('does not show wallet option for expense reports (subtitle shows bank account)', async () => {

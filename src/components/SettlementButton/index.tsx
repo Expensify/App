@@ -31,7 +31,7 @@ import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@lib
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -582,12 +582,8 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
-    const shouldLoadABAData = shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
-
     const handlePaymentOptionsShow = () => {
-        if (shouldLoadABAData) {
-            openPaymentMethods();
-        }
+        openPaymentMethods();
         onPaymentOptionsShow?.();
     };
 

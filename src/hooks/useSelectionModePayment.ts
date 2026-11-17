@@ -15,7 +15,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
-import {shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {hasHeldExpensesFromTransactions, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
@@ -108,7 +108,6 @@ function useSelectionModePayment({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {payReportsViaABA} = usePayViaABA();
-    const shouldLoadABAData = shouldLoadPayViaABAData(policy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -285,13 +284,13 @@ function useSelectionModePayment({
         confirmPaymentRef.current = confirmPayment;
     });
 
-    // The selection menus have no hook for when their pay options open, so the Pay via ABA data is loaded when selection mode can pay instead
+    // The selection menus have no hook for when their pay options open, so the payment methods are loaded when selection mode can pay instead
     useEffect(() => {
-        if (!hasPayAction || !shouldLoadABAData) {
+        if (!hasPayAction) {
             return;
         }
         openPaymentMethods();
-    }, [hasPayAction, shouldLoadABAData]);
+    }, [hasPayAction]);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,
