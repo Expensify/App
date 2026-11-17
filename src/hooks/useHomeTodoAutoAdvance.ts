@@ -74,22 +74,27 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
     const latestTodoReportAction = getLatestHomeTodoReportAction(searchKey, reportActions);
 
     // Only a change seen on this screen counts. A report paged onto after another approver already acted on it opens
-    // in its current state instead of being skipped straight away. The report's actions must have loaded first, or an
-    // older row action by the user could later look like a new one.
+    // in its current state instead of being skipped straight away. The baseline is recorded before the report's actions
+    // load, so an action taken first still advances, and it follows the actions while the report still needs the row
+    // action, so an older row action by the user that loads later is not mistaken for a new one.
+    const latestTodoReportActionID = latestTodoReportAction?.reportActionID;
     const [pendingReport, setPendingReport] = useState<PendingReport | undefined>();
-    if (!isActionComplete && !!report?.reportID && !!reportActions && pendingReport?.reportID !== reportID) {
-        setPendingReport({reportID, latestTodoReportActionID: latestTodoReportAction?.reportActionID});
+    if (!isActionComplete && !!report?.reportID && (pendingReport?.reportID !== reportID || pendingReport.latestTodoReportActionID !== latestTodoReportActionID)) {
+        setPendingReport({reportID, latestTodoReportActionID});
     }
 
     // The report's state alone also changes when an admin changes the approver or another approver acts on it, so
     // the user must also have added a new row action while it was open.
     const hasCurrentUserTakenAction =
-        !!latestTodoReportAction && latestTodoReportAction.reportActionID !== pendingReport?.latestTodoReportActionID && latestTodoReportAction.actorAccountID === currentUserAccountID;
+        !!latestTodoReportAction && latestTodoReportActionID !== pendingReport?.latestTodoReportActionID && latestTodoReportAction.actorAccountID === currentUserAccountID;
     const shouldAdvance = isActionComplete && pendingReport?.reportID === reportID && hasCurrentUserTakenAction;
 
     // Reads the latest data at the moment the action lands, without re-running the effect below whenever it changes.
     const advanceToNextReport = useEffectEvent(() => {
-        Growl.success({bodyText: translate(TOAST_TRANSLATION_KEYS[searchKey]), position: isSmallScreenWidth ? undefined : CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        Growl.success({
+            bodyText: translate(TOAST_TRANSLATION_KEYS[searchKey]),
+            position: isSmallScreenWidth ? undefined : CONST.GROWL.POSITION.BOTTOM_RIGHT,
+        });
 
         const reportIDsNeedingAction = filterReportIDsNeedingTodoAction(searchKey, reportIDs, todoClassificationParams);
         const nextReportID = getNextHomeTodoReportID(reportIDs, reportID, reportIDsNeedingAction);

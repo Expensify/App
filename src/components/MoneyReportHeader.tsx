@@ -37,6 +37,7 @@ import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
 import HomeTodoReportNavigation from './MoneyRequestReportView/HomeTodoReportNavigation';
 import HomeTodoReviewAutoAdvance from './MoneyRequestReportView/HomeTodoReviewAutoAdvance';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportView/MoneyRequestReportNavigationCounter';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
 import {useSearchSelectionActions} from './Search/SearchContext';
@@ -210,11 +211,19 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         )
                     )}
                     {shouldShowHomeTodoNavigation && !!homeTodoReview && !!reportIDProp && (
-                        <HomeTodoReportNavigation
-                            reportID={reportIDProp}
-                            reportIDs={homeTodoReview.reportIDs}
-                            shouldDisplayNarrowVersion={!shouldShowHeaderButtonsInHeaderRow}
-                        />
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {/* A narrow header keeps only the arrows, as the Spend report navigation does */}
+                            {shouldShowHeaderButtonsInHeaderRow && (
+                                <MoneyRequestReportNavigationCounter
+                                    current={homeTodoReview.reportIDs.indexOf(reportIDProp) + 1}
+                                    total={homeTodoReview.reportIDs.length}
+                                />
+                            )}
+                            <HomeTodoReportNavigation
+                                reportID={reportIDProp}
+                                reportIDs={homeTodoReview.reportIDs}
+                            />
+                        </View>
                     )}
                 </View>
             </HeaderWithBackButton>

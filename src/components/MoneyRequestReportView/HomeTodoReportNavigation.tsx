@@ -1,17 +1,12 @@
 import PrevNextButtons from '@components/PrevNextButtons';
 
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import openReportInPlace from '@libs/Navigation/helpers/openReportInPlace';
 
 import React from 'react';
-import {View} from 'react-native';
-
-import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 /**
- * Previous and next arrows with an `x of y` counter for the reports of a Home to-do row. It pages through the list
- * fixed when the user pressed `Begin` instead of search results, with the same controls the Spend report navigation uses.
+ * Previous and next arrows for the reports of a Home to-do row. They page through the list fixed when the user pressed
+ * `Begin` instead of search results, with the same controls the Spend report navigation uses.
  */
 
 type HomeTodoReportNavigationProps = {
@@ -20,13 +15,9 @@ type HomeTodoReportNavigationProps = {
 
     /** The reports of the Home to-do row the user is going through */
     reportIDs: string[];
-
-    /** Whether to hide the counter and show only the arrows, as the Spend report navigation does on narrow headers */
-    shouldDisplayNarrowVersion: boolean;
 };
 
-function HomeTodoReportNavigation({reportID, reportIDs, shouldDisplayNarrowVersion}: HomeTodoReportNavigationProps) {
-    const styles = useThemeStyles();
+function HomeTodoReportNavigation({reportID, reportIDs}: HomeTodoReportNavigationProps) {
     const currentIndex = reportIDs.indexOf(reportID);
 
     const goToReport = (nextReportID: string | undefined) => {
@@ -41,20 +32,12 @@ function HomeTodoReportNavigation({reportID, reportIDs, shouldDisplayNarrowVersi
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-            {!shouldDisplayNarrowVersion && (
-                <MoneyRequestReportNavigationCounter
-                    current={currentIndex + 1}
-                    total={reportIDs.length}
-                />
-            )}
-            <PrevNextButtons
-                isPrevButtonDisabled={currentIndex === 0}
-                isNextButtonDisabled={currentIndex === reportIDs.length - 1}
-                onNext={() => goToReport(reportIDs.at(currentIndex + 1))}
-                onPrevious={() => goToReport(reportIDs.at(currentIndex - 1))}
-            />
-        </View>
+        <PrevNextButtons
+            isPrevButtonDisabled={currentIndex === 0}
+            isNextButtonDisabled={currentIndex === reportIDs.length - 1}
+            onNext={() => goToReport(reportIDs.at(currentIndex + 1))}
+            onPrevious={() => goToReport(reportIDs.at(currentIndex - 1))}
+        />
     );
 }
 
