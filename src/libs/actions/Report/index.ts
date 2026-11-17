@@ -3328,8 +3328,9 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
  * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ * @param readTime When the user saw the report (defaults to now). A delayed read passes it so newer actions stay unread.
  */
-function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false, readTime?: string) {
     if (!reportID) {
         return;
     }
@@ -3339,7 +3340,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
         return;
     }
 
-    const lastReadTime = getDBTimeWithSkew();
+    const lastReadTime = readTime ?? getDBTimeWithSkew();
 
     // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
     // user created. `openReport` clears it on a return trip or a refresh.
@@ -3380,18 +3381,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (
+    const reportActionsFromOtherUsers = Object.values(reportActions ?? {}).filter(
+        (current) =>
             !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
-            (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
-        ) {
-            return current;
-        }
-        return latest;
-    }, null);
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER),
+    );
+    const eligibleReportActions = reportAction?.created
+        ? reportActionsFromOtherUsers
+        : reportActionsFromOtherUsers.filter((action) => ReportActionsUtils.canReportActionTriggerUnreadMarker(action, currentUserAccountID));
+    const unreadCandidates = eligibleReportActions.length > 0 ? eligibleReportActions : reportActionsFromOtherUsers;
+    const latestReportActionFromOtherUsers = unreadCandidates.reduce((latest: ReportAction | null, current) => (!latest || current.created > latest.created ? current : latest), null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];

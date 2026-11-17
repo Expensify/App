@@ -1204,6 +1204,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Configurar regras específicas de viagem',
             addFirstReceipt: 'Adicione seu primeiro recibo',
             addFirstReceiptSubText: 'Escaneie ou insira manualmente um recibo',
+            addName: 'Adicione seu nome',
+            addNameSubText: 'Ajude seus colegas de equipe a reconhecer você no Expensify.',
+            downloadApp: 'Baixe o app',
+            downloadAppSubText: 'Digitalize recibos, envie despesas e aprove relatórios em qualquer lugar.',
         },
         yourSpend: {
             title: 'Seus gastos',
@@ -1250,6 +1254,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Média de todos os estabelecimentos',
             allCategoryAverage: 'Média de todas as categorias',
             averageValue: (amount: string) => `${amount} média`,
+            allViolationAverage: 'Média de todas as violações',
+            noChange: 'Sem alteração',
+            percentChange: '% de mudança',
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
@@ -1276,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Mais demorados para enviar',
         slowestToApprove: 'Mais lento para aprovar',
         mostTimeToPay: 'Maior prazo para pagar',
+        share: 'Participação',
         averageDays: 'Média de dias',
     },
     allSettingsScreen: {
@@ -1843,6 +1851,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Todas as despesas foram colocadas em espera. Revise os comentários para saber os próximos passos.',
         expenseDuplicate: 'Esta despesa tem detalhes semelhantes a outra. Revise as duplicadas para continuar.',
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
+        someDuplicatesAreUnavailable: 'Alguns desses duplicados não puderam ser carregados, então você só pode manter todos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
         keepSelected: 'Manter selecionados',
@@ -4258,7 +4267,6 @@ ${amount} para ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `A data deve ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `A data deve ser posterior a ${dateString}`,
-            hasInvalidCharacter: 'O nome pode incluir apenas caracteres latinos',
             cannotIncludeCommaOrSemicolon: 'O nome não pode conter vírgula ou ponto e vírgula',
             incorrectZipFormat: (zipFormat?: string) => `Formato de CEP incorreto${zipFormat ? `Formato aceitável: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Verifique se o número de telefone é válido (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4446,7 +4454,6 @@ ${amount} para ${merchant} - ${date}`,
             lastName: 'Insira um sobrenome válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Adicione uma conta de depósito padrão ou cartão de débito',
             validationAmounts: 'Os valores de validação inseridos estão incorretos. Verifique seu extrato bancário e tente novamente.',
-            fullName: 'Insira um nome completo válido',
             ownershipPercentage: 'Insira um número de porcentagem válido',
             deletePaymentBankAccount:
                 'Essa conta bancária não pode ser excluída porque é usada para pagamentos do Cartão Expensify. Se ainda assim quiser excluir essa conta, entre em contato com o Concierge.',
@@ -8752,6 +8759,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
                 upgradeWorkspaceWarning: `Não é possível atualizar o workspace`,
+                createWorkspaceWarning: `Não é possível criar o workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
             hr: {
@@ -11055,6 +11063,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
+        violation: 'Violação',
         receiptTypeValues: {
             ereceipt: 'Recibo eletrônico',
             itemized: 'Detalhado',
@@ -11297,6 +11306,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `A conexão ${feedName} foi interrompida há 30 dias. <a href='${workspaceCompanyCardRoute}'>Acesse seu banco</a> para corrigi-la ou <a href='${workspaceCompanyCardSettingsRoute}'>remova a conexão</a> se ela não estiver mais em uso. Você não perderá nenhuma despesa enviada se removê-la.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'em breve';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'em duas semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'em uma semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconecte o cartão antes que o consentimento expire</a>.`
+                        : 'Reconecte o cartão antes que o consentimento expire.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, a conexão do seu cartão ` : 'A conexão do seu cartão ';
+                    return `${intro}<strong>${feedName}</strong> precisará renovar o consentimento ${warningTime}. As transações ainda estão sendo sincronizadas, mas podem deixar de ser importadas se o consentimento não for renovado. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11983,6 +12015,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             tagOutOfPolicy: 'Tag não é mais válida',
             overLimitAttendee: 'Acima do limite de pessoas',
             customRules: 'Violação de regra personalizada',
+            ruleViolation: 'Violação de regra',
             taxAmountChanged: 'Valor do imposto modificado',
             taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
             taxRateChanged: 'Alíquota de imposto modificada',

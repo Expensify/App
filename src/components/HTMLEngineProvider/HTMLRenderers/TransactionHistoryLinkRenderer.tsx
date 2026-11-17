@@ -33,6 +33,7 @@ function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRe
         <Text
             style={[style, styles.link]}
             onPress={navigateToTransactionHistory}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.TRANSACTION_HISTORY_LINK}
             onKeyDown={handleKeyDown}
             suppressHighlighting
             accessible

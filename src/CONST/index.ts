@@ -2278,6 +2278,7 @@ const CONST = {
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
+                COMPANY_CARD_CONSENT_EXPIRING: 'COMPANYCARDCONSENTEXPIRING',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -6264,6 +6265,10 @@ const CONST = {
         },
     },
     COMPANY_CARDS: {
+        CONSENT_EXPIRY_WARNING_DAYS: {
+            TWO_WEEKS: 14,
+            ONE_WEEK: 7,
+        },
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
 
         // Ignored scrape result codes that still need the user to act, so they belong in the card's status
@@ -6679,7 +6684,6 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         // Matches complete tags like <script> or <123a>; lone < or > are allowed.
         NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
@@ -9168,6 +9172,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            VIOLATION: 'violationName',
             TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
@@ -9269,6 +9274,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            VIOLATION: 'violation',
             TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -10629,6 +10635,7 @@ const CONST = {
             EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
+        NO_CHANGE_PLACEHOLDER: '—',
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_OVER_TIME: 'violationsOverTime',
@@ -10663,6 +10670,8 @@ const CONST = {
             CHIP_UNIT: {
                 PERCENT: 'percent',
                 AMOUNT: 'amount',
+                COUNT: 'count',
+                DURATION: 'duration',
             },
         },
     },

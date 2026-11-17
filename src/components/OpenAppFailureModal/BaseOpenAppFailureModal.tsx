@@ -50,6 +50,7 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink
                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                        sentryLabel={CONST.SENTRY_LABEL.OPEN_APP_FAILURE_MODAL.CONCIERGE_EMAIL_LINK}
                         style={[styles.link]}
                     >
                         {CONST.EMAIL.CONCIERGE}
