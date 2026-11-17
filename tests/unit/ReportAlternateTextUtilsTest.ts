@@ -599,6 +599,7 @@ describe('ReportAlternateTextUtils', () => {
             created: '2026-11-01 10:00:00.000',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             message: [{type: 'COMMENT', text: 'expense'}],
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- getSplitAndTrackTransactionIDs reads the transaction ID through getOriginalMessage, which needs this field
             originalMessage: {IOUTransactionID: transactionID, type, amount: 1000, currency: CONST.CURRENCY.USD},
             pendingAction: undefined,
             errors: undefined,
@@ -612,6 +613,7 @@ describe('ReportAlternateTextUtils', () => {
             created: '2026-11-01 11:00:00.000',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the random fixture's whisperedTo would hide this comment, so the visibility check needs it overridden
             originalMessage: {html: 'hi', whisperedTo: []},
             pendingAction: undefined,
             errors: undefined,
@@ -637,7 +639,6 @@ describe('ReportAlternateTextUtils', () => {
             const split = buildIOUAction(groupChat, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, 'splitTransaction2');
             const deletedComment = buildComment(groupChat, {
                 message: [{type: 'COMMENT', html: '', text: '', deleted: '2026-11-01 11:05:00.000', isDeletedParentAction: false}],
-                originalMessage: {html: '', whisperedTo: []},
             });
 
             // When the transaction IDs are collected, with the newest action first like the sorted actions
