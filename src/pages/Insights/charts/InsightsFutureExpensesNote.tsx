@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {buildFutureExpensesQueryString} from '@pages/Insights/insightsQueries';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsFutureExpenses} from '@src/types/onyx';
 
@@ -41,6 +42,7 @@ function InsightsFutureExpensesNote({futureExpenses, asOfDate, filters}: Insight
             <TextLink
                 variant="label"
                 onPress={openFutureExpenses}
+                sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.FUTURE_EXPENSES_VIEW}
             >
                 {translate('common.view')}
             </TextLink>
