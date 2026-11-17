@@ -53,9 +53,9 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Derive data for hold menu
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, false, isChatReportArchived);
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, transactions, false, isChatReportArchived);
     const onlyShowPayElsewhere =
-        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived);
+        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, transactions, true, isChatReportArchived);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     // Imperative modals

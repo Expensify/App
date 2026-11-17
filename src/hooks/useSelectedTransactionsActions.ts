@@ -534,7 +534,10 @@ function useSelectedTransactionsActions({
         });
 
         const canMergeTransaction =
-            selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules, personalDetails);
+            selectedTransactionsList.length < 3 &&
+            report &&
+            policy &&
+            isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules, personalDetails, new Map([[report.reportID, reportTransactions]]));
         if (canMergeTransaction) {
             const transactionID = selectedTransactionsList.at(0)?.transactionID;
             if (transactionID) {

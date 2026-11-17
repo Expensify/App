@@ -98,6 +98,7 @@ import {
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
+    getReimbursable,
     hasOnlyPendingCardTransactions,
     hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
@@ -175,7 +176,7 @@ function isSplitAction(
         return false;
     }
 
-    if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+    if (!getReimbursable(reportTransaction) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
@@ -531,7 +532,7 @@ function isReceivedPaymentAction(report: Report, reportTransactions: Transaction
         return false;
     }
 
-    if (policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions)) {
+    if (policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(reportTransactions)) {
         return false;
     }
 
@@ -864,7 +865,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return true;
     }
 
-    if (hasOnlyNonReimbursableTransactions(parentReport.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+    if (hasOnlyNonReimbursableTransactions(reportTransactions) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
     }
 
@@ -880,6 +881,8 @@ function isMergeActionForSelectedTransactions(
     rules: OnyxCollection<Rule>,
     // The full list is needed because the loop below resolves a different report owner on each pass.
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    // Every transaction of each report, because a report can hold expenses that are not selected.
+    transactionsByReportID: Map<string, Transaction[]>,
     currentUserAccountID?: number,
 ) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
@@ -924,7 +927,7 @@ function isMergeActionForSelectedTransactions(
         }
 
         const policy = policyMap.get(report.policyID);
-        if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        if (hasOnlyNonReimbursableTransactions(transactionsByReportID.get(report.reportID) ?? []) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
             return false;
         }
         return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN, rules, getLoginByAccountID(report.ownerAccountID, personalDetails));

@@ -261,7 +261,7 @@ function isPrimaryPayAction({
         isReportFinished &&
         (reimbursableSpend !== 0 ||
             ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, reportTransactions)) &&
-                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))))
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(reportTransactions))))
     ) {
         return isSecondaryAction ?? !didExportFail;
     }

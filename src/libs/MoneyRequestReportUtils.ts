@@ -231,7 +231,7 @@ const getTotalAmountForIOUReportPreviewButton = (
         }
 
         // For reports with only non-reimbursable expenses, show total display spend for Mark as paid.
-        if (hasOnlyNonReimbursableTransactions(report?.reportID, transactions)) {
+        if (hasOnlyNonReimbursableTransactions(transactions)) {
             return convertToDisplayString(totalDisplaySpend, report?.currency);
         }
 

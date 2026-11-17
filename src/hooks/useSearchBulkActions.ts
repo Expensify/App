@@ -967,7 +967,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
             const isChatReportArchived = isArchivedReport(chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`] : undefined);
             // The snapshot can hold a row whose expenses never reached Onyx, where an empty list reads as a report that can't be paid, so prefer the snapshot and fall back to Onyx
-            const reportTransactions = transactionsByReportID.get(reportID);
+            const reportTransactions = transactionsByReportID.get(reportID) ?? Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {});
             return (
                 report &&
                 !canIOUBePaid(
@@ -1004,6 +1004,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         bankAccountList,
         payScopedReports,
         selectedTransactions,
+        allReportsTransactionsAndViolations,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -3525,7 +3526,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (!hasGroupEntrySelected && selectedTransactionsKeys.length < 3 && searchResults?.search?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, accountID)) {
+            if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, personalDetails, getTransactionsByReportID(searchResults.data), accountID)) {
                 const transactionID = searchedTransactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
