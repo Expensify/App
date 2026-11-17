@@ -16,10 +16,10 @@ import {
     isValidAccountRoute,
     isValidAddress,
     isValidDate,
+    isValidDisplayName,
     isValidEmailWithTLD,
     isValidExpirationDate,
     isValidInputLength,
-    isValidLegalName,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
@@ -473,15 +473,23 @@ describe('ValidationUtils', () => {
         });
     });
 
-    describe('ValidateLegalName', () => {
-        test('Valid legal name', () => {
-            expect(isValidLegalName('test name')).toBe(true);
-            expect(isValidLegalName(`X Æ A test`)).toBe(true);
+    describe('isValidDisplayName', () => {
+        it.each(['Smith-Jones', "O'Connor", 'X Æ A test', 'Παπαδόπουλος', '李明'])('accepts %s', (name) => {
+            // Given a name as it is written on bank and identity documents, which can include hyphens, apostrophes and non-Latin letters
+            // When it is checked as the legal name the user enters in the bank account steps
+            const isValid = isValidDisplayName(name);
+
+            // Then it is accepted, so bank account verification can match the name exactly as the bank registered it
+            expect(isValid).toBe(true);
         });
 
-        test('Invalid legal name', () => {
-            expect(isValidLegalName(`a hyphenated-name`)).toBe(false);
-            expect(isValidLegalName('άλφα')).toBe(false);
+        it.each(['Smith, Jane', 'Smith; Jane'])('rejects %s', (name) => {
+            // Given a name containing a comma or a semicolon
+            // When it is checked as the legal name the user enters in the bank account steps
+            const isValid = isValidDisplayName(name);
+
+            // Then it is rejected, since commas and semicolons are the only characters that names cannot contain
+            expect(isValid).toBe(false);
         });
     });
 

@@ -745,4 +745,45 @@ describe('AddPersonalBankAccountPage', () => {
             expect(navigateSpy).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('legal name step', () => {
+        const settingsTabIndex = TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, MANUAL_BANK_ACCOUNT_DRAFT);
+            });
+        });
+
+        it('moves on to the address step when the legal name has hyphens', async () => {
+            // Given a new user whose legal first and last names are hyphenated
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.LEGAL_NAME);
+            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Mary-Kate');
+            fireEvent.changeText(screen.getByLabelText('Legal last name'), 'Smith-Jones');
+            await waitForBatchedUpdatesWithAct();
+
+            // When they submit the legal name step
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they move on, since the bank verifies account ownership against the name exactly as it is registered, hyphens included
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.ADDRESS));
+        });
+
+        it('keeps the user on the legal name step when the name has a comma', async () => {
+            // Given a new user who typed a comma into their legal last name
+            await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.LEGAL_NAME);
+            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Jane');
+            fireEvent.changeText(screen.getByLabelText('Legal last name'), 'Smith, Jr');
+            await waitForBatchedUpdatesWithAct();
+
+            // When they submit the legal name step
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error names the characters to remove, and they stay on the step to fix the name
+            expect(screen.getByText('Name cannot contain a comma or semicolon')).toBeOnTheScreen();
+            expect(navigateSpy).not.toHaveBeenCalled();
+        });
+    });
 });
