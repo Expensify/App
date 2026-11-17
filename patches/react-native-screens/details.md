@@ -133,18 +133,18 @@
 - Reason: Android only. Adds a `tabBarItemOrder` prop to the tabs host: the screen keys in the order their items take in the tab bar. With the flat navigation beta, Expenses and Reports are two items over the one Search screen, and native shows the content of a tab only under its own item, so the tab that holds Search has to take the place of the item to highlight. Moving the tab in React replaces its fragment, which remounts Search. With this prop the React children keep their order, so no view is moved or recreated: the menu items are added in that order and the selected one is checked again after the menu is rebuilt. `TabsHostA11yCoordinator` paired tabs with menu items by index, so it now matches them by menu item id. An empty or missing order keeps the order of the children, which is what every host gets without the beta. iOS does not use the order, see patch 012.
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
-- PR introducing patch: N/A
+- PR introducing patch: [#107108](https://github.com/Expensify/App/pull/107108)
 
 ### [react-native-screens+4.28.0+011+ios-prevented-tab-selection-touches.patch](react-native-screens+4.28.0+011+ios-prevented-tab-selection-touches.patch)
 
 - Reason: The iOS 26 tab bar starts moving its liquid glass selection lens to an item on touch down, before it asks the delegate whether the tab can be selected. A tap on a tab with `preventNativeSelection`, such as the More item of the flat nav bar, pulled the lens to the item and let it spring back. A transparent view over each such item, placed in the tab bar controller's view rather than in the tab bar, takes the tap before the tab bar sees it and reports it the same way the prevented selection does. The views are kept between updates and only moved, since replacing one between touch down and touch up drops the tap. The selected tab keeps its taps, VoiceOver still activates the item through the tab bar, no view is made while the bar is hidden, and a tab bar without the private `_UITabButton` item views (before iOS 26) gets no such views and behaves as before.
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
-- PR introducing patch: N/A
+- PR introducing patch: [#107108](https://github.com/Expensify/App/pull/107108)
 
 ### [react-native-screens+4.28.0+012+ios-tab-hosted-content.patch](react-native-screens+4.28.0+012+ios-tab-hosted-content.patch)
 
 - Reason: iOS only. With the flat navigation beta, Expenses and Reports are two tab bar items over the one Search screen. React cannot move a mounted subtree to another parent, so drawing Search inside the tab of its section remounted it on every switch, and trading the places of the two tabs (patch 010) keeps the same tab selected, so the iOS 26 selection lens jumped instead of gliding and the bar drew one frame with the items in the wrong order. A tab screen can now show the hosted content of another screen while it is selected: the `hostedContentSourceScreenKey` prop names that screen, and the child view with the `RNSTabsHostedContent` native ID is its hosted content. The view stays a React child of its own screen and only its native parent changes, in `shouldSelectViewController` and before a selection from JS, so the content is there when UIKit shows the tab and the bar animates its selection as for any other tab. The view controllers inside the view (a nested stack) move to the view controller of the other screen with it, because UIKit requires the parent of a view controller to match the place of its view. A snapshot of the content stays in the screen it leaves for 0.6 s, which covers UIKit's cross-fade, so that screen does not fade out empty. Before React adds or removes a child of a screen whose content is shown elsewhere, the view goes back to it, and is placed again after the transaction. Without the prop and the native ID nothing changes.
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
-- PR introducing patch: N/A
+- PR introducing patch: [#107108](https://github.com/Expensify/App/pull/107108)

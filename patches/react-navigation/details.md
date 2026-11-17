@@ -121,7 +121,7 @@
   - Without a hidden route that has a host, no order and no source key are sent and nothing changes.
 - Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
-- PR Introducing Patch: N/A
+- PR Introducing Patch: [#107108](https://github.com/Expensify/App/pull/107108)
 - PR Updating Patch: N/A
 
 ### Removed patches
