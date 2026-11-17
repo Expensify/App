@@ -123,7 +123,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
     const getViolationsForField = (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         const currentViolations = violationsByField.get(field) ?? [];
 
-        // Since tag levels can have different violations, we need to further filter those. If the violation isnt for multi-level tags, we can just return the violations
+        // Since tag levels can have different violations, we need to further filter those. If the violation isn't for multi-level tags, we can just return the violations
         if (field !== 'tag' || (data?.tagListIndex === undefined && data?.tagListName === undefined && !tagValue)) {
             return currentViolations;
         }
