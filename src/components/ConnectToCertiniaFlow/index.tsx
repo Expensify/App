@@ -49,6 +49,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
         {
             icon: icons.LinkCopy,
             text: translate('workspace.certinia.prerequisites.connectButton'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.CONNECT,
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID));
                 setIsConnectionOptionsPopoverOpen(false);
@@ -57,6 +58,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
         {
             icon: icons.LinkCopy,
             text: translate('workspace.certinia.prerequisites.connectSandboxButton'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.CONNECT_SANDBOX,
             onSelected: () => {
                 const isSandbox = true;
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, CONST.CERTINIA_PREREQUISITES.PAGE_NAME.INSTALL_BUNDLE, isSandbox));
@@ -68,6 +70,7 @@ function ConnectToCertiniaFlow({policyID}: ConnectToCertiniaFlowProps) {
                   {
                       icon: icons.Copy,
                       text: translate('workspace.common.reuseExistingConnection'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CONNECTION_OPTIONS.REUSE_EXISTING_CONNECTION,
                       onSelected: () => {
                           Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID));
                           setIsConnectionOptionsPopoverOpen(false);

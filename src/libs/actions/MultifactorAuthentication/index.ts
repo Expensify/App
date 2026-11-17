@@ -1,16 +1,16 @@
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 
 import {makeRequestWithSideEffects} from '@libs/API';
-import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
+import type {DenyTransactionParams, RecordFraudFeedbackParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import {isAuthenticationChallenge, isRegistrationChallenge, parseHttpResponse} from '@libs/MultifactorAuthentication/shared/helpers';
-import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
+import type {LocallyProcessed3DSChallengeReviews, LocallyProcessedFraudTransactionReviews, TransactionsPendingFraudReview} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -54,6 +54,18 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
         value[entry] = null;
     }
     Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS, value);
+}
+
+/** IDs of fraud reviews answered on this device that the server no longer lists as pending */
+function getLocallyProcessedFraudReviewIDsToCleanUp(
+    queue: OnyxEntry<TransactionsPendingFraudReview>,
+    locallyProcessedFraudTransactionReviews: OnyxEntry<LocallyProcessedFraudTransactionReviews>,
+): string[] {
+    return Object.keys(locallyProcessedFraudTransactionReviews ?? {}).filter((transactionID) => !queue?.[transactionID]);
+}
+
+function cleanUpLocallyProcessedFraudTransactionReviews(transactionIDs: string[]) {
+    Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS, Object.fromEntries(transactionIDs.map((transactionID) => [transactionID, null])));
 }
 
 /**
@@ -427,6 +439,65 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
     );
 }
 
+/** Asks the server whether the transaction still awaits fraud review. The response also refreshes the queue in Onyx */
+async function isTransactionStillPendingFraudReview(transactionID: string) {
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_FRAUD_REVIEW, null, {});
+    return !!response?.transactionsPendingFraudReview?.[transactionID];
+}
+
+function getLocallyProcessedFraudReviewOptimisticData(transactionID: string): Array<OnyxUpdate<typeof ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS>> {
+    return [
+        {
+            key: ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {[transactionID]: new Date().toISOString()},
+        },
+    ];
+}
+
+async function confirmRecognizedTransaction({
+    transactionID,
+    signedChallenge,
+    authenticationMethod,
+}: MultifactorAuthenticationActionParams<Pick<RecordFraudFeedbackParams, 'transactionID'>, 'signedChallenge'>) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.RECORD_FRAUD_FEEDBACK,
+            {transactionID, transactionRecognized: true, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {optimisticData: getLocallyProcessedFraudReviewOptimisticData(transactionID)},
+        );
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CONFIRM_RECOGNIZED_TRANSACTION, message);
+    } catch (error) {
+        Log.hmmm('[MFA] Failed to confirm recognized transaction', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.CONFIRM_RECOGNIZED_TRANSACTION, undefined);
+    }
+}
+
+async function reportFraudulentTransaction({transactionID}: Pick<RecordFraudFeedbackParams, 'transactionID'>) {
+    try {
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.RECORD_FRAUD_FEEDBACK,
+            {transactionID, transactionRecognized: false},
+            {optimisticData: getLocallyProcessedFraudReviewOptimisticData(transactionID)},
+        );
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REPORT_FRAUDULENT_TRANSACTION, message);
+    } catch (error) {
+        Log.hmmm('[MFA] Failed to report fraudulent transaction', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REPORT_FRAUDULENT_TRANSACTION, undefined);
+    }
+}
+
+/** Reports the transaction as fraud without waiting for the response */
+function fireAndForgetReportFraudulentTransaction({transactionID}: Pick<RecordFraudFeedbackParams, 'transactionID'>) {
+    reportFraudulentTransaction({transactionID});
+}
+
 function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${string}` {
     return `${ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${accountID}`;
 }
@@ -460,4 +531,10 @@ export {
     denyTransaction,
     authorizeTransaction,
     fireAndForgetDenyTransaction,
+    isTransactionStillPendingFraudReview,
+    confirmRecognizedTransaction,
+    reportFraudulentTransaction,
+    fireAndForgetReportFraudulentTransaction,
+    getLocallyProcessedFraudReviewIDsToCleanUp,
+    cleanUpLocallyProcessedFraudTransactionReviews,
 };

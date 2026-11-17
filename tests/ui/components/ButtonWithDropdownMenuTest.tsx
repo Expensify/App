@@ -19,6 +19,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
         text: 'Test Option',
         icon: icons.current.Checkbox,
         onSelected: mockOnSelected,
+        sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
     };
 
     afterEach(() => {
@@ -33,6 +34,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onOptionSelected={mockOnOptionSelected}
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         expect(screen.getByText('Test Option')).toBeTruthy();
@@ -46,6 +48,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onOptionSelected={mockOnOptionSelected}
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         fireEvent.press(screen.getByText('Test Option'));
@@ -64,6 +67,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
                 testID={CONST.ICON_TEST_ID}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const iconNodes = screen.getAllByTestId(CONST.ICON_TEST_ID);
@@ -76,8 +80,8 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
     const mockOnPress = jest.fn();
     const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Checkbox']));
     const options = [
-        {value: 'one', text: 'Option One', icon: icons.current.Checkbox},
-        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox},
+        {value: 'one', text: 'Option One', icon: icons.current.Checkbox, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
+        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
     ];
 
     afterEach(() => {
@@ -90,6 +94,7 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
                 options={options}
                 onPress={mockOnPress}
                 isSplitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
@@ -110,6 +115,7 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
                 options={options}
                 onPress={mockOnPress}
                 isSplitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
