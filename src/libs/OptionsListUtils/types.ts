@@ -296,7 +296,7 @@ type GetOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];

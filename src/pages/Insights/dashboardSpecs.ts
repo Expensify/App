@@ -140,12 +140,21 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         },
         supportingCharts: [
             {
+                graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
+                titleKey: 'insightsPage.averageProcessingTime',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            },
+            {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
                 titleKey: 'insightsPage.longestToSubmit',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -156,7 +165,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 isPolicyEligible: areApprovalsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -168,7 +177,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -273,12 +282,15 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
         .map((policy) => policy.id);
 }
 
-/** Returns the dashboards the user can open, ignoring the workspace filter. */
+/**
+ * Returns the dashboards the user can open, ignoring the workspace filter.
+ * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
+ */
 function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
-    const allPolicies = Object.values(policies ?? {});
+    const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
         const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
     });
 }
 

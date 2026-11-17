@@ -106,8 +106,8 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                                         </View>
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>{bankAccountOwnerName ?? ''}</MenuItem.Title>
-                                        <MenuItem.Description>{formattedBankAccountNumber}</MenuItem.Description>
+                                        <MenuItem.Title forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{bankAccountOwnerName ?? ''}</MenuItem.Title>
+                                        <MenuItem.Description forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{formattedBankAccountNumber}</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>

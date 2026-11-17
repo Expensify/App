@@ -213,4 +213,3 @@ export {
     refreshCloudflareSession,
     waitForCloudflareSessionHydration,
 };
-export type {CloudflareRefreshResult};

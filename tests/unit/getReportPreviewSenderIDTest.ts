@@ -1,7 +1,8 @@
+import {getReportPreviewSenderID} from '@hooks/useReportPreviewSenderID';
+
 import type {PersonalDetailsByLogin} from '../../src/components/PersonalDetailsByLoginProvider';
 import type {OriginalMessageIOU, PersonalDetails, Report, ReportAction, Transaction} from '../../src/types/onyx';
 
-import {getReportPreviewSenderID} from '../../src/components/ReportActionAvatars/useReportPreviewSenderID';
 import CONST from '../../src/CONST';
 import createMock from '../utils/createMock';
 

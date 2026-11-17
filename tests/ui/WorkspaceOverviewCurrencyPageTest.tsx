@@ -10,6 +10,7 @@ import type {WorkspaceOverviewCurrencyPageProps} from '@pages/workspace/Workspac
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
 import type ReactNative from 'react-native';
@@ -29,6 +30,8 @@ let mockEnrollmentRoute = '';
 let mockIsBetaEnabled = false;
 let mockIsUkEuCurrencySupported = false;
 const mockOnyxKeys = ONYXKEYS;
+// The Connections page that opened the currency page on top of itself
+const mockDynamicBackPath = `workspaces/${POLICY_ID}/connections`;
 
 jest.mock('@components/CurrencySelectionList', () => {
     const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
@@ -61,6 +64,10 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
+jest.mock('@hooks/useDynamicBackPath', () => ({
+    __esModule: true,
+    default: () => mockDynamicBackPath,
+}));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
@@ -131,8 +138,8 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseRoute = jest.mocked(useRoute);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
-function renderPage(shouldStartExpensifyCardEnrollment = true) {
-    mockUseRoute.mockReturnValue(createMock<ReturnType<typeof useRoute>>({params: {shouldStartExpensifyCardEnrollment}}));
+function renderPage(shouldStartExpensifyCardEnrollment = true, screenName: string = SCREENS.WORKSPACE.CURRENCY) {
+    mockUseRoute.mockReturnValue(createMock<ReturnType<typeof useRoute>>({name: screenName, params: {shouldStartExpensifyCardEnrollment}}));
     const props = createMock<WorkspaceOverviewCurrencyPageProps>({policy: mockPolicy});
     render(<WorkspaceOverviewCurrencyPage {...props} />);
 }
@@ -186,5 +193,18 @@ describe('WorkspaceOverviewCurrencyPage', () => {
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
+    });
+
+    it('goes back to the page that opened it once a currency is chosen on top of that page', () => {
+        // Given the currency page opened on top of the Connections page by the Digits currency prompt
+        renderPage(false, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY);
+
+        // When the admin picks USD
+        fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.USD}`));
+        jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mock.calls.at(0)?.at(0)?.();
+
+        // Then the page closes back to the Connections page, the same page a reload keeps under it
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledWith(mockDynamicBackPath);
     });
 });

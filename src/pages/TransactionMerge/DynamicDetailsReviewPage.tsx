@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getDescription} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +63,9 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     });
     const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
     const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
+
+    const mergeDescriptionsHtml = `${getDescription(targetTransaction)}${getDescription(sourceTransaction)}`;
+    const accountIDToName = useMentionedAccountIDToNameMap(mergeDescriptionsHtml);
 
     // The workspace of the report the merged expense is currently headed to, which is the one whose rules apply to it.
     // An unreported expense lands in the self-DM, which has no workspace, so nothing resolves here.
@@ -161,6 +166,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
         localeCompare,
         formatPhoneNumber,
         reports: [targetTransactionReport, sourceTransactionReport],
+        accountIDToName,
     });
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
