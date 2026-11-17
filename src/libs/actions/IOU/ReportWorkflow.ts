@@ -87,6 +87,7 @@ type ApproveMoneyRequestFunctionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     personalDetailsByLogins: PersonalDetailsByLogin;
+    isChatReportArchived: boolean;
 };
 
 type SubmitReportFunctionParams = {
@@ -159,6 +160,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         getCurrencyDecimals,
         allTransactionViolations,
         personalDetailsByLogins,
+        isChatReportArchived,
     } = params;
     if (!expenseReport) {
         return;
@@ -287,6 +289,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     currentUserAccountIDParam,
                     allTransactionViolations,
                     undefined,
+                    isChatReportArchived,
                 ),
             },
         });

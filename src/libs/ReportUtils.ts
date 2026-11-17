@@ -3812,6 +3812,7 @@ function hasOutstandingChildRequest(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchivedParam?: boolean,
 ) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -3820,9 +3821,7 @@ function hasOutstandingChildRequest(
     // Tech debt: reading from the module-level allReportNameValuePair cache is deprecated — the chat report's archived
     // state should be threaded down from this function's callers (useReportIsArchived in components) instead.
     // TODO: https://github.com/Expensify/App/issues/66422
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
-
-    const excludedReportIDSet = new Set<string>();
+    const isChatReportArchived = isChatReportArchivedParam ?? isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
     if (typeof iouReportOrIDorArray === 'string') {
         excludedReportIDSet.add(iouReportOrIDorArray);
     } else if (Array.isArray(iouReportOrIDorArray)) {
