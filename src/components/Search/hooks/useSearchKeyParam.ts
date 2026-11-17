@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -47,8 +48,9 @@ function selectSearchKeyParam(state: NavigationState | undefined) {
  */
 function useSearchKeyParam(currentSearchQueryJSON: SearchQueryJSON | undefined, suggestedSearches: Record<SearchKey, SearchTypeMenuItem>) {
     const navigation = useNavigation();
+    const {accountID} = useCurrentUserPersonalDetails();
     const searchKeyParam = useRootNavigationState((state) => selectSearchKeyParam(state ?? navigation.getState()));
-    const definedSearchKeyParam = usePreviousDefined(searchKeyParam);
+    const definedSearchKeyParam = usePreviousDefined(searchKeyParam, accountID);
     const isSearchScreenFocused = searchKeyParam !== undefined;
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);

@@ -30,6 +30,7 @@ const RECONCILIATION_QUERY = `${RECONCILIATION_QUERY_WITHOUT_WITHDRAWN} ${CONST.
 type FocusedScreen = {name: string; params: {searchKey?: string}};
 
 let mockFocusedScreen: FocusedScreen | undefined;
+let mockAccountID = 1;
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
 
 // Mirrors `CommonActions.setParams`, which merges into the focused route's params, so that a param the hook
@@ -60,6 +61,11 @@ jest.mock('@hooks/useRootNavigationState', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: mockAccountID}),
 }));
 
 function mockSearchScreenFocused({searchKey}: {searchKey?: string} = {}) {
@@ -94,6 +100,7 @@ function renderSearchKeyParam(query: string, {searchKey}: {searchKey?: string} =
 describe('useSearchKeyParam', () => {
     beforeEach(() => {
         mockFocusedScreen = undefined;
+        mockAccountID = 1;
         mockUseOnyx.mockReset();
         // `mockClear`, not `mockReset`: the latter would strip the merge implementation.
         mockSetParams.mockClear();
@@ -293,6 +300,24 @@ describe('useSearchKeyParam', () => {
             rerender(query);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('does not retain an unchanged saved search key under a new account', () => {
+            // Given a saved search key that ordinary validation would accept in either account
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            const query = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`;
+            const {result, rerender} = renderSearchKeyParam(query, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+
+            // When the account changes before navigation removes the old search screen
+            mockAccountID = 2;
+            rerender(query);
+            mockNavigationBlurred();
+            rerender(query);
+
+            // Then the previous account's saved key cannot override the key derived from the current query
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            expect(mockSetParams).not.toHaveBeenCalled();
         });
 
         it('derives the generic key after a filter tweak when the route carries no param', () => {
