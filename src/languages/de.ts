@@ -468,7 +468,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Wenn du diesen Workspace verlässt, wirst du als technischer Kontakt durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
         leaveWorkspaceReimburser:
-            'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
+            'Sie können diesen Workspace als Zahlende/r nicht verlassen. Bitte legen Sie unter Workflows > Zahlungen eine/n neue/n Zahlende/n fest und versuchen Sie es dann erneut.',
         reimbursable: 'Erstattungsfähig',
         nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
@@ -576,6 +576,16 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        archive: 'Archiv',
+        leaveWorkspacesConfirmation: 'Wenn Sie diese Arbeitsbereiche verlassen:',
+        leaveWorkspacesConsequenceMember: 'Sie können keine Spesen an sie einreichen',
+        leaveWorkspacesConsequenceAuditor: 'Sie können ihre Berichte und Einstellungen nicht anzeigen',
+        leaveWorkspacesConsequenceAdmin: 'Sie können ihre Einstellungen nicht verwalten',
+        leaveWorkspacesConsequenceApprover: 'Die/Der Arbeitsbereichsinhaber/-in wird Sie im Genehmigungs-Workflow ersetzen',
+        leaveWorkspacesConsequenceExporter: 'Die/Der Arbeitsbereichs-Inhaber/in wird Sie als bevorzugte/n Exporteur/in ersetzen',
+        leaveWorkspacesConsequenceTechContact: 'Der:die Arbeitsbereichseigentümer:in wird Sie als technische Kontaktperson ersetzen',
+        leaveWorkspacesFailed:
+            'Sie können Arbeitsbereiche, die Ihnen gehören oder bei denen Sie als Zahlender festgelegt sind, nicht verlassen. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -5328,7 +5338,7 @@ ${amount} für ${merchant} – ${date}`,
             archive: 'Workspace archivieren',
             archiveConfirmation: 'Möchten Sie diesen Workspace wirklich archivieren?',
             archiveWithThirdPartyCardsConfirmation:
-                'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden allen Benutzern die Kreditkarten entzogen und alle nicht eingereichten Kartenausgaben endgültig gelöscht.',
+                'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden allen Mitgliedern die Kreditkarten entzogen und alle nicht eingereichten Kartenausgaben dauerhaft gelöscht.',
             archiveWithExpensifyCardsConfirmation:
                 'Möchten Sie diesen Workspace wirklich archivieren? Dadurch werden alle Expensify Card-Limits auf 0 $ gesetzt und neue Kaufversuche automatisch abgelehnt.',
             unarchive: 'Wiederherstellen',
@@ -5462,6 +5472,37 @@ ${amount} für ${merchant} – ${date}`,
             roleSelectorDescription: `Weisen Sie eine Rolle zu, um die Workspace-Berechtigungen eines Mitglieds zu verwalten. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Workspace-Rollen vergleichen</a>.`,
             roleSelectorFeedback: 'Sie sehen die benötigte Rolle nicht?',
             roleSelectorFeedbackLink: 'Lassen Sie es uns wissen',
+            archiveWorkspacesConfirmation: 'Sind Sie sicher, dass Sie diese Arbeitsbereiche archivieren möchten?',
+            archiveWorkspacesConfirmationWithConsequences: 'Sind Sie sicher, dass Sie diese Arbeitsbereiche archivieren möchten? Dadurch werden:',
+            archiveConsequenceExpensifyCardLimits: 'Setzen Sie alle Expensify Kartenlimits auf 0 $',
+            archiveConsequenceDeclinePurchases: 'Alle neuen Kaufversuche automatisch ablehnen',
+            archiveConsequenceUnassignCards: 'Allen Mitgliedern alle Kreditkarten zuweisen entfernen',
+            archiveConsequenceDeleteCardExpenses: 'Alle nicht eingereichten Kartenausgaben endgültig löschen',
+            setAsDefaultShort: 'Als Standard festlegen',
+            exportMembers: 'Mitglieder exportieren',
+            archiveWorkspacesTitle: () => ({
+                one: '1 Arbeitsbereich archivieren?',
+                other: (count: number) => `${count} Arbeitsbereiche archivieren?`,
+            }),
+            leaveWorkspacesTitle: () => ({
+                one: '1 Workspace verlassen?',
+                other: (count: number) => `${count} Arbeitsbereiche verlassen?`,
+            }),
+            transferOwnerWorkspacesTitle: () => ({
+                one: 'Eigentümer:in von 1 Arbeitsbereich übertragen?',
+                other: (count: number) => `Eigentümer von ${count} Arbeitsbereichen übertragen?`,
+            }),
+            leftWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen verlassen`,
+            archivedWorkspacesTitle: (count: number, total: number) => `${count} von ${total} Arbeitsbereichen archiviert`,
+            archiveWorkspacesFailed:
+                'Sie können keine Arbeitsbereiche archivieren, die Sie nicht besitzen oder die bereits archiviert sind. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
+            transferredOwnerWorkspacesTitle: (count: number, total: number) => `Eigentümer von ${count} von ${total} Arbeitsbereichen übertragen`,
+            transferOwnerWorkspacesFailed:
+                'Sie können keine Arbeitsbereiche übertragen, die Sie bereits besitzen oder für die Sie keine Admin-Rolle haben, und für einige sind zunächst zusätzliche Schritte erforderlich. Wählen Sie jeweils einen Arbeitsbereich aus, um ihn zu übertragen.',
+            exportedMembersWorkspacesTitle: (count: number, total: number) => `Mitglieder aus ${count} von ${total} Arbeitsbereichen exportiert`,
+            exportMembersFailed:
+                'Sie können keine Mitglieder archivierter Arbeitsbereiche oder von Arbeitsbereichen exportieren, in denen Sie Mitglieder nicht verwalten können. Bitte überprüfen Sie diese und versuchen Sie es erneut.',
+            bulkTransferOwnerNoneEligible: 'Keine der ausgewählten Workspaces kann gemeinsam übertragen werden. Wählen Sie jeweils einen Workspace aus, um ihn zu übertragen.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
