@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 
-import React from 'react';
 import Onyx from 'react-native-onyx';
 
 type AnchorHarness = {
@@ -21,7 +20,7 @@ function harness(): AnchorHarness {
     return holder.threeDotsAnchorHarness;
 }
 
-class NotifyingResizeObserver {
+class NotifyingResizeObserver implements ResizeObserver {
     static instances: NotifyingResizeObserver[] = [];
 
     private readonly targets = new Set<Element>();
@@ -47,7 +46,7 @@ class NotifyingResizeObserver {
             if (!instance.targets.has(target)) {
                 continue;
             }
-            instance.callback([], instance as unknown as ResizeObserver);
+            instance.callback([], instance);
         }
     }
 
@@ -57,28 +56,31 @@ class NotifyingResizeObserver {
 }
 
 jest.mock('@components/Pressable/PressableWithoutFeedback', () => {
-    const ReactActual = require<typeof import('react')>('react');
-    const {Pressable} = require<typeof import('react-native')>('react-native');
+    const ReactActual = jest.requireActual('react');
+    const {Pressable: RNPressable} = jest.requireActual('react-native');
 
-    return ReactActual.forwardRef(function MockPressable(props: {testID?: string; onPress?: () => void; accessibilityLabel?: string}, ref: React.Ref<HTMLElement | null>) {
-        const button = ReactActual.useRef<HTMLButtonElement | null>(null);
-        if (!button.current && typeof global.document !== 'undefined') {
-            button.current = global.document.createElement('button');
-            global.document.body.appendChild(button.current);
-            const state = (globalThis as typeof globalThis & {threeDotsAnchorHarness?: AnchorHarness}).threeDotsAnchorHarness;
-            if (state && button.current) {
-                state.button = button.current;
+    return ReactActual.forwardRef(
+        (props: {testID?: string; onPress?: () => void; accessibilityLabel?: string}, ref: {current: HTMLElement | null} | ((node: HTMLElement | null) => void) | null) => {
+            const button = ReactActual.useRef(null);
+            if (!button.current && typeof global.document !== 'undefined') {
+                const created = global.document.createElement('div');
+                global.document.body.appendChild(created);
+                button.current = created;
+                const state = (globalThis as typeof globalThis & {threeDotsAnchorHarness?: AnchorHarness}).threeDotsAnchorHarness;
+                if (state) {
+                    state.button = created;
+                }
             }
-        }
-        ReactActual.useImperativeHandle(ref, () => button.current);
-        return (
-            <Pressable
-                testID={props.testID}
-                onPress={props.onPress}
-                accessibilityLabel={props.accessibilityLabel}
-            />
-        );
-    });
+            ReactActual.useImperativeHandle(ref, () => button.current ?? global.document.createElement('div'));
+            return (
+                <RNPressable
+                    testID={props.testID}
+                    onPress={props.onPress}
+                    accessibilityLabel={props.accessibilityLabel}
+                />
+            );
+        },
+    );
 });
 
 jest.mock('@hooks/usePopoverPosition', () => () => ({
@@ -92,29 +94,24 @@ jest.mock('@hooks/usePopoverPosition', () => () => ({
 }));
 
 jest.mock('@components/PopoverMenu', () => {
-    function MockPopoverMenu({anchorPosition}: {anchorPosition?: AnchorPosition}) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module
-        const {Text: RNText} = require<typeof import('react-native')>('react-native');
-        return <RNText testID="three-dots-anchor-horizontal">{anchorPosition?.horizontal ?? ''}</RNText>;
-    }
-    return MockPopoverMenu;
+    const {Text: RNText} = jest.requireActual('react-native');
+    return ({anchorPosition}: {anchorPosition?: AnchorPosition}) => <RNText testID="three-dots-anchor-horizontal">{anchorPosition?.horizontal ?? ''}</RNText>;
 });
 
 const MENU_ITEMS = [{text: 'Details', onSelected: () => {}, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
 
 function setRect(element: HTMLElement, left: number, top: number) {
-    element.getBoundingClientRect = () =>
-        ({
-            left,
-            top,
-            width: 24,
-            height: 24,
-            right: left + 24,
-            bottom: top + 24,
-            x: left,
-            y: top,
-            toJSON: () => ({}),
-        }) as DOMRect;
+    jest.spyOn(element, 'getBoundingClientRect').mockReturnValue({
+        left,
+        top,
+        width: 24,
+        height: 24,
+        right: left + 24,
+        bottom: top + 24,
+        x: left,
+        y: top,
+        toJSON: () => ({}),
+    });
 }
 
 function renderMenu() {
@@ -130,7 +127,7 @@ function renderMenu() {
 describe('ThreeDotsMenu anchor movement', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        global.ResizeObserver = NotifyingResizeObserver as unknown as typeof ResizeObserver;
+        global.ResizeObserver = NotifyingResizeObserver;
         jest.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
             callback(0);
             return 1;
@@ -166,10 +163,8 @@ describe('ThreeDotsMenu anchor movement', () => {
             throw new Error('Expected the menu button to be a DOM element so the anchor observer can attach');
         }
         setRect(button, 10, 20);
-        await act(async () => {
-            fireEvent.press(screen.getByTestId('three-dots-button'));
-        });
-        expect(screen.getByText('120')).toBeTruthy();
+        fireEvent.press(screen.getByTestId('three-dots-button'));
+        expect(await screen.findByText('120')).toBeTruthy();
         return {view, button};
     }
 

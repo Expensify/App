@@ -54,14 +54,15 @@ jest.mock('lodash/debounce', () => {
 });
 
 jest.mock('@components/PopoverMenu', () => {
-    function MockPopoverMenu({anchorPosition}: {anchorPosition?: AnchorPosition}) {
-        const holder = globalThis as typeof globalThis & {threeDotsPopoverRenders?: number};
-        holder.threeDotsPopoverRenders = (holder.threeDotsPopoverRenders ?? 0) + 1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module
-        const {Text: RNText} = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const {Text: RNText} = jest.requireActual('react-native');
+    return ({anchorPosition}: {anchorPosition?: AnchorPosition}) => {
+        ReactActual.useEffect(() => {
+            const holder = globalThis as typeof globalThis & {threeDotsPopoverRenders?: number};
+            holder.threeDotsPopoverRenders = (holder.threeDotsPopoverRenders ?? 0) + 1;
+        });
         return <RNText testID="three-dots-anchor-horizontal">{anchorPosition?.horizontal ?? ''}</RNText>;
-    }
-    return MockPopoverMenu;
+    };
 });
 
 const MENU_ITEMS = [{text: 'Details', onSelected: () => {}, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
