@@ -58,7 +58,13 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
     const verifiedBadgeWidth = getBadgeWidth(styles, translate('common.verified'));
     const unverifiedBadgeWidth = getBadgeWidth(styles, translate('domain.notVerified'));
     // Admins see a verification badge after the domain.
-    const hasVerificationBadge = domains.some((domain) => domain.isAdmin);
+    const getRowBadgeWidth = (item: DomainRowData) => {
+        if (!item.isAdmin) {
+            return 0;
+        }
+        return item.isValidated ? verifiedBadgeWidth : unverifiedBadgeWidth;
+    };
+    const shownBadgeWidths = domains.map(getRowBadgeWidth).filter((badgeWidth) => badgeWidth > 0);
     const domainIconExtraWidth = styles.domainIcon.width + styles.gap3.gap;
 
     const domainTableColumns: Array<TableColumn<DomainTableColumnKey, DomainRowData>> = [
@@ -67,14 +73,9 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             key: 'domains',
             label: translate('common.domains'),
             dynamicSizing: {
-                getContentToMeasure: (item) => {
-                    if (!item.isAdmin) {
-                        return [{text: item.title, fontSize: fontScale.text}];
-                    }
-                    return [{text: item.title, fontSize: fontScale.text, trailingWidth: item.isValidated ? verifiedBadgeWidth : unverifiedBadgeWidth}];
-                },
+                getContentToMeasure: (item) => [{text: item.title, fontSize: fontScale.text, trailingWidth: getRowBadgeWidth(item)}],
                 extraWidth: domainIconExtraWidth,
-                dragMinWidth: getBadgeColumnDragMinWidth(hasVerificationBadge ? [verifiedBadgeWidth, unverifiedBadgeWidth] : [], domainIconExtraWidth),
+                dragMinWidth: getBadgeColumnDragMinWidth(shownBadgeWidths, domainIconExtraWidth),
             },
         },
         {
