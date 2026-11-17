@@ -319,6 +319,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // Memoize so a stable reference reaches the render below; otherwise the slice() allocates a new array each render.
     const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
+    // Defer the list so each key updates the input before the matching workflows render.
     const deferredDisplayedWorkflows = useDeferredValue(displayedWorkflows);
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
