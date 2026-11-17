@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
-import type * as MockBaseSearchListUtil from '../../utils/mockBaseSearchList';
+import type MockBaseSearchList from '../../utils/mockBaseSearchList';
 
 import {pressEnterOnListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
 import * as TestHelper from '../../utils/TestHelper';
@@ -87,7 +87,7 @@ jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({
 
 // Renders the real list, but lets a test press Enter on any row.
 jest.mock('@components/Search/SearchList/BaseSearchList', () => {
-    const {default: mockBaseSearchList} = jest.requireActual<typeof MockBaseSearchListUtil>('../../utils/mockBaseSearchList');
+    const {default: mockBaseSearchList} = jest.requireActual<{default: typeof MockBaseSearchList}>('../../utils/mockBaseSearchList');
     return {__esModule: true, default: mockBaseSearchList};
 });
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({
