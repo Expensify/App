@@ -10,6 +10,8 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import type * as SearchActions from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
 import {setHasRadio} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
@@ -60,6 +62,11 @@ jest.mock('@hooks/useWindowDimensions', () => ({
 }));
 
 // Force the non-split (native/narrow) rendering path so groups render through TransactionGroupListItem.
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    search: jest.fn(),
+}));
+
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: jest.fn(() => 'ios'),
@@ -167,13 +174,15 @@ function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']
  * Builds group rows, each carrying child transactions. `deletedTransactions` marks transaction indices as
  * pending-delete; `isPendingDelete` flags the group row itself, which is what a whole-group delete does.
  */
-function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>; isPendingDelete?: boolean}>): SearchListItem[] {
+/** Builds group rows. `hasTransactionsQuery` gives the group a query of its own to fetch its expenses with, its hash being 100 plus its index. */
+function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>; isPendingDelete?: boolean; hasTransactionsQuery?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
         keyForList: `group-${i}`,
         cardID: i,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         pendingAction: group.isPendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+        transactionsQueryJSON: group.hasTransactionsQuery ? {hash: 100 + i} : undefined,
         transactions: Array.from({length: group.transactionCount}, (_, j) => ({
             keyForList: `txn-${i}-${j}`,
             transactionID: `${i}-${j}`,
@@ -287,6 +296,7 @@ beforeEach(() => {
         delete mockRowExpanded[key];
     }
     resetMockBaseSearchList();
+    jest.mocked(search).mockClear();
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -427,6 +437,43 @@ describe('ExpenseGroupedSearchView', () => {
 });
 
 describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
+    it("fetches a group's expenses when a click opens it, and not when it closes", async () => {
+        // Given a list grouped by card on a narrow layout, where each group fetches its expenses with its own query
+        renderView({
+            data: createMockGroupData([
+                {transactionCount: 1, hasTransactionsQuery: true},
+                {transactionCount: 1, hasTransactionsQuery: true},
+            ]),
+        });
+        await waitForBatchedUpdates();
+
+        // When the first group is clicked open
+        act(() => mockRowToggle['group-0']?.());
+
+        // Then its first page is fetched once, with its own query
+        expect(search).toHaveBeenCalledTimes(1);
+        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: {hash: 100}, offset: 0}));
+
+        // When it is clicked closed
+        act(() => mockRowToggle['group-0']?.());
+
+        // Then nothing more is fetched, since there is nothing to show
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it("fetches a group's expenses when Enter opens it", async () => {
+        // Given a list grouped by card on a narrow layout, where each group fetches its expenses with its own query
+        renderView({data: createMockGroupData([{transactionCount: 1, hasTransactionsQuery: true}])});
+        await waitForBatchedUpdates();
+
+        // When Enter is pressed on the group
+        pressEnterOnRow('group-0');
+
+        // Then its first page is fetched once, the same as when it is clicked open
+        expect(search).toHaveBeenCalledTimes(1);
+        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: {hash: 100}, offset: 0}));
+    });
+
     it('opens and closes a group that is not a report when Enter is pressed on it, the same as clicking it', async () => {
         // Given a list grouped by card on a narrow layout, where each group renders as one row that opens and closes on click
         const onSelectRow = jest.fn();

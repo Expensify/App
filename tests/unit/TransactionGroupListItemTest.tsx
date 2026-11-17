@@ -894,30 +894,34 @@ describe('Withdrawal group rows', () => {
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
     });
 
-    it('fetches a group once when it opens with a new expense in it', async () => {
-        // Given a closed settlement row that an expense was just created in
+    it('does not fetch when it renders an open group, but fetches when an expense is created in it', async () => {
+        // Given a settlement row that the list renders already open, as it does when it reuses a row while scrolling
         const item = buildWithdrawalGroup(false);
-        const renderRow = (isExpanded: boolean) => (
+        const renderRow = (newTransactionID: string | undefined) => (
             <TransactionGroupListItem
                 item={item}
                 showTooltip={false}
                 onSelectRow={mockOnSelectRow}
                 searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
                 groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
-                isExpanded={isExpanded}
+                isExpanded
                 onToggle={jest.fn()}
-                newTransactionID="newTransaction"
+                newTransactionID={newTransactionID}
             />
         );
-        const {rerender} = render(renderRow(false), {wrapper: TestWrapper});
+
+        // When it renders
+        const {rerender} = render(renderRow(undefined), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is fetched, because the list fetched the group when it opened
         expect(search).not.toHaveBeenCalled();
 
-        // When the list opens it
-        rerender(renderRow(true));
+        // When an expense is created in it
+        rerender(renderRow('newTransaction'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then its expenses are fetched once, not once for opening and again for the new expense
+        // Then its expenses are fetched again so the new expense shows up
         expect(search).toHaveBeenCalledTimes(1);
     });
 

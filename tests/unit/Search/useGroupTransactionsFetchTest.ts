@@ -42,51 +42,27 @@ beforeEach(() => {
 });
 
 describe('useGroupTransactionsFetch', () => {
-    it('fetches the first page once when the group opens', () => {
-        // Given a closed group, which must not fetch anything until the user opens it
+    it('does not fetch when the group opens, because the list fetches it then', () => {
+        // Given a closed group
         const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY});
-        expect(mockSearch).not.toHaveBeenCalled();
 
-        // When the group opens
+        // When the list opens it
         rerender({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
 
-        // Then its own search runs from the first page
-        expect(mockSearch).toHaveBeenCalledTimes(1);
-        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: FOOD_QUERY, offset: 0}));
-    });
-
-    it('fetches only once when a group with a new expense opens', () => {
-        // Given a closed group that already has a new expense, so both the open and the new expense could ask to fetch
-        const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY, newTransactionID: '1'});
-
-        // When the group opens
-        rerender({transactionsQueryJSON: FOOD_QUERY, isExpanded: true, newTransactionID: '1'});
-
-        // Then it fetches once, because a second request for the same page would be wasted
-        expect(mockSearch).toHaveBeenCalledTimes(1);
-    });
-
-    it('fetches again when the list reuses an open row for another open group', () => {
-        // Given an open group that has fetched its expenses
-        const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
-
-        // When the list reuses the row for another group that is also open
-        rerender({transactionsQueryJSON: TRAVEL_QUERY, isExpanded: true});
-
-        // Then the other group's expenses are fetched, since the row would otherwise show none
-        expect(mockSearch).toHaveBeenCalledTimes(2);
-        expect(mockSearch).toHaveBeenLastCalledWith(expect.objectContaining({queryJSON: TRAVEL_QUERY}));
+        // Then the row doesn't fetch it a second time
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('fetches again when an expense is created in an open group', () => {
-        // Given an open group that has fetched its expenses
+        // Given an open group
         const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
 
         // When an expense is created in it
         rerender({transactionsQueryJSON: FOOD_QUERY, isExpanded: true, newTransactionID: '1'});
 
-        // Then it fetches again so the new expense shows up
-        expect(mockSearch).toHaveBeenCalledTimes(2);
+        // Then its first page is fetched again so the new expense shows up
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: FOOD_QUERY, offset: 0}));
     });
 
     it('does not fetch when an expense is created in a closed group', () => {
@@ -96,12 +72,32 @@ describe('useGroupTransactionsFetch', () => {
         // When an expense is created in it
         rerender({transactionsQueryJSON: FOOD_QUERY, newTransactionID: '1'});
 
-        // Then nothing is fetched, because the group fetches when it opens
+        // Then nothing is fetched, because the list fetches the group when it opens
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch when the list reuses the row for another open group', () => {
+        // Given a row showing an open group
+        const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
+
+        // When the list scrolls and reuses the row for another group that is also open and has a new expense
+        rerender({transactionsQueryJSON: TRAVEL_QUERY, isExpanded: true, newTransactionID: '1'});
+
+        // Then nothing is fetched, because that group was fetched when it opened and nothing changed in it since
+        expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch when a row mounts for an open group that has a new expense', () => {
+        // Given an open group with a new expense, scrolled back into view
+        // When its row mounts
+        renderFetch({transactionsQueryJSON: FOOD_QUERY, isExpanded: true, newTransactionID: '1'});
+
+        // Then nothing is fetched, because the expense didn't arrive while this row was showing the group
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('fetches again when the user comes back to the screen with the group open', () => {
-        // Given an open group that has fetched its expenses
+        // Given an open group
         const {rerender} = renderFetch({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
 
         // When the user leaves the screen, for example to edit an expense in the RHP, and comes back
@@ -111,7 +107,8 @@ describe('useGroupTransactionsFetch', () => {
         rerender({transactionsQueryJSON: FOOD_QUERY, isExpanded: true});
 
         // Then it fetches again, so its expenses match the totals that may have changed meanwhile
-        expect(mockSearch).toHaveBeenCalledTimes(2);
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: FOOD_QUERY, offset: 0}));
     });
 
     it('does not fetch when the user comes back to the screen with the group closed', () => {
@@ -124,16 +121,20 @@ describe('useGroupTransactionsFetch', () => {
         mockIsScreenFocused.current = true;
         rerender({transactionsQueryJSON: FOOD_QUERY});
 
-        // Then nothing is fetched, because the group fetches when it opens
+        // Then nothing is fetched, because the list fetches the group when it opens
         expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not fetch for an open group that has no search of its own', () => {
-        // Given a group with nothing to fetch, such as an expense report
-        const {rerender} = renderFetch({});
+        // Given an open group with nothing to fetch, such as an expense report
+        const {rerender} = renderFetch({isExpanded: true});
 
-        // When it opens
-        rerender({isExpanded: true});
+        // When an expense is created in it and the user comes back to the screen
+        rerender({isExpanded: true, newTransactionID: '1'});
+        mockIsScreenFocused.current = false;
+        rerender({isExpanded: true, newTransactionID: '1'});
+        mockIsScreenFocused.current = true;
+        rerender({isExpanded: true, newTransactionID: '1'});
 
         // Then no search runs
         expect(mockSearch).not.toHaveBeenCalled();

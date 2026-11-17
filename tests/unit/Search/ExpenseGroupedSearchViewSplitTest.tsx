@@ -11,6 +11,8 @@ import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import type * as SearchActions from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
 import {setHasRadio} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
@@ -61,6 +63,11 @@ jest.mock('@hooks/useWindowDimensions', () => ({
 }));
 
 // Force the split (wide web) rendering path, where each group becomes a GroupHeader row plus a GroupChildrenContainer row.
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    search: jest.fn(),
+}));
+
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
     default: jest.fn(() => 'web'),
@@ -143,7 +150,7 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds group rows, each carrying one child transaction. `isPendingDelete` flags the group row itself, and `isCashBack` makes it a cash back withdrawal. */
+/** Builds group rows, each carrying one child transaction and a query whose hash is 100 plus its index. `isPendingDelete` flags the group row itself, and `isCashBack` makes it a cash back withdrawal. */
 function createMockGroupData(groups: Array<{isPendingDelete?: boolean; isCashBack?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
@@ -152,6 +159,7 @@ function createMockGroupData(groups: Array<{isPendingDelete?: boolean; isCashBac
         ...(group.isCashBack ? {groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, isCashBack: true} : {}),
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         pendingAction: group.isPendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+        transactionsQueryJSON: {hash: 100 + i},
         transactions: [
             {
                 keyForList: `txn-${i}-0`,
@@ -232,6 +240,7 @@ beforeEach(() => {
     capturedHeaders.length = 0;
     capturedChildren.length = 0;
     resetMockBaseSearchList();
+    jest.mocked(search).mockClear();
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -282,16 +291,19 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         // When Enter is pressed on the first group's header
         pressEnterOnHeader('group-0');
 
-        // Then the group opens, and nothing is selected because a card group has no page to open
+        // Then the group opens and fetches its expenses once, and nothing is selected because a card group has no page to open
         expect(isGroupExpanded('group-0')).toBe(true);
         expect(isGroupExpanded('group-1')).toBe(false);
         expect(onSelectRow).not.toHaveBeenCalled();
+        expect(search).toHaveBeenCalledTimes(1);
+        expect(search).toHaveBeenCalledWith(expect.objectContaining({queryJSON: {hash: 100}, offset: 0}));
 
         // When Enter is pressed on it again
         pressEnterOnHeader('group-0');
 
-        // Then it closes, like a second click
+        // Then it closes, like a second click, without fetching again
         expect(isGroupExpanded('group-0')).toBe(false);
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('opens the report under its own key, not the prefixed header key', async () => {

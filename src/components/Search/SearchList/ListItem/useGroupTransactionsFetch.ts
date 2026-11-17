@@ -1,6 +1,6 @@
 /**
- * Keeps an open Search group's expenses up to date: fetches them when the group opens, when an expense is created in it,
- * and when the user comes back to the screen.
+ * Keeps an open Search group's expenses up to date after it has opened: fetches them again when an expense is created in
+ * it, and when the user comes back to the screen. The list fetches them when it opens the group.
  */
 import type {SearchQueryJSON} from '@components/Search/types';
 
@@ -25,8 +25,8 @@ type UseGroupTransactionsFetchParams = {
 function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded, newTransactionID}: UseGroupTransactionsFetchParams) {
     const isScreenFocused = useIsFocused();
 
-    const fetchFirstPage = useEffectEvent(() => {
-        if (!transactionsQueryJSON) {
+    const refetchFirstPageIfOpen = useEffectEvent(() => {
+        if (!isExpanded || !transactionsQueryJSON) {
             return;
         }
         search({
@@ -38,29 +38,18 @@ function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded
         });
     });
 
-    // The hash is a dependency because the list can reuse this row for another group that is already open.
+    // Refetch so an expense created in an open group shows up in it. The list reuses rows as it scrolls, so a new ID that
+    // came with a different group is that group's, not a new expense in the one this row was showing.
+    const hash = transactionsQueryJSON?.hash;
+    const lastNewTransactionRef = useRef({hash, newTransactionID});
     useEffect(() => {
-        if (!isExpanded) {
+        const last = lastNewTransactionRef.current;
+        lastNewTransactionRef.current = {hash, newTransactionID};
+        if (!newTransactionID || newTransactionID === last.newTransactionID || hash !== last.hash) {
             return;
         }
-        fetchFirstPage();
-    }, [isExpanded, transactionsQueryJSON?.hash]);
-
-    // Opening the group is already handled above, so the fetches below must not run again when it opens.
-    const fetchFirstPageIfOpen = useEffectEvent(() => {
-        if (!isExpanded) {
-            return;
-        }
-        fetchFirstPage();
-    });
-
-    // Refetch so an expense created in an open group shows up in it.
-    useEffect(() => {
-        if (!newTransactionID) {
-            return;
-        }
-        fetchFirstPageIfOpen();
-    }, [newTransactionID]);
+        refetchFirstPageIfOpen();
+    }, [hash, newTransactionID]);
 
     // Keep an open group in sync with the grouped totals after returning from RHP flows.
     const wasScreenFocusedRef = useRef(isScreenFocused);
@@ -70,7 +59,7 @@ function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded
         if (!didReturnToScreen) {
             return;
         }
-        fetchFirstPageIfOpen();
+        refetchFirstPageIfOpen();
     }, [isScreenFocused]);
 }
 

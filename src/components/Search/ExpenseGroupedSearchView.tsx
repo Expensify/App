@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -138,7 +139,12 @@ function ExpenseGroupedSearchView({
     const {listData, stickyHeaderIndices, childrenContainerIndices} = buildSplitGroupData(data, shouldSplit);
 
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
-    const onToggleGroup = (key: string) =>
+    // Fetch on open here rather than in the row, because the list reuses rows as it scrolls, and a reused row that lands
+    // on an open group would fetch it again.
+    const onToggleGroup = (key: string, transactionsQueryJSON: SearchQueryJSON | undefined) => {
+        if (!expandedGroups.has(key) && transactionsQueryJSON) {
+            search({queryJSON: transactionsQueryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        }
         setExpandedGroups((prev) => {
             const next = new Set(prev);
             if (next.has(key)) {
@@ -148,6 +154,7 @@ function ExpenseGroupedSearchView({
             }
             return next;
         });
+    };
 
     if (expandedGroups.size > 0) {
         const nextExpandedGroups = new Set(expandedGroups);
@@ -212,7 +219,7 @@ function ExpenseGroupedSearchView({
             handleSelectRow({...item, keyForList: groupKey});
         }
         if (shouldToggle && groupKey) {
-            onToggleGroup(groupKey);
+            onToggleGroup(groupKey, item.transactionsQueryJSON);
         }
     };
 
@@ -264,7 +271,7 @@ function ExpenseGroupedSearchView({
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isExpanded={expandedGroups.has(originalKey)}
-                    onToggle={() => onToggleGroup(originalKey)}
+                    onToggle={() => onToggleGroup(originalKey, item.transactionsQueryJSON)}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={toggle}
                     onLongPressRow={onLongPressRow}
@@ -337,7 +344,7 @@ function ExpenseGroupedSearchView({
                         if (!groupKey) {
                             return;
                         }
-                        onToggleGroup(groupKey);
+                        onToggleGroup(groupKey, isTransactionGroupListItemType(item) ? item.transactionsQueryJSON : undefined);
                     }}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
