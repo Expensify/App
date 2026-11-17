@@ -1329,9 +1329,13 @@ function addActions({
         optimisticData.push(optimisticSnapshotUpdate);
     }
 
+    // Pregenerated follow-ups already show their own scheduled reply, so only questions the user typed wait for Concierge here.
     const conciergeProcessingReportID = isConciergeDMOrThread && !pregeneratedResponseParams ? (conciergeThreadReportID ?? reportID) : undefined;
-    if (conciergeProcessingReportID && resolvedReportActionID) {
-        AgentZeroOptimisticStore.increment(conciergeProcessingReportID, CONST.ACCOUNT_ID.CONCIERGE, lastVisibleAction?.reportActionID ?? null, resolvedReportActionID);
+    if (conciergeProcessingReportID && resolvedReportActionID && parameters.optimisticConciergeReportActionID) {
+        AgentZeroOptimisticStore.addTurn(conciergeProcessingReportID, CONST.ACCOUNT_ID.CONCIERGE, lastVisibleAction?.reportActionID ?? null, {
+            questionReportActionID: resolvedReportActionID,
+            responseReportActionID: parameters.optimisticConciergeReportActionID,
+        });
     }
 
     API.write(commandName, parameters, {
@@ -3277,7 +3281,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
  * Gets the newer actions that have not been read yet.
  * Normally happens when you are not located at the bottom of the list and scroll down on a chat.
  */
-function getNewerActions(reportID: string | undefined, reportActionID: string | undefined, conciergeReportActionID?: string) {
+function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID) {
         return;
     }
@@ -3317,7 +3321,6 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
     const parameters: GetNewerActionsParams = {
         reportID,
         reportActionID,
-        conciergeReportActionID,
     };
 
     API.paginate(

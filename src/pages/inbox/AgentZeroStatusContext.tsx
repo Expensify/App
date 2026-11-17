@@ -157,9 +157,8 @@ function AgentZeroStatusGate({
             }
             onStoreChange();
         });
-    const getOptimisticSnapshot = () =>
-        reportID && optimisticAgentAccountID !== undefined ? AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID)?.triggeringReportActionID : undefined;
-    const pendingReportActionID = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
+    const getHasPendingTurnsSnapshot = () => !!reportID && optimisticAgentAccountID !== undefined && !!AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID)?.turns.length;
+    const hasPendingTurns = useSyncExternalStore(subscribeToOptimisticStore, getHasPendingTurnsSnapshot, getHasPendingTurnsSnapshot);
 
     // The composer calls this before the server's processing-indicator NVP lands. Concierge and
     // custom-agent DMs both use the same per-agent optimistic store; other custom-agent contexts
@@ -193,7 +192,8 @@ function AgentZeroStatusGate({
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
     if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
-        if (!pendingReportActionID || newestReportAction.actorAccountID !== optimisticAgentAccountID) {
+        // The newest reply can answer an older message, so the agent stays while one of its sent messages is still pending.
+        if (!hasPendingTurns || newestReportAction.actorAccountID !== optimisticAgentAccountID) {
             candidateIDs.delete(newestReportAction.actorAccountID);
         }
     }

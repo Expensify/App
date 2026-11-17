@@ -10,7 +10,7 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 import type {NewestReportAction} from '@selectors/ReportAction';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import {answeredTurnQuestionIDsSelector, getNewestReportActionSelector} from '@selectors/ReportAction';
 import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 
@@ -69,12 +69,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         newestReportActionRef.current = newestReportAction;
     }, [newestReportAction]);
 
-    // Track pending optimistic requests with a counter, backed by a module-level store so
-    // the state survives ReportScreen remounts (switching chats and coming back). Each
-    // kickoffWaitingIndicator() call increments the counter; when a Concierge reply is
-    // detected (via Pusher, reconnect, or safety timeout), the entry is cleared. Messages
-    // started by the send action carry their actionID and wait for their own completion,
-    // so an older reply cannot retire a newer pending turn.
+    // Track pending optimistic requests in a module-level store so the state survives
+    // ReportScreen remounts (switching chats and coming back). Messages sent to Concierge are
+    // tracked one by one and clear on their own reply or completion, so an older reply cannot
+    // clear a newer message. Other kickoffs are counted and clear on the agent's next reply,
+    // the safety timeout, or reconnect.
     const subscribeToOptimisticStore = (onStoreChange: () => void) =>
         AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
             if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
@@ -84,7 +83,18 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         });
     const getOptimisticSnapshot = () => AgentZeroOptimisticStore.getEntry(reportID, agentAccountID);
     const optimisticEntry = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
-    const pendingOptimisticRequests = optimisticEntry?.count ?? 0;
+    const pendingOptimisticRequests = AgentZeroOptimisticStore.getPendingCount(optimisticEntry);
+    const pendingTurns = optimisticEntry?.turns;
+    const hasPendingTurns = !!pendingTurns?.length;
+
+    // A reply is saved under the ID the client reserved for it, so it finishes exactly its own message even when the
+    // server's completion event was missed. This also works when the reply arrived while this tab was offline.
+    const [answeredQuestionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: answeredTurnQuestionIDsSelector(pendingTurns, agentAccountID)});
+    useEffect(() => {
+        for (const questionReportActionID of answeredQuestionIDs ?? []) {
+            AgentZeroOptimisticStore.completeTurn(questionReportActionID);
+        }
+    }, [answeredQuestionIDs]);
     // Debounced label shown to the user — smooths rapid server label changes.
     // displayedLabelRef mirrors state so the label-sync effect can read the current value
     // without including displayedLabel in its dependency array (avoids extra effect cycles).
@@ -184,8 +194,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
                 clearAgentZeroProcessingIndicator(reportID, agentAccountID);
             }
 
-            // Recover this turn's completion too: its transient event may have been missed even when there is no reply.
-            getNewerActions(reportID, newestReportActionRef.current?.reportActionID, optimisticEntry?.triggeringReportActionID);
+            // Fetch missed actions so a reply that landed while offline can finish its message.
+            getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
 
             if (serverLabel || wasOptimistic) {
                 startSafetyTimer();
@@ -337,8 +347,8 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
-        // A reply can belong to an older turn. Newly sent messages wait for their own completion event.
-        if (optimisticEntry?.triggeringReportActionID) {
+        // The newest reply can answer an older message. Tracked messages wait for their own reply or completion instead.
+        if (hasPendingTurns) {
             return;
         }
         if (newestActorAccountID !== agentAccountID) {
@@ -358,7 +368,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID, agentAccountID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID, optimisticEntry?.triggeringReportActionID]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, agentAccountID, hasPendingTurns]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 

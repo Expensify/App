@@ -376,7 +376,8 @@ describe('actions/Report', () => {
         if (shouldStart) {
             expect(apiWriteSpy.mock.calls.at(-1)?.[1]).toEqual(
                 expect.objectContaining({
-                    reportActionID: entry?.triggeringReportActionID,
+                    reportActionID: entry?.turns.at(0)?.questionReportActionID,
+                    optimisticConciergeReportActionID: entry?.turns.at(0)?.responseReportActionID,
                 }),
             );
             expect(apiWriteSpy.mock.calls.at(-1)?.[2]).toEqual(

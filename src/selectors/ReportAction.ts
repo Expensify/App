@@ -1,3 +1,4 @@
+import type {PendingTurn} from '@libs/AgentZeroOptimisticStore';
 import {
     filterOutDeprecatedReportActions,
     getIOUActionForTransactionID,
@@ -182,6 +183,18 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/**
+ * Returns the messages whose reply from the agent is saved under the ID the client reserved for it.
+ * A reply that is still being sent does not count, because it can still fail.
+ */
+const answeredTurnQuestionIDsSelector = (turns: PendingTurn[] | undefined, agentAccountID: number) => (reportActions: OnyxEntry<ReportActions>) =>
+    (turns ?? [])
+        .filter((turn) => {
+            const reply = reportActions?.[turn.responseReportActionID];
+            return reply?.actorAccountID === agentAccountID && !reply.pendingAction;
+        })
+        .map((turn) => turn.questionReportActionID);
+
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
@@ -235,6 +248,7 @@ const reportActionsByReportIDsSelector =
     };
 
 export {
+    answeredTurnQuestionIDsSelector,
     parentActionAccountIDsSelector,
     reportActionsByReportIDsSelector,
     getBillPayHistoryParticipantSelector,

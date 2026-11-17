@@ -64,9 +64,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 18 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(18);
-        expect(new Set(registered).size).toBe(18);
+    it('registers all 19 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(19);
+        expect(new Set(registered).size).toBe(19);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {

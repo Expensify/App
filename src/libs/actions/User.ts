@@ -886,19 +886,17 @@ function subscribeToUserEvents(
     // Keep events in arrival order even when they wait on different queued requests.
     let processingStatusEventsPromise = Promise.resolve();
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        // Each tab keeps its own pending messages in memory, so every tab applies the decision. It does not write Onyx,
+        // so it does not need to wait for this tab's queued requests, which may not include the send at all.
+        const status = pushJSON.conciergeProcessingStatus;
+        if (status && sessionAccountID === currentUserAccountID) {
+            AgentZeroOptimisticStore.reconcile(status);
+        }
+
         processingStatusEventsPromise = processingStatusEventsPromise
             .then(() => SequentialQueue.getCurrentRequest())
             .then(() => {
-                if (sessionAccountID !== currentUserAccountID) {
-                    return;
-                }
-
-                // Each tab owns its optimistic store, including tabs that do not write shared Onyx data.
-                const status = pushJSON.conciergeProcessingStatus;
-                if (status) {
-                    AgentZeroOptimisticStore.reconcile(status.reportID, CONST.ACCOUNT_ID.CONCIERGE, status.reportActionID, status.isProcessing);
-                }
-                if (!ActiveClientManager.isClientTheLeader()) {
+                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
                     return;
                 }
 

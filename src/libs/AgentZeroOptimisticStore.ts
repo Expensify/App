@@ -2,41 +2,56 @@
  * Ephemeral in-memory store for the optimistic "thinking…" state, keyed by `(reportID,
  * agentAccountID)` so a room with several agents tracks each one independently.
  *
- * The optimistic counter has to survive ReportScreen remounts (switching chats and coming
+ * The optimistic state has to survive ReportScreen remounts (switching chats and coming
  * back) — React state scoped to the mounted provider doesn't. This store holds it at the
  * module level so the next mount can restore the indicator.
  *
- * Transient by nature: cleared on reply detection, safety timeout, reconnect, or by the
- * caller. Not persisted to Onyx.
+ * Messages sent to Concierge are tracked one by one, so each clears only when its own reply
+ * lands or the server says Concierge is done with it. Other kickoffs are only counted and
+ * clear on the agent's next reply. Everything also clears on the safety timeout or reconnect.
+ * Not persisted to Onyx.
  */
+import type {ConciergeProcessingStatus} from '@src/types/onyx/Response';
+
 import getAgentStoreKey from './AgentZeroStoreUtils';
 
 /** Upper bound on how long an optimistic entry stays valid without a server label or reply. */
 const MAX_AGE_MS = 120000;
 
+/** A message sent to Concierge that is still waiting for its reply or for the server to finish it. */
+type PendingTurn = {
+    /** The user's message. The server names it when it reports its decision or that the run finished. */
+    questionReportActionID: string;
+
+    /** The ID the client reserved for Concierge's reply, which Auth gives the reply when it posts it. */
+    responseReportActionID: string;
+};
+
 type OptimisticEntry = {
     reportID: string;
 
-    /** Number of pending optimistic kickoffs (one per user message). */
+    agentAccountID: number;
+
+    /** Kickoffs that are not tied to a message. A reply from the agent clears all of them. */
     count: number;
 
     /**
      * Timestamp of the most recent kickoff (ms). Drives the remaining safety window across
-     * remounts. Bumped on every `increment` — matches the in-memory behavior where each
-     * kickoff call to `startPolling` resets the 120s safety timer.
+     * remounts. Bumped on every new message, so the 120s safety timer always measures from
+     * the latest one.
      */
     startedAt: number;
 
     /**
      * Newest reportActionID captured at the moment the indicator transitioned inactive→active.
-     * Persisted so the Concierge-reply-detection effect still fires after a remount, even if
-     * the reply arrived while the provider was unmounted. Unlike `startedAt`, this stays fixed
-     * at the *first* kickoff's baseline — any new Concierge action afterwards is a new reply.
+     * Persisted so the reply-detection effect still fires after a remount, even if the reply
+     * arrived while the provider was unmounted. Unlike `startedAt`, this stays fixed at the
+     * *first* kickoff's baseline — any new agent action afterwards is a new reply.
      */
     baselineActionID: string | null;
 
-    /** The latest sent message, whose explicit completion retires this entry without requiring a reply. */
-    triggeringReportActionID?: string;
+    /** Messages that each wait for their own reply or completion, so an older reply cannot clear a newer message. */
+    turns: PendingTurn[];
 };
 
 type Listener = (reportID: string, agentAccountID: number) => void;
@@ -54,6 +69,11 @@ function isFresh(entry: OptimisticEntry): boolean {
     return Date.now() - entry.startedAt < MAX_AGE_MS;
 }
 
+/** Returns how many kickoffs and messages are still waiting in the entry. */
+function getPendingCount(entry: OptimisticEntry | undefined): number {
+    return entry ? entry.count + entry.turns.length : 0;
+}
+
 /**
  * Get the current entry for an agent in a report, or undefined if none exists or the entry is
  * past its MAX_AGE_MS window. Stale entries are left in the map — the next increment/clear
@@ -68,37 +88,35 @@ function getEntry(reportID: string, agentAccountID: number): OptimisticEntry | u
 }
 
 /**
- * Increment the pending count for an agent in a report, or start a fresh entry if none exists /
- * the existing one is stale. `baselineActionID` is only recorded on a fresh start — subsequent
- * kickoffs within the same window keep the original baseline (we care about replies newer
- * than the *first* optimistic message).
- *
- * `startedAt` is bumped on every call so the safety window always measures from the most
- * recent kickoff — this matches the in-memory `startPolling` behavior where each call
- * resets the 120s timer.
+ * Adds a kickoff to the agent's entry, or starts a fresh entry if none exists or the existing one
+ * is stale. `baselineActionID` is only recorded on a fresh start, because replies count from the
+ * *first* optimistic message. `startedAt` is bumped on every call so the safety window always
+ * measures from the most recent kickoff.
  */
-function increment(reportID: string, agentAccountID: number, baselineActionID: string | null, triggeringReportActionID?: string) {
+function addToEntry(reportID: string, agentAccountID: number, baselineActionID: string | null, kickoffCount: number, turns: PendingTurn[]) {
     const key = getAgentStoreKey(reportID, agentAccountID);
     const existing = store.get(key);
-    const now = Date.now();
-    if (existing && isFresh(existing)) {
-        store.set(key, {
-            reportID,
-            count: existing.count + 1,
-            startedAt: now,
-            baselineActionID: existing.baselineActionID,
-            triggeringReportActionID,
-        });
-    } else {
-        store.set(key, {
-            reportID,
-            count: 1,
-            startedAt: now,
-            baselineActionID,
-            triggeringReportActionID,
-        });
-    }
+    const freshEntry = existing && isFresh(existing) ? existing : undefined;
+    const knownQuestionIDs = new Set(freshEntry?.turns.map((turn) => turn.questionReportActionID));
+    store.set(key, {
+        reportID,
+        agentAccountID,
+        count: (freshEntry?.count ?? 0) + kickoffCount,
+        startedAt: Date.now(),
+        baselineActionID: freshEntry ? freshEntry.baselineActionID : baselineActionID,
+        turns: [...(freshEntry?.turns ?? []), ...turns.filter((turn) => !knownQuestionIDs.has(turn.questionReportActionID))],
+    });
     notifyListeners(reportID, agentAccountID);
+}
+
+/** Adds a kickoff that is not tied to a specific message. */
+function increment(reportID: string, agentAccountID: number, baselineActionID: string | null) {
+    addToEntry(reportID, agentAccountID, baselineActionID, 1, []);
+}
+
+/** Starts waiting for one sent message, which clears only on its own reply or completion. */
+function addTurn(reportID: string, agentAccountID: number, baselineActionID: string | null, turn: PendingTurn) {
+    addToEntry(reportID, agentAccountID, baselineActionID, 0, [turn]);
 }
 
 /** Drop optimistic state for an agent in a report. Safe to call when no entry exists. */
@@ -111,41 +129,68 @@ function clear(reportID: string, agentAccountID: number) {
     notifyListeners(reportID, agentAccountID);
 }
 
-/** Ignore completion of an older turn when another message is already waiting. */
-function complete(reportID: string, agentAccountID: number, reportActionID: string) {
-    if (getEntry(reportID, agentAccountID)?.triggeringReportActionID !== reportActionID) {
-        return;
-    }
-    clear(reportID, agentAccountID);
-}
-
-/** Keep the original timeout when the server chooses an existing thread or falls back to the DM. */
-function move(reportID: string, destinationReportID: string, agentAccountID: number, reportActionID: string) {
-    const entry = getEntry(reportID, agentAccountID);
-    if (!entry || entry.triggeringReportActionID !== reportActionID || reportID === destinationReportID) {
-        return;
-    }
-    const destinationEntry = getEntry(destinationReportID, agentAccountID);
-    if (!destinationEntry || destinationEntry.startedAt <= entry.startedAt) {
-        store.set(getAgentStoreKey(destinationReportID, agentAccountID), {...entry, reportID: destinationReportID});
-        notifyListeners(destinationReportID, agentAccountID);
-    }
-    clear(reportID, agentAccountID);
-}
-
-/** Find the sender's turn even when another tab received its HTTP response or the server chose a different thread. */
-function reconcile(reportID: string, agentAccountID: number, reportActionID: string, isProcessing: boolean) {
+/** Removes the message from whichever entry holds it and returns that entry and message, if found. */
+function removeTurn(questionReportActionID: string): {entry: OptimisticEntry; turn: PendingTurn} | undefined {
     for (const [key, entry] of store) {
-        if (entry.triggeringReportActionID !== reportActionID || key !== getAgentStoreKey(entry.reportID, agentAccountID)) {
+        const turn = entry.turns.find((pendingTurn) => pendingTurn.questionReportActionID === questionReportActionID);
+        if (!turn) {
             continue;
         }
-        if (isProcessing) {
-            move(entry.reportID, reportID, agentAccountID, reportActionID);
+        const turns = entry.turns.filter((pendingTurn) => pendingTurn !== turn);
+        if (entry.count === 0 && turns.length === 0) {
+            store.delete(key);
         } else {
-            complete(entry.reportID, agentAccountID, reportActionID);
+            store.set(key, {...entry, turns});
         }
+        notifyListeners(entry.reportID, entry.agentAccountID);
+        return {entry, turn};
+    }
+    return undefined;
+}
+
+/** Stops waiting for a message after its reply landed or the server finished with it. Other messages keep waiting. */
+function completeTurn(questionReportActionID: string) {
+    removeTurn(questionReportActionID);
+}
+
+/**
+ * Moves a message to the report the server chose for the reply. The client predicts a new thread, but the server
+ * can answer in an existing thread or in the DM. The original start time is kept, so the move does not extend the
+ * safety window.
+ */
+function moveTurn(questionReportActionID: string, destinationReportID: string) {
+    const source = [...store.values()].find((entry) => entry.reportID !== destinationReportID && entry.turns.some((turn) => turn.questionReportActionID === questionReportActionID));
+    if (!source) {
         return;
     }
+    const removed = removeTurn(questionReportActionID);
+    if (!removed) {
+        return;
+    }
+    const key = getAgentStoreKey(destinationReportID, source.agentAccountID);
+    const existing = store.get(key);
+    const destination = existing && isFresh(existing) ? existing : undefined;
+    store.set(key, {
+        reportID: destinationReportID,
+        agentAccountID: source.agentAccountID,
+        count: destination?.count ?? 0,
+        startedAt: Math.max(destination?.startedAt ?? 0, source.startedAt),
+        baselineActionID: destination ? destination.baselineActionID : source.baselineActionID,
+        turns: [...(destination?.turns ?? []).filter((turn) => turn.questionReportActionID !== questionReportActionID), removed.turn],
+    });
+    notifyListeners(destinationReportID, source.agentAccountID);
+}
+
+/**
+ * Applies the server's decision for a message. A send can be reported by a different tab than the one that made it,
+ * so the message is found by its ID wherever this tab tracks it.
+ */
+function reconcile(status: ConciergeProcessingStatus) {
+    if (status.isProcessing) {
+        moveTurn(status.reportActionID, status.reportID);
+        return;
+    }
+    completeTurn(status.reportActionID);
 }
 
 function subscribe(listener: Listener): () => void {
@@ -157,12 +202,14 @@ function subscribe(listener: Listener): () => void {
 
 export default {
     getEntry,
+    getPendingCount,
     increment,
+    addTurn,
     clear,
-    complete,
-    move,
+    completeTurn,
     reconcile,
     subscribe,
 };
 
 export {MAX_AGE_MS};
+export type {PendingTurn};

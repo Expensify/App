@@ -1,6 +1,6 @@
 /**
  * Reconciles an optimistic Concierge indicator with the reply destination and display decision
- * returned by a send or recovered on reconnect. Empty report snapshots do not finish a turn.
+ * that a send returns. Report snapshots without that decision do not finish a message.
  */
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import type {Middleware} from '@libs/Request';
@@ -11,7 +11,7 @@ const reconcileConciergeProcessingStatus: Middleware = (requestResponse, request
     requestResponse.then((response) => {
         const status = response?.conciergeProcessingStatus;
         if (status) {
-            AgentZeroOptimisticStore.reconcile(status.reportID, CONST.ACCOUNT_ID.CONCIERGE, status.reportActionID, status.isProcessing);
+            AgentZeroOptimisticStore.reconcile(status);
             // An upload can fail after the server has accepted the text.
             return response;
         }
@@ -23,7 +23,7 @@ const reconcileConciergeProcessingStatus: Middleware = (requestResponse, request
         }
 
         if (response && response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            AgentZeroOptimisticStore.complete(reportID, CONST.ACCOUNT_ID.CONCIERGE, reportActionID);
+            AgentZeroOptimisticStore.completeTurn(reportActionID);
         }
         return response;
     });

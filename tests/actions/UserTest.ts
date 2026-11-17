@@ -1469,8 +1469,8 @@ describe('actions/User', () => {
         it.each([true, false])('completes only the matching local turn without a reply when leader is %s', async (isLeader) => {
             // Given two messages were sent and this tab owns their local pending state.
             jest.mocked(ActiveClientManager.isClientTheLeader).mockReturnValue(isLeader);
-            AgentZeroOptimisticStore.increment('1001', CONST.ACCOUNT_ID.CONCIERGE, null, 'first');
-            AgentZeroOptimisticStore.increment('1001', CONST.ACCOUNT_ID.CONCIERGE, null, 'second');
+            AgentZeroOptimisticStore.addTurn('1001', CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'first', responseReportActionID: 'first-reply'});
+            AgentZeroOptimisticStore.addTurn('1001', CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'second', responseReportActionID: 'second-reply'});
 
             // When the server chooses another reply destination and a different tab receives the HTTP response.
             Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
@@ -1479,9 +1479,9 @@ describe('actions/User', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the sending tab follows the decision through its private event.
-            expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
-            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.triggeringReportActionID).toBe('second');
+            // Then the sending tab follows the decision through its private event, and the first message stays where it was.
+            expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)?.turns.map((turn) => turn.questionReportActionID)).toEqual(['first']);
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.turns.map((turn) => turn.questionReportActionID)).toEqual(['second']);
 
             // When the first run completes silently.
             Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
@@ -1495,7 +1495,8 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then the second message still has a pending indicator.
-            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.triggeringReportActionID).toBe('second');
+            expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.turns.map((turn) => turn.questionReportActionID)).toEqual(['second']);
 
             // When the second run also completes without posting a reply.
             Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
@@ -1512,6 +1513,29 @@ describe('actions/User', () => {
             expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(42);
             expect(OnyxUpdatesReliably.default).not.toHaveBeenCalled();
+        });
+
+        it('finishes a pending message while this tab still waits on its own queued request', async () => {
+            // Given this tab is still waiting on an unrelated request, which can take as long as a Concierge reply.
+            let finishCurrentRequest = () => {};
+            jest.spyOn(SequentialQueue, 'getCurrentRequest').mockReturnValue(
+                new Promise<void>((resolve) => {
+                    finishCurrentRequest = resolve;
+                }),
+            );
+            AgentZeroOptimisticStore.addTurn('1001', CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'question', responseReportActionID: 'question-reply'});
+
+            // When the server reports that Concierge finished the message without replying.
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: [],
+                conciergeProcessingStatus: {reportID: '1001', reportActionID: 'question', isProcessing: false},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator clears now instead of waiting for that request, which only matters for the Onyx label.
+            expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            finishCurrentRequest();
+            await waitForBatchedUpdates();
         });
     });
 
