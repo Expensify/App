@@ -4,12 +4,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useRepairExperienceCookie from '@hooks/useRepairExperienceCookie';
 
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {clearExperienceCookie, isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaConfiguration, Session} from '@src/types/onyx';
+import type {AnyRequest, Beta, BetaConfiguration, Session} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -240,6 +241,28 @@ describe('useRepairExperienceCookie', () => {
         await receiveFreshAppData(true);
 
         // Then the restored account's first response decides, so its switch to Classic elsewhere still repairs the cookie
+        expect(mockOpenClassic).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+        ['queued', (request: AnyRequest | null) => Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, request ? [request] : [])],
+        ['in flight', (request: AnyRequest | null) => Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, request)],
+    ])('waits for a request %s before opening Classic', async (_, setRequest) => {
+        // Given a change made offline that hasn't reached the server yet, which would wait until New Expensify opens again
+        await arrangeAccount({prefersClassic: false});
+        await setRequest({command: WRITE_COMMANDS.ADD_COMMENT, data: {}});
+        await renderRepair();
+
+        // When the server responds that the account switched to Classic elsewhere, and later the request is sent
+        await receiveFreshAppData(true);
+        const callsWhileQueued = mockOpenClassic.mock.calls.length;
+        await act(async () => {
+            await setRequest(null);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Classic opens only once nothing is left in the queue
+        expect(callsWhileQueued).toBe(0);
         expect(mockOpenClassic).toHaveBeenCalledTimes(1);
     });
 

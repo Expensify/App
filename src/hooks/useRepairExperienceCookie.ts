@@ -1,7 +1,7 @@
 /**
- * On expensify.com an `experience` cookie set to `new` sends the user to New Expensify, so Expensify Classic, which keeps the cookie in sync with the account,
- * never gets a chance to correct it. Once the server's data arrives after start, this opens Classic when the account no longer uses New Expensify there,
- * because the account switched to Classic elsewhere or left the beta. Classic then rewrites the cookie from the account's settings.
+ * On expensify.com the router sends a user whose `experience` cookie is `new` to New Expensify, and only Expensify Classic
+ * updates the cookie from the account's settings. When the account stops using New Expensify elsewhere or leaves the beta,
+ * the user never reaches Classic, so after the server's first response this opens Classic once to let it rewrite the cookie.
  */
 import {clearExperienceCookie, isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
 import Log from '@libs/Log';
@@ -58,11 +58,13 @@ function useRepairExperienceCookie() {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [hasBetaConfiguration = false] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {selector: (betaConfiguration) => !!betaConfiguration});
     const [isDelegateSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isDelegateSessionSelector});
+    const [hasQueuedRequests = false] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: (requests) => !!requests?.length});
+    const [hasOngoingRequest = false] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: (request) => !!request});
     const isSupportalSession = useIsSupportalSession();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const openClassic = useOpenClassic();
 
-    // Only the first server response for an account decides. Later changes in this session come from the user's own switch, which opens Classic itself.
+    // Only the first server response for an account decides, so the user is never sent to Classic in the middle of a session
     const hasDecided = useRef(false);
 
     useEffect(() => {
@@ -74,15 +76,11 @@ function useRepairExperienceCookie() {
         if (hasDecided.current || !isSharedProductHost()) {
             return;
         }
-        hasDecided.current = true;
 
         // The cookie of a Supportal or Copilot session belongs to the agent, and Classic doesn't redirect agents either
-        if (isSupportalSession || isDelegateSession) {
-            releaseRepairInThisTab();
-            return;
-        }
+        const isAgentSession = isSupportalSession || isDelegateSession;
 
-        // Explicit-only betas are told apart only once the beta configuration loads, so the account must not be treated as outside the beta before that
+        // The beta is known only once the betas and the beta configuration load, so the account must not be treated as outside the beta before that
         const isInBeta = hasBetaConfiguration ? isBetaEnabledOrUnknown(CONST.BETAS.HYBRID_WEB) : undefined;
         const cookie = readExperienceCookie();
         const shouldUseClassic = shouldUseOldApp(tryNewDot ?? {});
@@ -90,7 +88,15 @@ function useRepairExperienceCookie() {
         // Only a `new` cookie keeps the user away from Classic. Without it, the user opened a New Expensify link on purpose, and Classic handles the cookie on the next visit.
         const isOutsideBeta = isInBeta === false;
         const prefersClassic = isInBeta === true && shouldUseClassic === true;
-        if (cookie !== CONST.EXPERIENCE_COOKIE.VALUES.NEW || (!isOutsideBeta && !prefersClassic)) {
+        const shouldRepair = !isAgentSession && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
+
+        // Opening Classic leaves this page, so requests still in the queue, such as changes made offline, are sent first
+        if (shouldRepair && (hasQueuedRequests || hasOngoingRequest)) {
+            return;
+        }
+        hasDecided.current = true;
+
+        if (!shouldRepair) {
             releaseRepairInThisTab();
             return;
         }
@@ -104,7 +110,7 @@ function useRepairExperienceCookie() {
             clearExperienceCookie();
         }
         openClassic();
-    }, [hasFreshAppData, tryNewDot, hasBetaConfiguration, isDelegateSession, isSupportalSession, isBetaEnabledOrUnknown, openClassic]);
+    }, [hasFreshAppData, tryNewDot, hasBetaConfiguration, isDelegateSession, isSupportalSession, isBetaEnabledOrUnknown, openClassic, hasQueuedRequests, hasOngoingRequest]);
 }
 
 export default useRepairExperienceCookie;
