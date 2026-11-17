@@ -198,18 +198,19 @@ function ExpenseGroupedSearchView({
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
 
-    // Enter on a focused row has to do what a click on it does. Clicking a group that isn't a report opens or closes it
-    // rather than going to onSelectRow, because there is no report to open for it.
+    // Enter on the focused row must do what clicking it does, and a group that isn't a report has no page to open.
     const activateFocusedRow = (item: SearchListItem) => {
         if (!isTransactionGroupListItemType(item)) {
             handleSelectRow(item);
             return;
         }
+
         // A click can't reach a group that is pending delete, because its pressable is disabled, so Enter must not open it either.
         if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
-        // A split header row carries a prefixed key, so use the group's own key, as GroupHeader does for clicks.
+
+        // A split header row carries a prefixed key, but selection and open state are tracked by the group's own key.
         const groupKey = isGroupHeaderItem(item) ? item.groupKeyForList : item.keyForList;
         const {shouldSelect, shouldToggle} = getGroupRowActivation(item, type);
         if (shouldSelect) {

@@ -18,6 +18,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {Profiler, useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockBaseSearchListUtil from '../../utils/mockBaseSearchList';
+
+import {pressEnterOnListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -102,22 +105,10 @@ jest.mock('@components/Search/SearchList/ListItem/TransactionGroupListItem', () 
     };
 });
 
-// The list only calls onSelectRow when Enter is pressed on its focused row. Capture it so a test can press Enter on any row,
-// and keep rendering the real list so the rows above still render.
-const mockListProps: {onSelectRow?: (item: SearchListItem) => void; data: SearchListItem[]} = {data: []};
+// Renders the real list, but lets a test press Enter on any row.
 jest.mock('@components/Search/SearchList/BaseSearchList', () => {
-    const {createElement} = jest.requireActual<typeof React>('react');
-    const ActualBaseSearchList = jest.requireActual<{default: React.ComponentType<{onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}>}>(
-        '@components/Search/SearchList/BaseSearchList',
-    ).default;
-    return {
-        __esModule: true,
-        default: (props: {onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}) => {
-            mockListProps.onSelectRow = props.onSelectRow;
-            mockListProps.data = props.data;
-            return createElement(ActualBaseSearchList, props);
-        },
-    };
+    const {default: mockBaseSearchList} = jest.requireActual<typeof MockBaseSearchListUtil>('../../utils/mockBaseSearchList');
+    return {__esModule: true, default: mockBaseSearchList};
 });
 
 // Capture SelectionTopBar props so the selection-count math can be asserted directly.
@@ -272,11 +263,7 @@ function renderView(overrides: RenderOverrides = {}) {
 
 /** Presses Enter on a group row, the way the list does when that row has keyboard focus. */
 function pressEnterOnRow(keyForList: string) {
-    const row = mockListProps.data.find((item) => item.keyForList === keyForList);
-    if (!row) {
-        throw new Error(`No row for ${keyForList}`);
-    }
-    act(() => mockListProps.onSelectRow?.(row));
+    pressEnterOnListRow((item) => item.keyForList === keyForList, keyForList);
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -299,8 +286,7 @@ beforeEach(() => {
     for (const key of Object.keys(mockRowExpanded)) {
         delete mockRowExpanded[key];
     }
-    mockListProps.onSelectRow = undefined;
-    mockListProps.data = [];
+    resetMockBaseSearchList();
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -465,7 +451,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
 
     it('opens the report when Enter is pressed on a report group', async () => {
         // Given a list of expense reports, where clicking a report opens it
-        const onSelectRow = jest.fn<void, [SearchListItem]>();
+        const onSelectRow = jest.fn();
         renderView({
             data: createMockGroupData([{transactionCount: 1}]),
             onSelectRow,
@@ -478,11 +464,11 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
 
         // Then the report is selected under its own key, and the row doesn't open
         expect(onSelectRow).toHaveBeenCalledTimes(1);
-        expect(onSelectRow.mock.calls.at(0)?.at(0)).toMatchObject({keyForList: 'group-0'});
+        expect(onSelectRow).toHaveBeenCalledWith(expect.objectContaining({keyForList: 'group-0'}));
         expect(mockRowExpanded['group-0']).toBe(false);
     });
 
-    it('does not open a group that is pending delete when Enter is pressed on it, since a click on it is blocked too', async () => {
+    it('does not open a group that is pending delete when Enter is pressed on it', async () => {
         // Given an offline list, where a group whose expenses were all deleted stays in place with pending-delete styling
         mockIsOffline.current = true;
         const onSelectRow = jest.fn();
@@ -497,7 +483,7 @@ describe('ExpenseGroupedSearchView open groups on narrow layouts', () => {
         expect(onSelectRow).not.toHaveBeenCalled();
     });
 
-    it('closes an open group once every expense in it is pending delete, since the list now owns whether it is open', async () => {
+    it('closes an open group once every expense in it is pending delete', async () => {
         // Given a group the user opened by clicking it
         const {setData} = renderView({data: createMockGroupData([{transactionCount: 2}, {transactionCount: 1}])});
         await waitForBatchedUpdates();

@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -19,6 +19,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useCallback, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockBaseSearchListUtil from '../../utils/mockBaseSearchList';
+
+import {pressEnterOnListRow, resetMockBaseSearchList} from '../../utils/mockBaseSearchList';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -75,22 +78,10 @@ jest.mock('@components/Search/SearchList/ListItem/GroupHeader', () => ({
     },
 }));
 
-// The list only calls onSelectRow when Enter is pressed on its focused row. Capture it so a test can press Enter on any row,
-// and keep rendering the real list so the row props above are still captured.
-const mockListProps: {onSelectRow?: (item: SearchListItem) => void; data: SearchListItem[]} = {data: []};
+// Renders the real list, but lets a test press Enter on any row.
 jest.mock('@components/Search/SearchList/BaseSearchList', () => {
-    const {createElement} = jest.requireActual<typeof React>('react');
-    const ActualBaseSearchList = jest.requireActual<{default: React.ComponentType<{onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}>}>(
-        '@components/Search/SearchList/BaseSearchList',
-    ).default;
-    return {
-        __esModule: true,
-        default: (props: {onSelectRow: (item: SearchListItem) => void; data: SearchListItem[]}) => {
-            mockListProps.onSelectRow = props.onSelectRow;
-            mockListProps.data = props.data;
-            return createElement(ActualBaseSearchList, props);
-        },
-    };
+    const {default: mockBaseSearchList} = jest.requireActual<typeof MockBaseSearchListUtil>('../../utils/mockBaseSearchList');
+    return {__esModule: true, default: mockBaseSearchList};
 });
 jest.mock('@components/Search/SearchList/ListItem/GroupChildrenContainer', () => ({
     __esModule: true,
@@ -228,11 +219,7 @@ function isGroupExpanded(groupKeyForList: string): boolean | undefined {
 
 /** Presses Enter on the header row of a group, the way the list does when that row has keyboard focus. */
 function pressEnterOnHeader(groupKeyForList: string) {
-    const header = mockListProps.data.find((item) => isGroupHeaderItem(item) && item.groupKeyForList === groupKeyForList);
-    if (!header) {
-        throw new Error(`No header row for ${groupKeyForList}`);
-    }
-    act(() => mockListProps.onSelectRow?.(header));
+    pressEnterOnListRow((item) => isGroupHeaderItem(item) && item.groupKeyForList === groupKeyForList, `header ${groupKeyForList}`);
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -244,8 +231,7 @@ beforeEach(() => {
     mockIsOffline.current = false;
     capturedHeaders.length = 0;
     capturedChildren.length = 0;
-    mockListProps.onSelectRow = undefined;
-    mockListProps.data = [];
+    resetMockBaseSearchList();
     Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
     Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
 });
@@ -308,9 +294,9 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
         expect(isGroupExpanded('group-0')).toBe(false);
     });
 
-    it('opens the report when the groups are reports, with the group key the selection tracks rather than the prefixed header key', async () => {
+    it('opens the report under its own key, not the prefixed header key', async () => {
         // Given a list of expense reports, where clicking a header opens the report
-        const onSelectRow = jest.fn<void, [SearchListItem]>();
+        const onSelectRow = jest.fn();
         renderView(createMockGroupData([{}]), {onSelectRow, queryJSON: {...STABLE_QUERY_JSON, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}});
         await waitForBatchedUpdates();
 
@@ -319,11 +305,11 @@ describe('ExpenseGroupedSearchView Enter on a focused group header', () => {
 
         // Then the report is selected under its own key, and the group doesn't open
         expect(onSelectRow).toHaveBeenCalledTimes(1);
-        expect(onSelectRow.mock.calls.at(0)?.at(0)).toMatchObject({keyForList: 'group-0'});
+        expect(onSelectRow).toHaveBeenCalledWith(expect.objectContaining({keyForList: 'group-0'}), undefined, undefined);
         expect(isGroupExpanded('group-0')).toBe(false);
     });
 
-    it('does nothing on a cash back row, which has no expenses to show and is not clickable', async () => {
+    it('does nothing on a cash back row', async () => {
         // Given a withdrawal group that is a cash back credit
         const onSelectRow = jest.fn();
         renderView(createMockGroupData([{isCashBack: true}]), {onSelectRow});

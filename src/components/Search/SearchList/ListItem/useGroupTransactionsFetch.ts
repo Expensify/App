@@ -1,6 +1,6 @@
 /**
- * Keeps an open Search group's expenses fresh. Both group layouts use it: TransactionGroupListItem on narrow layouts,
- * and GroupChildrenContent under the split header on wide web.
+ * Keeps an open Search group's expenses up to date: fetches them when the group opens, when an expense is created in it,
+ * and when the user comes back to the screen.
  */
 import type {SearchQueryJSON} from '@components/Search/types';
 
@@ -10,13 +10,12 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 type UseGroupTransactionsFetchParams = {
-    /** The group's own search. A group without one (an expense report, or a violation group) has nothing to fetch */
+    /** Undefined for a group with nothing to fetch, such as an expense report or a violation group */
     transactionsQueryJSON: SearchQueryJSON | undefined;
 
     /** Whether the group's own search is already running */
     isLoading: boolean;
 
-    /** Whether the group is open */
     isExpanded: boolean;
 
     /** An expense just created in this group, if there is one */
@@ -39,8 +38,7 @@ function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded
         });
     });
 
-    // Fetch when the group opens, whether from a click or from Enter on the focused row. The hash is a dependency too,
-    // because the list can reuse this row for another group that is already open.
+    // The hash is a dependency because the list can reuse this row for another group that is already open.
     useEffect(() => {
         if (!isExpanded) {
             return;
@@ -48,8 +46,7 @@ function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded
         fetchFirstPage();
     }, [isExpanded, transactionsQueryJSON?.hash]);
 
-    // Reads isExpanded without depending on it, so the effects below don't fetch again when the group opens. The effect
-    // above already covers that.
+    // Opening the group is already handled above, so the fetches below must not run again when it opens.
     const fetchFirstPageIfOpen = useEffectEvent(() => {
         if (!isExpanded) {
             return;
@@ -57,7 +54,7 @@ function useGroupTransactionsFetch({transactionsQueryJSON, isLoading, isExpanded
         fetchFirstPage();
     });
 
-    // Refetch when an expense is created in a group that is already open.
+    // Refetch so an expense created in an open group shows up in it.
     useEffect(() => {
         if (!newTransactionID) {
             return;

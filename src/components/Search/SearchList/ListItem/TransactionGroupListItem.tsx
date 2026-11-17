@@ -150,9 +150,8 @@ function TransactionGroupListItemImpl({
 
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
 
-    // The list owns whether the group is open, and it can close it from several places (a click, Enter, or every expense
-    // in it getting deleted). Reset "show more" whenever it closes, so the group reopens at the first page. Also reset it
-    // when the list reuses this row for another group, so that group doesn't start past its first page.
+    // Reset "show more" when the group closes or the list reuses this row for another group, so a group always opens at
+    // its first page.
     const visibleLimitOwner = `${groupItem.keyForList}:${isExpanded}`;
     const [prevVisibleLimitOwner, setPrevVisibleLimitOwner] = useState(visibleLimitOwner);
     if (prevVisibleLimitOwner !== visibleLimitOwner) {
