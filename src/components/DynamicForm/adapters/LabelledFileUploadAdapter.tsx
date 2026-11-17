@@ -135,6 +135,8 @@ function LabelledFileUploadAdapter({
                             fileLimit={fileLimit}
                             acceptedFileTypes={acceptedFileTypes}
                             maxFileSize={maxFileSize}
+                            // Wise sends saved files back under the name the server stores them under
+                            shouldCompareNormalizedFileNames
                         >
                             {(openPicker) => {
                                 const [onlyType] = upload.types;

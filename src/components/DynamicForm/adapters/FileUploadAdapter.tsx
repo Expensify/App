@@ -53,6 +53,8 @@ function FileUploadAdapter({value, onInputChange = () => {}, errorText = '', for
                 setError={setUploadError}
                 errorText={shownError}
                 shouldExtendRemoveTouchArea
+                // Wise sends saved files back under the name the server stores them under
+                shouldCompareNormalizedFileNames
             />
         </FSClassView>
     );
