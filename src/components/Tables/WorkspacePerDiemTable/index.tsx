@@ -165,4 +165,4 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     );
 }
 
-export type {PerDiemTableRowData, PerDiemTableColumnKey};
+export type {PerDiemTableRowData};
