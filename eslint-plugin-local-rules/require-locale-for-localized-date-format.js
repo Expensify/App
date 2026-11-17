@@ -131,9 +131,7 @@ const TIME_ZONE_NAMING_MODULE_PATTERN = /^date-fns-tz(?:\/|$)/;
 
 /**
  * `CONST.DATE.*` machine formats with no language-dependent tokens. Anything else in `CONST.DATE` is treated as localized,
- * so a newly added format is guarded by default rather than silently escaping this rule. `SHORT_DATE_FORMAT` (`MM-dd`)
- * has no such tokens either, but it is only ever shown to users, so it is left out and needs the user's locale like any
- * other display format.
+ * so a newly added format is guarded by default rather than silently escaping this rule.
  */
 const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT']);
 
@@ -214,7 +212,7 @@ function resolvePattern(maybeWrappedNode) {
         }
         return `${stripEscapedLiterals(consequent ?? '')} ${stripEscapedLiterals(alternate ?? '')}`;
     }
-    // `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}` — check the literal text and every interpolated
+    // `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}` — check the literal text and every interpolated
     // format. An interpolated value that cannot be resolved becomes a space, like a missing ternary branch above, so the
     // text on either side of it is not joined into a token it never forms, such as `M${separator}MM` into `MMM`.
     if (node.type === 'TemplateLiteral') {

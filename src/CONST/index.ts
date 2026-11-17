@@ -836,12 +836,9 @@ const CONST = {
         // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
         MONTH_FORMAT: 'LLLL',
         WEEKDAY_TIME_FORMAT: 'eeee',
-        MONTH_DAY_ABBR_FORMAT: 'MMM d',
-        SHORT_DATE_FORMAT: 'MM-dd',
         // `PP` is date-fns' medium localized date. It matches `MMM d, yyyy` in en-US, so English output is unchanged,
         // while other languages stop being forced into the US component order.
         MONTH_DAY_YEAR_ABBR_FORMAT: 'PP',
-        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         ORDINAL_DAY_OF_MONTH: 'do',

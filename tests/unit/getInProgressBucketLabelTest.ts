@@ -6,6 +6,8 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
+import {de} from 'date-fns/locale/de';
+
 import {translateLocal} from '../utils/TestHelper';
 
 const TODAY = '2026-10-05';
@@ -132,5 +134,16 @@ describe('getInProgressBucketLabel', () => {
         // When labeling it
         // Then there is no label
         expect(getLabel(merchantGroup('some merchant'))).toBeUndefined();
+    });
+
+    it('orders the day the way the date language does', () => {
+        // Given the day and week that contain today, labeled with German dates
+        // When labeling them
+        const labels = [dayGroup(TODAY), weekGroup('2026-10-04')].map((item) =>
+            getInProgressBucketLabel({groupBy: item.groupedBy, item, today: TODAY, dateFilterRange: {}, dateFnsLocale: de, translate: translateLocal}),
+        );
+
+        // Then the day comes before the month, as German writes it. The hand-written `MMM d` produced `Okt. 5`.
+        expect(labels).toEqual(['5. Okt. so far', 'Week of 4. Okt. so far']);
     });
 });

@@ -1,5 +1,5 @@
 // cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
-// cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
+// cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου Νοέμβριος -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -345,7 +345,7 @@ describe('DateUtils', () => {
 
         it('formats locale-sensitive tokens in the locale it is given', () => {
             // The suite runs in English, so a Greek month name can only come from the locale argument.
-            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_DAY_ABBR_FORMAT, el)).toEqual('Νοε 7');
+            expect(DateUtils.formatWithUTCTimeZone(datetime, CONST.DATE.MONTH_FORMAT, el)).toEqual('Νοέμβριος');
         });
     });
 

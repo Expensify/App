@@ -73,11 +73,7 @@ function InsightsTopExpenses({query}: InsightsTopExpensesProps) {
             ? translate('iou.receiptStatusTitle')
             : convertToDisplayString(getTransactionDisplayAmount(expense, expense.report, expense.policy), getCurrency(expense));
         const created = getCreated(expense);
-        const date = DateUtils.formatWithUTCTimeZone(
-            created,
-            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(created, dateFnsLocale);
         return [expense.formattedMerchant ?? expense.merchant, amount, date].filter(Boolean).join(', ');
     };
 
