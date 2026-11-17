@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
         amount: '金額',
     },
     socials: {
@@ -1255,6 +1260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1819,6 +1825,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
+        someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
@@ -6957,6 +6964,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
             autoCategorizeNewExpenses: '新しい経費を自動分類する',
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7183,9 +7191,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
                 },
                 corporate: '取引の削除を制限',
-                personal: '取引の削除を許可',
+                personal: 'カード保有者による取引の削除を許可する',
                 setFeedNameDescription: '他と区別できるように、カードフィードに一意の名前を付けてください',
-                setTransactionLiabilityDescription: 'カード保有者は取引を削除できます。新しい取引にのみ適用されます。',
+                setTransactionLiabilityDescription: '新しい取引にのみ適用されます。この設定を無効にしている場合でも、管理者は取引を削除できます。',
                 emptyAddedFeedTitle: 'このフィードにはカードがありません',
                 emptyAddedFeedDescription: '銀行のカード明細フィードにカードが含まれていることを確認してください。',
                 pendingFeedTitle: `リクエストを確認しています…`,
@@ -7825,16 +7833,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
-            exactOnline: {
-                comingSoon: '近日公開予定',
-                joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
-                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
-            },
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
                 onWaitlist: '順番待ちリストに登録されています',
+                onWaitlistButton: 'ウェイトリスト登録済み',
                 onTheList: 'リストに登録されています！',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
@@ -8629,6 +8632,7 @@ ${reportName}`,
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を次に変更してください:',
                 },
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
+                createWorkspaceWarning: `ワークスペースを作成できません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
             hr: {
@@ -10913,6 +10917,7 @@ ${reportName}`,
         noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
+        violation: '違反',
         receiptTypeValues: {
             ereceipt: '電子領収書',
             itemized: '明細',
@@ -11105,7 +11110,7 @@ ${reportName}`,
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `支払いを処理できませんでした：${returnReason}`,
                 reimbursementACHCancelled: `支払いをキャンセルしました`,
                 reimbursementAccountChanged: `支払元が銀行口座を変更したため、支払いを処理できませんでした`,
-                reimbursementDelayed: `支払いは処理されましたが、あと1～2営業日遅れています`,
+                reimbursementDelayed: `支払いは処理されましたが、さらに1〜2営業日遅れます。`,
                 selectedForRandomAudit: `ランダムに選択されて審査中`,
                 selectedForRandomAuditMarkdown: `審査のために[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule)`,
                 share: (to: string) => `メンバーを${to}に招待しました`,
@@ -11127,6 +11132,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'まもなく';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '2週間後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '1週間後';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
+                        : '同意の有効期限が切れる前にカード接続を再接続してください。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> さん、` : '';
+                    return `${intro}<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11165,6 +11193,53 @@ ${reportName}`,
                 },
                 autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
                     `グローバル払い戻しは、${adminName} さんにより、末尾が ${lastFour} の ${bankName ? `${bankName} ` : ''}アカウントで有効化されました。国境を越えるレポートが自動支払いされる場合、正確な為替レートおよび手数料は支払い前にプレビューできません。レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `資金は現在、${expectedDate}までに到着する予定です。`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `朗報です。資金は${expectedDate}までに到着する予定です。`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `${arrivalDate} に入金されました。`,
+                reimbursementArrivedWithoutDate: '資金が到着しました。',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `支払いに失敗しました：${reason}。資金は戻ってくる可能性が高いですが、遅れて支払いが完了する場合もあります。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: '受取人の銀行に拒否されました',
+                    wrongAccountNumber: '口座番号が正しくありません',
+                    wrongAccountDetails: '口座番号または銀行コードが正しくありません',
+                    wrongBankCode: '銀行コードが正しくありません',
+                    wrongBranchCode: '支店コードが正しくありません',
+                    wrongAccountType: '口座の種類が正しくありません',
+                    wrongCardNumber: 'カード番号が正しくありません',
+                    wrongCardType: '送金先の銀行ではこのカード種類を受け付けていません',
+                    wrongName: '口座名義が一致していません',
+                    wrongPhoneNumber: '受取人の電話番号が正しくありません',
+                    wrongIdNumber: '受取人ID番号が正しくありません',
+                    wrongRutNumber: '受取人の納税者番号が正しくありません',
+                    taxIdNotMatching: '税番号が受取人の名前と一致しません',
+                    wrongCurrency: '受取先口座の通貨が異なります',
+                    accountDoesNotExist: '受取人の銀行に該当する口座が存在しません',
+                    externalIdentifierDetailsHaveChanged: '受取人の銀行口座情報が変更されました',
+                    accountClosed: '受取人の口座は解約されています',
+                    accountFrozen: '受け取り先口座が凍結されています',
+                    accountBlocked: '送金先口座がブロックされています',
+                    accountLimitReached: '受取先口座が上限に達しています',
+                    taxIdSuspended: '受取人の納税者番号が停止されています',
+                    cannotAcceptFrom3rdParty: '受取人の銀行が第三者からの支払いを受け付けていません',
+                    creditingAccountForbidden: '受取口座に入金できません',
+                    businessPaymentsForbidden: '受取側の口座はビジネス向けの支払いを受け付けていません',
+                    returnRequestedByRecipient: '受取人が返却を求めました',
+                    fundsNotExpectedReturned: '受取人の銀行が想定しておらず、払い戻しました',
+                    duplicateEntry: '受取人の銀行が重複した支払いと見なしました',
+                    mandateNotFilledIn: '受取人が銀行のフォームへの記入を期限内に完了しませんでした',
+                    requestForInformationExpired: '追加情報のリクエストの有効期限が切れました',
+                    wrongReference: '支払い参照が拒否されました',
+                    wrongPaymentPurpose: '支払い目的が却下されました',
+                    senderRequestedToCancel: '支払いがキャンセルされました',
+                    technicalIssue: '決済パートナー側の技術的な問題',
+                    technicalIssueRetryable: '決済パートナーで発生しており、自動的に再試行されます',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `資金は銀行口座（下4桁 ${bankAccountLastFour}）に返金されました。支払いを再試行できます。`,
+                reimbursementRefundedWithoutBankAccount: '資金は返金されました。支払いを再試行できます。',
+                reimbursementHeld:
+                    'パートナーによる審査が完了するまで支払いを保留しています。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。',
+                reimbursementReleased: '審査が完了し、お支払いは送金手続き中です。最終的な為替レートにより金額が変わる場合があります。',
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -11764,6 +11839,7 @@ ${reportName}`,
             tagOutOfPolicy: 'タグは無効です',
             overLimitAttendee: '人数上限超過',
             customRules: 'カスタムルール違反',
+            ruleViolation: 'ルール違反',
             taxAmountChanged: '税額が変更されました',
             taxOutOfPolicy: '税率が無効になりました',
             taxRateChanged: '税率を変更しました',
@@ -12831,6 +12907,7 @@ ${reportName}`,
         }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
         toMarkAsDone: '完了としてマークする',
+        receivedPayment: '支払いを受け取りました',
     },
 };
 export default translations;

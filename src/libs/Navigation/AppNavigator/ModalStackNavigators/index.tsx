@@ -611,6 +611,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
     [SCREENS.WORKSPACE.TIMEZONE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewTimezonePage').default,
     [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyGovernmentRateCountryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyGovernmentRateCountryPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryRequiredFieldsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesNewPage').default,
@@ -833,9 +836,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/advanced/ZohoBooksExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/advanced/ZohoBooksTravelInvoicingSettlementAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/advanced/ZohoBooksTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/advanced/ZohoBooksTravelInvoicingPayableAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/advanced/ZohoBooksTravelBillingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/import/ZohoBooksImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/export/ZohoBooksExportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_PREFERRED_EXPORTER]: () =>

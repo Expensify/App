@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
+        dayAbbreviation: 'T',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -577,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Tag`,
+            other: (count: number) => `${formattedCount ?? count} Tage`,
+        }),
         amount: 'Betrag',
     },
     socials: {
@@ -1267,6 +1272,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1842,6 +1848,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle Ausgaben wurden angehalten. Bitte prüfen Sie die Kommentare für die nächsten Schritte.',
         expenseDuplicate: 'Diese Ausgabe hat ähnliche Details wie eine andere. Bitte überprüfe die Duplikate, um fortzufahren.',
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
+        someDuplicatesAreUnavailable: 'Einige dieser Duplikate konnten nicht geladen werden, daher kannst du nur alle behalten.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
         keepSelected: 'Auswahl behalten',
@@ -7103,6 +7110,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
             autoCategorizeNewExpenses: 'Neue Ausgaben automatisch kategorisieren',
+            enableAtLeastOneCategory: 'Bitte aktiviere mindestens eine Kategorie.',
             showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
@@ -7336,9 +7344,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     statementCloseDateRequired: 'Bitte wählen Sie ein Abrechnungsenddatum aus.',
                 },
                 corporate: 'Löschen von Transaktionen einschränken',
-                personal: 'Löschen von Transaktionen erlauben',
+                personal: 'Karteninhabern das Löschen von Transaktionen erlauben',
                 setFeedNameDescription: 'Gib dem Karten-Feed einen eindeutigen Namen, damit du ihn von den anderen unterscheiden kannst',
-                setTransactionLiabilityDescription: 'Karteninhaber können Transaktionen löschen. Gilt nur für neue Transaktionen.',
+                setTransactionLiabilityDescription: 'Gilt nur für neue Transaktionen. Admins können Transaktionen auch dann löschen, wenn diese Einstellung deaktiviert ist.',
                 emptyAddedFeedTitle: 'Keine Karten in diesem Feed',
                 emptyAddedFeedDescription: 'Stelle sicher, dass sich Karten im Kartenfeed deiner Bank befinden.',
                 pendingFeedTitle: `Wir überprüfen Ihre Anfrage …`,
@@ -7984,16 +7992,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
-            exactOnline: {
-                comingSoon: 'Demnächst verfügbar',
-                joinWaitlist: 'Warteliste beitreten',
-                onWaitlist: 'Sie stehen auf der Warteliste',
-                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Demnächst verfügbar',
                 joinWaitlist: 'Warteliste beitreten',
                 onWaitlist: 'Sie stehen auf der Warteliste',
+                onWaitlistButton: 'Auf der Warteliste',
                 onTheList: 'Sie stehen auf der Liste!',
                 waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
             },
@@ -8803,6 +8806,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     selectWorkspace: 'wähle einen Workspace aus und ändere den Plantyp in',
                 },
                 upgradeWorkspaceWarning: `Arbeitsbereich kann nicht aktualisiert werden`,
+                createWorkspaceWarning: `Arbeitsbereich kann nicht erstellt werden`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Ihr Unternehmen hat das Erstellen von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an eine*n Admin, um Hilfe zu erhalten.',
             },
@@ -11145,6 +11149,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
+        violation: 'Verstoß',
         receiptTypeValues: {
             ereceipt: 'eBeleg',
             itemized: 'Aufgeschlüsselt',
@@ -11343,7 +11348,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `Die Zahlung konnte nicht verarbeitet werden: ${returnReason}`,
                 reimbursementACHCancelled: `hat die Zahlung storniert`,
                 reimbursementAccountChanged: `Die Zahlung konnte nicht verarbeitet werden, da der Zahlungspflichtige das Bankkonto gewechselt hat`,
-                reimbursementDelayed: `hat die Zahlung verarbeitet, aber sie verzögert sich um weitere 1–2 Werktage`,
+                reimbursementDelayed: `Die Zahlung wurde verarbeitet, verzögert sich jedoch um weitere 1–2 Werktage.`,
                 selectedForRandomAudit: `zufällig zur Überprüfung ausgewählt`,
                 selectedForRandomAuditMarkdown: `zufällig zur Überprüfung [ausgewählt](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule)`,
                 share: (to: string) => `Mitglied ${to} eingeladen`,
@@ -11365,6 +11370,29 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'bald';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in zwei Wochen';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in einer Woche';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft</a>.`
+                        : 'Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, für Ihre ` : 'Für Ihre ';
+                    return `${intro}<strong>${feedName}</strong>-Kartenverbindung ist ${warningTime} eine erneute Zustimmung erforderlich. Transaktionen werden derzeit noch synchronisiert, könnten aber nicht mehr importiert werden, wenn die Zustimmung nicht erneuert wird. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11403,6 +11431,54 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
                 autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
                     `Globale Rückerstattungen wurden von ${adminName} am ${bankName ? `${bankName} ` : ''}Konto mit der Endung ${lastFour} aktiviert. Exakte Wechselkurse und Gebühren können vor der Zahlung nicht angezeigt werden, wenn grenzüberschreitende Berichte automatisch bezahlt werden. Überprüfen Sie Ihre <a href="${autoPaySettingsURL}">Automatikzahlungs-Einstellungen</a> für weitere Informationen zu Kursen und Gebühren.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Die Gelder werden nun voraussichtlich bis zum ${expectedDate} eingehen.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Gute Nachrichten, die Gelder werden nun voraussichtlich bis zum ${expectedDate} eingehen.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Gelder sind am ${arrivalDate} eingegangen.`,
+                reimbursementArrivedWithoutDate: 'Gelder sind eingegangen.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Zahlung fehlgeschlagen: ${reason}. Die Gelder werden höchstwahrscheinlich zurückgebucht, jedoch kann die Zahlung verspätet dennoch ausgeführt werden. Warten Sie auf eine weitere Aktualisierung. Chatten Sie mit <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: 'die Bank des Empfängers hat sie abgelehnt',
+                    wrongAccountNumber: 'Falsche Kontonummer',
+                    wrongAccountDetails: 'Falsche Kontonummer oder Bankleitzahl',
+                    wrongBankCode: 'Falsche Bankleitzahl',
+                    wrongBranchCode: 'falscher Bankleitzahl-Code',
+                    wrongAccountType: 'Falscher Kontotyp',
+                    wrongCardNumber: 'Falsche Kartennummer',
+                    wrongCardType: 'Die Bank des Empfängers akzeptiert diesen Kartentyp nicht',
+                    wrongName: 'Der Name des Kontoinhabers stimmt nicht überein',
+                    wrongPhoneNumber: 'falsche Telefonnummer des Empfängers',
+                    wrongIdNumber: 'ungültige Empfänger-ID-Nummer',
+                    wrongRutNumber: 'Falsche Steuer-ID des Empfängers',
+                    taxIdNotMatching: 'Die Steuer-ID stimmt nicht mit dem Namen der empfangenden Person überein',
+                    wrongCurrency: 'Das Empfängerkonto ist in einer anderen Währung.',
+                    accountDoesNotExist: 'Das Konto existiert bei der Bank des Empfängers nicht',
+                    externalIdentifierDetailsHaveChanged: 'Die Bankdaten des Empfängers haben sich geändert',
+                    accountClosed: 'Das Empfängerkonto ist geschlossen',
+                    accountFrozen: 'Das Empfängerkonto ist eingefroren',
+                    accountBlocked: 'Das Empfängerkonto ist gesperrt',
+                    accountLimitReached: 'Das Empfängerkonto hat ein Limit erreicht',
+                    taxIdSuspended: 'Die Steuer-ID des Empfängers ist ausgesetzt',
+                    cannotAcceptFrom3rdParty: 'Die Bank des Empfängers akzeptiert keine Zahlungen von Dritten',
+                    creditingAccountForbidden: 'das Empfängerkonto kann nicht gutgeschrieben werden',
+                    businessPaymentsForbidden: 'Das Empfängerkonto akzeptiert keine Geschäftszahlungen',
+                    returnRequestedByRecipient: 'Der Empfänger hat darum gebeten, dass es zurückgegeben wird',
+                    fundsNotExpectedReturned: 'Die Bank der empfangenden Person hat sie nicht erwartet und zurückgesendet',
+                    duplicateEntry: 'die Bank des Empfängers hat es als doppelte Zahlung angesehen',
+                    mandateNotFilledIn: 'Der Empfänger hat das Formular seiner Bank nicht rechtzeitig ausgefüllt',
+                    requestForInformationExpired: 'eine Anfrage nach weiteren Informationen ist abgelaufen',
+                    wrongReference: 'der Zahlungsreferenztext wurde abgelehnt',
+                    wrongPaymentPurpose: 'Der Zahlungszweck wurde abgelehnt',
+                    senderRequestedToCancel: 'Die Zahlung wurde storniert',
+                    technicalIssue: 'ein technisches Problem bei unserem Zahlungspartner',
+                    technicalIssueRetryable: 'ein technisches Problem bei unserem Zahlungspartner, das erneut versucht wird',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) =>
+                    `Gelder wurden auf das Bankkonto ${bankAccountLastFour} zurückgebucht. Sie können die Zahlung erneut versuchen.`,
+                reimbursementRefundedWithoutBankAccount: 'Gelder wurden zurückgebucht. Sie können die Zahlung erneut versuchen.',
+                reimbursementHeld:
+                    'Zahlung zurückgestellt, während unser Partner eine Prüfung abschließt. Warten Sie auf ein weiteres Update. Chatten Sie mit <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: 'Die Prüfung ist abgeschlossen und Ihre Zahlung ist unterwegs. Der endgültige FX-Kurs kann den Betrag noch ändern.',
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -12010,6 +12086,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             tagOutOfPolicy: 'Tag nicht mehr gültig',
             overLimitAttendee: 'Über Personenlimit',
             customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            ruleViolation: 'Regelverstoß',
             taxAmountChanged: 'Steuerbetrag geändert',
             taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
             taxRateChanged: 'Steuersatz geändert',
@@ -13089,6 +13166,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         }),
         offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
         toMarkAsDone: 'als erledigt markieren',
+        receivedPayment: 'Zahlung erhalten',
     },
 };
 export default translations;

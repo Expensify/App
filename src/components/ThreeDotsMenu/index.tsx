@@ -25,6 +25,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import {isModalCoveringSelector} from '@selectors/Modal';
 import debounce from 'lodash/debounce';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -108,7 +109,7 @@ function ThreeDotsMenu({
     sentryLabel,
     isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [isCoveredByModal] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -118,7 +119,7 @@ function ThreeDotsMenu({
     const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
-    const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
+    const isBehindModal = isCoveredByModal && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -137,8 +138,26 @@ function ThreeDotsMenu({
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
     const getMenuPositionRef = useRef(getMenuPosition);
+    const isPopupMenuVisibleRef = useRef(isPopupMenuVisible);
+    const updateMenuPositionRef = useRef<() => void>(() => {});
+
+    // Keep the latest resolver on a ref. updateMenuPosition is a new function every render, and putting it in the
+    // resize effect deps restarts the debounce and reconnects the observer on every parent render.
     useLayoutEffect(() => {
+        isPopupMenuVisibleRef.current = isPopupMenuVisible;
         getMenuPositionRef.current = getMenuPosition;
+        updateMenuPositionRef.current = () => {
+            const resolvePosition = getMenuPositionRef.current;
+            if (!isPopupMenuVisibleRef.current || !resolvePosition) {
+                return;
+            }
+            resolvePosition().then((value) => {
+                if (!isPopupMenuVisibleRef.current) {
+                    return;
+                }
+                setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
+            });
+        };
     });
 
     const onThreeDotsPress = () => {
@@ -177,13 +196,7 @@ function ThreeDotsMenu({
     };
 
     const updateMenuPosition = () => {
-        const resolvePosition = getMenuPositionRef.current;
-        if (!isPopupMenuVisible || !resolvePosition) {
-            return;
-        }
-        resolvePosition().then((value) => {
-            setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
-        });
+        updateMenuPositionRef.current();
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
@@ -200,20 +213,24 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPositionRef.current || !isPopupMenuVisible) {
+        if (!isPopupMenuVisible) {
             return;
         }
-        const debouncedRepositionMenu = debounce(updateMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        const debouncedRepositionMenu = debounce(() => {
+            updateMenuPositionRef.current();
+        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
         debouncedRepositionMenu();
         return () => debouncedRepositionMenu.cancel();
-    }, [windowWidth, windowHeight, isPopupMenuVisible, updateMenuPosition]);
+    }, [windowWidth, windowHeight, isPopupMenuVisible]);
 
     useEffect(() => {
         if (!isPopupMenuVisible || !(buttonRef.current instanceof HTMLElement)) {
             return;
         }
-        return subscribeToAnchorMovement(buttonRef.current, updateMenuPosition);
-    }, [isPopupMenuVisible, updateMenuPosition]);
+        return subscribeToAnchorMovement(buttonRef.current, () => {
+            updateMenuPositionRef.current();
+        });
+    }, [isPopupMenuVisible]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {

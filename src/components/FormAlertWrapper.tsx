@@ -2,6 +2,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -60,6 +62,7 @@ function FormAlertWrapper({
                 <TextLink
                     style={styles.label}
                     onPress={onFixTheErrorsLinkPressed}
+                    sentryLabel={CONST.SENTRY_LABEL.FORM_ALERT_WRAPPER.FIX_ERRORS_LINK}
                 >
                     {translate('common.fixTheErrors')}
                 </TextLink>
