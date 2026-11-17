@@ -26,6 +26,12 @@ let isAuthenticating: Promise<ReauthenticationResult> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
+// A request the server rejects again right after a fresh token is broken itself (a stale authToken baked into its
+// data, or a body the browser could not build), so another reauthentication cannot fix it. Replaying it inline again
+// would loop forever, so the second rejection is handed to the caller instead. The SequentialQueue retries a rolled
+// back copy of the request, which is a new object, so every queue attempt gets one inline replay again.
+const requestsReplayedAfterReauth = new WeakSet<WeakKey>();
+
 function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     if (isAuthenticating) {
         return isAuthenticating;
@@ -122,6 +128,15 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
+    if (requestsReplayedAfterReauth.has(request)) {
+        Log.hmmm('[Reauthenticate] Request rejected again after a successful reauthentication, not replaying it', {command: request.command, isFromSequentialQueue});
+        if (isFromSequentialQueue) {
+            // Rejecting sends the request through the SequentialQueue backoff, which gives up after MAX_REQUEST_RETRIES and lets the rest of the queue run.
+            throw new Error(CONST.ERROR.REAUTH_REPLAY_REJECTED);
+        }
+        return Promise.resolve(data);
+    }
+
     return reauthenticate(request?.commandName)
         .then((result) => {
             if (!result.wasSuccessful) {
@@ -143,6 +158,7 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                requestsReplayedAfterReauth.add(request);
                 return processWithMiddleware(request, isFromSequentialQueue);
             }
 
@@ -154,8 +170,12 @@ function handleExpiredSession<TKey extends OnyxKey>(
 
             replayMainQueue(request);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
             if (isFromSequentialQueue || apiRequestType) {
+                // Keep the replay rejection as is, so the SequentialQueue give-up logs say why the request was dropped.
+                if (error instanceof Error && error.message === CONST.ERROR.REAUTH_REPLAY_REJECTED) {
+                    throw error;
+                }
                 throw new Error('Failed to reauthenticate');
             }
 
