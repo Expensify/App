@@ -56,6 +56,7 @@ function ShareTab() {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const lastActions = sortedReportActionsData?.lastActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -101,6 +102,7 @@ function ShareTab() {
               policyCollection: allPolicies,
               personalDetails,
               sortedActions,
+              lastActions,
               conciergeReportID,
               isTrackIntentUser,
               translate,

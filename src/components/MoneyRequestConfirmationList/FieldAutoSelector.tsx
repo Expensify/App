@@ -1,5 +1,3 @@
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
 import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
@@ -59,18 +57,17 @@ function FieldAutoSelector({
     iouCategory,
     isMovingTransactionFromTrackExpense,
 }: FieldAutoSelectorProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once. The share flow mounts this before
         // its draft exists or is re-initialized as a scan, so retry once the draft's ID or request type lands.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionID, transaction?.iouRequestType, shouldShowCategories, policyCategories, isCategoryRequired, policy?.id, getCurrencyDecimals]);
+    }, [transactionID, transaction?.iouRequestType, shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {

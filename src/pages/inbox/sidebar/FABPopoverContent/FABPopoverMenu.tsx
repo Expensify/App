@@ -47,6 +47,9 @@ type FABPopoverMenuProps = {
     /** How the menu lines up with its anchor position */
     anchorAlignment?: AnchorAlignment;
 
+    /** Called once the menu has fully closed and its modal is gone from the screen */
+    onModalHide?: () => void;
+
     children: React.ReactNode;
 };
 
@@ -64,6 +67,7 @@ function FABPopoverMenu({
     animationOutTiming,
     anchorPosition: anchorPositionOverride,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    onModalHide,
     children,
 }: FABPopoverMenuProps) {
     const styles = useThemeStyles();
@@ -148,7 +152,10 @@ function FABPopoverMenu({
                 onClose={handleClose}
                 isVisible={isVisible}
                 onModalWillShow={() => setContentActivityMode('visible')}
-                onModalHide={() => setContentActivityMode('hidden')}
+                onModalHide={() => {
+                    setContentActivityMode('hidden');
+                    onModalHide?.();
+                }}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
                 animationOut="fadeOut"

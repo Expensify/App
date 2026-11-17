@@ -221,6 +221,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 <>
                     {isCurrentBalanceType && (
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.VIEW_TRANSACTIONS_LINK}
                             onPress={handleViewTransactionsPress}
                             style={styles.mt1}
                         >

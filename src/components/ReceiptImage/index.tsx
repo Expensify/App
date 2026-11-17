@@ -99,9 +99,6 @@ type ReceiptImageProps = (
 
     isEmptyReceipt?: boolean;
 
-    /** Callback to be called on pressing the image */
-    onPress?: () => void;
-
     isPerDiemRequest?: boolean;
 
     /** The transaction data in search */
@@ -140,7 +137,6 @@ function ReceiptImage({
     fallbackIconColor,
     fallbackIconBackground,
     isEmptyReceipt = false,
-    onPress,
     transactionItem,
     isPerDiemRequest,
     shouldUseFullHeight,
@@ -160,8 +156,7 @@ function ReceiptImage({
         return (
             <ReceiptEmptyState
                 isThumbnail
-                onPress={onPress}
-                disabled={!onPress}
+                disabled
                 shouldUseFullHeight={shouldUseFullHeight}
                 onLoad={onLoad}
             />
