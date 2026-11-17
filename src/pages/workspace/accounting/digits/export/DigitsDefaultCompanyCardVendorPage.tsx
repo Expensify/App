@@ -57,7 +57,8 @@ function DigitsDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
         isSelected: !defaultCompanyCardVendorID,
     };
     const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
-    const {filteredData: filteredVendorOptions, textInputOptions, pinnedValues} = useSelectionListSearch(vendorOptions);
+    // Match on the vendor name only, because Digits vendor IDs are JSON strings and every one contains "issuer" and "digits"
+    const {filteredData: filteredVendorOptions, textInputOptions, pinnedValues} = useSelectionListSearch(vendorOptions, translate('common.noResultsFound'), true);
     // Place the clear row below the top vendor only when that vendor is the one the hook actually pinned.
     const firstVendorValue = filteredVendorOptions.at(0)?.value;
     const isSelectionPinnedToTop = firstVendorValue !== undefined && pinnedValues.includes(firstVendorValue);
