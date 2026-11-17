@@ -1,5 +1,6 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
+import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -17,6 +18,7 @@ import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -31,6 +33,9 @@ type FlatNavItemProps = {
     rightElement?: React.ReactNode;
 
     isSelected: boolean;
+
+    /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
 
     /** Draws the row taller than the destination rows, as the Account row is */
     isTall?: boolean;
@@ -59,6 +64,7 @@ function FlatNavItem({
     renderLeftElement,
     rightElement,
     isSelected,
+    isCollapsed = false,
     isTall = false,
     statusIndicatorColor,
     accessibilityLabel,
@@ -77,6 +83,9 @@ function FlatNavItem({
         }
         return isHovered ? styles.highlightBG : undefined;
     };
+
+    // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
 
     return (
         <PressableWithFeedback
@@ -115,14 +124,15 @@ function FlatNavItem({
                             </View>
                         )}
                         {renderLeftElement?.({backgroundColor: rowBackgroundColor})}
-                        <Text
-                            variant={isSelected ? 'textStrong' : 'text'}
-                            color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                            style={styles.flex1}
-                        >
-                            {label}
-                        </Text>
+                        <Animated.View style={[styles.flex1, collapseFadeStyle]}>
+                            <Text
+                                variant={isSelected ? 'textStrong' : 'text'}
+                                color={isSelected || hovered ? theme.text : theme.textSupporting}
+                                numberOfLines={1}
+                            >
+                                {label}
+                            </Text>
+                        </Animated.View>
                         {rightElement}
                     </>
                 );

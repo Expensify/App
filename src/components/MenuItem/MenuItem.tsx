@@ -920,6 +920,8 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
+                                // The label repeats the title, so a masked title also masks the row that carries the label
+                                forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : undefined}
                                 accessible={shouldBeAccessible}
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}

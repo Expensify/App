@@ -677,6 +677,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive={interactive}
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     testID={`selectable-row-${item.id}`}
                 >
                     <Text>{item.name}</Text>
@@ -815,6 +816,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     shouldAllowTextSelection
                     dataSet={{customMarker: true}}
                 >
@@ -852,6 +854,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View testID={`cell-${item.id}`} />
                 </Table.Row>
@@ -884,6 +887,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View testID={`cell-${item.id}`} />
                 </Table.Row>
@@ -1372,6 +1376,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View role={CONST.ROLE.CELL}>
                         <Text>{item.name}</Text>
@@ -3434,6 +3439,7 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>
