@@ -58,23 +58,6 @@ import * as TestHelper from '../utils/TestHelper';
 import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<
-    Parameters<typeof changeTransactionsReportAction>[0],
-    | 'transactions'
-    | 'allTransactionViolation'
-    | 'personalPolicyOutputCurrency'
-    | 'selfDMReportActions'
-    | 'delegateAccountID'
-    | 'getCurrencyDecimals'
-    | 'getCurrencySymbol'
-    | 'rules'
-    | 'personalDetailsByLogins'
-> & {
-    allTransactions: OnyxCollection<Transaction>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
-    personalPolicyOutputCurrency?: string;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
-};
 type CapturedOnyxData = {
     optimisticData?: Array<{key: string; value: unknown}>;
     successData?: Array<{key: string; value: unknown}>;
@@ -87,31 +70,6 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
     return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
-}
-
-// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({
-    allTransactions,
-    transactionIDs,
-    transactionViolations = {},
-    personalPolicyOutputCurrency,
-    personalDetailsByLogins = CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
-    ...rest
-}: LegacyChangeTransactionsReportProps) {
-    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({
-        transactionIDs,
-        transactions,
-        allTransactionViolation: transactionViolations,
-        personalPolicyOutputCurrency,
-        selfDMReportActions: undefined,
-        delegateAccountID: undefined,
-        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
-        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
-        rules: undefined,
-        personalDetailsByLogins,
-        ...rest,
-    });
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -144,6 +102,49 @@ const CURRENT_USER_CASH_CARD_ID = 777;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
+
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
+> & {
+    allTransactions: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    personalPolicyOutputCurrency?: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+};
+
+// Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
+function changeTransactionsReport({
+    allTransactions,
+    transactionIDs,
+    transactionViolations = {},
+    personalPolicyOutputCurrency,
+    personalDetailsByLogins = CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
+    ...rest
+}: LegacyChangeTransactionsReportProps) {
+    const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions: undefined,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+        rules: undefined,
+        personalDetailsByLogins,
+        ...rest,
+    });
+}
 
 function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
