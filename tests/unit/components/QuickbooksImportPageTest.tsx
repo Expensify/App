@@ -34,6 +34,7 @@ const MockView = View;
 const MockOfflineWithFeedback = OfflineWithFeedback;
 const MockText = Text;
 const MockPressable = PressableWithoutFeedback;
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 const POLICY_ID = '123';
 let mockPolicy: Policy;
 
@@ -60,6 +61,7 @@ jest.mock(
                     <MockPressable
                         accessibilityLabel="Back"
                         onPress={onBackButtonPress}
+                        sentryLabel={mockSentryLabel}
                     />
                     {children}
                 </>
@@ -74,6 +76,7 @@ jest.mock('@components/MenuItemWithTopDescription', () => ({description, title, 
         accessibilityRole="button"
         onPress={onPress}
         disabled={interactive === false}
+        sentryLabel={mockSentryLabel}
     >
         <MockText>{description}</MockText>
         <MockText>{title}</MockText>

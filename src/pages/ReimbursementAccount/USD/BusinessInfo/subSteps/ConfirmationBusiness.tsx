@@ -36,7 +36,10 @@ function ConfirmCompanyLabel() {
     return (
         <Text>
             {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
-            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_RESTRICTED_BUSINESSES_LINK}
+                href={CONST.LIST_OF_RESTRICTED_BUSINESSES}
+            >{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
         </Text>
     );
 }

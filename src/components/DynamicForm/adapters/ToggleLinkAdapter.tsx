@@ -3,6 +3,8 @@ import TextLink from '@components/TextLink';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef, Ref} from 'react';
 import type {View} from 'react-native';
 
@@ -34,7 +36,12 @@ function ToggleLinkAdapter({value, onInputChange = () => {}, label, toggledLabel
             ref={ref}
             forwardedFSClass={forwardedFSClass}
         >
-            <TextLink onPress={() => onInputChange(!isOn)}>{isOn ? (toggledLabel ?? label) : label}</TextLink>
+            <TextLink
+                onPress={() => onInputChange(!isOn)}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.TOGGLE_LINK}
+            >
+                {isOn ? (toggledLabel ?? label) : label}
+            </TextLink>
         </FSClassView>
     );
 }

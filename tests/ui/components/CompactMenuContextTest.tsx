@@ -63,6 +63,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     title="Test Item"
                     icon={mockIcon}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );
@@ -84,6 +85,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     title="Test Item"
                     icon={mockIcon}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );
@@ -98,6 +100,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     title="Test Item"
                     icon={mockIcon}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );
@@ -113,6 +116,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     description="A description"
                     icon={mockIcon}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );
@@ -129,6 +133,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     icon={mockIcon}
                     iconType={CONST.ICON_TYPE_ICON}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );
@@ -144,6 +149,7 @@ describe('CompactMenuContext with MenuItem', () => {
                     icon={mockIcon}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {}}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Wrapper>,
         );

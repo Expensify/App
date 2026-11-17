@@ -523,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -1381,6 +1386,7 @@ const translations = {
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1992,6 +1998,7 @@ const translations = {
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
+        someDuplicatesAreUnavailable: "Some of these duplicates couldn't be loaded, so you can only keep all of them.",
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         keepSelected: 'Keep selected',
@@ -7689,6 +7696,7 @@ const translations = {
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -7926,9 +7934,9 @@ const translations = {
                     statementCloseDateRequired: 'Please select a statement close date.',
                 },
                 corporate: 'Restrict deleting transactions',
-                personal: 'Allow deleting transactions',
+                personal: 'Allow cardholders to delete transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others',
-                setTransactionLiabilityDescription: 'Cardholders can delete transactions. Applies to new transactions only.',
+                setTransactionLiabilityDescription: 'Applies to new transactions only. Admins can delete transactions with this setting disabled.',
                 emptyAddedFeedTitle: 'No cards in this feed',
                 emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
                 pendingFeedTitle: `We're reviewing your request...`,
@@ -8585,16 +8593,11 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
-            exactOnline: {
-                comingSoon: 'Coming soon',
-                joinWaitlist: 'Join waitlist',
-                onWaitlist: 'You’re on the waitlist',
-                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
                 onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
                 onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
@@ -9637,6 +9640,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -11496,6 +11500,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11655,7 +11660,53 @@ const translations = {
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `couldn't process the payment: ${returnReason}`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
-                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
+                reimbursementDelayed: `Processed the payment but it’s delayed by 1-2 more business days.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Great news, funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Funds arrived on ${arrivalDate}.`,
+                reimbursementArrivedWithoutDate: 'Funds arrived.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Payment failed: ${reason}. Funds will most likely return, though payment may still complete late. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: "the recipient's bank rejected it",
+                    wrongAccountNumber: 'incorrect account number',
+                    wrongAccountDetails: 'incorrect account number or bank code',
+                    wrongBankCode: 'incorrect bank code',
+                    wrongBranchCode: 'incorrect branch code',
+                    wrongAccountType: 'incorrect account type',
+                    wrongCardNumber: 'incorrect card number',
+                    wrongCardType: "the recipient's bank doesn't accept this card type",
+                    wrongName: "the account holder name doesn't match",
+                    wrongPhoneNumber: 'incorrect recipient phone number',
+                    wrongIdNumber: 'incorrect recipient ID number',
+                    wrongRutNumber: 'incorrect recipient tax ID',
+                    taxIdNotMatching: "the tax ID doesn't match the recipient's name",
+                    wrongCurrency: 'the recipient account is in a different currency',
+                    accountDoesNotExist: "the account doesn't exist at the recipient's bank",
+                    externalIdentifierDetailsHaveChanged: "the recipient's bank details have changed",
+                    accountClosed: 'the recipient account is closed',
+                    accountFrozen: 'the recipient account is frozen',
+                    accountBlocked: 'the recipient account is blocked',
+                    accountLimitReached: 'the recipient account has reached a limit',
+                    taxIdSuspended: "the recipient's tax ID is suspended",
+                    cannotAcceptFrom3rdParty: "the recipient's bank doesn't accept third-party payments",
+                    creditingAccountForbidden: "the recipient account can't be credited",
+                    businessPaymentsForbidden: "the recipient account doesn't accept business payments",
+                    returnRequestedByRecipient: 'the recipient asked for it to be returned',
+                    fundsNotExpectedReturned: "the recipient's bank wasn't expecting it and returned it",
+                    duplicateEntry: "the recipient's bank saw it as a duplicate payment",
+                    mandateNotFilledIn: "the recipient didn't complete their bank's form in time",
+                    requestForInformationExpired: 'a request for more information expired',
+                    wrongReference: 'the payment reference was rejected',
+                    wrongPaymentPurpose: 'the payment purpose was rejected',
+                    senderRequestedToCancel: 'the payment was cancelled',
+                    technicalIssue: 'a technical issue at our payments partner',
+                    technicalIssueRetryable: 'a technical issue at our payments partner, which will retry',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
+                reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
+                reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -11681,6 +11732,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12377,6 +12451,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',
