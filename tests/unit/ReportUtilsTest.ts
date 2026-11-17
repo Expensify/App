@@ -4854,7 +4854,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
