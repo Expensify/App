@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SearchColumnsPage from '@src/pages/Search/SearchColumnsPage';
@@ -18,6 +19,8 @@ import type {ComponentProps} from 'react';
 
 const mockGetRootState = jest.fn();
 const mockUseSearchQueryContext = jest.fn();
+
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@components/Search/SearchContext', () => ({
@@ -31,8 +34,20 @@ jest.mock(
     () =>
         ({onSave, onReset, shouldShowResetColumns}: Pick<ComponentProps<typeof ColumnsSettingsList>, 'onSave' | 'onReset' | 'shouldShowResetColumns'>) => (
             <>
-                <MockText onPress={() => onSave(['merchant', 'amount'])}>Save columns</MockText>
-                {!!shouldShowResetColumns && <MockText onPress={onReset}>Reset columns</MockText>}
+                <MockText
+                    onPress={() => onSave(['merchant', 'amount'])}
+                    sentryLabel={mockSentryLabel}
+                >
+                    Save columns
+                </MockText>
+                {!!shouldShowResetColumns && (
+                    <MockText
+                        onPress={onReset}
+                        sentryLabel={mockSentryLabel}
+                    >
+                        Reset columns
+                    </MockText>
+                )}
             </>
         ),
 );

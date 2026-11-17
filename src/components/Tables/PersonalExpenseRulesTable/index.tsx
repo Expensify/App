@@ -134,4 +134,4 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
     );
 }
 
-export type {PersonalExpenseRuleRowData, PersonalExpenseRulesTableColumnKey};
+export type {PersonalExpenseRuleRowData};

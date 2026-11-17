@@ -104,6 +104,13 @@ jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockUseIsReportLoadPending = useIsReportLoadPending as jest.MockedFunction<typeof useIsReportLoadPending>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
+
+// Runs the selector a component passed to useOnyx over a given personal details list
+function selectFromPersonalDetails(selector: unknown, personalDetails: OnyxTypes.PersonalDetailsList) {
+    // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return (selector as (personalDetailsList: OnyxTypes.PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+}
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
 const mockUsePaginatedReportActions = usePaginatedReportActions as jest.MockedFunction<typeof usePaginatedReportActions>;
@@ -919,8 +926,8 @@ describe('ReportActionsList (body)', () => {
                 person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
             };
             mockUseOnyx.mockImplementation((key, options) => {
-                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
-                    return [[agentAccountID], {status: 'loaded'}];
+                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                    return [selectFromPersonalDetails(options.selector, {[agentAccountID]: {accountID: agentAccountID, isCustomAgent: true}}), {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);
             });

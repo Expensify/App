@@ -1,6 +1,5 @@
 import useIsOneTransactionThread from '@hooks/useIsOneTransactionThread';
 import useOnyx from '@hooks/useOnyx';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -86,31 +85,24 @@ function OneTransactionThreadRedirectHandler() {
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!route.params?.reportActionID;
 
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
-
     const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
     const backTo = route.params?.backTo;
 
-    // A thread opened from its own report carries that report as `backTo`.
-    const isBackToParentReport = isOneTransactionThread && !!backTo && getBackToReportID(backTo) === parentReportID;
-
-    // In the table view the expense is a row in the report, so a thread opened from that row is a real destination.
-    // Other ways in (Home, the growl, a link) still open the report, which then shows the table.
-    const isOpenedFromTableRow = shouldUseTableViewForSingleExpense && isBackToParentReport;
-
-    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !isOpenedFromTableRow;
+    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction;
 
     useEffect(() => {
         if (!isFocused || !shouldRedirectToParentReport || !parentReportID) {
             return;
         }
 
-        // `backTo` pointing at the parent report would point the report at itself, so inherit that route's own nested `backTo` instead.
+        // A thread opened from its own report carries that report as `backTo`, which would point the report at itself.
+        // Inherit that route's own nested `backTo` instead.
+        const isBackToParentReport = !!backTo && getBackToReportID(backTo) === parentReportID;
         const resolvedBackTo = isBackToParentReport ? (getSearchParamFromPath(backTo ?? '', 'backTo') ?? undefined) : backTo;
 
         // Replace rather than push, so going back doesn't land on the thread again.
         Navigation.navigate(getExpenseReportRoute({routeName: route.name, reportID: parentReportID, referrer, backTo: resolvedBackTo}), {forceReplace: true});
-    }, [backTo, isBackToParentReport, isFocused, parentReportID, referrer, route.name, shouldRedirectToParentReport]);
+    }, [backTo, isFocused, parentReportID, referrer, route.name, shouldRedirectToParentReport]);
 
     return null;
 }
