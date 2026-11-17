@@ -1997,5 +1997,4 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
-    ViolationsSnapshot,
 };
