@@ -105,6 +105,48 @@ describe('useUpdateFilterQuery', () => {
         });
     });
 
+    describe('getUpdatedFilterFormValues with group-by:violation', () => {
+        const VIOLATION_HAS = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+
+        it('adds both violation has values when the violation grouping is chosen', () => {
+            // Given an expense search with only a receipt has value, which returns no violation groups
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, has: [CONST.SEARCH.HAS_VALUES.RECEIPT]};
+
+            // When the Display menu groups it by violation
+            const values = result.current.getUpdatedFilterFormValues(currentValues, {groupBy: CONST.SEARCH.GROUP_BY.VIOLATION});
+
+            // Then the violation has values are added next to the existing one, so the grouping has violations to show
+            expect(values.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(values.has).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, ...VIOLATION_HAS]);
+        });
+
+        it('keeps the has values when one violation has value is already set', () => {
+            // Given a search already limited to approved violations
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]};
+
+            // When it's grouped by violation
+            const values = result.current.getUpdatedFilterFormValues(currentValues, {groupBy: CONST.SEARCH.GROUP_BY.VIOLATION});
+
+            // Then the stage the user picked is left alone instead of widening it to both stages
+            expect(values.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+        });
+
+        it('clears the violation grouping when the Has pill is cleared', () => {
+            // Given a search grouped by violation, with the violation has values the grouping needs
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.VIOLATION, has: VIOLATION_HAS};
+
+            // When the Has pill's clear button removes every has value
+            const values = result.current.getUpdatedFilterFormValues(currentValues, {has: undefined});
+
+            // Then the grouping is dropped too, instead of adding the has values straight back
+            expect(values.groupBy).toBeUndefined();
+            expect(values.has).toBeUndefined();
+        });
+    });
+
     function setup() {
         const queryJSON = buildSearchQueryJSON('merchant=I merchant*:I');
         if (!queryJSON) {

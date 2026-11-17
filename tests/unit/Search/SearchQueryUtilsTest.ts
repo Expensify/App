@@ -5043,6 +5043,24 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('group-by:violation parser round trip', () => {
+        test('round-trips group-by:violation and its default sort by translated label', () => {
+            // Given a query that groups by violation and customizes the group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} columns:group-violation,group-expenses,group-total`;
+
+            // When it is parsed and then rebuilt into a query string and parsed again
+            const parsed = buildSearchQueryJSON(query);
+            const rebuilt = buildSearchQueryString(parsed);
+            const roundTripped = buildSearchQueryJSON(rebuilt);
+
+            // Then the grouping, its columns and the ascending sort by violation survive the round trip
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
+            expect(roundTripped?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION);
+            expect(roundTripped?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+    });
+
     describe('shouldResetSort', () => {
         test('returns true when groupBy changes', () => {
             expect(shouldResetSort({newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);

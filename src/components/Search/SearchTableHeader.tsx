@@ -598,6 +598,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION,
+                    translationKey: 'search.filters.groupBy.violation',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return [
                 {

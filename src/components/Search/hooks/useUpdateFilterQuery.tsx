@@ -6,9 +6,10 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
-import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON, hasValuesIncludeViolationFilter, VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -31,6 +32,16 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.statusNot = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             updatedFilterFormValues.hasNot = filterValidHasValues(updatedFilterFormValues.hasNot, updatedFilterFormValues.type, translate);
+        }
+
+        // Violation groups only come back for the violations kept at submission or approval, so grouping by violation
+        // needs one of those has values. Choosing the grouping adds them, and clearing them drops the grouping.
+        if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && !hasValuesIncludeViolationFilter(updatedFilterFormValues.has)) {
+            if (currentValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && 'has' in newValues) {
+                updatedFilterFormValues.groupBy = undefined;
+            } else {
+                updatedFilterFormValues.has = [...(updatedFilterFormValues.has ?? []), ...VIOLATION_HAS_VALUES];
+            }
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
