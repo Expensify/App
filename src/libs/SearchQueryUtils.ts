@@ -1400,6 +1400,8 @@ function buildQueryStringWithResetDisplay(currentQueryJSON: SearchQueryJSON, sea
         rawFilterList: undefined,
         limit: defaultQueryJSON.limit,
         columns: defaultQueryJSON.columns,
+        leftPinnedColumns: defaultQueryJSON.leftPinnedColumns,
+        rightPinnedColumns: defaultQueryJSON.rightPinnedColumns,
         flatFilters: [...keptFilters, ...defaultGroupCurrencyFilters],
     });
 }
@@ -1412,8 +1414,10 @@ function getGroupCurrencyValue(queryJSON: SearchQueryJSON) {
     return getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY).value?.at(0);
 }
 
+/** The table layout a query saves: its columns and the pins on them. */
 function getColumnsValue(queryJSON: SearchQueryJSON) {
-    return [queryJSON.columns ?? []].flat().join(',');
+    const {left, right} = getPinnedColumns(queryJSON);
+    return [[queryJSON.columns ?? []].flat().join(','), left.join(','), right.join(',')].join('|');
 }
 
 function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
