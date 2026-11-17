@@ -1,5 +1,6 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {getHasOptionAvailability} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +11,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
@@ -47,6 +49,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
@@ -280,6 +283,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             taxRates: policy.taxRates,
             tax: policy.tax,
             areTagsEnabled: policy.areTagsEnabled,
+            areRulesEnabled: policy.areRulesEnabled,
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
@@ -323,6 +327,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
+    const shouldDisplayViolationFilter = getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation;
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
@@ -363,6 +369,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && !shouldDisplayTaxFilter) {
+                        return;
+                    }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION && !shouldDisplayViolationFilter) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID && !shouldDisplayWorkspaceFilter) {

@@ -1,4 +1,4 @@
-import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
+import {useMenuItemAccessibilityLabel, useMenuItemMaskedText} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
 
@@ -31,6 +31,7 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 
     }
 
     useMenuItemAccessibilityLabel(slot, accessibilityLabel ?? String(children));
+    useMenuItemMaskedText(forwardedFSClass);
 
     const textStyle = [
         styles.flexShrink1,

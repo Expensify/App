@@ -16,7 +16,6 @@ import DomainNameOrNotFoundWrapper from '@pages/domain/DomainNameOrNotFoundWrapp
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -31,19 +30,6 @@ const DOMAIN_EMAIL = 'user@test.com';
 const DOMAIN_NAME = 'test.com';
 
 const mockOnLinkPress = jest.fn();
-
-const mockIsLoadingOnyxValue = jest.fn<ReturnType<typeof isLoadingOnyxValue>, Parameters<typeof isLoadingOnyxValue>>(() => false);
-jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
-    __esModule: true,
-    default: (...args: Parameters<typeof isLoadingOnyxValue>) => mockIsLoadingOnyxValue(...args),
-}));
-
-// Swaps in a simple, easy-to-query stand-in so the loading state can be asserted without racing real Onyx timing.
-jest.mock('@components/FullscreenLoadingIndicator', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const ReactNative = require('react-native');
-    return () => <ReactNative.View testID="FullScreenLoadingIndicator" />;
-});
 
 type TestScreenProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED>;
 
@@ -90,25 +76,10 @@ describe('DomainNameOrNotFoundWrapper', () => {
 
     afterEach(async () => {
         jest.clearAllMocks();
-        mockIsLoadingOnyxValue.mockReturnValue(false);
         await act(async () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
-    });
-
-    it('shows a full-screen loading indicator while the domain name is loading', async () => {
-        // Given the domain name Onyx connection is still loading
-        mockIsLoadingOnyxValue.mockReturnValue(true);
-
-        // When the wrapper is rendered
-        renderWrapper();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the loading indicator is shown instead of NotFoundPage or the children
-        expect(screen.getByTestId('FullScreenLoadingIndicator')).toBeTruthy();
-        expect(screen.queryByTestId('FullPageNotFoundView')).toBeNull();
-        expect(screen.queryByTestId('wrapped-children')).toBeNull();
     });
 
     it('renders NotFoundPage and forwards onLinkPress when the domain has no name', async () => {

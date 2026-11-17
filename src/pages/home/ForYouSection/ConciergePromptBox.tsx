@@ -350,6 +350,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
                                                         {
                                                             icon: icons.Paperclip,
                                                             text: translate('reportActionCompose.addAttachment'),
+                                                            sentryLabel: CONST.SENTRY_LABEL.CONCIERGE_PROMPT_BOX.ADD_ATTACHMENT_MENU_ITEM,
                                                             shouldCallAfterModalHide: shouldUseNarrowLayout,
                                                         },
                                                     ]}
