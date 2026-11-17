@@ -158,6 +158,7 @@ function ExpenseRulesPage() {
                       icon: icons.Pencil,
                       text: translate('expenseRulesPage.editRule.title'),
                       value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_EDIT,
                       onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
                   },
               ]
@@ -166,6 +167,7 @@ function ExpenseRulesPage() {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_DELETE,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },

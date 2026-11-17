@@ -281,4 +281,29 @@ describe('ExpenseFieldRow', () => {
             expect(row).toHaveStyle(result.current.moneyRequestFieldRowDisabled);
         });
     });
+
+    describe('layout reporting', () => {
+        it('reports the layout of the bordered box to whatever anchors to the row', () => {
+            // Given a row wrapped by something that needs its position, e.g. the rate row's educational tooltip,
+            // which only shows once its child has reported a layout
+            const onLayout = jest.fn();
+            render(
+                <ExpenseFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    onLayout={onLayout}
+                    testID="category-row"
+                />,
+            );
+
+            // When the bordered box is laid out
+            const layoutEvent = {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 64}}};
+            fireEvent(screen.getByTestId('category-row'), 'layout', layoutEvent);
+
+            // Then the layout reaches the caller instead of being dropped, so the tooltip can measure and show
+            expect(onLayout).toHaveBeenCalledWith(layoutEvent);
+        });
+    });
 });

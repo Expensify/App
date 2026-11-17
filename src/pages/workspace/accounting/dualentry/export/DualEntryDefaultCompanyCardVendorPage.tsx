@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDualEntryErrorField, updateDualEntryDefaultVendor} from '@libs/actions/connections/DualEntry';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDualEntryVendors, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
@@ -53,11 +52,8 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
         isSelected: !defaultCompanyCardVendorID,
     };
     const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
-    const {filteredData: filteredVendorOptions, textInputOptions, pinnedValues} = useSelectionListSearch(vendorOptions);
-    // Place the clear row below the top vendor only when that vendor is the one the hook actually pinned.
-    const firstVendorValue = filteredVendorOptions.at(0)?.value;
-    const isSelectionPinnedToTop = firstVendorValue !== undefined && pinnedValues.includes(firstVendorValue);
-    const data: VendorListItem[] = shouldShowClearOption ? withClearRow(filteredVendorOptions, clearOption, isSelectionPinnedToTop) : filteredVendorOptions;
+    const searchableOptions: VendorListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+    const {filteredData: data, textInputOptions} = useSelectionListSearch(searchableOptions, translate('common.noResultsFound'), true);
 
     const headerContent = (
         <View>
@@ -98,6 +94,7 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={defaultCompanyCardVendorID}

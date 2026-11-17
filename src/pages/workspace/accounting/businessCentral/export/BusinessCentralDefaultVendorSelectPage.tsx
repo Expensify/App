@@ -45,7 +45,7 @@ function BusinessCentralDefaultVendorSelectPage({policy}: WithPolicyConnectionsP
         keyForList: vendor.id,
         isSelected: defaultVendorID === vendor.id,
     }));
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const {filteredData, textInputOptions} = useSelectionListSearch(data, translate('common.noResultsFound'), true);
 
     const headerContent = (
         <View>
@@ -79,9 +79,10 @@ function BusinessCentralDefaultVendorSelectPage({policy}: WithPolicyConnectionsP
             displayName="BusinessCentralDefaultVendorSelectPage"
             title="workspace.businessCentral.defaultCompanyCardVendor.label"
             data={filteredData}
-            textInputOptions={{...textInputOptions, label: textInputOptions.label ? translate('workspace.vendors.findVendor') : undefined}}
+            textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={defaultVendorID}
