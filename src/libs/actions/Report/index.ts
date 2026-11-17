@@ -2539,6 +2539,9 @@ type CreateTransactionThreadReportParams = {
 
     /** The self DM holding the expense, used instead of the current user's when set */
     selfDMReportID?: string;
+
+    /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
+    isOwnedByCurrentUser?: boolean;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2561,7 +2564,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,

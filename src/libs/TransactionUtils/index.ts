@@ -997,6 +997,14 @@ function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'mana
 }
 
 /**
+ * Decides whether an unreported expense without an IOU action (a legacy expense) belongs to the current user.
+ * Only the owner sees an unreported expense, except a managed card expense, which admins also see on their card feeds.
+ */
+function isUnreportedTransactionOwnedByCurrentUser(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>, isCardHeldByCurrentUser: boolean): boolean {
+    return !isManagedCardTransaction(transaction) || isCardHeldByCurrentUser;
+}
+
+/**
  * Determine whether the reimbursable value of a transaction can be changed by the user.
  * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
  * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
@@ -1895,6 +1903,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isUnreportedTransactionOwnedByCurrentUser,
     isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
