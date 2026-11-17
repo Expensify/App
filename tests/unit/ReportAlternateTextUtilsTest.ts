@@ -711,6 +711,7 @@ describe('ReportAlternateTextUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                     oneTransactionThreadReportID: THREAD_REPORT_ID,
                     lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, THREAD_REPORT_ID).lastAction,
+                    lastOriginalAction: undefined,
                     rules: undefined,
                 });
 
@@ -755,6 +756,7 @@ describe('ReportAlternateTextUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 oneTransactionThreadReportID: THREAD_REPORT_ID,
                 lastAction: resolveLastActionContext(report, false, undefined, WHISPER_TARGET_ACCOUNT_ID + 1, THREAD_REPORT_ID).lastAction,
+                lastOriginalAction: undefined,
                 rules: undefined,
             });
 
@@ -803,6 +805,7 @@ describe('ReportAlternateTextUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                     oneTransactionThreadReportID: THREAD_REPORT_ID,
                     lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, THREAD_REPORT_ID).lastAction,
+                    lastOriginalAction: undefined,
                     rules: undefined,
                 });
 
@@ -854,6 +857,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, undefined).lastAction,
+                    lastOriginalAction: undefined,
                     rules: undefined,
                 });
 
