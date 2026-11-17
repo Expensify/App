@@ -42,6 +42,7 @@ describe('FullstoryUtils', () => {
                 paidMember: true,
                 npsScore: 9,
                 npsResponseDate: '2026-05-03 09:30:00',
+                nudgedDate: '2026-06-16 10:26:36',
             },
         });
 
@@ -64,6 +65,7 @@ describe('FullstoryUtils', () => {
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
         expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
         expect(userVars.nps_response_date?.toISOString()).toBe('2026-05-03T09:30:00.000Z');
+        expect(userVars.nudged_date?.toISOString()).toBe('2026-06-16T10:26:36.000Z');
     });
 
     it('builds page viewed event metadata', () => {

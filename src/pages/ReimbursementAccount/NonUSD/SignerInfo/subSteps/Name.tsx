@@ -55,6 +55,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
             shouldDelayAutoFocus
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

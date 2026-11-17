@@ -10,9 +10,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useSelfDMReport from '@hooks/useSelfDMReport';
 
-import {moveMoneyRequestDraftToSelfDM} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -72,9 +70,6 @@ type UseReportPickerActionsParams = {
 
     /** Whether a regular pick writes only after the back transition, see `useReportSelectionActions`. The anchored dropdown writes straight away. */
     shouldWriteAfterTransition?: boolean;
-
-    /** Sets the expense type on the form the picker was opened from, which reads it from its own route */
-    setFormIOUType?: (iouType: IOUType) => void;
 };
 
 /** The props the list needs that depend on the expense: everything but where the list is shown */
@@ -95,7 +90,6 @@ type ReportPickerListProps = Pick<
     | 'isTimeRequest'
     | 'isUnreportedManagedCardTransaction'
     | 'createReport'
-    | 'selectNoReport'
     | 'targetOwnerAccountID'
 >;
 
@@ -125,7 +119,6 @@ function useReportPickerActions({
     goBack,
     onNavigateAway,
     shouldWriteAfterTransition = true,
-    setFormIOUType,
 }: UseReportPickerActionsParams): UseReportPickerActionsResult {
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -152,31 +145,28 @@ function useReportPickerActions({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const reportOwnerAccountID = isUnreported
+    const ownerAccountID = isUnreported
         ? iouActions?.find((iouAction) => getOriginalMessage(iouAction)?.IOUTransactionID === transaction.transactionID)?.actorAccountID
         : selectedReport?.ownerAccountID;
-    // An expense that is still being created and has no report to go on yet belongs to the user creating it.
-    const ownerAccountID = reportOwnerAccountID ?? (isEditing ? undefined : session?.accountID);
     const ownerPersonalDetails: CurrentUserPersonalDetails = {...getPersonalDetailsForAccountID(ownerAccountID, personalDetails), accountID: ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const isPerDiemTransaction = isPerDiemRequest(transaction);
-    const isTimeTransaction = isTimeRequestUtil(transaction);
-    const selfDMReport = useSelfDMReport();
-    // The form resolves an expense on the self DM against the user's default workspace, so its distance rate comes from there.
-    const {policyForMovingExpenses: policyForSelfDMExpenses} = usePolicyForMovingExpenses();
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isUnreportedManagedCardTransaction = isUnreportedManagedCardTransactionUtil(transaction);
 
     const transactionPolicyID = transaction?.participants?.at(0)?.isPolicyExpenseChat ? transaction?.participants.at(0)?.policyID : undefined;
-    // When moving an expense that belongs to another user, when the selection includes per diem transactions, or when
-    // the expense is not saved yet and is headed to a workspace, use the policy of its report (or the transaction's
-    // policy as fallback) so the selected workspace is preserved and a new report is made on it.
+    // When moving an expense that belongs to another user, or when the selection includes per diem
+    // transactions, use the policy of their report (or the transaction's policy as fallback) so the
+    // selected workspace is preserved.
     // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
-    const shouldKeepExpenseWorkspace = ownerAccountID !== session?.accountID || isPerDiemTransaction || (!isEditing && !!transactionPolicyID);
-    const targetExpensePolicyID = shouldKeepExpenseWorkspace ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
+    const targetExpensePolicyID = ownerAccountID !== session?.accountID || isPerDiemTransaction ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
 
     // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeTransaction, targetExpensePolicyID, isUnreportedManagedCardTransaction);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
+        isPerDiemTransaction,
+        isTimeRequestUtil(transaction),
+        targetExpensePolicyID,
+        isUnreportedManagedCardTransaction,
+    );
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
     const hasViolations = false;
@@ -276,31 +266,6 @@ function useReportPickerActions({
         handleCreateReport();
     };
 
-    // A new expense with no report is saved on the user's self DM, the same as picking themselves as the recipient.
-    // Per diem and time expenses only exist on a workspace, and splits and invoices have no report to leave.
-    const isNoReportSupported =
-        isCreateReport && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemTransaction && !isTimeTransaction;
-    const selectNoReport = () => {
-        goBack();
-        if (isUnreported) {
-            return;
-        }
-        for (const draftTransaction of transactions) {
-            moveMoneyRequestDraftToSelfDM({
-                transaction: draftTransaction,
-                selfDMReport,
-                currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                policyForMovingExpenses: policyForSelfDMExpenses,
-                lastSelectedDistanceRates,
-                personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
-            });
-        }
-        // The form shows an expense on the self DM as a tracked expense, which decides its category, tax and rate fields.
-        if (iouType !== CONST.IOU.TYPE.TRACK) {
-            setFormIOUType?.(CONST.IOU.TYPE.TRACK);
-        }
-    };
-
     let selectedPolicyID;
     if (isPerDiemTransaction) {
         selectedPolicyID = isFromGlobalCreate ? undefined : perDiemOriginalPolicy?.id;
@@ -323,10 +288,9 @@ function useReportPickerActions({
             isEditing,
             isUnreported,
             isPerDiemRequest: transaction ? isPerDiemTransaction : false,
-            isTimeRequest: isTimeTransaction,
+            isTimeRequest: transaction ? isTimeRequestUtil(transaction) : false,
             isUnreportedManagedCardTransaction: transaction ? isUnreportedManagedCardTransaction : false,
             createReport: policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction || isUnreportedManagedCardTransaction ? createReport : undefined,
-            selectNoReport: isNoReportSupported ? selectNoReport : undefined,
             targetOwnerAccountID: ownerAccountID,
         },
     };
