@@ -1982,23 +1982,28 @@ function getApproverPendingActionByMemberEmail(
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
     const submitters = new Set<string>();
-    const defaultWorkflowSubmitters = new Set<string>();
     for (const rule of Object.values(rules)) {
         for (const email of extractSubmitterEmails(rule)) {
             submitters.add(email);
-            if (rule.isDefaultApprovalWorkflow) {
-                defaultWorkflowSubmitters.add(email);
-            }
         }
     }
 
     const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
     const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
+    // Rules can mark more than one workflow as the default, but only one is, so the members of the others still count as
+    // being in a workflow. A rule can be shared with another workflow, so the default workflow's members are the
+    // submitters every one of its rules lists.
+    let defaultWorkflowSubmitters: Set<string> | undefined;
+    for (const rule of canReadDefaultWorkflowFromRules ? Object.values(getDefaultWorkflowRules(rules, defaultApprover)) : []) {
+        const ruleSubmitters = extractSubmitterEmails(rule);
+        defaultWorkflowSubmitters = new Set(defaultWorkflowSubmitters ? ruleSubmitters.filter((email) => defaultWorkflowSubmitters?.has(email)) : ruleSubmitters);
+    }
+
     const result: Record<string, string> = {};
     for (const submitter of submitters) {
         // Resolving the chain is the expensive part, so skip it for submitters the rules already exclude.
-        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters.has(submitter)) {
+        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters?.has(submitter)) {
             continue;
         }
 

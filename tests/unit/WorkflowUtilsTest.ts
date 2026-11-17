@@ -2699,6 +2699,21 @@ describe('WorkflowUtils', () => {
 
                 expect(getRulesSubmitterToFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '1@example.com'});
             });
+
+            it('Should still list the members of a second default-marked workflow', () => {
+                // Given two default-marked workflows, member 5's starting at the default approver and member 6's at approver 2,
+                // as rules saved before the backend refused a second default can declare
+                const rules = keyRules([
+                    ...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})),
+                    ...buildApprovalWorkflowRules(buildWorkflow([6], [2], {isDefault: true})),
+                ]);
+
+                // When the members already in a workflow are listed, with approver 1 as the default approver
+                const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, {}, '1@example.com');
+
+                // Then member 6 is listed, since only member 5's workflow is the default one, so moving 6 still warns the admin
+                expect(submitterToFirstApprover).toEqual({'6@example.com': '2@example.com'});
+            });
         });
 
         describe('getRulesSubmitterToWorkflowKey', () => {
