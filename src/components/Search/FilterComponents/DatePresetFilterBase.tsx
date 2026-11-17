@@ -388,13 +388,7 @@ function DatePresetFilterBase({
     const handleSingleDateSelected = (date: Date) => {
         setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
     };
-    // Keep authentication in press handlers so React Compiler does not treat the callbacks' ref reads as render-time access.
-    const selectCustomDateMode = () => {
-        callIfAuthenticated(() => selectDateModifier(customDateModifier), session)();
-    };
-    const selectCustomRangeMode = () => {
-        callIfAuthenticated(() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE), session)();
-    };
+    const selectCustomDateMode = () => selectDateModifier(customDateModifier);
 
     if (!selectedDateModifier) {
         return (
@@ -435,7 +429,7 @@ function DatePresetFilterBase({
                     <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
                         isCompact
-                        onPress={selectCustomDateMode}
+                        onPress={() => callIfAuthenticated(selectCustomDateMode, session)()}
                     >
                         <MenuItem.Row>
                             <MenuItem.Content>
@@ -451,7 +445,7 @@ function DatePresetFilterBase({
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
                     isCompact
-                    onPress={selectCustomRangeMode}
+                    onPress={() => callIfAuthenticated(() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE), session)()}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
