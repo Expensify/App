@@ -24,33 +24,24 @@ import {leaveGroupChat, leaveRoom} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
-import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type ReportDetailsMenuLeaveItemProps = {
     reportID: string;
 };
 
-type ReportDetailsMenuLeaveItemContentProps = {
-    report: OnyxTypes.Report;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    isAnonymousUser: boolean;
-    isReportArchived: boolean;
-};
-
-function ReportDetailsMenuLeaveItemContent({report, policy, currentUserAccountID, isAnonymousUser, isReportArchived}: ReportDetailsMenuLeaveItemContentProps) {
+function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit']);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(report);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {selector: pendingChatMembersSelector});
-    const [reportNameValuePairsArchived] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingChatMembersSelector});
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -58,15 +49,27 @@ function ReportDetailsMenuLeaveItemContent({report, policy, currentUserAccountID
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [personalDetails] = useAllPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const isAnonymousUser = useIsAnonymousUser();
+    const isReportArchived = useReportIsArchived(reportID);
     const {showConfirmModal} = useConfirmModal();
+
+    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, isAnonymousUser, isReportArchived, parentReportAction);
+
+    if (!report || !shouldShowLeaveButton) {
+        return null;
+    }
 
     const isPolicyAdmin = isPolicyAdminUtil(policy);
     const isPolicyEmployee = isPolicyEmployeeUtil(report.policyID, policy);
     const isPolicyGuest = isPolicyGuestUtil(policy);
     const isRootGroupChat = isRootGroupChatUtil(report, isReportArchived);
 
-    const leaveChat = () => {
-        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID, reportNameValuePairsArchived)?.reportID;
+    const leaveChat = async () => {
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot
+        const allReportNameValuePairs = await Onyx.get(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+        const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID, allReportNameValuePairs)?.reportID;
         if (isRootGroupChat) {
             leaveGroupChat(
                 report,
@@ -133,32 +136,6 @@ function ReportDetailsMenuLeaveItemContent({report, policy, currentUserAccountID
                 </MenuItem.Content>
             </MenuItem.Row>
         </MenuItem.Root>
-    );
-}
-
-function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const parentReportAction = useParentReportAction(report);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails?.accountID;
-    const isAnonymousUser = useIsAnonymousUser();
-    const isReportArchived = useReportIsArchived(reportID);
-
-    const shouldShowLeaveButton = canLeaveChat(report, policy, currentUserAccountID, isAnonymousUser, isReportArchived, parentReportAction);
-
-    if (!report || !shouldShowLeaveButton) {
-        return null;
-    }
-
-    return (
-        <ReportDetailsMenuLeaveItemContent
-            report={report}
-            policy={policy}
-            currentUserAccountID={currentUserAccountID}
-            isAnonymousUser={isAnonymousUser}
-            isReportArchived={isReportArchived}
-        />
     );
 }
 
