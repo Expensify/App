@@ -1,5 +1,6 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -10,7 +11,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import {canRoleCreateExpenses, canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -25,10 +26,12 @@ import ROUTES from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 
+import type {RefObject} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useEffect, useState} from 'react';
 
 import type {WorkspaceRowData} from '.';
 
@@ -49,6 +52,9 @@ type WorkspaceRowThreeDotsMenuProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
+
+    /** Ref to the menu, shared with the row so it can re-measure the open menu when the row moves */
+    threeDotsMenuRef: RefObject<ThreeDotsMenuHandle | null>;
 };
 
 /**
@@ -56,8 +62,8 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
-    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID, threeDotsMenuRef}: WorkspaceRowThreeDotsMenuProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -90,7 +96,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             return;
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
-    }, [isLoadingBill]);
+    }, [isLoadingBill, threeDotsMenuRef]);
 
     const isDefault = activePolicyID === item.policyID;
     const isOwner = item.ownerAccountID === currentUserPersonalDetails.accountID;
@@ -100,6 +106,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         {
             icon: icons.Building,
             text: translate('workspace.common.goToWorkspace'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_GO_TO_WORKSPACE,
             onSelected: item.action,
         },
     ];
@@ -109,7 +116,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Exit,
                 text: translate('common.leave'),
-                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE)),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_LEAVE,
+                onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), session),
                 shouldCallAfterModalHide: true,
             });
         }
@@ -118,12 +126,14 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Plus,
                 text: translate('workspace.common.duplicateWorkspace'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_DUPLICATE,
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
             });
             if (item.isEligibleToCopy) {
                 menuItems.push({
                     icon: icons.Copy,
                     text: translate('workspace.copyPolicySettings.title'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_COPY_SETTINGS,
                     onSelected: () => {
                         if (!item.policyID) {
                             return;
@@ -140,6 +150,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Star,
                 text: translate('workspace.common.setAsDefault'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_SET_AS_DEFAULT,
                 onSelected: () => {
                     if (!item.policyID || !activePolicyID) {
                         return;
@@ -153,6 +164,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: canArchivePolicies ? icons.Box : icons.Trashcan,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
+                sentryLabel: canArchivePolicies ? CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_ARCHIVE : CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_DELETE,
                 shouldShowLoadingSpinnerIcon: !canArchivePolicies && !!isLoadingBill && pendingDeletePolicyID === item.policyID,
                 onSelected: () => {
                     // The confirmation modal is handled by ArchiveWorkspaceFlow, mounted by the page.
@@ -178,7 +190,8 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         menuItems.push({
             icon: icons.ArrowCircleClockwise,
             text: translate('workspace.common.unarchive'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE)),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_UNARCHIVE,
+            onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), session),
             shouldCallAfterModalHide: true,
         });
     }
@@ -188,6 +201,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         menuItems.push({
             icon: icons.Transfer,
             text: translate('workspace.people.transferOwner'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU_TRANSFER_OWNER,
             onSelected: () => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP),
             shouldCallAfterModalHide: true,
         });

@@ -26,7 +26,7 @@ const RULE_BY_CATEGORY = {
 // A `Config` diagnostic means the compiler options are wrong; ignoring it would silence every rule.
 const CONFIG_CATEGORY = 'Config';
 
-// ESLint does not enable the rules behind these categories.
+// eslint-plugin-react-hooks does not enable the rules behind these categories.
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',
     'EffectDependencies',

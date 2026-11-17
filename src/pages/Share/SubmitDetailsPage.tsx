@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ScanConfirmationList from '@components/MoneyRequestConfirmationList/variants/ScanConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -322,7 +322,7 @@ function SubmitDetailsPage({
 
     const hasNavigationDestination = !!transaction && !!postSubmitNavigationReportID;
     // Empty draft skips REPORT_DRAFT fallback — report must be in COLLECTION.REPORT to render behind the share modal.
-    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport(postSubmitNavigationReportID, undefined, undefined, {}) : undefined;
+    const destinationReportInCollection = hasNavigationDestination ? getReportOrDraftReport({reportID: postSubmitNavigationReportID, reportDraft: {}}) : undefined;
     // Destination report isn't in COLLECTION.REPORT yet (e.g. a recipient with no existing chat) — it will only
     // exist after the expense create writes it optimistically, so pre-mounting is impossible.
     const isDestinationReportMissing = hasNavigationDestination && !destinationReportInCollection?.reportID;
@@ -397,6 +397,8 @@ function SubmitDetailsPage({
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
+            formHasBeenSubmitted.current = false;
+            setIsConfirming(false);
             return;
         }
 
@@ -446,6 +448,7 @@ function SubmitDetailsPage({
                     existingTransaction: transaction,
                     isASAPSubmitBetaEnabled,
                     currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    currentUserPersonalDetails,
                     introSelected,
                     conciergeChat,
                     quickAction,
@@ -696,13 +699,12 @@ function SubmitDetailsPage({
                         }
                         performUpload(false);
                     }}
-                    onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
                 <View
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
                     onLayout={endOpenSubmitFlowSpan}
                 >
-                    <MoneyRequestConfirmationList
+                    <ScanConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
                         // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.

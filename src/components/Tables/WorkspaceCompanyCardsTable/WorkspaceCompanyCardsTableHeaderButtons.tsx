@@ -154,6 +154,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({
                     {/* Label size matches the balance and feed labels this link sits between. */}
                     <TextLink
                         onPress={viewTransactions}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_VIEW_TRANSACTIONS_LINK}
                         style={styles.label}
                     >
                         {translate('workspace.common.viewTransactions')}

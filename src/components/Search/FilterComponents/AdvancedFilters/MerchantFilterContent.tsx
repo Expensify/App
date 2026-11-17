@@ -9,6 +9,7 @@ import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -18,7 +19,7 @@ import {View} from 'react-native';
 
 import TextInputFilterContent from './TextInputFilterContent';
 
-type MerchantFilterContentProps = {
+type MerchantFilterContentProps = WithRequiredSentryLabel & {
     /** The Merchant filter key. */
     baseFilterKey: typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
 
@@ -36,9 +37,6 @@ type MerchantFilterContentProps = {
 
     /** The label used when the filter applies immediately. */
     buttonText?: string;
-
-    /** The Sentry label for the confirmation button. */
-    sentryLabel?: string;
 
     /** Whether the input should receive focus automatically. */
     autoFocus?: boolean;

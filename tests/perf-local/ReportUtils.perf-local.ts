@@ -131,7 +131,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons({report, formatPhoneNumber, translate: translateLocal, personalDetails, defaultIcon, defaultName, defaultAccountID: defaultIconId, policy}));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -234,7 +234,7 @@ describe('ReportUtils', () => {
         const transaction = createRandomTransaction(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+        await measureFunction(() => getTransactionDetails(transaction));
     });
 
     test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with random expenses on each report', async () => {

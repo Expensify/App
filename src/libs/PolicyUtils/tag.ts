@@ -33,6 +33,15 @@ function getTagListName(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: n
 }
 
 /**
+ * Gets the Onyx key and value of the tag list with the given orderWeight.
+ * Tag list names can repeat (e.g. "Sub-projects" stored under both "Sub-projects" and "Sub-projects_2"),
+ * so a tag list must be read and written by its key, never by its name.
+ */
+function getTagListEntryByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): [string, ValueOf<PolicyTagLists>] | undefined {
+    return Object.entries(policyTagList ?? {}).find(([, tagList]) => tagList?.orderWeight === orderWeight);
+}
+
+/**
  * Gets all tag lists of a policy
  */
 function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<PolicyTagLists>> {
@@ -177,11 +186,8 @@ function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, order
         tags: {},
         orderWeight: 0,
     };
-    if (isEmptyObject(policyTagList)) {
-        return tagListEmpty;
-    }
 
-    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+    return getTagListEntryByOrderWeight(policyTagList, orderWeight)?.[1] ?? tagListEmpty;
 }
 
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
@@ -364,6 +370,7 @@ function getTagListLabel(tagListName: string | undefined, fallbackLabel: string)
 export {
     getSortedTagKeys,
     getTagListName,
+    getTagListEntryByOrderWeight,
     getTagLists,
     hasTags,
     matchesParentTagsFilter,

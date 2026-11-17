@@ -1,8 +1,15 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {ChartValueFormatter} from '@components/Charts/types';
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
 import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
-import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {
+    TransactionApproverGroupListItemType,
+    TransactionCardGroupListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionPaidByGroupListItemType,
+} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
 import Text from '@components/Text';
 
@@ -30,15 +37,31 @@ type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
     rows: SearchChartDataRow[];
 
+    /** Formats a plotted value the way the chart labelled it. Absent when values are amounts, which the table writes in each group's own currency instead. */
+    formatValue?: ChartValueFormatter;
+
     isLoading?: boolean;
+
+    /** Defaults to `SKELETON_ROW_COUNT` */
+    skeletonRowCount?: number;
+
+    /** Called with the group whose row is pressed */
+    onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
-function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionCardGroupListItemType {
-    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+function isMemberGroup(
+    item: GroupedItem,
+): item is TransactionMemberGroupListItemType | TransactionApproverGroupListItemType | TransactionPaidByGroupListItemType | TransactionCardGroupListItemType {
+    return (
+        item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ||
+        item.groupedBy === CONST.SEARCH.GROUP_BY.CARD
+    );
 }
 
-function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
+function InsightsDataTable({rows, formatValue, isLoading, skeletonRowCount = SKELETON_ROW_COUNT, onRowPress}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -47,8 +70,11 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {cardPaddingHorizontal} = useLayoutSpacing();
 
+    // A count table lists the counts alone, leaving the money behind each one to the chart's tooltip, as an amount table leaves the counts.
+    const formatGroupValue = (item: GroupedItem, value: number) => (formatValue ? formatValue(value) : convertToDisplayString(item.total ?? 0, item.currency));
+
     if (isLoading) {
-        return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
+        return <InsightsDataTableSkeleton fixedNumItems={skeletonRowCount} />;
     }
 
     if (rows.length === 0) {
@@ -70,11 +96,8 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                 const isNewSpend = comparedValue === 0;
                 const changeColor = StyleUtils.getSpendChangeColor(isIncrease);
 
-                return (
-                    <View
-                        key={item.keyForList}
-                        style={[styles.flexRow, styles.alignItemsStart, styles.gap5]}
-                    >
+                const rowContent = (
+                    <>
                         <View style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsStart, styles.gap5]}>
                             {isMemberGroup(item) ? (
                                 <View style={[styles.chartInlineTableAvatarBorder, !!point.color && StyleUtils.getBorderColorStyle(point.color)]}>
@@ -90,7 +113,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                             <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
-                            <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
+                            <Text style={styles.textAlignRight}>{formatGroupValue(item, primaryValue ?? 0)}</Text>
                             {!!changePercentage && isNewSpend && (
                                 <Text
                                     style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}
@@ -115,7 +138,32 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                                 </View>
                             )}
                         </View>
-                    </View>
+                    </>
+                );
+                const rowStyle = [styles.flexRow, styles.alignItemsStart, styles.gap5];
+
+                if (!onRowPress) {
+                    return (
+                        <View
+                            key={item.keyForList}
+                            style={rowStyle}
+                        >
+                            {rowContent}
+                        </View>
+                    );
+                }
+
+                return (
+                    <PressableWithFeedback
+                        key={item.keyForList}
+                        onPress={() => onRowPress(item)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={point.label}
+                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
+                        style={rowStyle}
+                    >
+                        {rowContent}
+                    </PressableWithFeedback>
                 );
             })}
         </View>

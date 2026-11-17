@@ -355,7 +355,7 @@ ___
 - [ ] **Thresholds:** My proposal reduces Perceived Latency by at least 100ms
 
 ## 5. Pattern Detection & Prevention
-*Is the code logic being optimized something that should be prevented from being added to the app in the future (e.g., via an ESLint rule)?*
+*Is the code logic being optimized something that should be prevented from being added to the app in the future (e.g., via a lint rule)?*
 - [ ] Yes (Proposal: _________________)
 - [ ] No (It's a valid pattern, just unoptimized here)
 

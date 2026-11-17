@@ -1,7 +1,15 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
-import {buildSearchQueryJSON, getEmptyDateValues, getFilterFromQuery, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    getEmptyDateValues,
+    getFilterFromQuery,
+    getRangeBoundariesFromFormValue,
+    getRangeQueryValue,
+    isSearchDatePreset,
+    normalizeDatePreset,
+} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -15,8 +23,9 @@ const RUNNING_TOTAL_GROUP_BY_REGEX = new RegExp(`\\bgroup-?by:["']?${INSIGHTS_RU
 function parseDate(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'date'> | undefined {
     const dateFilters = queryJSON.flatFilters.filter(({key}) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap(({filters}) => filters);
 
-    const on = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value.toString();
-    if (on) {
+    const onValue = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value.toString();
+    if (onValue) {
+        const on = normalizeDatePreset(onValue);
         return {date: isSearchDatePreset(on) ? {preset: on} : {on}};
     }
 

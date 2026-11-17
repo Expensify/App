@@ -5,12 +5,14 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import useReportPickerActions from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerActions';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -45,8 +47,11 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest = false,
     isDistanceRequest = false,
     isPerDiemRequest = false,
+    isCreatingExpense = false,
+    isEditing = false,
     selectReport = jest.fn(),
     createReport,
+    onNavigateAway,
 }: {
     selectedReportID: string;
     selectedPolicyID?: string;
@@ -56,13 +61,19 @@ const renderIOURequestEditReportCommon = ({
     isOdometerDistanceRequest?: boolean;
     isDistanceRequest?: boolean;
     isPerDiemRequest?: boolean;
+    isCreatingExpense?: boolean;
+    isEditing?: boolean;
     selectReport?: jest.Mock;
     createReport?: jest.Mock;
+    onNavigateAway?: jest.Mock;
 }) =>
     render(
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <IOURequestEditReportCommon
+                    createReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    autoReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    removeFromReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
                     transactionPolicyID={transactionPolicyID}
@@ -72,12 +83,36 @@ const renderIOURequestEditReportCommon = ({
                     isDistanceRequest={isDistanceRequest}
                     selectReport={selectReport}
                     createReport={createReport}
+                    onNavigateAway={onNavigateAway}
                     backTo=""
                     isPerDiemRequest={isPerDiemRequest}
+                    isCreatingExpense={isCreatingExpense}
+                    isEditing={isEditing}
                 />
             </ComposeProviders>
         </NavigationContainer>,
     );
+
+function ReportPickerWithActions({action, transaction}: {action: IOUAction; transaction: Transaction}) {
+    const {listProps} = useReportPickerActions({
+        action,
+        transaction,
+        transactionID: transaction.transactionID,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        reportIDFromRoute: FAKE_REPORT_ID,
+        goBack: jest.fn(),
+    });
+
+    return (
+        <IOURequestEditReportCommon
+            {...listProps}
+            createReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+            backTo=""
+        />
+    );
+}
 
 describe('IOURequestEditReportCommon', () => {
     describe('RBR', () => {
@@ -146,6 +181,125 @@ describe('IOURequestEditReportCommon', () => {
             expect(dotIndicators).toHaveLength(0);
         });
 
+        it.each([
+            {isCreatingExpense: true, isEditing: false, shouldShowReport: false},
+            {isCreatingExpense: false, isEditing: true, shouldShowReport: true},
+            {isCreatingExpense: false, isEditing: false, shouldShowReport: true},
+        ])('preserves move permissions but uses save eligibility for creation: %j', async ({isCreatingExpense, isEditing, shouldShowReport}) => {
+            // Given an admin's retracted report containing only non-reimbursable expenses
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: FAKE_REPORT_ID,
+                    amount: -100,
+                    currency: 'USD',
+                    created: '2026-01-01',
+                    merchant: 'Merchant',
+                    reimbursable: false,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the same picker opens for creation, editing, or a caller that does not set isEditing
+            renderIOURequestEditReportCommon({selectedReportID: FAKE_REPORT_ID, selectedPolicyID: FAKE_POLICY_ID, isCreatingExpense, isEditing});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only creation hides the rejected destination, preserving all existing move callers
+            expect(!!screen.queryByText('Expense Report')).toBe(shouldShowReport);
+        });
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.EDIT])('forwards %s eligibility through the picker hook', async (action) => {
+            // Given an admin with an ineligible non-reimbursable report and an eligible open report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}`, {
+                    transactionID: FAKE_TRANSACTION_ID,
+                    reportID: FAKE_REPORT_ID,
+                    amount: -100,
+                    currency: 'USD',
+                    created: '2026-01-01',
+                    merchant: 'Merchant',
+                    reimbursable: false,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}eligibleReport`, {
+                    reportID: 'eligibleReport',
+                    reportName: 'Eligible Report',
+                    ownerAccountID: FAKE_ACCOUNT_ID,
+                    policyID: FAKE_POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the real hook supplies the picker props from the action, without setting isCreatingExpense directly
+            render(
+                <NavigationContainer>
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                        <ReportPickerWithActions
+                            action={action}
+                            transaction={{
+                                transactionID: 'draftExpense',
+                                reportID: FAKE_REPORT_ID,
+                                amount: -100,
+                                created: '2026-01-01',
+                                currency: 'USD',
+                                merchant: 'Merchant',
+                                participants: [{policyID: FAKE_POLICY_ID, reportID: FAKE_REPORT_ID, isPolicyExpenseChat: true}],
+                            }}
+                        />
+                    </ComposeProviders>
+                </NavigationContainer>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then creation hides the rejected destination, editing preserves the admin bypass, and eligible reports remain visible
+            expect(!!screen.queryByText('Expense Report')).toBe(action === CONST.IOU.ACTION.EDIT);
+            expect(screen.getByText('Eligible Report')).toBeTruthy();
+        });
+
+        it('does not apply moving eligibility to submitted reports during creation', async () => {
+            // Given an instant-submit workspace with payments off and a submitted reimbursable report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                    pendingAction: undefined,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the create-flow picker lists destinations
+            renderIOURequestEditReportCommon({selectedReportID: FAKE_REPORT_ID, selectedPolicyID: FAKE_POLICY_ID, isCreatingExpense: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a report accepted only for moving transactions is not offered for creation
+            expect(screen.queryByText('Expense Report')).toBeNull();
+        });
+
         const setUpCommuterExclusionTest = async () => {
             const currentReport: Report = {
                 reportID: 'currentReport',
@@ -184,6 +338,25 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(selectReport).not.toHaveBeenCalled();
+        });
+
+        it('closes an anchored container when a pick is blocked, so the block modal can navigate on without it', async () => {
+            // Given a manual distance expense whose report list opened in a container anchored to the expense form's row,
+            // and a report on a workspace with commuter exclusions, which blocks the move with a modal whose button may
+            // open the personal details page
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+            const onNavigateAway = jest.fn();
+
+            // When that report is picked
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport, onNavigateAway, isManualDistanceRequest: true});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            // Then the block modal shows, nothing is picked, and the container is told to close so it never stays under the page the modal opens
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(selectReport).not.toHaveBeenCalled();
+            expect(onNavigateAway).toHaveBeenCalledTimes(1);
         });
 
         it('allows moving a GPS distance expense to a report with commuter exclusions', async () => {
@@ -276,6 +449,30 @@ describe('IOURequestEditReportCommon', () => {
 
             expect(createReport).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('closes an anchored container when creating a report is blocked', async () => {
+            // Given a manual distance expense in an anchored container, on a workspace with commuter exclusions
+            const currentReport = await setUpCommuterExclusionTest();
+            const createReport = jest.fn();
+            const onNavigateAway = jest.fn();
+
+            // When Create report is pressed
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionPolicyID: FAKE_POLICY_ID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isManualDistanceRequest: true,
+                createReport,
+                onNavigateAway,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Create report'), {});
+
+            // Then no report is created, the block modal shows, and the container is told to close
+            expect(createReport).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(onNavigateAway).toHaveBeenCalledTimes(1);
         });
 
         it('blocks moving a per diem expense to a report whose policy is missing its custom unit', async () => {

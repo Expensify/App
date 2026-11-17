@@ -54,6 +54,7 @@ function SpendRuleListItem<TItem extends SpendRuleListItemType>({item, onSelectR
                     ))}
                 </View>
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SPEND_RULE_LIST_ITEM_CHECKBOX}
                     shouldSelectOnPressEnter
                     containerBorderRadius={999}
                     disabled={!item.isSelected}

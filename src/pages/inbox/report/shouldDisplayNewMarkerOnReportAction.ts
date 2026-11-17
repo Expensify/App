@@ -1,4 +1,4 @@
-import {isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionFromCurrentUser, isReportActionUnread, shouldHideNewMarker} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -90,7 +90,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     };
 
     // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-    const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
+    const isFromCurrentUser = isReportActionFromCurrentUser(message, currentUserAccountID);
     const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
 
     // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.
@@ -130,7 +130,7 @@ type GetUnreadMarkerReportActionParams = {
     /** The visible report actions to scan */
     visibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Index of the earliest message received while offline, used to limit the scan range */
+    /** Index of the earliest message received while offline; also limits the newest-first scan range */
     earliestReceivedOfflineMessageIndex: number | undefined;
 
     currentUserAccountID: number;
@@ -203,23 +203,28 @@ const getUnreadMarkerReportAction = ({
         : false;
 
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
-    const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
+    // The oldest-first list must still reach unread messages before the offline window, including explicit manual anchors.
+    const endIndex = isReversed ? 0 : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
 
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
         const reportAction = visibleReportActions.at(index);
 
-        if (!isReversed && reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+        if (
+            !reportAction ||
+            (!isReversed && reportAction.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) ||
+            (!activeManuallyMarkedUnreadReportActionID && !canReportActionTriggerUnreadMarker(reportAction, currentUserAccountID))
+        ) {
             continue;
         }
 
         let nextAction: OnyxTypes.ReportAction | undefined;
-        if (isReversed) {
-            nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
-        } else {
-            nextAction = visibleReportActions.at(index + 1);
-            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
-                nextAction = visibleReportActions.at(index + 2);
+        // Informational messages must not hide a real unread message beside them.
+        for (let nextIndex = index + step; isReversed ? nextIndex >= endIndex : nextIndex < endIndex; nextIndex += step) {
+            const candidate = visibleReportActions.at(nextIndex);
+            if (candidate && (isReversed || candidate.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID) && canReportActionTriggerUnreadMarker(candidate, currentUserAccountID)) {
+                nextAction = candidate;
+                break;
             }
         }
 

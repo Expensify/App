@@ -142,6 +142,11 @@ function ChooseTransferAccountPage() {
                 addBottomSafeAreaPadding
                 listFooterContent={
                     <MenuItemAction
+                        sentryLabel={
+                            walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD
+                                ? CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_TRANSFER_DEBIT_CARD
+                                : CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_TRANSFER_BANK_ACCOUNT
+                        }
                         onPress={navigateToAddPaymentMethodPage}
                         title={
                             walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT

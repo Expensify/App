@@ -96,6 +96,18 @@ const VictoryTheme = {
         /** Base domain padding applied to all sides */
         domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
     },
+    averageLine: {
+        /** Stroke width of the dashed average line */
+        strokeWidth: 1,
+        /** Opacity of the dashed average line */
+        opacity: 0.5,
+        /** Horizontal padding (px) between the average's value pill and its text, matching the app's tooltips */
+        pillPaddingHorizontal: 8,
+        /** Vertical padding (px) between the average's value pill and its text, matching the app's tooltips */
+        pillPaddingVertical: 4,
+        /** Gap (px) between the average's value pill and the widest y-axis label */
+        pillLabelGap: 5,
+    },
     pie: {
         /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
         startAngle: -90,

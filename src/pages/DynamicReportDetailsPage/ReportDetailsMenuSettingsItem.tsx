@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,14 +33,13 @@ function ReportDetailsMenuSettingsItem({reportID}: ReportDetailsMenuSettingsItem
     }
 
     return (
-        <MenuItem
+        <MenuItemNavigation
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.SETTINGS}
             title={translate('common.settings')}
             icon={expensifyIcons.Gear}
             onPress={() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS.path));
             }}
-            isAnonymousAction={false}
-            shouldShowRightIcon
         />
     );
 }

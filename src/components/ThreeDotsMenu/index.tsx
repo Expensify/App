@@ -25,10 +25,12 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ComponentRef} from 'react';
 
+import {isModalCoveringSelector} from '@selectors/Modal';
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
+import type {ThreeDotsMenuHandle} from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -60,7 +62,7 @@ function ThreeDotsMenu({
     sentryLabel,
     isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [isCoveredByModal] = useOnyx(ONYXKEYS.MODAL, {selector: isModalCoveringSelector});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -70,7 +72,7 @@ function ThreeDotsMenu({
     const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
-    const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
+    const isBehindModal = isCoveredByModal && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -124,10 +126,21 @@ function ThreeDotsMenu({
         }
     };
 
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+    const updateMenuPosition = () => {
+        if (!getMenuPosition || !isPopupMenuVisible) {
+            return;
+        }
+
+        getMenuPosition().then((value) => {
+            setPosition(value);
+        });
+    };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
         isPopupMenuVisible,
         hidePopoverMenu,
         onThreeDotsPress,
+        updateMenuPosition,
     }));
     useEffect(() => {
         if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
@@ -137,14 +150,8 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        updateMenuPosition();
+    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {

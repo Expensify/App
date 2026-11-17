@@ -2,11 +2,10 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +19,7 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 import type {InputModeOptions} from 'react-native';
 
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
@@ -87,8 +86,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const internalInputRef = useRef<AnimatedTextInputRef>(null);
-    useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
+    const {inputCallbackRef} = useAutoFocusInput();
 
     return (
         <FormProvider
@@ -120,7 +118,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         disabled={disabled}
                         placeholder={placeholder}
                         autoFocus={!shouldDelayAutoFocus}
-                        ref={internalInputRef}
+                        ref={shouldDelayAutoFocus ? inputCallbackRef : undefined}
                         forwardedFSClass={forwardedFSClass}
                     />
                 </View>

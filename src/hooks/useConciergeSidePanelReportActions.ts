@@ -1,25 +1,12 @@
 import DateUtils from '@libs/DateUtils';
-import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useLayoutEffect, useState} from 'react';
-
-/** An OPEN task assigned to the current user. Canceled tasks stay OPEN optimistically, so deleted parents are excluded. */
-
-function isOpenChildTaskAction(action: OnyxTypes.ReportAction, currentUserAccountID: number): boolean {
-    return (
-        action.childType === CONST.REPORT.TYPE.TASK &&
-        action.childManagerAccountID === currentUserAccountID &&
-        action.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
-        action.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-        !isDeletedParentAction(action)
-    );
-}
+import {useState} from 'react';
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -32,11 +19,6 @@ type UseConciergeSidePanelReportActionsParams = {
     currentUserAccountID: number;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
-    isConciergeMainDM?: boolean;
-    showFullHistory?: boolean;
-    onSetShowFullHistory?: (show: boolean) => void;
-    hadMessagesAtSessionStart?: boolean;
-    onSetHadMessagesAtSessionStart?: (value: boolean) => void;
 };
 
 function useConciergeSidePanelReportActions({
@@ -50,18 +32,8 @@ function useConciergeSidePanelReportActions({
     currentUserAccountID,
     greetingText,
     loadOlderChats,
-    isConciergeMainDM,
-    showFullHistory: externalShowFullHistory,
-    onSetShowFullHistory,
-    hadMessagesAtSessionStart: externalHadMessagesAtSessionStart,
-    onSetHadMessagesAtSessionStart,
 }: UseConciergeSidePanelReportActionsParams) {
-    const [localShowFullHistory, setLocalShowFullHistory] = useState(false);
-    const [localHadMessagesAtSessionStart, setLocalHadMessagesAtSessionStart] = useState(
-        () =>
-            externalHadMessagesAtSessionStart ??
-            (!!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime)),
-    );
+    const [showFullHistory, setShowFullHistory] = useState(false);
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
@@ -69,19 +41,13 @@ function useConciergeSidePanelReportActions({
     // them sticky rather than re-deriving visibility from the timestamp.
     const [sessionSentActionIDs, setSessionSentActionIDs] = useState<ReadonlySet<string>>(() => new Set());
 
-    const hadMessagesAtSessionStart = localHadMessagesAtSessionStart;
-    const showFullHistory = externalShowFullHistory ?? localShowFullHistory;
-    const setShowFullHistory = onSetShowFullHistory ?? setLocalShowFullHistory;
-
     if (prevSessionStartTime !== sessionStartTime) {
         setPrevSessionStartTime(sessionStartTime);
-        setLocalShowFullHistory(false);
-        const messagesExistAtStart = !!isConciergeMainDM && !!sessionStartTime && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
-        setLocalHadMessagesAtSessionStart(messagesExistAtStart);
+        setShowFullHistory(false);
         setSessionSentActionIDs(new Set());
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
-        setLocalShowFullHistory(false);
+        setShowFullHistory(false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
@@ -93,10 +59,6 @@ function useConciergeSidePanelReportActions({
     if (pendingSentActionIDs.some((reportActionID) => !sessionSentActionIDs.has(reportActionID))) {
         setSessionSentActionIDs((prev) => new Set([...prev, ...pendingSentActionIDs]));
     }
-
-    useLayoutEffect(() => {
-        onSetHadMessagesAtSessionStart?.(localHadMessagesAtSessionStart);
-    }, [localHadMessagesAtSessionStart, onSetHadMessagesAtSessionStart]);
 
     // Check if the user had sent any message BEFORE this session started.
     // Uses sessionStartTime as the boundary — any user message created before the
@@ -125,18 +87,10 @@ function useConciergeSidePanelReportActions({
         hasPreviousMessages = hasPreSessionActionInLoadedSet || hasOlderActions;
     }
 
-    // Main DM only: check if there are any messages (from any actor) after sessionStartTime.
-    // When true, we have unread content to display and should not enter welcome mode.
-    const hasMessagesInSession =
-        !(!isConciergeMainDM || !isConciergeHiddenHistory || !sessionStartTime) && visibleReportActions.some((action) => !isCreatedAction(action) && action.created >= sessionStartTime);
-
-    // Main DM only: the welcome state must stand down for a pinned task, or `filterActions` returns before it renders.
-    const hasOpenChildTask = !(!isConciergeMainDM || !isConciergeHiddenHistory) && visibleReportActions.some((action) => isOpenChildTaskAction(action, currentUserAccountID));
-
     // A re-stamp flips `hasUserSentMessage` too, so the sticky set is what keeps the welcome state from coming back.
     const hasSentInSession = hasUserSentMessage || sessionSentActionIDs.size > 0;
-    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory && !hasMessagesInSession && !hasOpenChildTask;
-    const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory && (!isConciergeMainDM || !hadMessagesAtSessionStart);
+    const showConciergeSidePanelWelcome = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !hasSentInSession && !showFullHistory;
+    const showConciergeGreeting = isConciergeHiddenHistory && hadUserMessageAtSessionStart && !showFullHistory;
 
     let conciergeGreetingAction;
     if (!showConciergeGreeting) {
@@ -154,7 +108,7 @@ function useConciergeSidePanelReportActions({
     // Used to filter actions so that only messages from the first user message
     // onwards are shown (upstream side panel behavior).
     const firstUserMessageCreated =
-        isConciergeMainDM || showConciergeSidePanelWelcome || !isConciergeHiddenHistory || !hasUserSentMessage || !sessionStartTime
+        showConciergeSidePanelWelcome || !isConciergeHiddenHistory || !hasUserSentMessage || !sessionStartTime
             ? undefined
             : reportActions.reduce<string | undefined>((earliest, action) => {
                   const isCurrentSessionUserMessage =
@@ -174,15 +128,6 @@ function useConciergeSidePanelReportActions({
         // Already shown this session — keep it whatever the server stamped on it.
         if (sessionSentActionIDs.has(action.reportActionID)) {
             return true;
-        }
-        if (isConciergeMainDM) {
-            // Pin a still-open task so collapsing read history never buries something the user has to act on.
-            return (
-                isCreatedAction(action) ||
-                isCurrentUserPendingAddAction(action, currentUserAccountID) ||
-                isOpenChildTaskAction(action, currentUserAccountID) ||
-                action.created >= sessionStartTime
-            );
         }
         if (!firstUserMessageCreated) {
             return false;
@@ -217,7 +162,7 @@ function useConciergeSidePanelReportActions({
         if (filtered.length === 0) {
             // Side panel: nothing matched the current session yet (e.g. just after reopen, before the new
             // message propagates). Show the greeting instead of `actions` to avoid flashing stale history.
-            if (!isConciergeMainDM && conciergeGreetingAction) {
+            if (conciergeGreetingAction) {
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }

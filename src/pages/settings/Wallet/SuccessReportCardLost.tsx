@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 import React from 'react';
@@ -22,6 +23,7 @@ function SuccessReportCardLost({cardDetailsPath}: {cardDetailsPath: Route}) {
             heading={translate('reportCardLostOrDamaged.successTitle')}
             description={translate('reportCardLostOrDamaged.successDescription')}
             illustration={illustrations.CardReplacementSuccess}
+            buttonSentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_LOST_SUCCESS_CONFIRM}
             onButtonPress={() => {
                 // Going back with compareParams: false collapses the flow onto the deleted card route and
                 // replaces its cardID with the replacement card instead of a stale/NotFound route.

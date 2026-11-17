@@ -135,4 +135,40 @@ describe('AddressPageTest', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Legacy Suite')).toBeDefined();
     });
+
+    it('should default the country to the IP-derived country code', async () => {
+        // Given no saved address and a valid country code detected from the IP address
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: []});
+            await Onyx.set(ONYXKEYS.COUNTRY, 'CA');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the page mounts
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the detected country is preselected
+        expect(screen.getByText('Canada')).toBeOnTheScreen();
+    });
+
+    it('should leave the country empty when the IP-derived value is not a country code', async () => {
+        // Given no saved address and a detected value that is not a known country, so it must not reach the country picker as a country
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: []});
+            await Onyx.set(ONYXKEYS.COUNTRY, 'Not a country');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the page mounts
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no country is preselected and the raw value is not shown
+        expect(screen.getByLabelText('Address line 1')).toBeOnTheScreen();
+        expect(screen.queryByText(/Not a country/)).not.toBeOnTheScreen();
+        expect(screen.queryByText('United States')).not.toBeOnTheScreen();
+    });
 });

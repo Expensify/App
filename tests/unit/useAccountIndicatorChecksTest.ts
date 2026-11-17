@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import useAccountIndicatorChecks from '@hooks/useAccountIndicatorChecks';
 
 import CONST from '@src/CONST';
@@ -71,6 +73,54 @@ describe('useAccountIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('returns HAS_PAYMENT_METHOD_ERROR when a bank account has a broken Plaid connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                accountData: {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('does not return HAS_PAYMENT_METHOD_ERROR when the Plaid connection is healthy', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            12345: {
+                                methodID: 12345,
+                                accountData: {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: false}}}}},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
         it('returns HAS_REIMBURSEMENT_ACCOUNT_ERRORS when reimbursement account has errors', async () => {
@@ -629,6 +679,71 @@ describe('useAccountIndicatorChecks', () => {
 
             expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO);
         });
+
+        it('returns HAS_WISE_MORE_INFO_NEEDED_INFO when Wise needs more info on a bank account', async () => {
+            // Given a bank account Wise asked for more info on, for a user on the global reimbursements beta
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
+                            12345: {
+                                methodID: 12345,
+                                bankCurrency: CONST.CURRENCY.USD,
+                                accountData: {
+                                    bankAccountID: 12345,
+                                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                    additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}},
+                                },
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the Account tab checks what to flag
+            const {result} = renderHook(() => useAccountIndicatorChecks(), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it shows the green dot, so the admin finds the Wallet prompt and sends Wise the info
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_WISE_MORE_INFO_NEEDED_INFO);
+        });
+
+        it('does not flag a bank account Wise needs more info on without the global reimbursements beta', async () => {
+            // Given a bank account Wise asked for more info on, for a user without the beta
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
+                            12345: {
+                                methodID: 12345,
+                                bankCurrency: CONST.CURRENCY.USD,
+                                accountData: {
+                                    bankAccountID: 12345,
+                                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                                    additionalData: {currency: CONST.CURRENCY.USD, wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}},
+                                },
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the Account tab checks what to flag
+            const {result} = renderHook(() => useAccountIndicatorChecks(), {wrapper: OnyxListItemProvider});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is flagged, since the Wallet doesn't show the Wise prompt to users outside the beta
+            expect(result.current.infoStatus).toBeUndefined();
+        });
     });
 
     describe('no errors or info', () => {
@@ -688,6 +803,48 @@ describe('useAccountIndicatorChecks', () => {
     });
 
     describe('error takes priority over info', () => {
+        it('returns the first truthy status in each category when multiple checks match', async () => {
+            // Given simultaneous wallet and bank-account errors, plus login and subscription info
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {errors: {error: 'Wallet error'}},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- This fixture key is a numeric bank account ID, so it cannot follow the naming rule.
+                            12345: {
+                                methodID: 12345,
+                                errors: {error: 'Bank account error'},
+                            },
+                        },
+                        [ONYXKEYS.LOGINS]: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- This fixture key contains an email address, so it cannot follow the naming rule.
+                            '1_otheruser@expensify.com': {
+                                partnerID: 1,
+                                partnerUserID: 'different@expensify.com',
+                                validatedDate: undefined,
+                            },
+                        },
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.CARD_LIST]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the real hook evaluates both ordered check lists
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the first matching error and info status win independently
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO);
+        });
+
         it('returns both accountStatus and infoStatus independently', async () => {
             await act(async () => {
                 await Onyx.multiSet(

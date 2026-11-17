@@ -12,7 +12,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
-import {isExpensifyTeam} from './members';
+import {isExpensifyTeam} from './expensifyTeam';
 
 function getDomainNameForPolicy(policyID?: string): string {
     if (!policyID) {

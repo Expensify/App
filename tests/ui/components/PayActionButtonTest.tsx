@@ -17,6 +17,8 @@ import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
 const TEST_IOU_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
 const SELECTED_BANK_ACCOUNT_ID = 9999;
@@ -47,7 +49,6 @@ const mockReportPreviewActions = {
     startApprovedAnimation: jest.fn(),
     onPaymentOptionsShow: jest.fn(),
     onPaymentOptionsHide: jest.fn(),
-    onHoldMenuOpen: jest.fn(),
 };
 const mockReportPreviewUIState = {buttonMaxWidth: {}};
 const mockReportPreviewActionState = {
@@ -126,6 +127,14 @@ jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: jest.fn(() => u
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
+const mockShowHoldMenu = jest.fn();
+jest.mock('@hooks/useHoldMenuModal', () => ({__esModule: true, default: jest.fn(() => ({showHoldMenu: mockShowHoldMenu}))}));
+// The hold menu waits one animation frame before opening; run the frame right away so it opens synchronously.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+});
+
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     __esModule: true,
     useDelegateNoAccessState: jest.fn(() => ({isDelegateAccessRestricted: false})),
@@ -147,8 +156,7 @@ const mockedPayMoneyRequest = jest.mocked(payMoneyRequest);
 const mockedHasHeldExpenses = jest.mocked(hasHeldExpensesFromTransactions);
 const mockedHasViolations = jest.mocked(hasViolations);
 
-function renderPayActionButton(onHoldMenuOpen: jest.Mock) {
-    mockReportPreviewActions.onHoldMenuOpen = onHoldMenuOpen;
+function renderPayActionButton() {
     return render(<PayActionButton />);
 }
 
@@ -171,9 +179,11 @@ describe('PayActionButton', () => {
         });
     });
 
-    it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', () => {
-        renderPayActionButton(jest.fn());
+    it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', async () => {
+        // Given a report preview Pay button for a report without held expenses
+        renderPayActionButton();
 
+        // When the user pays with a business bank account
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -182,7 +192,9 @@ describe('PayActionButton', () => {
                 paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             });
         });
+        await waitForBatchedUpdates();
 
+        // Then the payment uses the selected bank account, because the business bank account choice must reach the API
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -191,24 +203,29 @@ describe('PayActionButton', () => {
         );
     });
 
-    it('does not send a bank account for non-VBBA payment types', () => {
-        renderPayActionButton(jest.fn());
+    it('does not send a bank account for non-VBBA payment types', async () => {
+        // Given a report preview Pay button for a report without held expenses
+        renderPayActionButton();
 
+        // When the user pays elsewhere while a bank account ID is still attached to the press
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 methodID: SELECTED_BANK_ACCOUNT_ID,
             });
         });
+        await waitForBatchedUpdates();
 
+        // Then no bank account is sent, because only business bank account payments use one
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({methodID: undefined}));
     });
 
-    it('forwards the selected bank account to the hold menu when the report has held expenses', () => {
+    it('opens the global hold menu with the selected bank account when the report has held expenses', async () => {
+        // Given a report preview whose report has held expenses
         mockedHasHeldExpenses.mockReturnValue(true);
-        const onHoldMenuOpen = jest.fn();
-        renderPayActionButton(onHoldMenuOpen);
+        renderPayActionButton();
 
+        // When the user pays with a business bank account
         act(() => {
             mockOnPressHolder.current?.({
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -217,8 +234,34 @@ describe('PayActionButton', () => {
                 paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             });
         });
+        await waitForBatchedUpdates();
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
+        // Then the global hold menu opens for this report with the chosen account, and the payment waits for the user's choice
+        expect(mockShowHoldMenu).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: TEST_IOU_REPORT_ID,
+                chatReportID: TEST_CHAT_REPORT_ID,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                methodID: SELECTED_BANK_ACCOUNT_ID,
+                transactionCount: 0,
+                onConfirm: mockReportPreviewActions.startAnimation,
+            }),
+        );
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not open the hold menu when the report has no held expenses', async () => {
+        // Given a report preview without held expenses
+        renderPayActionButton();
+
+        // When the user pays
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the payment goes straight through without asking about held expenses
+        expect(mockShowHoldMenu).not.toHaveBeenCalled();
+        expect(mockedPayMoneyRequest).toHaveBeenCalled();
     });
 });

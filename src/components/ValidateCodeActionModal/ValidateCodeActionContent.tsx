@@ -29,6 +29,7 @@ function ValidateCodeActionContent({
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
+    shouldClearErrorOnClose = true,
     sendValidateCode,
     validateCodeReasonCode,
     isLoading,
@@ -63,7 +64,9 @@ function ValidateCodeActionContent({
     }, [sendValidateCode, validateCodeActionMetadata]);
 
     const hide = () => {
-        clearError();
+        if (shouldClearErrorOnClose) {
+            clearError();
+        }
         onClose?.();
     };
 

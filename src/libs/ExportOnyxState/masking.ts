@@ -1,3 +1,6 @@
+import {isRecord} from '@libs/ObjectUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 
@@ -186,6 +189,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
 //    Only add a key here once you're sure it holds no personal data.
 // ============================================================
 const safeOnyxKeys = new Set<string>([
+    ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
     ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
     ONYXKEYS.ACTIVE_CLIENTS,
     ONYXKEYS.ACTIVE_SERVER,
@@ -219,8 +223,10 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT,
+    ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE,
+    ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
     ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
     ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
@@ -230,11 +236,13 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_METADATA,
     ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE,
     ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT,
+    ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS,
     ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM,
     ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB,
     ONYXKEYS.COLLECTION.SELECTED_TAB,
     ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
     ONYXKEYS.COLLECTION.SKIP_CONFIRMATION,
+    ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION,
     ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION,
     ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID,
     ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION,
@@ -288,12 +296,14 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.LAST_FULL_RECONNECT_TIME,
     ONYXKEYS.LAST_MEASURED_DATABASE_SIZE,
     ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS,
+    ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS,
     ONYXKEYS.MAX_CANVAS_AREA,
     ONYXKEYS.MAX_CANVAS_HEIGHT,
     ONYXKEYS.MAX_CANVAS_WIDTH,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.NEW_AGENT_TEMPLATE,
+    ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST,
     ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     ONYXKEYS.NVP_APP_REVIEW,
     ONYXKEYS.NVP_BLOCKED_FROM_CHAT,
@@ -320,6 +330,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_LAST_IPHONE_LOGIN,
     ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
     ONYXKEYS.NVP_MUTED_PLATFORMS,
+    ONYXKEYS.NVP_ODOO_WAITLIST,
     ONYXKEYS.NVP_ONBOARDING,
     ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
     ONYXKEYS.NVP_PERSONAL_OFFSETS,
@@ -359,6 +370,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
     ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
     ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+    ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
     ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
     ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
     ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
@@ -368,10 +380,14 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
     ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+    ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL,
     ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
     ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
     ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS,
     ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
+    ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
+    ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID,
+    ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
     ONYXKEYS.REPORT_LAST_VISIT_TIMES,
@@ -386,6 +402,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE,
     // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key is still on device until the migration drains it, so it stays in the safe-to-export set
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.SIDE_PANEL_WIDTH,
     ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.SINGLE_RHP_WIDTH,
     ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE,
@@ -419,7 +436,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.ATTACHMENT,
     ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
     ONYXKEYS.COLLECTION.BULK_ACTION,
-    ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
     ONYXKEYS.COLLECTION.DOMAIN,
     ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
@@ -443,6 +459,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
     ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT,
     ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
+    ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS,
     ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
     ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
@@ -451,6 +468,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
     ONYXKEYS.COLLECTION.RULE,
+    ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.SAML_METADATA,
     ONYXKEYS.COLLECTION.SECURITY_GROUP,
     ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
@@ -551,6 +569,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP,
     ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY,
+    ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT,
     ONYXKEYS.REUSABLE_DISTANCE_ROUTES,
     ONYXKEYS.REVIEW_DUPLICATES,
     ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE,
@@ -567,6 +586,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.SUPPORTAL_PERMISSION_DENIED,
     ONYXKEYS.TASK,
     ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW,
+    ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW,
     ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS,
     ONYXKEYS.TRAVEL_PROVISIONING,
     ONYXKEYS.UNSHARE_BANK_ACCOUNT,
@@ -584,26 +604,39 @@ const onyxKeysToMaskFragileData = new Set<string>([
 // ============================================================
 // Masking helpers
 // ============================================================
+const BENEFICIAL_OWNER_KEY_PREFIX = `${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX}_`;
+
 const keysToMask = new Set([
+    'accessSecret',
+    'accessToken',
+    'accessTokenSecret',
+    'access_token',
     'accountNumber',
     'addressCity',
     'addressName',
     'addressStreet',
     'addressZipCode',
+    'assetReportToken',
+    'asset_report_token',
     'authToken',
     'avatar',
     'avatarURL',
     'bank',
+    'cardCVV',
     'cardName',
     'cardNumber',
     'childReportName',
     'city',
+    'client_secret',
     'comment',
+    'companyTaxID',
     'description',
     'displayName',
+    'dob',
     'edits',
     'encryptedAuthToken',
     'firstName',
+    'intacctPassword',
     'lastMessageHtml',
     'lastMessageText',
     'lastName',
@@ -612,22 +645,40 @@ const keysToMask = new Set([
     'merchant',
     'modifiedMerchant',
     'name',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
+    'oldAccessToken',
+    'oldAssetReportToken',
     'oldPolicyName',
     'owner',
+    'password',
     'phoneNumber',
     'plaidAccessToken',
     'plaidAccountID',
+    'plaidAssetReportToken',
     'plaidLinkToken',
     'policyAvatar',
     'policyName',
     'primaryLogin',
+    'publicToken',
+    'public_token',
+    'refreshToken',
+    'refresh_token',
     'reportName',
     'routingNumber',
+    'secret',
+    'securityCode',
     'source',
+    'ssn',
+    'ssnLast4',
     'state',
     'street',
     'supportAuthToken',
+    'taxID',
+    'taxIDEINNumber',
     'title',
+    'tokenID',
+    'tokenSecret',
     'validateCode',
     'zip',
     'zipCode',
@@ -714,11 +765,11 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): u
         return data.map((item: unknown) => (typeof item === 'object' ? processOnyxKeyWithRule(key, item, rule) : item));
     }
 
-    if (typeof data === 'object') {
+    if (isRecord(data)) {
         const processedData: Record<string, unknown> = {};
 
-        for (const fieldKey of Object.keys(data as Record<string, unknown>)) {
-            const fieldValue = (data as Record<string, unknown>)[fieldKey];
+        for (const fieldKey of Object.keys(data)) {
+            const fieldValue = data[fieldKey];
 
             if (rule.maskList.includes(fieldKey)) {
                 processedData[fieldKey] = maskValuePreservingLength(fieldValue);
@@ -746,28 +797,39 @@ const processOnyxKeyWithRule = (key: string, data: unknown, rule: ExportRule): u
 };
 
 const maskEmail = (email: string, emailMap: Map<string, string>) => {
-    let maskedEmail = '';
-    if (!emailMap.has(email)) {
+    let maskedEmail = emailMap.get(email);
+    if (maskedEmail === undefined) {
         maskedEmail = randomizeEmail(email);
         emailMap.set(email, maskedEmail);
-    } else {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        maskedEmail = emailMap.get(email) as string;
     }
     return maskedEmail;
 };
 
-const maskFragileData = (data: OnyxState | unknown[] | null, emailMap: Map<string, string>, parentKey?: string): OnyxState | unknown[] | null => {
+const isMaskableNode = (value: unknown): value is Record<string, unknown> | readonly unknown[] | null => value === null || Array.isArray(value) || isRecord(value);
+
+/**
+ * Beneficial owner form fields are stored as `beneficialOwner_<ownerID>_<fieldName>`, so they only match keysToMask by their field name.
+ */
+function getFieldNameToMask(key: string): string {
+    if (!key.startsWith(BENEFICIAL_OWNER_KEY_PREFIX)) {
+        return key;
+    }
+    return key.split('_').at(-1) ?? key;
+}
+
+function maskFragileData(data: Record<string, unknown>, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown>;
+function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null;
+function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null {
     if (data === null) {
         return data;
     }
 
-    if (Array.isArray(data)) {
+    if (!isRecord(data)) {
         return data.map((item): unknown => {
             if (typeof item === 'string' && Str.isValidEmail(item)) {
                 return maskEmail(item, emailMap);
             }
-            return typeof item === 'object' ? maskFragileData(item as OnyxState, emailMap, parentKey) : item;
+            return isMaskableNode(item) ? maskFragileData(item, emailMap, parentKey) : item;
         });
     }
 
@@ -779,7 +841,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, emailMap: Map<strin
         }
 
         // Read value from source using the original key
-        const value = (data as Record<string, unknown>)[sourceKey];
+        const value = data[sourceKey];
 
         // Determine the destination key - mask it if it's an email
         // (e.g., in loginList where email addresses are used as object keys)
@@ -792,34 +854,34 @@ const maskFragileData = (data: OnyxState | unknown[] | null, emailMap: Map<strin
         }
 
         // Handle collection nodes (reportActions, reports, transactions)
-        if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
-        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
-        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+        if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, sourceKey);
+        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.REPORT) && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, sourceKey);
+        } else if (sourceKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, sourceKey);
         } else if (amountKeysToRandomize.has(sourceKey) && typeof value === 'number') {
             maskedData[destinationKey] = randomizeAmount(value);
             // Handle expensify_text_title masking
         } else if (parentKey === 'expensify_text_title' && sourceKey === 'value' && typeof value === 'string') {
             maskedData[destinationKey] = maskValuePreservingLength(value);
-        } else if (sourceKey === 'expensify_text_title' && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, 'expensify_text_title');
+        } else if (sourceKey === 'expensify_text_title' && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, 'expensify_text_title');
             // Handle nodes that need full masking
-        } else if (nodesToFullyMask.has(sourceKey) && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+        } else if (nodesToFullyMask.has(sourceKey) && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, sourceKey);
         } else if (parentKey && nodesToFullyMask.has(parentKey) && typeof value === 'string' && isDateValue(value)) {
             maskedData[destinationKey] = getCurrentDate();
         } else if (parentKey && nodesToFullyMask.has(parentKey) && typeof value === 'string') {
             maskedData[destinationKey] = maskValuePreservingLength(value);
-        } else if (parentKey && nodesToFullyMask.has(parentKey) && typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, parentKey);
-        } else if (keysToMask.has(sourceKey)) {
+        } else if (parentKey && nodesToFullyMask.has(parentKey) && isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, parentKey);
+        } else if (keysToMask.has(getFieldNameToMask(sourceKey))) {
             if (Array.isArray(value)) {
                 maskedData[destinationKey] = value.map(() => MASKING_PATTERN);
-            } else if (typeof value === 'object') {
+            } else if (value === null || isRecord(value)) {
                 // If the value is an object, don't mask it as a string - recursively process it
-                maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, sourceKey);
+                maskedData[destinationKey] = maskFragileData(value, emailMap, sourceKey);
             } else {
                 maskedData[destinationKey] = maskValuePreservingLength(value);
             }
@@ -829,21 +891,22 @@ const maskFragileData = (data: OnyxState | unknown[] | null, emailMap: Map<strin
             maskedData[destinationKey] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? '', emailMap));
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (destinationKey === 'text' || destinationKey === 'html')) {
             maskedData[destinationKey] = MASKING_PATTERN;
-        } else if (typeof value === 'object') {
-            maskedData[destinationKey] = maskFragileData(value as OnyxState, emailMap, destinationKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? destinationKey : parentKey);
+        } else if (isMaskableNode(value)) {
+            maskedData[destinationKey] = maskFragileData(value, emailMap, destinationKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? destinationKey : parentKey);
         } else {
             maskedData[destinationKey] = value;
         }
     }
 
     return maskedData;
-};
+}
 
 const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     const newState: OnyxState = {};
+    const privateOnyxKeys: ReadonlySet<unknown> = onyxKeysToRemove;
 
     for (const key of Object.keys(onyxState)) {
-        if (onyxKeysToRemove.has(key as ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXKEYS.DERIVED>)) {
+        if (privateOnyxKeys.has(key)) {
             continue;
         }
         newState[key] = onyxState[key];
@@ -887,7 +950,7 @@ const maskOnyxState = (data: OnyxState, isMaskingFragileDataEnabled?: boolean): 
                 if (keysWithRules.has(key)) {
                     maskedState[key] = onyxState[key];
                 } else {
-                    const masked = maskFragileData({[key]: onyxState[key]}, emailMap) as OnyxState;
+                    const masked = maskFragileData({[key]: onyxState[key]}, emailMap);
                     maskedState[key] = masked[key];
                 }
             }

@@ -14,7 +14,4 @@ function useSubmissionRecentlyUsedData(policyID: string | undefined) {
     };
 }
 
-type SubmissionRecentlyUsedData = ReturnType<typeof useSubmissionRecentlyUsedData>;
-
 export default useSubmissionRecentlyUsedData;
-export type {SubmissionRecentlyUsedData};

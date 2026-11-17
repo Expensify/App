@@ -31,6 +31,7 @@ import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -42,6 +43,7 @@ const anchorAlignment = {
 const TOOLTIP_HORIZONTAL_MARGIN = 48;
 
 function InboxTabSelector() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
@@ -105,13 +107,14 @@ function InboxTabSelector() {
             }
             // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
             // unread chat, so they mark all of them.
-            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived);
+            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived, session);
         });
     };
 
     const menuItems: PopoverMenuItem[] = [
         {
             text: translate('inboxTabs.markAllAsRead'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB_MARK_ALL_AS_READ,
             icon: icons.Checkmark,
             // Wait for the popover to fully hide before showing the confirmation modal so they don't overlap.
             shouldCallAfterModalHide: true,
@@ -123,6 +126,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.ALL,
             icon: icons.Feed,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
@@ -132,6 +136,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.UNREAD,
             icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
@@ -156,6 +161,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            sentryLabel: CONST.SENTRY_LABEL.LHN.INBOX_TAB.TODO,
             icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,

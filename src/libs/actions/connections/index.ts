@@ -393,6 +393,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION;
             break;
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION;
+            break;
         case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION;
             break;

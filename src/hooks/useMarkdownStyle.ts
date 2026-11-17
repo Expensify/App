@@ -89,6 +89,8 @@ function useMarkdownStyle(hasMessageOnlyEmojis: boolean, excludeStyles: Array<ke
             maxHeight: variables.inlineImagePreviewMaxSize,
             borderRadius: variables.componentBorderRadius,
             marginTop: 4,
+            // live-markdown's web style type requires this. 0 is the library's own default, so nothing changes visually.
+            marginBottom: 0,
         },
         loadingIndicator: {
             primaryColor: theme.spinner,

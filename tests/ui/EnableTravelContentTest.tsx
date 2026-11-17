@@ -97,7 +97,7 @@ function getTravelProvisioning(): Promise<TravelProvisioning | undefined> {
         const connection = Onyx.connect({
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

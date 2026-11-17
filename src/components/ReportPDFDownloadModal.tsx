@@ -74,6 +74,9 @@ function ReportPDFDownloadModal({reportID, closeModal, resolveModal}: ReportPDFD
             status={status}
             message={message}
             shouldTreatModalAsCovering
+            // Submit via PDF retracts the report and stops the submit animation once this resolves. Doing that behind
+            // the fading modal keeps the animation's exit from overlapping the Submit button on a clear screen.
+            shouldResolveOnDismiss
             onDownload={() => {
                 if (!hasFinishedPDFDownload) {
                     return;

@@ -2,6 +2,7 @@
  * Which accounting integration is connected, whether it is syncing, and who exports.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
+
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {isConnectionUnverified} from '@libs/actions/connections';
@@ -11,7 +12,9 @@ import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {ConnectionLastSync, ConnectionName, Connections, NetSuiteConnection, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
 
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 
@@ -124,8 +127,42 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
         policy?.connections?.campfire?.config?.export?.exporter,
+        policy?.connections?.financialforce?.config?.export?.exporter,
         policy?.connections?.businessCentral?.config?.export?.exporter,
+        policy?.connections?.zohoBooks?.config?.export?.exporter,
     ];
+}
+
+/**
+ * The accounting method configured on a connection. Each integration keeps it somewhere different, and a connection
+ * without one reads as accrual, the same default the backend's export rules use.
+ */
+function getIntegrationAccountingMethod(policy: Policy | undefined, connectedIntegration?: ConnectionName): ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD> {
+    const connections = policy?.connections;
+    const accrual = COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
+
+    switch (connectedIntegration) {
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return connections?.netsuite?.options?.config?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return connections?.quickbooksOnline?.config?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return connections?.quickbooksDesktop?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return connections?.xero?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return connections?.intacct?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET:
+            return connections?.rillet?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            return connections?.dualEntry?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return connections?.campfire?.config?.export?.accountingMethod ?? accrual;
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+            return connections?.businessCentral?.config?.export?.accountingMethod ?? accrual;
+        default:
+            return accrual;
+    }
 }
 
 export {
@@ -141,4 +178,5 @@ export {
     getCurrentConnectionName,
     isPreferredExporter,
     getConnectionExporters,
+    getIntegrationAccountingMethod,
 };
