@@ -35,7 +35,7 @@ function renderSearchActionHeader(action: ReportAction, report: Report | undefin
     return render(
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchScopeProvider isOnSearch={isOnSearch}>
-                {/* shouldUseLiveData: true keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
+                {/* SearchShouldUseLiveDataContext keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
                 <SearchShouldUseLiveDataContext value>
                     <SearchActionHeader
                         action={action}
