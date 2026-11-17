@@ -32276,7 +32276,7 @@ describe('isExportInProgress', () => {
 
 describe('hasUpdatedTotal', () => {
     const reportID = '9101';
-    const policy: Policy = {...createRandomPolicy(9101), outputCurrency: CONST.CURRENCY.USD};
+    const usdPolicy: Policy = {...createRandomPolicy(9101), outputCurrency: CONST.CURRENCY.USD};
     const expenseReport: Report = {
         ...createRandomReport(Number(reportID), undefined),
         reportID,
@@ -32300,7 +32300,7 @@ describe('hasUpdatedTotal', () => {
 
         // When checking whether the report total is up to date
         // Then it is
-        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(true);
+        expect(hasUpdatedTotal(expenseReport, usdPolicy, transactions)).toBe(true);
     });
 
     it('returns false when a pending expense is in a different currency than the report', () => {
@@ -32309,7 +32309,7 @@ describe('hasUpdatedTotal', () => {
 
         // When checking whether the report total is up to date
         // Then it is not, so the pay button is blocked until the total is recalculated
-        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(false);
+        expect(hasUpdatedTotal(expenseReport, usdPolicy, transactions)).toBe(false);
     });
 
     it('returns false when an expense is held but the report has no unheld total yet', () => {
@@ -32318,7 +32318,7 @@ describe('hasUpdatedTotal', () => {
 
         // When checking whether the report total is up to date
         // Then it is not, because the optimistic held expense is not reflected in the total
-        expect(hasUpdatedTotal(expenseReport, policy, transactions)).toBe(false);
+        expect(hasUpdatedTotal(expenseReport, usdPolicy, transactions)).toBe(false);
     });
 
     it('returns true when the report is missing, without looking at the transactions', () => {
@@ -32327,7 +32327,7 @@ describe('hasUpdatedTotal', () => {
 
         // When checking whether the total is up to date
         // Then it is, because there is no report total to wait for
-        expect(hasUpdatedTotal(undefined, policy, transactions)).toBe(true);
+        expect(hasUpdatedTotal(undefined, usdPolicy, transactions)).toBe(true);
     });
 
     it('uses only the transactions it is given instead of the ones stored for the report', async () => {
@@ -32337,8 +32337,8 @@ describe('hasUpdatedTotal', () => {
         await waitForBatchedUpdates();
 
         // When checking the total with an empty list, and then with the stored transaction
-        const resultWithEmptyList = hasUpdatedTotal(expenseReport, policy, []);
-        const resultWithStoredTransaction = hasUpdatedTotal(expenseReport, policy, [storedTransaction]);
+        const resultWithEmptyList = hasUpdatedTotal(expenseReport, usdPolicy, []);
+        const resultWithStoredTransaction = hasUpdatedTotal(expenseReport, usdPolicy, [storedTransaction]);
 
         // Then the stored transaction is ignored unless it is passed in, since the caller owns the transactions
         expect(resultWithEmptyList).toBe(true);
