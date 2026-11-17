@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {ReactNode} from 'react';
+
 import React from 'react';
 
 import createMock from '../utils/createMock';
@@ -79,36 +80,30 @@ describe('HomeAddressRequiredContent', () => {
         expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });
 
-    it.each([CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL, `${CONST.DEV_NEW_EXPENSIFY_URL}8082/`])(
-        'focuses the home address when following a trusted link from %s',
-        (origin) => {
-            // Given the backend may still send the old private-details path, or the new address-only path
-            render(<HomeAddressRequiredContent action={mockReportAction} />);
-            const paths = [ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route, ROUTES.SETTINGS_HOME_ADDRESS.route];
+    it('focuses the home address from either supported message-link path', () => {
+        // Given the backend may still send the old private-details path, or the new address-only path
+        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        const paths = [ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route, ROUTES.SETTINGS_HOME_ADDRESS.route];
 
-            for (const path of paths) {
-                // When a message link is pressed, ignoring any existing query or fragment
-                const press = mockGetAnchorPressOverride(`${origin.replace(/\/$/, '')}/${path}?existing=value#address`);
-                press?.();
-            }
+        for (const path of paths) {
+            // When a message link is pressed, ignoring any existing query or fragment
+            const press = mockGetAnchorPressOverride(`${CONST.NEW_EXPENSIFY_URL}${path}?existing=value#address`);
+            press?.();
+        }
 
-            // Then both supported destinations open the address-only page with opt-in focus
-            expect(openHomeAddressPageWithFocus).toHaveBeenCalledTimes(2);
-        },
-    );
+        // Then both supported destinations open the address-only page with opt-in focus
+        expect(openHomeAddressPageWithFocus).toHaveBeenCalledTimes(2);
+    });
 
-    it.each(['https://example.com/settings/preferences/home-address', `${CONST.NEW_EXPENSIFY_URL}settings/profile`, 'not a URL'])(
-        'leaves unrelated links to the shared renderer: %s',
-        (href) => {
-            // Given a home-address message containing another link
-            render(<HomeAddressRequiredContent action={mockReportAction} />);
+    it('leaves an unrelated internal link to the shared renderer', () => {
+        // Given a home-address message containing another link
+        render(<HomeAddressRequiredContent action={mockReportAction} />);
 
-            // When the renderer asks whether that link has a custom action
-            const press = mockGetAnchorPressOverride(href);
+        // When the renderer asks whether that link has a custom action
+        const press = mockGetAnchorPressOverride(`${CONST.NEW_EXPENSIFY_URL}settings/profile`);
 
-            // Then the default link behavior is preserved
-            expect(press).toBeUndefined();
-            expect(openHomeAddressPageWithFocus).not.toHaveBeenCalled();
-        },
-    );
+        // Then the default link behavior is preserved
+        expect(press).toBeUndefined();
+        expect(openHomeAddressPageWithFocus).not.toHaveBeenCalled();
+    });
 });

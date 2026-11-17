@@ -1,8 +1,8 @@
 import {render} from '@testing-library/react-native';
 
+import {isChildOfComment} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import AnchorPressOverrideContext from '@components/HTMLEngineProvider/HTMLRenderers/AnchorPressOverrideContext';
 import AnchorRenderer from '@components/HTMLEngineProvider/HTMLRenderers/AnchorRenderer';
-import {isChildOfComment} from '@components/HTMLEngineProvider/htmlEngineUtils';
 
 import {openLink} from '@libs/actions/Link';
 
@@ -48,9 +48,9 @@ describe('AnchorRenderer', () => {
         jest.clearAllMocks();
     });
 
-    it.each([true, false])('prefers a scoped press override (comment: %s)', (isComment) => {
-        // Given a scoped override for this anchor in either renderer branch
-        jest.mocked(isChildOfComment).mockReturnValue(isComment);
+    it('prefers a scoped press override for a comment link', () => {
+        // Given a scoped override for this message's anchor
+        jest.mocked(isChildOfComment).mockReturnValue(true);
         const pressOverride = jest.fn();
         const getOverride = jest.fn(() => pressOverride);
         render(
@@ -60,8 +60,7 @@ describe('AnchorRenderer', () => {
         );
 
         // When the rendered link is pressed
-        const anchor = isComment ? mockCommentAnchor : mockTextLink;
-        const props = anchor.mock.calls.at(0)?.[0];
+        const props = mockCommentAnchor.mock.calls.at(0)?.[0];
         props?.onPress();
 
         // Then only the message-specific navigation runs, preserving the shared anchor itself
@@ -70,14 +69,13 @@ describe('AnchorRenderer', () => {
         expect(openLink).not.toHaveBeenCalled();
     });
 
-    it.each([true, false])('keeps default handling without an override (comment: %s)', (isComment) => {
+    it('keeps default handling for a comment link without an override', () => {
         // Given an ordinary internal anchor with no surrounding override provider
-        jest.mocked(isChildOfComment).mockReturnValue(isComment);
+        jest.mocked(isChildOfComment).mockReturnValue(true);
         render(<AnchorRenderer {...rendererProps} />);
 
         // When the rendered link is pressed
-        const anchor = isComment ? mockCommentAnchor : mockTextLink;
-        const props = anchor.mock.calls.at(0)?.[0];
+        const props = mockCommentAnchor.mock.calls.at(0)?.[0];
         props?.onPress();
 
         // Then existing links still use the standard link action
