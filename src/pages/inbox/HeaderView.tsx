@@ -13,11 +13,13 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import SidePanelExpandButton from '@components/SidePanel/SidePanelExpandButton';
 import TalkToHumanButton from '@components/TalkToHumanButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -226,10 +228,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         formatPhoneNumber,
         parentReportName: derivedParentReportName,
         isParentReportArchived: isParentReportHeaderDataArchived,
+        currentUserAccountID,
     });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
-    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
+    const reportDescriptionHTML = getReportDescription(report);
+    const accountIDToName = useMentionedAccountIDToNameMap(reportDescriptionHTML);
+    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportDescriptionHTML, {accountIDToName}));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
@@ -544,6 +549,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback

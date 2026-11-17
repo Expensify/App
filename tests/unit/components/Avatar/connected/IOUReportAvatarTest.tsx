@@ -1,7 +1,6 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import IOUReportAvatar from '@components/Avatar/connected/IOUReportAvatar';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -10,6 +9,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 
 import React from 'react';
+
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
 const IOU_REPORT_ID = 'iou123';
 const CHAT_REPORT_ID = 'chat123';
@@ -50,8 +51,26 @@ const mockGetContainerStyles = jest.fn((size: string) => [{marginRight: 12, size
 // The component reads the IOU row, its chat row, the chat's actions and the personal details snapshot. Serving them from a map keeps the test free of Onyx setup.
 let mockOnyxData: Record<string, unknown> = {};
 
+// Lets a test change a row while the avatar is mounted, the way Onyx notifies its subscribers.
+const mockOnyxListeners = new Set<() => void>();
+const mockSubscribeToOnyxData = (onChange: () => void) => {
+    mockOnyxListeners.add(onChange);
+    return () => {
+        mockOnyxListeners.delete(onChange);
+    };
+};
+const mergeOnyxData = (key: string, value: unknown) => {
+    mockOnyxData = {...mockOnyxData, [key]: value};
+    for (const listener of mockOnyxListeners) {
+        listener();
+    }
+};
+
 jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: unknown) => unknown}) => {
-    const value = mockOnyxData[key];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- require() inside jest.mock returns an untyped module
+    const {useSyncExternalStore} = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call -- useSyncExternalStore comes from the untyped require() above
+    const value: unknown = useSyncExternalStore(mockSubscribeToOnyxData, () => mockOnyxData[key]);
     return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
 });
 
@@ -59,7 +78,7 @@ jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: un
 let mockSenderAccountID: number | undefined;
 const mockUseReportPreviewSenderID = jest.fn<number | undefined, [unknown]>(() => mockSenderAccountID);
 
-jest.mock('@components/ReportActionAvatars/useReportPreviewSenderID', () => (params: unknown) => mockUseReportPreviewSenderID(params));
+jest.mock('@hooks/useReportPreviewSenderID', () => (params: unknown) => mockUseReportPreviewSenderID(params));
 
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mockGetContainerStyles})));
 
@@ -81,8 +100,12 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-/** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
-const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={mockPersonalDetails}>{ui}</PersonalDetailsContext.Provider>);
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
+
+const renderWithPersonalDetails = (ui: React.ReactElement) => render(ui);
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -373,5 +396,18 @@ describe('IOUReportAvatar (connected)', () => {
 
         // Then the sender is named from the snapshot when there is one
         expect(mockCapturedSingleAvatarProps.avatar).toMatchObject({id: OWNER_ACCOUNT_ID, name: expectedName});
+    });
+
+    it('should follow its report preview when the preview changes after it renders', () => {
+        // Given an IOU report with two senders, rendered once from the report preview its chat holds
+        seedIOU();
+        renderAvatar();
+        expect(mockCapturedDiagonalAvatarsProps.icons).toEqual([MANAGER_ICON, OWNER_ICON]);
+
+        // When the chat's report preview changes to say a copilot created the report, without the avatar mounting again
+        act(() => mergeOnyxData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[REPORT_PREVIEW_ID]: reportPreview({delegateAccountID: DELEGATE_ACCOUNT_ID})}));
+
+        // Then the mounted avatar reads the new preview and leads with the copilot, so the chat needs no refresh to show who created the report
+        expect(mockCapturedDiagonalAvatarsProps.icons).toEqual([DELEGATE_ICON, OWNER_ICON]);
     });
 });

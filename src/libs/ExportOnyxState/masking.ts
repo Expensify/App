@@ -1,5 +1,6 @@
 import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxState from '@src/types/onyx/OnyxState';
 
@@ -328,6 +329,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_LAST_IPHONE_LOGIN,
     ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
     ONYXKEYS.NVP_MUTED_PLATFORMS,
+    ONYXKEYS.NVP_ODOO_WAITLIST,
     ONYXKEYS.NVP_ONBOARDING,
     ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT,
     ONYXKEYS.NVP_PERSONAL_OFFSETS,
@@ -344,7 +346,6 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.NVP_SEARCH_SIDEBAR,
     ONYXKEYS.NVP_SEEN_NEW_USER_MODAL,
     ONYXKEYS.NVP_SIDE_PANEL,
-    ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW,
     ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -368,6 +369,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
     ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS,
     ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+    ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
     ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
     ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
     ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
@@ -383,6 +385,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS,
     ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
     ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS,
+    ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID,
     ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
@@ -432,7 +435,6 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.ATTACHMENT,
     ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
     ONYXKEYS.COLLECTION.BULK_ACTION,
-    ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
     ONYXKEYS.COLLECTION.DOMAIN,
     ONYXKEYS.COLLECTION.DOMAIN_ERRORS,
@@ -465,6 +467,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,
     ONYXKEYS.COLLECTION.RULE,
+    ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION,
     ONYXKEYS.COLLECTION.SAML_METADATA,
     ONYXKEYS.COLLECTION.SECURITY_GROUP,
     ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT,
@@ -565,6 +568,7 @@ const onyxKeysToMaskFragileData = new Set<string>([
     ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP,
     ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY,
+    ONYXKEYS.REQUESTS_KEPT_ON_SAML_SIGN_OUT,
     ONYXKEYS.REUSABLE_DISTANCE_ROUTES,
     ONYXKEYS.REVIEW_DUPLICATES,
     ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE,
@@ -599,26 +603,39 @@ const onyxKeysToMaskFragileData = new Set<string>([
 // ============================================================
 // Masking helpers
 // ============================================================
+const BENEFICIAL_OWNER_KEY_PREFIX = `${CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX}_`;
+
 const keysToMask = new Set([
+    'accessSecret',
+    'accessToken',
+    'accessTokenSecret',
+    'access_token',
     'accountNumber',
     'addressCity',
     'addressName',
     'addressStreet',
     'addressZipCode',
+    'assetReportToken',
+    'asset_report_token',
     'authToken',
     'avatar',
     'avatarURL',
     'bank',
+    'cardCVV',
     'cardName',
     'cardNumber',
     'childReportName',
     'city',
+    'client_secret',
     'comment',
+    'companyTaxID',
     'description',
     'displayName',
+    'dob',
     'edits',
     'encryptedAuthToken',
     'firstName',
+    'intacctPassword',
     'lastMessageHtml',
     'lastMessageText',
     'lastName',
@@ -627,22 +644,40 @@ const keysToMask = new Set([
     'merchant',
     'modifiedMerchant',
     'name',
+    'netSuiteTokenID',
+    'netSuiteTokenSecret',
+    'oldAccessToken',
+    'oldAssetReportToken',
     'oldPolicyName',
     'owner',
+    'password',
     'phoneNumber',
     'plaidAccessToken',
     'plaidAccountID',
+    'plaidAssetReportToken',
     'plaidLinkToken',
     'policyAvatar',
     'policyName',
     'primaryLogin',
+    'publicToken',
+    'public_token',
+    'refreshToken',
+    'refresh_token',
     'reportName',
     'routingNumber',
+    'secret',
+    'securityCode',
     'source',
+    'ssn',
+    'ssnLast4',
     'state',
     'street',
     'supportAuthToken',
+    'taxID',
+    'taxIDEINNumber',
     'title',
+    'tokenID',
+    'tokenSecret',
     'validateCode',
     'zip',
     'zipCode',
@@ -771,6 +806,16 @@ const maskEmail = (email: string, emailMap: Map<string, string>) => {
 
 const isMaskableNode = (value: unknown): value is Record<string, unknown> | readonly unknown[] | null => value === null || Array.isArray(value) || isRecord(value);
 
+/**
+ * Beneficial owner form fields are stored as `beneficialOwner_<ownerID>_<fieldName>`, so they only match keysToMask by their field name.
+ */
+function getFieldNameToMask(key: string): string {
+    if (!key.startsWith(BENEFICIAL_OWNER_KEY_PREFIX)) {
+        return key;
+    }
+    return key.split('_').at(-1) ?? key;
+}
+
 function maskFragileData(data: Record<string, unknown>, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown>;
 function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null;
 function maskFragileData(data: Record<string, unknown> | readonly unknown[] | null, emailMap: Map<string, string>, parentKey?: string): Record<string, unknown> | unknown[] | null {
@@ -830,7 +875,7 @@ function maskFragileData(data: Record<string, unknown> | readonly unknown[] | nu
             maskedData[destinationKey] = maskValuePreservingLength(value);
         } else if (parentKey && nodesToFullyMask.has(parentKey) && isMaskableNode(value)) {
             maskedData[destinationKey] = maskFragileData(value, emailMap, parentKey);
-        } else if (keysToMask.has(sourceKey)) {
+        } else if (keysToMask.has(getFieldNameToMask(sourceKey))) {
             if (Array.isArray(value)) {
                 maskedData[destinationKey] = value.map(() => MASKING_PATTERN);
             } else if (value === null || isRecord(value)) {

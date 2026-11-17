@@ -54,6 +54,7 @@ function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfir
                     {!!errorMessage && `${errorMessage} `}
                     {translate('personalCard.bankConnectionDescription')}{' '}
                     <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.ERROR_CONNECT_WITH_PLAID_LINK}
                         style={[styles.link]}
                         onPress={openPlaidLink}
                     >
