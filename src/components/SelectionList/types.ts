@@ -181,7 +181,7 @@ type TextInputOptions = {
     /** Input mode e.g., 'text', 'email', 'numeric') */
     inputMode?: InputModeOptions;
 
-    /** Web only. Opt in when this search accepts email addresses without using email input mode. */
+    /** Web only. Defaults to true because selection searches are not credential inputs. */
     shouldIgnorePasswordManager?: boolean;
 
     errorText?: string;

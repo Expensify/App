@@ -89,7 +89,7 @@ function TextInput({
         placeholder,
         maxLength,
         inputMode,
-        shouldIgnorePasswordManager,
+        shouldIgnorePasswordManager = true,
         ref: optionsRef,
         style,
         disableAutoCorrect,

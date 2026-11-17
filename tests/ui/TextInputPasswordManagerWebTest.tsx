@@ -161,14 +161,20 @@ describe('web TextInput password-manager hints', () => {
         expect(input.getAttribute('data-custom-hint')).toBe('preserved');
     });
 
-    it('forwards the mixed recipient search override through SelectionList', () => {
-        // Given a list search that accepts names, emails, and phone numbers without email input mode
-        // When its options explicitly enable suppression
+    it.each([
+        {options: undefined, shouldSuppress: true},
+        {options: {label: 'Recipient'}, shouldSuppress: true},
+        {options: {label: 'Recipient', shouldIgnorePasswordManager: true}, shouldSuppress: true},
+        {options: {label: 'Recipient', shouldIgnorePasswordManager: false}, shouldSuppress: false},
+    ])('defaults selection searches to suppression while respecting explicit overrides: %j', ({options, shouldSuppress}) => {
+        // Given a selection search without credential-specific input semantics
+        // When its options are omitted, use the default, or explicitly override suppression
         act(() =>
             root.render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                     <SelectionListTextInput
-                        options={{label: 'Recipient', shouldIgnorePasswordManager: true}}
+                        accessibilityLabel="Recipient"
+                        options={options}
                         shouldShowTextInput
                         onFocusChange={() => {}}
                         focusTextInput={() => {}}
@@ -177,10 +183,10 @@ describe('web TextInput password-manager hints', () => {
             ),
         );
 
-        // Then the list's actual search input receives both attributes without changing its type
+        // Then suppression defaults to enabled but explicit false is preserved without changing the input type
         const input = screen.getByRole<HTMLInputElement>('textbox', {name: 'Recipient'});
-        expect(input.getAttribute('data-1p-ignore')).toBe('true');
-        expect(input.getAttribute('data-lpignore')).toBe('true');
+        expect(input.getAttribute('data-1p-ignore')).toBe(shouldSuppress ? 'true' : null);
+        expect(input.getAttribute('data-lpignore')).toBe(shouldSuppress ? 'true' : null);
         expect(input.type).toBe('text');
     });
 });
