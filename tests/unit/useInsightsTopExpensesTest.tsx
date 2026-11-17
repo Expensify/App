@@ -24,6 +24,8 @@ import currencyList from './currencyList.json';
 
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useIsFocused: () => mockIsFocused}));
 let mockCurrentSearchQueryJSON: SearchQueryJSON | undefined;
 jest.mock('@libs/SearchQueryUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/SearchQueryUtils'),
@@ -104,6 +106,7 @@ describe('useInsightsTopExpenses', () => {
 
     beforeEach(async () => {
         mockIsOffline = false;
+        mockIsFocused = true;
         mockCurrentSearchQueryJSON = undefined;
         jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'submitter@expensify.com'});
@@ -158,6 +161,47 @@ describe('useInsightsTopExpenses', () => {
 
             // Then it requests the expenses without the user having to retry
             expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests nothing when the panel regains focus without an expense change', async () => {
+            // Given a panel that requested its query and lost focus to an expense opened from it
+            const {rerender} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = false;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user goes back without changing anything
+            mockIsFocused = true;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it doesn't request again, since the stored expenses are still current
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('requests again once visible after an expense changed behind it', async () => {
+            // Given a panel that requested its query and lost focus to an expense opened from it
+            const {rerender} = renderTopExpenses(QUERY);
+            await waitForBatchedUpdatesWithAct();
+            mockIsFocused = false;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is edited while the panel is hidden
+            await Onyx.set(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE, {expenses: 1, cardExpenses: 0});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it waits, since nobody sees the list
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // When the user goes back
+            mockIsFocused = true;
+            rerender({query: QUERY});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it requests again, so an edit that moved the expense out of the query drops it from the list
+            expect(search).toHaveBeenCalledTimes(2);
         });
 
         it('requests nothing without a query', async () => {

@@ -20,7 +20,6 @@ const COPYABLE_TEXT_DATA_SET = {[CONST.COPYABLE_TEXT_ELEMENT]: true} as const;
 const COPYABLE_ROW_SELECTOR = `[data-${CONST.COPYABLE_ROW_ELEMENT}=true]`;
 const COPYABLE_ROW_DATA_SET = {[CONST.COPYABLE_ROW_ELEMENT]: true} as const;
 const copyableRowContinuationAttribute = `data-${CONST.COPYABLE_ROW_CONTINUATION_ELEMENT}`;
-const COPYABLE_ROW_CONTINUATION_DATA_SET = {...COPYABLE_ROW_DATA_SET, [CONST.COPYABLE_ROW_CONTINUATION_ELEMENT]: true} as const;
 
 function normalizeSelectedContent(content: globalThis.DocumentFragment) {
     const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
@@ -422,7 +421,7 @@ const getCurrentSelection: GetCurrentSelection = () => {
     return newHtml || '';
 };
 
-export {COPYABLE_ROW_CONTINUATION_DATA_SET, COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET};
+export {COPYABLE_ROW_DATA_SET, COPYABLE_TEXT_DATA_SET};
 
 export default {
     getCurrentSelection,

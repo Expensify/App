@@ -57,6 +57,7 @@ describe('Button', () => {
         render(
             <Button
                 accessibilityLabel={LABEL}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 {...props}
             >
                 {children}

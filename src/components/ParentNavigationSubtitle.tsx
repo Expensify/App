@@ -304,6 +304,7 @@ function ParentNavigationSubtitle({
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
+                                sentryLabel={CONST.SENTRY_LABEL.PARENT_NAVIGATION_SUBTITLE.PARENT_REPORT_LINK}
                                 accessibilityLabel={translate('threads.parentNavigationSummary', reportName, workspaceName)}
                                 style={[
                                     pressableStyles,

@@ -144,6 +144,26 @@ type OriginalMessageSmartScanFailed = {
     reasoning?: string;
 };
 
+/** Fields common to all report action original messages */
+type OriginalMessageBase = {
+    /**
+     * Account IDs for whom this action is marked as important. Similar to `actionableForAccountIDs` except
+     * receiving an important message only triggers a push notification.
+     */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /**
+     * Accounts IDs for whom this action is actionable. Receiving an actionable message will
+     * - Mark the report as unread
+     * - Trigger an email notification
+     * - Trigger a push notification (on web and mobile)
+     */
+    actionableForAccountIDs?: number[];
+};
+
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
     /** HTML content of the comment */
@@ -518,6 +538,19 @@ type OriginalMessagePolicyChangeLog = {
 
     connectionName?: AllConnectionName;
     categoryName?: string;
+
+    /** Categories the members can see after a category visibility change, empty when they can see all categories */
+    categoryNames?: string[];
+
+    /** Account IDs of the members whose category visibility changed, empty when it applies to everyone */
+    accountIDs?: number[];
+
+    /** Whether the members already had a category visibility restriction before the change */
+    hadRestriction?: boolean;
+
+    /** Why the category visibility changed */
+    reason?: ValueOf<typeof CONST.POLICY.CATEGORY_VISIBILITY.REASON>;
+
     taxName?: string;
     updatedField?: string;
     oldMaxExpenseAmountNoReceipt?: number;
@@ -1121,6 +1154,9 @@ type PolicyRulesModifiedFields = {
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
+    /** The amount the rule set, which the backend sends already formatted for display */
+    amount?: string;
+
     billable?: boolean;
     reimbursable?: boolean;
     tax?: {
@@ -1141,6 +1177,9 @@ type PersonalRulesModifiedFields = {
 
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
+
+    /** The amount the rule set, which the backend sends already formatted for display */
+    amount?: string;
 
     billable?: boolean;
     reimbursable?: boolean;
@@ -1308,6 +1347,9 @@ type OriginalMessageMarkedReimbursed = {
 
 /** Model of `reimbursed` report action */
 type OriginalMessageReimbursed = {
+    /** Accounts the payment message is actionable for, supplied by Auth. */
+    actionableForAccountIDs?: number[];
+
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
 
@@ -1527,6 +1569,32 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed's bank, used as the feed name when the feed has no custom name */
     bank?: CompanyCardFeedWithNumber;
+};
+
+/**
+ * Original message for an upcoming company card consent expiration
+ */
+type OriginalMessageCompanyCardConsentExpiring = {
+    /** The policy ID that owns the card feed */
+    policyID?: string;
+
+    /** The feed's internal name */
+    bank?: CompanyCardFeedWithNumber;
+
+    /** The feed's custom name, or its internal name when the feed has no custom name */
+    feedName?: string;
+
+    /** The admin who can renew consent, mentioned at the start of the warning */
+    mentionedAccountIDs?: number[];
+
+    /** Unix timestamp for the consent period that created this warning */
+    consentGrantedAt?: number;
+
+    /** Unix timestamp for the expected consent expiration */
+    consentExpiresAt?: number;
+
+    /** Number of days before expiry when this warning was delivered */
+    warningDaysBeforeExpiry?: number;
 };
 
 /**
@@ -1822,6 +1890,10 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
@@ -1874,6 +1946,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING]: OriginalMessageCompanyCardConsentExpiring;
     [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
@@ -1901,7 +1974,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
-type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
+type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageBase & OriginalMessageMap[T] : never;
 
 export default OriginalMessage;
 export type {

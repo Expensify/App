@@ -145,6 +145,7 @@ import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, 
 import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
+    canMemberRead as canMemberReadPolicyUtils,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
@@ -164,6 +165,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
+    getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasReadOnlyAllReportsAccess,
     hasDynamicExternalWorkflow,
@@ -1507,20 +1509,6 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
 }
 
 /**
- * Checks if the report with supplied ID has been approved or not
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, deprecatedAllReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
-}
-
-/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
@@ -1787,10 +1775,9 @@ function getInvoiceReceiverPersonalDetail(report: OnyxEntry<Report>, personalDet
     return invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? personalDetailsList?.[invoiceReceiver.accountID] : undefined;
 }
 
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === report.invoiceReceiver.accountID;
+        return currentUserAccountID === report.invoiceReceiver.accountID;
     }
 
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
@@ -5425,11 +5412,10 @@ function getReasonAndReportActionThatRequiresAttention({
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-    // The bare outstanding-child flag only asks the owner to add expenses to their open report, so it is ignored when the current user cannot create expenses on that workspace.
+    // The bare outstanding-child flag on an open report owned by the current user only asks them to add expenses or submit it, so it is ignored when they cannot create or submit expenses on that workspace.
     const isBareOutstandingChildIgnorable =
         !iouReportActionToApproveOrPay?.reportActionID &&
         isOpenExpenseReport(iouReport) &&
-        (iouReport?.transactionCount ?? 0) === 0 &&
         iouReport?.ownerAccountID === currentUserAccountID &&
         !canCreateExpensesOnPolicy(resolvePolicy(iouReport?.policyID), currentUserLogin);
     const hasValidIOUAction =
@@ -6648,7 +6634,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+function getTransactionsWithReceipts(reportTransactions: Transaction[]): Transaction[] {
     return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
@@ -6659,12 +6645,8 @@ function getTransactionsWithReceipts(iouReportID: string | undefined, reportTran
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(
-    iouReportID: string | undefined,
-    reportPreviewAction: OnyxEntry<ReportAction>,
-    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
-): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
+function areAllRequestsBeingSmartScanned(reportPreviewAction: OnyxEntry<ReportAction>, reportTransactions: Transaction[]): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -6807,7 +6789,7 @@ type GetReportPreviewMessageBaseParams = {
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
-    /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. Split and track actions rely on it, since their transaction isn't part of `reportOrID`. */
     linkedTransaction?: OnyxEntry<Transaction>;
 };
 
@@ -6851,6 +6833,7 @@ function getReportPreviewMessage(
         isPreviewMessageForParentChatReport = false,
         policy,
         isForListPreview = false,
+        linkedTransaction: linkedTransactionParam,
         bankAccountList,
         personalDetails,
     } = params;
@@ -6873,7 +6856,8 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        // The split transaction belongs to SPLIT_REPORT_ID, not to `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             return reportActionMessage;
         }
@@ -6895,7 +6879,8 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
+        // The tracked transaction is unreported, not part of `report`, so it isn't in `allReportTransactions` and the caller has to pass it.
+        const linkedTransaction = linkedTransactionParam ?? getLinkedTransaction(iouReportAction);
         if (isEmptyObject(linkedTransaction)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
@@ -6951,9 +6936,9 @@ function getReportPreviewMessage(
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
         linkedTransaction =
-            params.linkedTransaction && params.linkedTransaction.transactionID === getOriginalMessage(iouReportAction)?.IOUTransactionID
-                ? params.linkedTransaction
-                : getLinkedTransaction(iouReportAction);
+            linkedTransactionParam && linkedTransactionParam.transactionID === getOriginalMessage(iouReportAction)?.IOUTransactionID
+                ? linkedTransactionParam
+                : getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -7057,7 +7042,7 @@ function getReportPreviewMessage(
     }
 
     if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction = getLinkedTransaction(iouReportAction, allReportTransactions);
     }
 
     let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
@@ -7111,7 +7096,13 @@ function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
     params: Omit<
         GetReportPreviewMessageBaseParams,
-        'policy' | 'iouReportAction' | 'originalReportAction' | 'shouldConsiderScanningReceiptOrPendingRoute' | 'isPreviewMessageForParentChatReport' | 'isForListPreview'
+        | 'policy'
+        | 'iouReportAction'
+        | 'originalReportAction'
+        | 'shouldConsiderScanningReceiptOrPendingRoute'
+        | 'isPreviewMessageForParentChatReport'
+        | 'isForListPreview'
+        | 'linkedTransaction'
     > & {
         policy?: OnyxInputOrEntry<Policy>;
         iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
@@ -7440,22 +7431,43 @@ function getPendingDeleteMemberAccountIDs(pendingChatMembers: PendingChatMember[
     return pendingChatMembers.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID);
 }
 
+type GetParentNavigationSubtitleParams = {
+    report: OnyxEntry<Report>;
+
+    /** The policy the subtitle names as the workspace. On an invoice this is the sender's workspace, as opposed to `invoiceReceiverPolicy`. */
+    policy: OnyxEntry<Policy>;
+
+    /**
+     * The policy of the business receiving the invoice, i.e. the policy whose ID `getInvoiceReceiverPolicyID` reads
+     * off the parent report. Only used for invoice reports and invoice rooms.
+     */
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+
+    translate: LocalizedTranslate;
+
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** The parent report's resolved name, which takes precedence over the `reportName` stored on the parent report. */
+    parentReportName: string | undefined;
+
+    isParentReportArchived?: boolean;
+
+    currentUserAccountID: number | undefined;
+};
+
 /**
  * Gets the parent navigation subtitle for the report
- *
- * @param invoiceReceiverPolicy - The policy of the business receiving the invoice, i.e. the policy whose ID
- * `getInvoiceReceiverPolicyID` reads off the parent report. Only used for invoice reports and invoice rooms.
  */
-function getParentNavigationSubtitle(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    conciergeReportID: string | undefined,
-    translate: LocalizedTranslate,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    parentReportName: string | undefined,
+function getParentNavigationSubtitle({
+    report,
+    policy,
+    invoiceReceiverPolicy,
+    translate,
+    formatPhoneNumber,
+    parentReportName,
     isParentReportArchived = false,
-): ParentNavigationSummaryParams {
+    currentUserAccountID,
+}: GetParentNavigationSubtitleParams): ParentNavigationSummaryParams {
     // Bills have no parent chat, so their subtitle contains only the policy name.
     if (isBillReport(report)) {
         return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
@@ -7497,7 +7509,7 @@ function getParentNavigationSubtitle(
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         const senderWorkspaceName = getPolicyName({report: parentReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
-        const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
+        const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport, currentUserAccountID);
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, getAllPersonalDetails());
         const invoicePayerName = getInvoicePayerName(parentReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
@@ -13409,9 +13421,12 @@ function canJoinChat(
         return false;
     }
 
-    // For restricted visibility rooms, the user must be a non-guest workspace member to join
-    const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST)) {
+    // For restricted visibility rooms, the user must be a workspace member with room access to join
+    if (
+        isUserCreatedPolicyRoom(report) &&
+        report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED &&
+        !canMemberReadPolicyUtils(policy, currentUserEmail ?? deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS)
+    ) {
         return false;
     }
 
@@ -14959,6 +14974,7 @@ function generateReportAttributes({
     cardList,
     currentUserLogin,
     currentUserAccountID,
+    isOffline,
     reportsTransactions,
 }: {
     report: OnyxEntry<Report>;
@@ -14969,6 +14985,7 @@ function generateReportAttributes({
     allTransactions: OnyxCollection<Transaction>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    isOffline: boolean;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
@@ -14991,7 +15008,7 @@ function generateReportAttributes({
         reports,
     );
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
-    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList, isOffline);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
         getReasonAndReportActionThatRequiresAttention({
@@ -15155,6 +15172,7 @@ function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): a
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED) ||
         isPayAction(action)
     );
 }
@@ -15550,6 +15568,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.POSTED,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -15604,6 +15623,7 @@ function isSortableColumnName(key: unknown): key is SortableColumnName {
  * Used for sorting transactions in MoneyRequestReportTransactionList.
  */
 function getTransactionSortValue(
+    translate: LocalizedTranslate,
     transaction: Transaction,
     key: SortableColumnName,
     report: Report,
@@ -15619,6 +15639,8 @@ function getTransactionSortValue(
             return getPostedDate(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return getVendorDisplayName(policy, transaction.comment?.vendor);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return getCategory(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
@@ -15652,7 +15674,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
             return getTaxAmount(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return getTaxName(policy, transaction) ?? '';
+            return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
@@ -16111,7 +16133,6 @@ export {
     isOpenReport,
     isReportEligibleForViolationFix,
     getSubmitterUnfixableViolationNames,
-    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,

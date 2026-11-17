@@ -58,6 +58,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'timer' as const,
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
+            sentryLabel: timerStartTime ? CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_STOP_TIMER : CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_START_TIMER,
             onSelected: () => {
                 callIfAuthenticated(toggleChronosTimer, session)();
             },
@@ -65,6 +66,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'scheduleOOO' as const,
             text: translate('chronos.scheduleOOO'),
+            sentryLabel: CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_SCHEDULE_OOO,
             onSelected: () => {
                 Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
             },
