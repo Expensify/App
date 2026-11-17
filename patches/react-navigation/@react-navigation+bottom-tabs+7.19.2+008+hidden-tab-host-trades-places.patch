@@ -366,7 +366,7 @@ index 62dc1c3..cee8040 100644
  }
  const styles = StyleSheet.create({
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
-index 7dfbd2e..f5d8f3b 100644
+index 7dfbd2e..703722a 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/typescript/src/unstable/types.d.ts
 @@ -84,12 +84,21 @@ export type NativeBottomTabNavigationOptions = NativeHeaderOptions & {
@@ -389,7 +389,7 @@ index 7dfbd2e..f5d8f3b 100644
 +     * Name of the `tabBarItemHidden` tab that a press on this tab's item opens. While that tab is drawn inside another
 +     * tab, iOS shows its native view in this tab as soon as native selects it. Elsewhere native does not select this
 +     * tab, which would show empty until JS answers: the bar shows this item selected over the hidden tab at once, and
-+     * the `tabPress` event follows in the next commit.
++     * the `tabPress` event follows in the next task.
 +     */
 +    tabBarItemHiddenRouteName?: string;
      /**
