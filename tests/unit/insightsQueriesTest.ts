@@ -551,15 +551,16 @@ describe('insightsQueries', () => {
             expect(chartQuery).toBe(applyInsightsFilters(SPEND_SPEC.headlineChart, filters));
         });
 
-        it('keeps expenses dated after today unless asked to stop at today', () => {
-            // Given the page covers this year, which runs past today
+        it('stops at today when no last day is given, so Home and the dashboard query the same snapshot', () => {
+            // Given it's October 8 and the page covers this year, which runs past today
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
 
-            // When the headline chart's query is built without stopping at today
+            // When the headline chart's query is built without a last day, as Home and the dashboard request build it
             const chartQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
 
-            // Then no upper bound is added to the date range
-            expect(chartQuery).not.toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<`);
+            // Then it only takes expenses dated up to and including today, the same as a query told to stop at today
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-10-08`);
+            expect(chartQuery).toBe(applyInsightsFilters(SPEND_SPEC.headlineChart, filters, undefined, '2026-10-08'));
         });
 
         it('adds nothing to charts that filter on a date other than the expense date', () => {

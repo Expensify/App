@@ -14,6 +14,7 @@ import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import getInsightsDateRange from './getInsightsDateRange';
+import getInsightsLastDay from './getInsightsLastDay';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -107,13 +108,19 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
-/** Builds a chart's query with the page's filters applied. `lastDay` (yyyy-MM-dd) is for queries that go to Search instead of GetInsights: it leaves out expenses dated after it and before `trackedFrom`, the first day the chart's snapshot has data for, so Search lists what the chart plots. Applies to charts on the expense date only. */
-function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode, lastDay?: string, trackedFrom?: string): SearchQueryString {
+/** Builds a chart's query with the page's filters applied. Leaves out expenses dated after `lastDay` (yyyy-MM-dd, today unless given) and before `trackedFrom`, the first day the chart's snapshot has data for, so Search lists what the chart plots. Applies to charts on the expense date only. */
+function applyInsightsFilters(
+    chart: InsightsChartSpec,
+    filters: InsightsFilters,
+    compare?: SearchCompareMode,
+    lastDay = getInsightsLastDay(undefined),
+    trackedFrom?: string,
+): SearchQueryString {
     const isExpenseDateChart = !chart.dateFilterKey || chart.dateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     const query = buildQueryStringFromFilterFormValues(
         {
             ...buildFilterFormValues(filters, true, chart.dateFilterKey),
-            ...(!!lastDay && isExpenseDateChart && buildDataDaysFormValues(filters.date, lastDay, trackedFrom)),
+            ...(isExpenseDateChart && buildDataDaysFormValues(filters.date, lastDay, trackedFrom)),
             has: chart.has,
             groupBy: chart.groupBy ?? getQueryGroupBy(filters),
             view: chart.view,
