@@ -1637,10 +1637,10 @@ const translations: TranslationDeepObject<typeof en> = {
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`),
         payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Pagar com x${lastFour}` : 'Pagar com conta bancária'),
         bankPaySkippedReportsDescription:
-            'Estes relatórios não foram pagos pela conta bancária porque não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcá-los como pagos manualmente.',
+            'Esses relatórios não foram pagos pela conta bancária porque eles são não reembolsáveis ou têm um valor total igual ou menor que zero. Você pode marcá-los como pagos manualmente, se preferir.',
         bankPayAllReportsSkippedDescription:
-            'Os relatórios selecionados não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcar esses relatórios como pagos manualmente.',
-        bankPayReportSkippedDescription: 'Este relatório não é reembolsável ou tem um valor total igual ou inferior a zero. Se preferir, você pode marcá-lo como pago manualmente.',
+            'Os relatórios selecionados não são reembolsáveis ou têm valor total igual ou menor que zero. Você pode marcar esses relatórios manualmente como pagos, se preferir.',
+        bankPayReportSkippedDescription: 'Este relatório não é reembolsável ou tem um valor total igual ou menor que zero. Você pode marcá-lo manualmente como pago, se preferir.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `pagou ${amount ? `${amount} ` : ''} com a conta bancária ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras da workspace</a>`,
@@ -12972,8 +12972,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: `Marcado(s) ${doneCount} de ${count} relatórios como pago(s)`,
         }),
         paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Pago(s) ${doneCount} de ${count} relatório`,
-            other: `Pago(s) ${doneCount} de ${count} relatórios`,
+            one: `Pago(a) ${doneCount} de ${count} relatório`,
+            other: `Pagou ${doneCount} de ${count} relatórios`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Despesas retidas em ${doneCount} de ${count} relatório`,
@@ -13017,8 +13017,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             other: `${count} relatórios não puderam ser pagos.`,
         }),
         skippedBankPayBody: ({count}: {count: number}) => ({
-            one: '1 relatório não foi pago pela conta bancária porque não é reembolsável ou tem um valor total igual ou inferior a zero. Se preferir, você pode marcá-lo como pago manualmente.',
-            other: `${count} relatórios não foram pagos pela conta bancária porque não são reembolsáveis ou têm um valor total igual ou inferior a zero. Se preferir, você pode marcá-los como pagos manualmente.`,
+            one: '1 relatório não foi pago pela conta bancária porque não é reembolsável ou tem um valor total igual ou menor que zero. Você pode marcá-lo como pago manualmente, se preferir.',
+            other: `${count} relatórios não foram pagos pela conta bancária porque são não reembolsáveis ou têm valor total igual ou menor que zero. Você pode marcá-los como pagos manualmente, se preferir.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'As despesas de 1 relatório não puderam ser retidas.',
@@ -13043,6 +13043,18 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1 relatório não pôde ser movido.',
             other: `${count} relatórios não puderam ser movidos.`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 relatório não foi pago porque é preciso configurar reembolsos globais na conta bancária primeiro.',
+            other: `${count} relatórios não foram pagos porque é preciso configurar reembolsos globais primeiro na conta bancária.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 relatório não foi pago porque a conta bancária do membro ainda não está configurada para reembolsos globais.',
+            other: `${count} relatórios não foram pagos porque as contas bancárias dos membros ainda não estão configuradas para reembolsos globais.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 relatório não foi pago porque é reembolsado em outra moeda. Pague-o a partir do relatório para confirmar a taxa de câmbio.',
+            other: `${count} relatórios não foram pagos porque são liquidados em outra moeda. Pague cada um a partir do relatório para confirmar a taxa de câmbio.`,
         }),
     },
     earlyRenewal: {

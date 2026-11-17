@@ -1645,13 +1645,13 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
-        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer avec un compte bancaire'),
+        payWithBankAccountTitle: (lastFour?: string) => (lastFour ? `Payer avec x${lastFour}` : 'Payer par compte bancaire'),
         bankPaySkippedReportsDescription:
-            "Ces notes de frais n'ont pas été payées via le compte bancaire, car elles ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.",
+            "Ces notes de frais n'ont pas été payées via le compte bancaire car elles sont soit non remboursables, soit d'un montant total inférieur ou égal à zéro. Vous pouvez les marquer manuellement comme payées si vous préférez.",
         bankPayAllReportsSkippedDescription:
-            'Les notes de frais sélectionnées ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.',
+            'Les notes de frais sélectionnées ne sont pas remboursables ou ont un montant total égal ou inférieur à zéro. Vous pouvez marquer manuellement ces notes de frais comme payées si vous le souhaitez.',
         bankPayReportSkippedDescription:
-            "Cette note de frais n'est pas remboursable ou son montant total est nul ou négatif. Vous pouvez la marquer manuellement comme payée si vous le souhaitez.",
+            'Cette note de frais n’est pas remboursable ou a un montant total égal ou inférieur à zéro. Vous pouvez la marquer manuellement comme payée si vous le préférez.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte bancaire ${last4Digits}` : `payé avec le compte bancaire ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `payé ${amount ? `${amount} ` : ''} avec le compte bancaire ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles d’espace de travail</a>`,
@@ -13094,8 +13094,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             other: `Marqué ${doneCount} sur ${count} notes de frais comme payé`,
         }),
         paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `Payé ${doneCount} sur ${count} note de frais`,
-            other: `Payé ${doneCount} sur ${count} notes de frais`,
+            one: `Note de frais payée ${doneCount} sur ${count}`,
+            other: `Payé ${doneCount} note(s) de frais sur ${count}`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Dépenses mises en attente pour ${doneCount} sur ${count} note de frais`,
@@ -13139,8 +13139,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             other: `${count} notes de frais n'ont pas pu être payées.`,
         }),
         skippedBankPayBody: ({count}: {count: number}) => ({
-            one: "1 note de frais n'a pas été payée via le compte bancaire, car elle n'est pas remboursable ou son montant total est nul ou négatif. Vous pouvez la marquer manuellement comme payée si vous le souhaitez.",
-            other: `${count} notes de frais n'ont pas été payées via le compte bancaire, car elles ne sont pas remboursables ou leur montant total est nul ou négatif. Vous pouvez les marquer manuellement comme payées si vous le souhaitez.`,
+            one: '1 note de frais n’a pas été payée via le compte bancaire, car elle n’est pas remboursable ou a un montant total égal ou inférieur à zéro. Vous pouvez la marquer manuellement comme payée si vous préférez.',
+            other: `${count} notes de frais n'ont pas été payées via le compte bancaire car elles ne sont pas remboursables ou ont un montant total inférieur ou égal à zéro. Vous pouvez les marquer manuellement comme payées si vous préférez.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: "Les dépenses de 1 note de frais n'ont pas pu être mises en attente.",
@@ -13165,6 +13165,18 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         notMovedBody: ({count}: {count: number}) => ({
             one: "1 note de frais n'a pas pu être déplacée.",
             other: `${count} notes de frais n'ont pas pu être déplacées.`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas été remboursée, car le compte bancaire doit d'abord être configuré pour les remboursements globaux.",
+            other: `${count} notes de frais n'ont pas été payées, car le compte bancaire doit d'abord être configuré pour les remboursements globaux.`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '1 note de frais n’a pas été payée, car le compte bancaire du membre n’est pas encore configuré pour les remboursements internationaux.',
+            other: `${count} notes de frais n’ont pas été remboursées, car les comptes bancaires des membres ne sont pas encore configurés pour les remboursements internationaux.`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 note de frais n’a pas été payée, car elle est réglée dans une autre devise. Réglez-la depuis la note de frais pour confirmer le taux de change.',
+            other: `${count} notes de frais n'ont pas été payées, car elles sont remboursées dans une autre devise. Payez chacune d'elles à partir de la note de frais pour confirmer le taux de change.`,
         }),
     },
     earlyRenewal: {
