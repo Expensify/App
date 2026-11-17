@@ -701,6 +701,7 @@ describe('mergeTransactionRequest', () => {
             transactionID: 'source456',
             merchant: 'Source Merchant',
             reportID: sourceReport.reportID,
+            pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
@@ -804,6 +805,10 @@ describe('mergeTransactionRequest', () => {
         // Verify source transaction is restored (not deleted)
         expect(restoredSourceTransaction?.transactionID).toBe('source456');
         expect(restoredSourceTransaction?.merchant).toBe('Source Merchant');
+
+        // Verify the restored source transaction has no pending state
+        expect(restoredSourceTransaction?.pendingFields).toBeUndefined();
+        expect(restoredSourceTransaction?.pendingAction).toBeUndefined();
 
         // Verify source report is restored (not deleted)
         expect(restoredSourceReport?.reportID).toBe(sourceReport.reportID);

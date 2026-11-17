@@ -1,3 +1,4 @@
+import {replaceReceipt} from '@libs/actions/IOU/Receipt';
 import {
     getUpdateTrackExpenseParams,
     updateMoneyRequestAmountAndCurrency,
@@ -523,10 +524,15 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const failureSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = failureSnapshot?.value?.data;
             const failureTransaction = failureSnapshotData?.[transactionKey];
             expect(failureTransaction).toMatchObject({
-                transactionID,
-                amount: 10000,
+                modifiedAmount: transaction.modifiedAmount,
                 pendingFields: {amount: null},
             });
+            expect(failureTransaction).not.toHaveProperty('transactionID');
+            expect(failureTransaction).not.toHaveProperty('amount');
+            const transactionFailure = onyxData.failureData?.find((update) => update.key === transactionKey);
+            expect(transactionFailure?.value).toMatchObject({modifiedAmount: transaction.modifiedAmount, pendingFields: {amount: null}});
+            expect(transactionFailure?.value).not.toHaveProperty('transactionID');
+            expect(transactionFailure?.value).not.toHaveProperty('amount');
         });
     });
 
@@ -3227,6 +3233,149 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             expect(await getStoredViolationNames(transactionID)).toEqual([]);
+        });
+    });
+    describe('failed edit rollback', () => {
+        const transactionID = 'rollback-transaction';
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+        const ORIGINAL_DESCRIPTION = 'Original description';
+        const ORIGINAL_RECEIPT_SOURCE = 'original-receipt.jpg';
+        const expenseReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: '1',
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            managerID: RORY_ACCOUNT_ID,
+        };
+        const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), id: '1'};
+
+        async function seedTransaction(): Promise<Transaction> {
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReport.reportID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+                modifiedAmount: '',
+                comment: {comment: ORIGINAL_DESCRIPTION},
+                receipt: {source: ORIGINAL_RECEIPT_SOURCE, state: CONST.IOU.RECEIPT_STATE.OPEN},
+            };
+            await Onyx.set(transactionKey, transaction);
+            await waitForBatchedUpdates();
+            return transaction;
+        }
+
+        function editAmount(transaction: OnyxEntry<Transaction>) {
+            updateMoneyRequestAmountAndCurrency({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                transactionID,
+                transaction,
+                transactionThreadReport: expenseReport,
+                parentReport: undefined,
+                iouReportOwnerLogin: undefined,
+                reportPolicyTags: undefined,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                taxValue: '',
+                policy,
+                policyTagList: {},
+                policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+        }
+
+        function editDescription(transaction: OnyxEntry<Transaction>, comment: string) {
+            updateMoneyRequestDescription({
+                isVendorMatchingBetaEnabled: false,
+                transactionID,
+                transaction,
+                transactionThreadReport: expenseReport,
+                parentReport: undefined,
+                rules: undefined,
+                iouReportOwnerLogin: undefined,
+                comment,
+                policy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                reportPolicyTags: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: [],
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+        }
+
+        it('reverts each failed edit to its own original value without touching the other edit', async () => {
+            // Given an expense
+            const transaction = await seedTransaction();
+
+            // When the amount and then the description are edited offline, and both requests fail
+            mockFetch.pause();
+            editAmount(transaction);
+            await waitForBatchedUpdates();
+            editDescription(await getOnyxValue(transactionKey), 'New description');
+            await waitForBatchedUpdates();
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then each field is back to its original value
+            const storedTransaction = await getOnyxValue(transactionKey);
+            expect(storedTransaction?.modifiedAmount).toBe(transaction.modifiedAmount);
+            expect(storedTransaction?.comment?.comment).toBe(ORIGINAL_DESCRIPTION);
+            expect(storedTransaction?.errorFields?.amount).toBeTruthy();
+            expect(storedTransaction?.errorFields?.comment).toBeTruthy();
+        });
+
+        it('keeps a newer description and receipt when an earlier edit fails', async () => {
+            // Given an expense
+            const transaction = await seedTransaction();
+
+            // When the description and receipt change while the amount edit is pending, and only the amount edit fails
+            mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, () => ({jsonCode: 400}));
+            mockFetch.pause();
+            editAmount(transaction);
+            await waitForBatchedUpdates();
+            editDescription(await getOnyxValue(transactionKey), 'New description');
+            await waitForBatchedUpdates();
+            replaceReceipt({
+                transaction: await getOnyxValue(transactionKey),
+                file: new File([new Blob(['receipt'])], 'new-receipt.jpg', {type: 'image/jpeg'}),
+                source: 'new-receipt.jpg',
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails,
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then only the amount is reverted
+            const storedTransaction = await getOnyxValue(transactionKey);
+            expect(storedTransaction?.modifiedAmount).toBe(transaction.modifiedAmount);
+            expect(storedTransaction?.comment?.comment).toBe('New description');
+            expect(storedTransaction?.receipt?.source).toBe('new-receipt.jpg');
         });
     });
 });

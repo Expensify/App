@@ -1306,6 +1306,7 @@ describe('split expense', () => {
 
         let splitTransaction = await getScanSplitTransaction();
         const splitTransactionID = splitTransaction?.transactionID;
+        const transactionBeforeCompleting = splitTransaction;
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -1346,6 +1347,9 @@ describe('split expense', () => {
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
         expect(splitTransaction?.errors).toBeTruthy();
+        expect(splitTransaction?.modifiedAmount).toBe(transactionBeforeCompleting?.modifiedAmount);
+        expect(splitTransaction?.modifiedCurrency).toBe(transactionBeforeCompleting?.modifiedCurrency);
+        expect(splitTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
     });
 
     it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
