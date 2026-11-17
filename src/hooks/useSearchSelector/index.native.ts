@@ -49,4 +49,3 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 }
 
 export default useSearchSelector;
-export type {ContactState};

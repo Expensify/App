@@ -111,7 +111,13 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
             {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, addNewCard?.data?.plaidConnectedFeedName ?? bankName)}
-            <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.PENDING_BANK_LINK}
+                onPress={onOpenBankConnectionFlow}
+            >
+                {translate('workspace.moreFeatures.companyCards.pendingBankLink')}
+            </TextLink>
+            .
         </Text>
     );
 
@@ -208,6 +214,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     illustration={illustrations.BrokenCompanyCardBankConnection}
                     illustrationStyle={styles.errorStateCardIllustration}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_LOAD_ERROR_CONFIRM}
                     onButtonPress={() => Navigation.closeRHPFlow()}
                 />
             );

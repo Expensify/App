@@ -18,7 +18,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -40,7 +39,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`);
+    const [samlMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`);
 
     useEffect(() => {
         if (!domainName) {
@@ -49,7 +48,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
         getSamlSettings(accountID, domainName);
     }, [accountID, domainName]);
 
-    if (samlMetadata?.isLoading || isLoadingOnyxValue(samlMetadataResults)) {
+    if (samlMetadata?.isLoading) {
         return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 

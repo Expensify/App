@@ -35,7 +35,7 @@ jest.mock('@hooks/useKeyboardState', () => () => ({
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useSidePanelState', () => () => ({sidePanelOffset: {current: 0}}));
 jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: 375}));
-jest.mock('@hooks/useIsResizableSingleRHP', () => () => false);
+jest.mock('@hooks/useResizableSingleRHP', () => () => ({isResizable: false, isFloating: false}));
 jest.mock('@libs/DeviceCapabilities', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/DeviceCapabilities'),
     canUseTouchScreen: () => true,
