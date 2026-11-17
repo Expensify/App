@@ -74,6 +74,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {formatTaxRateName} from './PolicyUtils/tax';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -4697,7 +4698,7 @@ function formatTax(taxName?: string, taxPercentage?: string): string {
     if (!taxName) {
         return '';
     }
-    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+    return formatTaxRateName(taxName, taxPercentage);
 }
 
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
