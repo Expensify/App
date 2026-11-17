@@ -191,6 +191,18 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
             {code: `${IMPORT} function first() {const Alias = Utils; return 1;} function second() {const Alias = Utils; return Alias.member();} first(); second();`},
+            // Given an alias of a named import that is read before a namespace alias with the same name is declared, where knip registers both under one name.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {
+                code: `${IMPORT} import {obj} from './other'; function first() {const Alias = obj; return Alias.member;} function second() {const Alias = Utils; consume(Alias);} Utils.other(); first(); second();`,
+            },
+            // Given a ternary alias and a spread alias of a named import, and a default import alias, which knip registers like a namespace alias.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {
+                code: `${IMPORT} import Def, {obj} from './other'; function first() {const Alias = flag ? obj : Def; return Alias.member;} function second() {const Alias = {...obj}; return Alias.member;} function third() {const Alias = Utils; consume(Alias);} Utils.other(); first(); second(); third();`,
+            },
             // Given an alias read by a parameter of the same name after the declaration, which knip counts because it matches aliases by name.
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
@@ -309,6 +321,13 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then both usages are reported.
             {code: `${IMPORT} const First = Utils; const Second = Utils; export {First, Second};`, errors: [usageError('unread alias'), usageError('unread alias')]},
+            // Given an earlier alias that holds a named import in an object, which knip does not register as an alias, so the read before the namespace alias is not counted.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {
+                code: `${IMPORT} import {obj} from './other'; function first() {const Alias = {key: obj}; return Alias.member;} function second() {const Alias = Utils; consume(Alias);} Utils.other(); first(); second();`,
+                errors: [usageError('unread alias')],
+            },
             // Given an alias read only in a function declared before the alias, which knip does not count because it registers aliases in source order.
             // When the rule checks how the namespace is used.
             // Then the usage is reported.

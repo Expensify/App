@@ -155,6 +155,7 @@ function create(context) {
     // and counts only the member accesses it reaches afterwards, in source order, whatever the scope. So an access is stored as the position of its latest occurrence.
     const lastMemberAccessStart = new Map();
     const pendingAliases = [];
+    const otherAliasDeclarations = [];
 
     /**
      * @param {string} readKey `alias` or `alias.key`
@@ -176,7 +177,7 @@ function create(context) {
     function reportUnreadAliases() {
         // Aliases with the same name are one alias for knip: an access counts once it follows the first declaration of the name.
         const firstDeclarationStart = new Map();
-        for (const {aliasName, key, declaratorStart} of pendingAliases) {
+        for (const {aliasName, key, declaratorStart} of [...pendingAliases, ...otherAliasDeclarations]) {
             const readKey = key ? `${aliasName}.${key}` : aliasName;
             firstDeclarationStart.set(readKey, Math.min(firstDeclarationStart.get(readKey) ?? Infinity, declaratorStart));
         }
@@ -204,24 +205,32 @@ function create(context) {
         },
 
         ImportDeclaration(node) {
-            if (node.importKind === 'type' || !INTERNAL_SOURCE_PATTERN.test(node.source.value)) {
+            if (node.importKind === 'type') {
                 return;
             }
+            const isInternal = INTERNAL_SOURCE_PATTERN.test(node.source.value);
             for (const specifier of node.specifiers) {
-                if (specifier.type !== 'ImportNamespaceSpecifier') {
-                    continue;
-                }
+                const isCheckedNamespace = isInternal && specifier.type === 'ImportNamespaceSpecifier';
                 // Only references bound to this import are checked, so a same-named local or parameter is ignored.
                 for (const variable of context.sourceCode.getDeclaredVariables(specifier)) {
                     for (const {identifier} of variable.references) {
-                        const usage = getOpaqueUsage(identifier);
-                        if (usage) {
-                            report(identifier, usage);
-                            continue;
+                        if (isCheckedNamespace) {
+                            const usage = getOpaqueUsage(identifier);
+                            if (usage) {
+                                report(identifier, usage);
+                                continue;
+                            }
                         }
                         const alias = getAssignedAlias(identifier);
-                        if (alias) {
+                        if (!alias) {
+                            continue;
+                        }
+                        if (isCheckedNamespace) {
                             pendingAliases.push({identifier, ...alias});
+                        } else if (!alias.key) {
+                            // Knip registers an alias of any other import (named, default, a package) under the same name, which is only a declaration for the source order.
+                            // The `{key: value}` form is registered for a namespace only.
+                            otherAliasDeclarations.push(alias);
                         }
                     }
                 }
