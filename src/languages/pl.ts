@@ -1228,6 +1228,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Skonfiguruj zasady dotyczące podróży',
             addFirstReceipt: 'Dodaj swój pierwszy paragon',
             addFirstReceiptSubText: 'Zeskanuj lub wprowadź paragon ręcznie',
+            addName: 'Dodaj swoje imię',
+            addNameSubText: 'Pomóż współpracownikom rozpoznać cię w Expensify.',
+            downloadApp: 'Pobierz aplikację',
+            downloadAppSubText: 'Skanuj paragony, wysyłaj wydatki i zatwierdzaj raporty w dowolnym miejscu.',
         },
         yourSpend: {
             title: 'Twoje wydatki',
@@ -1274,6 +1278,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Średnia dla wszystkich sprzedawców',
             allCategoryAverage: 'Średnia dla wszystkich kategorii',
             averageValue: (amount: string) => `średnio ${amount}`,
+            allViolationAverage: 'Średnia wszystkich naruszeń',
+            noChange: 'Bez zmian',
+            percentChange: '% zmiana',
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
@@ -1298,6 +1305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        share: 'Udział',
         averageDays: 'Średnia liczba dni',
     },
     allSettingsScreen: {

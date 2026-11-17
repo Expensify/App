@@ -1186,6 +1186,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
             addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
             addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
+            addName: 'Fügen Sie Ihren Namen hinzu',
+            addNameSubText: 'Helfen Sie Ihrem Team, Sie in Expensify zu erkennen.',
+            downloadApp: 'Laden Sie die App herunter',
+            downloadAppSubText: 'Belege scannen, Ausgaben einreichen und Berichte unterwegs genehmigen.',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1248,6 +1252,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Durchschnitt über alle Händler',
             allCategoryAverage: 'Durchschnitt aller Kategorien',
             averageValue: (amount: string) => `${amount} durchschnittl.`,
+            allViolationAverage: 'Durchschnitt aller Verstöße',
+            noChange: 'Keine Änderung',
+            percentChange: '% Änderung',
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
@@ -1272,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {

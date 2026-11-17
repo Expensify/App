@@ -1188,6 +1188,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Configura reglas específicas de viaje',
             addFirstReceipt: 'Añade tu primer recibo',
             addFirstReceiptSubText: 'Escanear o introducir manualmente un recibo',
+            addName: 'Añade tu nombre',
+            addNameSubText: 'Ayuda a tus compañeros de trabajo a reconocerte en Expensify.',
+            downloadApp: 'Descarga la app',
+            downloadAppSubText: 'Escanea recibos, envía gastos y aprueba informes donde estés.',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1242,6 +1246,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Promedio de todos los comercios',
             allCategoryAverage: 'Promedio de todas las categorías',
             averageValue: (amount: string) => `${amount} prom de media`,
+            allViolationAverage: 'Media de todas las infracciones',
+            noChange: 'Sin cambios',
+            percentChange: '% de cambio',
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
@@ -1266,6 +1273,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Más lento en enviar',
         slowestToApprove: 'Más lento en aprobar',
         mostTimeToPay: 'Más tiempo para pagar',
+        share: 'Porcentaje de participación',
         averageDays: 'Días promedio',
     },
     allSettingsScreen: {

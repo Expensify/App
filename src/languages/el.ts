@@ -1244,6 +1244,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Ρύθμιση ειδικών κανόνων για ταξίδια',
             addFirstReceipt: 'Προσθέστε την πρώτη σας απόδειξη',
             addFirstReceiptSubText: 'Σαρώστε ή καταχωρίστε χειροκίνητα μια απόδειξη',
+            addName: 'Προσθέστε το όνομά σας',
+            addNameSubText: 'Βοηθήστε τους συναδέλφους σας να σας αναγνωρίζουν στο Expensify.',
+            downloadApp: 'Κατεβάστε την εφαρμογή',
+            downloadAppSubText: 'Σαρώστε αποδείξεις, υποβάλετε δαπάνες και εγκρίνετε αναφορές όπου κι αν βρίσκεστε.',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {
@@ -1294,6 +1298,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
             allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
             averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
+            allViolationAverage: 'Μέσος όρος όλων των παραβάσεων',
+            noChange: 'Χωρίς αλλαγή',
+            percentChange: '% μεταβολή',
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
@@ -1318,6 +1325,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {

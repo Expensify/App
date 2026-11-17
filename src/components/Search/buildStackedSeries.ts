@@ -14,7 +14,7 @@ import type {ChartBucketRange} from './chartGroupByConfig';
 import type {ChartComparisonPeriods, TimeGroupBy} from './comparisonBuckets';
 import type {GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
-import {AVERAGE_LABEL_KEYS, CHART_SERIES_KEY, isChartAverage} from './buildChartSeries';
+import {CHART_SERIES_KEY, getAverageLabelKey, isChartAverage} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
@@ -242,7 +242,7 @@ function buildStackedSeries({
             : [
                   {
                       key: CHART_SERIES_KEY.COMPARISON,
-                      label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'),
+                      label: translate(getAverageLabelKey(groupBy)),
                       isAverage: true,
                   },
               ];

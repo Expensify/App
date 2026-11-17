@@ -1201,6 +1201,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Reisspecifieke regels instellen',
             addFirstReceipt: 'Voeg je eerste bon toe',
             addFirstReceiptSubText: 'Scan of voer handmatig een bon in',
+            addName: 'Voeg je naam toe',
+            addNameSubText: 'Help je teamgenoten je in Expensify te herkennen.',
+            downloadApp: 'Download de app',
+            downloadAppSubText: 'Scan bonnetjes, dien uitgaven in en keur rapporten goed, waar je ook bent.',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -1247,6 +1251,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Gemiddelde voor alle handelaren',
             allCategoryAverage: 'Gemiddelde voor alle categorieën',
             averageValue: (amount: string) => `${amount} gem.`,
+            allViolationAverage: 'Gemiddelde over alle overtredingen',
+            noChange: 'Geen wijziging',
+            percentChange: '% wijziging',
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
@@ -1271,6 +1278,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {
