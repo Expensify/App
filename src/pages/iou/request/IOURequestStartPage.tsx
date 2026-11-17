@@ -3,7 +3,7 @@ import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKey
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -310,7 +310,7 @@ function IOURequestStartPage({
                                     onContainerElementChanged={setHeaderWithBackButtonContainerElement}
                                     style={[styles.w100]}
                                 >
-                                    <HeaderWithBackButton
+                                    <HeaderWithBackButtonAndTitle
                                         title={tabTitles[iouType]}
                                         onBackButtonPress={navigateBack}
                                     />

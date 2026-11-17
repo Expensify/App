@@ -2,8 +2,8 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderIconButton from '@components/Header/primitives/HeaderIconButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -12,7 +12,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +33,6 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
     const {translate} = useLocalize();
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
@@ -83,18 +81,19 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
         Navigation.goBack(backPath);
     };
 
-    const handleDeleteReceiptPress = async () => {
-        const result = await showConfirmModal({
+    const handleDeleteReceiptPress = () => {
+        showConfirmModal({
             title: translate('receipt.deleteReceipt'),
             prompt: translate('receipt.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deleteReceipt();
         });
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        deleteReceipt();
     };
 
     return (
@@ -102,20 +101,17 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
             testID="ReceiptView"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.receipt')}
-                shouldDisplayHelpButton={false}
                 onBackButtonPress={handleGoBack}
             >
-                <Button
+                <HeaderIconButton
                     onPress={handleDeleteReceiptPress}
-                    innerStyles={styles.bgTransparent}
-                    size={CONST.BUTTON_SIZE.LARGE}
+                    iconSrc={expensifyIcons.Trashcan}
+                    tooltipText={translate('common.delete')}
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_DELETE_BUTTON}
-                >
-                    <Button.Icon src={expensifyIcons.Trashcan} />
-                </Button>
-            </HeaderWithBackButton>
+                />
+            </HeaderWithBackButtonAndTitle>
             <AttachmentCarouselView
                 attachments={receipts as Attachment[]}
                 source={currentReceipt?.source ?? ''}

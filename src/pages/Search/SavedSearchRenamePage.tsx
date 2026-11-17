@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
@@ -83,7 +83,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!savedSearch}>
-                <HeaderWithBackButton title={translate('common.rename')} />
+                <HeaderWithBackButtonAndTitle title={translate('common.rename')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                     submitButtonText={translate('common.save')}
