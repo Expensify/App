@@ -199,6 +199,11 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     insightsAICardWidth: 250,
+    insightsRankingTableBarHeight: 8,
+    insightsRankingTableBarMinWidth: 4,
+    insightsRankingTableShareLabelSpace: 56,
+    insightsRankingTableAverageMarkerWidth: 2,
+    insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -214,8 +219,10 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
-    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 20px icon.
+    // Collapsed, a row shows only its icon: the row's inset (8) and padding (12) on each side around the 20px icon.
     flatNavigationBarCollapsedWidth: 60,
+    // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
+    flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarSubItemMarkerHeight: 20,
     // Horizontal inset every row's background sits at, inside the bar's own width.
@@ -227,7 +234,6 @@ export default {
     // Shorter than a standard medium button; collapsed, the same value makes it a square.
     flatNavigationBarCreateButtonHeight: 32,
     flatNavigationBarAccountItemHeight: 56,
-    flatNavigationBarHeaderPaddingRight: 20,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,

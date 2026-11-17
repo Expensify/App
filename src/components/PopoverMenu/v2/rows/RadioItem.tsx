@@ -77,4 +77,3 @@ function RadioItem({text, isSelected = false, onSelect, disabled = false, pendin
 RadioItem.displayName = 'PopoverMenu.RadioItem';
 
 export default RadioItem;
-export type {RadioItemProps};

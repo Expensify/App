@@ -203,7 +203,13 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
                         CustomSubtitle={
                             <Text style={[styles.textAlignCenter, styles.textSupporting]}>
                                 {bankDisplayName && translate('workspace.moreFeatures.companyCards.pendingBankDescription', bankDisplayName)}
-                                <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.FIX_CONNECTION_PENDING_BANK_LINK}
+                                    onPress={onOpenBankConnectionFlow}
+                                >
+                                    {translate('workspace.moreFeatures.companyCards.pendingBankLink')}
+                                </TextLink>
+                                .
                             </Text>
                         }
                         onLinkPress={onOpenBankConnectionFlow}

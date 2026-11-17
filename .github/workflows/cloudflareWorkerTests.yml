@@ -26,7 +26,7 @@ jobs:
   test:
     name: Cloudflare Worker tests
     if: github.actor != 'OSBotify' && github.actor != 'os-botify[bot]'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     defaults:
       run:
         working-directory: web/cloudflare-worker

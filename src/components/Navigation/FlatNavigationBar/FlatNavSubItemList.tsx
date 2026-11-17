@@ -1,12 +1,17 @@
-import {heightTransitionStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import {SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS} from '@components/Navigation/SearchSidebarCollapseStore';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import type {ViewStyle} from 'react-native';
+
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
+/** Web animates the open and close as a CSS transition; native has no equivalent here. */
+const heightTransitionStyle: ViewStyle = Platform.OS === 'web' ? {transition: `height ${SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS}ms ease`} : {};
 
 /** How long the marker takes to travel between rows, when the current search changes to another in the group. */
 const MARKER_TRAVEL_DURATION_MS = 150;

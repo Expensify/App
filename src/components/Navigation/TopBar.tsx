@@ -1,3 +1,4 @@
+import EnvironmentBadge from '@components/EnvironmentBadge';
 import Icon from '@components/Icon';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -32,6 +33,7 @@ import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import AccountAvatarButton from './AccountAvatarButton';
+import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
 
 type TopBarProps = {
     breadcrumbLabel: string;
@@ -64,6 +66,7 @@ function TopBar({
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
 
     const isInLandscapeMode = useIsInLandscapeMode();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
@@ -105,6 +108,7 @@ function TopBar({
                         >
                             {breadcrumbLabel}
                         </Text>
+                        {!shouldUseFlatNavigationBar && <EnvironmentBadge />}
                     </Animated.View>
                 </View>
                 {children}

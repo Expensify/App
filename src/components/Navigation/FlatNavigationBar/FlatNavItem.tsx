@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
-import {useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
+import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -36,6 +36,24 @@ type FlatNavItemProps = {
 
     isSelected: boolean;
 
+    /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
+
+    /** Draws the row as a child of the group above it, indented against the group's shared rule */
+    isSubItem?: boolean;
+
+    /** Trims the rule above the first child so it starts inside the group rather than at the parent row */
+    isFirstSubItem?: boolean;
+
+    /** Trims the rule below the last child so it stops inside the group */
+    isLastSubItem?: boolean;
+
+    /** Scrolls a label too long for its row on hover, and names it in full in a tooltip. For rows the user named. */
+    shouldShowTooltipWhenTruncated?: boolean;
+
+    /** Control revealed at the row's end while it is hovered, such as a saved search's menu */
+    hoverActionComponent?: React.ReactNode;
+
     /** Draws the row taller than the destination rows, as the Account row is */
     isTall?: boolean;
 
@@ -54,24 +72,6 @@ type FlatNavItemProps = {
 
     /** Called when the pointer leaves the row */
     onHoverOut?: () => void;
-
-    /** Draws the row as a child of the group above it, indented against the group's shared rule */
-    isSubItem?: boolean;
-
-    /** Trims the rule above the first child so it starts inside the group rather than at the parent row */
-    isFirstSubItem?: boolean;
-
-    /** Trims the rule below the last child so it stops inside the group */
-    isLastSubItem?: boolean;
-
-    /** Scrolls a label too long for its row on hover, and names it in full in a tooltip. For rows the user named. */
-    shouldShowTooltipWhenTruncated?: boolean;
-
-    /** Control revealed at the row's end while it is hovered, such as a saved search's menu */
-    hoverActionComponent?: React.ReactNode;
-
-    /** Narrows the row to its icon, as the collapsed bar does. The label stays mounted and fades. */
-    isCollapsed?: boolean;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
@@ -81,6 +81,12 @@ function FlatNavItem({
     renderLeftElement,
     rightElement,
     isSelected,
+    isCollapsed = false,
+    isSubItem = false,
+    isFirstSubItem = false,
+    isLastSubItem = false,
+    shouldShowTooltipWhenTruncated = false,
+    hoverActionComponent,
     isTall = false,
     statusIndicatorColor,
     accessibilityLabel,
@@ -88,18 +94,10 @@ function FlatNavItem({
     onPress,
     onHoverIn,
     onHoverOut,
-    isSubItem = false,
-    isFirstSubItem = false,
-    isLastSubItem = false,
-    shouldShowTooltipWhenTruncated = false,
-    hoverActionComponent,
-    isCollapsed = false,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    // The label stays mounted while the bar narrows, so it fades out rather than disappearing on the first frame.
-    const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
 
     const getRowBackgroundStyle = (isHovered: boolean) => {
         if (isSelected) {
@@ -107,6 +105,9 @@ function FlatNavItem({
         }
         return isHovered ? styles.highlightBG : undefined;
     };
+
+    // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
 
     return (
         <PressableWithFeedback
@@ -117,7 +118,12 @@ function FlatNavItem({
             sentryLabel={sentryLabel}
             onHoverIn={onHoverIn}
             onHoverOut={onHoverOut}
-            style={({hovered}) => [styles.flatNavigationBarItem, isTall && styles.flatNavigationBarAccountItem, isSubItem && styles.flatNavigationBarSubItem, getRowBackgroundStyle(hovered)]}
+            style={({hovered}) => [
+                isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
+                styles.flatNavigationBarItem,
+                isTall && styles.flatNavigationBarAccountItem,
+                getRowBackgroundStyle(hovered),
+            ]}
         >
             {({hovered}) => {
                 const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
@@ -174,7 +180,7 @@ function FlatNavItem({
                         {!isCollapsed && !!hoverActionComponent && (
                             <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>
                         )}
-                        {!isCollapsed && rightElement}
+                        {rightElement}
                     </>
                 );
             }}

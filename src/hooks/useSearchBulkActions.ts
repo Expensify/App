@@ -18,6 +18,7 @@ import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@l
 import type {PayMoneyRequestFunctionParams} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     exportSearchItemsToCSV,
@@ -62,7 +63,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -180,6 +181,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import {getParticipantsInvoiceReport} from './useParticipantsInvoiceReport';
 import usePaymentContext from './usePaymentContext';
+import usePayViaABA from './usePayViaABA';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
@@ -342,13 +344,11 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
  * Only `filters` changes, so rebuilding the query from its text drops this scope.
  */
 function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
-    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
-        (range): ASTNode => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
-            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
-        }),
-    );
+    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map((range): ASTNode => ({
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
+        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+    }));
     if (!firstRangeNode) {
         return queryJSON;
     }
@@ -945,17 +945,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
 
-    const onlyShowPayElsewhere = useMemo(() => {
+    const hasMultipleCurrencies = useMemo(() => {
         const selectedCurrencies =
             payScopedReports.length > 0
                 ? payScopedReports.map((report) => report.currency).filter(Boolean)
                 : Object.values(selectedTransactions)
                       .map((transaction) => transaction.currency)
                       .filter(Boolean);
-        if (new Set(selectedCurrencies).size > 1) {
-            return true;
-        }
+        return new Set(selectedCurrencies).size > 1;
+    }, [payScopedReports, selectedTransactions]);
 
+    const onlyShowPayElsewhere = useMemo(() => {
         const firstPolicyID = payScopedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         const transactionsByReportID = getTransactionsByReportID(currentSearchResults?.data ?? {});
@@ -1004,8 +1004,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         payScopedReportIDs,
         bankAccountList,
-        payScopedReports,
-        selectedTransactions,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -1013,6 +1011,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkPayReportID = payScopedReportIDs.at(0) ?? selectedTransactionReportIDs.at(0);
     const selectedBulkPayReport = selectedBulkPayReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedBulkPayReportID}`] : undefined;
     const selectedBulkPayChatReportID = selectedBulkPayReport?.chatReportID;
+    // Since ABA files pay from one workspace's withdrawal account, we only show it if all the reports are from one workspace.
+    // Selecting all items is not supported for now, it will be added in the second release.
+    const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
+    const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
+    const hasSelectedBulkPayReport = !!selectedBulkPayReportID;
+    const {payReportsViaABA} = usePayViaABA();
+
+    // The bulk pay menus have no hook for when they open, so the payment methods are loaded when the selection is made instead
+    useEffect(() => {
+        if (!hasSelectedBulkPayReport) {
+            return;
+        }
+        openPaymentMethods();
+    }, [hasSelectedBulkPayReport]);
+
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),
         selectedReportID: selectedBulkPayReportID,
@@ -1022,6 +1035,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
         onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
+        hasMultipleCurrencies,
+        shouldShowPayViaABAOption,
     });
 
     const {hash} = queryJSON ?? {};
@@ -1896,6 +1911,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
+            if (additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                // Paying several expenses from one report only needs the report in the file once
+                const reportIDs = [...new Set(itemsToPay.map((item) => item.reportID).filter((reportID): reportID is string => !!reportID))];
+                payReportsViaABA(
+                    reportIDs.map((reportID) => ({reportID, ownerAccountID: getReportFromSearchSnapshot(reportID, searchData, allReports)?.ownerAccountID})),
+                    bulkPayPolicy,
+                );
+                clearSelectedTransactions();
+                return;
+            }
+
             let paidReportCount = 0;
             const expensePayments: PayMoneyRequestFunctionParams[] = [];
             for (const item of itemsToPay) {
@@ -2118,6 +2144,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ownerBillingGracePeriodEnd,
             amountOwed,
             policies,
+            bulkPayPolicy,
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
@@ -2143,6 +2170,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            payReportsViaABA,
         ],
     );
 
@@ -2588,6 +2616,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportOptions.push({
                         text: connectionNameFriendly,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.EXPORT_TO_INTEGRATION,
                         icon: integrationIcon,
                         onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, exportableReportIDs, integration, integrationPolicy, currentSearchKey)),
                         shouldCloseModalOnSelect: true,
@@ -2635,6 +2664,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.MARK_AS_EXPORTED,
                         // Every integration's "Mark as exported" option shares the same visible text and differs only by icon,
                         // which screen readers can't announce. Append the integration name so assistive tech can distinguish them.
                         accessibilityLabel: `${translate('workspace.common.markAsExported')}, ${connectionNameFriendly}`,
@@ -2652,6 +2682,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             exportOptions.push({
                 text: translate('export.currentView'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.CURRENT_VIEW,
                 icon: expensifyIcons.Table,
                 onSelected: () => {
                     handleExportCurrentView();
@@ -2666,6 +2697,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportOptions.push({
                     text: translate('export.currentViewGroupsOnly'),
                     value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.CURRENT_VIEW_GROUPS_ONLY,
                     icon: expensifyIcons.Table,
                     onSelected: () => {
                         handleExportCurrentView(true);
@@ -2683,6 +2715,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return {
                         text: template.name,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                        // Basic export does the same work as the fallback row below, so it shares its label
+                        sentryLabel: isBasicExport ? CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.BASIC_EXPORT : CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.TEMPLATE,
                         icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
@@ -2710,6 +2744,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportOptions.push({
                     text: translate('export.basicExport'),
                     value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_EXPORT_MENU.BASIC_EXPORT,
                     icon: expensifyIcons.Table,
                     onSelected: () => {
                         handleBasicExport();
@@ -2734,6 +2769,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_EXPORT,
             shouldCloseModalOnSelect: true,
             subMenuItems,
         };
@@ -2798,6 +2834,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             text: translate('iou.moveExpenses'),
             icon: expensifyIcons.DocumentMerge,
             value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_MOVE_EXPENSES,
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 // A queued all-matching move would send a stale query, so ask the user to reconnect like export does
@@ -2820,6 +2857,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             backButtonText: translate('search.bulkActions.pay'),
             rightIcon: expensifyIcons.ArrowRight,
             value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_PAY,
             shouldCloseModalOnSelect: true,
             subMenuItems: bulkPayButtonOptions,
             onSelected: () => onBulkPaySelected(undefined),
@@ -2829,6 +2867,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             icon: expensifyIcons.ThumbsUp,
             text: translate('search.bulkActions.approve'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_APPROVE,
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 handleApproveWithDEWCheck();
@@ -2839,6 +2878,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             icon: expensifyIcons.Send,
             text: allReportsShouldMarkAsDone ? translate('common.markAsDone') : translate('common.submit'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_SUBMIT,
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 if (isOffline) {
@@ -3052,6 +3092,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             icon: expensifyIcons.Download,
             text: translate('common.downloadReport', {count: selectedReportIDs.length}),
             value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DOWNLOAD_PDF,
             shouldCloseModalOnSelect: true,
             onSelected: async () => {
                 if (isOffline) {
@@ -3111,6 +3152,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             icon: expensifyIcons.Buildings,
             text: translate('iou.changeWorkspace'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_WORKSPACE,
             shouldCloseModalOnSelect: true,
             onSelected: () => Navigation.navigate(ROUTES.SEARCH_CHANGE_WORKSPACE_RHP),
         };
@@ -3158,6 +3200,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     icon: expensifyIcons.RotateLeft,
                     text: translate('search.bulkActions.undelete'),
                     value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNDELETE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
                         const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
@@ -3173,6 +3216,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                     icon: expensifyIcons.ExpenseCopy,
                     value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DUPLICATE_EXPENSE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
                         if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -3208,6 +3252,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Pencil,
                 text: translate('search.bulkActions.editMultiple'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_EDIT_MULTIPLE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     const selectedTransactionIDs = Object.keys(selectedTransactions).filter((transactionID) => {
@@ -3253,6 +3298,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_REJECT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
@@ -3286,6 +3332,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Workflows,
                 text: translate('iou.changeApprover.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_CHANGE_APPROVER,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
             });
@@ -3342,6 +3389,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.ArrowCollapse,
                 text: translate('search.mergeReports.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_MERGE_REPORTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     setSearchMergeReportIDs(selectedReportIDs).then(() => {
@@ -3365,6 +3413,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipt', {count: selectedReportReceiptCount}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
@@ -3395,6 +3444,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipt', {count: transactionIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
@@ -3418,6 +3468,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Document,
                 text: translate('export.downloadStatementPDF'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_STATEMENT_PDF,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DOWNLOAD_STATEMENT_PDF,
                 onSelected: exportExpensifyCardStatementPDF,
                 shouldCloseModalOnSelect: true,
             });
@@ -3430,6 +3481,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_HOLD,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isOffline) {
@@ -3463,6 +3515,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNHOLD,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
@@ -3509,6 +3562,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_MERGE,
                         onSelected: () =>
                             setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, translate, getCurrencyDecimals, reports, false, true, undefined),
                     });
@@ -3551,6 +3605,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('iou.split'),
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_SPLIT,
                 onSelected: () => {
                     initSplitExpense(
                         firstTransaction,
@@ -3572,6 +3627,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DUPLICATE_EXPENSE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -3597,6 +3653,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('search.bulkActions.duplicateReport', {count: selectedReports.length}),
                 icon: expensifyIcons.ReportCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE_REPORT,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DUPLICATE_REPORT,
                 shouldCloseModalOnSelect: true,
                 onSelected: invokeDuplicateReportHandler,
             });
@@ -3606,6 +3663,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DELETE,
                 shouldCloseModalOnSelect: true,
                 onSelected: handleDeleteSelectedTransactions,
             });
@@ -3625,6 +3683,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 icon: expensifyIcons.Exclamation,
                 text: translate('search.bulkActions.noOptionsAvailable'),
                 value: undefined,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_NO_OPTIONS_AVAILABLE,
                 ...emptyOptionStyle,
             });
         }
