@@ -100,6 +100,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage
                         {!!errorMessage && `${errorMessage} `}
                         {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ERROR_CONNECT_WITH_PLAID_LINK}
                             style={[styles.link]}
                             onPress={openPlaidLink}
                         >
@@ -107,6 +108,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage
                         </TextLink>{' '}
                         <Text style={styles.textSupporting}>{translate('common.or')}</Text>{' '}
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ERROR_CONNECT_WITH_EXPENSIFY_CARD_LINK}
                             style={[styles.link]}
                             onPress={openExpensifyCardLink}
                         >

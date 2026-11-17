@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import variables from '@styles/variables';
 
@@ -69,7 +70,7 @@ const useRootNavigatorScreenOptions = () => {
             presentation: Presentation.TRANSPARENT_MODAL,
             web: {
                 cardOverlayEnabled: false,
-                cardStyle: {
+                cardStyle: toViewStyle({
                     ...StyleUtils.getNavigationModalCardStyle(),
                     backgroundColor: 'transparent',
                     width: '100%',
@@ -78,7 +79,7 @@ const useRootNavigatorScreenOptions = () => {
                     position: 'fixed',
                     paddingLeft: 'env(safe-area-inset-left)',
                     paddingRight: 'env(safe-area-inset-right)',
-                },
+                }),
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
         },

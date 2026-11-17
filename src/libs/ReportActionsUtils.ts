@@ -78,6 +78,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getAutoReportingOffsetDisplayName, parseAutoReportingOffset} from './SubmissionScheduleUtils';
 import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspaceDisplayUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -364,6 +365,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
@@ -396,6 +398,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
@@ -405,6 +408,10 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
     CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
@@ -413,6 +420,9 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
     CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
 ]);
+
+// A Map lookup only matches codes we list, so a reason like "toString" can't resolve to an Object prototype member
+const PAYOUT_FAILURE_REASONS = new Map(Object.entries(CONST.WISE.PAYOUT_FAILURE_REASON));
 
 const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
@@ -1832,6 +1842,16 @@ function shouldReportActionBeVisible(
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
+/** Whether an action can automatically create an unread divider for this account. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const recipients = getOriginalMessage(reportAction)?.actionableForAccountIDs;
+        // Older actions have no recipient metadata, so preserve their existing behavior.
+        return !recipients || recipients.includes(currentUserAccountID);
+    }
+    return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
+}
+
 /**
  * Checks if the new marker should be hidden for the report action.
  */
@@ -2415,6 +2435,7 @@ function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
     return (
         isReimbursementDeQueuedOrCanceledAction(action) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED)
@@ -2827,6 +2848,10 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
@@ -2849,6 +2874,53 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
         return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
     }
     return '';
+}
+
+/** Formats a Wise delivery date the same way in the report, LHN preview and thread title */
+function formatReimbursementDate(date: string): string {
+    // getMessageOfOldDotReportAction is also called outside React (LHN text, report names), so the date-fns locale
+    // comes from IntlStore instead of useLocalize
+    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, IntlStore.getDateFnsLocale(IntlStore.getCurrentLocale()));
+}
+
+/**
+ * Wise reuses the REIMBURSEMENT_DELAYED action for a changed delivery estimate and for a deposit that arrived after all, so only the
+ * fraud review hold, which carries no date, keeps the original "delayed" copy.
+ */
+function getReimbursementDelayedMessage(
+    translate: LocalizedTranslate,
+    {expectedDate, previousExpectedDate, completed}: {expectedDate?: string; previousExpectedDate?: string; completed?: boolean},
+): string {
+    const formattedExpectedDate = expectedDate ? formatReimbursementDate(expectedDate) : '';
+    if (completed) {
+        return formattedExpectedDate
+            ? translate('report.actions.type.reimbursementArrived', {arrivalDate: formattedExpectedDate})
+            : translate('report.actions.type.reimbursementArrivedWithoutDate');
+    }
+    if (!expectedDate || !formattedExpectedDate) {
+        return translate('report.actions.type.reimbursementDelayed');
+    }
+
+    // The message only shows the day, so compare UTC days rather than timestamps. Otherwise an estimate that moves a few hours
+    // earlier on the same day, or a date-only value next to Auth's "yyyy-MM-dd HH:mm:ss", would read as good news with an unchanged date.
+    // An invalid previous date formats to an empty string, which never counts as later.
+    const expectedDay = DateUtils.formatMachineDateWithUTCTimeZone(expectedDate);
+    const previousDay = previousExpectedDate ? DateUtils.formatMachineDateWithUTCTimeZone(previousExpectedDate) : '';
+    const isSooner = !!previousDay && expectedDay < previousDay;
+    return isSooner
+        ? translate('report.actions.type.reimbursementEstimateSooner', {expectedDate: formattedExpectedDate})
+        : translate('report.actions.type.reimbursementEstimateUpdated', {expectedDate: formattedExpectedDate});
+}
+
+/**
+ * Builds the failed deposit message. Codes we have no words for, including ones Wise adds later, and a reason that hasn't
+ * arrived yet (Auth adds it when Wise's payout failure webhook lands) all read as the bank rejecting the payment.
+ */
+function getReimbursementDepositFailedMessage(translate: LocalizedTranslate, reason: string | undefined): string {
+    const reasonKey = (reason ? PAYOUT_FAILURE_REASONS.get(reason) : undefined) ?? 'reasonNotSpecified';
+    return translate('report.actions.type.reimbursementDepositFailed', {
+        reason: translate(`report.actions.type.reimbursementDepositFailedReason.${reasonKey}`),
+    });
 }
 
 /**
@@ -2914,7 +2986,21 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
             return translate('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return translate('report.actions.type.reimbursementDelayed');
+            return getReimbursementDelayedMessage(translate, {
+                expectedDate: originalMessage?.expectedDate,
+                previousExpectedDate: originalMessage?.previousExpectedDate,
+                completed: originalMessage?.completed,
+            });
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED:
+            return getReimbursementDepositFailedMessage(translate, originalMessage?.reason);
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD:
+            return translate('report.actions.type.reimbursementHeld');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED:
+            return originalMessage?.debitBankAccountLast4
+                ? translate('report.actions.type.reimbursementRefunded', {bankAccountLastFour: originalMessage.debitBankAccountLast4})
+                : translate('report.actions.type.reimbursementRefundedWithoutBankAccount');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED:
+            return translate('report.actions.type.reimbursementReleased');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
@@ -3106,11 +3192,19 @@ function getUpdateRoomDescriptionFragment(translate: LocalizedTranslate, reportA
     };
 }
 
+/**
+ * Plain text version of getMessageOfOldDotReportAction for surfaces that can't render HTML (LHN, thread title, clipboard).
+ * Some OldDot messages contain markup such as <concierge-link>, which would otherwise show as raw tags there.
+ */
+function getMessageTextOfOldDotReportAction(translate: LocalizedTranslate, oldDotAction: PartialReportAction | OldDotReportAction, withMarkdown = true): string {
+    return Parser.htmlToText(getMessageOfOldDotReportAction(translate, oldDotAction, withMarkdown));
+}
+
 function getReportActionMessageFragments(translate: LocalizedTranslate, action: ReportAction, isSupportTicketReport = false): Message[] {
     if (isOldDotReportAction(action)) {
         const oldDotMessage = getMessageOfOldDotReportAction(translate, action);
         const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
-        return [{text: oldDotMessage, html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
+        return [{text: Parser.htmlToText(oldDotMessage), html: `<muted-text>${html}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
@@ -3305,13 +3399,15 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
 
 /**
  * Gets the text version of the message in a report action
+ *
+ * @param reportIDToName - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>, reportIDToName?: Record<string, string>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return getReportActionText(reportAction);
+        return getReportActionText(reportAction, reportIDToName);
     }
     // Sometime html can be an empty string
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID)}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID, reportIDToName)}`, '') ?? '';
 }
 
 function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
@@ -3877,7 +3973,7 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
 /**
  * Builds the message for a category visibility change, e.g. "set Bob Sterling to only see the "Meals" and "Fuel" categories".
  * Lists that are too long to read inline show a count, and when shouldShowFullList is true (the action is shown at the top of its thread),
- * those lists are returned in full instead.
+ * those lists are also listed in full below the message.
  * Pass personalDetails from a subscription so member names update when their details load or change.
  */
 function getCategoryVisibilityUpdateMessage(
@@ -3897,19 +3993,6 @@ function getCategoryVisibilityUpdateMessage(
         const hiddenTranslation = translate('common.hidden');
         return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation}));
     };
-
-    if (shouldShowFullList) {
-        const fullLists: string[] = [];
-        if (categoryNames.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
-        }
-        if (accountIDs.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
-        }
-        if (fullLists.length > 0) {
-            return fullLists.join('\n');
-        }
-    }
 
     let members: string;
     if (accountIDs.length === 0) {
@@ -3936,12 +4019,24 @@ function getCategoryVisibilityUpdateMessage(
     }
 
     if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+    } else if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
     }
-    if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
+
+    if (!shouldShowFullList) {
+        return message;
     }
-    return message;
+
+    // The top of the thread repeats the message, then lists in full whatever it only counted
+    const lines = [message];
+    if (categoryNames.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
+    }
+    if (accountIDs.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
+    }
+    return lines.join('\n');
 }
 
 function getWorkspaceCategoryUpdateMessage(
@@ -4464,18 +4559,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         (typeof oldValue === 'string' || typeof oldValue === 'number') &&
         (typeof newValue === 'string' || typeof newValue === 'number')
     ) {
-        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) => {
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastDayOfMonth');
-            }
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
-            }
-            if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
-            }
-            return '';
-        };
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) =>
+            getAutoReportingOffsetDisplayName(parseAutoReportingOffset(autoReportingOffset), translate, (day) => toLocaleOrdinal(IntlStore.getCurrentLocale(), day));
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {
@@ -6153,6 +6238,18 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
     });
 }
 
+function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
+    const {feedName = 'company', bank, policyID = '', warningDaysBeforeExpiry = 0, mentionedAccountIDs} = originalMessage ?? {};
+    const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
+    return translate('report.actions.type.companyCardConsentExpiring', {
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
+        warningDaysBeforeExpiry,
+        workspaceCompanyCardRoute,
+        mentionedAccountID: mentionedAccountIDs?.at(0),
+    });
+}
+
 function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
     const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -6281,6 +6378,7 @@ export {
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
@@ -6395,6 +6493,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
@@ -6515,6 +6614,7 @@ export {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,

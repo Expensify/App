@@ -121,13 +121,13 @@ function usePaymentOptions({
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PERSONAL,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleBusiness', formattedAmount),
+                text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.BUSINESS,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', formattedAmount),
+                text: translate('iou.payElsewhere', ''),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_ELSEWHERE,

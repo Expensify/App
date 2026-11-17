@@ -40,4 +40,3 @@ function Header({children, style}: HeaderProps): React.ReactElement | null {
 Header.displayName = 'PopoverMenu.Header';
 
 export default Header;
-export type {HeaderProps};
