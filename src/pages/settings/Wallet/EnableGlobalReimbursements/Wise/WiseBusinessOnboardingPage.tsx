@@ -212,7 +212,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadRequirements) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [shouldReadRequirements, bankAccountID]);
 
     const draftValues = toDynamicFormValues(draft);

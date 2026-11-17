@@ -733,7 +733,7 @@ describe('WiseBusinessOnboardingPage', () => {
         });
 
         // Then the page reads this bank account and sends the user to the source of funds page, so Submit cannot skip it
-        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, shouldPreserveDraft: true});
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
     });
 
