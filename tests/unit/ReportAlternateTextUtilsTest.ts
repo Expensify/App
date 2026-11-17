@@ -534,7 +534,7 @@ describe('ReportAlternateTextUtils', () => {
         it('returns the transaction thread action when the one-transaction thread ID is passed', () => {
             // Given the caller resolved the one-transaction thread ID from the sorted report actions derived value
             // When the last action context is resolved
-            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, transactionThreadReportID);
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, CURRENT_USER_ACCOUNT_ID, transactionThreadReportID);
 
             // Then the newer action from the transaction thread wins
             expect(lastAction?.reportActionID).toBe(threadComment.reportActionID);
@@ -543,7 +543,7 @@ describe('ReportAlternateTextUtils', () => {
         it('only uses the parent report actions when the report has no one-transaction thread', () => {
             // Given the caller has no one-transaction thread for the report (e.g. the derived value has no entry for it)
             // When the last action context is resolved without a thread ID
-            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, undefined);
+            const {lastAction} = resolveLastActionContext(expenseReport, false, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
 
             // Then only the parent's own actions are considered, because the thread ID is no longer read from a module-level cache
             expect(lastAction?.reportActionID).toBe(parentComment.reportActionID);
@@ -615,7 +615,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
 
             // When the last action context is resolved for a given user
-            const getLastActionIDFor = (currentUserAccountID: number) => resolveLastActionContext(report, false, undefined, currentUserAccountID).lastAction?.reportActionID;
+            const getLastActionIDFor = (currentUserAccountID: number) => resolveLastActionContext(report, false, undefined, currentUserAccountID, undefined).lastAction?.reportActionID;
 
             // Then the whisper's target gets the whisper as the last action
             expect(getLastActionIDFor(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.reportActionID);
@@ -853,7 +853,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID).lastAction,
+                    lastAction: resolveLastActionContext(report, false, undefined, currentUserAccountID, undefined).lastAction,
                     rules: undefined,
                 });
 
