@@ -1525,15 +1525,26 @@ describe('actions/User', () => {
             );
             AgentZeroOptimisticStore.addTurn('1001', CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'question', responseReportActionID: 'question-reply'});
 
-            // When the server reports that Concierge finished the message without replying.
+            // When the server answers in a different report than the client predicted.
             Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
                 updates: [],
-                conciergeProcessingStatus: {reportID: '1001', reportActionID: 'question', isProcessing: false},
+                conciergeProcessingStatus: {reportID: '3001', reportActionID: 'question', isProcessing: true},
             });
             await waitForBatchedUpdates();
 
-            // Then the indicator clears now instead of waiting for that request, which only matters for the Onyx label.
+            // Then the indicator moves there now, instead of after that request.
             expect(AgentZeroOptimisticStore.getEntry('1001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)?.turns.map((turn) => turn.questionReportActionID)).toEqual(['question']);
+
+            // When the server reports that Concierge finished the message without replying.
+            Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, {
+                updates: [],
+                conciergeProcessingStatus: {reportID: '3001', reportActionID: 'question', isProcessing: false},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator clears now as well, because only the Onyx label needs to wait for that request.
+            expect(AgentZeroOptimisticStore.getEntry('3001', CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
             finishCurrentRequest();
             await waitForBatchedUpdates();
         });

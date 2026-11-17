@@ -519,6 +519,25 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.statusLabel).toBe('');
         });
 
+        it('clears a sent message after the 2-minute timeout when neither its reply nor its completion arrives', async () => {
+            // Given a message whose server response and completion event were both lost, as with a retried duplicate send.
+            jest.useFakeTimers();
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'lost-question', responseReportActionID: 'lost-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the safety window passes.
+            act(() => {
+                jest.advanceTimersByTime(120000);
+            });
+            await waitForBatchedUpdates();
+
+            // Then the indicator stops instead of staying up indefinitely.
+            expect(result.current.isProcessing).toBe(false);
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+        });
+
         it('should not clear optimistic state before the 2-minute timeout', async () => {
             jest.useFakeTimers();
 
@@ -917,6 +936,31 @@ describe('AgentZeroStatusContext', () => {
             // Then the indicator ends with the reply to the latest message, not earlier.
             expect(result.current.isProcessing).toBe(false);
             expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('keeps a sent message pending through an empty label and finishes it on escalation without hiding the escalation label', async () => {
+            // Given a pending message and Concierge's label for its run.
+            const escalationLabel = 'Concierge is escalating for human review...';
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'escalated-question', responseReportActionID: 'escalated-reply'});
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // When Auth clears the label just before a tool runs, which happens mid-run.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: ''}});
+            await waitForBatchedUpdates();
+
+            // Then the message is still pending, because only its reply or completion finishes it.
+            expect(result.current.isProcessing).toBe(true);
+
+            // When the run escalates, which saves its label on the report, and the server finishes the message.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: escalationLabel});
+            act(() => AgentZeroOptimisticStore.completeTurn('escalated-question'));
+            await waitForBatchedUpdates();
+
+            // Then the message no longer waits, and the escalation label stays visible.
+            expect(AgentZeroOptimisticStore.getEntry(reportID, CONST.ACCOUNT_ID.CONCIERGE)).toBeUndefined();
+            expect(result.current.isProcessing).toBe(true);
+            await waitFor(() => expect(result.current.statusLabel).toBe(escalationLabel));
         });
 
         it('should clear reasoning history when processing indicator is cleared', async () => {
