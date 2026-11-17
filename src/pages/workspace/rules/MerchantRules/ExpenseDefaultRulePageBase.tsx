@@ -117,12 +117,12 @@ type SectionType = {
 /**
  * Words a yes/no row.
  *
- * `unsetTranslationKey` differs between the two halves of the page, because a condition left unset matches either
- * way, while a default left unset leaves the field alone.
+ * Only the defaults half passes `unsetTranslationKey`, because a default left unset leaves the field alone and
+ * that is worth saying. A condition left unset reads as blank, the way every other unset condition does.
  */
-const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate, unsetTranslationKey: 'common.dontChange' | 'common.any'): string => {
+const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate, unsetTranslationKey?: 'common.dontChange'): string | undefined => {
     if (value === undefined) {
-        return translate(unsetTranslationKey);
+        return unsetTranslationKey ? translate(unsetTranslationKey) : undefined;
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -518,7 +518,7 @@ function ExpenseDefaultRulePageBase({
                 {
                     key: 'submittersToMatch',
                     description: translate('common.submitter'),
-                    title: submittersToMatchDisplayName ?? translate('common.any'),
+                    title: submittersToMatchDisplayName,
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
@@ -570,7 +570,7 @@ function ExpenseDefaultRulePageBase({
                 {
                     key: 'reimbursableToMatch',
                     description: translate('common.reimbursable'),
-                    title: getBooleanTitle(form?.reimbursableToMatch, translate, 'common.any'),
+                    title: getBooleanTitle(form?.reimbursableToMatch, translate),
                     onPress: () =>
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
@@ -579,7 +579,7 @@ function ExpenseDefaultRulePageBase({
                     ? {
                           key: 'billableToMatch',
                           description: translate('common.billable'),
-                          title: getBooleanTitle(form?.billableToMatch, translate, 'common.any'),
+                          title: getBooleanTitle(form?.billableToMatch, translate),
                           onPress: () =>
                               Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Paycheck,
