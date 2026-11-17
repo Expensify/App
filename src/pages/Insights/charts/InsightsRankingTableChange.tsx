@@ -26,8 +26,10 @@ function formatRankingTableChange(change: RankingTableChange, translate: LocaleC
         };
     }
     if (change.type === RANKING_TABLE_CHANGE.NEW) {
-        const text = translate('common.new');
-        return {text, accessibilityLabel: text};
+        return {
+            text: CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER,
+            accessibilityLabel: translate('common.new'),
+        };
     }
     const text = numberFormat(change.percent / 100, {
         style: 'percent',
@@ -45,7 +47,7 @@ function InsightsRankingTableChange({change}: InsightsRankingTableChangeProps) {
     const {translate, numberFormat} = useLocalize();
     const {text, accessibilityLabel} = formatRankingTableChange(change, translate, numberFormat);
 
-    if (change.type === RANKING_TABLE_CHANGE.NONE) {
+    if (change.type === RANKING_TABLE_CHANGE.NONE || change.type === RANKING_TABLE_CHANGE.NEW) {
         return (
             <Text
                 style={styles.textSupporting}
@@ -59,7 +61,7 @@ function InsightsRankingTableChange({change}: InsightsRankingTableChangeProps) {
     return (
         <InsightsChangeBadge
             text={text}
-            isIncrease={change.type === RANKING_TABLE_CHANGE.NEW ? undefined : change.type === RANKING_TABLE_CHANGE.INCREASE}
+            isIncrease={change.type === RANKING_TABLE_CHANGE.INCREASE}
             style={styles.alignSelfEnd}
         />
     );

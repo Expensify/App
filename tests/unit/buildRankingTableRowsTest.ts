@@ -47,7 +47,7 @@ describe('buildRankingTableRows', () => {
         expect(table.averageWidthPercent).toBe(50);
     });
 
-    it('rounds the change from the previous period to a whole percentage, and shows a type without previous expenses as new', () => {
+    it('rounds the change from the previous period to a whole percentage, and marks a type without previous expenses as new', () => {
         // Given violation types that grew, shrank, stayed the same, and had no expenses in the previous period
         const data = [violationGroup('missingReceipt', 33), violationGroup('overLimit', 10), violationGroup('missingCategory', 8), violationGroup('missingTag', 5)];
         const previous = [violationGroup('missingReceipt', 25), violationGroup('overLimit', 20), violationGroup('missingCategory', 8)];
@@ -55,7 +55,7 @@ describe('buildRankingTableRows', () => {
         // When the rows are built against the previous period
         const {rows} = buildRankingTableRows({data, comparison: {data: previous, color: ''}, isComparingPreviousPeriod: true});
 
-        // Then each row shows how its expenses changed, with "new" standing in for a change from zero
+        // Then each row shows how its expenses changed, and a type that went up from zero is new
         expect(rows.map(({change}) => change)).toEqual([
             {type: RANKING_TABLE_CHANGE.INCREASE, percent: 32},
             {type: RANKING_TABLE_CHANGE.DECREASE, percent: 50},
@@ -71,7 +71,7 @@ describe('buildRankingTableRows', () => {
         // When the rows are built
         const {rows} = buildRankingTableRows({data, comparison: undefined, isComparingPreviousPeriod: true});
 
-        // Then the row shows no change rather than calling the group new, since there's nothing to compare it with
+        // Then the row shows no change, since there's nothing to compare it with
         expect(rows.at(0)?.change).toEqual({type: RANKING_TABLE_CHANGE.NONE});
     });
 });
