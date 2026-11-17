@@ -1,11 +1,12 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
+import type {SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
 
+import {arePaymentsEnabled} from '@libs/PolicyUtils/payments';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {areApprovalsEnabled} from '@libs/PolicyUtils/workflows';
-import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders, isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,7 +26,10 @@ type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
-    view: ChartView;
+    view: SearchView;
+
+    /** Whether the chart spans the dashboard's whole width instead of sharing the two-column grid */
+    isFullWidth?: boolean;
 
     /** What the chart plots for each group, left out by charts plotting the money each group totals */
     metric?: SearchChartMetric;
@@ -122,6 +126,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
             },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                titleKey: 'search.tabs.topTags',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopTags,
+            },
         ],
     },
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
@@ -178,6 +192,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                isPolicyEligible: arePaymentsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -199,17 +214,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
         },
         supportingCharts: [
-            {
-                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
-                titleKey: 'insightsPage.topViolations',
-                has: VIOLATION_HAS_VALUES,
-                view: CONST.SEARCH.VIEW.PIE,
-                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
-                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-            },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
@@ -235,6 +239,18 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: (policy) => hasMultipleMembers(policy) && areApprovalsEnabled(policy),
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+                titleKey: 'insightsPage.topViolations',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.TABLE,
+                isFullWidth: true,
+                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: 15,
             },
         ],
     },
