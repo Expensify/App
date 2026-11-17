@@ -20,7 +20,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
-import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -69,7 +69,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isPlaid = !!plaidToken;
 
     const url = getCompanyCardBankConnection(policyID, bankName, feed);
-    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
@@ -134,20 +133,18 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
 
         // Handle assign card flow
         if (feed) {
-            if (!isFeedExpired) {
-                customWindow?.close();
-                if (isFeedConnectionBroken) {
-                    updateBrokenConnection();
-                    Navigation.closeRHPFlow();
-                    return;
-                }
-                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
-                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
-                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
-                if (!assignCard?.isRefreshing) {
-                    Navigation.closeRHPFlow();
-                    return;
-                }
+            customWindow?.close();
+            if (isFeedConnectionBroken) {
+                updateBrokenConnection();
+                Navigation.closeRHPFlow();
+                return;
+            }
+            // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+            // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+            // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
+            if (!assignCard?.isRefreshing) {
+                Navigation.closeRHPFlow();
+                return;
             }
             if (isPlaid) {
                 return;
@@ -193,7 +190,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         policyID,
         url,
         feed,
-        isFeedExpired,
         isOffline,
         assignCard?.isRefreshing,
         isPlaid,
