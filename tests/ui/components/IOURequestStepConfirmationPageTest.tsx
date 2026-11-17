@@ -1232,7 +1232,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // transaction's optimistic report ID rather than one a builder would otherwise mint
             const optimisticP2PReportID = 'optimistic-p2p-report-1';
             const transactionID = 'tx-new-p2p';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void | Promise<void>) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1320,7 +1320,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a wide pre-mount of the pay destination, which puts it on top of a background Reports stack
             const optimisticP2PReportID = 'optimistic-p2p-report-2';
             const transactionID = 'tx-wide-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void | Promise<void>) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;
@@ -1394,7 +1394,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             // Given a narrow pre-insert of the pay destination, which already sits under the RHP as the topmost report
             const optimisticP2PReportID = 'optimistic-p2p-report-3';
             const transactionID = 'tx-narrow-pay';
-            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void | Promise<void>) | undefined;
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => Promise<void>) | undefined;
             const originalBuildConfirmAction = ConfirmAction.default;
             const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
                 sendMoney = params.onSendMoney;

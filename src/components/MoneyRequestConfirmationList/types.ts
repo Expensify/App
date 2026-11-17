@@ -21,7 +21,7 @@ type MoneyRequestConfirmationListProps = {
     onOpenParticipantPicker: () => void;
 
     /** The payment method the SettlementButton chose. */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void | Promise<void>;
+    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => Promise<void>;
 
     /** The IOU flow being confirmed. */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;

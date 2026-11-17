@@ -89,10 +89,10 @@ type UseReportSelectionActionsResult = {
     handleGlobalCreateReport: (item: TransactionGroupListItem) => void;
 
     /** Handler invoked for ordinary report selection — schedules the change after the back animation. */
-    handleRegularReportSelection: (item: TransactionGroupListItem, report: OnyxEntry<Report>) => void | Promise<void>;
+    handleRegularReportSelection: (item: TransactionGroupListItem, report: OnyxEntry<Report>) => Promise<void>;
 
     /** Handler invoked when the user opts to remove the expense from its current report (moves it to the personal policy). */
-    removeFromReport: () => void | Promise<void>;
+    removeFromReport: () => Promise<void>;
 };
 
 function useReportSelectionActions({
