@@ -33,14 +33,21 @@ jest.mock('@rnmapbox/maps', () => {
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS) => {
+const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS | typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, fieldToFocus?: string) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer ref={navigationRef}>
+                <NavigationContainer
+                    ref={navigationRef}
+                    initialState={{routes: [{name: initialRouteName, params: {fieldToFocus}}]}}
+                >
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
                             name={SCREENS.SETTINGS.PROFILE.ADDRESS}
+                            component={PersonalAddressPage}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS}
                             component={PersonalAddressPage}
                         />
                     </Stack.Navigator>
@@ -61,6 +68,31 @@ describe('AddressPageTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
     });
+    it.each([
+        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'addressLine1', true],
+        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, undefined, false],
+        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'city', false],
+        [SCREENS.SETTINGS.PROFILE.ADDRESS, 'addressLine1', false],
+    ] as const)('only focuses the requested home address input: %s / %s', async (route, fieldToFocus, shouldAutoFocus) => {
+        // Given message links opt in to focus, unlike ordinary Preferences and Profile navigation
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: []});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        // When the real page and address form render for that entry point
+        renderPage(route, fieldToFocus);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then focus intent reaches only Address line 1, without premature required-field validation
+        expect(screen.getByLabelText('Address line 1').props.autoFocus).toBe(shouldAutoFocus);
+        for (const label of ['Address line 2', 'City', 'State / Province', 'Zip / Postcode']) {
+            expect(screen.getByLabelText(label).props.autoFocus).not.toBe(true);
+        }
+        expect(screen.queryByText('This field is required')).toBeNull();
+    });
+
     it('should not reset state', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
