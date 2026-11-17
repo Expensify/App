@@ -69,6 +69,7 @@ const FORCED_REVIEW_CONFIG: Record<ForcedReviewKind, ForcedReviewConfig> = {
         getReviewScreenRoute: ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION.getRoute,
         shownOnlyOnDevicesWithOneOf: AuthorizeTransaction.allowedAuthenticationMethods,
     },
+    // No device gate, since "No" needs no MFA and "Yes" on an unsupported device shows its own failure screen
     [FORCED_REVIEW_KIND.FRAUD]: {
         logPrefix: '[useNavigateToForcedTransactionReview][Fraud]',
         breadcrumbPrefix: '[Fraud Review Navigation]',
@@ -164,12 +165,17 @@ function getPendingFraudReviewToShow(
  * and navigates the user to the review screen of the next pending transaction if necessary */
 function useNavigateToForcedTransactionReview() {
     const [locallyProcessed3DSTransactionReviews, locallyProcessedReviewsResult] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS);
-    const [transactionsPending3DSReview] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW);
+    const [transactionsPending3DSReview, transactionsPending3DSReviewResult] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW);
     const [locallyProcessedFraudTransactionReviews, locallyProcessedFraudReviewsResult] = useOnyx(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS);
     const [transactionsPendingFraudReview, transactionsPendingFraudReviewResult] = useOnyx(ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW);
 
     // Until these are read from storage, an empty value does not mean the server has no reviews for us
-    const isLoadingReviewData = isLoadingOnyxValue(locallyProcessedReviewsResult, locallyProcessedFraudReviewsResult, transactionsPendingFraudReviewResult);
+    const isLoadingReviewData = isLoadingOnyxValue(
+        locallyProcessedReviewsResult,
+        transactionsPending3DSReviewResult,
+        locallyProcessedFraudReviewsResult,
+        transactionsPendingFraudReviewResult,
+    );
 
     // Drop local answers once the server stops listing their review. The server sends null for an empty queue
     useEffect(() => {

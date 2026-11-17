@@ -11,18 +11,24 @@ import {View} from 'react-native';
 import AuthorizeCardTransactionPreview from './AuthorizeCardTransactionPreview';
 
 type MultifactorAuthenticationAuthorizeTransactionContentProps = {
-    transaction: TransactionPending3DSReview;
+    transaction: Pick<TransactionPending3DSReview, 'transactionID' | 'amount' | 'currency' | 'merchant' | 'created' | 'lastFourPAN'>;
+
+    /** Question shown above the transaction, falls back to the 3DS wording */
+    title?: string;
+
+    /** Explanation under the question, falls back to the 3DS wording */
+    description?: string;
 };
 
-function MultifactorAuthenticationAuthorizeTransactionContent({transaction}: MultifactorAuthenticationAuthorizeTransactionContentProps) {
+function MultifactorAuthenticationAuthorizeTransactionContent({transaction, title, description}: MultifactorAuthenticationAuthorizeTransactionContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <View style={styles.mh5}>
             <View style={[styles.gap2, styles.mb6]}>
-                <Text style={styles.textHeadlineLineHeightXXL}>{translate('multifactorAuthentication.reviewTransaction.pleaseReview')}</Text>
-                <Text style={styles.textSupporting}>{translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}</Text>
+                <Text style={styles.textHeadlineLineHeightXXL}>{title ?? translate('multifactorAuthentication.reviewTransaction.pleaseReview')}</Text>
+                <Text style={styles.textSupporting}>{description ?? translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}</Text>
             </View>
             <View style={styles.mb2}>
                 <Text style={styles.textMicroSupporting}>{translate('multifactorAuthentication.reviewTransaction.transactionDetails')}</Text>

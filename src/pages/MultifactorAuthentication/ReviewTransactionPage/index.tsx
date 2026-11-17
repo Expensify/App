@@ -16,6 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 
 import MultifactorAuthenticationAuthorizeTransactionActions from '@pages/MultifactorAuthentication/AuthorizeTransactionPage/AuthorizeTransactionActions';
+import MultifactorAuthenticationAuthorizeTransactionContent from '@pages/MultifactorAuthentication/AuthorizeTransactionPage/AuthorizeTransactionContent';
 import useForcedReviewScreen from '@pages/MultifactorAuthentication/useForcedReviewScreen';
 
 import CONST from '@src/CONST';
@@ -27,8 +28,6 @@ import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-
-import ReviewTransactionContent from './ReviewTransactionContent';
 
 function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {
     Sentry.addBreadcrumb({
@@ -121,7 +120,11 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
                     <ScrollView style={styles.flex1}>
-                        <ReviewTransactionContent transaction={transaction} />
+                        <MultifactorAuthenticationAuthorizeTransactionContent
+                            transaction={transaction}
+                            title={translate('multifactorAuthentication.fraudReview.doYouRecognizeTransaction')}
+                            description={translate('multifactorAuthentication.fraudReview.weDeclinedSuspiciousTransaction')}
+                        />
                     </ScrollView>
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isReportingFraud}

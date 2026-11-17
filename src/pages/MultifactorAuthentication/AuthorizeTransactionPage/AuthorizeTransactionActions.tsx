@@ -18,10 +18,10 @@ type MultifactorAuthenticationAuthorizeTransactionActionsProps = {
     onDeny: () => void;
     isLoading: boolean | undefined;
 
-    /** Defaults to "Deny" */
+    /** Label of the deny button, falls back to the 3DS wording */
     denyText?: string;
 
-    /** Defaults to "Approve" */
+    /** Label of the authorize button, falls back to the 3DS wording */
     authorizeText?: string;
 
     /** Sentry label of the deny button, so each review screen is tracked on its own */
@@ -52,20 +52,20 @@ function MultifactorAuthenticationAuthorizeTransactionActions({
             ) : (
                 <>
                     <Button
+                        sentryLabel={denySentryLabel}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
                         onPress={onDeny}
-                        sentryLabel={denySentryLabel}
                     >
                         <Button.Text>{denyText ?? translate('multifactorAuthentication.reviewTransaction.deny')}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={authorizeSentryLabel}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
                         onPress={onAuthorize}
-                        sentryLabel={authorizeSentryLabel}
                     >
                         <Button.Text>{authorizeText ?? translate('multifactorAuthentication.reviewTransaction.approve')}</Button.Text>
                     </Button>

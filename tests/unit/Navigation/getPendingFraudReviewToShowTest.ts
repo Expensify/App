@@ -48,4 +48,16 @@ describe('getPendingFraudReviewToShow', () => {
         // Then it is shown again, since fraud reviews don't expire and still need an answer
         expect(review?.transactionID).toBe('1');
     });
+
+    it('shows a review again exactly 3 days after it was answered', () => {
+        // Given a review answered here exactly 3 days ago that the server still lists
+        const queue = buildQueue([buildReview('1', '2026-10-31 10:00:00')]);
+        const locallyProcessed = Object.fromEntries([['1', new Date(NOW - 3 * DAY_MS).toISOString()]]);
+
+        // When we pick the review to show
+        const review = getPendingFraudReviewToShow(queue, locallyProcessed, NOW);
+
+        // Then it is shown again, so the window ends at 3 days and not a moment later
+        expect(review?.transactionID).toBe('1');
+    });
 });
