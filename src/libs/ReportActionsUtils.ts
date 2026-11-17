@@ -1806,7 +1806,7 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, policy, currentUserEmail)) {
+    if (isActionableReportMentionWhisper(reportAction) && !(!policy || canCreateRoomsOnPolicy(policy, currentUserEmail ?? ''))) {
         return false;
     }
 
@@ -3580,13 +3580,6 @@ function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<Rep
         isActionableMentionWhisper(reportAction) ||
         isActionableCardFraudAlert(reportAction)
     );
-}
-
-/**
- * Checks if a report action's visibility depends on whether the current user can create rooms on the policy.
- */
-function isActionableWhisperRequiringRoomCreationPermission(reportAction: OnyxEntry<ReportAction>, policy?: OnyxEntry<Policy>, currentUserEmail?: string): boolean {
-    return isActionableReportMentionWhisper(reportAction) && !(!policy || canCreateRoomsOnPolicy(policy, currentUserEmail ?? ''));
 }
 
 function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {
