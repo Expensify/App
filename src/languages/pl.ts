@@ -2769,7 +2769,7 @@ const translations: TranslationDeepObject<typeof en> = {
         stepVerify: 'Zweryfikuj',
         enterSecurityCode: (contactMethod: string) =>
             `Wpisz kod bezpieczeństwa wysłany na ${contactMethod}, aby skonfigurować uwierzytelnianie dwuskładnikowe. Powinien dotrzeć w ciągu minuty lub dwóch.`,
-        securityCodeRejected: 'Ten kod bezpieczeństwa nie zadziałał, więc wysłaliśmy Ci nowy.',
+        securityCodeRejected: 'Ten kod zabezpieczający nie zadziałał, więc wysłaliśmy ci nowy.',
         scanCode: 'Zeskanuj kod QR za pomocą swojego',
         authenticatorApp: 'aplikacja uwierzytelniająca',
         addKey: 'Lub dodaj ten tajny klucz do swojej aplikacji uwierzytelniającej:',
