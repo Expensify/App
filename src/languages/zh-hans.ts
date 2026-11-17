@@ -10721,6 +10721,7 @@ ${reportName}`,
         periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
         weekOf: ({date}: {date: string}) => `${date} 当周`,
         saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `要更新对“${name}”的更改，还是创建一个新项？`, createNew: '新建', updateExisting: '更新现有内容'},
+        chartValueUnavailable: '不可用',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

@@ -11178,6 +11178,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             createNew: 'Criar novo',
             updateExisting: 'Atualizar existente',
         },
+        chartValueUnavailable: 'Indisponível',
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

@@ -11250,6 +11250,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             createNew: 'Neu erstellen',
             updateExisting: 'Vorhandene aktualisieren',
         },
+        chartValueUnavailable: 'Nicht verfügbar',
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

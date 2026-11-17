@@ -11135,6 +11135,7 @@ ${reportName}`,
             createNew: 'Crear nuevo',
             updateExisting: 'Actualizar existente',
         },
+        chartValueUnavailable: 'No disponible',
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

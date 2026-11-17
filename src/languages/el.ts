@@ -11442,6 +11442,7 @@ ${reportName}`,
             createNew: 'Δημιουργία νέου',
             updateExisting: 'Ενημέρωση υπάρχοντος',
         },
+        chartValueUnavailable: 'Μη διαθέσιμο',
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',

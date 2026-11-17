@@ -11013,6 +11013,7 @@ ${reportName}`,
             createNew: '新規作成',
             updateExisting: '既存のものを更新',
         },
+        chartValueUnavailable: '利用できません',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

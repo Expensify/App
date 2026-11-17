@@ -11199,6 +11199,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             createNew: 'Crea nuovo',
             updateExisting: 'Aggiorna esistente',
         },
+        chartValueUnavailable: 'Non disponibile',
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',

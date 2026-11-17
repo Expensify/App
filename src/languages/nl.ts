@@ -11172,6 +11172,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             createNew: 'Nieuw aanmaken',
             updateExisting: 'Bestaande bijwerken',
         },
+        chartValueUnavailable: 'Niet beschikbaar',
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',
