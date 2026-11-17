@@ -8,8 +8,6 @@ import type {TextInput} from 'react-native';
 
 import createMock from '../utils/createMock';
 
-type TextInputInstance = ComponentRef<typeof TextInput>;
-
 const {moveSelectionToEnd, scrollToBottom, scrollToRight} = jest.requireActual<typeof InputUtilsModule>('@libs/InputUtils/index.ts');
 
 describe('InputUtils', () => {
@@ -44,7 +42,7 @@ describe('InputUtils', () => {
 
     it('does not write getter-only native scroll fields or scroll in the native sibling', () => {
         // Given ReactNativeElement inherits getter-only scroll fields from ReadOnlyElement.
-        const nativeInput = createMock<TextInputInstance>({
+        const nativeInput = createMock<ComponentRef<typeof TextInput>>({
             get scrollTop() {
                 return 11;
             },
@@ -74,8 +72,8 @@ describe('InputUtils', () => {
         const input = document.createElement('input');
         input.value = 'hello';
         input.setSelectionRange(0, 2);
-        const setSelection = jest.fn<ReturnType<TextInputInstance['setSelection']>, Parameters<TextInputInstance['setSelection']>>();
-        const nativeInput = createMock<TextInputInstance>({setSelection});
+        const setSelection = jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>();
+        const nativeInput = createMock<ComponentRef<typeof TextInput>>({setSelection});
 
         // When selection-to-end runs on each supported category.
         moveSelectionToEnd(input);

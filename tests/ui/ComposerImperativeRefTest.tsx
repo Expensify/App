@@ -48,11 +48,9 @@ import {dispatchCommand, useAnimatedRef} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 
-type TextInputInstance = ComponentRef<typeof TextInput>;
-
 let mockShouldMountComposer = true;
 let mockShouldUseNativeComposer = false;
-let mockMarkdownInput: TextInputInstance | (HTMLDivElement & Pick<TextInputInstance, 'clear' | 'isFocused'>) | null = null;
+let mockMarkdownInput: ComponentRef<typeof TextInput> | (HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'clear' | 'isFocused'>) | null = null;
 const WebComposer = jest.requireActual<typeof ImplementationModule>('@components/Composer/implementation/index.tsx').default;
 const {forceClearInput: clearWebInput} = jest.requireActual<typeof ComponentUtilsModule>('@libs/ComponentUtils/index.ts');
 const mockResetScroll = jest.fn<
@@ -190,7 +188,7 @@ function markdownProps() {
 }
 
 function renderNativeComposerForPaste(onPasteFile: NonNullable<ComposerProps['onPasteFile']>) {
-    mockMarkdownInput = createMock<TextInputInstance>({isFocused: () => false});
+    mockMarkdownInput = createMock<ComponentRef<typeof TextInput>>({isFocused: () => false});
     render(<NativeComposer onPasteFile={onPasteFile} />, {createNodeMock: () => mockMarkdownInput});
     const paste = markdownProps().onPaste;
     if (!paste) {
@@ -356,18 +354,18 @@ describe('Composer imperative refs', () => {
 
     it('preserves raw native identity, top-level commands and non-null callback timing', () => {
         // Given the native markdown input owns the real input commands at its top level.
-        const inputClear = jest.fn<ReturnType<TextInputInstance['clear']>, Parameters<TextInputInstance['clear']>>();
-        const inputSetNativeProps = jest.fn<ReturnType<TextInputInstance['setNativeProps']>, Parameters<TextInputInstance['setNativeProps']>>();
+        const inputClear = jest.fn<ReturnType<ComponentRef<typeof TextInput>['clear']>, Parameters<ComponentRef<typeof TextInput>['clear']>>();
+        const inputSetNativeProps = jest.fn<ReturnType<ComponentRef<typeof TextInput>['setNativeProps']>, Parameters<ComponentRef<typeof TextInput>['setNativeProps']>>();
         const inputPreventFocusOnFirstResponderOnce = jest.fn<
-            ReturnType<TextInputInstance['preventFocusOnFirstResponderOnce']>,
-            Parameters<TextInputInstance['preventFocusOnFirstResponderOnce']>
+            ReturnType<ComponentRef<typeof TextInput>['preventFocusOnFirstResponderOnce']>,
+            Parameters<ComponentRef<typeof TextInput>['preventFocusOnFirstResponderOnce']>
         >();
-        const input = createMock<TextInputInstance>({
+        const input = createMock<ComponentRef<typeof TextInput>>({
             clear: inputClear,
-            blur: jest.fn<ReturnType<TextInputInstance['blur']>, Parameters<TextInputInstance['blur']>>(),
-            focus: jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>(),
+            blur: jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>(),
+            focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>(),
             isFocused: () => false,
-            setSelection: jest.fn<ReturnType<TextInputInstance['setSelection']>, Parameters<TextInputInstance['setSelection']>>(),
+            setSelection: jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>(),
             setNativeProps: inputSetNativeProps,
             preventFocusOnFirstResponderOnce: inputPreventFocusOnFirstResponderOnce,
         });
@@ -394,9 +392,9 @@ describe('Composer imperative refs', () => {
 
     it('keeps the landscape proxy focus suppression and object-ref behavior', () => {
         // Given native landscape mode suppresses programmatic focus through its existing proxy.
-        const inputFocus = jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>();
-        const inputClear = jest.fn<ReturnType<TextInputInstance['clear']>, Parameters<TextInputInstance['clear']>>();
-        const input = createMock<TextInputInstance>({
+        const inputFocus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const inputClear = jest.fn<ReturnType<ComponentRef<typeof TextInput>['clear']>, Parameters<ComponentRef<typeof TextInput>['clear']>>();
+        const input = createMock<ComponentRef<typeof TextInput>>({
             focus: inputFocus,
             clear: inputClear,
             isFocused: () => false,
@@ -433,13 +431,13 @@ describe('Composer imperative refs', () => {
     it('keeps the outer commands tied to the current input and safely handles an absent input', () => {
         // Given the outer handle exposes only the commands its consumers use.
         mockShouldUseNativeComposer = true;
-        const firstBlur = jest.fn<ReturnType<TextInputInstance['blur']>, Parameters<TextInputInstance['blur']>>();
-        const firstFocus = jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>();
-        const firstSetSelection = jest.fn<ReturnType<TextInputInstance['setSelection']>, Parameters<TextInputInstance['setSelection']>>();
-        const firstIsFocused = jest.fn<ReturnType<TextInputInstance['isFocused']>, Parameters<TextInputInstance['isFocused']>>(() => false);
-        const first = createMock<TextInputInstance>({blur: firstBlur, focus: firstFocus, isFocused: firstIsFocused, setSelection: firstSetSelection});
-        const secondBlur = jest.fn<ReturnType<TextInputInstance['blur']>, Parameters<TextInputInstance['blur']>>();
-        const second = createMock<TextInputInstance>({blur: secondBlur, isFocused: () => false});
+        const firstBlur = jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>();
+        const firstFocus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const firstSetSelection = jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>();
+        const firstIsFocused = jest.fn<ReturnType<ComponentRef<typeof TextInput>['isFocused']>, Parameters<ComponentRef<typeof TextInput>['isFocused']>>(() => false);
+        const first = createMock<ComponentRef<typeof TextInput>>({blur: firstBlur, focus: firstFocus, isFocused: firstIsFocused, setSelection: firstSetSelection});
+        const secondBlur = jest.fn<ReturnType<ComponentRef<typeof TextInput>['blur']>, Parameters<ComponentRef<typeof TextInput>['blur']>>();
+        const second = createMock<ComponentRef<typeof TextInput>>({blur: secondBlur, isFocused: () => false});
         mockMarkdownInput = first;
         const ref = React.createRef<ComposerWithSuggestionsRef>();
         const props = forwardingProps(ref);
@@ -489,7 +487,7 @@ describe('Composer imperative refs', () => {
 
     it('preserves native clear values and MIME-derived attachment filenames', async () => {
         // Given clipboard files without extensions rely on their MIME type, while plain text is ignored.
-        mockMarkdownInput = createMock<TextInputInstance>({isFocused: () => false});
+        mockMarkdownInput = createMock<ComponentRef<typeof TextInput>>({isFocused: () => false});
         const onClear = jest.fn<ReturnType<NonNullable<ComposerProps['onClear']>>, Parameters<NonNullable<ComposerProps['onClear']>>>();
         const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
         render(
@@ -707,7 +705,9 @@ describe('composerFocusKeepFocusOn actual focus commands', () => {
 
     it('updates Onyx before immediate focus and safely skips a missing ref', () => {
         // Given the helper consumes only a focus command, not a DOM element.
-        const ref = {focus: jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>()} satisfies NonNullable<Parameters<typeof composerFocusKeepFocusOn>[0]>;
+        const ref = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()} satisfies NonNullable<
+            Parameters<typeof composerFocusKeepFocusOn>[0]
+        >;
 
         // When initial focus executes and a missing ref reaches the same immediate branch.
         composerFocusKeepFocusOn(ref, true, hiddenModal, false);
@@ -727,8 +727,8 @@ describe('composerFocusKeepFocusOn actual focus commands', () => {
 
     it('defers focus against the latest saved command object and respects modal/manager gates', () => {
         // Given a saved composer loses focus while all modals are hidden.
-        const first = {focus: jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>()};
-        const second = {focus: jest.fn<ReturnType<TextInputInstance['focus']>, Parameters<TextInputInstance['focus']>>()};
+        const first = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()};
+        const second = {focus: jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>()};
         composerFocusKeepFocusOn(first, true, hiddenModal, true);
         composerFocusKeepFocusOn(null, false, {isVisible: true}, false);
         composerFocusKeepFocusOn(null, false, {willAlertModalBecomeVisible: true}, false);
