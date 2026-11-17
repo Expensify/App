@@ -61,6 +61,15 @@ git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest co
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
+## Selective test runs
+
+On pull requests, Jest (`test.yml`) and Reassure (`reassurePerformanceTests.yml`) run only the tests that import a changed file, directly or through other files. Pushes to `main` and deploys run every test.
+
+- Jest picks the tests itself with `--changedSince=HEAD^1`. On a PR, `HEAD` is the merge commit and `HEAD^1` is the base it merges into, so the checkout uses `fetch-depth: 2`.
+- Jest can't see files that tests depend on without importing them, such as dependencies, Jest and Babel config, setup files and mocks. A `dorny/paths-filter` step lists those, and a change to any of them runs every test.
+
+If you add a file that tests depend on without importing it (a setup file, a mock, a config Jest or Babel reads), add it to the `Check for changes that need a full run` list in both workflows. Otherwise PRs that change it won't run the tests it affects.
+
 ## Which checkout action to use
 
 - **Linux jobs:** use `useblacksmith/checkout`. Blacksmith's Linux runners grant a sticky disk in ~0.3s, so its persistent "git-mirror" cache makes the clone much faster.

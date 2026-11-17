@@ -179,6 +179,34 @@ jobs:
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+        with:
+          # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into, which --changedSince diffs against.
+          fetch-depth: 2
+
+      # Files tests depend on without importing them. Jest's --changedSince can't see these, so a change
+      # to any of them runs every test. See .github/workflows/README.md#selective-test-runs.
+      - name: Check for changes that need a full run
+        id: fullRun
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: |
+            any:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'patches/**'
+              - 'modules/**'
+              - 'jest.config.js'
+              - 'jest/**'
+              - '**/__mocks__/**'
+              - 'tests/utils/**'
+              - 'tests/perf-test/setupAfterEnv.ts'
+              - 'babel.config.js'
+              - 'config/babel/**'
+              - 'tsconfig.json'
+              - '.nvmrc'
+              - '.github/workflows/test.yml'
+              - '.github/workflows/reassurePerformanceTests.yml'
+              - '.github/actions/composite/setupNode/**'
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -208,7 +236,9 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare
+          # Only the perf tests that import a changed file. Skipped ones show up as "Removed scenarios" in the comparison.
+          SELECT_TESTS: ${{ steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare -- $SELECT_TESTS
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
