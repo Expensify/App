@@ -187,14 +187,6 @@ function getBulkLeaveWorkspacesConsequences(workspaces: BulkLeaveWorkspace[], us
     return BULK_LEAVE_CONSEQUENCES.filter(([warning]) => warnings.has(warning)).map(([, path]) => translate(path));
 }
 
-/** Tells the user how many of the selected workspaces a bulk action applies to, or returns undefined when it applies to all of them */
-function getBulkActionSkippedWarning(appliedCount: number, selectedCount: number, translate: LocaleContextProps['translate']): string | undefined {
-    if (appliedCount >= selectedCount) {
-        return undefined;
-    }
-    return translate('workspace.common.bulkActionAppliesTo', appliedCount, selectedCount);
-}
-
 type BulkArchiveWorkspace = {
     /** Archiving sets the limits of the workspace's own Expensify Cards to $0 */
     hasExpensifyCards: boolean;
@@ -325,7 +317,6 @@ export {
     getLeaveWorkspaceConfirmationPrompt,
     getBulkLeaveWorkspacesConsequences,
     getBulkArchiveWorkspacesConsequences,
-    getBulkActionSkippedWarning,
     getWorkspacesBulkActions,
 };
 export type {BrickRoad, WorkspacesBulkAction, WorkspacesBulkActionContext, WorkspacesBulkActionRow};

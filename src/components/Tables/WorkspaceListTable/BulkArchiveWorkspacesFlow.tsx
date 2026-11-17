@@ -9,7 +9,7 @@ import {close} from '@libs/actions/Modal';
 import {queueBulkArchivePolicy} from '@libs/actions/Policy/Policy';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getBulkActionSkippedWarning, getBulkArchiveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
+import {getBulkArchiveWorkspacesConsequences} from '@libs/WorkspacesSettingsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +56,7 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
         close(() => {
             const cardFeedsPerPolicy = getCardFeedsForDisplayPerPolicy(allCardFeeds, translate, feedKeysWithCards, policies);
             const rowsToArchive = selectedRows.filter((row) => policyIDs.includes(row.policyID));
+            const skippedRows = selectedRows.filter((row) => !policyIDs.includes(row.policyID));
 
             const consequences = getBulkArchiveWorkspacesConsequences(
                 rowsToArchive.map((row) => {
@@ -72,15 +73,13 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
                 }),
                 translate,
             );
-            const skippedWarning = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, translate);
 
             showConfirmModal({
-                title: translate('workspace.common.archiveWorkspacesTitle', {count: policyIDs.length}),
+                title: translate('workspace.common.archiveWorkspacesTitle', {count: selectedRows.length}),
                 prompt: (
                     <BulkActionConfirmationPrompt
                         message={translate(consequences.length > 0 ? 'workspace.common.archiveWorkspacesConfirmationWithConsequences' : 'workspace.common.archiveWorkspacesConfirmation')}
                         consequences={consequences}
-                        notes={skippedWarning ? [skippedWarning] : []}
                     />
                 ),
                 confirmText: translate('common.archive'),
@@ -88,11 +87,29 @@ function BulkArchiveWorkspacesFlow({selectedRows, policyIDs, onConfirm, onDismis
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnablePromptScroll: true,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    queueBulkArchivePolicy(policyIDs);
-                    onConfirm();
+                if (result.action !== ModalActions.CONFIRM) {
+                    onDismiss();
+                    return;
                 }
-                onDismiss();
+                queueBulkArchivePolicy(policyIDs);
+                onConfirm();
+                if (skippedRows.length === 0) {
+                    onDismiss();
+                    return;
+                }
+                showConfirmModal({
+                    title: translate('workspace.common.archivedWorkspacesTitle', rowsToArchive.length, selectedRows.length),
+                    prompt: (
+                        <BulkActionConfirmationPrompt
+                            message={translate('workspace.common.archiveWorkspacesFailed')}
+                            consequences={skippedRows.map((row) => row.title)}
+                        />
+                    ),
+                    confirmText: translate('common.buttonConfirm'),
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                    shouldShowCancelButton: false,
+                    shouldEnablePromptScroll: true,
+                }).then(() => onDismiss());
             });
         });
     });

@@ -1,7 +1,6 @@
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 import {
     getBrickRoadForPolicy,
-    getBulkActionSkippedWarning,
     getBulkArchiveWorkspacesConsequences,
     getBulkLeaveWorkspacesConsequences,
     getChatTabBrickRoad,
@@ -328,26 +327,6 @@ describe('WorkspacesSettingsUtils', () => {
 
             // Then only the member consequence is listed, because the payer can't leave and the flow explains that in a note
             expect(consequences).toEqual(['common.leaveWorkspacesConsequenceMember']);
-        });
-    });
-
-    describe('getBulkActionSkippedWarning', () => {
-        it('says how many of the selected workspaces the action applies to', () => {
-            // Given an action that applies to one of three selected workspaces
-            // When the skipped warning is built
-            const warning = getBulkActionSkippedWarning(1, 3, TestHelper.translateLocal);
-
-            // Then it tells the user the rest are left out
-            expect(warning).toBe('This applies to 1 of the 3 selected workspaces.');
-        });
-
-        it('is undefined when the action applies to every selected workspace', () => {
-            // Given an action that skips none of the selected workspaces
-            // When the skipped warning is built
-            const warning = getBulkActionSkippedWarning(2, 2, TestHelper.translateLocal);
-
-            // Then there is nothing to tell the user
-            expect(warning).toBeUndefined();
         });
     });
 

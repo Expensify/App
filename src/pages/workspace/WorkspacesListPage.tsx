@@ -6,6 +6,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {TableHandle} from '@components/Table';
 import type {WorkspaceRowData, WorkspaceTableColumnKey} from '@components/Tables/WorkspaceListTable';
 import WorkspaceListTable from '@components/Tables/WorkspaceListTable';
+import BulkActionConfirmationPrompt from '@components/Tables/WorkspaceListTable/BulkActionConfirmationPrompt';
 import BulkArchiveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkArchiveWorkspacesFlow';
 import BulkLeaveWorkspacesFlow from '@components/Tables/WorkspaceListTable/BulkLeaveWorkspacesFlow';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
@@ -47,7 +48,7 @@ import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicyByType} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {getBulkActionSkippedWarning, getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspacesBulkActions} from '@libs/WorkspacesSettingsUtils';
 import type {WorkspacesBulkAction} from '@libs/WorkspacesSettingsUtils';
 
 import {setNameValuePair} from '@userActions/User';
@@ -64,8 +65,6 @@ import {
     createReimburserPolicyIDsSelector,
     createWorkspaceListPoliciesSelector,
 } from '@src/selectors/Policy';
-
-import type {ValueOf} from 'type-fest';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
@@ -288,27 +287,23 @@ function WorkspacesListPage() {
 
     const selectedRows = workspaceRows.filter((row) => selectedPolicyIDs.includes(row.policyID));
 
-    const confirmBulkAction = (
-        policyIDs: string[],
-        title: string,
-        confirmText: string,
-        onConfirm: () => void,
-        buttonVariant: ValueOf<typeof CONST.BUTTON_VARIANT> = CONST.BUTTON_VARIANT.DANGER,
-    ) => {
-        const prompt = getBulkActionSkippedWarning(policyIDs.length, selectedRows.length, translate);
-
+    const showBulkActionResult = (appliedPolicyIDs: string[], title: string, message: string) => {
+        const skippedRows = selectedRows.filter((row) => !appliedPolicyIDs.includes(row.policyID));
+        if (skippedRows.length === 0) {
+            return;
+        }
         showConfirmModal({
             title,
-            prompt,
-            confirmText,
-            cancelText: translate('common.cancel'),
-            buttonVariant,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            onConfirm();
-            clearSelection();
+            prompt: (
+                <BulkActionConfirmationPrompt
+                    message={message}
+                    consequences={skippedRows.map((row) => row.title)}
+                />
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            shouldShowCancelButton: false,
+            shouldEnablePromptScroll: true,
         });
     };
 
@@ -336,13 +331,23 @@ function WorkspacesListPage() {
                     showBulkActionNotice(translate('workspace.people.transferOwner'), translate('workspace.common.bulkTransferOwnerNoneEligible'));
                     return;
                 }
-                confirmBulkAction(
-                    transferablePolicyIDs,
-                    translate('workspace.common.transferOwnerWorkspacesTitle', {count: transferablePolicyIDs.length}),
-                    translate('workspace.people.transferOwner'),
-                    () => queueBulkTransferPolicyBillingOwner(transferablePolicyIDs),
-                    CONST.BUTTON_VARIANT.SUCCESS,
-                );
+                showConfirmModal({
+                    title: translate('workspace.common.transferOwnerWorkspacesTitle', {count: selectedRows.length}),
+                    confirmText: translate('workspace.people.transferOwner'),
+                    cancelText: translate('common.cancel'),
+                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    queueBulkTransferPolicyBillingOwner(transferablePolicyIDs);
+                    clearSelection();
+                    showBulkActionResult(
+                        transferablePolicyIDs,
+                        translate('workspace.common.transferredOwnerWorkspacesTitle', transferablePolicyIDs.length, selectedRows.length),
+                        translate('workspace.common.transferOwnerWorkspacesFailed'),
+                    );
+                });
             });
         });
     };
@@ -374,18 +379,16 @@ function WorkspacesListPage() {
                     sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.LIST.BULK_ACTIONS_EXPORT_MEMBERS,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
+                        queueBulkExportPolicyMembers(policyIDs);
+                        clearSelection();
                         if (policyIDs.length === selectedRows.length) {
-                            queueBulkExportPolicyMembers(policyIDs);
-                            clearSelection();
                             return;
                         }
                         close(() =>
-                            confirmBulkAction(
+                            showBulkActionResult(
                                 policyIDs,
-                                translate('workspace.common.exportMembers'),
-                                translate('common.export'),
-                                () => queueBulkExportPolicyMembers(policyIDs),
-                                CONST.BUTTON_VARIANT.SUCCESS,
+                                translate('workspace.common.exportedMembersWorkspacesTitle', policyIDs.length, selectedRows.length),
+                                translate('workspace.common.exportMembersFailed'),
                             ),
                         );
                     },
