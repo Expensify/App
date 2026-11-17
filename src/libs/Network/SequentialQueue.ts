@@ -19,7 +19,7 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
-import {logReceiptEnqueued, logReceiptGaveUp, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptEnqueued, logReceiptGaveUp, logReceiptRolledBack, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -521,6 +521,7 @@ function process(): Promise<void> {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
                     const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
+                    logReceiptRolledBack({command: requestToProcess.command, data: requestToProcess.data, failureData: requestToProcess.failureData, trigger: 'failAll'});
                     Log.info('[SequentialQueue] Applying failure and finally data because shouldFailAllRequests', false, {
                         command: requestToProcess.command,
                         updatesCount: onyxUpdates.length,
@@ -592,6 +593,7 @@ function process(): Promise<void> {
                             errorName: error.name,
                         });
                     }
+                    logReceiptRolledBack({command: requestToProcess.command, data: requestToProcess.data, failureData: requestToProcess.failureData, trigger: 'gaveUp'});
                     Onyx.update(requestToProcess.failureData ?? []);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
