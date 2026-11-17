@@ -14,23 +14,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import {measureSearchHeaderLabelWidth} from '@libs/getSearchColumnContentToMeasure';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PinnedColumnSide} from '@libs/SearchPinnedColumnsUtils';
-import {getPinnedSide} from '@libs/SearchPinnedColumnsUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
+import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {HideSearchColumn} from './hooks/useHideSearchColumn';
-import type {PinSearchColumn} from './hooks/usePinSearchColumn';
 
 import {useSortableColumn} from './SortableColumnContext';
 import {SortableHeaderLabel} from './SortableHeaderText';
@@ -40,14 +37,11 @@ const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-const PIN_ITEMS = {
-    [CONST.SEARCH.PINNED_COLUMN_SIDE.LEFT]: {translationKey: 'search.columnMenu.pinLeft', sentryLabel: CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.LEFT},
-    [CONST.SEARCH.PINNED_COLUMN_SIDE.RIGHT]: {translationKey: 'search.columnMenu.pinRight', sentryLabel: CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.RIGHT},
-} as const satisfies Record<PinnedColumnSide, {translationKey: TranslationPaths; sentryLabel: string}>;
-
 type SearchColumnMenuProps = {
     hiding: HideSearchColumn;
-    pinning: PinSearchColumn;
+
+    /** Items placed between the sort options and Hide column, such as `SearchColumnPinItems`. */
+    children?: ReactNode;
 };
 
 /** The column's heading. Pressing it opens the column menu, which holds the sort options. */
@@ -145,11 +139,11 @@ function SearchColumnMenuTrigger() {
 }
 
 /** A `SortableTableHeader` child that turns each column's heading into the column's menu. */
-function SearchColumnMenu({hiding: {hidableColumns, hideColumn}, pinning: {canPinColumns, pinnedColumns, pinColumn}}: SearchColumnMenuProps) {
+function SearchColumnMenu({hiding: {hidableColumns, hideColumn}, children}: SearchColumnMenuProps) {
     const {columnName, sorting} = useSortableColumn();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled', 'Pin', 'RotateLeft']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled', 'RotateLeft']);
     const resetColumnWidths = useColumnResizeController()?.resetColumnWidths;
 
     // `success` colors the checkmark of the active order, and would color the arrow beside it too. The arrow keeps its usual colors.
@@ -157,8 +151,6 @@ function SearchColumnMenu({hiding: {hidableColumns, hideColumn}, pinning: {canPi
 
     const isAscendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.ASC;
     const isDescendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.DESC;
-
-    const pinnedSide = getPinnedSide(pinnedColumns, columnName);
 
     return (
         <PopoverMenu.Root>
@@ -190,24 +182,7 @@ function SearchColumnMenu({hiding: {hidableColumns, hideColumn}, pinning: {canPi
                         <PopoverMenu.Separator />
                     </>
                 )}
-                {canPinColumns && (
-                    <>
-                        {Object.values(CONST.SEARCH.PINNED_COLUMN_SIDE).map((side) => {
-                            // A column pinned to this side offers Unpin in place of pinning it there again.
-                            const isPinnedHere = pinnedSide === side;
-                            return (
-                                <PopoverMenu.Item
-                                    key={side}
-                                    text={translate(isPinnedHere ? 'search.columnMenu.unpin' : PIN_ITEMS[side].translationKey)}
-                                    icon={icons.Pin}
-                                    onSelect={() => pinColumn(columnName, isPinnedHere ? undefined : side)}
-                                    sentryLabel={isPinnedHere ? CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_PIN.UNPIN : PIN_ITEMS[side].sentryLabel}
-                                />
-                            );
-                        })}
-                        <PopoverMenu.Separator />
-                    </>
-                )}
+                {children}
                 {hidableColumns.has(columnName) && (
                     <PopoverMenu.Item
                         text={translate('search.columnMenu.hideColumn')}

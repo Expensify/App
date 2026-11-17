@@ -130,6 +130,7 @@ import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import SearchColumnMenu from './SearchColumnMenu';
+import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -1645,10 +1646,14 @@ function Search({
                 isActionColumnWide={isActionColumnWide}
             >
                 {shouldShowColumnMenu && (
-                    <SearchColumnMenu
-                        hiding={hideSearchColumn}
-                        pinning={pinSearchColumn}
-                    />
+                    <SearchColumnMenu hiding={hideSearchColumn}>
+                        {shouldPinColumns && (
+                            <SearchColumnPinItems
+                                pinnedColumns={pinSearchColumn.pinnedColumns}
+                                pinColumn={pinSearchColumn.pinColumn}
+                            />
+                        )}
+                    </SearchColumnMenu>
                 )}
             </SearchTableHeader>
         </View>
