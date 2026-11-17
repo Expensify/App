@@ -28,10 +28,13 @@ function navigateToCannedSpendSearch(searchKey: SearchKey, searchQuery: string, 
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}));
 }
 
+function getSpendTabSearchQuery(searchKey: SpendTabSearchKey) {
+    return buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
+}
+
 /** Opens the Expenses or Reports tab on the query the user last left it with. */
 function navigateToSpendTab(searchKey: SpendTabSearchKey, lastSearchQuery: string | undefined, clearSelectedTransactions: () => void) {
-    const searchQuery = buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
-    navigateToCannedSpendSearch(searchKey, searchQuery, lastSearchQuery, clearSelectedTransactions);
+    navigateToCannedSpendSearch(searchKey, getSpendTabSearchQuery(searchKey), lastSearchQuery, clearSelectedTransactions);
 }
 
 /**
@@ -48,10 +51,9 @@ function showSpendTabSearchOnMountedSearchPage(
 ) {
     clearSelectedTransactions();
     setSearchContext(false);
-    const searchQuery = buildCannedSearchQuery(searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} : undefined);
     navigationRef.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
-        payload: {params: {q: getValidLastQuery(lastSearchQuery, searchQuery), name: undefined, rawQuery: undefined, searchKey}},
+        payload: {params: {q: getValidLastQuery(lastSearchQuery, getSpendTabSearchQuery(searchKey)), name: undefined, rawQuery: undefined, searchKey}},
         target: searchNavigatorStateKey,
     });
     if (tabNavigatorStateKeyToFocusSearchIn) {
