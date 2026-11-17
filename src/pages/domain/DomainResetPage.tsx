@@ -27,7 +27,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {adminAccountIDsSelector, domainNameSelector} from '@src/selectors/Domain';
 import INPUT_IDS from '@src/types/form/ResetDomainForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -40,21 +39,20 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`);
 
-    // Selectors used this way bc when useOnyx with it the metadata is wrong + we're already have domain data here
+    // We already read the whole domain here, so we derive these from it instead of adding more useOnyx subscriptions
     const domainName = domainNameSelector(domain);
     const adminAccountIDs = adminAccountIDsSelector(domain);
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
 
     useEffect(() => {
         // Make sure reset domain page cannot be accessed if there is more than 1 admin
-        if (isLoadingDomain || domainHasOnlyOneAdmin) {
+        if (domainHasOnlyOneAdmin) {
             return;
         }
         Navigation.goBack(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, accountID));
-    }, [accountID, domainAccountID, domainHasOnlyOneAdmin, isLoadingDomain]);
+    }, [accountID, domainAccountID, domainHasOnlyOneAdmin]);
 
     const missingDomainData = !domain || !domainName;
     const isSubmitDisabled = missingDomainData || !domainHasOnlyOneAdmin;

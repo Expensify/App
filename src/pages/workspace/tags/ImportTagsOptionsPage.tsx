@@ -82,6 +82,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             <>
                 {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_OVERRIDE_WARNING_DOWNLOAD_LINK}
                     onPress={() => {
                         if (isMultiLevelTags) {
                             downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
@@ -102,6 +103,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
             {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_SWITCH_TO_MULTI_LEVEL_WARNING_DOWNLOAD_LINK}
                 onPress={() => {
                     if (isMultiLevelTags) {
                         downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
@@ -113,7 +115,12 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
             </TextLink>
             {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_SWITCH_TO_MULTI_LEVEL_WARNING_LEARN_MORE_LINK}
+                href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
+            >
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}
+            </TextLink>
             {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
         </Text>
     );

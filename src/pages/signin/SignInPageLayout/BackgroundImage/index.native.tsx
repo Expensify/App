@@ -11,7 +11,6 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
-import type {ImageProps as ExpoImageProps} from 'expo-image';
 import type {ImageSourcePropType} from 'react-native';
 
 import {Image} from 'expo-image';
@@ -68,7 +67,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ExpoImageProps['style']]}
+                style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>
