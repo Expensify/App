@@ -272,6 +272,7 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const violationNameList = Object.values(CONST.VIOLATIONS) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
     const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
     const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
@@ -318,6 +319,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || violationNameList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:

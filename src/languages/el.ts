@@ -436,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'ημέρες',
         rename: 'Μετονομασία',
         address: 'Διεύθυνση',
+        dayAbbreviation: 'η',
         hourAbbreviation: 'χ',
         minuteAbbreviation: 'μ',
         secondAbbreviation: 'ς',
@@ -573,6 +574,10 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
         shareReport: 'Κοινοποιήστε την αναφορά',
         reportShared: 'Η αναφορά κοινοποιήθηκε',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ημέρα`,
+            other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
         amount: 'Ποσό',
     },
     socials: {
@@ -1313,6 +1318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1896,6 +1902,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Όλες οι δαπάνες τέθηκαν σε αναμονή. Παρακαλούμε ελέγξτε τα σχόλια για τα επόμενα βήματα.',
         expenseDuplicate: 'Αυτή η δαπάνη έχει παρόμοιες λεπτομέρειες με μία άλλη. Παρακαλούμε ελέγξτε τα διπλότυπα για να συνεχίσετε.',
         someDuplicatesArePaid: 'Κάποια από αυτά τα διπλότυπα έχουν ήδη εγκριθεί ή πληρωθεί.',
+        someDuplicatesAreUnavailable: 'Δεν ήταν δυνατή η φόρτωση ορισμένων από αυτά τα διπλότυπα, οπότε μπορείτε μόνο να τα κρατήσετε όλα.',
         reviewDuplicates: 'Ελέγξτε τα διπλότυπα',
         keepAll: 'Διατήρηση όλων',
         keepSelected: 'Διατήρηση επιλογής',
@@ -4314,7 +4321,6 @@ ${amount} για ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Η ημερομηνία πρέπει να είναι πριν από ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Η ημερομηνία πρέπει να είναι μετά από ${dateString}`,
-            hasInvalidCharacter: 'Το όνομα μπορεί να περιλαμβάνει μόνο λατινικούς χαρακτήρες',
             cannotIncludeCommaOrSemicolon: 'Το όνομα δεν μπορεί να περιέχει κόμμα ή ερωτηματικό',
             incorrectZipFormat: (zipFormat?: string) => `Μη έγκυρη μορφή ταχυδρομικού κώδικα${zipFormat ? `Αποδεκτή μορφή: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Βεβαιωθείτε ότι ο αριθμός τηλεφώνου είναι έγκυρος (π.χ. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4516,7 +4522,6 @@ ${amount} για ${merchant} - ${date}`,
             lastName: 'Παρακαλούμε εισαγάγετε ένα έγκυρο επώνυμο',
             noDefaultDepositAccountOrDebitCardAvailable: 'Παρακαλούμε προσθέστε έναν προεπιλεγμένο λογαριασμό κατάθεσης ή χρεωστική κάρτα',
             validationAmounts: 'Τα ποσά επαλήθευσης που εισαγάγατε είναι εσφαλμένα. Παρακαλούμε ελέγξτε ξανά το αντίγραφο κίνησης του λογαριασμού σας και προσπαθήστε ξανά.',
-            fullName: 'Παρακαλούμε εισαγάγετε ένα έγκυρο πλήρες όνομα',
             ownershipPercentage: 'Παρακαλώ εισαγάγετε έναν έγκυρο αριθμό ποσοστού',
             deletePaymentBankAccount:
                 'Αυτός ο τραπεζικός λογαριασμός δεν μπορεί να διαγραφεί επειδή χρησιμοποιείται για πληρωμές με την Κάρτα Expensify. Αν εξακολουθείτε να θέλετε να διαγράψετε αυτόν τον λογαριασμό, παρακαλούμε επικοινωνήστε με το Concierge.',
@@ -7210,6 +7215,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
             autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
+            enableAtLeastOneCategory: 'Ενεργοποίησε τουλάχιστον μία κατηγορία.',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -7455,9 +7461,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     statementCloseDateRequired: 'Επιλέξτε μια ημερομηνία κλεισίματος της κατάστασης.',
                 },
                 corporate: 'Περιορισμός διαγραφής συναλλαγών',
-                personal: 'Να επιτρέπεται η διαγραφή συναλλαγών',
+                personal: 'Να επιτρέπεται στους κατόχους καρτών να διαγράφουν συναλλαγές',
                 setFeedNameDescription: 'Δώστε στη ροή κάρτας ένα μοναδικό όνομα ώστε να τη διακρίνετε από τις άλλες',
-                setTransactionLiabilityDescription: 'Οι κάτοχοι κάρτας μπορούν να διαγράφουν συναλλαγές. Ισχύει μόνο για νέες συναλλαγές.',
+                setTransactionLiabilityDescription: 'Ισχύει μόνο για νέες συναλλαγές. Οι διαχειριστές μπορούν να διαγράφουν συναλλαγές με αυτήν τη ρύθμιση απενεργοποιημένη.',
                 emptyAddedFeedTitle: 'Δεν υπάρχουν κάρτες σε αυτήν τη ροή',
                 emptyAddedFeedDescription: 'Βεβαιωθείτε ότι υπάρχουν κάρτες στη ροή καρτών της τράπεζάς σας.',
                 pendingFeedTitle: `Εξετάζουμε το αίτημά σας...`,
@@ -8107,16 +8113,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
-            exactOnline: {
-                comingSoon: 'Έρχεται σύντομα',
-                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
-                onWaitlist: 'Είστε σε λίστα αναμονής',
-                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Έρχεται σύντομα',
                 joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
                 onWaitlist: 'Είστε σε λίστα αναμονής',
+                onWaitlistButton: 'Σε λίστα αναμονής',
                 onTheList: 'Είστε στη λίστα!',
                 waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
             },
@@ -9167,6 +9168,7 @@ ${reportName}`,
                     selectWorkspace: 'επιλέξτε έναν χώρο εργασίας και αλλάξτε τον τύπο πλάνου σε',
                 },
                 upgradeWorkspaceWarning: `Δεν είναι δυνατή η αναβάθμιση του χώρου εργασίας`,
+                createWorkspaceWarning: `Δεν είναι δυνατή η δημιουργία χώρου εργασίας`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Η εταιρεία σας έχει περιορίσει τη δημιουργία χώρων εργασίας. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για βοήθεια.',
             },
@@ -11366,6 +11368,7 @@ ${reportName}`,
         noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
+        violation: 'Παράβαση',
         receiptTypeValues: {
             ereceipt: 'ηλεκτρονική απόδειξη',
             itemized: 'Αναλυτικό',
@@ -11539,7 +11542,7 @@ ${reportName}`,
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `δεν ήταν δυνατή η επεξεργασία της πληρωμής: ${returnReason}`,
                 reimbursementACHCancelled: `ακύρωσε την πληρωμή`,
                 reimbursementAccountChanged: `δεν ήταν δυνατή η επεξεργασία της πληρωμής, καθώς ο πληρωτής άλλαξε τραπεζικούς λογαριασμούς`,
-                reimbursementDelayed: `επεξεργάστηκε την πληρωμή, αλλά θα καθυστερήσει κατά 1–2 ακόμη εργάσιμες ημέρες`,
+                reimbursementDelayed: `Η πληρωμή επεξεργάστηκε, αλλά καθυστερεί κατά 1–2 ακόμη εργάσιμες ημέρες.`,
                 selectedForRandomAudit: `επιλέχθηκε τυχαία για έλεγχο`,
                 selectedForRandomAuditMarkdown: `[επιλέχθηκε τυχαία](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) για έλεγχο`,
                 share: (to) => `προσκάλεσε μέλος ${to}`,
@@ -11565,6 +11568,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'σύντομα';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'σε δύο εβδομάδες';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'σε μία εβδομάδα';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση</a>.`
+                        : 'Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, η σύνδεση της κάρτας ` : 'Η σύνδεση της κάρτας ';
+                    return `${intro}<strong>${feedName}</strong> θα χρειαστεί ανανέωση συγκατάθεσης ${warningTime}. Οι συναλλαγές εξακολουθούν να συγχρονίζονται, αλλά μπορεί να σταματήσουν να εισάγονται αν δεν ανανεωθεί η συγκατάθεση. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11599,6 +11625,54 @@ ${reportName}`,
                     `ο επαγγελματικός τραπεζικός λογαριασμός ${maskedBankAccountNumber} έχει κλειδωθεί αυτόματα λόγω προβλήματος είτε με τις αποζημιώσεις είτε με τον διακανονισμό της Κάρτας Expensify. Παρακαλούμε διορθώστε το πρόβλημα στις <a href="${linkURL}">ρυθμίσεις χώρου εργασίας</a>.`,
                 autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
                     `Οι παγκόσμιες αποζημιώσεις ενεργοποιήθηκαν από τον/την ${adminName} στον λογαριασμό ${bankName ? `${bankName} ` : ''}που λήγει σε ${lastFour}. Οι ακριβείς συναλλαγματικές ισοτιμίες και χρεώσεις δεν μπορούν να προβλεφθούν πριν από την πληρωμή όταν οι διασυνοριακές αναφορές πληρώνονται αυτόματα. Εξετάστε τις <a href="${autoPaySettingsURL}">ρυθμίσεις αυτόματης πληρωμής</a> σας για περισσότερες πληροφορίες σχετικά με ισοτιμίες και χρεώσεις.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Τα χρήματα αναμένεται πλέον να φτάσουν έως τις ${expectedDate}.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Υπέροχα νέα, τα χρήματα αναμένεται πλέον να φτάσουν έως τις ${expectedDate}.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Τα χρήματα έφτασαν στις ${arrivalDate}.`,
+                reimbursementArrivedWithoutDate: 'Τα χρήματα έφτασαν.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Η πληρωμή απέτυχε: ${reason}. Τα χρήματα πιθανότατα θα επιστραφούν, αν και η πληρωμή ενδέχεται ακόμη να ολοκληρωθεί με καθυστέρηση. Περιμένετε για άλλη ενημέρωση. Συνομιλήστε με τον/την <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: 'η τράπεζα του παραλήπτη το απέρριψε',
+                    wrongAccountNumber: 'εσφαλμένος αριθμός λογαριασμού',
+                    wrongAccountDetails: 'λανθασμένος αριθμός λογαριασμού ή κωδικός τράπεζας',
+                    wrongBankCode: 'λανθασμένος κωδικός τράπεζας',
+                    wrongBranchCode: 'λανθασμένος κωδικός υποκαταστήματος',
+                    wrongAccountType: 'λανθασμένος τύπος λογαριασμού',
+                    wrongCardNumber: 'εσφαλμένος αριθμός κάρτας',
+                    wrongCardType: 'η τράπεζα του παραλήπτη δεν δέχεται αυτόν τον τύπο κάρτας',
+                    wrongName: 'το όνομα του κατόχου του λογαριασμού δεν ταιριάζει',
+                    wrongPhoneNumber: 'λανθασμένος αριθμός τηλεφώνου παραλήπτη',
+                    wrongIdNumber: 'λανθασμένος αριθμός ταυτότητας παραλήπτη',
+                    wrongRutNumber: 'εσφαλμένο ΑΦΜ δικαιούχου',
+                    taxIdNotMatching: 'ο αριθμός φορολογικού μητρώου δεν ταιριάζει με το όνομα του παραλήπτη',
+                    wrongCurrency: 'ο λογαριασμός δικαιούχου είναι σε διαφορετικό νόμισμα',
+                    accountDoesNotExist: 'ο λογαριασμός δεν υπάρχει στην τράπεζα του παραλήπτη',
+                    externalIdentifierDetailsHaveChanged: 'τα τραπεζικά στοιχεία του παραλήπτη έχουν αλλάξει',
+                    accountClosed: 'ο λογαριασμός του παραλήπτη είναι κλειστός',
+                    accountFrozen: 'ο λογαριασμός παραλήπτη είναι παγωμένος',
+                    accountBlocked: 'ο λογαριασμός του παραλήπτη είναι μπλοκαρισμένος',
+                    accountLimitReached: 'ο λογαριασμός παραλήπτη έχει φτάσει σε ένα όριο',
+                    taxIdSuspended: 'ο φορολογικός αριθμός του παραλήπτη είναι σε αναστολή',
+                    cannotAcceptFrom3rdParty: 'η τράπεζα του παραλήπτη δεν δέχεται πληρωμές τρίτων',
+                    creditingAccountForbidden: 'δεν είναι δυνατή η πίστωση του λογαριασμού του παραλήπτη',
+                    businessPaymentsForbidden: 'ο λογαριασμός παραλήπτη δεν δέχεται επιχειρηματικές πληρωμές',
+                    returnRequestedByRecipient: 'ο παραλήπτης ζήτησε να επιστραφεί',
+                    fundsNotExpectedReturned: 'η τράπεζα του παραλήπτη δεν το περίμενε και το επέστρεψε',
+                    duplicateEntry: 'η τράπεζα του δικαιούχου το θεώρησε ως διπλή πληρωμή',
+                    mandateNotFilledIn: 'Ο παραλήπτης δεν ολοκλήρωσε εγκαίρως τη φόρμα της τράπεζάς του',
+                    requestForInformationExpired: 'ένα αίτημα για περισσότερες πληροφορίες έληξε',
+                    wrongReference: 'η αναφορά πληρωμής απορρίφθηκε',
+                    wrongPaymentPurpose: 'ο σκοπός πληρωμής απορρίφθηκε',
+                    senderRequestedToCancel: 'η πληρωμή ακυρώθηκε',
+                    technicalIssue: 'ένα τεχνικό πρόβλημα στον συνεργάτη μας για πληρωμές',
+                    technicalIssueRetryable: 'ένα τεχνικό πρόβλημα στον συνεργάτη μας για τις πληρωμές, ο οποίος θα προσπαθήσει ξανά',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) =>
+                    `Τα χρήματα επιστράφηκαν στον τραπεζικό λογαριασμό που λήγει σε ${bankAccountLastFour}. Μπορείτε να δοκιμάσετε ξανά την πληρωμή.`,
+                reimbursementRefundedWithoutBankAccount: 'Τα χρήματα επιστράφηκαν. Μπορείτε να δοκιμάσετε ξανά την πληρωμή.',
+                reimbursementHeld:
+                    'Η πληρωμή έχει τεθεί σε αναμονή όσο ο συνεργάτης μας ολοκληρώνει έναν έλεγχο. Περιμένετε νεότερη ενημέρωση. Συνομιλήστε με τον <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: 'Ο έλεγχος ολοκληρώθηκε και η πληρωμή σας είναι καθ’ οδόν. Η τελική ισοτιμία συναλλάγματος ενδέχεται να αλλάξει το ποσό.',
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',
@@ -12220,6 +12294,7 @@ ${reportName}`,
             tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
             overLimitAttendee: 'Υπέρβαση ορίου ατόμων',
             customRules: 'Παραβίαση προσαρμοσμένου κανόνα',
+            ruleViolation: 'Παραβίαση κανόνα',
             taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
             taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
             taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',

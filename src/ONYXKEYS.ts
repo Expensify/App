@@ -221,6 +221,9 @@ const ONYXKEYS = {
     /** UTC signup timestamp for the account's Exact Online waitlist membership */
     NVP_EXACT_ONLINE_WAITLIST: 'nvp_expensify_exactOnlineWaitlist',
 
+    /** UTC signup timestamp for the account's Odoo waitlist membership */
+    NVP_ODOO_WAITLIST: 'nvp_expensify_odooWaitlist',
+
     /** Accounting integrations the user is waiting for, one entry per integration and workspace */
     NVP_ACCOUNTING_INTEGRATION_WAITLIST: 'nvp_accountingIntegrationWaitlist',
 
@@ -1069,6 +1072,9 @@ const ONYXKEYS = {
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
+        /** Set while `GetDuplicateTransactionDetails` is in flight, keyed by transactionID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS: 'isLoadingDuplicateTransactionDetails_',
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
@@ -1731,6 +1737,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
@@ -1889,6 +1896,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST]: string;
+    [ONYXKEYS.NVP_ODOO_WAITLIST]: string;
     [ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST]: OnyxTypes.AccountingIntegrationWaitlist;
     [ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS]: OnyxTypes.AccountingIntegrationWaitlistRequests;
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];

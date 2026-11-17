@@ -109,7 +109,7 @@ function useSearchSidebarCollapse(surface: CollapseSurface = COLLAPSE_SURFACE.SE
     };
 }
 
-function useSearchSidebarLayoutWidthStyle() {
+function useSearchSidebarLayoutWidthStyle(): ViewStyle {
     const {isCollapsed: collapsed} = useSearchSidebarCollapse();
 
     return {...layoutTransitionStyle, height: '100%', width: getSearchSidebarWidth(collapsed ? 1 : 0)};
