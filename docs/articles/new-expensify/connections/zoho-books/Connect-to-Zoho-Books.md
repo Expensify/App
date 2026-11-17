@@ -16,6 +16,7 @@ To connect Zoho Books, you must:
 
 - Be a workspace admin on a Collect or Control workspace.
 - Have access to a Zoho Books organization on the Professional plan or higher.
+- Use a single-location organization. Organizations with more than one active location aren't supported yet.
 - Be able to sign in to Zoho and authorize the connection.
 
 ## How to connect Zoho Books to Expensify
