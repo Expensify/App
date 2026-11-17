@@ -167,6 +167,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         {
             text: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.CLOSE_ACCOUNT,
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.BULK_ACTIONS_MENU_CLOSE_ACCOUNT,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
             onSelected: () => {
@@ -176,6 +177,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         {
             text: translate('domain.members.moveToGroup'),
             value: CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES.MOVE_TO_GROUP,
+            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.BULK_ACTIONS_MENU_MOVE_TO_GROUP,
             icon: icons.Transfer,
             onSelected: () => {
                 setDomainMembersSelectedForMove(selectedMembers);
@@ -248,6 +250,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     options={[
                         {
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
+                            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MORE_MENU_SETTINGS,
                             text: translate('domain.common.settings'),
                             icon: icons.Gear,
                             onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
@@ -258,6 +261,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                             icon: icons.Download,
                             onSelected: onDownloadCSV,
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
+                            sentryLabel: CONST.SENTRY_LABEL.DOMAIN.MEMBERS.MORE_MENU_DOWNLOAD_CSV,
                         },
                     ]}
                     isSplitButton={false}

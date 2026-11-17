@@ -179,6 +179,7 @@ function AddCardToDigitalWalletPage({
                     illustrationStyle={styles.digitalWalletResultIllustration}
                     descriptionStyle={styles.textSupporting}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_RESULT_CONFIRM}
                     onButtonPress={goBackToEntryPoint}
                 />
             </ScreenWrapper>

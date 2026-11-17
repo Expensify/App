@@ -25,8 +25,8 @@ function Template(props: ButtonWithDropdownMenuProps<unknown>) {
     const icons = useMemoizedLazyExpensifyIcons(['Wallet']);
 
     const options = [
-        {value: 'One', text: 'One', icon: icons.Wallet},
-        {value: 'Two', text: 'Two', icon: icons.Wallet},
+        {value: 'One', text: 'One', icon: icons.Wallet, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
+        {value: 'Two', text: 'Two', icon: icons.Wallet, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
     ];
 
     return (
