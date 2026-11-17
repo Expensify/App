@@ -437,6 +437,10 @@ function sendEvent<EventName extends PusherEventName>(channelName: string, event
     // The socket can disconnect after the check. These broadcasts should not be retried once stale.
     socket.trigger({channelName, eventName, data: JSON.stringify(payload)}).catch((error: unknown) => {
         Log.info('[Pusher] Failed to send client event, ignoring', false, {eventName, error: String(error)});
+        Sentry.captureException(error, {
+            level: 'warning',
+            extra: {eventName, connectionState: socket?.connectionState},
+        });
     });
 }
 

@@ -5,10 +5,16 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import {Pusher as MockedPusher} from '../../__mocks__/@pusher/pusher-websocket-react-native/index';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@sentry/react-native', () => ({
+    ...jest.requireActual<typeof Sentry>('@sentry/react-native'),
+    captureException: jest.fn(),
+}));
 
 describe('Native Pusher.sendEvent', () => {
     const channelName = 'private-report-send-event';
@@ -23,6 +29,7 @@ describe('Native Pusher.sendEvent', () => {
     }
 
     beforeEach(async () => {
+        jest.mocked(Sentry.captureException).mockClear();
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
         await waitForBatchedUpdates();
         const initialization = Pusher.init({appKey: CONFIG.PUSHER.APP_KEY, cluster: CONFIG.PUSHER.CLUSTER});
@@ -55,22 +62,30 @@ describe('Native Pusher.sendEvent', () => {
         await subscribeToTyping();
         const socket = MockedPusher.getInstance();
         const trigger = jest.spyOn(socket, 'trigger');
+        const captureException = jest.spyOn(Sentry, 'captureException');
         socket.connectionState = state;
         expect(Pusher.isSubscribed(channelName)).toBe(true);
 
         // When typing occurs during the connection interruption.
         Pusher.sendEvent(channelName, Pusher.TYPE.USER_IS_TYPING, payload);
+        await jest.runAllTimersAsync();
 
-        // Then the stale subscription flag does not permit a native trigger.
+        // Then the stale subscription flag does not permit a native trigger or report an expected skip to Sentry.
         expect(trigger).not.toHaveBeenCalled();
+        expect(captureException).not.toHaveBeenCalled();
     });
 
     it('handles a trigger rejection after the connected check without retrying', async () => {
         // Given a ready socket that loses its connection before the native send executes.
         await subscribeToTyping();
         const error = new Error('Cannot trigger event client-userIsTyping because connection is in RECONNECTING state');
-        const trigger = jest.spyOn(MockedPusher.getInstance(), 'trigger').mockRejectedValueOnce(error);
+        const socket = MockedPusher.getInstance();
+        const trigger = jest.spyOn(socket, 'trigger').mockImplementationOnce(() => {
+            socket.connectionState = 'RECONNECTING';
+            return Promise.reject(error);
+        });
         const log = jest.spyOn(Log, 'info');
+        const captureException = jest.spyOn(Sentry, 'captureException');
 
         // When the native bridge rejects the broadcast after the readiness check.
         Pusher.sendEvent(channelName, Pusher.TYPE.USER_IS_TYPING, payload);
@@ -79,6 +94,11 @@ describe('Native Pusher.sendEvent', () => {
         // Then the rejection is consumed with a diagnostic, not retried with stale typing data.
         expect(trigger).toHaveBeenCalledTimes(1);
         expect(log).toHaveBeenCalledWith('[Pusher] Failed to send client event, ignoring', false, {eventName: Pusher.TYPE.USER_IS_TYPING, error: String(error)});
+        expect(captureException).toHaveBeenCalledTimes(1);
+        expect(captureException).toHaveBeenCalledWith(error, {
+            level: 'warning',
+            extra: {eventName: Pusher.TYPE.USER_IS_TYPING, connectionState: 'RECONNECTING'},
+        });
     });
 
     it('resumes sending after reconnection without replaying skipped broadcasts', async () => {
