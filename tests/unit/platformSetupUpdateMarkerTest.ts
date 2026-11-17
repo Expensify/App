@@ -76,19 +76,21 @@ describe('web upgrade marker cleanup', () => {
 describe('service worker registration', () => {
     let register: jest.Mock;
     let deleteCache: jest.Mock;
+    let openCache: jest.Mock;
 
     beforeEach(() => {
         mockIsInProduction = true;
         jest.spyOn(AppRegistry, 'runApplication').mockImplementation(() => {});
         register = jest.fn(async () => ({}));
         deleteCache = jest.fn(async () => true);
+        openCache = jest.fn(async () => ({}));
         Object.defineProperty(navigator, 'serviceWorker', {
             configurable: true,
             value: {register},
         });
         Object.defineProperty(globalThis, 'caches', {
             configurable: true,
-            value: {delete: deleteCache},
+            value: {delete: deleteCache, open: openCache},
         });
         jest.mocked(isSharedProductHost).mockReturnValue(false);
         jest.mocked(readExperienceCookie).mockReturnValue(undefined);
@@ -142,6 +144,37 @@ describe('service worker registration', () => {
             expect(deleteCache).toHaveBeenCalledWith('user-media-blocked');
             expect(deleteCache.mock.invocationCallOrder.at(0)).toBeLessThan(register.mock.invocationCallOrder.at(0) ?? 0);
         }
+    });
+
+    it('does not register the worker when another tab switches to Classic before the page loads', async () => {
+        // Given a New Expensify user on the shared host, whose cookie another tab changes to Classic while this page is loading
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie).mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW).mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When the page finishes loading
+        await startAppAndLoad();
+
+        // Then the block the other tab set stays and no worker is registered, so Classic keeps working without one
+        expect(deleteCache).not.toHaveBeenCalled();
+        expect(register).not.toHaveBeenCalled();
+    });
+
+    it('restores the block when another tab switches to Classic while saved media is being unblocked', async () => {
+        // Given a New Expensify user on the shared host, whose cookie another tab changes to Classic after this page starts unblocking media
+        jest.mocked(isSharedProductHost).mockReturnValue(true);
+        jest.mocked(readExperienceCookie)
+            .mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW)
+            .mockReturnValueOnce(CONST.EXPERIENCE_COOKIE.VALUES.NEW)
+            .mockReturnValue(CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC);
+
+        // When the page finishes loading
+        await startAppAndLoad();
+
+        // Then the block removed by this page is created again and saved media deleted, and no worker is registered
+        expect(deleteCache).toHaveBeenNthCalledWith(1, 'user-media-blocked');
+        expect(openCache).toHaveBeenCalledWith('user-media-blocked');
+        expect(deleteCache).toHaveBeenLastCalledWith('user-media');
+        expect(register).not.toHaveBeenCalled();
     });
 
     it('registers the worker even when unblocking saved media fails', async () => {

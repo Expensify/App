@@ -35,6 +35,7 @@ const NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*
 
 // Expensify Classic serves its pages' scripts and images under these paths, matched without case like the experience router does
 const CLASSIC_ASSET_PATHS =
+    // cspell:disable-next-line
     /^\/(?:api|apiassets|_support|_devportal|_tests|_tools|authentication|partners|mcp|oauth|openid|mobile|concierge|expensiworks|\.well-known|newjs|site|homepage|build|js|font|cdn|errors|m)(?:\/|$)/i;
 
 const isSharedProductHost = self.location.hostname === __SHARED_PRODUCT_HOST__;

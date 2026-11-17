@@ -7,7 +7,7 @@
  * - Any other path belongs to Expensify Classic or the backend, and the worker leaves it alone.
  *
  * Expensify Classic matches paths case-sensitively and only serves the exact shape of each shared path, so deeper paths under a shared path are app-only.
- * Every pattern ends at a segment boundary, because Classic pages share prefixes with app routes (`/r` and `/reports`, `/new` and `/newjs`).
+ * Every pattern ends at a segment boundary, because Classic pages share prefixes with app routes (`/r` and `/reports`, `/a` and `/admin`).
  */
 
 const SEGMENT_END = String.raw`(?:\/|\?|$)`;

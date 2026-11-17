@@ -387,6 +387,7 @@ describe('service worker navigation', () => {
 
         it('registers sign-out, app-only and shared navigation before precache routes', () => {
             // Given the worker runs on the shared host
+            // When it registers its routes at startup, before each test
             // Then each kind of navigation has its own route, and all of them come before cache-first routes
             expect(mockRegistrationOrder).toEqual(['route', 'route', 'route', 'precache', 'route']);
             expect(getNavigationRoute(0).options.allowlist).toEqual(SIGN_OUT_NAVIGATION_PATHS);
@@ -406,6 +407,7 @@ describe('service worker navigation', () => {
             ['/r/123/receipt.pdf', undefined],
             ['/_support/x', undefined],
         ])("routes '%s' to navigation route %s", (url, expectedRoute) => {
+            // Given a navigation on the shared host, which must reach at most one navigation route
             // When a navigation is matched against every registered navigation route
             const matchingRoutes = [0, 1, 2].filter((index) => routeMatches(getNavigationRoute(index).options, url));
 
@@ -579,6 +581,7 @@ describe('service worker navigation', () => {
 
         it.each([
             ['/site/images/logo.png', 'image', false],
+            // cspell:disable-next-line
             ['/newjs/x.png', 'image', false],
             ['/Site/x.png', 'image', false],
             ['/receipts/w_123.jpg', '', true],
@@ -586,6 +589,7 @@ describe('service worker navigation', () => {
             ['/logo-abc12345.png', 'image', true],
             ['/sitemap.png', 'image', true],
         ])("decides whether to save '%s' as user media", (path, destination, shouldSave) => {
+            // Given a same-origin request, which can be New Expensify's media or a Classic page asset
             // When a same-origin request is matched against the user media route
             const matches = getUserMediaMatcher()({
                 sameOrigin: true,

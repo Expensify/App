@@ -26,6 +26,7 @@ const UNCLASSIFIED_ROUTES = new Set([
 ]);
 
 // Pages Expensify Classic serves at the root of its host: every top-level PHP file, which nginx serves without the extension, and every directory
+// cspell:disable
 const CLASSIC_PAGES = [
     ...['accessibility', 'accountants', 'achAuthentication', 'achterms', 'activate', 'addcreditcard', 'admin', 'admin_companycards', 'admin_domains'],
     ...['admin_groups', 'admin_members', 'admin_policies', 'admin_reconciliation', 'analytics', 'api', 'apiCommandTypes', 'approve'],
@@ -45,6 +46,7 @@ const CLASSIC_PAGES = [
     ...['apiassets', 'authentication', 'build', 'cdn', 'concierge', 'errors', 'expensiworks', 'font', 'homepage', 'js', 'm', 'mcp', 'newjs'],
     ...['newtemplates', 'notifications', 'oauth', 'openID', 'pages', 'partners', 'site', 'statements', 'v', 'u'],
 ];
+// cspell:enable
 
 function classify(pathAndSearch: string): PathClass {
     const isAppOnly = APP_ONLY_NAVIGATION_PATHS.some((pattern) => pattern.test(pathAndSearch));
@@ -112,7 +114,12 @@ describe('NavigationPaths', () => {
         '/v/1/abc',
         '/u/1/abc/',
     ])("treats '%s' as a path both products serve", (path) => {
-        expect(classify(path)).toBe('shared');
+        // Given a path that opens New Expensify or Expensify Classic depending on the user's experience cookie
+        // When the service worker classifies it
+        const pathClass = classify(path);
+
+        // Then it goes to the network first, so the router can pick the product, and the saved app is only a fallback offline
+        expect(pathClass).toBe('shared');
     });
 
     it.each([
@@ -141,36 +148,64 @@ describe('NavigationPaths', () => {
         '/add-payment-card',
         '/auto-submit',
     ])("treats '%s' as a New Expensify path", (path) => {
-        expect(classify(path)).toBe('appOnly');
+        // Given a path only New Expensify serves
+        // When the service worker classifies it
+        const pathClass = classify(path);
+
+        // Then the saved app opens it right away, also offline, because no Classic page can be behind it
+        expect(pathClass).toBe('appOnly');
     });
 
     it.each(['/reports', '/signin', '/terms', '/policy?param=1', '/index', '/index?x=1', '/concierge', '/concierge/', '/statements', '/Inbox', '/SETTINGS', '/api/OpenApp'])(
         "leaves '%s' to the browser",
         (path) => {
-            expect(classify(path)).toBe('none');
+            // Given a path served by Expensify Classic or the backend, or a different spelling of a New Expensify path
+            // When the service worker classifies it
+            const pathClass = classify(path);
+
+            // Then the worker doesn't handle it, so the request reaches the server exactly as without a worker
+            expect(pathClass).toBe('none');
         },
     );
 
     it.each(CLASSIC_PAGES)("never opens New Expensify for the Expensify Classic page '/%s'", (page) => {
-        // A Classic page classified as app-only would be unreachable for every user with the service worker
-        expect(classify(`/${page}`)).not.toBe('appOnly');
-        expect(classify(`/${page}?x=1`)).not.toBe('appOnly');
-        expect(classify(`/${page}/`)).not.toBe('appOnly');
+        // Given an Expensify Classic page, with and without a query and a trailing slash
+        // When the service worker classifies it
+        const pathClasses = [`/${page}`, `/${page}?x=1`, `/${page}/`].map(classify);
+
+        // Then none is app-only, because an app-only Classic page would be unreachable for every user with the worker
+        expect(pathClasses).not.toContain('appOnly');
     });
 
     it.each(['/signout', '/signout/', '/signout?clean=true', '/signout?resetSession=true', '/signout?shouldStartSignIn=1&email=a', '/signout.php', '/signout.php?clean=true'])(
         "recognizes '%s' as signing out of Expensify Classic",
         (path) => {
-            expect(SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path))).toBe(true);
+            // Given a navigation that signs out of Expensify Classic
+            // When the service worker checks it
+            const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
+
+            // Then it is recognized, so the previous user's saved media is cleared
+            expect(isSignOut).toBe(true);
         },
     );
 
     it('recognizes the SAML sign-out callback', () => {
-        expect(SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test('/authentication/saml/logoutCallback.php?x=1'))).toBe(true);
+        // Given the callback a SAML provider opens after signing the user out
+        // When the service worker checks it
+        const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test('/authentication/saml/logoutCallback.php?x=1'));
+
+        // Then it counts as signing out, like Classic's own sign-out page
+        expect(isSignOut).toBe(true);
     });
 
+    // cspell:disable-next-line
     it.each(['/signouts', '/signout-x', '/signout.phpx', '/signin'])("does not treat '%s' as signing out", (path) => {
-        expect(SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path))).toBe(false);
+        // Given a path that only resembles a sign-out page
+        // When the service worker checks it
+        const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
+
+        // Then it doesn't count, so saved media isn't cleared for an unrelated page
+        expect(isSignOut).toBe(false);
     });
 
     it('classifies every New Expensify route', () => {
@@ -185,10 +220,13 @@ describe('NavigationPaths', () => {
     });
 
     it('classifies every old route New Expensify redirects', () => {
-        const unclassified = Object.keys(oldRoutes)
-            .flatMap(getExampleURLs)
-            .filter((url) => classify(url) === 'none');
+        // Given every old path New Expensify still redirects, with example parameter values
+        const urls = Object.keys(oldRoutes).flatMap(getExampleURLs);
 
+        // When each one is classified
+        const unclassified = urls.filter((url) => classify(url) === 'none');
+
+        // Then old links saved by users keep opening New Expensify offline
         expect(unclassified).toEqual([]);
     });
 
@@ -196,14 +234,20 @@ describe('NavigationPaths', () => {
         // Given a dynamic route that New Expensify opens on top of any screen
         const urls = SHARED_EXAMPLES.map((sharedPath) => `${sharedPath === '/' ? '' : sharedPath}${suffixURL}`);
 
+        // When it is classified after the root and after every shared path
+        const urlsOutsideApp = urls.filter((url) => classify(url) !== 'appOnly');
+
         // Then it is app-only wherever it is appended, and New Expensify renders it at the root
-        expect(urls.filter((url) => classify(url) !== 'appOnly')).toEqual([]);
+        expect(urlsOutsideApp).toEqual([]);
         expect(findFocusedRouteWithOnyxTabGuard(getStateFromPath(suffixURL))?.name).not.toBe(SCREENS.NOT_FOUND);
     });
 
     it.each(['/r', '/e', '/a', '/new', '/domain', '/pay', '/setting', '/travel', '/home'])("ends '%s' at a segment boundary", (prefix) => {
-        // Classic pages that extend an app-only first segment
-        expect(classify(`${prefix}x`)).not.toBe('appOnly');
-        expect(classify(`${prefix}_x`)).not.toBe('appOnly');
+        // Given paths that extend a New Expensify first segment, as some Classic page names do
+        // When they are classified
+        const pathClasses = [`${prefix}x`, `${prefix}_x`].map(classify);
+
+        // Then they aren't app-only, because a pattern matches whole segments only
+        expect(pathClasses).not.toContain('appOnly');
     });
 });

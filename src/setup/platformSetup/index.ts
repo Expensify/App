@@ -3,7 +3,7 @@ import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
 import {isSharedProductHost, readExperienceCookie} from '@libs/ExperienceCookie';
-import {unblockUserMedia} from '@libs/UserMediaCache';
+import {blockAndClearUserMedia, unblockUserMedia} from '@libs/UserMediaCache';
 import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
@@ -62,6 +62,34 @@ const webUpdater = (): PlatformSpecificUpdater => ({
     update: () => webUpdate(),
 });
 
+/** On the host that serves both products, only New Expensify users get the worker, so Expensify Classic users never have one */
+function canUseServiceWorker(): boolean {
+    return !isSharedProductHost() || readExperienceCookie() === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
+}
+
+async function registerServiceWorker(): Promise<void> {
+    // Another tab can switch to Classic before this page loads, so the cookie is read again before each step
+    if (!canUseServiceWorker()) {
+        return;
+    }
+
+    // Signing out of Classic or switching to it blocks saving media until the app starts again for a New Expensify user
+    try {
+        await unblockUserMedia();
+    } catch (error) {
+        // Soft-fail: a block that stays only stops media from being saved, so we only log the error to the console
+        // eslint-disable-next-line no-console
+        console.warn('[SW] failed to unblock saved media', error);
+    }
+
+    // A switch to Classic while the block was being removed needs the block back and no worker
+    if (!canUseServiceWorker()) {
+        await blockAndClearUserMedia();
+        return;
+    }
+    await navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'});
+}
+
 export default function () {
     // The worker has already handled this navigation. Later navigations should open the saved app instead of waiting for the network.
     const url = new URL(window.location.href);
@@ -85,24 +113,14 @@ export default function () {
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
 
-    // On the host that serves both products, only New Expensify users get the worker, so Expensify Classic users never have one.
-    const canUseServiceWorker = !isSharedProductHost() || readExperienceCookie() === CONST.EXPERIENCE_COOKIE.VALUES.NEW;
-
     // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
-    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator && canUseServiceWorker) {
+    if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator && canUseServiceWorker()) {
         window.addEventListener('load', () => {
-            // Signing out of Classic or switching to it blocks saving media until the app starts again for a New Expensify user
-            unblockUserMedia()
-                .catch((error: unknown) => {
-                    // eslint-disable-next-line no-console
-                    console.warn('[SW] failed to unblock saved media', error);
-                })
-                .then(() => navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}))
-                .catch((error: unknown) => {
-                    // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
-                    // eslint-disable-next-line no-console
-                    console.warn('[SW] registration failed', error);
-                });
+            registerServiceWorker().catch((error: unknown) => {
+                // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
+                // eslint-disable-next-line no-console
+                console.warn('[SW] registration failed', error);
+            });
         });
     }
 }

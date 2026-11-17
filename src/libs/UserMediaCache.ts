@@ -12,13 +12,17 @@ function isCacheStorageAvailable(): boolean {
 /**
  * Stops the worker from saving media and deletes the media it saved. The marker is created first,
  * so a save that finishes after the delete still sees it and deletes the cache again.
+ * The media is deleted even when the marker can't be created, so the previous session's files never stay behind.
  */
 async function blockAndClearUserMedia(): Promise<void> {
     if (!isCacheStorageAvailable()) {
         return;
     }
-    await caches.open(USER_MEDIA_BLOCK_CACHE_NAME);
-    await caches.delete(USER_MEDIA_CACHE_NAME);
+    try {
+        await caches.open(USER_MEDIA_BLOCK_CACHE_NAME);
+    } finally {
+        await caches.delete(USER_MEDIA_CACHE_NAME);
+    }
 }
 
 async function unblockUserMedia(): Promise<void> {
