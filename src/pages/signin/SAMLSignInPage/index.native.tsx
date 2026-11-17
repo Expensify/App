@@ -213,7 +213,14 @@ function SAMLSignInPage() {
                     // was dismissed/cancelled, or the redirect to the custom scheme never fired). Log the result type so
                     // we can distinguish "browser never returned a success result" from "returned but had no token"
                     // (which is already logged in handleNavigationStateChange) when debugging SAML sign-in loops.
-                    Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {type: response.type});
+                    // iOS sends the reason the sheet closed, which tells a person cancelling apart from the system closing it
+                    const error = 'error' in response && typeof response.error === 'string' ? response.error : undefined;
+                    Log.hmmm('SAMLSignInPage - Auth session closed without a successful result', {
+                        type: response.type,
+                        error,
+                        openForMs: msSince(authSessionOpenedAt.current),
+                        lastBackgroundMs: lastBackgroundMs.current,
+                    });
                     handleExitSAMLFlow('cancel');
                     return;
                 }

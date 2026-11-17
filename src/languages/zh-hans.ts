@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '天',
         rename: '重命名',
         address: '地址',
+        dayAbbreviation: '天',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
@@ -571,6 +572,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: '导出到',
         shareReport: '分享报表',
         reportShared: '报表已分享',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 天`,
+            other: (count: number) => `${formattedCount ?? count} 天`,
+        }),
         amount: '金额',
     },
     socials: {
@@ -1216,6 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        averageDays: '平均天数',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1765,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: '所有报销都已被搁置。请查看评论以了解下一步操作。',
         expenseDuplicate: '此报销与另一笔报销的明细相似。请查看可能重复的报销后再继续。',
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
+        someDuplicatesAreUnavailable: '部分重复项无法加载，因此只能全部保留。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
         keepSelected: '保留所选项',
@@ -4103,7 +4110,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `日期应晚于 ${dateString}`,
-            hasInvalidCharacter: '姓名只能包含拉丁字符',
             cannotIncludeCommaOrSemicolon: '名称不能包含逗号或分号',
             incorrectZipFormat: (zipFormat?: string) => `邮政编码格式不正确${zipFormat ? `可接受的格式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `请确保电话号码有效（例如：${CONST.EXAMPLE_PHONE_NUMBER}）`,
@@ -4287,7 +4293,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             lastName: '请输入有效的姓氏',
             noDefaultDepositAccountOrDebitCardAvailable: '请添加默认存款账户或借记卡',
             validationAmounts: '您输入的验证金额不正确。请仔细核对您的银行对账单后再试一次。',
-            fullName: '请输入有效的全名',
             ownershipPercentage: '请输入有效的百分比数字',
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify 卡付款。如果您仍希望删除此账户，请联系 Concierge。',
             sameDepositAndWithdrawalAccount: '存款账户和取款账户相同。',
@@ -6790,6 +6795,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
             autoCategorizeNewExpenses: '自动为新报销分类',
+            enableAtLeastOneCategory: '请至少启用一个类别。',
             showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
@@ -7625,16 +7631,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             errorODIntegration: (oldDotPolicyConnectionsURL: string) => `Expensify Classic 中已设置的某个连接出错。[前往 Expensify Classic 解决此问题](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '前往 Expensify Classic 管理您的设置。',
-            exactOnline: {
-                comingSoon: '即将推出',
-                joinWaitlist: '加入候补名单',
-                onWaitlist: '您在候补名单中',
-                waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
-            },
             integrationWaitlist: {
                 comingSoon: '即将推出',
                 joinWaitlist: '加入候补名单',
                 onWaitlist: '您在候补名单中',
+                onWaitlistButton: '已在候补名单中',
                 onTheList: '你已在名单上！',
                 waitlistDescription: '当此集成准备就绪并可连接时，Concierge 会向你发送消息通知你并说明如何连接。',
             },
@@ -8417,6 +8418,7 @@ ${reportName}`,
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
                 upgradeWorkspaceWarning: `无法升级工作空间`,
+                createWorkspaceWarning: `无法创建工作区`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制创建工作区。请联系管理员获取帮助。',
             },
             hr: {
@@ -10627,6 +10629,7 @@ ${reportName}`,
         noVendor: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
+        violation: '违规',
         receiptTypeValues: {
             ereceipt: '电子收据',
             itemized: '明细',
@@ -10834,6 +10837,27 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行</a>进行修复，或者如果不再使用，请<a href='${workspaceCompanyCardSettingsRoute}'>移除该连接</a>。移除后，您已提交的报销不会丢失。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = '即将';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '两周后';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '一周后';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute ? `<a href='${workspaceCompanyCardRoute}'>请在同意到期前重新连接卡片</a>。` : '请在同意到期前重新连接卡片。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>，您的` : '您的';
+                    return `${intro}<strong>${feedName}</strong>卡片连接将在${warningTime}需要重新同意。交易目前仍在同步，但如果不续订同意，交易可能会停止导入。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11507,6 +11531,7 @@ ${reportName}`,
             tagOutOfPolicy: '标签已失效',
             overLimitAttendee: '超出人数上限',
             customRules: '自定义规则违规',
+            ruleViolation: '规则违规',
             taxAmountChanged: '税额已修改',
             taxOutOfPolicy: '税率已失效',
             taxRateChanged: '税率已修改',

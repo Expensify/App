@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dagen',
         rename: 'Naam wijzigen',
         address: 'Adres',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporteert naar',
         shareReport: 'Rapport delen',
         reportShared: 'Rapport gedeeld',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dag`,
+            other: (count: number) => `${formattedCount ?? count} dagen`,
+        }),
         amount: 'Bedrag',
     },
     socials: {
@@ -1266,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1835,6 +1841,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle declaraties zijn gepauzeerd. Bekijk de opmerkingen voor de volgende stappen.',
         expenseDuplicate: 'Deze uitgave heeft vergelijkbare details als een andere. Controleer de doublures om door te gaan.',
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
+        someDuplicatesAreUnavailable: 'Sommige van deze duplicaten konden niet worden geladen, dus je kunt ze alleen allemaal behouden.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
         keepSelected: 'Selectie behouden',
@@ -4248,7 +4255,6 @@ ${amount} voor ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: (dateString: string) => `Datum moet na ${dateString} liggen`,
-            hasInvalidCharacter: 'Naam mag alleen Latijnse letters bevatten',
             cannotIncludeCommaOrSemicolon: 'Naam mag geen komma of puntkomma bevatten',
             incorrectZipFormat: (zipFormat?: string) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4437,7 +4443,6 @@ ${amount} voor ${merchant} - ${date}`,
             lastName: 'Voer een geldige achternaam in',
             noDefaultDepositAccountOrDebitCardAvailable: 'Voeg een standaardstortingsrekening of betaalpas toe',
             validationAmounts: 'De verificatiebedragen die je hebt ingevoerd, zijn onjuist. Controleer je bankafschrift en probeer het opnieuw.',
-            fullName: 'Voer een geldige volledige naam in',
             ownershipPercentage: 'Voer een geldig percentage in',
             deletePaymentBankAccount:
                 'Deze bankrekening kan niet worden verwijderd omdat hij wordt gebruikt voor betalingen met de Expensify Kaart. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
@@ -7046,6 +7051,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
             autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
+            enableAtLeastOneCategory: 'Schakel minstens één categorie in.',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -7920,16 +7926,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
-            exactOnline: {
-                comingSoon: 'Binnenkort beschikbaar',
-                joinWaitlist: 'Aanmelden voor wachtlijst',
-                onWaitlist: 'Je staat op de wachtlijst',
-                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Binnenkort beschikbaar',
                 joinWaitlist: 'Aanmelden voor wachtlijst',
                 onWaitlist: 'Je staat op de wachtlijst',
+                onWaitlistButton: 'Op de wachtlijst',
                 onTheList: 'Je staat op de lijst!',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },
@@ -8730,6 +8731,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     selectWorkspace: 'selecteer een werkruimte en wijzig het type abonnement in',
                 },
                 upgradeWorkspaceWarning: `Kan werkruimte niet upgraden`,
+                createWorkspaceWarning: `Kan werkruimte niet aanmaken`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Je bedrijf heeft het aanmaken van werkruimtes beperkt. Neem contact op met een admin voor hulp.',
             },
             hr: {
@@ -11045,6 +11047,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
+        violation: 'Overtreding',
         receiptTypeValues: {
             ereceipt: 'eBon',
             itemized: 'Gespecificeerd',
@@ -11287,6 +11290,29 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `De ${feedName}-verbinding is al 30 dagen verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om dit op te lossen of <a href='${workspaceCompanyCardSettingsRoute}'>verwijder de verbinding</a> als deze niet meer wordt gebruikt. Je verliest geen ingediende uitgaven als je de verbinding verwijdert.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'binnenkort';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'over twee weken';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'over een week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Verbind de kaart opnieuw voordat de toestemming verloopt</a>.`
+                        : 'Verbind de kaart opnieuw voordat de toestemming verloopt.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, voor je ` : 'Voor je ';
+                    return `${intro}<strong>${feedName}</strong>-kaartverbinding is ${warningTime} opnieuw toestemming nodig. Transacties worden nog gesynchroniseerd, maar worden mogelijk niet meer geïmporteerd als de toestemming niet wordt vernieuwd. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11977,6 +12003,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             tagOutOfPolicy: 'Tag niet meer geldig',
             overLimitAttendee: 'Limiet aantal personen overschreden',
             customRules: 'Schending van aangepaste regel',
+            ruleViolation: 'Schending van regel',
             taxAmountChanged: 'Belastingbedrag gewijzigd',
             taxOutOfPolicy: 'Belastingtarief niet meer geldig',
             taxRateChanged: 'Belastingtarief gewijzigd',
