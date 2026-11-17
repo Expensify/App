@@ -663,6 +663,15 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
 }
 
+/** Falls back to the expense's own currency while its converted amount is unavailable offline. */
+function getTotalForDisplay(transaction: Transaction, reportCurrency: string | undefined, isFromExpenseReport: boolean): {amount: number; currency: string} {
+    const hasConvertedAmount = transaction.convertedAmount != null;
+    return {
+        amount: hasConvertedAmount ? getConvertedAmount(transaction, isFromExpenseReport) : getAmount(transaction, isFromExpenseReport),
+        currency: hasConvertedAmount ? (reportCurrency ?? getCurrency(transaction)) : getCurrency(transaction),
+    };
+}
+
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
@@ -1541,14 +1550,12 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
-        .map(
-            (transaction): UnreportedExpenseListItemType => ({
-                ...transaction,
-                isDisabled: isTransactionPendingDelete(transaction),
-                keyForList: transaction.transactionID,
-                errors: transaction.errors as Errors | undefined,
-            }),
-        );
+        .map((transaction): UnreportedExpenseListItemType => ({
+            ...transaction,
+            isDisabled: isTransactionPendingDelete(transaction),
+            keyForList: transaction.transactionID,
+            errors: transaction.errors as Errors | undefined,
+        }));
 }
 
 type GetEligibleTransactionsToAddParams = {
@@ -1985,6 +1992,7 @@ export {
     shouldReuseInitialTransaction,
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
+    getTotalForDisplay,
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,

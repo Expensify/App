@@ -111,4 +111,4 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     return <ActionListContext.Provider value={value}>{children}</ActionListContext.Provider>;
 }
 
-export {ActionListContext, ActionListContextProvider, useActionListContext, useActionListRef};
+export {ActionListContext, ActionListContextProvider, INITIAL_SCROLL_METRICS, useActionListContext, useActionListRef};
