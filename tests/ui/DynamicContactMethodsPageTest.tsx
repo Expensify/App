@@ -1,8 +1,10 @@
-import {render, screen, waitFor} from '@testing-library/react-native';
+import {render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 
 import DynamicContactMethodsPage from '@pages/settings/Profile/Contacts/DynamicContactMethodsPage';
+
+import FontUtils from '@styles/utils/FontUtils';
 
 import DelegateNoAccessModalProvider from '@src/components/DelegateNoAccessModalProvider';
 import LockedAccountModalProvider from '@src/components/LockedAccountModalProvider';
@@ -39,12 +41,11 @@ jest.mock('@components/RenderHTML', () => {
     };
 });
 
-// Replace MenuItem with a simple test double that exposes props in the tree
-jest.mock('@components/MenuItem', () => {
+// Expose the indicator status while keeping the composed row and its accessibility label real.
+jest.mock('@components/MenuItem/leaves/trailing/icons/MenuItemBrickRoadIndicator', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    return ({title, brickRoadIndicator}: {title: string; brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) =>
-        ReactMock.createElement(Text, {testID: `menu-${String(title)}`}, `${brickRoadIndicator ?? 'none'}-brickRoadIndicator`);
+    return ({status}: {status: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>}) => ReactMock.createElement(Text, {testID: 'contact-method-indicator'}, `${status}-brickRoadIndicator`);
 });
 
 describe('DynamicContactMethodsPage', () => {
@@ -65,6 +66,26 @@ describe('DynamicContactMethodsPage', () => {
             </ComposeProviders>,
         );
     }
+
+    it('renders contact titles with the regular font', async () => {
+        // Given a validated primary contact method.
+        const email = 'default@example.com';
+        await Onyx.merge(ONYXKEYS.SESSION, {email});
+        await Onyx.merge(ONYXKEYS.LOGINS, {
+            [`1_${email}`]: {
+                partnerID: 1,
+                partnerUserID: email,
+                validatedDate: '2024-01-01',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // When the composed contact row is rendered.
+        renderPage();
+
+        // Then its title retains the legacy basic title font rather than the bold default.
+        expect(screen.getByText(email)).toHaveStyle(FontUtils.fontFamily.platform.EXP_NEUE);
+    });
 
     it('sets error indicator when login has error fields', async () => {
         // Given a login list entry with errorFields set
@@ -88,17 +109,18 @@ describe('DynamicContactMethodsPage', () => {
         });
         await waitForBatchedUpdates();
 
+        // When the contact methods are rendered.
         renderPage();
 
-        let node = screen.getByTestId(`menu-${defaultEmail}`);
+        let node = screen.getByRole('button', {name: new RegExp(defaultEmail)});
 
-        // DynamicContactMethodsPage doesn't set any BR for validated logins
-        expect(node).toHaveTextContent('none-brickRoadIndicator');
+        // Then only the login with an error has an indicator.
+        expect(within(node).queryByTestId('contact-method-indicator')).toBeNull();
 
-        node = screen.getByTestId(`menu-${otherEmail}`);
+        node = screen.getByRole('button', {name: new RegExp(otherEmail)});
 
         // DynamicContactMethodsPage sets brickRoadIndicator to 'error' when any errorFields are present
-        expect(node).toHaveTextContent('error-brickRoadIndicator');
+        expect(within(node).getByTestId('contact-method-indicator')).toHaveTextContent('error-brickRoadIndicator');
 
         // Verify that RBR disappears
         await Onyx.merge(ONYXKEYS.LOGINS, {
@@ -114,10 +136,10 @@ describe('DynamicContactMethodsPage', () => {
         await waitForBatchedUpdates();
 
         await waitFor(() => {
-            node = screen.getByTestId(`menu-${otherEmail}`);
+            node = screen.getByRole('button', {name: new RegExp(otherEmail)});
 
             // DynamicContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            expect(within(node).queryByTestId('contact-method-indicator')).toBeNull();
         });
     });
 
@@ -140,16 +162,17 @@ describe('DynamicContactMethodsPage', () => {
         });
         await waitForBatchedUpdates();
 
+        // When the contact methods are rendered.
         renderPage();
-        let node = screen.getByTestId(`menu-${defaultEmail}`);
+        let node = screen.getByRole('button', {name: new RegExp(defaultEmail)});
 
-        // DynamicContactMethodsPage doesn't set any BR for validated logins
-        expect(node).toHaveTextContent('none-brickRoadIndicator');
+        // Then only the unvalidated non-default login has an indicator.
+        expect(within(node).queryByTestId('contact-method-indicator')).toBeNull();
 
-        node = screen.getByTestId(`menu-${otherEmail}`);
+        node = screen.getByRole('button', {name: new RegExp(otherEmail)});
 
         // DynamicContactMethodsPage sets brickRoadIndicator to 'info' for non-default unvalidated logins
-        expect(node).toHaveTextContent('info-brickRoadIndicator');
+        expect(within(node).getByTestId('contact-method-indicator')).toHaveTextContent('info-brickRoadIndicator');
 
         // Verify that GBR disappears
         await Onyx.merge(ONYXKEYS.LOGINS, {
@@ -164,9 +187,9 @@ describe('DynamicContactMethodsPage', () => {
         await waitForBatchedUpdates();
 
         await waitFor(() => {
-            node = screen.getByTestId(`menu-${otherEmail}`);
+            node = screen.getByRole('button', {name: new RegExp(otherEmail)});
 
-            expect(node).toHaveTextContent('none-brickRoadIndicator');
+            expect(within(node).queryByTestId('contact-method-indicator')).toBeNull();
         });
     });
 });
