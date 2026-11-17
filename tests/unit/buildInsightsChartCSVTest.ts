@@ -1,4 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {ChartStackStage} from '@components/Search/buildStackedSeries';
+import {getStageDuration} from '@components/Search/chartMetricValue';
 import type {GroupedItem} from '@components/Search/types';
 
 import {translate as translatePhrase} from '@libs/Localize';
@@ -202,5 +204,45 @@ describe('buildInsightsChartCSV', () => {
 
         // Then the CSV carries the durations the chart shows, not a money total the chart never draws
         expect(csv).toBe('\uFEFFFrom,Reports,Average days\r\nAlex Smith,2,2.5');
+    });
+
+    it('writes a stacked chart one column per stage, leaving unavailable stages empty', () => {
+        // Given a month whose reports took no time to approve and were never paid, charted with the submit, approve and pay stages
+        const month: GroupedItem = {
+            ...GROUP_FIELDS,
+            groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+            year: 2026,
+            month: 2,
+            formattedMonth: 'February 2026',
+            shortFormattedMonth: 'Feb',
+            sortKey: 202602,
+            submitAverageTime: 1.5 * CONST.DATE.SECONDS_PER_DAY,
+            approveAverageTime: 0,
+            reimburseAverageTime: null,
+        };
+        const toStage = (label: string, durationField: 'submitAverageTime' | 'approveAverageTime' | 'reimburseAverageTime'): ChartStackStage => ({
+            key: label,
+            label,
+            color: '',
+            comparisonColor: '',
+            getValue: (item) => getStageDuration(item, durationField),
+        });
+        const stages = [toStage('Created → Submitted', 'submitAverageTime'), toStage('Submitted → Approved', 'approveAverageTime'), toStage('Approved → Paid', 'reimburseAverageTime')];
+
+        // When the chart is exported
+        const csv = buildInsightsChartCSV({
+            data: [month],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+            countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            stages,
+        });
+
+        // Then each stage gets its own column in days, an instant approval reads 0.0, and the unpaid stage is left empty rather than read as 0 days
+        expect(csv).toBe('\uFEFFDate,Reports,Created → Submitted,Submitted → Approved,Approved → Paid\r\n2026-02-01,2,1.5,0.0,');
     });
 });

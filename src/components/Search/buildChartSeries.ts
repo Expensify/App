@@ -344,5 +344,5 @@ function buildChartSeries({
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
+export {AVERAGE_LABEL_KEYS, buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
 export type {ChartAverage, ChartComparison, SearchChartModel};

@@ -1,22 +1,66 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
 
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {areApprovalsEnabled} from '@libs/PolicyUtils/workflows';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
+import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchWorkflowStageDurations} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
+
+type PolicyEligibilityCheck = (policy: Policy, login: string | undefined) => boolean;
+
+/** One workflow stage a chart shows */
+type InsightsChartStage = {
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** The time-bucket field holding how long the bucket's reports spent in the stage */
+    durationField: keyof SearchWorkflowStageDurations;
+
+    /** Color of the stage's segment in the current period's stack */
+    color: string;
+
+    /** Color of the stage's segment in the previous period's stack */
+    comparisonColor: string;
+
+    /** The stage is shown when any workspace in scope passes this. A stage that declares none is always shown. */
+    isPolicyEligible?: PolicyEligibilityCheck;
+};
+
+/** The stages a report moves through, in order, each drawn in a darker shade of its period's hue than the one after it */
+const WORKFLOW_STAGES: InsightsChartStage[] = [
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
+        durationField: 'submitAverageTime',
+        color: colors.blue600,
+        comparisonColor: colors.green600,
+    },
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
+        durationField: 'approveAverageTime',
+        color: colors.blue400,
+        comparisonColor: colors.green400,
+        isPolicyEligible: areApprovalsEnabled,
+    },
+    {
+        workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
+        durationField: 'reimburseAverageTime',
+        color: colors.blue200,
+        comparisonColor: colors.green200,
+    },
+];
 
 /** Dates a chart can narrow the page's period by */
 type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
@@ -44,7 +88,13 @@ type InsightsChartSpec = {
     dateFilterKey?: InsightsDateFilterKey;
 
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
-    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+    isPolicyEligible?: PolicyEligibilityCheck;
+
+    /**
+     * The workflow stages the chart shows, of which it drops those no workspace in scope is eligible for.
+     * A time-grouped chart stacks them in each bucket's column, and a chart grouped by workflow stage draws them as its groups.
+     */
+    stages?: InsightsChartStage[];
 };
 
 /** Violations kept at submission or approval */
@@ -61,7 +111,7 @@ type InsightsDashboardSpec = {
     beta?: Beta;
 
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
-    isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+    isPolicyEligible?: PolicyEligibilityCheck;
 
     /** The search type of every query on the dashboard: `expense` for charts of expenses, `expense-report` for charts of reports */
     queryType: SearchDataTypes;
@@ -136,7 +186,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
             view: CONST.SEARCH.VIEW.BAR,
-            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            stages: WORKFLOW_STAGES,
         },
         supportingCharts: [
             {
@@ -147,6 +198,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                stages: WORKFLOW_STAGES,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
@@ -240,23 +292,55 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
+/** Drops the workflow-stage groups of stages no workspace in scope is eligible for, so the chart agrees with the others showing those stages */
+function keepEnabledStageGroups(rows: GroupedItem[] | undefined, stages: InsightsChartStage[] | undefined): GroupedItem[] | undefined {
+    if (!rows || !stages) {
+        return rows;
+    }
+    const enabledStages = new Set(stages.map(({workflowStage}) => workflowStage));
+    return rows.filter((item) => !('workflowStage' in item) || enabledStages.has(item.workflowStage));
+}
+
+/** Whether the chart stacks its stages in each time bucket's column, rather than drawing them as its groups */
+function isStackedChart(chart: InsightsChartSpec): boolean {
+    return !!chart.stages && chart.groupBy !== CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE;
+}
+
 /** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
 function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
 }
 
 /**
- * Returns the charts that at least one workspace in scope is eligible for.
- * A dashboard's own eligibility narrows the scope too, so a chart only counts the workspaces the dashboard reports on.
+ * Returns the charts or stages that at least one workspace in scope is eligible for.
+ * A dashboard's own eligibility narrows the scope too, so a chart or stage only counts the workspaces the dashboard reports on.
  */
-function getVisibleCharts(
-    charts: InsightsChartSpec[],
+function filterEligible<T extends {isPolicyEligible?: PolicyEligibilityCheck}>(
+    items: T[],
     policiesInScope: Policy[],
     login: string | undefined,
-    isDashboardPolicyEligible?: InsightsDashboardSpec['isPolicyEligible'],
-): InsightsChartSpec[] {
+    isDashboardPolicyEligible?: PolicyEligibilityCheck,
+): T[] {
     const dashboardPolicies = isDashboardPolicyEligible ? policiesInScope.filter((policy) => isDashboardPolicyEligible(policy, login)) : policiesInScope;
-    return charts.filter(({isPolicyEligible}) => !isPolicyEligible || dashboardPolicies.some((policy) => isPolicyEligible(policy, login)));
+    return items.filter(({isPolicyEligible}) => !isPolicyEligible || dashboardPolicies.some((policy) => isPolicyEligible(policy, login)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for */
+function getVisibleCharts(charts: InsightsChartSpec[], policiesInScope: Policy[], login: string | undefined, isDashboardPolicyEligible?: PolicyEligibilityCheck): InsightsChartSpec[] {
+    return filterEligible(charts, policiesInScope, login, isDashboardPolicyEligible);
+}
+
+/**
+ * Returns the stages of a chart that at least one workspace in scope is eligible for, by the same rule as the charts themselves,
+ * so a stage left out of one chart is left out of every chart showing it. Undefined for a chart that declares no stages.
+ */
+function getEnabledStages(
+    chart: InsightsChartSpec,
+    policiesInScope: Policy[],
+    login: string | undefined,
+    isDashboardPolicyEligible?: PolicyEligibilityCheck,
+): InsightsChartStage[] | undefined {
+    return chart.stages && filterEligible(chart.stages, policiesInScope, login, isDashboardPolicyEligible);
 }
 
 /**
@@ -294,6 +378,16 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
-export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan, VIOLATION_HAS_VALUES};
-export type {InsightsChartSpec, InsightsDateFilterKey};
+export {
+    getAccessibleDashboards,
+    getEnabledStages,
+    getPoliciesInScope,
+    getUpgradeablePolicyIDsInScope,
+    getVisibleCharts,
+    isStackedChart,
+    keepEnabledStageGroups,
+    shouldUpsellControlPlan,
+    VIOLATION_HAS_VALUES,
+};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey};
 export default INSIGHTS_DASHBOARD_SPECS;

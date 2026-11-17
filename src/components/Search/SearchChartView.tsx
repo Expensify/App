@@ -17,15 +17,18 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {NonEmptyTuple} from 'type-fest';
 
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
+import type {ChartStackStage} from './buildStackedSeries';
 import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
+import buildStackedSeries from './buildStackedSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
@@ -92,6 +95,9 @@ type SearchChartViewProps = {
     /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
     shouldShowRunningTotal?: boolean;
 
+    /** Stacks these stages in each time bucket's bar, in place of one value per group. Applies to time-grouped bar charts. */
+    stages?: NonEmptyTuple<ChartStackStage>;
+
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (details: SearchChartDetails) => React.ReactNode;
 
@@ -119,6 +125,7 @@ function SearchChartView({
     shouldShowSinglePointAsBar = false,
     comparison,
     shouldShowRunningTotal = false,
+    stages,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
@@ -157,27 +164,35 @@ function SearchChartView({
     const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
     const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
-    const {series, rows} = buildChartSeries({
-        data: chartData,
-        comparison: chartComparison,
-        groupBy,
-        view,
-        metric,
-        getLabel,
-        getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
-        getCurrencyDecimals,
-        formatTotal,
-        getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
-        isLaterPeriod: (item) => {
-            const range = getDateRange?.(item);
-            return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
-        },
-        isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
-        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
-        translate,
-        dateFnsLocale,
-        colorScheme: theme.colorScheme,
-    });
+    const getInProgressLabel = (item: GroupedItem) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate});
+    const isLaterPeriod = (item: GroupedItem) => {
+        const range = getDateRange?.(item);
+        return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
+    };
+    const buildSeries = (): SearchChartModel => {
+        if (stages && view === CONST.SEARCH.VIEW.BAR && getDateRange) {
+            return buildStackedSeries({data, stages, comparison, groupBy, getLabel, getShortLabel, getInProgressLabel, isLaterPeriod, translate, dateFnsLocale});
+        }
+        return buildChartSeries({
+            data: chartData,
+            comparison: chartComparison,
+            groupBy,
+            view,
+            metric,
+            getLabel,
+            getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
+            getCurrencyDecimals,
+            formatTotal,
+            getInProgressLabel,
+            isLaterPeriod,
+            isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+            hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
+            translate,
+            dateFnsLocale,
+            colorScheme: theme.colorScheme,
+        });
+    };
+    const {series, rows} = buildSeries();
     const points = rows.map((row) => row.point);
 
     // On narrow layout, a single step spanning the whole axis labels only the first and last points

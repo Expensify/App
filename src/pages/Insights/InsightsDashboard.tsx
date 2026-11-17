@@ -50,7 +50,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getEnabledStages, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -254,6 +254,7 @@ function InsightsDashboardContent({
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
                         average={headlineChart.average}
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
+                        stages={headlineChart.stages}
                         filters={filters}
                         insightsScope={insightsScope}
                         countDimension={countDimension}
@@ -268,7 +269,7 @@ function InsightsDashboardContent({
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded, stages}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         dashboardID={dashboardID}
@@ -279,6 +280,7 @@ function InsightsDashboardContent({
                                         previousPeriodSnapshot={previousPeriodSnapshot}
                                         average={average}
                                         isDashboardLoaded={isDashboardLoaded}
+                                        stages={stages}
                                         filters={filters}
                                         insightsScope={insightsScope}
                                         countDimension={countDimension}
@@ -381,6 +383,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
             average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
             isDashboardLoaded: hasDashboardResponse(dashboard),
+            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
     const [headlineChart, ...supportingCharts] = charts;

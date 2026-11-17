@@ -18,6 +18,12 @@ type ChartSeries = {
 
     /** Whether the series holds an average, drawn as one horizontal dashed line across the plot */
     isAverage?: boolean;
+
+    /** Set on a stacked bar chart's series: the stack the series is a segment of. Series sharing it are stacked in drawing order, bottom first. */
+    stackIndex?: number;
+
+    /** Names the period the series' stack covers, like "Jan 1 - Mar 31, 2026" */
+    stackLabel?: string;
 };
 
 type ChartDataPoint = {
@@ -50,6 +56,9 @@ type ChartDataPoint = {
 
     /** The money each series' expenses total at this point, written out. Set when the plotted value isn't money, so the tooltip can name the spend behind it. */
     seriesTotals?: Partial<Record<string, string>>;
+
+    /** Keys of the series the point has no value for although its group exists, like a stage none of its reports completed, which the tooltip names as unavailable */
+    unavailableSeriesKeys?: string[];
 
     /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
