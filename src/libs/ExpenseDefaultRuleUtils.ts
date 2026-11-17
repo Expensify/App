@@ -74,7 +74,7 @@ type ExpenseDefaultFormValues = {
     /** The parts an expense has to carry, such as a receipt or a category. The list is matched as an OR */
     hasToMatch?: string[];
 
-    /** Whether the expense has to carry (`eq`) or lack (`neq`) everything in `hasToMatch` */
+    /** Whether the expense has to carry any one of `hasToMatch` (`eq`) or none of them (`neq`) */
     hasMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The IDs of the cards an expense has to be paid with. The list is matched as an OR */

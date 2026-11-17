@@ -27,7 +27,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
-import useInitialMatchType from './useInitialMatchType';
+import useMatchTypeDiscard from './useMatchTypeDiscard';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<
@@ -45,20 +45,14 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
 
     const currentValue = form?.merchantToMatch ?? '';
 
-    const initialMatchType = useInitialMatchType('matchType', form?.matchType);
+    const keepMatchType = useMatchTypeDiscard('matchType', form?.matchType);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
     };
 
-    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
-    // out puts it back the way it was, while saving keeps it alongside the merchant it compares.
-    const discardAndGoBack = () => {
-        updateDraftMerchantRule({matchType: initialMatchType});
-        goBack();
-    };
-
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+        keepMatchType();
         updateDraftMerchantRule(values);
         goBack();
     };
@@ -98,7 +92,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('common.merchant')}
-                onBackButtonPress={discardAndGoBack}
+                onBackButtonPress={goBack}
             />
             <FormProvider
                 style={[styles.flex1]}

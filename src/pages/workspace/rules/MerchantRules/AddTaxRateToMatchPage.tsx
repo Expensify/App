@@ -3,7 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {getTaxRateDisplayName} from '@libs/CategoryTaxRulesUtils';
+import {getTaxRateDisplayName, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -37,7 +37,7 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
     // `taxRates.taxes` rather than the rate's own code. A code is editable and is unset on a rate made in OldDot,
     // so a rule keyed by one would name a rate nothing else can resolve.
     const taxRateItems: RuleConditionItem[] = Object.entries(policy?.taxRates?.taxes ?? {})
-        .filter(([taxRateKey, taxRate]) => !taxRate.isDisabled || selectedTaxRates.includes(taxRateKey))
+        .filter(([taxRateKey, taxRate]) => selectedTaxRates.includes(taxRateKey) || isSelectableTaxRate(taxRate))
         .map(([taxRateKey]) => ({
             value: taxRateKey,
             text: getTaxRateDisplayName(policy, taxRateKey),

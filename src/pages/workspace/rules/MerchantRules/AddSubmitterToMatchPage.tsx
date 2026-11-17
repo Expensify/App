@@ -1,4 +1,4 @@
-import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
+import useExpenseDefaultSubmitterNames from '@hooks/useExpenseDefaultSubmitterNames';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
@@ -30,7 +30,7 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const policy = usePolicy(policyID);
     const members = useWorkspaceMembers(policy);
-    const {submitters} = useExpenseDefaultConditionNames(policy);
+    const submitters = useExpenseDefaultSubmitterNames(policy);
 
     // Stored as account IDs, which is what the `from` filter carries.
     const submitterItems: RuleConditionItem[] = members.map(({accountID, details}) => ({
@@ -48,7 +48,7 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
             backToRoute={backToRoute}
             items={submitterItems}
             onSave={(submittersToMatch) => updateDraftMerchantRule({submittersToMatch})}
-            getFallbackText={(accountID) => submitters?.[accountID] ?? accountID}
+            getFallbackText={(accountID) => submitters[accountID] ?? accountID}
         />
     );
 }

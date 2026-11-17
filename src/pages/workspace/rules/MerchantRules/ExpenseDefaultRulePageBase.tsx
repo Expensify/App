@@ -48,12 +48,11 @@ import {
     haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
-import {getHasConditionText, getHasConditionValueText} from '@libs/MerchantTypeRulesUtils';
+import {getAmountComparisonText, getDateComparisonText, getHasConditionText, getHasConditionValueText} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
-import {getAmountFilterDisplayValue} from '@libs/SearchAmountFilterUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -82,6 +81,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import {getDefaultMatchType} from './matchTypeOptions';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type ExpenseDefaultRulePageBaseProps = {
@@ -345,34 +345,11 @@ function ExpenseDefaultRulePageBase({
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
     const dateToMatch = form?.dateToMatch;
-    const dateMatchType = form?.dateMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-    const getDateToMatchDisplayName = () => {
-        if (!dateToMatch) {
-            return undefined;
-        }
-        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('search.filters.date.after', dateToMatch);
-        }
-        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('search.filters.date.before', dateToMatch);
-        }
-        return translate('search.filters.date.on', dateToMatch);
-    };
+    const dateMatchType = form?.dateMatchType ?? getDefaultMatchType('dateMatchType');
+    const getDateToMatchDisplayName = () => (dateToMatch ? getDateComparisonText(dateToMatch, dateMatchType, translate) : undefined);
     const amountToMatch = form?.amountToMatch;
-    const amountMatchType = form?.amountMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-    const getAmountToMatchDisplayName = () => {
-        if (!amountToMatch) {
-            return undefined;
-        }
-        const formattedAmount = getAmountFilterDisplayValue(amountToMatch, convertToDisplayStringWithoutCurrency);
-        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('search.filters.amount.greaterThan', formattedAmount);
-        }
-        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('search.filters.amount.lessThan', formattedAmount);
-        }
-        return translate('search.filters.amount.equalTo', formattedAmount);
-    };
+    const amountMatchType = form?.amountMatchType ?? getDefaultMatchType('amountMatchType');
+    const getAmountToMatchDisplayName = () => (amountToMatch ? getAmountComparisonText(amountToMatch, amountMatchType, translate, convertToDisplayStringWithoutCurrency) : undefined);
     const cardsToMatch = form?.cardsToMatch ?? [];
     // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
     const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? cardID).join(', ') : undefined;

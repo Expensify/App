@@ -69,10 +69,10 @@ type RuleConditionMultiSelectPageProps = {
     onSave: (values: string[]) => void;
 
     /**
-     * Words a saved value the workspace no longer offers, which defaults to the stored value itself.
+     * Words a saved value the page has no row for, which defaults to the stored value itself.
      *
-     * Only the merchant type needs it, because its values are labelled from a list rather than named by the
-     * workspace.
+     * A value can outlive the workspace that named it, such as a card of a feed the workspace no longer has, and
+     * a merchant type is labelled from a list rather than named by the workspace at all.
      */
     getFallbackText?: (value: string) => string;
 

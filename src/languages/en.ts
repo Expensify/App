@@ -9988,7 +9988,7 @@ const translations = {
                 submitterIs: (submitter: string) => `Submitter is "${submitter}"`,
                 reimbursableIs: (reimbursable: string) => `Reimbursable is "${reimbursable}"`,
                 billableIs: (billable: string) => `Billable is "${billable}"`,
-                // @context The comparison already reads as a phrase, such as "on Jan 1, 2026" or "before Jan 1, 2026".
+                // @context The comparison already reads as a phrase, such as "on 2026-01-01" or "before 2026-01-01".
                 dateIs: (comparison: string) => `Date is ${comparison}`,
                 // @context The comparison already reads as a phrase, such as "greater than $30.00".
                 amountIs: (comparison: string) => `Amount is ${comparison}`,

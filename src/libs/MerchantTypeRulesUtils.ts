@@ -273,11 +273,56 @@ type ExpenseDefaultConditionNames = {
 /**
  * Lowercases a phrase's first letter so it reads on from "Date is" or "Amount is".
  *
- * Only the first letter, because the rest is a date or a formatted amount whose currency code and month name
- * carry their own casing.
+ * Only the first letter, because the rest is a date or a formatted amount whose currency code carries its own
+ * casing.
  */
 function toSentenceContinuation(phrase: string): string {
     return phrase.charAt(0).toLowerCase() + phrase.slice(1);
+}
+
+/**
+ * Words a date comparison, such as "After 2026-01-01", which the rule editor's row and the rules table both show.
+ *
+ * Returns an empty string for an operator that compares no two dates, the way the other conditions do.
+ */
+function getDateComparisonText(date: string, operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, translate: LocaleContextProps['translate']): string {
+    const {SYNTAX_OPERATORS} = CONST.SEARCH;
+    if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
+        return translate('search.filters.date.after', date);
+    }
+    if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
+        return translate('search.filters.date.before', date);
+    }
+    if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('search.filters.date.on', date);
+    }
+    return '';
+}
+
+/**
+ * Words an amount comparison, such as "Greater than $30.00", which the rule editor's row and the rules table both
+ * show.
+ *
+ * Returns an empty string for an operator that compares no two amounts, the way the other conditions do.
+ */
+function getAmountComparisonText(
+    amount: string,
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>,
+    translate: LocaleContextProps['translate'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): string {
+    const {SYNTAX_OPERATORS} = CONST.SEARCH;
+    const formattedAmount = getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
+    if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
+        return translate('search.filters.amount.greaterThan', formattedAmount);
+    }
+    if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
+        return translate('search.filters.amount.lessThan', formattedAmount);
+    }
+    if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
+        return translate('search.filters.amount.equalTo', formattedAmount);
+    }
+    return '';
 }
 
 /** Lists the parts a has condition checks for, without saying whether the expense has to carry them. */
@@ -316,9 +361,8 @@ function getOtherConditionText(
 ): string {
     const {SYNTAX_OPERATORS, BOOLEAN} = CONST.SEARCH;
 
-    // Every field below is a list the editor builds with an equals, whose values the engine reads as alternatives.
-    // A stored `neq` on one of them inverts what the rule matches, and the editor keeps such a rule read-only, so
-    // wording it as an equals would describe the opposite of what it does.
+    // A stored `neq` inverts what the rule matches, and the editor keeps such a rule read-only, so the fields that
+    // check this read as an equals or not at all rather than describing the opposite of what they do.
     const isEqualityMatch = operator === SYNTAX_OPERATORS.EQUAL_TO;
 
     if (field === CONDITION.CURRENCY) {
@@ -372,16 +416,8 @@ function getOtherConditionText(
         if (values.length !== 1 || !date) {
             return '';
         }
-        if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('workspace.rules.expenseDefaultsTable.dateIs', toSentenceContinuation(translate('search.filters.date.after', date)));
-        }
-        if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('workspace.rules.expenseDefaultsTable.dateIs', toSentenceContinuation(translate('search.filters.date.before', date)));
-        }
-        if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.expenseDefaultsTable.dateIs', toSentenceContinuation(translate('search.filters.date.on', date)));
-        }
-        return '';
+        const comparison = getDateComparisonText(date, operator, translate);
+        return comparison ? translate('workspace.rules.expenseDefaultsTable.dateIs', toSentenceContinuation(comparison)) : '';
     }
 
     if (field === CONDITION.AMOUNT) {
@@ -389,17 +425,8 @@ function getOtherConditionText(
         if (values.length !== 1 || !amount) {
             return '';
         }
-        const formattedAmount = getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
-        if (operator === SYNTAX_OPERATORS.GREATER_THAN) {
-            return translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(translate('search.filters.amount.greaterThan', formattedAmount)));
-        }
-        if (operator === SYNTAX_OPERATORS.LOWER_THAN) {
-            return translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(translate('search.filters.amount.lessThan', formattedAmount)));
-        }
-        if (operator === SYNTAX_OPERATORS.EQUAL_TO) {
-            return translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(translate('search.filters.amount.equalTo', formattedAmount)));
-        }
-        return '';
+        const comparison = getAmountComparisonText(amount, operator, translate, convertToDisplayStringWithoutCurrency);
+        return comparison ? translate('workspace.rules.expenseDefaultsTable.amountIs', toSentenceContinuation(comparison)) : '';
     }
 
     if (field === CONDITION.HAS) {
@@ -525,6 +552,8 @@ function getExpenseDefaultsTableData({
 }
 
 export {
+    getAmountComparisonText,
+    getDateComparisonText,
     getDefaultMccGroupCategory,
     getExpenseDefaultConditionText,
     getHasConditionText,

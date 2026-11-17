@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import React, {useState} from 'react';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
-import useInitialMatchType from './useInitialMatchType';
+import useMatchTypeDiscard from './useMatchTypeDiscard';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddAmountToMatchPageProps = PlatformStackScreenProps<
@@ -49,18 +49,12 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     // rule keeps that as Any rather than being silently pinned to the workspace currency when it is reopened.
     const [currency, setCurrency] = useState(form?.amountToMatch ? (savedValue.currency ?? '') : (policy?.outputCurrency ?? CONST.CURRENCY.USD));
 
-    const initialMatchType = useInitialMatchType('amountMatchType', form?.amountMatchType);
+    const keepMatchType = useMatchTypeDiscard('amountMatchType', form?.amountMatchType);
 
     const goBack = () => Navigation.goBack(backToRoute);
 
-    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
-    // out puts it back the way it was, while saving keeps it alongside the amount it compares.
-    const discardAndGoBack = () => {
-        updateDraftMerchantRule({amountMatchType: initialMatchType});
-        goBack();
-    };
-
     const onSubmit = () => {
+        keepMatchType();
         updateDraftMerchantRule({amountToMatch: formatAmountFilterValue(amount, currency || undefined)});
         goBack();
     };
@@ -74,7 +68,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('iou.amount')}
-                onBackButtonPress={discardAndGoBack}
+                onBackButtonPress={goBack}
             />
             <FormProvider
                 style={[styles.flex1]}

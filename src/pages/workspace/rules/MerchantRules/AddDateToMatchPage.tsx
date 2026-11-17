@@ -26,7 +26,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {getMatchTypeLabel} from './matchTypeOptions';
-import useInitialMatchType from './useInitialMatchType';
+import useMatchTypeDiscard from './useMatchTypeDiscard';
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
 type AddDateToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_DATE_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH>;
@@ -41,20 +41,14 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
 
     const currentValue = form?.dateToMatch ?? '';
 
-    const initialMatchType = useInitialMatchType('dateMatchType', form?.dateMatchType);
+    const keepMatchType = useMatchTypeDiscard('dateMatchType', form?.dateMatchType);
 
     const goBack = () => {
         Navigation.goBack(backToRoute);
     };
 
-    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
-    // out puts it back the way it was, while saving keeps it alongside the date it compares.
-    const discardAndGoBack = () => {
-        updateDraftMerchantRule({dateMatchType: initialMatchType});
-        goBack();
-    };
-
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
+        keepMatchType();
         updateDraftMerchantRule(values);
         goBack();
     };
@@ -80,7 +74,7 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('common.date')}
-                onBackButtonPress={discardAndGoBack}
+                onBackButtonPress={goBack}
             />
             <FormProvider
                 style={[styles.flex1]}
