@@ -222,6 +222,7 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
 const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
@@ -919,7 +920,7 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
 
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `anySubmission:`, `submitted:` or `approved:` filter, or a
  * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
  * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */

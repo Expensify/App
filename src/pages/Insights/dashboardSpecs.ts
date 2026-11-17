@@ -19,7 +19,11 @@ import type {ValueOf} from 'type-fest';
 import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 /** Dates a chart can narrow the page's period by */
-type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+type InsightsDateFilterKey =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
 
 /** Whose violations a chart counts: the ones kept when expenses were submitted, or when they were approved */
 type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
@@ -62,9 +66,9 @@ type InsightsChartSpec = {
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
 
-/** The violations each stage counts, and the date the page's period applies to so the Spend query finds the same expenses */
+/** The violations each stage counts, and the action date the backend buckets them by, so the Spend query finds the same expenses even when a report was submitted more than once */
 const VIOLATION_STAGE_FILTERS: Record<InsightsViolationStage, Required<Pick<InsightsChartSpec, 'has' | 'dateFilterKey'>>> = {
-    [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION},
     [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL},
 };
 
@@ -221,7 +225,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
-                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
+                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
+                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,

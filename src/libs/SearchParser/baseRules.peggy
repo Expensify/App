@@ -91,6 +91,9 @@ approved = "approved"i { return "approved"; }
 anyApproval
   = "anyApproval"i { return "anyApproval"; }
   / "any-approval"i { return "anyApproval"; }
+anySubmission
+  = "anySubmission"i { return "anySubmission"; }
+  / "any-submission"i { return "anySubmission"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }

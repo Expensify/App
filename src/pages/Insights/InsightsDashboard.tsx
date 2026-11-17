@@ -52,7 +52,14 @@ import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {
+    applyViolationStage,
+    getPoliciesInScope,
+    getUpgradeablePolicyIDsInScope,
+    getViolationStage,
+    getVisibleCharts,
+    shouldUpsellControlPlan,
+} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -98,6 +105,7 @@ type InsightsDashboardContentProps = {
     /** Violation stage picked on each chart that offers one */
     violationStages: InsightsViolationStages;
 
+    /** Stores the stage picked on the given chart, which only charts with a violation stage control call */
     onViolationStageChange: (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => void;
 
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
@@ -272,7 +280,7 @@ function InsightsDashboardContent({
             supportsDrillIn={supportsDrillIn}
             onRetry={onRetry}
             onGroupByChange={isHeadline ? onGroupByChange : undefined}
-            violationStage={violationStages[chart.graphKey]}
+            violationStage={getViolationStage(chart, violationStages)}
             onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
             asOfDate={asOfDate}
         >
@@ -369,7 +377,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    // Kept on screen only, and the dashboard's hash leaves it out, since GetInsights doesn't save it with the dashboard's filters
+    // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
     const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
@@ -408,7 +416,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The chart snapshots are listed because the hash leaves out the effective bucket, the eligible charts and the violation stages, so changing them triggers a refetch while a pure Running total toggle does not.
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The chart snapshots are listed because the hash leaves out the effective bucket and the eligible charts, so changing them triggers a refetch while a pure Running total toggle does not.
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);

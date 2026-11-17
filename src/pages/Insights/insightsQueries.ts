@@ -1,6 +1,7 @@
 import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getRangeQueryValue} from '@libs/SearchQueryUtils';
+import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -23,10 +24,14 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
 
+/** Range of the numbers Search hashes its queries into, which the dashboard's hash shares */
+const INSIGHTS_HASH_RANGE = 2 ** 32;
+
 /** The form fields each date a chart can be narrowed by is written to */
 const DATE_FORM_KEYS = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {on: FILTER_KEYS.DATE_ON, range: FILTER_KEYS.DATE_RANGE},
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED]: {on: FILTER_KEYS.SUBMITTED_ON, range: FILTER_KEYS.SUBMITTED_RANGE},
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION]: {on: FILTER_KEYS.ANY_SUBMISSION_ON, range: FILTER_KEYS.ANY_SUBMISSION_RANGE},
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL]: {on: FILTER_KEYS.ANY_APPROVAL_ON, range: FILTER_KEYS.ANY_APPROVAL_RANGE},
 } as const;
 
@@ -70,7 +75,7 @@ function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = tru
 
 /** Compliance periods follow actions, while saved picker selections keep the shared date format. */
 function buildComplianceFilters(filters: InsightsFilters) {
-    const buildStageFilter = (stage: 'anySubmission' | 'anyApproval') => {
+    const buildStageFilter = (stage: typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL) => {
         if ('from' in filters.date) {
             return {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
@@ -87,8 +92,8 @@ function buildComplianceFilters(filters: InsightsFilters) {
     };
     const actionDates = {
         operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
-        left: buildStageFilter('anySubmission'),
-        right: buildStageFilter('anyApproval'),
+        left: buildStageFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION),
+        right: buildStageFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL),
     };
     const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters, false), has: VIOLATION_HAS_VALUES}))?.filters;
 
@@ -183,7 +188,7 @@ type InsightsQuery = {
     /** Request payload for GetInsights. */
     jsonQuery: string;
 
-    /** Hash of the dashboard-wide query, which the response is stored under so every set of filters keeps its own dashboard entry. Leaves out the comparison, since every response carries all of them. */
+    /** Hash of the dashboard-wide query and the picked violation stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
     hash: number;
 
     /** Hashes of the snapshots the graphs are stored under. */
@@ -218,14 +223,16 @@ function buildInsightsJsonQuery(
     };
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
-    // GetInsights counts violations from both stages unless told otherwise, so every chart with a stage control names its stage, the submitters' by default
+    // GetInsights counts violations from both stages unless told otherwise, so every chart of the dashboard with a stage control names its stage, even one hidden for the workspaces in scope
     const requestedViolationStages: InsightsViolationStages = Object.fromEntries(
-        [spec.headlineChart, ...supportingChartSpecs].flatMap((chart) => {
+        [spec.headlineChart, ...spec.supportingCharts].flatMap((chart) => {
             const stage = getViolationStage(chart, violationStages);
             return stage ? [[chart.graphKey, stage]] : [];
         }),
     );
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
+    // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry
+    const hash = hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -233,7 +240,7 @@ function buildInsightsJsonQuery(
 
     return {
         jsonQuery: JSON.stringify({
-            hash: queryJSON.hash,
+            hash,
             type: queryJSON.type,
             groupBy: queryJSON.groupBy,
             filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,
@@ -243,8 +250,8 @@ function buildInsightsJsonQuery(
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
         }),
-        hash: queryJSON.hash,
-        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),
+        hash,
+        snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
         headlineChart,
         supportingCharts,
     };

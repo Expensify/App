@@ -92,11 +92,12 @@ type InsightsChartWidgetProps = {
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
 
-    /** Violation stage picked on a chart that offers one, the submitters while none is picked */
+    /** Violation stage a chart that offers one counts, left out by other charts */
     violationStage?: InsightsViolationStage;
 
     /** Shows the violation stage control in the header of a chart that offers one */
     onViolationStageChange?: (stage: InsightsViolationStage) => void;
+
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
@@ -119,7 +120,7 @@ function InsightsChartWidget({
     supportsDrillIn = true,
     onRetry,
     onGroupByChange,
-    violationStage = CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
+    violationStage,
     onViolationStageChange,
     asOfDate,
     children,
@@ -189,7 +190,7 @@ function InsightsChartWidget({
         ) : null;
 
     const violationStageControl =
-        chart.hasViolationStageControl && onViolationStageChange ? (
+        chart.hasViolationStageControl && violationStage && onViolationStageChange ? (
             <InsightsViolationStageDropdown
                 value={violationStage}
                 onChange={onViolationStageChange}
