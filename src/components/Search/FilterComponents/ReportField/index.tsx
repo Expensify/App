@@ -184,6 +184,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
     });
     const [values, setValues] = useState<ReportFieldValues>(initialValues);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [focusedFieldKey, setFocusedFieldKey] = useState<string | null>(null);
     const selectedFieldRef = useRef<ReportFieldHandle>(null);
 
     const getValue = (fieldName: string) => {
@@ -291,7 +292,10 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
 
     return (
         <ScrollView contentContainerStyle={[style]}>
-            <View dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}>
+            <View
+                dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}
+                onBlur={() => setFocusedFieldKey(null)}
+            >
                 {listItems.map((item) => (
                     <MenuItem
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_FIELD_ITEM}
@@ -300,7 +304,13 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
                         viewMode={CONST.OPTION_MODE.COMPACT}
                         title={item.name}
                         description={item.value}
-                        onPress={() => onFieldSelected(item.field)}
+                        onPress={() => {
+                            // Opening the field takes the focused row away without a blur, so its highlight is cleared here.
+                            setFocusedFieldKey(null);
+                            onFieldSelected(item.field);
+                        }}
+                        focused={focusedFieldKey === item.key}
+                        onFocus={() => setFocusedFieldKey(item.key)}
                     />
                 ))}
             </View>

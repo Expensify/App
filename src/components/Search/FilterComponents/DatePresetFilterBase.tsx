@@ -382,7 +382,11 @@ function DatePresetFilterBase({
     const handleSingleDateSelected = (date: Date) => {
         setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
     };
-    const selectCustomDateMode = () => selectDateModifier(customDateModifier);
+    // Opening a custom date takes the focused row away without a blur, so its highlight is cleared here.
+    const openCustomDateMode = (dateModifier: SearchDateModifier) => {
+        setFocusedPresetKey(null);
+        selectDateModifier(dateModifier);
+    };
 
     if (!selectedDateModifier) {
         return (
@@ -419,7 +423,10 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                <View dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}>
+                <View
+                    dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}
+                    onBlur={() => setFocusedPresetKey(null)}
+                >
                     {shouldShowCustomDate && (
                         <MenuItem
                             sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
@@ -427,7 +434,9 @@ function DatePresetFilterBase({
                             viewMode={CONST.OPTION_MODE.COMPACT}
                             title={customDateTitle}
                             description={customDateDescription}
-                            onPress={selectCustomDateMode}
+                            onPress={() => openCustomDateMode(customDateModifier)}
+                            focused={focusedPresetKey === customDateModifier}
+                            onFocus={() => setFocusedPresetKey(customDateModifier)}
                         />
                     )}
                     <MenuItem
@@ -436,7 +445,9 @@ function DatePresetFilterBase({
                         viewMode={CONST.OPTION_MODE.COMPACT}
                         title={customRangeTitle}
                         description={rangeDescription}
-                        onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
+                        onPress={() => openCustomDateMode(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
+                        focused={focusedPresetKey === CONST.SEARCH.DATE_MODIFIERS.RANGE}
+                        onFocus={() => setFocusedPresetKey(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
                     />
                 </View>
             </>
