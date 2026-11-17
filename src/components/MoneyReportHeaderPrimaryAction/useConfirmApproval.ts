@@ -95,6 +95,7 @@ function useConfirmApproval(
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
+            expenseReportTransactions: Object.values(reportTransactions),
             expenseReportPolicy: policy,
             rules,
             currentUserAccountIDParam: accountID,

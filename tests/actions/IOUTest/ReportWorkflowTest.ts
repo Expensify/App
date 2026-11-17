@@ -3527,6 +3527,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -3572,6 +3573,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -3628,6 +3630,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -3721,9 +3724,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             return {policy, expenseReport};
         };
 
-        const approve = (expenseReport: Report, expenseReportPolicy: Policy, full?: boolean) => {
+        const approve = async (expenseReport: Report, expenseReportPolicy: Policy, full?: boolean) => {
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             approveMoneyRequest({
                 ...(full === undefined ? {} : {full}),
+                expenseReportTransactions,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3765,7 +3770,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: false});
 
             // When the delegate approves the report
-            const chatValue = approve(expenseReport, policy);
+            const chatValue = await approve(expenseReport, policy);
 
             // Then no optimistic update sets the flag on the parent chat, so the delegate cannot be left with a flag nothing resets
             expect(chatValue).not.toHaveProperty('hasOutstandingChildRequest');
@@ -3776,7 +3781,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true});
 
             // When the approver approves the report
-            const chatValue = approve(expenseReport, policy);
+            const chatValue = await approve(expenseReport, policy);
 
             // Then the parent chat still gets its optimistic flag update
             expect(chatValue).toHaveProperty('hasOutstandingChildRequest');
@@ -3789,7 +3794,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const approvedReportKey = `${ONYXKEYS.COLLECTION.REPORT}${approvedReportID}`;
 
             // When the delegate approves only the unheld expenses
-            approve(expenseReport, policy, false);
+            await approve(expenseReport, policy, false);
 
             // Then the split-off report is created on its own and no update targets the parent chat or its report actions
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -3806,7 +3811,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {hasParentAccess: true});
 
             // When the approver approves only the unheld expenses
-            approve(expenseReport, policy, false);
+            await approve(expenseReport, policy, false);
 
             // Then the parent chat report actions still receive the preview of the split-off report
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -3819,7 +3824,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, expenseReport} = await setupChat(CONST.POLICY.APPROVAL_MODE.BASIC, {hasParentAccess: true});
 
             // When the approver approves the report
-            const chatValue = approve(expenseReport, policy);
+            const chatValue = await approve(expenseReport, policy);
 
             // Then the parent chat is updated and the flag is false because the approved report no longer awaits the approver
             expect(chatValue).toHaveProperty('hasOutstandingChildRequest');
@@ -4973,6 +4978,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             personalDetailsByLogins: {},
             expenseReport,
+            expenseReportTransactions: [] as Transaction[],
             expenseReportPolicy,
             rules: undefined,
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -5176,6 +5182,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -5232,6 +5239,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -5287,6 +5295,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -5329,7 +5338,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             // Admin approves the report
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             approveMoneyRequest({
+                expenseReportTransactions,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5468,6 +5479,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -5503,6 +5515,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -5536,6 +5549,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -5599,6 +5613,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -5662,6 +5677,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
+                        expenseReportTransactions: [transaction],
                         expenseReportPolicy: policy,
                         currentUserAccountIDParam: managerAccountID,
                         currentUserEmailParam: managerEmail,
@@ -5730,7 +5746,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             // When the admin approves it
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(reportWithAutoExport.reportID);
             approveMoneyRequest({
+                expenseReportTransactions,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 personalDetailsByLogins: {},
@@ -5853,6 +5871,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions: [],
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -5922,7 +5941,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // When only the unheld expenses are approved
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReportWithHeldAmount.reportID);
             const newExpenseReportID = approveMoneyRequest({
+                expenseReportTransactions,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -6073,8 +6094,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             return {policy, chatReport, approvedReport, approvedTransaction, outstandingTransaction};
         }
 
-        function approve(approvedReport: Report, policy: Policy, allTransactionViolations: OnyxCollection<TransactionViolations>) {
+        async function approve(approvedReport: Report, policy: Policy, allTransactionViolations: OnyxCollection<TransactionViolations>) {
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(approvedReport.reportID);
             approveMoneyRequest({
+                expenseReportTransactions,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 personalDetailsByLogins: {},
@@ -6103,7 +6126,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${approvedTransaction.transactionID}`;
 
             // When the report is approved with those violations
-            approve(approvedReport, policy, {[violationsKey]: [duplicatedViolation, missingCategoryViolation]});
+            await approve(approvedReport, policy, {[violationsKey]: [duplicatedViolation, missingCategoryViolation]});
 
             // Then approving dismisses the duplicate optimistically while keeping the other violations
             const optimisticViolations = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', violationsKey, Onyx.METHOD.MERGE);
@@ -6122,7 +6145,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // When the report is approved while an empty violations collection is passed in
-            approve(approvedReport, policy, {});
+            await approve(approvedReport, policy, {});
 
             // Then no duplicate cleanup is queued, proving the global collection is ignored
             expect(findOnyxUpdate('optimisticData', violationsKey)).toBeUndefined();
@@ -6134,7 +6157,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, chatReport, approvedReport} = await setUpChatWithApprovedAndOutstandingReports();
 
             // When the report is approved with no violations
-            approve(approvedReport, policy, {});
+            await approve(approvedReport, policy, {});
 
             // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
             const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
@@ -6146,7 +6169,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const {policy, chatReport, approvedReport, outstandingTransaction} = await setUpChatWithApprovedAndOutstandingReports();
 
             // When the report is approved with those violations
-            approve(approvedReport, policy, {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation]});
+            await approve(approvedReport, policy, {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation]});
 
             // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
             const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
@@ -6160,7 +6183,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // When the caller has no violations loaded yet and passes undefined
-            approve(approvedReport, policy, undefined);
+            await approve(approvedReport, policy, undefined);
 
             // Then it behaves like an empty collection rather than falling back to Onyx
             const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;

@@ -1528,6 +1528,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport,
+                expenseReportTransactions: Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}),
                 expenseReportPolicy: reportPolicy,
                 rules,
                 currentUserAccountIDParam: accountID,
@@ -1592,6 +1593,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         delegateAccountID,
         getCurrencyDecimals,
         rules,
+        allReportsTransactionsAndViolations,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
