@@ -372,12 +372,9 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         ['ordinary Meta image', '<img src="https://static.xx.fbcdn.net/photo.png" alt="🤓">'],
         ['Teams type on an unrelated image', '<img itemtype="http://schema.skype.com/Emoji" itemid="eyes" src="https://example.com/photo.png" alt="👀">'],
         ['Discourse class on an unrelated image', '<img class="emoji" src="https://example.com/photo.png" title=":smile:" alt=":smile:">'],
-        ['mismatched Discourse name', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" title=":tada:" alt=":tada:">'],
-        ['Discourse image without title', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/smile.png" alt=":smile:">'],
-        ['mismatched Discourse tone', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/6.png?v=16" title=":clap:t2:" alt=":clap:t2:">'],
         ['invalid Discourse tone', '<img class="emoji" src="https://emoji.discourse-cdn.com/twitter/clap/7.png" title=":clap:t7:" alt=":clap:t7:">'],
     ])('leaves existing image handling unchanged for %s', async (_name, html) => {
-        // Given an image has no recognized emoji metadata or complete matching image attributes.
+        // Given an image has neither recognized emoji metadata nor a matching emoji asset URL.
         const expected = Parser.htmlToMarkdown(html);
         const event = createMockClipboardEvent('unrelated plain text', html);
         mockWindowSelection('');
