@@ -1,4 +1,5 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -501,6 +502,57 @@ describe('OnyxUpdatesTest', () => {
         expect(lastUpdateID).toBe(30);
 
         updateSpy.mockRestore();
+    });
+
+    it('tells Search which transactions a Pusher update changed', async () => {
+        // Given a Pusher update from another device that edits a transaction and a report
+        jest.spyOn(PusherUtils, 'triggerMultiEventHandler').mockResolvedValueOnce(undefined);
+        const pusherUpdates: OnyxUpdatesFromServer<OnyxKey> = {
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            previousUpdateID: 0,
+            lastUpdateID: 1,
+            updates: [
+                {
+                    eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                    data: [
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}7`, value: {amount: 250}},
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                    ],
+                },
+            ],
+        };
+
+        // When the update is applied
+        await OnyxUpdates.apply(pusherUpdates);
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, so it can refetch values only the server computes
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs).toEqual(['7']);
+    });
+
+    it('tells Search which transactions an Airship push changed', async () => {
+        // Given an Airship push on native that edits a transaction and a report
+        const airshipUpdates: OnyxUpdatesFromServer<OnyxKey> = {
+            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            previousUpdateID: 0,
+            lastUpdateID: 1,
+            updates: [
+                {
+                    eventType: '',
+                    data: [
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}9`, value: {amount: 250}},
+                        {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                    ],
+                },
+            ],
+        };
+
+        // When the push is applied
+        await OnyxUpdates.apply(airshipUpdates);
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, like it is for the same update over Pusher
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs).toEqual(['9']);
     });
 
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {

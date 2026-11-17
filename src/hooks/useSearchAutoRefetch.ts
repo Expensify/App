@@ -19,6 +19,7 @@ import {useEffect, useRef} from 'react';
 
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 type UseSearchAutoRefetch = {
@@ -77,6 +78,9 @@ function useSearchAutoRefetch({
     const {isOffline} = useNetwork();
     const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
+    const [transactionWrites] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES);
+    // A write from before this Search mounted is not refetched here, the same as any other change made while it was unmounted.
+    const handledTransactionWriteIDRef = useRef(transactionWrites?.writeID);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
@@ -94,6 +98,17 @@ function useSearchAutoRefetch({
         }
     }
 
+    useEffect(() => {
+        // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
+        // For snapshot data, we wait for isLoading to become false after the API call completes
+        // Declared before the refetch effect so it releases the latch first, and a write that arrived mid-request is handled in the same pass
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        searchTriggeredRef.current = false;
+    }, [searchResults?.search?.isLoading, searchResultsData]);
+
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         // Trip rows don't change when transactions or report actions do
@@ -106,8 +121,16 @@ function useSearchAutoRefetch({
             return;
         }
 
+        const newTransactionWrite = transactionWrites && transactionWrites.writeID !== handledTransactionWriteIDRef.current ? transactionWrites : undefined;
+
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && memberCustomFields === previousMemberCustomFields && !hasPendingSearchRef.current) {
+        if (
+            transactions === previousTransactions &&
+            reportActions === previousReportActions &&
+            memberCustomFields === previousMemberCustomFields &&
+            !newTransactionWrite &&
+            !hasPendingSearchRef.current
+        ) {
             return;
         }
 
@@ -130,15 +153,17 @@ function useSearchAutoRefetch({
         const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
-        // Editing an expense that the results already show changes no transaction ID, so the ID checks above miss it.
-        // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
-        // server, so those edits only become visible after a refetch.
-        const hasChangedResultTransaction =
-            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+        // Editing an expense changes no transaction ID, so the ID checks above miss it. The footer total, row actions
+        // and filter membership are computed by the server, so a user write to a transaction the results depend on
+        // needs a refetch. Reads that rewrite transactions, like OpenReport, never raise this signal.
+        const hasWrittenResultTransaction = !isChat && !!newTransactionWrite && hasWrittenTransactionInSearchResults(newTransactionWrite.transactionIDs, transactions, searchResultsData);
+        if (newTransactionWrite) {
+            handledTransactionWriteIDRef.current = newTransactionWrite.writeID;
+        }
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
+        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasWrittenResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -155,13 +180,11 @@ function useSearchAutoRefetch({
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
             const addedTransactionIDs: string[] = [];
-            const currentTransactionIDs: string[] = [];
             for (const [key, transaction] of Object.entries(transactions ?? {})) {
                 const transactionID = transaction?.transactionID;
                 if (!transactionID) {
                     continue;
                 }
-                currentTransactionIDs.push(transactionID);
                 if (!previousTransactionsIDsSet.has(key)) {
                     addedTransactionIDs.push(transactionID);
                 }
@@ -176,9 +199,14 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
-                const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
-                const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
+            if (!hasAGenuinelyNewID && !hasWrittenResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+                // Most transaction rows were never loaded into Onyx, so a row missing from Onyx is not a deletion. Only a member that just left the collection is.
+                const reportActionsIDsSet = new Set(reportActionsIDs);
+                const hasDeletedID = isChat
+                    ? currentSearchResultIDs.some((id) => !reportActionsIDsSet.has(id))
+                    : Object.entries(previousTransactions ?? {}).some(
+                          ([key, transaction]) => !transactions?.[key] && !!transaction?.transactionID && existingSearchResultIDsSet.has(transaction.transactionID),
+                      );
                 if (!hasDeletedID) {
                     return;
                 }
@@ -212,17 +240,8 @@ function useSearchAutoRefetch({
         searchResults?.search?.isLoading,
         shouldReturnTripRooms,
         isInPreloadedTab,
+        transactionWrites,
     ]);
-
-    useEffect(() => {
-        // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
-        // For snapshot data, we wait for isLoading to become false after the API call completes
-        if (searchResults?.search?.isLoading) {
-            return;
-        }
-
-        searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading, searchResultsData]);
 
     return {newTransactions};
 }
@@ -287,47 +306,26 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 /**
- * Whether a transaction change invalidates what the current search results show.
- *
- * Onyx keeps one value object per collection member and only replaces the ones it writes, so an identity check is
- * enough to spot an edit. A refetch triggered from here can't feed itself, because a Search response only writes
- * snapshot keys and never touches the transaction collection.
- *
- * A move counts too: the report row owes its count and total to the snapshot, so a transaction never on screen still invalidates it.
+ * Whether a transaction a user write just changed affects the current results: it is on screen, or it now belongs
+ * to a report on screen, whose row owes its count and total to the server.
  */
-function hasChangedTransactionInSearchResults(
+function hasWrittenTransactionInSearchResults(
+    writtenTransactionIDs: string[],
     transactions: OnyxCollection<Transaction>,
-    transactionKeys: string[],
-    previousTransactions: OnyxCollection<Transaction>,
-    previousTransactionKeys: Set<string>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
 ): boolean {
     if (!searchResultsData) {
         return false;
     }
 
-    const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
-    const changedTransactionIDs: string[] = [];
-    for (const key of transactionKeys) {
-        const transaction = transactions?.[key];
-        const previousTransaction = previousTransactions?.[key];
-        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
-            continue;
-        }
-        if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
+    const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
+    return writtenTransactionIDs.some((transactionID) => {
+        if (searchResultIDs.has(transactionID)) {
             return true;
         }
-        changedTransactionIDs.push(transaction.transactionID);
-    }
-
-    // Walking the results is the expensive half, so only do it once something actually changed.
-    if (changedTransactionIDs.length === 0) {
-        return false;
-    }
-
-    const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
-    return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
+        const reportID = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+        return !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    });
 }
 
 function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {
