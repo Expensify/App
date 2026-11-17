@@ -1,4 +1,4 @@
-/** A row of the Concierge page list, styled like an Inbox chat title without the avatar or last message. Each row reads its own data, so a change to one conversation only redraws that row. */
+/** A row of the Concierge page list, styled like an Inbox chat row in focus mode, without the avatar. Each row reads its own data, so a change to one conversation only redraws that row. */
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -81,7 +81,7 @@ function ConciergeConversationRowContent({title, isUnread: isConversationUnread,
                 hovered && !isSelected && styles.highlightBG,
             ]}
         >
-            <View style={[styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]}>
+            <View style={[styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]}>
                 <Text
                     numberOfLines={1}
                     style={[styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, styles.sidebarLinkText, isConversationUnread && styles.sidebarLinkTextBold]}
