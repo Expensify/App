@@ -2736,6 +2736,7 @@ const SENTRY_LABEL = {
             SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
             SPEND_RULE_DESCRIBE: 'WorkspaceRules-SpendRuleDescribe',
             DESCRIBE_RULE_TRY_SUGGESTION: 'WorkspaceRules-DescribeRuleTrySuggestion',
+            DESCRIBE_RULE_INPUT: 'WorkspaceRules-DescribeRuleInput',
             SPEND_RULE_DELETE: 'WorkspaceRules-SpendRuleDelete',
             SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
             AGENT_RULE_ITEM: 'WorkspaceRules-AgentRuleItem',

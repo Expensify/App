@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useScrollOnKeyboardReopen from '@hooks/useScrollOnKeyboardReopen';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -284,6 +285,13 @@ function DescribeRuleForm({
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
     const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+    const resetScrollOnKeyboardReopen = useScrollOnKeyboardReopen(inputRef, scrollToInput, isActive);
+
+    const scrollToFocusedInput = () => {
+        // A genuine focus event already scrolls, so the corresponding keyboard show must not scroll again.
+        resetScrollOnKeyboardReopen();
+        scrollToInput();
+    };
 
     const describeSuggestedRule = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
@@ -333,7 +341,9 @@ function DescribeRuleForm({
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}
-                    onFocus={scrollToInput}
+                    onFocus={scrollToFocusedInput}
+                    onBlur={resetScrollOnKeyboardReopen}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_INPUT}
                     maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                     multiline
                     shouldSaveDraft
