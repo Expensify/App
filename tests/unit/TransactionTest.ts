@@ -58,7 +58,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -91,6 +99,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
         getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
         rules: undefined,
+        personalDetailsByLogins: {},
         ...rest,
     });
 }
@@ -3575,6 +3584,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3642,6 +3652,7 @@ describe('Transaction', () => {
                 allTransactions,
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3722,6 +3733,7 @@ describe('Transaction', () => {
                 allTransactions: {[transactionKey]: staleTransaction},
                 currentTransactionViolations: [{transactionID, violations: mockViolations}],
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3762,6 +3774,7 @@ describe('Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 allTransactions,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
                 rules: undefined,
             });
             await waitForBatchedUpdates();
@@ -3819,6 +3832,7 @@ describe('Transaction', () => {
                         allTransactions,
                         currentTransactionViolations: [{transactionID, violations: mockViolations}],
                         isTrackIntentUser: false,
+                        personalDetailsByLogins: {},
                         rules: undefined,
                     });
                     await waitForBatchedUpdates();

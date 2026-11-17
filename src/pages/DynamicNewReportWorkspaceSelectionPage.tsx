@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -95,6 +96,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const transactionIDs = selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs;
@@ -166,6 +168,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     ...allMatchingQueryParams,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

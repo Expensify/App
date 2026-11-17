@@ -45,7 +45,15 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
+    | 'transactions'
+    | 'allTransactionViolation'
+    | 'personalPolicyOutputCurrency'
+    | 'selfDMReportActions'
+    | 'delegateAccountID'
+    | 'getCurrencyDecimals'
+    | 'getCurrencySymbol'
+    | 'rules'
+    | 'personalDetailsByLogins'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -66,6 +74,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
+        personalDetailsByLogins: {},
         ...rest,
     });
 }
@@ -2098,6 +2107,7 @@ describe('actions/Transaction', () => {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
         };

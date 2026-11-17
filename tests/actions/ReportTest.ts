@@ -13319,6 +13319,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
 
@@ -13390,6 +13391,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
 
@@ -13460,6 +13462,7 @@ describe('actions/Report', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                personalDetailsByLogins: {},
             });
             await waitForBatchedUpdates();
 
