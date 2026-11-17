@@ -327,6 +327,12 @@ type ReceiptError = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
+
+    /** False when the server rejected the request for a reason a retry can't fix, so Try again is hidden. Undefined means retryable. */
+    isRetryable?: boolean;
+
+    /** The server's user-facing reason for the rejection, shown next to the upload error */
+    serverMessage?: string;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */

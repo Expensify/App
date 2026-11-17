@@ -73,6 +73,8 @@ const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyA
             'isOffline',
             'receiptsFolderExists',
             'receiptsFolderEntryCount',
+            'jsonCode',
+            'isRetryable',
         ],
     ],
     ['[PDFStall]', ['reportID']],

@@ -61,12 +61,21 @@ function getRetryFlow(context: ReceiptRetryContext): RetryFlow | undefined {
 }
 
 function canRetryReceiptUpload(context: ReceiptRetryContext): boolean {
+    // The server already rejected this request for a reason that sending it again can't fix, so the retry would fail the same way.
+    if (context.receiptError.isRetryable === false) {
+        return false;
+    }
     return !!getRetryFlow(context)?.canBuild(context);
 }
 
 function retryReceiptUpload(context: ReceiptRetryContext, onDispatched?: () => Promise<unknown>): Promise<RetryOutcome> {
     const {receiptError} = context;
     const flow = getRetryFlow(context);
+
+    if (receiptError.isRetryable === false) {
+        Log.hmmm('[ReceiptRetry] The server rejected this request for good, not retrying', {action: receiptError.action, transactionID: context.transaction?.transactionID});
+        return Promise.resolve('rejectedByServer');
+    }
 
     if (!flow) {
         Log.hmmm('[ReceiptRetry] No retry path for this action', {action: receiptError.action});

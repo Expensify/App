@@ -131,6 +131,9 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
 
     if (receiptError) {
         const isStackedLayout = !(isInNarrowPaneModal && !isSmallScreenWidth);
+        const uploadFailedMessage = translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage');
+        // The server's reason is already written for users, and without it they can't tell why the upload keeps failing.
+        const receiptErrorMessage = receiptError.serverMessage ? `${uploadFailedMessage} ${receiptError.serverMessage}` : uploadFailedMessage;
         const messageRow = (
             <View style={[styles.dotIndicatorMessage, isStackedLayout && styles.alignItemsStart, styles.flex1]}>
                 <Text
@@ -138,7 +141,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
-                    {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
+                    {receiptErrorMessage}
                 </Text>
             </View>
         );

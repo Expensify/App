@@ -7,6 +7,7 @@ import {
     GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
+    HandleReceiptUploadRejection,
     HandleUnusedOptimisticID,
     LoadPostDataForOpenOrReconnect,
     LoadTest,
@@ -84,6 +85,10 @@ function registerMiddlewares() {
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);
+
+    // HandleReceiptUploadRejection - Marks receipt upload errors as final when the server rejects a receipt request for a reason a retry can't fix.
+    // Must run right before SaveResponseInOnyx, which applies the failureData it rewrites.
+    addMiddleware(HandleReceiptUploadRejection);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
