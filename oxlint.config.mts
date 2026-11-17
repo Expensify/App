@@ -325,6 +325,7 @@ export default await buildOxlintConfig({
                 'rulesdir/no-layout-spacing-conditional': 'error',
                 'rulesdir/no-onyx-get-snapshot-key': 'error',
                 'rulesdir/no-onyx-loading-status': 'error',
+                'rulesdir/no-opaque-namespace-usage': 'error',
                 'rulesdir/no-raw-typography': 'error',
                 'rulesdir/no-unsafe-onyx-read': 'error',
                 'rulesdir/prefer-type-fest': 'error',

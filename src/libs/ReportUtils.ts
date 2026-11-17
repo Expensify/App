@@ -1,7 +1,7 @@
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
-import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
-import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
+import defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
