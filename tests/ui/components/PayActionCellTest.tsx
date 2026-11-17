@@ -261,7 +261,7 @@ describe('PayActionCell', () => {
         await waitForBatchedUpdates();
 
         // Then the report's ABA file is downloaded, which marks it as paid, instead of only marking it as "paid elsewhere" instantly
-        expect(mockPayReportsViaABA).toHaveBeenCalledWith([TEST_EXPENSE_REPORT_ID], undefined);
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expect.objectContaining({reportID: TEST_EXPENSE_REPORT_ID})], undefined);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
     });
 

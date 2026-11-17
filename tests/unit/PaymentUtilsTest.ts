@@ -39,7 +39,7 @@ describe('PaymentUtils', () => {
     describe('isSecondaryActionAPaymentOption', () => {
         it.each([CONST.IOU.PAYMENT_TYPE.ELSEWHERE, CONST.IOU.PAYMENT_TYPE.VBBA])('treats a %s option as a payment option', (value) => {
             // Given a More menu option for one of the payment types
-            const option = {text: 'Pay', value};
+            const option = {text: 'Pay', value, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL};
 
             // When checking whether the More menu pays with it
             const isPaymentOption = isSecondaryActionAPaymentOption(option);
@@ -50,7 +50,7 @@ describe('PaymentUtils', () => {
 
         it('does not treat the ABA option as a payment option', () => {
             // Given the More menu's "Pay via ABA" option, which pays when it's selected
-            const option = {text: 'Pay via ABA', value: CONST.PAYMENT_METHODS.ABA};
+            const option = {text: 'Pay via ABA', value: CONST.PAYMENT_METHODS.ABA, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL};
 
             // When checking whether the More menu pays with it
             const isPaymentOption = isSecondaryActionAPaymentOption(option);

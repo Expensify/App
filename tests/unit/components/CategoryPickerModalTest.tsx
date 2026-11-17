@@ -87,6 +87,7 @@ describe('CategoryPickerModal', () => {
             policyID={POLICY_ID}
             anchorPosition={{horizontal: 0, vertical: 0}}
             onAddCategory={onAddCategory}
+            addCategorySentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             shouldFitContentHeight={shouldFitContentHeight}
         />
     );

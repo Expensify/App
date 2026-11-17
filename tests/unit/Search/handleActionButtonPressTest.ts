@@ -510,7 +510,7 @@ describe('handleBulkPayItemSelected', () => {
     const ownerAccountID = 1;
 
     const baseParams = {
-        item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
         triggerKYCFlow: jest.fn(),
         isAccountLocked: false,
         showLockedAccountModal: jest.fn(),
@@ -649,7 +649,7 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
         });
 
         expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
@@ -671,7 +671,13 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.PAYMENT_METHODS.ABA, text: 'Pay via ABA', icon: () => null, additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA}},
+            item: {
+                key: CONST.PAYMENT_METHODS.ABA,
+                text: 'Pay via ABA',
+                icon: () => null,
+                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+                additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+            },
         });
 
         // Then they verify their account before anything is paid, because unlike Mark as paid, the ABA file pays out of the workspace's bank account
@@ -693,7 +699,7 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
         });
 
         expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
@@ -736,6 +742,7 @@ describe('handleBulkPayItemSelected', () => {
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 text: 'Business account',
                 icon: () => null,
+                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
                 additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
             },
         });
@@ -776,6 +783,7 @@ describe('handleBulkPayItemSelected', () => {
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 text: 'Business account',
                 icon: () => null,
+                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
                 additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
             },
         });
@@ -800,7 +808,7 @@ describe('handleBulkPayItemSelected', () => {
             // VBBA + unvalidated user would normally route to account verification / KYC; offline must short-circuit that.
             isUserValidated: false,
             isOffline: true,
-            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();

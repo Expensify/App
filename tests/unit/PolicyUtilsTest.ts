@@ -79,7 +79,6 @@ import {
     getSageIntacctVendors,
     arePaymentsEnabled,
     canPayViaABA,
-    shouldLoadPayViaABAData,
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
     getReimbursementChoice,
@@ -4892,23 +4891,6 @@ describe('PolicyUtils', () => {
             );
         });
 
-        describe('shouldLoadPayViaABAData', () => {
-            it.each([
-                ['return true for an admin of an AUD workspace', CONST.POLICY.ROLE.ADMIN, CONST.CURRENCY.AUD, true],
-                ['return false for a member of an AUD workspace', CONST.POLICY.ROLE.USER, CONST.CURRENCY.AUD, false],
-                ['return false for an admin of a USD workspace', CONST.POLICY.ROLE.ADMIN, CONST.CURRENCY.USD, false],
-            ])('should %s', (_, role, outputCurrency, expected) => {
-                // Given a workspace whose AU withdrawal account hasn't been loaded yet
-                const policy = createMock<Policy>({id: '1', role, outputCurrency});
-
-                // When checking whether that account has to be loaded
-                const result = shouldLoadPayViaABAData(policy, true);
-
-                // Then it's only loaded where Pay via ABA could show, since only admins of AUD workspaces can pay via ABA
-                expect(result).toBe(expected);
-            });
-        });
-
         describe('canPayViaABA', () => {
             const AUWithdrawalAccount = {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN};
 
@@ -6754,6 +6736,22 @@ describe('PolicyUtils', () => {
 
             it('returns false for a team policy with areRulesEnabled undefined', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('uses an already computed category rules flag only for a migrated corporate policy', () => {
+                // Given callers that select only whether any category has rules, instead of passing the categories themselves
+
+                // When that flag is passed for policies in different Rules states
+                const migratedCorporateResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, true);
+                const rulesOffResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false}, undefined, true);
+                const teamResult = arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined}, undefined, true);
+                const noCategoryRulesResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, false);
+
+                // Then it only stands in for category rules on a migrated Control policy, so Rules turned off or a Collect policy stay off
+                expect(migratedCorporateResult).toBe(true);
+                expect(rulesOffResult).toBe(false);
+                expect(teamResult).toBe(false);
+                expect(noCategoryRulesResult).toBe(false);
             });
 
             it('returns true for a team policy with areRulesEnabled explicitly true', () => {

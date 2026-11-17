@@ -46,7 +46,7 @@ jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({ad
 
 const card = createMock<Card>({cardID: 123, bank: CONST.EXPENSIFY_CARD.BANK, nameValuePairs: {feedCountry: CONST.COUNTRY.GB}});
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
-const available = {isInWallet: false, isLoading: false, isCardAvailable: true, isWalletAvailable: true};
+const available = {isInWallet: false, isLoading: false, isCardAvailable: true, isWalletAvailable: true, refreshWalletStatus: jest.fn().mockResolvedValue(undefined)};
 
 describe('Native AddToWalletButton', () => {
     beforeEach(() => {

@@ -63,7 +63,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy, shouldLoadPayViaABAData} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -344,13 +344,11 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
  * Only `filters` changes, so rebuilding the query from its text drops this scope.
  */
 function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
-    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
-        (range): ASTNode => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
-            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
-        }),
-    );
+    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map((range): ASTNode => ({
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
+        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+    }));
     if (!firstRangeNode) {
         return queryJSON;
     }
@@ -1017,16 +1015,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // Selecting all items is not supported for now, it will be added in the second release.
     const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
     const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
-    const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
+    const hasSelectedBulkPayReport = !!selectedBulkPayReportID;
     const {payReportsViaABA} = usePayViaABA();
 
-    // The bulk pay menus have no hook for when they open, so the Pay via ABA data is loaded when the selection is made instead
+    // The bulk pay menus have no hook for when they open, so the payment methods are loaded when the selection is made instead
     useEffect(() => {
-        if (!shouldLoadBulkPayViaABAData) {
+        if (!hasSelectedBulkPayReport) {
             return;
         }
         openPaymentMethods();
-    }, [shouldLoadBulkPayViaABAData]);
+    }, [hasSelectedBulkPayReport]);
 
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),
@@ -1916,7 +1914,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
                 // Paying several expenses from one report only needs the report in the file once
                 const reportIDs = [...new Set(itemsToPay.map((item) => item.reportID).filter((reportID): reportID is string => !!reportID))];
-                payReportsViaABA(reportIDs, bulkPayPolicy);
+                payReportsViaABA(
+                    reportIDs.map((reportID) => ({reportID, ownerAccountID: getReportFromSearchSnapshot(reportID, searchData, allReports)?.ownerAccountID})),
+                    bulkPayPolicy,
+                );
                 clearSelectedTransactions();
                 return;
             }

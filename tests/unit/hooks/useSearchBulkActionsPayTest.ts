@@ -872,7 +872,7 @@ describe('useSearchBulkActions - pay via ABA', () => {
         });
 
         // Then one ABA file pays both reports, instead of marking each one as paid elsewhere
-        expect(mockPayReportsViaABA).toHaveBeenCalledWith(['1', '3'], expect.objectContaining({id: 'policy1'}));
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expect.objectContaining({reportID: '1'}), expect.objectContaining({reportID: '3'})], expect.objectContaining({id: 'policy1'}));
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 });
