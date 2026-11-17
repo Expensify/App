@@ -135,6 +135,12 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
+    // Read the drafts on press, since a subscription would re-render Home when Create expense writes its draft.
+    const startAddFirstReceipt = async () => {
+        const drafts = await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), validTransactionDraftIDsSelector(drafts), CONST.IOU.REQUEST_TYPE.SCAN);
+    };
+
     // Completes on any expense the user has, so expenses created before this step existed also count.
     const addFirstReceiptItem: GettingStartedItem = {
         key: 'addFirstReceipt',
@@ -142,10 +148,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         subText: translate('homePage.gettingStartedSection.addFirstReceiptSubText'),
         isComplete: hasCreatedExpense,
         onPress: () => {
-            // Read the drafts on press, since a subscription would re-render Home when Create expense writes its draft.
-            Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT).then((drafts) =>
-                startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), validTransactionDraftIDsSelector(drafts), CONST.IOU.REQUEST_TYPE.SCAN),
-            );
+            startAddFirstReceipt();
         },
     };
 

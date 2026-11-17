@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultTheme} from '@src/styles/theme';
 import type {Beta, Policy} from '@src/types/onyx';
 
-import React, {useContext, useMemo} from 'react';
+import React, {Profiler, useContext, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -227,6 +227,41 @@ describe('EmptySearchView', () => {
 
     describe('type is Expense', () => {
         const dataType = CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+        it('should not re-render when a draft is written while Search is hidden', async () => {
+            // Given the empty state is rendered on a hidden Search tab inside a Profiler and has settled
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+            });
+            const onRender = jest.fn();
+            render(
+                <Profiler
+                    id="EmptySearchView"
+                    onRender={onRender}
+                >
+                    <Wrapper>
+                        <EmptySearchView
+                            similarSearchHash={1}
+                            type={dataType}
+                            hasResults={false}
+                            isScreenFocused={false}
+                        />
+                    </Wrapper>
+                </Profiler>,
+            );
+            await waitForBatchedUpdatesWithAct();
+            const renderCountBeforeDraft = onRender.mock.calls.length;
+
+            // When Create expense writes its draft
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}draft1`, {transactionID: 'draft1'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the hidden empty state does not re-render
+            expect(renderCountBeforeDraft).toBeGreaterThan(0);
+            expect(onRender).toHaveBeenCalledTimes(renderCountBeforeDraft);
+        });
 
         it('should pass the current draft IDs when Create expense is pressed', async () => {
             // Given a signed in user with a draft left from an earlier Create expense flow

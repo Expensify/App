@@ -202,10 +202,15 @@ function EmptySearchViewContent({
         onCreateReport: handleCreateWorkspaceReport,
     });
 
+    // Read the drafts on press, since a subscription would re-render this hidden tab when Create expense writes its draft.
+    const startMoneyRequestWithCurrentDrafts = async (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
+        const drafts = await Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+        startMoneyRequest(iouType, generateReportID(), validTransactionDraftIDsSelector(drafts));
+    };
+
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            // Read the drafts on press, since a subscription would re-render this hidden tab when Create expense writes its draft.
-            Onyx.get(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT).then((drafts) => startMoneyRequest(iouType, generateReportID(), validTransactionDraftIDsSelector(drafts)));
+            startMoneyRequestWithCurrentDrafts(iouType);
         }, session);
     };
 
