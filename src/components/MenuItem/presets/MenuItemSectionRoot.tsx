@@ -3,14 +3,14 @@ import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type MenuItemSectionRootProps = MenuItemRootProps & {
     /** Ref to the bleed wrapper. Use it when a popover needs to anchor on the row. */
-    ref?: RefObject<View | null>;
+    ref?: RefObject<ComponentRef<typeof View> | null>;
 };
 
 /** A `MenuItem.Root` that spans the full width of a `Section`, ignoring the section's own horizontal padding */
