@@ -27,6 +27,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 type SearchRejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS>
@@ -67,18 +68,21 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const rejectSelectedMoneyRequests = async ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot
+        const allReportNameValuePairs = await Onyx.get(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         const urlToNavigateBack = rejectMoneyRequestsOnSearch({
             hash: currentSearchHash,
             selectedTransactions: selectedTransactionsForReject,
             comment,
             allPolicies,
             allReports,
+            allReportNameValuePairs,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -110,7 +114,9 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={(values) => {
+                rejectSelectedMoneyRequests(values);
+            }}
             validate={validate}
         />
     );

@@ -4735,6 +4735,7 @@ describe('actions/Report', () => {
 
             // When the admin deletes the member's report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions: {[iouAction.reportActionID]: iouAction},
                 parentReportAction: undefined,
@@ -4823,6 +4824,7 @@ describe('actions/Report', () => {
 
             // When deleting the expense report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions,
                 parentReportAction: undefined,
@@ -4934,6 +4936,7 @@ describe('actions/Report', () => {
 
             // When deleting the first expense report
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport1,
                 reportActions: undefined,
                 parentReportAction: undefined,
@@ -5009,6 +5012,7 @@ describe('actions/Report', () => {
 
             // When deleting the whole expense report (the path taken when it has multiple transactions, e.g. after duplicating)
             Report.deleteAppReport({
+                isChatReportArchived: false,
                 report: expenseReport,
                 reportActions: undefined,
                 parentReportAction: reportPreview,
@@ -13299,6 +13303,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,
@@ -13370,6 +13375,7 @@ describe('actions/Report', () => {
             mockFetch.pause();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,
@@ -13439,6 +13445,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             Report.mergeReports({
+                isChatReportArchived: false,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 cardList: undefined,

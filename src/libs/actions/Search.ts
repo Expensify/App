@@ -66,6 +66,7 @@ import {
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
     isExpenseReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
@@ -100,6 +101,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     Rule,
     SaveSearch,
     SearchResults,
@@ -1996,6 +1998,7 @@ function rejectMoneyRequestInBulk(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
+    isChatReportArchived: boolean,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -2028,6 +2031,7 @@ function rejectMoneyRequestInBulk(
             rules,
             shouldUseBulkAction: true,
             reportTransactionsCollection,
+            isChatReportArchived,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -2062,6 +2066,7 @@ function rejectMoneyRequestsOnSearch({
     comment,
     allPolicies,
     allReports,
+    allReportNameValuePairs,
     currentUserAccountIDParam,
     currentUserLogin,
     isASAPSubmitBetaEnabled,
@@ -2075,6 +2080,7 @@ function rejectMoneyRequestsOnSearch({
     comment: string;
     allPolicies: OnyxCollection<Policy>;
     allReports: OnyxCollection<Report>;
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -2117,6 +2123,7 @@ function rejectMoneyRequestsOnSearch({
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+        const isChatReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`]);
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
             rejectMoneyRequestInBulk(
                 reportID,
@@ -2130,6 +2137,7 @@ function rejectMoneyRequestsOnSearch({
                 getCurrencyDecimals,
                 rules,
                 reportTransactionsCollection,
+                isChatReportArchived,
                 hash,
             );
         } else {
@@ -2157,6 +2165,7 @@ function rejectMoneyRequestsOnSearch({
                         setExistingRejectedReport,
                     },
                     reportTransactionsCollection,
+                    isChatReportArchived,
                 });
             }
         }
