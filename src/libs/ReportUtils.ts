@@ -12976,12 +12976,10 @@ function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>
 /**
  * Check if money report has any transactions updated optimistically
  */
-function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function hasUpdatedTotal(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, allReportTransactions: Transaction[]): boolean {
     if (!report) {
         return true;
     }
-
-    const allReportTransactions = getReportTransactions(report.reportID);
 
     const hasPendingTransaction = allReportTransactions.some((transaction) => !!transaction.pendingAction);
     const hasTransactionWithDifferentCurrency = allReportTransactions.some((transaction) => transaction.currency !== report.currency);

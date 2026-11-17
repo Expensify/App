@@ -66,7 +66,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
-    const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
+    const canAllowSettlement = hasUpdatedTotal(iouReport, policy, transactions);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;

@@ -179,7 +179,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
+    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy, transactions);
     const canIOUBePaid = canIOUBePaidAction(
         moneyRequestReport,
         chatReport,

@@ -219,7 +219,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const canAllowSettlement = hasUpdatedTotal(report, policy);
+    const canAllowSettlement = hasUpdatedTotal(report, policy, transactions);
 
     // Split the total spend into different categories as needed.
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);

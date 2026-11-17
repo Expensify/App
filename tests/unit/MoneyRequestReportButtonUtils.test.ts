@@ -1,5 +1,5 @@
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, hasUpdatedTotal} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 
 import {policy420A as mockPolicy} from '../../__mocks__/reportData/policies';
 import {iouReportR14932 as mockReport} from '../../__mocks__/reportData/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 
 const mockedReportID = mockReport.reportID;
@@ -55,6 +56,18 @@ describe('ReportButtonUtils', () => {
             jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
 
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, [], convertToDisplayString)).toBe(`$100.00`);
+        });
+
+        it('checks whether the total is updated against the transactions it is given', () => {
+            // Given the transactions of the report the button is shown for
+            const transactions = [{...createRandomTransaction(1), reportID: mockedReportID}];
+            jest.mocked(hasUpdatedTotal).mockClear();
+
+            // When getting the amount for the Pay button
+            getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
+
+            // Then the total is checked against those transactions, so the caller's data is used instead of a global lookup
+            expect(hasUpdatedTotal).toHaveBeenCalledWith(mockReport, mockPolicy, transactions);
         });
     });
 });

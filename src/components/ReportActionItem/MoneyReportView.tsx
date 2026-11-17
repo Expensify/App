@@ -95,10 +95,10 @@ function MoneyReportView({
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const isSettled = isSettledReportUtils(report?.reportID);
-    const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
+    const transactions = useReportTransactions(report?.reportID);
+    const isTotalUpdated = hasUpdatedTotal(report, policy, transactions) && !isTotalPending;
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const transactions = useReportTransactions(report?.reportID);
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
