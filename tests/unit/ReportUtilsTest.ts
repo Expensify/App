@@ -113,6 +113,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
+    getFieldViolation,
     getHarvestOriginalReportID,
     getIcons,
     getIconsForParticipants,
@@ -27887,6 +27888,27 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
+        describe.each([CONST.REPORT.TYPE.INVOICE, CONST.REPORT.TYPE.EXPENSE])('getFieldViolation for %s reports', (type) => {
+            it.each([
+                {value: null, defaultValue: '', isEmpty: true},
+                {value: undefined, defaultValue: '', isEmpty: true},
+                {value: '', defaultValue: '', isEmpty: true},
+                {value: 'Saved value', defaultValue: '', isEmpty: false},
+                {value: null, defaultValue: 'Default value', isEmpty: false},
+                {value: '', defaultValue: 'Default value', isEmpty: true},
+            ])('validates value $value with default $defaultValue', ({value, defaultValue, isEmpty}) => {
+                // Given saved and default values, where an explicit empty value must not fall back to the default
+                const field = {...baseField, value, defaultValue};
+                const report = {...expenseReport, type};
+
+                // When the field is validated in its report context
+                const violation = getFieldViolation(field, report);
+
+                // Then only empty expense fields are required; invoices are exempt regardless of the stored value
+                expect(violation).toBe(type === CONST.REPORT.TYPE.EXPENSE && isEmpty ? CONST.REPORT_VIOLATIONS.FIELD_REQUIRED : undefined);
+            });
+        });
+
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
@@ -27921,7 +27943,8 @@ describe('ReportUtils', () => {
             expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
-        it('should return true when an unpaid invoice report has a required field with no value', async () => {
+        it('should return false when an unpaid invoice report has an empty field', async () => {
+            // Given an unpaid invoice with an empty field, which is exempt from required-field validation
             const fieldWithNoValue: PolicyReportField = {
                 ...baseField,
                 target: CONST.REPORT.TYPE.INVOICE,
@@ -27945,10 +27968,12 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
+            // When the invoice policy is loaded
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+            // Then no report-field warning is shown for the empty invoice field
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
