@@ -21,10 +21,11 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
+import type ReactNative from 'react-native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
-import type ReactNative from 'react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
