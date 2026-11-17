@@ -11911,11 +11911,21 @@ describe('actions/Report', () => {
                 expect(getQueuedGuidedSetupRequests()).toHaveLength(1);
                 const reviewTask = getQueuedReviewTask();
                 expect(reviewTask?.completedTaskReportActionID).toBeDefined();
+                if (!reviewTask) {
+                    throw new Error('The queued guided setup has no review task');
+                }
 
                 // And the task shows as completed while the request waits, so the admin sees it done even offline
-                const taskReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reviewTask?.taskReportID}`);
+                const taskReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reviewTask.taskReportID}`);
                 expect(taskReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
                 expect(taskReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+
+                // And a failed request reopens the task preview in Concierge, since the preview outlives the deleted task
+                expect(getQueuedGuidedSetupRequests().at(0)?.failureData).toContainEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reviewTask.parentReportID}`,
+                    value: {[reviewTask.parentReportActionID]: {childStateNum: CONST.REPORT.STATE_NUM.OPEN, childStatusNum: CONST.REPORT.STATUS_NUM.OPEN}},
+                });
             });
 
             it('should keep the first completion when another setting is saved while the guided setup is still queued', async () => {

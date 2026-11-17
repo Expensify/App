@@ -1817,7 +1817,7 @@ function completeReviewWorkspaceSettingsTaskInQueuedGuidedSetup() {
 
     const {taskReportID, parentReportID, parentReportActionID} = reviewWorkspaceSettingsTask;
     const hasOtherOpenTask = tasks.some((task) => task !== reviewWorkspaceSettingsTask && !task.completedTaskReportActionID);
-    const {optimisticData, successData, parameters} = buildTaskData(
+    const {optimisticData, successData, failureData, parameters} = buildTaskData(
         {reportID: taskReportID, parentReportID, parentReportActionID},
         taskReportID,
         // The queued guided setup already marked Concierge as having open tasks, this one included
@@ -1831,12 +1831,15 @@ function completeReviewWorkspaceSettingsTaskInQueuedGuidedSetup() {
     const updatedGuidedSetupData = guidedSetupData.map((item: unknown) =>
         item === reviewWorkspaceSettingsTask ? {...reviewWorkspaceSettingsTask, completedTaskReportActionID: parameters.completedTaskReportActionID} : item,
     );
+    // The queued request's own failure data already removes the task, so only its preview in Concierge needs undoing
+    const taskPreviewFailureData = failureData.filter((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
 
     Onyx.update(optimisticData);
     updatePersistedRequest(requestIndex, {
         ...request,
         data: {...request.data, guidedSetupData: JSON.stringify(updatedGuidedSetupData)},
         successData: [...(request.successData ?? []), ...successData],
+        failureData: [...(request.failureData ?? []), ...taskPreviewFailureData],
     });
 }
 
