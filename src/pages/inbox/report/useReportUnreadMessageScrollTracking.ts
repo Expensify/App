@@ -38,6 +38,9 @@ type Args = {
 
     /** If pill tracking should be disabled, used during initial linked message positioning */
     shouldDisablePillTracking?: boolean;
+
+    /** Whether the report has anything newer than its welcome content to scroll to. When false, the "Latest messages" pill is never shown. */
+    hasMessages?: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -52,6 +55,7 @@ export default function useReportUnreadMessageScrollTracking({
     getVisibleIndexRange,
     shouldBeAlignedToTop = false,
     shouldDisablePillTracking = false,
+    hasMessages = true,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [isActionBadgeAboveViewport, setIsActionBadgeAboveViewport] = useState(false);
@@ -103,7 +107,8 @@ export default function useReportUnreadMessageScrollTracking({
             currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
-            !shouldBeAlignedToTop
+            !shouldBeAlignedToTop &&
+            hasMessages
         ) {
             setIsFloatingMessageCounterVisible(true);
         }
@@ -210,7 +215,9 @@ export default function useReportUnreadMessageScrollTracking({
     }, [onViewableItemsChanged, actionBadgeTargetIndex]);
 
     return {
-        isFloatingMessageCounterVisible,
+        // A short viewport can scroll the welcome content of an empty report past the threshold, and deleting the last
+        // message leaves nothing to jump to, so the pill only counts while there are messages
+        isFloatingMessageCounterVisible: isFloatingMessageCounterVisible && hasMessages,
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
