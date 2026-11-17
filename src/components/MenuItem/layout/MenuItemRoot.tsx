@@ -40,7 +40,6 @@ type MenuItemRootProps = PropsWithChildren &
 
         isDisabled?: boolean;
 
-        /** Uses legacy compact row sizing, independently of compact popover styling. Defaults to false. */
         isCompact?: boolean;
 
         /**
