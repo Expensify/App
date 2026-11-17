@@ -974,7 +974,7 @@
 "../../src/libs/ReportActionMessageUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
-"../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	109
+"../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	108
 "../../src/libs/ReportActionsUtils.ts"	"import/no-cycle"	1
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
@@ -1018,8 +1018,6 @@
 "../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	6
 "../../src/libs/TransactionUtils/tax.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/violations.ts"	"import/no-cycle"	2
-"../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
-"../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/updateMultilineInputRange/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/UserAvatarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3

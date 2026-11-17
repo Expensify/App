@@ -1835,6 +1835,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Este gasto tiene detalles similares a otro. Por favor, revisa los duplicados para continuar.',
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
+        someDuplicatesAreUnavailable: 'Algunos de estos duplicados no se pudieron cargar, así que solo puedes conservarlos todos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         keepSelected: 'Mantener seleccionado',
@@ -8975,6 +8976,7 @@ ${reportName}`,
                     selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
                 upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
+                createWorkspaceWarning: `No se puede crear el espacio de trabajo`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },
@@ -11067,6 +11069,7 @@ ${reportName}`,
         noVendor: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
+        violation: 'Infracción',
         receiptTypeValues: {
             ereceipt: 'Recibo electrónico',
             itemized: 'Detallado',
@@ -11256,6 +11259,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'pronto';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'en dos semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'en una semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Vuelve a conectar la tarjeta antes de que caduque el consentimiento</a>.`
+                        : 'Vuelve a conectar la tarjeta antes de que caduque el consentimiento.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la conexión de tu tarjeta ` : 'La conexión de tu tarjeta ';
+                    return `${intro}<strong>${feedName}</strong> necesitará renovar el consentimiento ${warningTime}. Las transacciones se siguen sincronizando, pero podrían dejar de importarse si no renuevas el consentimiento. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12327,6 +12353,7 @@ ${reportName}`,
             tagOutOfPolicy: 'Etiqueta ya no válida',
             overLimitAttendee: 'Límite de personas superado',
             customRules: 'Incumplimiento de regla personalizada',
+            ruleViolation: 'Incumplimiento de regla',
             taxAmountChanged: 'Importe de impuesto modificado',
             taxOutOfPolicy: 'La tasa de impuestos ya no es válida',
             taxRateChanged: 'Tasa de impuesto modificada',

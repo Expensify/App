@@ -1841,6 +1841,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Todas as despesas foram colocadas em espera. Revise os comentários para saber os próximos passos.',
         expenseDuplicate: 'Esta despesa tem detalhes semelhantes a outra. Revise as duplicadas para continuar.',
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
+        someDuplicatesAreUnavailable: 'Alguns desses duplicados não puderam ser carregados, então você só pode manter todos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
         keepSelected: 'Manter selecionados',
@@ -8750,6 +8751,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
                 upgradeWorkspaceWarning: `Não é possível atualizar o workspace`,
+                createWorkspaceWarning: `Não é possível criar o workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
             hr: {
@@ -11053,6 +11055,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
+        violation: 'Violação',
         receiptTypeValues: {
             ereceipt: 'Recibo eletrônico',
             itemized: 'Detalhado',
@@ -11295,6 +11298,29 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `A conexão ${feedName} foi interrompida há 30 dias. <a href='${workspaceCompanyCardRoute}'>Acesse seu banco</a> para corrigi-la ou <a href='${workspaceCompanyCardSettingsRoute}'>remova a conexão</a> se ela não estiver mais em uso. Você não perderá nenhuma despesa enviada se removê-la.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'em breve';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'em duas semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'em uma semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconecte o cartão antes que o consentimento expire</a>.`
+                        : 'Reconecte o cartão antes que o consentimento expire.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, a conexão do seu cartão ` : 'A conexão do seu cartão ';
+                    return `${intro}<strong>${feedName}</strong> precisará renovar o consentimento ${warningTime}. As transações ainda estão sendo sincronizadas, mas podem deixar de ser importadas se o consentimento não for renovado. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `a conexão Plaid com a sua conta bancária empresarial foi interrompida. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11981,6 +12007,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             tagOutOfPolicy: 'Tag não é mais válida',
             overLimitAttendee: 'Acima do limite de pessoas',
             customRules: 'Violação de regra personalizada',
+            ruleViolation: 'Violação de regra',
             taxAmountChanged: 'Valor do imposto modificado',
             taxOutOfPolicy: 'Alíquota de imposto não é mais válida',
             taxRateChanged: 'Alíquota de imposto modificada',
