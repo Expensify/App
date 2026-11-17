@@ -1,7 +1,9 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
+import {getMemberDefaultCategory} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -65,6 +67,7 @@ function useTaxAmount({
     previousTransactionCurrency,
 }: UseTaxAmountParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     // A category's tax default lives in the `rules_` collection, which only `GetRules` populates. Onyx hydrates it
@@ -80,7 +83,7 @@ function useTaxAmount({
     // The rate is read into its own value so React Compiler can cache the lookup. The hooks below split the block
     // it used to be cached in, which left it running on every render.
     const distanceRateCustomUnit = isDistanceRequest ? getDistanceRateCustomUnit(policy) : undefined;
-    const category = transaction?.category || (distanceRateCustomUnit?.defaultCategory ?? '');
+    const category = transaction?.category || getMemberDefaultCategory(distanceRateCustomUnit?.defaultCategory, policyCategories, currentUserAccountID);
     // The category whose rate the expense is currently carrying, which only moves on once a rate has been resolved
     // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
     // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the

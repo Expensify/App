@@ -43,6 +43,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -94,7 +95,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     useEffect(() => endPeek, [endPeek]);
 
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
-    const barContainerRef = useRef<View>(null);
+    const barContainerRef = useRef<ComponentRef<typeof View>>(null);
 
     // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
     const hasKeyboardFocusInside = () => {

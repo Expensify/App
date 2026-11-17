@@ -107,6 +107,7 @@ describe('MenuItem', () => {
                         iconRight={mockNewWindowIcon}
                         accessibilityLabel={customLabel}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -127,6 +128,7 @@ describe('MenuItem', () => {
                         icon={mockDownloadIcon}
                         iconRight={mockNewWindowIcon}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -146,6 +148,7 @@ describe('MenuItem', () => {
                         iconRight={mockCheckmarkIcon}
                         accessibilityLabel={customLabel}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -170,6 +173,7 @@ describe('MenuItem', () => {
                         icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -192,6 +196,7 @@ describe('MenuItem', () => {
                         icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -212,6 +217,7 @@ describe('MenuItem', () => {
                         icon={mockLinkIcon}
                         shouldShowContextMenuHint
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -229,6 +235,7 @@ describe('MenuItem', () => {
                         title={title}
                         icon={mockLinkIcon}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );

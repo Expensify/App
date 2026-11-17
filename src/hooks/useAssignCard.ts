@@ -1,5 +1,5 @@
 import {importPlaidAccounts} from '@libs/actions/Plaid';
-import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountry, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountryForFeed, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -166,7 +166,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         if (isFeedExpired || !cardID) {
             const institutionId = !!getPlaidInstitutionId(selectedFeed);
             if (institutionId) {
-                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                const country = getPlaidCountryForFeed(feedData?.country, policy?.outputCurrency, currencyList, countryByIp);
                 setAddNewCompanyCardStepAndData({
                     data: {
                         selectedCountry: country,

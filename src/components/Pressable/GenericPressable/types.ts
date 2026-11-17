@@ -4,7 +4,7 @@ import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -19,7 +19,7 @@ type RequiredAccessibilityLabel =
            * When true, indicates that the view is an accessibility element.
            * By default, all the touchable elements are accessible.
            */
-          accessible?: true | undefined;
+          accessible?: boolean;
 
           /**
            * Specifies the accessibility label for the component
@@ -42,10 +42,16 @@ type RequiredAccessibilityLabel =
           accessibilityLabel?: string;
       };
 
+/**
+ * The props that handle a press, so passing any of them requires a label. `onPressIn` and `onPressOut` are left out:
+ * pressables use them for their own feedback, like dimming or blocking text selection, alongside `onPress`.
+ */
+type PressHandlerProp = 'onPress' | 'onLongPress';
+
 type PressableProps = RNPressableProps &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithSentryLabelWhenPressable<PressHandlerProp> & {
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**
