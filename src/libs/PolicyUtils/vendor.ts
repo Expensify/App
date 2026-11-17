@@ -541,7 +541,7 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             };
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return {
-                title: translate('workspace.zohoBooks.noVendorsFound'),
+                title: translate('workspace.common.noVendorsFound'),
                 subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:

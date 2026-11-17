@@ -7256,7 +7256,7 @@ describe('PolicyUtils', () => {
 
                 // Then it points the admin to Zoho Books, where the vendors have to be added
                 expect(emptyState).toEqual({
-                    title: translate('workspace.zohoBooks.noVendorsFound'),
+                    title: translate('workspace.common.noVendorsFound'),
                     subtitle: translate('workspace.zohoBooks.noVendorsFoundDescription'),
                 });
             });
