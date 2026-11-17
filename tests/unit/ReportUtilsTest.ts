@@ -385,6 +385,7 @@ jest.mock('@libs/PolicyUtils', () => {
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks
@@ -18791,6 +18792,33 @@ describe('ReportUtils', () => {
 
             const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
+            expect(result).toBe(true);
+        });
+
+        it('should return true for a missingAttendees violation when the given workspace tracks attendees', () => {
+            // Given a missingAttendees violation on a Control workspace that tracks attendees, which only shows when the workspace is known
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
+            const report = {...createRandomReport(0, undefined), reportID, type: CONST.REPORT.TYPE.EXPENSE};
+            const attendeeTrackingPolicy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), isAttendeeTrackingEnabled: true};
+
+            // When checking whether strict rules block submitting with that report and workspace
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', [transaction], report, attendeeTrackingPolicy);
+
+            // Then submitting is blocked, because the violation is shown for that workspace and the backend enforces it
             expect(result).toBe(true);
         });
     });

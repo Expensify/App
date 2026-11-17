@@ -3119,6 +3119,38 @@ describe('TransactionUtils', () => {
             // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
             expect(result).toBe(false);
         });
+
+        it('should return false for a missingAttendees violation when attendee tracking is off', () => {
+            // Given a missingAttendees violation on a Control workspace that has attendee tracking turned off, so the violation is hidden
+            const missingAttendeesViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const trackingOffPolicy: Policy = {...policy, isAttendeeTrackingEnabled: false};
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(
+                generateTransaction(),
+                missingAttendeesViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                openReport,
+                CURRENT_USER_EMAIL,
+                trackingOffPolicy,
+            );
+
+            // Then the violation doesn't count, because the user can't see it and has nothing to fix before submitting
+            expect(result).toBe(false);
+        });
+
+        it('should return true for a missingCategory violation while Concierge AI picks a category', () => {
+            // Given a missingCategory violation on a new expense that is still being created, so it is hidden while Concierge AI picks a category
+            const missingCategoryViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const transaction = generateTransaction({category: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation still counts, so the report can't be submitted before the category is set
+            expect(result).toBe(true);
+        });
     });
 
     describe('hasNoticeTypeViolation', () => {
