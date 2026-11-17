@@ -114,15 +114,9 @@ type SectionType = {
     items: Array<SectionItemType | undefined>;
 };
 
-/**
- * Words a yes/no row.
- *
- * Only the defaults half passes `unsetTranslationKey`, because a default left unset leaves the field alone and
- * that is worth saying. A condition left unset reads as blank, the way every other unset condition does.
- */
-const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate, unsetTranslationKey?: 'common.dontChange'): string | undefined => {
+const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string | undefined => {
     if (value === undefined) {
-        return unsetTranslationKey ? translate(unsetTranslationKey) : undefined;
+        return undefined;
     }
     return translate(value ? 'common.yes' : 'common.no');
 };
@@ -710,7 +704,7 @@ function ExpenseDefaultRulePageBase({
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
-                    title: getBooleanTitle(form?.reimbursable, translate, 'common.dontChange'),
+                    title: getBooleanTitle(form?.reimbursable, translate),
                     onPress: () =>
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
@@ -719,7 +713,7 @@ function ExpenseDefaultRulePageBase({
                     ? {
                           key: 'billable',
                           description: translate('common.billable'),
-                          title: getBooleanTitle(form?.billable, translate, 'common.dontChange'),
+                          title: getBooleanTitle(form?.billable, translate),
                           onPress: () =>
                               Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_BILLABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID))),
                           icon: icons.Paycheck,
