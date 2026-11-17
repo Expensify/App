@@ -108,24 +108,9 @@ type UseChartInteractionsProps = {
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
 
-    /** Scale applied to the rendered chart container */
-    coordinateScale?: number;
-
     /** Whether a touch tap shows the tooltip for the tapped data point */
     shouldPinTooltipOnTouch?: boolean;
 };
-
-function normalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
-    'worklet';
-
-    return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate / coordinateScale : coordinate;
-}
-
-function denormalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
-    'worklet';
-
-    return Number.isFinite(coordinateScale) && coordinateScale > 0 ? coordinate * coordinateScale : coordinate;
-}
 
 /**
  * Binary search over canvas x positions to find the index of the closest data point.
@@ -184,7 +169,6 @@ function useChartInteractions({
     resolveLabelTouchX,
     chartBottom,
     yZero,
-    coordinateScale = 1,
     shouldPinTooltipOnTouch = true,
 }: UseChartInteractionsProps) {
     const isCapturing = useIsCapturingChart();
@@ -349,8 +333,8 @@ function useChartInteractions({
             return;
         }
         updateHoverAt(
-            chartInteractionState.cursor.x.get() - normalizeChartCoordinate(deltaX, coordinateScale),
-            chartInteractionState.cursor.y.get() - normalizeChartCoordinate(deltaY, coordinateScale),
+            chartInteractionState.cursor.x.get() - deltaX,
+            chartInteractionState.cursor.y.get() - deltaY,
         );
     };
 
@@ -388,8 +372,8 @@ function useChartInteractions({
                 return;
             }
             scheduleOnRN(setIsTouchPinned, false);
-            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            const cursorX = e.x;
+            const cursorY = e.y;
             chartInteractionState.isActive.set(true);
             chartInteractionState.cursor.x.set(cursorX);
             chartInteractionState.cursor.y.set(cursorY);
@@ -401,7 +385,7 @@ function useChartInteractions({
             if (e.pointerType === PointerType.TOUCH) {
                 return;
             }
-            updateHoverAt(normalizeChartCoordinate(e.x, coordinateScale), normalizeChartCoordinate(e.y, coordinateScale));
+            updateHoverAt(e.x, e.y);
         },
         onDeactivate: (e) => {
             'worklet';
@@ -438,8 +422,8 @@ function useChartInteractions({
         onDeactivate: (e) => {
             'worklet';
 
-            const cursorX = normalizeChartCoordinate(e.x, coordinateScale);
-            const cursorY = normalizeChartCoordinate(e.y, coordinateScale);
+            const cursorX = e.x;
+            const cursorY = e.y;
             chartInteractionState.cursor.x.set(cursorX);
             chartInteractionState.cursor.y.set(cursorY);
             if (e.pointerType === PointerType.TOUCH && shouldPinTooltipOnTouch) {
@@ -480,10 +464,9 @@ function useChartInteractions({
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
-        // Chart tooltip is drawn outside the chart's scale transform
         return {
-            x: denormalizeChartCoordinate(targetX, coordinateScale),
-            y: denormalizeChartCoordinate(barTopY, coordinateScale) - TOOLTIP_BAR_GAP,
+            x: targetX,
+            y: barTopY - TOOLTIP_BAR_GAP,
         };
     });
 
@@ -525,5 +508,5 @@ function useChartInteractions({
     };
 }
 
-export {useChartInteractions, findClosestPoint, normalizeChartCoordinate, TOOLTIP_BAR_GAP, CHART_GESTURE_TOUCH_ACTION};
+export {useChartInteractions, findClosestPoint, TOOLTIP_BAR_GAP, CHART_GESTURE_TOUCH_ACTION};
 export type {HitTestArgs, ResolveTargetIndexArgs};
