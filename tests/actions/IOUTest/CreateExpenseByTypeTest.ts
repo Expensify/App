@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import {createExpenseByType} from '@libs/actions/IOU/Duplicate';
 import * as PerDiem from '@libs/actions/IOU/PerDiem';
 import * as Split from '@libs/actions/IOU/Split';
@@ -50,6 +52,9 @@ jest.mock('@react-navigation/native');
 
 const OWNER_ACCOUNT_ID = 1;
 const OWNER_EMAIL = 'owner@test.com';
+const OWNER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [OWNER_EMAIL]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL},
+};
 const PARTICIPANT_ACCOUNT_ID = 2;
 const PARTICIPANT_EMAIL = 'participant@test.com';
 
@@ -61,7 +66,6 @@ describe('actions/IOU/createExpenseByType', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: OWNER_ACCOUNT_ID, email: OWNER_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL}},
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -156,7 +160,7 @@ describe('actions/IOU/createExpenseByType', () => {
             participantsPolicyTags: {},
             policyTags: {},
             rules: undefined,
-            personalDetailsByLogins: {},
+            personalDetailsByLogins: OWNER_PERSONAL_DETAILS_BY_LOGINS,
             ...overrides,
         });
     }
