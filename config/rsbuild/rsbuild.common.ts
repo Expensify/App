@@ -250,11 +250,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                     __filename: 'mock',
                     __dirname: 'mock',
                 };
-                // We can ignore the "module not installed" warning from lottie-react-native because we
-                // are not using the library for JSON format of Lottie animations.
-                // We also ignore React Compiler errors - they're deliberately warnings, not errors.
+                // We ignore React Compiler errors - they're deliberately warnings, not errors.
                 // eslint-disable-next-line no-param-reassign
-                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /lottie-react-native\/lib\/module\/LottieView\/index\.web\.js/, /oxc-react-compiler-loader:/];
+                config.ignoreWarnings = [...(config.ignoreWarnings ?? []), /oxc-react-compiler-loader:/];
 
                 // Cache rules:
                 // - Onyx and react-native-live-markdown can be modified on the fly, changes to other node_modules are not reflected live

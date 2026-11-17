@@ -1,4 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -15,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSectionIllustrationWithMotion from '@hooks/useSectionIllustrationWithMotion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
@@ -35,11 +37,8 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import React from 'react';
 import {View} from 'react-native';
 
-import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
-
 function PreferencesPage() {
     const {getCurrencySymbol} = useCurrencyListActions();
-    const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
     const platform = getPlatform(true);
@@ -57,6 +56,8 @@ function PreferencesPage() {
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
+
+    const preferencesIllustration = useSectionIllustrationWithMotion(LottieAnimations.PreferencesDJ, 'DjBoothReferenceHands', styles.preferencesStaticIllustration);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('common.preferences'));
