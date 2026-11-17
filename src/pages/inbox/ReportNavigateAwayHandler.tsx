@@ -1,13 +1,11 @@
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanelActions from '@hooks/useSidePanelActions';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -69,8 +67,6 @@ function ReportNavigateAwayHandler() {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
 
     const isFocused = useIsFocused();
-    const isInSidePanel = useIsInSidePanel();
-    const {openSidePanel} = useSidePanelActions();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
@@ -235,14 +231,13 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // A report still pending creation was never created, so its removal is a failed create that the opener handles.
-        if (isPendingCreationFromRoute) {
+        // OpenApp leaves out read Concierge threads, so a full reload removes an open one. ReportFetchHandler fetches it again.
+        if (!!conciergeReportID && deletedReportParentID === conciergeReportID) {
             return;
         }
 
-        // The side panel shows its own report, so move the side panel and leave the main pane where the user is.
-        if (isInSidePanel) {
-            openSidePanel({reportID: deletedReportParentID});
+        // A report still pending creation was never created, so its removal is a failed create that the opener handles.
+        if (isPendingCreationFromRoute) {
             return;
         }
 
@@ -268,8 +263,6 @@ function ReportNavigateAwayHandler() {
         previousReportWasDeleted,
         isFocused,
         isPendingCreationFromRoute,
-        isInSidePanel,
-        openSidePanel,
         deletedReportParentID,
         conciergeReportID,
         introSelected,

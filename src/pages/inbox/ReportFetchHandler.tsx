@@ -348,19 +348,22 @@ function ReportFetchHandler() {
     // workspace chat. The navigation guards in ReportScreen block any redirect, but the report
     // stays blank until something re-fetches it. This effect detects the wipe and re-fetches.
     // See issue #84248.
+    // OpenApp also leaves out read Concierge threads, so a full reload wipes an open one the same way.
     const prevReportID = usePrevious(report?.reportID);
+    const prevParentReportID = usePrevious(report?.parentReportID);
     useEffect(() => {
         if (isInPreloadedTab) {
             return;
         }
         const wasJustWiped = !!prevReportID && prevReportID === reportIDFromRoute && !report?.reportID;
-        if (!wasJustWiped || !isCurrentRouteOwnWorkspaceChatRef.current) {
+        const wasConciergeThread = !!conciergeReportID && prevParentReportID === conciergeReportID;
+        if (!wasJustWiped || (!isCurrentRouteOwnWorkspaceChatRef.current && !wasConciergeThread)) {
             return;
         }
         fetchReport();
         // fetchReport is a stable useEffectEvent callback and does not need to be listed as a dependency.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report?.reportID, prevReportID, reportIDFromRoute, isInPreloadedTab]);
+    }, [report?.reportID, prevReportID, prevParentReportID, conciergeReportID, reportIDFromRoute, isInPreloadedTab]);
 
     useEffect(() => {
         // `reportActions` is the same list `transactionThreadReportID` above is derived from, so both checks agree on which actions the report has
