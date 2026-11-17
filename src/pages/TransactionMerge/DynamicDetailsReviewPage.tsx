@@ -202,6 +202,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.DETAILS_REVIEW_CONTINUE_BUTTON}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={validateAndContinue}

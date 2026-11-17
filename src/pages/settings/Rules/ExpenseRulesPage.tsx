@@ -175,6 +175,7 @@ function ExpenseRulesPage() {
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}

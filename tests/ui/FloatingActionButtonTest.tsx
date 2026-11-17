@@ -57,6 +57,7 @@ describe('FloatingActionButton hover', () => {
         render(
             <NavigationContainer>
                 <FloatingActionButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     onPress={onPress}
                     isActive={false}
                     accessibilityLabel="fab"

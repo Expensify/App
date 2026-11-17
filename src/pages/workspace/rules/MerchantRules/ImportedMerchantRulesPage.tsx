@@ -40,7 +40,6 @@ import type SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyVendors, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -303,7 +302,7 @@ type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingRules, setIsImportingRules] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -453,10 +452,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
 

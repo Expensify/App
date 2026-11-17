@@ -52,7 +52,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
 
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper>
+                    <CaretWrapper style={[styles.flexShrink1, styles.mw100]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textStrong, styles.flexShrink1]}

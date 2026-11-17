@@ -61,7 +61,9 @@ function ChangePolicyEducationalModal() {
                         <FeatureTraining.Description>{translate('iou.changePolicyEducational.description')}</FeatureTraining.Description>
                         <ChangeWorkspaceMenuSectionList />
                     </FeatureTraining.BodyText>
-                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                    <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.CHANGE_POLICY_EDUCATIONAL.CONFIRM_BUTTON}>
+                        {translate('common.buttonConfirm')}
+                    </FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTraining>
         </CenteredModalLayout>

@@ -39,7 +39,7 @@ import ReportActionCompose from './report/ReportActionCompose/ReportActionCompos
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
-import {ReportActionsWithInboxTabDeferredMount} from './ReportActions';
+import ReportActionsWithInboxTabDeferredMount from './ReportActionsWithInboxTabDeferredMount';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';

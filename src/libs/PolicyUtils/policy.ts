@@ -75,6 +75,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
+            canCreateExpensesOnPolicy(policy, currentUserLogin) &&
             (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );

@@ -1,5 +1,5 @@
-import {getAccessibleDashboards} from '@pages/Insights/dashboardSpecs';
-import {canViewAllPolicyData} from '@pages/Insights/insightsAccess';
+import INSIGHTS_DASHBOARD_SPECS, {getAccessibleDashboards, getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
+import {canViewAllPolicyData, hasMultipleMembers} from '@pages/Insights/insightsAccess';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,9 +19,24 @@ function buildPolicy(index: number, role: ValueOf<typeof CONST.POLICY.ROLE>, typ
     return {...createRandomPolicy(index, type), id: String(index), role};
 }
 
+/** Gives a workspace the given number of members. */
+function withMembers(policy: Policy, memberCount: number): Policy {
+    const employeeList = Object.fromEntries(Array.from({length: memberCount}, (_, index) => [`member${index}@example.com`, {email: `member${index}@example.com`}]));
+    return {...policy, employeeList};
+}
+
 /** Keys the workspaces the way the policy collection stores them. */
 function toCollection(policies: Policy[]): OnyxCollection<Policy> {
     return Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy]));
+}
+
+const COMPLIANCE_SPEC = INSIGHTS_DASHBOARD_SPECS[COMPLIANCE];
+const SUBMITTER_CHART = CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER;
+const APPROVER_CHART = CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER;
+
+/** Returns the graph keys of the Compliance supporting charts the given workspaces make visible. */
+function getVisibleComplianceCharts(policies: Policy[], policyIDs: string[] = []) {
+    return getVisibleCharts(COMPLIANCE_SPEC.supportingCharts, getPoliciesInScope(toCollection(policies), policyIDs), LOGIN, COMPLIANCE_SPEC.isPolicyEligible).map(({graphKey}) => graphKey);
 }
 
 const isComplianceBetaEnabled = (beta: Beta) => beta === CONST.BETAS.INSIGHTS_COMPLIANCE;
@@ -102,6 +117,90 @@ describe('insightsAccess', () => {
 
             // Then Compliance is offered, so narrowing the workspace filter to the member one can't hide its tab
             expect(dashboards).toEqual([SPEND, COMPLIANCE]);
+        });
+    });
+    describe('hasMultipleMembers', () => {
+        it('qualifies a workspace with at least two members to compare', () => {
+            // Given a workspace with two members
+            const policy = withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 2);
+
+            // When it is checked
+            // Then it qualifies, since a member ranking has someone to compare against
+            expect(hasMultipleMembers(policy)).toBe(true);
+        });
+
+        it('leaves out a workspace with a single member or no member list', () => {
+            // Given a workspace the user is the only member of, and one whose members haven't loaded
+            const singleMemberPolicy = withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 1);
+            const policyWithoutMembers = buildPolicy(2, CONST.POLICY.ROLE.ADMIN);
+
+            // When they are checked
+            // Then neither qualifies, so a ranking never lists the user alone
+            expect(hasMultipleMembers(singleMemberPolicy)).toBe(false);
+            expect(hasMultipleMembers(policyWithoutMembers)).toBe(false);
+        });
+    });
+
+    describe('getVisibleCharts', () => {
+        it('shows the member charts when an administered workspace has members to compare and approvals', () => {
+            // Given a workspace the user administers, with two members and approvals turned on
+            const policy = {...withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 2), approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC};
+
+            // When the Compliance charts to show are resolved
+            const charts = getVisibleComplianceCharts([policy]);
+
+            // Then both the submitter and the approver rankings are shown
+            expect(charts).toContain(SUBMITTER_CHART);
+            expect(charts).toContain(APPROVER_CHART);
+        });
+
+        it('hides the approver chart when the administered workspace has approvals turned off', () => {
+            // Given a workspace the user administers, with two members but optional approvals
+            const policy = {...withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 2), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL};
+
+            // When the Compliance charts to show are resolved
+            const charts = getVisibleComplianceCharts([policy]);
+
+            // Then only the submitter ranking is shown, since there are no approvers to rank
+            expect(charts).toContain(SUBMITTER_CHART);
+            expect(charts).not.toContain(APPROVER_CHART);
+        });
+
+        it('ignores workspaces the user cannot review, even when they have members to compare', () => {
+            // Given a user who administers a workspace they are alone in, and is a regular member of a shared one with approvals
+            const administeredPolicy = withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 1);
+            const memberPolicy = {...withMembers(buildPolicy(2, CONST.POLICY.ROLE.USER), 2), approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC};
+
+            // When the Compliance charts to show are resolved
+            const charts = getVisibleComplianceCharts([administeredPolicy, memberPolicy]);
+
+            // Then neither member ranking is shown, since Compliance only reports on workspaces the user administers or audits
+            expect(charts).not.toContain(SUBMITTER_CHART);
+            expect(charts).not.toContain(APPROVER_CHART);
+        });
+
+        it('only counts the workspaces selected in the filter', () => {
+            // Given an administered workspace with members to compare and another the user is alone in
+            const sharedPolicy = {...withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 2), approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC};
+            const soloPolicy = withMembers(buildPolicy(2, CONST.POLICY.ROLE.ADMIN), 1);
+
+            // When the filter is narrowed to the workspace the user is alone in
+            const charts = getVisibleComplianceCharts([sharedPolicy, soloPolicy], [soloPolicy.id]);
+
+            // Then the member rankings are hidden, since the selected workspace has no one to compare
+            expect(charts).not.toContain(SUBMITTER_CHART);
+            expect(charts).not.toContain(APPROVER_CHART);
+        });
+
+        it('keeps the charts that declare no eligibility', () => {
+            // Given a user who administers a workspace they are alone in
+            const policy = withMembers(buildPolicy(1, CONST.POLICY.ROLE.ADMIN), 1);
+
+            // When the Compliance charts to show are resolved
+            const charts = getVisibleComplianceCharts([policy]);
+
+            // Then Top violations is still shown, since it doesn't depend on the workspace setup
+            expect(charts).toEqual([CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS]);
         });
     });
 });

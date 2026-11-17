@@ -118,6 +118,7 @@ function TravelCVVPage() {
     if (hasRevealedCVV) {
         actionButton = (
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.TRAVEL_CVV_COPY}
                 onPress={() => {
                     Clipboard.setString(cvv);
                     setCopyButtonInactive();
@@ -131,6 +132,7 @@ function TravelCVVPage() {
     } else if (!cvv && !isSignedInAsDelegate) {
         actionButton = (
             <ButtonDisabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.TRAVEL_CVV_REVEAL}
                 onPress={handleRevealDetailsPress}
                 style={[styles.mt10, styles.alignSelfCenter]}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}

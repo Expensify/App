@@ -19,7 +19,7 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
         <PressableWithFeedback
             onPress={() => {}}
             accessibilityLabel="Open menu"
-            sentryLabel="MyTrigger"
+            sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}
         >
             <Icon />
         </PressableWithFeedback>

@@ -72,6 +72,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
     const options = [
         {
             key: 'merchant',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.EXPENSE_DEFAULT_TYPE.MERCHANT,
             icon: illustrations.FoodTruck,
             title: translate('workspace.rules.expenseDefaultType.merchant'),
             description: translate('workspace.rules.expenseDefaultType.merchantDescription'),
@@ -80,6 +81,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
         },
         {
             key: 'category',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.EXPENSE_DEFAULT_TYPE.CATEGORY,
             icon: illustrations.FolderOpen,
             title: translate('workspace.rules.expenseDefaultType.category'),
             description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
@@ -109,6 +111,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
                     <View style={styles.mh5}>
                         {options.map((option) => (
                             <MenuItem
+                                sentryLabel={option.sentryLabel}
                                 key={option.key}
                                 icon={option.icon}
                                 title={option.title}

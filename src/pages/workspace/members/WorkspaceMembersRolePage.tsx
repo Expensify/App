@@ -24,7 +24,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -37,7 +36,7 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     const {translate} = useLocalize();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [selectedLogins, selectedLoginsMetadata] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
+    const [selectedLogins] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const memberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true);
 
@@ -66,14 +65,13 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
     });
 
     // The selection only lives in memory, so a reload or a deep link landing here directly has nothing to act on.
-    const isSelectionLoading = isLoadingOnyxValue(selectedLoginsMetadata);
     const memberCount = memberLogins.length;
     useEffect(() => {
-        if (isSelectionLoading || memberCount > 0) {
+        if (memberCount > 0) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-    }, [isSelectionLoading, memberCount, policyID]);
+    }, [memberCount, policyID]);
 
     // Leaving without saving drops the selection, so coming back to this screen through history cannot apply a role to
     // members the table no longer has selected.

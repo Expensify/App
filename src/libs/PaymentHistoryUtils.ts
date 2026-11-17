@@ -303,7 +303,7 @@ function getPaymentDetailsBadge(purchases: Purchases | null | undefined, purchas
 }
 
 function formatDate(date: string, locale: DateFnsLocale | undefined): string {
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) || date;
+    return DateUtils.formatToLongDateInUTC(date, locale) || date;
 }
 
 /** Resolves the dynamic badge label shown only on the details page, falling back to the plain state label. */
@@ -341,7 +341,9 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
         return null;
     }
     const purchase = purchases[String(purchaseID)];
-    if (!purchase) {
+    // Onyx can persist lookup completion without purchase data, despite these fields being required by the type.
+    // Reject placeholders before using their receipt or reading their message.
+    if (!purchase?.purchaseID || !purchase.message) {
         return null;
     }
     if (purchase.receipt?.source) {
@@ -357,7 +359,8 @@ function getReceiptPurchase(purchases: Purchases | null | undefined, purchaseID:
     while (currentID !== undefined && !visited.has(currentID)) {
         visited.add(currentID);
         const current: Purchase | undefined = purchases[String(currentID)];
-        if (!current) {
+        // Linked purchases can also be persisted placeholders, so each entry needs the same validation.
+        if (!current?.purchaseID || !current.message) {
             return null;
         }
         if (current.receipt?.source) {

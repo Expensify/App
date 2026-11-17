@@ -62,6 +62,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ADD_WORK_EMAIL}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}

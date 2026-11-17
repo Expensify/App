@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -40,7 +41,7 @@ type NewRuleOption = {
     title: string;
     description: string;
     onPress: () => void;
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
     /** When true, option is only shown from the workspace Rules Create flow (not category RHP). */
     isWorkspaceOnly?: boolean;
 };

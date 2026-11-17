@@ -202,6 +202,11 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                         shouldUpdateFocusedIndex
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={
+                                    isEditing
+                                        ? CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_SUBMIT.CONFIRM
+                                        : CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CARD_SELECTION_SUBMIT.NEXT
+                                }
                                 buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                                 onSubmit={submit}
                                 isAlertVisible={shouldShowError}

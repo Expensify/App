@@ -1,6 +1,10 @@
 # The `data-sentry-label` schema
 
-Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`.
+Every pressable component takes a `sentryLabel` prop. On web it is rendered as the `data-sentry-label` attribute. Label values live in `CONST.SENTRY_LABEL`, and the prop's `SentryLabel` type accepts nothing else, so type any prop or map that passes a label along as `SentryLabel` too, not `string`. Don't cast a string to it.
+
+When you write a component that forwards `sentryLabel` to a pressable, make the prop required with `WithRequiredSentryLabel`, so TypeScript checks every usage, including ones that pass props through a spread. Keep it optional only when the component falls back to a default label, or for inputs. In tests, pass `CONST.SENTRY_LABEL.TEST.LABEL` to these components. Tests send nothing to Sentry, so they share one label instead of copying the production ones. Never use it in app code.
+
+Older wrappers still have an optional prop, so lint (`no-restricted-syntax`) checks them instead. It requires the label on every pressable, on `Button`, `MenuItem` and the other wrappers that forward it to a pressable whenever they get a press handler, and always on wrappers that handle their own press, like `ThreeDotsMenu`. The lists of these wrappers are in `oxlint.config.mts`. Don't add new components to them. Once all usages of a listed wrapper have a label, make its prop required and remove it from the lists. Inputs and wrappers that fall back to a default label aren't checked, and neither are story files (`*.stories.tsx`), which never send anything to Sentry. Usages that had no label when the rule was added are grandfathered in the [seatbelt baseline](LINTING.md#seatbelt). Add a label when you touch one.
 
 The attribute is used by:
 
@@ -9,13 +13,39 @@ The attribute is used by:
 
 ## Naming
 
-Labels follow the `<Area>-<Action>-<Detail>` schema, with each part in PascalCase:
+Labels have two or three parts in PascalCase, joined by hyphens:
 
-- `<Area>`: the component or feature that owns the element, e.g. `WorkspaceRules`, `SelectionList`, `NavigationTabBar`.
-- `<Action>`: the element or kind of interaction within that area, e.g. `NewRuleMenuItem`, `ListHeader`.
-- `<Detail>`: the concrete variant of the action, e.g. `RestrictCardSpend`, `FlagForReview`, `SelectAll`.
+- `<Area>`: the component or feature that owns the element, e.g. `WorkspaceRules`, `Search`, `NavigationTabBar`.
+- `<Action>`: the element within that area, e.g. `NewRuleMenuItem`, `ActionCellAction`, `Inbox`. Where the element is shown goes here too, e.g. `EmptyStateAddExpenseMenu`.
+- `<Detail>` (optional): which variant of the element was pressed, e.g. `FlagForReview`, `Submit`.
 
-Use the `<Detail>` part whenever one element triggers fundamentally different work depending on its variant (see [step 2 of the INP workflow](INP_IMPROVEMENT_WORKFLOW.md#2-evaluate-whether-the-data-sentry-label-grouping-is-correct)). For example, the items of the new rule menu in workspace rules are labeled `WorkspaceRules-NewRuleMenuItem-RestrictCardSpend`, `WorkspaceRules-NewRuleMenuItem-FlagForReview` and so on, rather than a single `WorkspaceRules-NewRuleMenuItem`. Elements with a single kind of interaction can keep a two-part `<Area>-<Action>` label, e.g. `NavigationTabBar-Inbox`.
+### Two or three parts
+
+Decide by how the element is rendered:
+
+- **Three parts** when one element is rendered as several variants and data decides which one: the items of a menu or dropdown inside an area, rows mapped from a list of options, or a button whose action comes from a lookup (e.g. by action type). Each variant does different work, and their shared `<Area>-<Action>` becomes their [`inp.category`](#inpcategory). Examples: `WorkspaceRules-NewRuleMenuItem-FlagForReview`, `Search-ActionCellAction-Submit`, `Search-CreateMenu-TrackDistance`.
+- **Two parts** when the element has its own JSX usage and always does the same thing. Sibling buttons on one page are separate elements, not variants, even when their names share a prefix: `WorkspaceRules-MerchantRuleSave` and `WorkspaceRules-MerchantRuleDelete`, not `WorkspaceRules-MerchantRule-Save`.
+- **Two parts** also for the items of a menu that is an area of its own, like `MoreMenu`, `ContextMenu`, `FABMenu` or `NavigationTabBar`: the menu is the `<Area>` and the item is the `<Action>`, e.g. `MoreMenu-Delete`, `NavigationTabBar-Inbox`. A submenu inside it is an element again, so its items get three parts: `MoreMenu-AddExpenseMenu-TrackDistance`.
+
+Then check:
+
+- A category needs at least two variants. An element with one variant gets two parts.
+- The variant goes in `<Detail>`, never at the end of `<Action>`: `Report-AttachmentPickerMenu-CreateExpense`, not `Report-AttachmentPickerMenuCreateExpense`. For a single element, the whole name goes in `<Action>`: `SelectionList-ListHeaderSelectAll`, not `SelectionList-ListHeader-SelectAll`.
+- `<Detail>` is the variant, not the place. When the same menu is shown in two places, each place gets its own `<Area>-<Action>`, because the same press does different work in each (see [step 2 of the INP workflow](INP_IMPROVEMENT_WORKFLOW.md#2-evaluate-whether-the-data-sentry-label-grouping-is-correct)). For example, `Report-EmptyStateAddExpenseMenu-CreateExpense` and `Report-ListFooterAddExpenseMenu-CreateExpense`.
+
+In `CONST.SENTRY_LABEL`, put the variants of one element in a nested object keyed by variant, and keep single elements as flat keys:
+
+```ts
+SEARCH: {
+    ACTION_CELL_VIEW: 'Search-ActionCellView',
+    ACTION_CELL_ACTION: {
+        SUBMIT: 'Search-ActionCellAction-Submit',
+        APPROVE: 'Search-ActionCellAction-Approve',
+    },
+},
+```
+
+`tests/unit/SentryLabelSchemaTest.ts` fails when a label doesn't have two or three PascalCase parts, or when a category has only one variant.
 
 Renaming a label starts a new series in Sentry and loses its history, and it breaks the FullStory element definitions that select it. List renamed labels in the PR description.
 

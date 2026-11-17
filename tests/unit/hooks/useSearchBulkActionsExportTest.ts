@@ -14,6 +14,7 @@ import {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
 } from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
@@ -57,6 +58,7 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({
         customTemplates: [{name: 'Custom template', templateName: 'customTemplate', type: 'in-app', policyID: undefined, description: ''}],
@@ -217,7 +219,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const {canChangeWorkspaceOfSearchReport, getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
@@ -227,6 +229,7 @@ jest.mock('@libs/SearchUIUtils', () => {
         // The real validator, so the `groupBy === GROUP_BY.CARD` comparison is exercised against it rather than an identity stub.
         getValidGroupBy: jest.fn(jest.requireActual<{getValidGroupBy: (groupBy?: string) => string | undefined}>('@libs/SearchUIUtils').getValidGroupBy),
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
+        canChangeWorkspaceOfSearchReport,
         getColumnsToShow,
         // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
         getTransactionsByReportID,
@@ -259,11 +262,13 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -553,6 +558,7 @@ describe('useSearchBulkActions - export options', () => {
         // tests override with mockResolvedValueOnce to exercise the cancel path.
         mockShowConfirmModal.mockResolvedValue({action: 'CONFIRM'});
         mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
         mockCurrentSearchKey = undefined;
         mockIsOffline = false;
 
@@ -1308,6 +1314,29 @@ describe('useSearchBulkActions - export options', () => {
         });
         expect(markAsManuallyExported).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('leaves the reports of unchecked expenses out of an all-matching mark-as-exported in the Reports view', async () => {
+        // Given every matching report selected in the Reports view, then one expense unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report-with-unchecked-expense'})};
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        // When "Mark as exported" is selected
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // Then the query sent leaves that report out, rather than marking it with the rest
+        await waitFor(() => {
+            expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.stringContaining('-reportID:report-with-unchecked-expense'), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        });
     });
 
     it('passes qboIntegrationAlias so the backend can tell an IES connection apart from a regular QBO connection sharing the same connectionName', async () => {

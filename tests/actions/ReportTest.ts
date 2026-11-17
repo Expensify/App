@@ -4955,6 +4955,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: targetPolicy,
                 currentUserAccountID: 1,
@@ -4993,6 +4994,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5057,6 +5059,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5131,6 +5134,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5231,6 +5235,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -5319,6 +5324,7 @@ describe('actions/Report', () => {
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
                 parentReport: undefined,
                 policy: newPolicy,
                 currentUserAccountID: 1,
@@ -6334,6 +6340,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6344,6 +6351,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser: false,
+                personalDetailsByLogins: {},
             });
         });
 
@@ -6372,6 +6380,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6403,6 +6412,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6452,6 +6462,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Find the transaction optimistic data
@@ -6520,6 +6531,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6572,6 +6584,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6637,6 +6650,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
+                personalDetailsByLogins: {},
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6705,6 +6719,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                personalDetailsByLogins: {},
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6790,6 +6805,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
+                personalDetailsByLogins: {},
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;

@@ -620,20 +620,16 @@ function Comparison() {
             />
 
             <Card
-                title="description, onPress, sentryLabel, title"
+                title="description, onPress, title"
                 legacy={
                     <MenuItemWithTopDescription
                         description="Display"
                         title="Comfortable"
-                        sentryLabel="menuItemComparisonStorySentryLabel"
                         onPress={noop}
                     />
                 }
                 composable={
-                    <MenuItem.Root
-                        onPress={noop}
-                        sentryLabel="menuItemComparisonStorySentryLabel"
-                    >
+                    <MenuItem.Root onPress={noop}>
                         <MenuItem.Row>
                             <MenuItem.Content>
                                 <MenuItem.FieldName>Display</MenuItem.FieldName>

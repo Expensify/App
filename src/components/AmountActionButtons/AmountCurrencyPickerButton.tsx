@@ -21,6 +21,7 @@ function AmountCurrencyPickerButton({currency, accessibilityLabel, isDisabled = 
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.AMOUNT_ACTION_BUTTONS.CURRENCY_PICKER_BUTTON}
             accessibilityLabel={buttonAccessibilityLabel}
             contentContainerStyle={styles.justifyContentCenter}
             isDisabled={isDisabled}

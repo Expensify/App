@@ -4,6 +4,7 @@ import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirma
 import type {ListItem} from '@components/SelectionList/types';
 
 import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
@@ -44,6 +45,8 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
+    // The confirmation form only ever holds the current user's own expense.
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -90,6 +93,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
             onAddCategory={canAddCategory ? openAddCategory : undefined}
             addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
             onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
+            ownerAccountID={currentUserAccountID}
         />
     );
 }

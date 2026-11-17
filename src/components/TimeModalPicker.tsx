@@ -51,6 +51,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
     return (
         <>
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.TIME_MODAL_PICKER.OPEN}
                 shouldShowRightIcon
                 title={currentTime}
                 description={label}

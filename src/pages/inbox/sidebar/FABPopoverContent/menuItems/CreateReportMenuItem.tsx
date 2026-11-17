@@ -79,6 +79,7 @@ function CreateReportMenuItem() {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
             itemId={ITEM_ID}
             isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}

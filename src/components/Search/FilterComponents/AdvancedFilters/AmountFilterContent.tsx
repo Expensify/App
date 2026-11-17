@@ -18,6 +18,7 @@ import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -27,7 +28,7 @@ import {View} from 'react-native';
 
 const BETWEEN_MODIFIER = 'Between';
 
-type AmountFilterContentProps = {
+type AmountFilterContentProps = WithRequiredSentryLabel & {
     baseFilterKey: SearchAmountFilterKeys;
     value: SearchAmountValues;
     buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
@@ -151,7 +152,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     );
 }
 
-function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, onChange}: AmountFilterContentProps) {
+function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style, buttonText, sentryLabel, onChange}: AmountFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -207,6 +208,7 @@ function AmountFilterContent({baseFilterKey, value, autoFocus, buttonSize, style
 
     const button = (
         <Button
+            sentryLabel={sentryLabel}
             style={[styles.ph5, styles.pb5]}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={buttonSize}

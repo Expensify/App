@@ -43,13 +43,9 @@ function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, shouldUseL
     if (shouldUseLocalTimeZone && date) {
         const localDate = getLocalDateFromDatetime(date);
         const isPastYear = localDate.getFullYear() !== getLocalDateFromDatetime().getFullYear();
-        formattedDate = format(localDate, isPastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale});
+        formattedDate = isPastYear ? format(localDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale}) : DateUtils.formatToMonthDay(localDate, dateFnsLocale);
     } else {
-        formattedDate = DateUtils.formatWithUTCTimeZone(
-            date,
-            DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(date, dateFnsLocale);
     }
     const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
 

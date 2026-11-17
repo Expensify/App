@@ -550,6 +550,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    parentHierarchicalReports: reportsParentHierarchy,
                     chatReportActions: chatIOUReportActions,
                 });
                 return;

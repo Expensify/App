@@ -8,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canMeasureText} from '@libs/measureTextWidth';
-import {getSearchColumnResizingID} from '@libs/SearchUIUtils';
+import {getSearchColumnResizingID} from '@libs/SearchKeyUtils';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
@@ -30,6 +30,7 @@ import useSearchColumnWidths from './hooks/useSearchColumnWidths';
 import useSearchTableWidth from './hooks/useSearchTableWidth';
 import HorizontalTableScroll from './primitives/HorizontalTableScroll';
 import {SearchColumnWidthsProvider} from './SearchColumnWidthsContext';
+import {useSearchQueryContext} from './SearchContext';
 
 type SearchListViewLayoutProps = {
     /** Columns rendered in the table (drives the min-width for horizontal scroll). */
@@ -227,6 +228,7 @@ function SearchListViewLayoutWithStoredColumnWidths(props: Omit<SearchListViewLa
  */
 function SearchListViewLayout(props: SearchListViewLayoutProps) {
     const {isBetaEnabled} = usePermissions();
+    const {currentSearchKey} = useSearchQueryContext();
 
     // Saved widths are replayed by content sizing, so only tables that size from their rows can resize.
     // The header is left out so crossing the wide breakpoint doesn't remount the list.
@@ -246,7 +248,7 @@ function SearchListViewLayout(props: SearchListViewLayoutProps) {
     return (
         <SearchListViewLayoutWithStoredColumnWidths
             {...props}
-            columnResizingID={getSearchColumnResizingID(props.type)}
+            columnResizingID={getSearchColumnResizingID(props.type, currentSearchKey)}
         />
     );
 }

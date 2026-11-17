@@ -13,7 +13,7 @@ import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -21,7 +21,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {css, useReducedMotion} from 'react-native-reanimated';
 
-type AnimatedSubmitButtonProps = WithSentryLabel & {
+type AnimatedSubmitButtonProps = WithRequiredSentryLabel & {
     /** Submit buttons support the default and success styles; danger is not a valid submit state. */
     variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
 

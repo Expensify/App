@@ -74,6 +74,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                 <Text style={[styles.textSupporting]}>{translate('trialPaymentReminder.subtitle')}</Text>
 
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TRIAL_PAYMENT_REMINDER_MODAL.ADD_PAYMENT_CARD}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
@@ -83,6 +84,7 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                     <Button.Text>{translate('trialPaymentReminder.addPaymentCardButton')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TRIAL_PAYMENT_REMINDER_MODAL.CLOSE}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3]}
                     onPress={onClose}

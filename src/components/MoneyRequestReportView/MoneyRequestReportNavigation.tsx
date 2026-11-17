@@ -1,9 +1,7 @@
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
-import Text from '@components/Text';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSections from '@hooks/useSearchSections';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
@@ -26,6 +24,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused} from '@react-navigation/native';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -124,7 +124,6 @@ function MoneyRequestReportNavigationStandalone({onReportsChange}: MoneyRequestR
 
 function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersion, contextReports}: MoneyRequestReportNavigationContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const isFocused = useIsFocused();
 
     // Lightweight subscriptions only: the current search query and its loading flag. These never mount
@@ -258,9 +257,10 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             {shouldDisplayNavigationArrows && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                     {!shouldDisplayNarrowVersion && (
-                        <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
-                            {translate('common.currentOfTotal', {current: currentIndex + 1, total: allReportsCount})}
-                        </Text>
+                        <MoneyRequestReportNavigationCounter
+                            current={currentIndex + 1}
+                            total={allReportsCount}
+                        />
                     )}
                     <PrevNextButtons
                         isPrevButtonDisabled={hidePrevButton}

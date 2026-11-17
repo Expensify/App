@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type ReactNative from 'react-native';
@@ -35,6 +36,7 @@ const renderConfirmation = (planName?: string) => {
                     policyName="MyWorkspace"
                     planName={planName}
                     afterUpgradeAcknowledged={() => {}}
+                    confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.CONFIRMATION_GOT_IT}
                 />
             </NavigationContainer>
         </ComposeProviders>,

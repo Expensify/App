@@ -154,12 +154,14 @@ function DynamicExitSurveyReasonPage() {
             </FormProvider>
             <FixedFooter>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.REASON_GO_TO_CLASSIC}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={switchToClassic}
                 >
                     <Button.Text>{translate('exitSurvey.goToExpensifyClassic')}</Button.Text>
                 </ButtonDisabledWhenOffline>
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.REASON_GO_BACK_JUST_ONCE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={goBackJustOnce}

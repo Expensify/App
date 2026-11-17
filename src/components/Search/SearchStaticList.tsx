@@ -369,6 +369,7 @@ function SearchStaticList({
                                 importantForAccessibility="no-hide-descendants"
                             >
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                                     accessibilityLabel={translate('workspace.people.selectAll')}
                                     isChecked={false}
                                     disabled

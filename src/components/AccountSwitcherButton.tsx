@@ -15,6 +15,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -124,7 +125,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     };
 
     const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
-        const result = await showConfirmModal({
+        const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
             title: translate('gps.switchAccountWarningTripInProgress.title'),
             prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
             confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),

@@ -47,7 +47,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
@@ -67,7 +66,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
-    const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [personalDetails] = useAllPersonalDetails();
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
@@ -83,7 +82,6 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
     const shouldInitializeSearch = useRunAfterTransitions(true);
 
-    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
@@ -119,7 +117,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         shouldHideDynamicExternalWorkflowPeople(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
+    const shouldShowListEmptyContent = !hasAnyEligibleMember;
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
     const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeeAndApprovalMembersPersonalDetails);
 
@@ -438,6 +436,9 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     }
     const button = (
         <FormAlertWithSubmitButton
+            sentryLabel={
+                shouldShowListEmptyContent ? CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EXPENSES_FROM_CLOSE : CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_EXPENSES_FROM_SUBMIT
+            }
             isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
             buttonText={buttonText}
             onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
@@ -588,7 +589,6 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 shouldShowTextInput
                 onSelectApprover={toggleMember}
                 footerContent={button}
-                shouldShowLoadingPlaceholder={isLoadingApprovalWorkflow}
                 shouldEnableHeaderMaxHeight
                 onSearchChange={setSearchSelectorTerm}
                 shouldUpdateFocusedIndex={false}

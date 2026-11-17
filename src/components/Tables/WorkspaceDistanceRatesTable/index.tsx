@@ -94,7 +94,19 @@ function WorkspaceDistanceRatesTable({
                 containerStyles: [styles.editableCellHeader],
             },
         },
-        ...(shouldShowTaxReclaimableColumn ? ([{key: 'taxReclaimableOn', label: translate('workspace.taxes.taxReclaimableOn'), sortable: true}] as const) : []),
+        ...(shouldShowTaxReclaimableColumn
+            ? ([
+                  {
+                      key: 'taxReclaimableOn',
+                      label: translate('workspace.taxes.taxReclaimableOn'),
+                      sortable: true,
+                      styling: {
+                          // editableCellHeader aligns the label with the padded tax cell.
+                          containerStyles: styles.editableCellHeader,
+                      },
+                  },
+              ] as const)
+            : []),
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},

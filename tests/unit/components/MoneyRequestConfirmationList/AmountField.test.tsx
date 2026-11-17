@@ -8,7 +8,10 @@ import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/
 
 import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -20,6 +23,7 @@ let mockCurrentRouteName: string | undefined;
 let mockOnScreenBlur: (() => void) | undefined;
 let mockCurrencyButtonRef: NumberWithSymbolFormProps['currencyButtonRef'];
 let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef'];
+let mockOnyxValues: Record<string, unknown> = {};
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
@@ -96,6 +100,7 @@ let mockTransactionSlice: {transactionID: string; amount: number; currency: stri
     isAmountMissing: false,
 };
 jest.mock('@components/MoneyRequestConfirmationList/sections/useTransactionSelector', () => () => mockTransactionSlice);
+jest.mock('@hooks/useOnyx', () => (key: string) => [mockOnyxValues[key]]);
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: () => mockIsScreenFocused,
@@ -107,7 +112,6 @@ jest.mock('@react-navigation/native', () => ({
     }),
 }));
 jest.mock('@libs/Navigation/navigationRef', () => ({getCurrentRoute: () => (mockCurrentRouteName ? {name: mockCurrentRouteName} : undefined)}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
@@ -137,6 +141,7 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
 describe('AmountField split-bill error clearing', () => {
     beforeEach(() => {
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockOnyxValues = {};
     });
 
     it('shows the missing amount error for a failed split scan', () => {
@@ -243,6 +248,30 @@ describe('AmountField split-bill error clearing', () => {
 
         fireEvent.press(screen.getByText('Enter one'));
         expect(clearFormErrors).toHaveBeenCalledWith(['common.error.invalidAmount']);
+    });
+
+    it('seeds a split draft from the saved transaction when no split draft exists yet', () => {
+        // Given a split being edited whose split draft has not been created yet, so the saved transaction is the base
+        const transaction = {transactionID: '1', amount: 0, currency: 'USD'};
+        mockOnyxValues = {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: transaction};
+
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.EDIT}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // When the amount changes
+        fireEvent.press(screen.getByText('Enter one'));
+
+        // Then the split draft is seeded from the saved transaction instead of being cleared with a null merge
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith('1', transaction, expect.objectContaining({amount: 100, currency: 'USD'}), expect.any(Function), expect.any(Function));
     });
 });
 

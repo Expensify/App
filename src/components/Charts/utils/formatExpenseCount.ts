@@ -14,3 +14,4 @@ function formatExpenseCount(count: number, translate: LocaleContextProps['transl
 }
 
 export default formatExpenseCount;
+export {MAX_COUNT_FRACTION_DIGITS};

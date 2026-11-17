@@ -12,7 +12,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getCategory, getCurrency, getMerchant, getRateID, hasValidModifiedAmount, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -75,6 +75,7 @@ function useConfirmationListDataWithPolicy({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isDistanceRequest = false,
+    isScanRequest: isScanRequestProp = false,
     distanceState,
 }: UseConfirmationListDataParams): ConfirmationListData {
     // Every distance branch below goes inert for the variants that pass no distance state.
@@ -126,7 +127,10 @@ function useConfirmationListDataWithPolicy({
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
-    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest} = useConfirmationAmount({
+    // In the share flow, the caller knows it is a scan before the draft is initialized.
+    const isScanRequest = isScanRequestProp || isScanRequestUtil(transaction);
+
+    const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee} = useConfirmationAmount({
         transaction,
         iouAmount,
         iouCurrencyCode,
@@ -137,6 +141,7 @@ function useConfirmationListDataWithPolicy({
         distanceRequestAmount,
         distanceCurrency,
         isPerDiemRequest,
+        isScanRequest,
         prevSubRates,
     });
 
@@ -338,6 +343,7 @@ function useConfirmationListDataWithPolicy({
                 didConfirm: !!didConfirm,
                 canEnterScanFieldsManually,
                 isPolicyExpenseChat,
+                isScanRequest,
                 isEditingSplitBill,
                 scrollFocusedInputIntoView,
                 onSubmitForm: confirm,
@@ -415,7 +421,7 @@ function useConfirmationListDataWithPolicy({
  * from it. The distance variant needs the policy before it can build its distance state, so it goes through
  * `useDistanceConfirmationListData` instead.
  */
-function useConfirmationListData(props: MoneyRequestConfirmationListProps) {
+function useConfirmationListData(props: MoneyRequestConfirmationListProps & Pick<UseConfirmationListDataParams, 'isScanRequest'>) {
     const {transaction, policyID, action, iouType, isPerDiemRequest} = props;
     const policyData = useConfirmationPolicyData({transaction, policyID, action, iouType, isPerDiemRequest});
 

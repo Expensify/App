@@ -85,6 +85,7 @@ function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrima
 
     return (
         <ExpenseHeaderApprovalButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.APPROVE}
             isAnyTransactionOnHold={isAnyTransactionOnHold}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             onApprove={onApprove}

@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useLayoutEffect, useRef} from 'react';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -24,7 +25,7 @@ type SwitchProps = {
     accessibilityLabel: string;
 
     /** Label for Sentry tracking, from `CONST.SENTRY_LABEL`. */
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 
     disabled?: boolean;
 

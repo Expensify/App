@@ -11,7 +11,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearCopyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {callIfAuthenticated} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import {canRoleCreateExpenses, canUnarchivePolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -115,7 +115,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             menuItems.push({
                 icon: icons.Exit,
                 text: translate('common.leave'),
-                onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), false, session),
+                onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.LEAVE), session),
                 shouldCallAfterModalHide: true,
             });
         }
@@ -184,7 +184,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         menuItems.push({
             icon: icons.ArrowCircleClockwise,
             text: translate('workspace.common.unarchive'),
-            onSelected: callFunctionIfActionIsAllowed(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), false, session),
+            onSelected: callIfAuthenticated(() => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.UNARCHIVE), session),
             shouldCallAfterModalHide: true,
         });
     }

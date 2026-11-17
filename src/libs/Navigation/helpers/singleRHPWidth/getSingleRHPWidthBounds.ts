@@ -3,13 +3,9 @@ import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidt
 import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 
 import CONST from '@src/CONST';
+import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
-type SingleRHPWidthBounds = {
-    min: number;
-    max: number;
-};
-
-function getSingleRHPWidthBounds(windowWidth: number, sidePanelWidth: number): SingleRHPWidthBounds {
+function getSingleRHPWidthBounds(windowWidth: number, sidePanelWidth: number): PaneWidthBounds {
     const min = CONST.RHP_RESIZE.MIN_WIDTH;
     const widthBelowWideRHP = calculateWideRHPWidth(windowWidth) - CONST.RHP_RESIZE.WIDE_RHP_INSET;
     const widthLeftForCard = windowWidth - RHP_FLOATING_CARD_INSET - sidePanelWidth - CONST.RHP_RESIZE.CONTENT_RESERVE_WIDTH;
@@ -18,4 +14,3 @@ function getSingleRHPWidthBounds(windowWidth: number, sidePanelWidth: number): S
 }
 
 export default getSingleRHPWidthBounds;
-export type {SingleRHPWidthBounds};

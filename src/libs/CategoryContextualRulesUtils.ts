@@ -11,6 +11,7 @@ import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import {getCategoryTaxRuleTaxID, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
@@ -27,6 +28,8 @@ type CategoryContextualRule = {
     summary: string;
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
     dynamicRoutePath: DynamicRouteSuffix;
+    /** Sentry label for the rule row, one variant per rule type */
+    sentryLabel: SentryLabel;
     pendingAction?: PendingAction;
     /** Optimistically deleted rules stay listed (struck through) but must not be openable. */
     isDisabled?: boolean;
@@ -88,6 +91,7 @@ function getCategoryContextualRules({
     if (flagSummary && (isOffline || !isFlagPendingDelete)) {
         rules.push({
             key: `flag-for-review-${categoryName}`,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.FLAG_FOR_REVIEW,
             summary: flagSummary,
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
             pendingAction: flagPendingAction,
@@ -107,6 +111,7 @@ function getCategoryContextualRules({
         if (summary) {
             rules.push({
                 key: `require-fields-${categoryName}`,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.REQUIRE_FIELDS,
                 summary,
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
                 pendingAction: requireFieldsPendingAction,
@@ -125,6 +130,7 @@ function getCategoryContextualRules({
             const taxDisplayName = getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
             rules.push({
                 key: `tax-${categoryName}`,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
                 summary: translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), taxDisplayName),
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
                 pendingAction: taxPendingAction,

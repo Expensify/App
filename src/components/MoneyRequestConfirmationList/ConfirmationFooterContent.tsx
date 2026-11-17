@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -30,7 +31,7 @@ import useReceiptTraining from './hooks/useReceiptTraining';
  * instead of blending submit, split, track and invoice into a single INP measurement. Flows absent from this map fall
  * back to CONFIRMATION_SUBMIT_BUTTON.
  */
-const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, string>> = {
+const CONFIRMATION_SENTRY_LABEL_BY_IOU_TYPE: Partial<Record<IOUType, SentryLabel>> = {
     [CONST.IOU.TYPE.SPLIT]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
     [CONST.IOU.TYPE.SPLIT_EXPENSE]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SPLIT_BUTTON,
     [CONST.IOU.TYPE.TRACK]: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_TRACK_BUTTON,

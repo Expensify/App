@@ -804,7 +804,14 @@ function WalletPage() {
                                 </MenuItem.Row>
                             </MenuItemSectionRoot>
                             {!hasAssignedCard && (
-                                <MenuItemSectionRoot onPress={openCompanyCardFlow}>
+                                <MenuItemSectionRoot
+                                    onPress={openCompanyCardFlow}
+                                    sentryLabel={
+                                        hasSinglePolicy
+                                            ? CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACE
+                                            : CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_COMPANY_CARDS.WORKSPACES_LIST
+                                    }
+                                >
                                     <MenuItem.Row>
                                         <View style={[styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
                                             <Icon

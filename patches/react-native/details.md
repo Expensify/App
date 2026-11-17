@@ -9,13 +9,16 @@
 
 ### [react-native+0.86.0+002+fixMVCPAndroid.patch](react-native+0.86.0+002+fixMVCPAndroid.patch)
 
-- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
+- Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
+  3. Preserves a positioned, zero-sized first child as a scroll anchor. LegendList moves this anchor to compensate for item measurements. Selecting its surrounding container or rejecting its empty frame prevents native scroll compensation and makes the chat jump as estimated rows shrink. LegendList 3.7 places the anchor at its adjustment offset plus 10,000,000 pixels, beyond the viewport. The strict visibility check also prevents a fixed, zero-sized spacer at or above the scroll offset in another scroll view from taking over its visible-content anchor.
+- Scope: This changes Android `MaintainVisibleContentPosition` for every React Native scroll view that enables it, not only the report-action list. Keep this in mind when updating React Native or investigating anchoring in other scroll views.
 - Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
 - Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
+- Reproducer: https://github.com/react/react-native/pull/59360 adds the RNTester reproduction, without a runtime fix. The standalone reproduction and proposed anchor patch are in https://github.com/margelo/react-native-mvcp-reproducer.
 - Earlier proposal: https://github.com/react/react-native/pull/46247 closed without merging.
-- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify Android scroll-position preservation during bidirectional pagination and row-height changes with the patch disabled. Keep it on React Native 0.86 unless the upstream fix is backported.
+- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify bidirectional pagination, changing row heights, and LegendList's positioned-anchor corrections with the patch disabled. Keep it on React Native 0.86 unless the upstream fix is backported.
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
@@ -402,3 +405,12 @@
 - E/App issue: https://github.com/Expensify/App/issues/105383
 - PR introducing patch: https://github.com/Expensify/App/pull/105381
 - 0.86.0 migration note: drop once we adopt a React Native release that contains `f6a5042`. Adding this patch changes the patches hash, so merging it republishes the prebuilt artifacts; that publish is also the first CI build from source since the move, so confirm it passes.
+
+### [react-native+0.86.0+049+fix-stale-mvcp-anchor-ios.patch](react-native+0.86.0+049+fix-stale-mvcp-anchor-ios.patch)
+
+- Reason: The report page goes blank after adding a second expense to a chat that is scrolled up, on iOS. `RCTScrollViewComponentView`'s `_adjustForMaintainVisibleContentPosition` never validates the anchor view it saved in `_prepareForMaintainVisibleScrollPosition`. Its only guard sits behind `ReactNativeFeatureFlags::enableViewCulling()`, which defaults to `false` in 0.86 and is not overridden in App — so the guard is dead code. When the list crosses the 250 px threshold, `maintainVisibleContentPosition` is disabled and re-enabled; flash-list patch 007 only passes the prop to the native ScrollView while it is enabled, so the prop is removed and re-added, and the first commit after it comes back reuses whatever anchor iOS saved last time. A nil or recycled anchor reads `frame.origin.y == 0` against a recorded 1,000,000 (where flash-list parks its `ScrollAnchor`), giving a `deltaY` of roughly −1,000,000. The list ends up parked where nothing is materialized: a blank page. This patch replaces the flag-gated block with the three unconditional abort conditions upstream added — nil, tag (view recycled), and superview (view deleted) — which is also what Android already does.
+- Blast radius: iOS only, and confined to the MVCP adjustment path. The new conditions can only cause an early `return`, i.e. skip a scroll-offset correction that would have been computed from an invalid anchor. Cases where the anchor is still valid are unchanged.
+- Upstream PR/issue: [react/react-native#57294](https://github.com/react/react-native/pull/57294) — landed as [`3b90423`](https://github.com/facebook/react-native/commit/3b90423076cfa5d5310bb0190cd1abb69f72dc40) (the PR shows as closed because it was imported through Meta's internal system rather than merged directly), fixes [#25239](https://github.com/facebook/react-native/issues/25239).
+- E/App issue: https://github.com/Expensify/App/issues/100303
+- PR introducing patch: this PR.
+- 0.86.0 migration note: **drop this patch on the RN 0.88 upgrade** — the unconditional `_firstVisibleView.tag` and `superview` guards are present in `0.88-stable` and absent from `v0.87.1`, which still has only the `enableViewCulling()`-gated check.

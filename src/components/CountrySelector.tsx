@@ -74,6 +74,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.COUNTRY_SELECTOR.OPEN}
             shouldShowRightIcon
             title={title}
             ref={ref}

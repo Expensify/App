@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentProps} from 'react';
 
@@ -28,7 +29,7 @@ type ConnectionStatusMessageProps = {
      */
     actionAccessibilityLabel?: string;
 
-    actionSentryLabel?: string;
+    actionSentryLabel?: SentryLabel;
 };
 
 function ConnectionStatusMessage({

@@ -90,10 +90,16 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     </ConfirmationPage.Content>
                     <FixedFooter>
                         <ConfirmationPage.SecondaryButton
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_INTRO_NOT_NOW}
                             text={translate('common.notNow')}
                             onPress={goBackToEntryPoint}
                         />
                         <ConfirmationPage.PrimaryButton
+                            sentryLabel={
+                                isOnboardingSubmitted
+                                    ? CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_INTRO_PRIMARY_ACTION.ONBOARDING_STATUS
+                                    : CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_INTRO_PRIMARY_ACTION.ONBOARDING
+                            }
                             text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
                                 // Starting onboarding for any account retires both banners for good
