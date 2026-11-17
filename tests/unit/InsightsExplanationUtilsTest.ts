@@ -1,5 +1,5 @@
 import DateUtils from '@libs/DateUtils';
-import {buildInsightsExplanationQuery, getCachedInsightsExplanation} from '@libs/InsightsExplanationUtils';
+import {buildInsightsExplanationQuery, getCachedInsightsExplanation, getInsightsExplanationRemainingTime} from '@libs/InsightsExplanationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,9 +39,14 @@ describe('InsightsExplanationUtils', () => {
         // When selecting an answer using its server timestamp.
         // Then only a fresh exact match can be displayed immediately, regardless of device clock skew.
         expect(getCachedInsightsExplanation(explanation, 'query')).toBe('Answer');
+        expect(getInsightsExplanationRemainingTime(explanation, 'query')).toBe(5 * 60 * 1000);
         expect(getCachedInsightsExplanation(explanation, 'another query')).toBeUndefined();
         expect(getCachedInsightsExplanation(undefined, 'query')).toBeUndefined();
         expect(getCachedInsightsExplanation({...explanation, createdAt: DateUtils.subtractMillisecondsFromDateTime(explanation.createdAt, 5 * 60 * 1000)}, 'query')).toBeUndefined();
         expect(getCachedInsightsExplanation({...explanation, createdAt: DateUtils.addMillisecondsFromDateTime(explanation.createdAt, 60 * 1000)}, 'query')).toBeUndefined();
+
+        // When two minutes pass, then refresh waits only for the remaining server cache lifetime.
+        jest.advanceTimersByTime(2 * 60 * 1000);
+        expect(getInsightsExplanationRemainingTime(explanation, 'query')).toBe(3 * 60 * 1000);
     });
 });

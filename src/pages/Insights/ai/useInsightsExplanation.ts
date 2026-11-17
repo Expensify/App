@@ -3,7 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
-import {buildInsightsExplanationQuery, getCachedInsightsExplanation} from '@libs/InsightsExplanationUtils';
+import {buildInsightsExplanationQuery, getCachedInsightsExplanation, getInsightsExplanationRemainingTime} from '@libs/InsightsExplanationUtils';
 import {hashText} from '@libs/UserUtils';
 
 import {preloadInsightsExplanation} from '@userActions/Insights';
@@ -26,11 +26,24 @@ function useInsightsExplanation(explainPrompt: string, insightsScope: InsightsSc
             lastRequestedQuery.current = undefined;
             return;
         }
-        if (!shouldPreload || !accountID || !reportID || !explainPrompt.trim() || lastRequestedQuery.current === jsonQuery || getCachedInsightsExplanation(explanation, jsonQuery)) {
+        if (!shouldPreload || !accountID || !reportID || !explainPrompt.trim()) {
             return;
         }
-        lastRequestedQuery.current = jsonQuery;
-        preloadInsightsExplanation(jsonQuery, hash);
+        const requestExplanation = () => {
+            lastRequestedQuery.current = jsonQuery;
+            preloadInsightsExplanation(jsonQuery, hash);
+        };
+        const remainingTime = getInsightsExplanationRemainingTime(explanation, jsonQuery);
+        if (remainingTime > 0) {
+            // A successful answer can refresh once it expires; a failed request still falls back to the live flow.
+            lastRequestedQuery.current = undefined;
+            const timeout = setTimeout(requestExplanation, remainingTime);
+            return () => clearTimeout(timeout);
+        }
+        if (lastRequestedQuery.current === jsonQuery) {
+            return;
+        }
+        requestExplanation();
     }, [isOffline, shouldPreload, accountID, reportID, explainPrompt, jsonQuery, hash, explanation]);
 
     // Check freshness at the click as well, since the page may stay mounted longer than the cache lifetime.

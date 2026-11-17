@@ -3,8 +3,9 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
+import DateUtils from '@libs/DateUtils';
 import {buildInsightsExplanationQuery} from '@libs/InsightsExplanationUtils';
-import {getDBTimeWithSkew} from '@libs/NetworkState';
+import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {hashText} from '@libs/UserUtils';
 
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
@@ -32,6 +33,7 @@ const SCOPE: InsightsScope = {
 };
 const PROMPT = 'Explain this insight';
 const REPORT_ID = '100';
+const CACHE_LIFETIME_MS = 5 * 60 * 1000;
 const mockAskConcierge = jest.fn();
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline})}));
@@ -50,6 +52,7 @@ function renderButton(scope = SCOPE) {
 describe('InsightsExplainButton', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
     beforeEach(async () => {
+        jest.useRealTimers();
         await Onyx.clear();
         jest.clearAllMocks();
         mockIsOffline = false;
@@ -60,6 +63,7 @@ describe('InsightsExplainButton', () => {
             conciergeTargetReportID: REPORT_ID,
         });
     });
+    afterEach(() => jest.useRealTimers());
 
     it('preloads without sending a message and keeps Explain visible', async () => {
         // Given a chart or card with Concierge available.
@@ -73,7 +77,7 @@ describe('InsightsExplainButton', () => {
         expect(preloadInsightsExplanation).toHaveBeenCalledWith(jsonQuery, hash);
         expect(mockAskConcierge).not.toHaveBeenCalled();
         await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hash}`, {jsonQuery, response: 'Travel increased.', createdAt: getDBTimeWithSkew()});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hash}`, {jsonQuery, response: 'Travel increased.', createdAt: getServerAnchoredDBTime()});
         });
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByRole('button'));
@@ -92,7 +96,7 @@ describe('InsightsExplainButton', () => {
 
         // When the old answer arrives after the filters have changed and the user clicks Explain.
         await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hashText(oldQuery, 2 ** 32)}`, {jsonQuery: oldQuery, response: 'Old answer.', createdAt: getDBTimeWithSkew()});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hashText(oldQuery, 2 ** 32)}`, {jsonQuery: oldQuery, response: 'Old answer.', createdAt: getServerAnchoredDBTime()});
         });
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByRole('button'));
@@ -129,5 +133,90 @@ describe('InsightsExplainButton', () => {
         await waitForBatchedUpdatesWithAct();
         expect(screen.queryByRole('button')).toBeNull();
         expect(preloadInsightsExplanation).not.toHaveBeenCalled();
+    });
+
+    it('refreshes an answer at expiry and schedules the next refresh only after a fresh answer arrives', async () => {
+        // Given a cached answer with only one minute left when Insights opens.
+        jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        const jsonQuery = buildInsightsExplanationQuery(1, REPORT_ID, PROMPT, SCOPE);
+        const key = `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hashText(jsonQuery, 2 ** 32)}` as const;
+        await Onyx.set(key, {jsonQuery, response: 'Cached answer.', createdAt: DateUtils.subtractMillisecondsFromDateTime(getServerAnchoredDBTime(), 4 * 60 * 1000)});
+        const {rerender} = render(renderButton());
+        await act(async () => {
+            await new Promise<void>(setImmediate);
+        });
+
+        // When its remaining lifetime passes without any other page updates.
+        act(() => jest.advanceTimersByTime(60 * 1000 - 1));
+        expect(preloadInsightsExplanation).not.toHaveBeenCalled();
+        act(() => jest.advanceTimersByTime(1));
+
+        // Then exactly one refresh starts, and clicks still reject the expired answer while it loads.
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(1);
+        expect(preloadInsightsExplanation).toHaveBeenCalledWith(jsonQuery, hashText(jsonQuery, 2 ** 32));
+        fireEvent.press(screen.getByRole('button'));
+        expect(mockAskConcierge).toHaveBeenLastCalledWith(PROMPT, {insightsScope: SCOPE}, undefined);
+
+        // When a new answer arrives, then its own timestamp starts the next lifetime.
+        await act(async () => {
+            await Onyx.set(key, {jsonQuery, response: 'Fresh answer.', createdAt: getServerAnchoredDBTime()});
+            await new Promise<void>(setImmediate);
+        });
+        fireEvent.press(screen.getByRole('button'));
+        expect(mockAskConcierge).toHaveBeenLastCalledWith(PROMPT, {insightsScope: SCOPE}, 'Fresh answer.');
+        act(() => jest.advanceTimersByTime(CACHE_LIFETIME_MS - 1));
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(1);
+        act(() => jest.advanceTimersByTime(1));
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(2);
+
+        // When that refresh produces no answer, then unrelated renders do not cause a retry loop.
+        rerender(renderButton());
+        act(() => jest.advanceTimersByTime(2 * CACHE_LIFETIME_MS));
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(['filters', 'offline', 'unmount', 'unavailable'] as const)('cancels the old refresh when the context changes: %s', async (change) => {
+        // Given a loaded answer whose refresh timer belongs to the current filters and Concierge availability.
+        jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        const jsonQuery = buildInsightsExplanationQuery(1, REPORT_ID, PROMPT, SCOPE);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hashText(jsonQuery, 2 ** 32)}`, {jsonQuery, response: 'Cached answer.', createdAt: getServerAnchoredDBTime()});
+        const {rerender, unmount} = render(renderButton());
+        await act(async () => {
+            await new Promise<void>(setImmediate);
+        });
+
+        // When those filters or availability change before the answer expires.
+        if (change === 'filters') {
+            rerender(renderButton({...SCOPE, groupCurrency: CONST.CURRENCY.GBP}));
+        } else if (change === 'offline') {
+            mockIsOffline = true;
+            rerender(renderButton());
+        } else if (change === 'unavailable') {
+            jest.mocked(useAskConcierge).mockReturnValue({
+                askConcierge: mockAskConcierge,
+                askConciergeWithAttachment: jest.fn(),
+                shouldShowAskConcierge: false,
+                conciergeTargetReportID: REPORT_ID,
+            });
+            rerender(renderButton());
+        } else {
+            unmount();
+        }
+        jest.mocked(preloadInsightsExplanation).mockClear();
+        act(() => jest.advanceTimersByTime(CACHE_LIFETIME_MS));
+
+        // Then the old context never starts a background request after its timer should have been canceled.
+        expect(preloadInsightsExplanation).not.toHaveBeenCalled();
+        if (change !== 'offline') {
+            return;
+        }
+
+        // When reconnecting after expiry, then refresh once and keep the live click fallback while it loads.
+        fireEvent.press(screen.getByRole('button'));
+        expect(mockAskConcierge).toHaveBeenLastCalledWith(PROMPT, {insightsScope: SCOPE}, undefined);
+        mockIsOffline = false;
+        rerender(renderButton());
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(1);
+        expect(preloadInsightsExplanation).toHaveBeenCalledWith(jsonQuery, hashText(jsonQuery, 2 ** 32));
     });
 });
