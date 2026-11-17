@@ -19,6 +19,9 @@ type UnarchiveWorkspaceFlowProps = {
 
     /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
+
+    /** Called after the user confirms unarchiving the workspace */
+    onUnarchiveComplete?: () => void;
 };
 
 /**
@@ -28,7 +31,7 @@ type UnarchiveWorkspaceFlowProps = {
  * Unarchiving is online only: it unlocks writes on the policy, so any edit made afterward depends on it, and the
  * archived policy data available locally may be incomplete. While offline we show the offline modal instead.
  */
-function UnarchiveWorkspaceFlow({policyID, onDismiss}: UnarchiveWorkspaceFlowProps) {
+function UnarchiveWorkspaceFlow({policyID, onDismiss, onUnarchiveComplete}: UnarchiveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -86,6 +89,7 @@ function UnarchiveWorkspaceFlow({policyID, onDismiss}: UnarchiveWorkspaceFlowPro
                     policyName: policy?.name,
                     archivedDate: policy?.archivedDate,
                 });
+                onUnarchiveComplete?.();
                 onDismiss();
             });
         });

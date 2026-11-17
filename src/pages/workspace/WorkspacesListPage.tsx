@@ -498,10 +498,7 @@ function WorkspacesListPage() {
         canRenderTransferOwnerButton: !!canRenderTransferOwnerButton,
     }).map(getBulkActionOption);
 
-    const dismissActiveFlow = () => {
-        setActiveFlow(undefined);
-        clearSelection();
-    };
+    const dismissActiveFlow = () => setActiveFlow(undefined);
 
     const newWorkspaceButton = !isRestrictedPolicyCreation && !!workspaceRows.length && (
         <Button
@@ -581,20 +578,16 @@ function WorkspacesListPage() {
                     <DeleteWorkspaceFlow
                         key={policyIDToDelete}
                         policyID={policyIDToDelete}
-                        onDismiss={() => {
-                            setPolicyIDToDelete(undefined);
-                            clearSelection();
-                        }}
+                        onDismiss={() => setPolicyIDToDelete(undefined)}
+                        onDeleteComplete={clearSelection}
                     />
                 )}
                 {!!policyIDToArchive && (
                     <ArchiveWorkspaceFlow
                         key={policyIDToArchive}
                         policyID={policyIDToArchive}
-                        onDismiss={() => {
-                            setPolicyIDToArchive(undefined);
-                            clearSelection();
-                        }}
+                        onDismiss={() => setPolicyIDToArchive(undefined)}
+                        onArchiveComplete={clearSelection}
                     />
                 )}
                 {!!policyIDsToArchive && (
@@ -609,6 +602,7 @@ function WorkspacesListPage() {
                     <LeaveWorkspaceFlow
                         policyID={activeFlow.policyID}
                         onDismiss={dismissActiveFlow}
+                        onLeaveComplete={clearSelection}
                     />
                 )}
                 {!!policyIDsToLeave && (
@@ -623,12 +617,16 @@ function WorkspacesListPage() {
                     <UnarchiveWorkspaceFlow
                         policyID={activeFlow.policyID}
                         onDismiss={dismissActiveFlow}
+                        onUnarchiveComplete={clearSelection}
                     />
                 )}
                 {activeFlow?.type === CONST.POLICY.WORKSPACES_BULK_ACTION_TYPES.TRANSFER_OWNER && (
                     <TransferOwnershipFlow
                         policyID={activeFlow.policyID}
-                        onDismiss={dismissActiveFlow}
+                        onDismiss={() => {
+                            dismissActiveFlow();
+                            clearSelection();
+                        }}
                     />
                 )}
                 <CopyPolicySettingsProgressModal />
