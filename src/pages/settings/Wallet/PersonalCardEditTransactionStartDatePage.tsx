@@ -29,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {cardByIdSelector} from '@selectors/Card';
-import {format, parseISO, subDays} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -47,18 +47,21 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const currentStartDate = card?.scrapeMinDate;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    // Follow the saved card until the user edits the form, including when Onyx loads after mount.
+    const [selectedDateOption, setDateOptionSelected] = useState<DateOption>();
+    const dateOptionSelected =
+        selectedDateOption ?? (currentStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
 
-    const [startDate, setStartDate] = useState(() => {
-        if (currentStartDate) {
-            return format(parseISO(currentStartDate), CONST.DATE.FNS_FORMAT_STRING);
-        }
-        return format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    });
+    const [editedStartDate, setStartDate] = useState<string>();
+    const [defaultStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const startDate = editedStartDate ?? (currentStartDate ? format(parseISO(currentStartDate), CONST.DATE.FNS_FORMAT_STRING) : defaultStartDate);
 
     const {requiredError, onValidationErrorChange, forgetSubmitAttempt, validateOnSubmit} = useTransactionStartDateValidation({dateOption: dateOptionSelected, startDate});
 
     const selectDateOption = (dateOption: DateOption) => {
+        if (!card) {
+            return;
+        }
         forgetSubmitAttempt();
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
@@ -71,18 +74,20 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     };
 
     const getNewStartDate = () => {
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-        return dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate;
+        return dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
     };
 
     const submit = () => {
+        if (!card) {
+            return;
+        }
         if (!validateOnSubmit()) {
             return;
         }
 
         const newStartDate = getNewStartDate();
 
-        if (currentStartDate !== newStartDate) {
+        if ((currentStartDate ?? '') !== newStartDate) {
             updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
         }
         Navigation.goBack(backPath);
@@ -128,6 +133,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={submit}
+                            isDisabled={!card}
                         >
                             <Button.KeyboardShortcut />
                             <Button.Text>{translate('common.save')}</Button.Text>

@@ -4,6 +4,7 @@ import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -355,8 +356,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     containerStyles={containerStyles}
                     menuItems={options.map((item, index) => {
                         const isSwitchDisabled = item.disabled ?? item.switchProps?.disabled;
+                        const {switchTooltipText, ...menuItem} = item;
                         return {
-                            ...item,
+                            ...menuItem,
                             ...(item.switchProps
                                 ? {
                                       shouldShowRightComponent: true,
@@ -369,19 +371,24 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       shouldRemoveHoverBackground: !!isSwitchDisabled,
                                       // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
                                       rightComponent: (
-                                          <View
-                                              style={styles.justifyContentCenter}
-                                              aria-hidden
-                                              accessibilityElementsHidden
-                                              importantForAccessibility="no-hide-descendants"
+                                          <Tooltip
+                                              text={switchTooltipText}
+                                              shouldRender={!!switchTooltipText}
                                           >
-                                              <Switch
-                                                  {...item.switchProps}
-                                                  isNested
-                                                  shouldAnimateOnExternalChange
-                                                  focusable={false}
-                                              />
-                                          </View>
+                                              <View
+                                                  style={styles.justifyContentCenter}
+                                                  aria-hidden
+                                                  accessibilityElementsHidden
+                                                  importantForAccessibility="no-hide-descendants"
+                                              >
+                                                  <Switch
+                                                      {...item.switchProps}
+                                                      isNested
+                                                      shouldAnimateOnExternalChange
+                                                      focusable={false}
+                                                  />
+                                              </View>
+                                          </Tooltip>
                                       ),
                                   }
                                 : {}),

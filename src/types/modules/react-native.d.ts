@@ -56,7 +56,7 @@ declare module 'react-native' {
         altKey?: boolean;
     }
 
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+    interface PressableStateCallbackType {
         readonly isScreenReaderActive: boolean;
         readonly isDisabled: boolean;
     }
