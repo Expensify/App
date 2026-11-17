@@ -876,9 +876,8 @@ function isDisablingOrDeletingLastEnabledCategory(
     policy: Policy | undefined,
     policyCategories: PolicyCategories | undefined,
     selectedCategories: Array<PolicyCategory | undefined>,
+    enabledCategoriesCount: number = getEnabledCategoriesCount(policyCategories),
 ): boolean {
-    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
-
     if (!enabledCategoriesCount) {
         return false;
     }

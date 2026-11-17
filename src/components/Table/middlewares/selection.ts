@@ -61,6 +61,74 @@ type SelectionMethods = {
 
 type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
+type SelectionState<DataType extends TableData> = {
+    /** The keys of the rows that can be selected, in table order */
+    selectableKeys: string[];
+
+    selectedKeys: string[];
+    selectedKeySet: Set<string>;
+
+    /** The data with each row's selected flag applied */
+    rows: Array<TableRow<DataType>>;
+
+    /** Where each row sits in `rows`, so a selection change can find the rows it touches */
+    indexByKey: Map<string, number>;
+};
+
+// Marking every row as selected or not allocates one object per row, which a table with a very large number of rows can't
+// afford on every selection change. The last state is kept per data array: while the data stays the same, a selection change
+// copies the rows array and replaces only the rows whose flag flipped, so every other row keeps its identity.
+// It is keyed by the data array, so new data starts over and the entry is released together with the old data.
+const selectionStateCache = new WeakMap<object, SelectionState<TableData>>();
+
+function getSelectionState<DataType extends TableData>(data: DataType[], selectedKeys: string[]): SelectionState<DataType> {
+    const cachedState = selectionStateCache.get(data) as SelectionState<DataType> | undefined;
+    if (cachedState?.selectedKeys === selectedKeys) {
+        return cachedState;
+    }
+
+    const selectedKeySet = new Set(selectedKeys);
+
+    if (!cachedState) {
+        const selectableKeys: string[] = [];
+        const indexByKey = new Map<string, number>();
+        const rows = data.map((item, index) => {
+            indexByKey.set(item.keyForList, index);
+            if (!item.disabled && !item.isSelectionDisabled) {
+                selectableKeys.push(item.keyForList);
+            }
+            return {...item, selected: selectedKeySet.has(item.keyForList)};
+        });
+
+        const state = {selectableKeys, selectedKeys, selectedKeySet, rows, indexByKey};
+        selectionStateCache.set(data, state);
+        return state;
+    }
+
+    const rows = [...cachedState.rows];
+    const updateRowSelection = (key: string) => {
+        const index = cachedState.indexByKey.get(key);
+        if (index !== undefined) {
+            rows[index] = {...rows[index], selected: selectedKeySet.has(key)};
+        }
+    };
+
+    for (const key of selectedKeySet) {
+        if (!cachedState.selectedKeySet.has(key)) {
+            updateRowSelection(key);
+        }
+    }
+    for (const key of cachedState.selectedKeySet) {
+        if (!selectedKeySet.has(key)) {
+            updateRowSelection(key);
+        }
+    }
+
+    const state = {...cachedState, selectedKeys, selectedKeySet, rows};
+    selectionStateCache.set(data, state);
+    return state;
+}
+
 export default function useSelection<DataType extends TableData>({
     data,
     originalSelectableCount,
@@ -82,9 +150,7 @@ export default function useSelection<DataType extends TableData>({
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isFocused = useIsFocused();
 
-    const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
-    const selectedKeySet = new Set(selectedKeys);
-    const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeySet.has(item.keyForList)}));
+    const {selectableKeys, selectedKeySet, rows: tableRowData} = getSelectionState(data, selectedKeys);
 
     const rangeApi = useShiftRangeSelection<DataType>({
         items: data,
@@ -162,18 +228,15 @@ export default function useSelection<DataType extends TableData>({
      * rows in the table
      */
     const handleSelectAll = () => {
-        const areAllSelectableRowsSelected = selectableKeys.every((key) => selectedKeys.includes(key));
-
-        const isSelectionEmpty = selectedKeys.length === 0;
-        const isSelectionFull = areAllSelectableRowsSelected;
-        const isSelectionIndeterminate = selectedKeys.length > 0 && !areAllSelectableRowsSelected;
-
-        if (isSelectionEmpty) {
-            onRowSelectionChange?.(selectableKeys);
-            rangeApi.seedFullRange();
-        } else if (isSelectionFull || isSelectionIndeterminate) {
+        // Any existing selection, full or partial, is cleared. Checking whether every selectable row is selected would not change that,
+        // and doing it with includes inside every is quadratic, which froze tables with a very large number of rows.
+        if (selectedKeys.length > 0) {
             onRowSelectionChange?.([]);
+            return;
         }
+
+        onRowSelectionChange?.(selectableKeys);
+        rangeApi.seedFullRange();
     };
 
     /**
@@ -188,11 +251,8 @@ export default function useSelection<DataType extends TableData>({
 
         rangeApi.notifyAnchor(item);
 
-        const keyIndex = selectedKeys.indexOf(keyForList);
-        const isCurrentlySelected = keyIndex !== -1;
-
-        if (isCurrentlySelected) {
-            onRowSelectionChange?.([...selectedKeys.slice(0, keyIndex), ...selectedKeys.slice(keyIndex + 1)]);
+        if (selectedKeySet.has(keyForList)) {
+            onRowSelectionChange?.(selectedKeys.filter((key) => key !== keyForList));
             return;
         }
 

@@ -2,6 +2,7 @@ import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import {useTableContext} from '@components/Table/TableContext';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,6 +34,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {selectedKeys, isMobileSelectionEnabled} = useTableContext();
+    // Inline editing pauses while rows are being selected. It is decided here rather than in the row data, so the data doesn't
+    // have to be rebuilt for every subrate when selection mode turns on or off.
+    const isSelectionModeActive = selectedKeys.length > 0 || isMobileSelectionEnabled;
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -79,7 +84,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             <InlineTextEditCell
                                 value={item.destination}
                                 accessibilityLabel={translate('common.destination')}
-                                canEdit={item.canEditDestination && !item.disabled}
+                                canEdit={item.canEditDestination && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onRenameDestination}
                                 displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
@@ -94,7 +99,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                             <InlineTextEditCell
                                 value={item.subRateName}
                                 accessibilityLabel={translate('common.subrate')}
-                                canEdit={item.canEditSubrate && !item.disabled}
+                                canEdit={item.canEditSubrate && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onRenameSubrate}
                                 displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
@@ -110,7 +115,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
                                 rate={item.rate}
                                 currency={item.currency}
                                 displayText={item.formattedAmount}
-                                canEdit={item.canEditAmount && !item.disabled}
+                                canEdit={item.canEditAmount && !item.disabled && !isSelectionModeActive}
                                 onSave={item.onChangeAmount}
                             />
                         </View>

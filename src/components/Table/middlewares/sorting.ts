@@ -194,6 +194,18 @@ type SortMiddlewareParams<T, ColumnKey extends string = string> = {
  * @param compareItems - The callback to compare two items in the table.
  * @returns The sorted data.
  */
+type SortedDataCacheEntry = {
+    columnKey: string | undefined;
+    order: SortOrder;
+    compareItems: unknown;
+    sortedData: unknown[];
+};
+
+// Sorting is O(n log n) and runs from the table's render, which also runs for a selection change that leaves the data alone.
+// With a very large number of rows that repeated sort dominates every click, so the last result is kept per data array.
+// It is keyed by the array itself, so a new array sorts again and the entry is released together with the old one.
+const sortedDataCache = new WeakMap<object, SortedDataCacheEntry>();
+
 function sort<T, ColumnKey extends string = string>({data, activeSorting, compareItems}: SortMiddlewareParams<T, ColumnKey>): T[] {
     const hasSortingColumn = !!activeSorting.columnKey;
 
@@ -202,11 +214,18 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
         return data;
     }
 
+    const cachedEntry = sortedDataCache.get(data);
+    if (cachedEntry?.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
+        return cachedEntry.sortedData as T[];
+    }
+
     const sortedData = [...data];
 
     sortedData.sort((firstItem, secondItem) => {
         return compareItems(firstItem, secondItem, activeSorting);
     });
+
+    sortedDataCache.set(data, {columnKey: activeSorting.columnKey, order: activeSorting.order, compareItems, sortedData});
 
     return sortedData;
 }

@@ -1,6 +1,7 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -46,10 +47,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {shallowEqual} from 'fast-equals';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -68,9 +70,21 @@ function getPerDiemRowKey(rateID: string, subRateID: string) {
     return `${rateID}:${subRateID}`;
 }
 
-function getSubRatesData(customUnitRates: Rate[]) {
+// A workspace can have well over a hundred thousand subrates, and building the rows touches every one of them. The page renders
+// on every selection change, so the three steps below keep their last result, keyed by the object they are built from. A new
+// policy value builds them again, and an unchanged one is reused. The entries are released together with the objects they key.
+const subRatesDataCache = new WeakMap<Record<string, Rate>, SubRateData[]>();
+const selectableSubRatesCache = new WeakMap<SubRateData[], Record<string, SubRateData>>();
+const perDiemRowsCache = new WeakMap<SubRateData[], {params: PerDiemRowsParams; rows: PerDiemTableRowData[]}>();
+
+function getSubRatesData(customUnitRates: Record<string, Rate>) {
+    const cachedSubRatesData = subRatesDataCache.get(customUnitRates);
+    if (cachedSubRatesData) {
+        return cachedSubRatesData;
+    }
+
     const subRatesData: SubRateData[] = [];
-    for (const rate of customUnitRates) {
+    for (const rate of Object.values(customUnitRates)) {
         const subRates = rate.subRates;
         if (subRates) {
             for (const [index, subRate] of subRates.entries()) {
@@ -88,7 +102,84 @@ function getSubRatesData(customUnitRates: Rate[]) {
             }
         }
     }
+
+    subRatesDataCache.set(customUnitRates, subRatesData);
     return subRatesData;
+}
+
+function getSelectableSubRatesByKey(allSubRates: SubRateData[]) {
+    const cachedSelectableSubRates = selectableSubRatesCache.get(allSubRates);
+    if (cachedSelectableSubRates) {
+        return cachedSelectableSubRates;
+    }
+
+    const selectableSubRatesByKey: Record<string, SubRateData> = {};
+    for (const subRate of allSubRates) {
+        if (subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            selectableSubRatesByKey[getPerDiemRowKey(subRate.rateID, subRate.subRateID)] = subRate;
+        }
+    }
+
+    selectableSubRatesCache.set(allSubRates, selectableSubRatesByKey);
+    return selectableSubRatesByKey;
+}
+
+type PerDiemRowsParams = {
+    allSubRates: SubRateData[];
+    isOffline: boolean;
+    canWritePerDiem: boolean;
+    customUnit: CustomUnit | undefined;
+    policyID: string;
+    translate: LocaleContextProps['translate'];
+    openSubRateDetails: (rateID: string, subRateID: string) => void;
+};
+
+function getPerDiemRows(params: PerDiemRowsParams) {
+    const cachedRows = perDiemRowsCache.get(params.allSubRates);
+    if (cachedRows && shallowEqual(cachedRows.params, params)) {
+        return cachedRows.rows;
+    }
+
+    const {allSubRates, isOffline, canWritePerDiem, customUnit, policyID, translate, openSubRateDetails} = params;
+    const rows: PerDiemTableRowData[] = allSubRates
+        .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((subRate) => {
+            const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            // Whether editing is paused by selection mode is decided by each row, so entering or leaving it doesn't rebuild every row.
+            const canEdit = canWritePerDiem && !isDeleting;
+
+            return {
+                keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
+                subRateID: subRate.subRateID,
+                rateID: subRate.rateID,
+                destination: subRate.destination,
+                subRateName: subRate.subRateName,
+                rate: subRate.rate,
+                currency: subRate.currency,
+                formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
+                disabled: isDeleting,
+                pendingAction: subRate.pendingAction,
+                errors: subRate.errors,
+                canEditDestination: canEdit,
+                canEditSubrate: canEdit,
+                canEditAmount: canEdit,
+                action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
+                onRenameDestination: (newName: string) => showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
+                onRenameSubrate: (newName: string) =>
+                    showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
+                onChangeAmount: (newAmount: string) =>
+                    showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
+                dismissError: () => {
+                    if (!customUnit) {
+                        return;
+                    }
+                    clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
+                },
+            };
+        });
+
+    perDiemRowsCache.set(allSubRates, {params, rows});
+    return rows;
 }
 
 type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM>;
@@ -110,11 +201,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
 
-    const customUnits = getPerDiemCustomUnit(policy);
-    const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
-    const allRates = Object.values(customUnitRates);
-    const allSubRatesMemo = getSubRatesData(allRates);
-    const [customUnit, allSubRates] = [customUnits, allSubRatesMemo];
+    const customUnit = getPerDiemCustomUnit(policy);
+    const allSubRates = getSubRatesData(customUnit?.rates ?? CONST.EMPTY_OBJECT);
 
     const fetchPerDiem = () => {
         openPolicyPerDiemPage(policyID);
@@ -128,13 +216,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }, [fetchPerDiem]),
     );
 
-    const map: Record<string, SubRateData> = {};
-    for (const subRate of allSubRates) {
-        if (subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            map[getPerDiemRowKey(subRate.rateID, subRate.subRateID)] = subRate;
-        }
-    }
-    const selectableSubRatesByKey = map;
+    const selectableSubRatesByKey = getSelectableSubRatesByKey(allSubRates);
 
     const filterSelectableSubRate = (subRate?: SubRateData) => !!subRate;
 
@@ -174,43 +256,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const isSelectionModeActive = selectedSubRateKeys.length > 0 || isMobileSelectionModeEnabled;
-
-    const perDiemRows: PerDiemTableRowData[] = allSubRates
-        .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map((subRate) => {
-            const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            const canEdit = canWritePerDiem && !isDeleting && !isSelectionModeActive;
-
-            return {
-                keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
-                subRateID: subRate.subRateID,
-                rateID: subRate.rateID,
-                destination: subRate.destination,
-                subRateName: subRate.subRateName,
-                rate: subRate.rate,
-                currency: subRate.currency,
-                formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
-                disabled: isDeleting,
-                pendingAction: subRate.pendingAction,
-                errors: subRate.errors,
-                canEditDestination: canEdit,
-                canEditSubrate: canEdit,
-                canEditAmount: canEdit,
-                action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
-                onRenameDestination: (newName: string) => showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
-                onRenameSubrate: (newName: string) =>
-                    showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
-                onChangeAmount: (newAmount: string) =>
-                    showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
-                dismissError: () => {
-                    if (!customUnit) {
-                        return;
-                    }
-                    clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
-                },
-            };
-        });
+    const perDiemRows = getPerDiemRows({allSubRates, isOffline, canWritePerDiem, customUnit, policyID, translate, openSubRateDetails});
 
     const menuItems = [];
     if (canWritePerDiem && policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
