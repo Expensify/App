@@ -420,6 +420,7 @@ const translations: TranslationDeepObject<typeof en> = {
         day: 'día',
         days: 'días',
         address: 'Dirección',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -560,6 +561,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporta a',
         shareReport: 'Compartir informe',
         reportShared: 'Informe compartido',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} día`,
+            other: (count: number) => `${formattedCount ?? count} días`,
+        }),
         amount: 'Importe',
     },
     socials: {
@@ -1183,6 +1188,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Configura reglas específicas de viaje',
             addFirstReceipt: 'Añade tu primer recibo',
             addFirstReceiptSubText: 'Escanear o introducir manualmente un recibo',
+            addName: 'Añade tu nombre',
+            addNameSubText: 'Ayuda a tus compañeros de trabajo a reconocerte en Expensify.',
+            downloadApp: 'Descarga la app',
+            downloadAppSubText: 'Escanea recibos, envía gastos y aprueba informes donde estés.',
         },
         upcomingTravel: 'Próximos viajes',
         upcomingTravelSection: {
@@ -1237,9 +1246,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Promedio de todos los comercios',
             allCategoryAverage: 'Promedio de todas las categorías',
             averageValue: (amount: string) => `${amount} prom de media`,
+            allViolationAverage: 'Media de todas las infracciones',
+            noChange: 'Sin cambios',
+            percentChange: '% de cambio',
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        futureExpensesNotShown: (amount: string) => `No se muestran: ${amount} en gastos futuros.`,
+        violationsTrackedFrom: (date: string) => `Las infracciones se registran desde el ${date}.`,
         upsellState: {
             title: 'Mejora al plan Controlar para obtener más información',
             subtitle: 'Supervisa las tendencias de cumplimiento de la política de gastos y señala a los infractores reincidentes.',
@@ -1261,6 +1275,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Más lento en enviar',
         slowestToApprove: 'Más lento en aprobar',
         mostTimeToPay: 'Más tiempo para pagar',
+        share: 'Porcentaje de participación',
+        averageDays: 'Días promedio',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1829,6 +1845,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Todos los gastos están retenidos. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Este gasto tiene detalles similares a otro. Por favor, revisa los duplicados para continuar.',
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
+        someDuplicatesAreUnavailable: 'Algunos de estos duplicados no se pudieron cargar, así que solo puedes conservarlos todos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
         keepSelected: 'Mantener seleccionado',
@@ -2063,6 +2080,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} informes`,
             };
         },
+        payViaABA: 'Pagar mediante ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} no tiene una cuenta bancaria en AUD. Pídele que añada una y vuelve a intentarlo.`,
+        submittersMissingABADepositAccount: 'Uno o más remitentes no tienen una cuenta bancaria en AUD. Pídeles que añadan una y vuelve a intentarlo.',
     },
     transactionMerge: {
         listPage: {
@@ -2389,6 +2409,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nuevo método de contacto',
         goBackContactMethods: 'Volver a métodos de contacto',
+        integrationServerLogin: {
+            title: 'Integraciones',
+            description: 'Se usa para la API de Integration Server.',
+            removeDescription: 'Si eliminas este inicio de sesión, se revocará el acceso de la API de Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Se usa para la integración con ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Si eliminas este inicio de sesión, se revocará el acceso de la integración con ${partnerName}.`,
+        },
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -4239,7 +4266,6 @@ ${amount} para ${merchant} - ${date}`,
             dateShouldBeBefore: (dateString) => `La fecha debe ser anterior a ${dateString}`,
             dateShouldBeAfter: (dateString) => `La fecha debe ser posterior a ${dateString}`,
             incorrectZipFormat: (zipFormat) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos',
             cannotIncludeCommaOrSemicolon: 'El nombre no puede contener una coma o un punto y coma',
             invalidPhoneNumber: `Asegúrese de que el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
@@ -4443,7 +4469,6 @@ ${amount} para ${merchant} - ${date}`,
             lastName: 'Por favor, introduce los apellidos',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor, añade una cuenta bancaria para depósitos o una tarjeta de débito',
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
-            fullName: 'Por favor, introduce un nombre completo válido',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido',
             deletePaymentBankAccount:
                 'Esta cuenta bancaria no se puede eliminar porque se utiliza para pagos con la tarjeta Expensify. Si aún deseas eliminar esta cuenta, por favor contacta con Concierge.',
@@ -7034,6 +7059,7 @@ ${amount} para ${merchant} - ${date}`,
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
             autoCategorizeNewExpenses: 'Categorizar automáticamente los gastos nuevos',
+            enableAtLeastOneCategory: 'Activa al menos una categoría.',
             showCategoryGLCodes: 'Mostrar códigos GL al categorizar gastos',
             needCategoryForExportToIntegration: (connectionName) => `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
@@ -7856,16 +7882,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             errorODIntegration: (oldDotPolicyConnectionsURL) =>
                 `Hay un error con una conexión que se ha configurado en Expensify Classic. [Ve a Expensify Classic para solucionar este problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
-            exactOnline: {
-                comingSoon: 'Próximamente',
-                joinWaitlist: 'Unirse a la lista de espera',
-                onWaitlist: 'Estás en la lista de espera',
-                waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Próximamente',
                 joinWaitlist: 'Unirse a la lista de espera',
                 onWaitlist: 'Estás en la lista de espera',
+                onWaitlistButton: 'En lista de espera',
                 onTheList: '¡Estás en la lista!',
                 waitlistDescription: 'Concierge te enviará un mensaje para avisarte cuando esta integración esté lista y cómo conectarla.',
             },
@@ -8973,6 +8994,7 @@ ${reportName}`,
                     selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
                 upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
+                createWorkspaceWarning: `No se puede crear el espacio de trabajo`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },
@@ -11065,6 +11087,7 @@ ${reportName}`,
         noVendor: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
+        violation: 'Infracción',
         receiptTypeValues: {
             ereceipt: 'Recibo electrónico',
             itemized: 'Detallado',
@@ -11254,6 +11277,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'pronto';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'en dos semanas';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'en una semana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Vuelve a conectar la tarjeta antes de que caduque el consentimiento</a>.`
+                        : 'Vuelve a conectar la tarjeta antes de que caduque el consentimiento.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la conexión de tu tarjeta ` : 'La conexión de tu tarjeta ';
+                    return `${intro}<strong>${feedName}</strong> necesitará renovar el consentimiento ${warningTime}. Las transacciones se siguen sincronizando, pero podrían dejar de importarse si no renuevas el consentimiento. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12325,6 +12371,7 @@ ${reportName}`,
             tagOutOfPolicy: 'Etiqueta ya no válida',
             overLimitAttendee: 'Límite de personas superado',
             customRules: 'Incumplimiento de regla personalizada',
+            ruleViolation: 'Incumplimiento de regla',
             taxAmountChanged: 'Importe de impuesto modificado',
             taxOutOfPolicy: 'La tasa de impuestos ya no es válida',
             taxRateChanged: 'Tasa de impuesto modificada',

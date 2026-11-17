@@ -40,11 +40,12 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItemProps, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'sentryLabel'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = WithRequiredSentryLabel & Pick<MenuItemProps, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();

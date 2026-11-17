@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useIsTabVisible from '@hooks/useIsTabVisible';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,13 +31,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
@@ -47,6 +49,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
+import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -70,7 +73,13 @@ type InsightsDashboardContentProps = {
 
     headlineChart: InsightsDashboardChart;
 
-    /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
+    /** Last day the charts count expenses through, as the backend resolved today */
+    asOfDate: string | undefined;
+
+    /** Expenses in the date range dated after `asOfDate`, which every chart leaves out */
+    futureExpenses: InsightsFutureExpenses | undefined;
+
+    /** Charts below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -92,6 +101,25 @@ type InsightsDashboardContentProps = {
     children?: React.ReactNode;
 };
 
+/** Splits the charts into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
+function getDashboardSections(charts: InsightsDashboardChart[], shouldUseNarrowLayout: boolean): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+    const isGridChart = (chart: InsightsDashboardChart | undefined) => !!chart && !chart.chart.isFullWidth;
+    const isAloneInGrid = (index: number) => isGridChart(charts.at(index)) && (index === 0 || !isGridChart(charts.at(index - 1))) && !isGridChart(charts.at(index + 1));
+    // A two-column grid with one chart leaves half a row empty, so on wide layouts that chart moves to the bottom, where the gap ends the page
+    const orderedCharts = shouldUseNarrowLayout ? charts : [...charts.filter((chart, index) => !isAloneInGrid(index)), ...charts.filter((chart, index) => isAloneInGrid(index))];
+
+    const sections: Array<InsightsDashboardChart | InsightsDashboardChart[]> = [];
+    for (const chart of orderedCharts) {
+        const lastSection = sections.at(-1);
+        if (!chart.chart.isFullWidth && Array.isArray(lastSection)) {
+            lastSection.push(chart);
+        } else {
+            sections.push(chart.chart.isFullWidth ? chart : [chart]);
+        }
+    }
+    return sections;
+}
+
 function InsightsDashboardContent({
     dashboardID,
     state,
@@ -99,6 +127,8 @@ function InsightsDashboardContent({
     insightsScope,
     hasFailedToLoad,
     headlineChart,
+    asOfDate,
+    futureExpenses,
     supportingCharts,
     filters,
     upgradeablePolicyIDs,
@@ -217,8 +247,55 @@ function InsightsDashboardContent({
         );
     }
 
-    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
+    const renderChart = ({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}: InsightsDashboardChart, isHeadline = false) => (
+        <InsightsChartWidget
+            key={chart.graphKey}
+            dashboardID={dashboardID}
+            chart={chart}
+            queryJSON={queryJSON}
+            snapshot={snapshot}
+            previousPeriodQueryJSON={previousPeriodQueryJSON}
+            previousPeriodSnapshot={previousPeriodSnapshot}
+            average={average}
+            isDashboardLoaded={isDashboardLoaded}
+            filters={filters}
+            insightsScope={insightsScope}
+            countDimension={countDimension}
+            supportsDrillIn={supportsDrillIn}
+            onRetry={onRetry}
+            onGroupByChange={isHeadline ? onGroupByChange : undefined}
+            asOfDate={asOfDate}
+        >
+            {isHeadline && !!asOfDate && !!futureExpenses?.count && (
+                <InsightsFutureExpensesNote
+                    futureExpenses={futureExpenses}
+                    asOfDate={asOfDate}
+                    filters={filters}
+                />
+            )}
+        </InsightsChartWidget>
+    );
+
+    const renderGrid = (gridCharts: InsightsDashboardChart[]) => {
+        // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+        const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
+        return (
+            <View
+                key={gridCharts.at(0)?.chart.graphKey}
+                style={styles.insightsChartGrid(shouldUseNarrowLayout)}
+            >
+                {columns.map((columnCharts, columnIndex) => (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                        key={columnIndex}
+                        style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                    >
+                        {columnCharts.map((chart) => renderChart(chart))}
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
         <TabRootScrollViewMarker>
@@ -243,50 +320,8 @@ function InsightsDashboardContent({
                             hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
-                    <InsightsChartWidget
-                        dashboardID={dashboardID}
-                        chart={headlineChart.chart}
-                        queryJSON={headlineChart.queryJSON}
-                        snapshot={headlineChart.snapshot}
-                        previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
-                        previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        average={headlineChart.average}
-                        isDashboardLoaded={headlineChart.isDashboardLoaded}
-                        filters={filters}
-                        insightsScope={insightsScope}
-                        countDimension={countDimension}
-                        supportsDrillIn={supportsDrillIn}
-                        onRetry={onRetry}
-                        onGroupByChange={onGroupByChange}
-                    />
-                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                        {columns.map((columnCharts, columnIndex) => (
-                            <View
-                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                                key={columnIndex}
-                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                            >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}) => (
-                                    <InsightsChartWidget
-                                        key={chart.graphKey}
-                                        dashboardID={dashboardID}
-                                        chart={chart}
-                                        queryJSON={queryJSON}
-                                        snapshot={snapshot}
-                                        previousPeriodQueryJSON={previousPeriodQueryJSON}
-                                        previousPeriodSnapshot={previousPeriodSnapshot}
-                                        average={average}
-                                        isDashboardLoaded={isDashboardLoaded}
-                                        filters={filters}
-                                        insightsScope={insightsScope}
-                                        countDimension={countDimension}
-                                        supportsDrillIn={supportsDrillIn}
-                                        onRetry={onRetry}
-                                    />
-                                ))}
-                            </View>
-                        ))}
-                    </View>
+                    {renderChart(headlineChart, true)}
+                    {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>
             </ScrollView>
         </TabRootScrollViewMarker>
@@ -307,6 +342,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
+    const wasFocusedRef = useRef(isFocused);
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
@@ -346,12 +383,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = wasFocusedRef.current;
+        wasFocusedRef.current = isFocused;
+        // An RHP opened beside a wide dashboard leaves it visible, so only closing the RHP fetches again, because the RHP may have changed the expenses behind the charts.
+        if (!isDashboardVisible || (wasFocused && !isFocused)) {
             return;
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
@@ -467,6 +507,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
+                            asOfDate={dashboard?.asOfDate}
+                            futureExpenses={dashboard?.futureExpenses}
                             supportingCharts={supportingCharts}
                             filters={filters}
                             upgradeablePolicyIDs={upgradeablePolicyIDs}
