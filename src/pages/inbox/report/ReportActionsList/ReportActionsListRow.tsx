@@ -10,6 +10,8 @@ import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsList
 import type {ReportActionsListItemRendererProps} from '@pages/inbox/report/ReportActionsListItemRenderer';
 import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
@@ -95,10 +97,10 @@ function ReportActionsListRow({
                     shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
                 />
             )}
-            {!!report?.reportID && (
+            {/* Only the created action can show the button, so other rows don't mount it and its subscription. */}
+            {!!report?.reportID && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (
                 <ShowPreviousMessagesButton
                     reportID={report.reportID}
-                    actionType={reportAction.actionName}
                     hasPreviousMessages={hasPreviousMessages}
                     showFullHistory={showFullHistory}
                     onPress={onShowPreviousMessages}

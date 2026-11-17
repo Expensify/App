@@ -325,6 +325,28 @@ function getStablePermissions(permissions: Report['permissions']): Report['permi
     return permissions;
 }
 
+/**
+ * The report without the fields that each new message or read changes. For components that never show them, so a
+ * message or reading the chat doesn't re-render them.
+ */
+function reportWithoutActivitySelector(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    if (!report) {
+        return report;
+    }
+    const {
+        lastReadTime,
+        lastVisibleActionCreated,
+        lastVisibleActionLastModified,
+        lastMessageText,
+        lastMessageHtml,
+        lastActorAccountID,
+        lastActionType,
+        lastMentionedTime,
+        ...reportWithoutActivity
+    } = report;
+    return reportWithoutActivity;
+}
+
 function getStableReportSelector(report: OnyxEntry<Report>) {
     if (!report?.reportID) {
         return undefined;
@@ -475,6 +497,7 @@ export {
     reportParentChainSelector,
     policyExpenseChatSelector,
     reportsByIDsSelector,
+    reportWithoutActivitySelector,
 };
 
 export type {ReportAvatarFields, RoomAvatarFields, StableReport};

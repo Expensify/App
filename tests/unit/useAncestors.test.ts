@@ -137,4 +137,38 @@ describe('useAncestors', () => {
 
         expect(ancestors).toHaveLength(0);
     });
+
+    test('re-renders only when a report or action on the parent chain changes', async () => {
+        // Given a report whose parents are reports 1 and 2
+        await act(async () => {
+            await Onyx.multiSet(createMock<OnyxMultiSetInput>({...mockReports, ...mockReportActions}));
+        });
+        const report = mockReports[`${ONYXKEYS.COLLECTION.REPORT}3`];
+        let renderCount = 0;
+        const {result} = renderHook(() => {
+            renderCount++;
+            return useAncestors(report);
+        });
+        await waitForBatchedUpdates();
+        const rendersBefore = renderCount;
+
+        // When a report and an action outside the chain change
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}10`, {reportName: 'Renamed'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10`, {
+                newAction: {reportActionID: 'newAction', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: DateUtils.getDBTime()},
+            });
+        });
+
+        // Then the hook doesn't render again, because a message in any chat of the account must not re-render every caller
+        expect(renderCount).toBe(rendersBefore);
+
+        // When the parent report changes
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportName: 'Parent renamed'});
+        });
+
+        // Then the ancestors show it
+        expect(result.current.at(-1)?.report.reportName).toBe('Parent renamed');
+    });
 });

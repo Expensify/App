@@ -1983,13 +1983,16 @@ function getLastVisibleAction(
         reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
 
-    // O(n) scan to find the newest visible action, avoiding O(n log n) sort
+    // O(n) scan to find the newest visible action, avoiding O(n log n) sort. The visibility check is the expensive part, so it
+    // runs only for actions newer than the newest visible one so far. Onyx keeps actions in insertion order, mostly oldest
+    // first, so walking from the end usually finds the newest visible action first and skips the rest with a date comparison.
     let newest: ReportAction | undefined;
-    for (const action of reportActions) {
-        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
+    for (let index = reportActions.length - 1; index >= 0; index--) {
+        const action = reportActions.at(index);
+        if (!action || (newest && !isNewerReportAction(action, newest))) {
             continue;
         }
-        if (!newest || isNewerReportAction(action, newest)) {
+        if (isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
             newest = action;
         }
     }
@@ -2644,6 +2647,16 @@ const isIOUActionMatchingTransactionList = (
     return Array.isArray(reportTransactionIDs) ? reportTransactionIDs.includes(IOUTransactionID) : reportTransactionIDs.has(IOUTransactionID);
 };
 
+/** Only reports that hold expenses have expense threads, so other report types never show the one-expense view. */
+function canHaveOneTransactionThread(report: OnyxEntry<Pick<Report, 'type'>>): boolean {
+    return (
+        report?.type === CONST.REPORT.TYPE.IOU ||
+        report?.type === CONST.REPORT.TYPE.EXPENSE ||
+        report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL ||
+        report?.type === CONST.REPORT.TYPE.INVOICE
+    );
+}
+
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
@@ -2655,13 +2668,7 @@ function getOneTransactionThreadReportAction(
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
-    if (
-        report?.type !== CONST.REPORT.TYPE.IOU &&
-        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
-        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
-        report?.type !== CONST.REPORT.TYPE.INVOICE
-    ) {
+    if (!canHaveOneTransactionThread(report)) {
         return;
     }
 
@@ -6414,6 +6421,7 @@ export {
     getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
+    canHaveOneTransactionThread,
     getOneTransactionThreadReportID,
     getTransactionThreadReportIDFromAction,
     getOriginalMessage,

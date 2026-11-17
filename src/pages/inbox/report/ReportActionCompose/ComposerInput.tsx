@@ -20,6 +20,7 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutActivitySelector} from '@src/selectors/Report';
 
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
@@ -84,7 +85,7 @@ function ComposerInput() {
         containerRef.current?.measureInWindow(callback);
     };
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);

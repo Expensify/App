@@ -1172,7 +1172,8 @@ function addActions({
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    // Reuses the action found above, so sending scans the report's actions once.
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID, undefined, {}, lastVisibleAction);
     if (lastMessageText) {
         const lastVisibleActionCreated = lastVisibleAction?.created;
         failureReport = {

@@ -1,4 +1,5 @@
 import visibleReportActionsConfig from '@libs/actions/OnyxDerived/configs/visibleReportActions';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -146,5 +147,75 @@ describe('visibleReportActions', () => {
 
         // Then the derived value is the same object, so Onyx skips the write and notifies no subscriber
         expect(result).toBe(currentValue);
+    });
+
+    it('does not check the actions again when a report write leaves its support ticket state unchanged', () => {
+        // Given a chat whose visibility was computed
+        const reportID = 'readChatReportID';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const chatReport = {reportID, type: CONST.REPORT.TYPE.CHAT, lastReadTime: '2026-11-11 12:00:00.000'};
+        const allReportActions: OnyxCollection<ReportActions> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {
+                commentID: {
+                    reportActionID: 'commentID',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-11 11:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Hi', text: 'Hi'}],
+                },
+            },
+        };
+        const currentValue = visibleReportActionsConfig.compute([allReportActions, undefined, {[reportKey]: chatReport}, {}], {
+            currentValue: undefined,
+            sourceValues: undefined,
+            triggeredKeys: new Set<OnyxKey>(),
+        });
+        const visibilitySpy = jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible');
+
+        // When reading the chat writes a new lastReadTime
+        const readReport = {...chatReport, lastReadTime: '2026-11-11 12:05:00.000'};
+        const result = visibleReportActionsConfig.compute([allReportActions, undefined, {[reportKey]: readReport}, {}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: readReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then no action is checked again, because only the support ticket state of a report changes its actions' visibility
+        expect(visibilitySpy).not.toHaveBeenCalled();
+        expect(result).toBe(currentValue);
+        visibilitySpy.mockRestore();
+    });
+
+    it('checks only the new action when a message arrives', () => {
+        // Given a chat with two comments whose visibility was computed
+        const reportID = 'busyChatReportID';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+        const buildComment = (reportActionID: string, created: string) => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created,
+            message: [{type: 'COMMENT', html: 'Hi', text: 'Hi'}],
+        });
+        const reports = {[reportKey]: {reportID, type: CONST.REPORT.TYPE.CHAT}};
+        const firstActions: ReportActions = {first: buildComment('first', '2026-11-11 11:00:00.000'), second: buildComment('second', '2026-11-11 11:01:00.000')};
+        const currentValue = visibleReportActionsConfig.compute([{[reportActionsKey]: firstActions}, undefined, reports, {}], {
+            currentValue: undefined,
+            sourceValues: undefined,
+            triggeredKeys: new Set<OnyxKey>(),
+        });
+        const visibilitySpy = jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible');
+
+        // When a third comment arrives and Onyx keeps the objects of the first two
+        const nextActions: ReportActions = {...firstActions, third: buildComment('third', '2026-11-11 11:02:00.000')};
+        const result = visibleReportActionsConfig.compute([{[reportActionsKey]: nextActions}, undefined, reports, {}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: nextActions}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_ACTIONS]),
+        });
+
+        // Then only the new comment is checked, because checking every action of a long chat on each message was the costliest derived work
+        expect(visibilitySpy).toHaveBeenCalledTimes(1);
+        expect(result[reportID]).toEqual({first: true, second: true, third: true});
+        visibilitySpy.mockRestore();
     });
 });

@@ -12,6 +12,7 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutActivitySelector} from '@src/selectors/Report';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ComponentRef} from 'react';
@@ -50,7 +51,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);

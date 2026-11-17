@@ -36,6 +36,7 @@ import {
     getApprovalLimitUpdateMessage,
     getOverLimitForwardsToUpdateMessage,
 } from '@libs/ReportActionsUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
@@ -3764,6 +3765,33 @@ describe('ReportAlternateTextUtils', () => {
                 formatPhoneNumber,
             });
             expect(result.messageHtml).toBe('Custom workspace description');
+        });
+    });
+
+    describe('sorted report actions cache', () => {
+        it('sorts again only the report whose actions changed', async () => {
+            // Given two reports with actions in Onyx
+            const buildComment = (reportActionID: string, reportID: string): ReportAction => ({
+                ...createRandomReportAction(1),
+                reportActionID,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: DateUtils.getDBTime(),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {first1: buildComment('first1', '1')});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`, {second1: buildComment('second1', '2')});
+            await waitForBatchedUpdates();
+            const sortSpy = jest.spyOn(ReportActionsUtils, 'getSortedReportActions');
+
+            // When a message arrives in the first report
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {first2: buildComment('first2', '1')});
+            await waitForBatchedUpdates();
+
+            // Then the second report's actions are not sorted again, because sorting every report on each write was the costliest part of sending a message
+            const sortedActionIDs = sortSpy.mock.calls.flatMap(([actions]) => actions?.map((action) => action.reportActionID) ?? []);
+            expect(sortedActionIDs).toContain('first2');
+            expect(sortedActionIDs).not.toContain('second1');
+            sortSpy.mockRestore();
         });
     });
 });

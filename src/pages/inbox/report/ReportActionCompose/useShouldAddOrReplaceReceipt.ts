@@ -12,11 +12,12 @@ import {getTransactionID} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {reportWithoutActivitySelector} from '@selectors/Report';
 import {getParentReportActionSelector} from '@selectors/ReportAction';
 
 function useShouldAddOrReplaceReceipt(reportID: string) {
     const {isOffline} = useNetwork();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);

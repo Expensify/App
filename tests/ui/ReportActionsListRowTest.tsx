@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import ReportActionsListRow from '@pages/inbox/report/ReportActionsList/ReportActionsListRow';
 import type ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import type ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -13,12 +14,13 @@ jest.mock('@pages/inbox/report/CollapsedSystemMessages', () => jest.fn(() => nul
 jest.mock('@pages/inbox/report/ShowPreviousMessagesButton', () => jest.fn(() => null));
 
 const mockReportActionsListItemRenderer: jest.MockedFunction<typeof ReportActionsListItemRenderer> = jest.requireMock('@pages/inbox/report/ReportActionsListItemRenderer');
+const mockShowPreviousMessagesButton: jest.MockedFunction<typeof ShowPreviousMessagesButton> = jest.requireMock('@pages/inbox/report/ShowPreviousMessagesButton');
 
 const report: Report = {reportID: '1', type: CONST.REPORT.TYPE.CHAT};
 
-const buildReportAction = (reportActionID: string): ReportAction => ({
+const buildReportAction = (reportActionID: string, actionName: ReportAction['actionName'] = CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT): ReportAction => ({
     reportActionID,
-    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    actionName,
     created: '2026-01-01 00:00:00.000',
     actorAccountID: 1,
 });
@@ -50,6 +52,7 @@ const buildRow = (index: number, reportAction: ReportAction) => (
 describe('ReportActionsListRow', () => {
     beforeEach(() => {
         mockReportActionsListItemRenderer.mockClear();
+        mockShowPreviousMessagesButton.mockClear();
     });
 
     it('should not render the row content again when only the row index changes', () => {
@@ -75,5 +78,17 @@ describe('ReportActionsListRow', () => {
         // Then the row content renders the new action, so reuse never shows stale data
         expect(mockReportActionsListItemRenderer).toHaveBeenCalledTimes(2);
         expect(mockReportActionsListItemRenderer.mock.calls.at(-1)?.at(0)).toMatchObject({reportAction: {reportActionID: '2'}});
+    });
+
+    it('should mount the show previous messages button only in the created action row', () => {
+        // Given a comment row and the created action row of the same report
+        render(buildRow(0, buildReportAction('2')));
+        expect(mockShowPreviousMessagesButton).not.toHaveBeenCalled();
+
+        // When the created action row renders
+        render(buildRow(1, buildReportAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED)));
+
+        // Then only that row mounts the button, because it can't show anywhere else and each mount subscribes to Onyx
+        expect(mockShowPreviousMessagesButton).toHaveBeenCalledTimes(1);
     });
 });

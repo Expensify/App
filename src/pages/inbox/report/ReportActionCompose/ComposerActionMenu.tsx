@@ -9,6 +9,7 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutActivitySelector} from '@src/selectors/Report';
 
 import React from 'react';
 
@@ -30,7 +31,7 @@ function ComposerActionMenu() {
 
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const isBlockedFromConcierge = chatIncludesConcierge({participants: report?.participants}) && isBlockedFromConciergeUserAction(blockedFromConcierge);
 

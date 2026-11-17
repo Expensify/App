@@ -2,13 +2,16 @@ import type {TextSelection} from '@components/Composer/types';
 
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
+import createValueStore from '@libs/createValueStore';
+import type {ValueStore} from '@libs/createValueStore';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {Dispatch, SetStateAction} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext, useLayoutEffect, useState, useSyncExternalStore} from 'react';
 
 import useActiveDraftReportAction from './useActiveDraftReportAction';
 
@@ -56,8 +59,11 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
  */
 const ReportActionEditingReportActionIDContext = createContext<string | null>(null);
 
-/** The action being edited while its draft text exists. A bare ID, so rows learn whether they show the editor without re-rendering on every keystroke. */
-const ReportActionWithDraftIDContext = createContext<string | null>(null);
+/**
+ * The action being edited while its draft text exists. A store instead of a context value: a new value would re-render
+ * every row when editing starts or stops, while a row subscribed to the store re-renders only when its own answer changes.
+ */
+const DraftReportActionIDStoreContext = createContext<ValueStore<string | null>>(createValueStore<string | null>(null));
 
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
     setEditingMessage: noop,
@@ -161,11 +167,18 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
         stopEditing,
     };
 
+    const [draftReportActionIDStore] = useState(() => createValueStore<string | null>(null));
+    const draftReportActionID = editingMessage === null ? null : editingReportActionID;
+    // Runs before paint, so the edited row shows its editor in the same frame as the rest of the edit state.
+    useLayoutEffect(() => {
+        draftReportActionIDStore.set(draftReportActionID);
+    }, [draftReportActionIDStore, draftReportActionID]);
+
     return (
         <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>
             <ReportActionEditMessageActionsContext.Provider value={actions}>
                 <ReportActionEditingReportActionIDContext.Provider value={editingReportActionID}>
-                    <ReportActionWithDraftIDContext.Provider value={editingMessage === null ? null : editingReportActionID}>{children}</ReportActionWithDraftIDContext.Provider>
+                    <DraftReportActionIDStoreContext.Provider value={draftReportActionIDStore}>{children}</DraftReportActionIDStoreContext.Provider>
                 </ReportActionEditingReportActionIDContext.Provider>
             </ReportActionEditMessageActionsContext.Provider>
         </ReportActionEditMessageContext.Provider>
@@ -203,9 +216,10 @@ function useEditingReportActionID() {
     return useContext(ReportActionEditingReportActionIDContext);
 }
 
-/** The action being edited while its draft text exists, or null. */
-function useReportActionWithDraftID() {
-    return useContext(ReportActionWithDraftIDContext);
+/** Whether this action is being edited with draft text. Only the rows whose answer changes re-render when editing starts or stops. */
+function useHasReportActionDraft(reportActionID: string) {
+    const draftReportActionIDStore = useContext(DraftReportActionIDStoreContext);
+    return useSyncExternalStore(draftReportActionIDStore.subscribe, () => draftReportActionIDStore.get() === reportActionID);
 }
 
 export {
@@ -214,6 +228,6 @@ export {
     useReportActionActiveEdit,
     useReportActionActiveEditActions,
     useEditingReportActionID,
-    useReportActionWithDraftID,
+    useHasReportActionDraft,
 };
 export type {ReportActionEditMessageState};

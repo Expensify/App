@@ -1,14 +1,15 @@
 import type {ComposerRef} from '@components/Composer/types';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
@@ -50,8 +51,9 @@ function useEditMessage({
     const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
-    const reportIDToName = useReportIDToNameMap();
-    const accountIDToName = useAccountIDToNameMap();
+    // Turning the original message back into markdown needs only the rooms it mentions, so a write to any other report
+    // doesn't give publishDraft a new identity and re-render the composer while nobody edits.
+    const reportIDToName = useMentionedReportIDToNameMap(getReportActionHtml(reportAction));
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -111,7 +113,8 @@ function useEditMessage({
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
-            accountIDToName,
+            // The new message can mention anyone, so the map covers every person. Built here, it no longer re-renders the composer on each change of a person.
+            buildAccountIDToNameMap(personalDetails),
         );
         deleteDraft();
     }

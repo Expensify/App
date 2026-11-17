@@ -58,6 +58,10 @@ function buildHookProps(reportID: string, actions: ReportActions): HookProps {
     const actionsArray = Object.values(actions);
     return {
         reportID,
+        report: undefined,
+        isReopenedSupportTicket: false,
+        conciergeReportID: undefined,
+        isOffline: false,
         cachedActions: actionsArray,
         reportViewActions: actionsArray,
         combinedActions: actionsArray,

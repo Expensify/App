@@ -1,5 +1,6 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -78,5 +79,12 @@ function useReportIDToNameMap(): ReportIDToNameMap {
     return buildReportIDToNameMap(reports);
 }
 
+/** Same as useReportIDToNameMap, but only maps the rooms mentioned in the given HTML string, so a write to any other report doesn't re-render the caller. */
+function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportIDToNameMap {
+    const mentionedReportIDs = getMentionedReportIDs(htmlString);
+    const [reportIDToName = getEmptyObject<ReportIDToNameMap>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => buildReportIDToNameMap(reports, mentionedReportIDs)});
+    return reportIDToName;
+}
+
 export default useReportIDToNameMap;
-export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};
+export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown, useMentionedReportIDToNameMap};

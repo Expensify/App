@@ -8,6 +8,9 @@ import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryC
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 
@@ -41,7 +44,11 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
 
+    // Read once here and passed down, so each value has one subscription in the pipeline.
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isReopenedSupportTicket = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: isReopenedSupportTicketSelector});
+    const parentReportAction = useParentReportAction(report);
 
     const {
         cachedActions,
@@ -58,9 +65,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         treatAsNoPaginationAnchor,
         setTreatAsNoPaginationAnchor,
         reportPreviewAction,
-    } = useReportActionsPagination(reportID, reportActionIDFromRoute);
-
-    const parentReportAction = useParentReportAction(report);
+    } = useReportActionsPagination({reportID, reportActionIDFromRoute, report, parentReportAction, isOffline, conciergeReportID});
 
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
@@ -108,6 +113,10 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         handleShowPreviousMessages,
     } = useReportActionsVisibility({
         reportID,
+        report,
+        isReopenedSupportTicket,
+        conciergeReportID,
+        isOffline,
         cachedActions,
         reportViewActions,
         combinedActions,
@@ -184,6 +193,11 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     };
 
     return {readinessSignals, state, actions};
+}
+
+/** Whether a support ticket was reopened as a new report, which makes its surveys stale. The only name-value pair the pipeline reads besides the archived state. */
+function isReopenedSupportTicketSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) {
+    return !!reportNameValuePairs?.reopenedAsReportID;
 }
 
 type ReportActionsListModel = ReturnType<typeof useReportActionsListModel>;

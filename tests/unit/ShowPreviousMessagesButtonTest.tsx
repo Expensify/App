@@ -6,7 +6,6 @@ import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 
 import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -23,7 +22,6 @@ const CONCIERGE_REPORT_ID = '1';
 const renderButton = (overrides: Partial<React.ComponentProps<typeof ShowPreviousMessagesButton>> = {}, contextOverrides: {isInSidePanel?: boolean} = {}) => {
     const props = {
         reportID: CONCIERGE_REPORT_ID,
-        actionType: CONST.REPORT.ACTIONS.TYPE.CREATED,
         hasPreviousMessages: true,
         showFullHistory: false,
         onPress: jest.fn(),
@@ -35,7 +33,6 @@ const renderButton = (overrides: Partial<React.ComponentProps<typeof ShowPreviou
             <IsInSidePanelContext.Provider value={isInSidePanel}>
                 <ShowPreviousMessagesButton
                     reportID={props.reportID}
-                    actionType={props.actionType}
                     hasPreviousMessages={props.hasPreviousMessages}
                     showFullHistory={props.showFullHistory}
                     onPress={props.onPress}
@@ -79,11 +76,6 @@ describe('ShowPreviousMessagesButton', () => {
 
     it('renders nothing when onPress is not provided', () => {
         renderButton({onPress: undefined});
-        expect(screen.queryByRole('button')).toBeNull();
-    });
-
-    it('renders nothing when the action type is not CREATED', () => {
-        renderButton({actionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
         expect(screen.queryByRole('button')).toBeNull();
     });
 

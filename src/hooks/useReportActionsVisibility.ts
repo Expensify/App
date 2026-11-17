@@ -13,7 +13,9 @@ import filterHiddenSupportTicketSurveys from '@pages/inbox/report/ReportActionsL
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 
@@ -21,13 +23,18 @@ import useConciergeSidePanelReportActions from './useConciergeSidePanelReportAct
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useSidePanelState from './useSidePanelState';
 
 type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
+
+    /** The report, whether its ticket was reopened as a new report, the Concierge report and the network state, as the list model already read them. */
+    report: OnyxEntry<Report>;
+    isReopenedSupportTicket: boolean;
+    conciergeReportID: string | undefined;
+    isOffline: boolean;
 
     /** Every action of the report in the Onyx cache, newest first, including hidden ones. */
     cachedActions: ReportAction[] | undefined;
@@ -66,6 +73,10 @@ type UseReportActionsVisibilityResult = {
 /** Decides which actions of the report the list shows. Every visibility rule of the list lives here. */
 function useReportActionsVisibility({
     reportID,
+    report,
+    isReopenedSupportTicket,
+    conciergeReportID,
+    isOffline,
     cachedActions,
     reportViewActions,
     combinedActions,
@@ -76,11 +87,6 @@ function useReportActionsVisibility({
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    const isReopenedSupportTicket = !!reportNameValuePairs?.reopenedAsReportID;
 
     const isInSidePanel = useIsInSidePanel();
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
@@ -100,7 +106,7 @@ function useReportActionsVisibility({
               )
             : false;
 
-    const visibleCombinedActions = useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction});
+    const visibleCombinedActions = useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction, isOffline});
 
     const {filteredVisibleActions, filteredCombinedActions, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
         useConciergeSidePanelReportActions({
@@ -119,13 +125,13 @@ function useReportActionsVisibility({
     // The renderer hides pay actions while the report waits on a bank account. Removing them here keeps the unread
     // marker, the skeleton decision, and scroll positions in line with the rows the list shows.
     const isWaitingOnBankAccount = !!report?.isWaitingOnBankAccount;
-    const withoutHiddenPayActions = (actions: ReportAction[]) => (isWaitingOnBankAccount ? actions.filter((action) => !shouldHidePayAction(action, true)) : actions);
+    const removeHiddenPayActions = (actions: ReportAction[]) => (isWaitingOnBankAccount ? actions.filter((action) => !shouldHidePayAction(action, true)) : actions);
     // Hidden surveys must not become unread targets that have no rendered row.
-    const withoutHiddenSurveys = (actions: ReportAction[]) => filterHiddenSupportTicketSurveys({reportActions: actions, cachedActions, report, isReopenedSupportTicket});
+    const removeHiddenSurveys = (actions: ReportAction[]) => filterHiddenSupportTicketSurveys({reportActions: actions, cachedActions, report, isReopenedSupportTicket});
 
-    const visibleActionsWithHiddenSurveys = withoutHiddenPayActions(filteredVisibleActions);
-    const visibleActions = withoutHiddenSurveys(visibleActionsWithHiddenSurveys);
-    const listActions = withoutHiddenSurveys(withoutHiddenPayActions(filteredCombinedActions));
+    const visibleActionsWithHiddenSurveys = removeHiddenPayActions(filteredVisibleActions);
+    const visibleActions = removeHiddenSurveys(visibleActionsWithHiddenSurveys);
+    const listActions = removeHiddenSurveys(removeHiddenPayActions(filteredCombinedActions));
 
     const showConciergeMainDMHistory = () => {
         setConciergeShowFullHistory?.(true);
@@ -145,14 +151,13 @@ function useReportActionsVisibility({
     };
 }
 
-type UseVisibleCombinedActionsParams = Pick<UseReportActionsVisibilityParams, 'reportID' | 'reportViewActions' | 'combinedActions' | 'canPerformWriteAction'>;
+type UseVisibleCombinedActionsParams = Pick<UseReportActionsVisibilityParams, 'reportID' | 'reportViewActions' | 'combinedActions' | 'canPerformWriteAction' | 'isOffline'>;
 
 /**
  * The `combinedActions` the current user may see. A hook of its own so React Compiler can keep the result between renders:
  * it is computed after this hook's subscriptions instead of being passed into the next hook.
  */
-function useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction}: UseVisibleCombinedActionsParams): ReportAction[] {
-    const {isOffline} = useNetwork();
+function useVisibleCombinedActions({reportID, reportViewActions, combinedActions, canPerformWriteAction, isOffline}: UseVisibleCombinedActionsParams): ReportAction[] {
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });

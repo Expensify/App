@@ -1460,6 +1460,29 @@ describe('ReportActionsUtils', () => {
             // When the whisper targets somebody else, it is invisible and the older comment wins
             expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
         });
+
+        it('should return the newest visible action whatever order the actions are stored in', () => {
+            // Given visible comments stored newest first, so the scan, which walks from the last stored action, meets the oldest one first
+            const reportID = '90211';
+            const buildComment = (reportActionID: string, created: string): ReportAction => ({
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created,
+                reportActionID,
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {html: reportActionID, whisperedTo: []},
+            });
+            const newest = buildComment('newest', '2023-08-01 18:00:00');
+            const middle = buildComment('middle', '2023-08-01 17:00:00');
+            const oldest = buildComment('oldest', '2023-08-01 16:00:00');
+            const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {newest, middle, oldest}};
+
+            // When the last visible action is looked up
+            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, true, {}, reportActions);
+
+            // Then the newest comment wins, because skipping older actions before checking visibility must not change the result
+            expect(lastVisibleAction?.reportActionID).toBe(newest.reportActionID);
+        });
     });
 
     describe('getLastVisibleMessage', () => {

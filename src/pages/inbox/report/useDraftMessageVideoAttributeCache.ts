@@ -1,6 +1,6 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import Parser from '@libs/Parser';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
@@ -30,8 +30,10 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    const accountIDToName = useAccountIDToNameMap();
-    const reportIDToName = useReportIDToNameMap();
+    // Only the edited message is converted, so the maps hold just the people and rooms it mentions and a write to another report doesn't run this again.
+    const editingReportActionHTML = getReportActionHtml(editingReportAction);
+    const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHTML);
+    const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHTML);
 
     useEffect(() => {
         if (!isEditing) {
@@ -40,7 +42,7 @@ function useDraftMessageVideoAttributeCache({
 
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(editingReportAction), {
+        const originalMessage = Parser.htmlToMarkdown(editingReportActionHTML, {
             reportIDToName,
             accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
@@ -53,7 +55,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, editingReportActionHTML, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }

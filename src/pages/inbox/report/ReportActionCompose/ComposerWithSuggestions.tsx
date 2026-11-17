@@ -4,7 +4,7 @@ import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,6 +33,7 @@ import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -286,8 +287,10 @@ function ComposerWithSuggestions({
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const reportIDToName = useReportIDToNameMap();
-    const accountIDToName = useAccountIDToNameMap();
+    // The maps only convert the last editable message when the up arrow starts editing it, so they hold just the rooms and people it mentions.
+    const lastReportActionHTML = lastReportAction ? getReportActionHtml(lastReportAction) : undefined;
+    const reportIDToName = useMentionedReportIDToNameMap(lastReportActionHTML);
+    const accountIDToName = useMentionedAccountIDToNameMap(lastReportActionHTML);
 
     const commentRef = useRef(initialText);
 

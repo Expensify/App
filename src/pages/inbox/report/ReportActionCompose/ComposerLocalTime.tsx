@@ -10,6 +10,7 @@ import {getReportOfflinePendingActionAndErrors, getReportRecipientAccountIDs} fr
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutActivitySelector} from '@src/selectors/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
@@ -20,7 +21,7 @@ function ComposerLocalTime() {
     const {reportID} = useComposerState();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const canShowRecipientLocalTime = useReportRecipientLocalTime({report});
     const shouldShow = canShowRecipientLocalTime && !isComposerFullSize;
     const reportRecipientAccountID = getReportRecipientAccountIDs(report, currentUserAccountID).at(0);

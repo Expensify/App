@@ -130,7 +130,7 @@ function useReportActionsListRenderItem({
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-        const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? index;
+        const canonicalIndex = canonicalIndexByReportActionID?.get(reportAction.reportActionID) ?? index;
         const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
         const previousReportAction = listData.at(index + 1);
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;

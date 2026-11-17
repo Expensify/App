@@ -8,9 +8,34 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 const EMPTY_VALUE: SortedReportActionsDerivedValue = {sortedActions: {}, lastActions: {}, transactionThreadIDs: {}};
+
+/**
+ * The fields of each report that the sorted actions of the report and of its child reports were last computed with. Other
+ * report writes, like a new lastReadTime, can't change any sorted actions, so they skip the sort and the scan for child reports.
+ */
+const sortInputsByReportID = new Map<string, string>();
+
+/** The report fields that decide a report's one-expense thread, as a report and as the chat report of its child reports. */
+function getSortInputs(report: OnyxEntry<Report>): string {
+    return report ? [report.type, report.transactionCount, report.chatReportID, report.chatType, report.parentReportID, report.parentReportActionID].join('|') : '';
+}
+
+/** The written reports whose sort inputs changed. It records their new inputs, so the next write compares against them. */
+function takeReportsWithNewSortInputs(reportUpdates: OnyxCollection<Report> | undefined, allReports: OnyxCollection<Report>): OnyxCollection<Report> | undefined {
+    const reportKeys = Object.keys(reportUpdates ?? {}).filter((key) => {
+        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+        const sortInputs = getSortInputs(allReports?.[key]);
+        if (sortInputsByReportID.get(reportID) === sortInputs) {
+            return false;
+        }
+        sortInputsByReportID.set(reportID, sortInputs);
+        return true;
+    });
+    return reportKeys.length ? Object.fromEntries(reportKeys.map((key) => [key, allReports?.[key]])) : undefined;
+}
 
 function computeForReport(
     reportID: string,
@@ -86,6 +111,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.NETWORK],
     compute: ([allReportActions, allReports], {sourceValues, currentValue, triggeredKeys}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
+            sortInputsByReportID.clear();
             return EMPTY_VALUE;
         }
 
@@ -93,10 +119,11 @@ export default createOnyxDerivedValueConfig({
         const isOffline = getIsOffline();
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
-        const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
+        const isIncremental = !!(reportActionsUpdates ?? sourceValues?.[ONYXKEYS.COLLECTION.REPORT]) && !!currentValue && !triggeredKeys?.has(ONYXKEYS.NETWORK);
+        const reportUpdates = isIncremental ? takeReportsWithNewSortInputs(sourceValues?.[ONYXKEYS.COLLECTION.REPORT], allReports) : undefined;
 
         // Going offline changes which deleted expenses count toward the one transaction thread, so it needs a full recompute.
-        if ((reportActionsUpdates ?? reportUpdates) && currentValue && !triggeredKeys?.has(ONYXKEYS.NETWORK)) {
+        if (isIncremental) {
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
@@ -141,6 +168,10 @@ export default createOnyxDerivedValueConfig({
         }
 
         // Full recompute on first load or when the network changes
+        sortInputsByReportID.clear();
+        for (const [key, report] of Object.entries(allReports ?? {})) {
+            sortInputsByReportID.set(key.replace(ONYXKEYS.COLLECTION.REPORT, ''), getSortInputs(report));
+        }
         const sortedActions: SortedReportActionsDerivedValue['sortedActions'] = {};
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};

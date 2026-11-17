@@ -1,4 +1,5 @@
 import sortedReportActionsConfig, {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportActions';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -272,11 +273,18 @@ describe('sortedReportActions', () => {
     });
 
     it('recomputes only the reports linked to a changed chat report', () => {
-        // Given the chat report of the expense report changed, and nothing else
-        const changedReports = {[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
+        // Given the chat report of the expense report changed a field that decides one-expense threads, and nothing else
+        const chatReportKey = `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`;
+        const chatReport = allReports[chatReportKey];
+        if (!chatReport) {
+            throw new Error('The chat report is missing from the test data');
+        }
+        const changedChatReport: Report = {...chatReport, chatType: CONST.REPORT.CHAT_TYPE.GROUP};
+        const changedReports = {[chatReportKey]: changedChatReport};
+        const sortSpy = jest.spyOn(ReportActionsUtils, 'getSortedReportActions');
 
         // When only the report collection triggers a recompute
-        const result = sortedReportActionsConfig.compute([initialReportActions, allReports, undefined], {
+        const result = sortedReportActionsConfig.compute([initialReportActions, {...allReports, ...changedReports}, undefined], {
             currentValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: changedReports},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
@@ -284,9 +292,34 @@ describe('sortedReportActions', () => {
 
         // Then the expense report is recomputed because its chat report changed, and because its sorted actions came out the
         // same, the derived value keeps its previous reference so Onyx skips the write and the subscriber notifications
+        expect(sortSpy).toHaveBeenCalledTimes(1);
         expect(result.sortedActions[expenseReportID]).toEqual(currentValue.sortedActions[expenseReportID]);
         expect(result.sortedActions[unrelatedReportID]).toBe(currentValue.sortedActions[unrelatedReportID]);
         expect(result).toBe(currentValue);
+        sortSpy.mockRestore();
+    });
+
+    it('does not sort again when a report write changes no field the sort depends on', () => {
+        // Given the expense report only got a new lastReadTime
+        const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`;
+        const expenseReport = allReports[expenseReportKey];
+        if (!expenseReport) {
+            throw new Error('The expense report is missing from the test data');
+        }
+        const readExpenseReport: Report = {...expenseReport, lastReadTime: '2024-01-02 10:00:00.000'};
+        const sortSpy = jest.spyOn(ReportActionsUtils, 'getSortedReportActions');
+
+        // When only the report collection triggers a recompute
+        const result = sortedReportActionsConfig.compute([initialReportActions, {...allReports, [expenseReportKey]: readExpenseReport}, undefined], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: {[expenseReportKey]: readExpenseReport}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
+        });
+
+        // Then nothing is sorted and the derived value keeps its reference, because reading a chat must not re-sort its whole history
+        expect(sortSpy).not.toHaveBeenCalled();
+        expect(result).toBe(currentValue);
+        sortSpy.mockRestore();
     });
 
     it('updates the last action of an expense report when its transaction thread gets a new action', () => {

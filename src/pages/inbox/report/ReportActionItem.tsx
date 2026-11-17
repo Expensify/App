@@ -105,7 +105,7 @@ import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import {useReportActionWithDraftID} from './ReportActionEditMessageContext';
+import {useHasReportActionDraft} from './ReportActionEditMessageContext';
 import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
@@ -222,9 +222,12 @@ function ReportActionItem({
     const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
     const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
     const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
-    const reimbursedExpectedDateSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
-        isACHPaymentAction && !IOUOriginalMessage?.expectedDate ? getReimbursedExpectedDateSelector(reportActions, action.created) : undefined;
-    const [reimbursedExpectedDate] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: reimbursedExpectedDateSelector});
+    // Only an ACH payment without its own expected date reads the report's actions. Subscribing every row would run this selector for each visible row on every message.
+    const shouldReadReimbursedExpectedDate = isACHPaymentAction && !IOUOriginalMessage?.expectedDate;
+    const reimbursedExpectedDateSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getReimbursedExpectedDateSelector(reportActions, action.created);
+    const [reimbursedExpectedDate] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldReadReimbursedExpectedDate ? reportID : undefined)}`, {
+        selector: reimbursedExpectedDateSelector,
+    });
     const paymentExpectedDate = isACHPaymentAction ? (IOUOriginalMessage?.expectedDate ?? reimbursedExpectedDate) : undefined;
 
     const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
@@ -243,7 +246,7 @@ function ReportActionItem({
     });
     const isAgentProcessingInThread = !isOffline && !!action.childReportID && (threadProcessingAgentIDs?.length ?? 0) > 0;
 
-    const reportActionWithDraftID = useReportActionWithDraftID();
+    const hasDraft = useHasReportActionDraft(action.reportActionID);
 
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -276,7 +279,6 @@ function ReportActionItem({
     const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
-    const hasDraft = reportActionWithDraftID === action.reportActionID;
     const isEditingInline = !shouldEditInComposer && hasDraft;
 
     // Only send money rows need the chat's actions. A comment on an expense report updates the report preview in that chat,

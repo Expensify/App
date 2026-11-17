@@ -14,10 +14,8 @@ import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
-import useParentReportAction from './useParentReportAction';
 import useTransactionThread from './useTransactionThread';
 
 type UseReportActionsPaginationResult = {
@@ -46,14 +44,26 @@ type UseReportActionsPaginationResult = {
     reportPreviewAction: OnyxEntry<ReportAction> | null;
 };
 
-function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {isOffline} = useNetwork();
-    const parentReportAction = useParentReportAction(report);
+type UseReportActionsPaginationParams = {
+    reportID: string | undefined;
+    reportActionIDFromRoute: string | undefined;
 
+    /** The report, its parent action, the network state and the Concierge report, as the list model already read them. */
+    report: OnyxEntry<Report>;
+    parentReportAction: OnyxEntry<ReportAction>;
+    isOffline: boolean;
+    conciergeReportID: string | undefined;
+};
+
+function useReportActionsPagination({
+    reportID,
+    reportActionIDFromRoute,
+    report,
+    parentReportAction,
+    isOffline,
+    conciergeReportID,
+}: UseReportActionsPaginationParams): UseReportActionsPaginationResult {
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
-
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
@@ -65,7 +75,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
-    const thread = useTransactionThread({reportID, report, reportViewActions: getFilteredReportActionsForReportView(windowActions), isOffline});
+    const reportViewActions = getFilteredReportActionsForReportView(windowActions);
+    const thread = useTransactionThread({reportID, report, reportViewActions, isOffline});
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
@@ -73,8 +84,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // Only these report fields feed the arrays. Passing them on their own keeps a write to any other field, like
     // lastReadTime, from rebuilding the arrays and re-rendering the list.
     const isReportMoneyRequest = isMoneyRequestReport(report);
-    const {reportViewActions, reportViewActionIDs, combinedActions, persistedReportActionIDs} = useCombinedReportActions({
-        windowActions,
+    const {reportViewActionIDs, combinedActions, persistedReportActionIDs} = useCombinedReportActions({
+        reportViewActions,
         reportID,
         ownerAccountID: report?.ownerAccountID,
         reportTotal: report?.total,
@@ -105,7 +116,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 }
 
 type UseCombinedReportActionsParams = {
-    windowActions: ReportAction[];
+    reportViewActions: ReportAction[];
     reportID: string | undefined;
     ownerAccountID: number | undefined;
     reportTotal: number | undefined;
@@ -117,9 +128,9 @@ type UseCombinedReportActionsParams = {
     transactionThreadReportActions: ReportAction[] | undefined;
 };
 
-/** Builds `reportViewActions` and `combinedActions` from primitive and stable inputs only, so React Compiler keeps them until one of those changes. */
+/** Builds `combinedActions` from primitive and stable inputs only, so React Compiler keeps them until one of those changes. */
 function useCombinedReportActions({
-    windowActions,
+    reportViewActions,
     reportID,
     ownerAccountID,
     reportTotal,
@@ -133,7 +144,6 @@ function useCombinedReportActions({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
-    const reportViewActions = getFilteredReportActionsForReportView(windowActions);
     const oldestAction = reportViewActions.at(-1);
     const shouldAddCreatedAction = canHavePlaceholderCreatedAction && !isCreatedAction(oldestAction);
 
@@ -159,7 +169,7 @@ function useCombinedReportActions({
     // reportID of the thread, therefore reportViewActionIDs does not contain them.
     const persistedReportActionIDs = [...reportViewActionIDs, ...(transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
 
-    return {reportViewActions, reportViewActionIDs, combinedActions, persistedReportActionIDs};
+    return {reportViewActionIDs, combinedActions, persistedReportActionIDs};
 }
 
 export default useReportActionsPagination;

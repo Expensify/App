@@ -16,6 +16,7 @@ import {isChatRoom, isGroupChat, isInvoiceReport, isSettled, temporary_getMoneyR
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {reportWithoutActivitySelector} from '@src/selectors/Report';
 
 import type {PropsWithChildren} from 'react';
 
@@ -64,7 +65,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -116,7 +117,7 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
 
 function ComposerDropZone({children}: PropsWithChildren) {
     const {reportID} = useComposerState();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportWithoutActivitySelector});
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID);
     const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation} = useAttachmentPicker(reportID);
     const {onReceiptDropped, PDFValidationComponent: ReceiptPDFValidation} = useReceiptDrop({

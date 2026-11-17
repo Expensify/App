@@ -1,3 +1,5 @@
+import createValueStore from '@libs/createValueStore';
+import type {ValueStore} from '@libs/createValueStore';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -54,34 +56,7 @@ const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextTyp
  */
 const CurrentRHPReportIDContext = createContext<string | undefined>(undefined);
 
-type CurrentReportIDStore = {
-    get: () => string | undefined;
-    set: (reportID: string | undefined) => void;
-    subscribe: (onChange: () => void) => () => void;
-};
-
-function createCurrentReportIDStore(): CurrentReportIDStore {
-    let currentReportID: string | undefined = '';
-    const listeners = new Set<() => void>();
-    return {
-        get: () => currentReportID,
-        set: (reportID) => {
-            if (reportID === currentReportID) {
-                return;
-            }
-            currentReportID = reportID;
-            for (const listener of listeners) {
-                listener();
-            }
-        },
-        subscribe: (onChange) => {
-            listeners.add(onChange);
-            return () => {
-                listeners.delete(onChange);
-            };
-        },
-    };
-}
+type CurrentReportIDStore = ValueStore<string | undefined>;
 
 const defaultCurrentReportIDStore: CurrentReportIDStore = {get: () => undefined, set: () => {}, subscribe: () => () => {}};
 
@@ -99,7 +74,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     // Tracks the most recently requested reportID synchronously so the dedupe
     // check below stays accurate even while a startTransition is pending.
     const pendingReportIDRef = useRef<string | undefined>('');
-    const [store] = useState(createCurrentReportIDStore);
+    const [store] = useState(() => createValueStore<string | undefined>(''));
 
     // Synced after the commit so the report switch stays a transition, and before paint so the rows update in the same frame.
     // Store updates can't be transitions, so the rows that subscribe re-render synchronously here. Keep subscribers cheap.

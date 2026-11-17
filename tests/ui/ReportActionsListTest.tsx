@@ -563,7 +563,13 @@ describe('ReportActionsList (body)', () => {
                     return [supportReport, {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`) {
-                    return [ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {}, {status: 'loaded'}];
+                    const reportNameValuePairs: OnyxTypes.ReportNameValuePairs = ticketState === 'replaced' ? {reopenedAsReportID: 'replacement-ticket'} : {};
+                    return [
+                        options?.selector
+                            ? (options.selector as (value: OnyxTypes.ReportNameValuePairs) => OnyxTypes.ReportNameValuePairs | boolean)(reportNameValuePairs)
+                            : reportNameValuePairs,
+                        {status: 'loaded'},
+                    ];
                 }
                 return getMockOnyxValue(key, options);
             });

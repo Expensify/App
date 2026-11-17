@@ -1,10 +1,15 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 
 import useAncestors from '@hooks/useAncestors';
 
 import * as ReportUtils from '@libs/ReportUtils';
 
-import {ReportActionEditMessageContextProvider, useReportActionActiveEdit, useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
+import {
+    ReportActionEditMessageContextProvider,
+    useHasReportActionDraft,
+    useReportActionActiveEdit,
+    useReportActionActiveEditActions,
+} from '@pages/inbox/report/ReportActionEditMessageContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -579,6 +584,45 @@ describe('ReportActionEditMessageContextProvider', () => {
             });
 
             expect(result.current.activeEdit.editingMessage).toBe('replaced');
+        });
+    });
+
+    describe('useHasReportActionDraft', () => {
+        it('re-renders only the row whose draft state changes', async () => {
+            // Given two rows of the visible report, and no draft yet
+            const otherActionID = '9003';
+            const mainReportActions: ReportActions = {
+                [MAIN_ACTION_ID]: createReportActionWithId(MAIN_ACTION_ID),
+                [otherActionID]: createReportActionWithId(otherActionID),
+            };
+            await seedOnyxLayer({
+                mainReport: createReportWithId(MAIN_REPORT_ID),
+                mainReportActions,
+                fullReportActionsCollection: {},
+                fullDraftsCollection: {},
+            });
+            const renders: Record<string, boolean[]> = {[MAIN_ACTION_ID]: [], [otherActionID]: []};
+            function Row({reportActionID}: {reportActionID: string}) {
+                renders[reportActionID].push(useHasReportActionDraft(reportActionID));
+                return null;
+            }
+            render(
+                <ReportActionEditMessageContextProvider reportID={MAIN_REPORT_ID}>
+                    <Row reportActionID={MAIN_ACTION_ID} />
+                    <Row reportActionID={otherActionID} />
+                </ReportActionEditMessageContextProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user starts editing the first row
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${MAIN_REPORT_ID}`, {[MAIN_ACTION_ID]: {message: 'local edit'}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the edited row shows its draft, and the other row doesn't render again, because a long chat would re-render every row
+            expect(renders[MAIN_ACTION_ID].at(-1)).toBe(true);
+            expect(renders[otherActionID]).toEqual([false]);
         });
     });
 });

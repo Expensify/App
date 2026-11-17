@@ -60,7 +60,8 @@ function useReportActionsListData({visibleActions, sessionStartTime, linkedRepor
     // Everything below runs after the last hook, so React Compiler keeps it until its inputs change. A new Map on
     // every render would give `renderItem` a new identity and re-render every visible row.
     const listData = shouldCollapseSystemMessages ? displayReportActions : visibleActionsWithDraft;
-    const canonicalIndexByReportActionID = new Map(visibleActionsWithDraft.map((action, index) => [action.reportActionID, index]));
+    // Without collapsed runs the rows are the visible actions themselves, so a row's index already is its canonical index.
+    const canonicalIndexByReportActionID = shouldCollapseSystemMessages ? new Map(visibleActionsWithDraft.map((action, index) => [action.reportActionID, index])) : undefined;
     const unreadMarkerListIndex = shouldCollapseSystemMessages
         ? unreadMarkerReportActionIndex
         : visibleActionsWithDraft.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);

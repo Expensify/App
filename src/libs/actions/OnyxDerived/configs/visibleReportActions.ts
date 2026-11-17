@@ -18,6 +18,20 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
     return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
 }
 
+/** What a report's visibility map was last computed from. */
+type ReportVisibilityInputs = {
+    reportActions: ReportActions;
+    isSupportTicketReport: boolean;
+    isReplacedSupportTicket: boolean;
+};
+
+/**
+ * The inputs of each report's last visibility map. An action's visibility depends only on the action, the current user,
+ * and these report states, so other report writes, like a new lastReadTime, skip the report, and a new message reuses the
+ * visibility of every action object that didn't change instead of checking all of them again.
+ */
+const visibilityInputsByReportID = new Map<string, ReportVisibilityInputs>();
+
 /**
  * Builds a report's action-visibility map (keyed by `reportActionID`) from its full set of report
  * actions. Rebuilding the whole map rather than updating individual entries keeps deletions correct:
@@ -28,8 +42,14 @@ function computeReportVisibility(
     currentUserAccountID: number | undefined,
     isSupportTicketReport: boolean,
     isReplacedSupportTicket: boolean,
+    previousInputs: ReportVisibilityInputs | undefined,
+    previousReportVisibility: Record<string, boolean> | undefined,
 ): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
+    const reusableActions =
+        previousReportVisibility && previousInputs?.isSupportTicketReport === isSupportTicketReport && previousInputs.isReplacedSupportTicket === isReplacedSupportTicket
+            ? previousInputs.reportActions
+            : undefined;
 
     for (const [actionID, action] of Object.entries(reportActions)) {
         if (!action) {
@@ -48,7 +68,9 @@ function computeReportVisibility(
             reportVisibility[action.reportActionID] = false;
             continue;
         }
-        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, undefined, isSupportTicketReport);
+        // Onyx keeps the object of every action a write didn't touch, so an unchanged action keeps its visibility.
+        const previousVisibility = reusableActions?.[actionID] === action ? previousReportVisibility?.[actionID] : undefined;
+        reportVisibility[action.reportActionID] = previousVisibility ?? shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, undefined, isSupportTicketReport);
     }
 
     return reportVisibility;
@@ -63,6 +85,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS],
     compute: ([allReportActions, session, allReports, allReportNameValuePairs], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
+            visibilityInputsByReportID.clear();
             return {};
         }
 
@@ -76,10 +99,15 @@ export default createOnyxDerivedValueConfig({
         const isIncremental = !!(reportActionsUpdates ?? reportUpdates ?? reportNameValuePairsUpdates) && !triggeredKeys?.has(ONYXKEYS.SESSION) && !!currentValue;
 
         const result: VisibleReportActionsDerivedValue = isIncremental ? {...currentValue} : {};
+        if (!isIncremental) {
+            visibilityInputsByReportID.clear();
+        }
         const reportIDsToProcess = isIncremental
             ? new Set([
                   ...Object.keys(reportActionsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')),
-                  ...Object.keys(reportUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, '')),
+                  ...Object.keys(reportUpdates ?? {})
+                      .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''))
+                      .filter((reportID) => visibilityInputsByReportID.get(reportID)?.isSupportTicketReport !== isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),
                   ...Object.keys(reportNameValuePairsUpdates ?? {})
                       .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''))
                       .filter((reportID) => isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),
@@ -95,14 +123,23 @@ export default createOnyxDerivedValueConfig({
             if (!reportActions) {
                 hasChanged ||= reportID in result;
                 delete result[reportID];
+                visibilityInputsByReportID.delete(reportID);
                 continue;
             }
 
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            const reportVisibility = computeReportVisibility(reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
             const previousReportVisibility = currentValue?.[reportID];
+            const reportVisibility = computeReportVisibility(
+                reportActions,
+                currentUserAccountID,
+                isSupportTicketReport,
+                isReplacedSupportTicket,
+                visibilityInputsByReportID.get(reportID),
+                previousReportVisibility,
+            );
+            visibilityInputsByReportID.set(reportID, {reportActions, isSupportTicketReport, isReplacedSupportTicket});
 
             // Keep the previous map when nothing changed, so selectors scoped to this report see the same reference.
             if (previousReportVisibility && shallowEqual(previousReportVisibility, reportVisibility)) {

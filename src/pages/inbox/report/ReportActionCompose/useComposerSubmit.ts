@@ -5,11 +5,12 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
 import {createTaskFromMarkdown} from '@libs/actions/Task';
 import {rand64} from '@libs/NumberUtils';
-import {getAllReportActions} from '@libs/ReportActionsUtils';
+import {canHaveOneTransactionThread, getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, generateReportID, isConciergeChatReport} from '@libs/ReportUtils';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
@@ -26,7 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useRoute} from '@react-navigation/native';
 
 import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState} from './ComposerContext';
-import useComposerReportData from './useComposerReportData';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
@@ -48,7 +48,9 @@ function useComposerSubmit(reportID: string) {
     const {scrollOffsetRef} = useActionListContext();
     const {setShowFullHistory} = useConciergeChatHistoryActions();
 
-    const {report, effectiveTransactionThreadReportID} = useComposerReportData(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // Only reports that hold expenses have a one-expense thread, so a chat doesn't read its actions and transactions on every message to look for one.
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReportID(canHaveOneTransactionThread(report) ? reportID : undefined);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const isReportArchived = useReportIsArchived(reportID);
 

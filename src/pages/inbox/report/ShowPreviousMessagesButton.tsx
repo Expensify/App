@@ -7,14 +7,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type ShowPreviousMessagesButtonProps = {
     reportID: string;
-    actionType: ReportAction['actionName'];
 
     /** Whether there are previous messages hidden before the session start */
     hasPreviousMessages: boolean;
@@ -26,7 +24,7 @@ type ShowPreviousMessagesButtonProps = {
     onPress?: () => void;
 };
 
-function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, showFullHistory, onPress}: ShowPreviousMessagesButtonProps) {
+function ShowPreviousMessagesButton({reportID, hasPreviousMessages, showFullHistory, onPress}: ShowPreviousMessagesButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
@@ -37,9 +35,6 @@ function ShowPreviousMessagesButton({reportID, actionType, hasPreviousMessages, 
         return null;
     }
     if (!onPress) {
-        return null;
-    }
-    if (actionType !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return null;
     }
     if (!hasPreviousMessages) {

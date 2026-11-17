@@ -283,6 +283,46 @@ const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | und
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
+/** The offline state and the reports the caches were last built with. */
+let isOfflineAtLastSort: boolean | undefined;
+let reportsAtLastSort: OnyxCollection<Report>;
+
+/**
+ * The reports whose caches a report actions write can change: the reports whose actions or report changed since the last
+ * pass, their child reports, and the parents of a changed one-expense thread. Onyx keeps the object of every member a write
+ * didn't touch, so a reference check finds the changes. Sorting every report on each write cost more than anything else
+ * when a message was sent.
+ */
+function getReportIDsToSort(actions: NonNullable<OnyxCollection<ReportActions>>, previousActions: NonNullable<OnyxCollection<ReportActions>>): Set<string> {
+    const reportIDs = new Set<string>();
+    for (const [key, reportActions] of Object.entries(actions)) {
+        if (reportActions !== previousActions[key]) {
+            reportIDs.add(key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length));
+        }
+    }
+    for (const [key, report] of Object.entries(allReports ?? {})) {
+        if (report !== reportsAtLastSort?.[key]) {
+            reportIDs.add(key.slice(ONYXKEYS.COLLECTION.REPORT.length));
+        }
+    }
+    if (reportIDs.size === 0) {
+        return reportIDs;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- this module maintains the deprecated caches until #66381 moves their readers to the derived value
+    for (const [reportID, transactionThreadReportID] of Object.entries(deprecatedCachedOneTransactionThreadReportIDs)) {
+        if (transactionThreadReportID && reportIDs.has(transactionThreadReportID)) {
+            reportIDs.add(reportID);
+        }
+    }
+    for (const [key, report] of Object.entries(allReports ?? {})) {
+        if (report?.chatReportID && reportIDs.has(report.chatReportID)) {
+            reportIDs.add(key.slice(ONYXKEYS.COLLECTION.REPORT.length));
+        }
+    }
+    return reportIDs;
+}
+
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
 // the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
 Onyx.connectWithoutView({
@@ -291,18 +331,27 @@ Onyx.connectWithoutView({
         if (!actions) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- this module maintains the deprecated caches until #66381 moves their readers to the derived value
+        const previousActions = deprecatedAllReportActions;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedAllReportActions = actions ?? {};
 
-        // Iterate over the report actions to build the sorted report actions objects
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        for (const reportActions of Object.entries(deprecatedAllReportActions)) {
-            const reportID = reportActions[0].split('_').at(1);
-            if (!reportID) {
+        // The offline state decides the one-expense thread of every report, so a change of it sorts them all again.
+        const isOffline = getIsOffline();
+        const reportIDsToSort =
+            previousActions && isOffline === isOfflineAtLastSort
+                ? getReportIDsToSort(actions, previousActions)
+                : Object.keys(actions).map((key) => key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length));
+        isOfflineAtLastSort = isOffline;
+        reportsAtLastSort = allReports;
+
+        for (const reportID of reportIDsToSort) {
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            // A report written without actions has nothing to sort, and an empty entry would tell readers that its actions were loaded.
+            if (!(reportActionsKey in actions)) {
                 continue;
             }
-
-            const reportActionsArray = Object.values(reportActions[1] ?? {});
+            const reportActionsArray = Object.values(actions[reportActionsKey] ?? {});
             let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedAllSortedReportActions[reportID] = sortedReportActions;
@@ -312,7 +361,7 @@ Onyx.connectWithoutView({
             // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself.
             // Cache the result for O(1) lookup in renderItem.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]], getIsOffline());
+            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActionsKey], isOffline);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
 

@@ -53,7 +53,7 @@ jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => ({
         >(),
     }),
 }));
-jest.mock('@pages/inbox/report/ReportActionCompose/useComposerReportData', () => () => ({report: undefined, effectiveTransactionThreadReportID: undefined}));
+jest.mock('@hooks/useTransactionThreadReportID', () => () => ({effectiveTransactionThreadReportID: undefined}));
 jest.mock('@pages/inbox/report/ReportActionCompose/useSidePanelContext', () => () => undefined);
 jest.mock('@libs/actions/Report', () => ({
     addAttachmentWithComment: jest.fn<ReturnType<typeof ReportModule.addAttachmentWithComment>, Parameters<typeof ReportModule.addAttachmentWithComment>>(),
@@ -62,7 +62,7 @@ jest.mock('@libs/actions/Report', () => ({
     setIsComposerFullSize: jest.fn<ReturnType<typeof ReportModule.setIsComposerFullSize>, Parameters<typeof ReportModule.setIsComposerFullSize>>(),
 }));
 jest.mock('@libs/actions/Task', () => ({createTaskFromMarkdown: jest.fn<ReturnType<typeof createTaskFromMarkdown>, Parameters<typeof createTaskFromMarkdown>>(() => false)}));
-jest.mock('@libs/ReportActionsUtils', () => ({getAllReportActions: () => []}));
+jest.mock('@libs/ReportActionsUtils', () => ({canHaveOneTransactionThread: () => false, getAllReportActions: () => []}));
 jest.mock('@libs/ReportUtils', () => ({isConciergeChatReport: () => false, canUserPerformWriteAction: () => true, generateReportID: () => '2'}));
 jest.mock('@libs/NumberUtils', () => ({rand64: () => '3'}));
 jest.mock('@libs/telemetry/activeSpans', () => ({
