@@ -90,7 +90,8 @@ function useRepairExperienceCookie() {
         const prefersClassic = isInBeta === true && shouldUseClassic === true;
         const shouldRepair = !isAgentSession && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
 
-        // Opening Classic leaves this page, so requests still in the queue, such as changes made offline, are sent first
+        // Opening Classic leaves this page, so it waits until queued requests, such as changes made offline, are sent.
+        // Most start responses apply only once the queue is empty, but some reconnects skip the queue.
         if (shouldRepair && (hasQueuedRequests || hasOngoingRequest)) {
             return;
         }
