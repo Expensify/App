@@ -48,7 +48,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 import {pendingDeleteMemberAccountIDsSelector} from '@selectors/ReportMetaData';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ShareButton from './ShareButton';
@@ -83,6 +83,9 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    // State drives the loading UI; the ref blocks repeated share calls before React re-renders.
+    const [isSharing, setIsSharing] = useState(false);
+    const isSharingRef = useRef(false);
 
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(report?.reportID)}`, {selector: pendingDeleteMemberAccountIDsSelector});
@@ -146,9 +149,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const handleShare = () => {
-        if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
+        if (isSharingRef.current || !currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
+
+        // Block repeat taps immediately and keep the lock until the share page is dismissed.
+        isSharingRef.current = true;
+        setIsSharing(true);
 
         if (isTextShared) {
             addComment({
@@ -207,7 +214,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
                 Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
             },
-            () => {},
+            () => {
+                isSharingRef.current = false;
+                setIsSharing(false);
+            },
             fileType,
         );
     };
@@ -303,7 +313,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     </PressableWithoutFeedback>
                 </View>
             </ScrollView>
-            <ShareButton onPress={handleShare} />
+            <ShareButton
+                onPress={handleShare}
+                isLoading={isSharing}
+            />
         </ScreenWrapper>
     );
 }

@@ -56,24 +56,28 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.PREFERRED_EXPORTER,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.path)),
             title: qboConfig?.export?.exporter ?? policyOwner,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
         },
         {
             description: translate('workspace.qbo.date'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.DATE,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.path)),
             title: qboConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qboConfig?.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.OUT_OF_POCKET,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.path)),
             title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.INVOICES,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.path)),
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
@@ -82,6 +86,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             ? [
                   {
                       description: translate('workspace.common.travelBilling'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.TRAVEL_BILLING,
                       onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
                       title: travelPayableAccount?.name,
                       subscribedSettings: [CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
@@ -90,6 +95,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.COMPANY_CARD,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path)),
             brickRoadIndicator: qboConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
@@ -103,6 +109,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.EXPORT_ROW.EXPENSIFY_CARD,
             title: translate('workspace.qbo.accounts.credit_card'),
         },
     ];
@@ -127,6 +134,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qboConfig?.pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={menuItem.sentryLabel}
                         name={menuItem.description}
                         onPress={menuItem?.onPress}
                         value={menuItem.title}

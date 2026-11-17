@@ -214,6 +214,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
          * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
          */
         shouldScrollToEnd?: boolean;
+
+        /** Whether the scroll view moves a focused input into view on Android. Set it to false when the form scrolls to the input itself. */
+        shouldScrollChildToFocus?: boolean;
     };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {

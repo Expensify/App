@@ -161,12 +161,14 @@ function WorkspaceCompanyCardsSettingsPage({
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_FEED_NAME}
                             value={feedName}
                             name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_STATEMENT_CLOSE_DATE}
                                 value={statementCloseDate?.toString()}
                                 name={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                 onPress={navigateToChangeStatementCloseDate}
@@ -176,6 +178,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REIMBURSABLE}
                                 value={reimbursable}
                                 name={translate('workspace.companyCards.reimbursable.title')}
                                 onPress={navigateToChangeReimbursable}
@@ -187,6 +190,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}
                                 switchAccessibilityLabel={translate('workspace.moreFeatures.companyCards.personal')}
+                                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.PERSONAL_LIABILITY_SWITCH}
                                 onToggle={onToggleLiability}
                                 isActive={isPersonal}
                                 disabled={isPending}
@@ -195,6 +199,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         </View>
                         {isDirectFeedType && (
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REFRESH_FEED}
                                 onPress={() => {
                                     if (!isUserValidated) {
                                         verifyAccountAndResume(undefined);
@@ -216,6 +221,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         )}
                         {isCsvFeed && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_IMPORT_SPREADSHEET}
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -232,6 +238,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_REMOVE_FEED}
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

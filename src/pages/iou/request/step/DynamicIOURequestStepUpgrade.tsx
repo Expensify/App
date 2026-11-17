@@ -167,6 +167,7 @@ function DynamicIOURequestStepUpgrade({
                 isASAPSubmitBetaEnabled,
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
+                currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: newPolicy,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`],
@@ -371,6 +372,7 @@ function DynamicIOURequestStepUpgrade({
                     {!!isUpgraded && (
                         <UpgradeConfirmation
                             afterUpgradeAcknowledged={afterUpgradeAcknowledged}
+                            confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_CONFIRMATION_GOT_IT}
                             policyName={createdPolicyName}
                             isCategorizing={isCategorizing}
                             isReporting={isReporting}
@@ -381,6 +383,7 @@ function DynamicIOURequestStepUpgrade({
                         <UpgradeIntro
                             feature={feature}
                             onUpgrade={onUpgrade}
+                            upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.EXPENSE_UPGRADE}
                             buttonDisabled={isOffline}
                             loading={false}
                             isCategorizing={isCategorizing}

@@ -1,38 +1,25 @@
 import {act, fireEvent, render} from '@testing-library/react-native';
 
-import type {FormOnyxValues} from '@components/Form/types';
-
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useOnyx from '@hooks/useOnyx';
 
-import {updateAgentPrompt} from '@libs/actions/Agent';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import EditPromptPage from '@pages/settings/Agents/Fields/DynamicEditPromptPage';
 import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 import {Platform, View} from 'react-native';
-import Onyx from 'react-native-onyx';
 
 import createMock from '../../../utils/createMock';
-import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
-
-let mockSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => void;
-let mockBack: () => void;
-
-jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'home'));
 
 const mockPromptMount = jest.fn();
-const mockPromptProps = jest.fn<void, [{onFocus?: () => void; onBlur?: () => void}]>();
+const mockPromptProps = jest.fn<void, [{onFocus?: () => void; onBlur?: () => void; maxLength?: number}]>();
 
 jest.mock('@pages/settings/Agents/scrollToMultilineInput', () => jest.fn());
 
@@ -86,16 +73,14 @@ jest.mock('@components/ScreenWrapper', () => {
 });
 
 jest.mock('@components/HeaderWithBackButton', () => {
-    function MockHeader({title, onBackButtonPress}: {title: string; onBackButtonPress: () => void}) {
-        mockBack = onBackButtonPress;
+    function MockHeader({title}: {title: string}) {
         return title;
     }
     return MockHeader;
 });
 
 jest.mock('@components/Form/FormProvider', () => {
-    function MockFormProvider({children, onSubmit}: {children: React.ReactNode; onSubmit: typeof mockSubmit}) {
-        mockSubmit = onSubmit;
+    function MockFormProvider({children}: {children: React.ReactNode}) {
         return children;
     }
     return MockFormProvider;
@@ -103,7 +88,7 @@ jest.mock('@components/Form/FormProvider', () => {
 
 jest.mock('@components/Form/InputWrapper', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
-    function MockInputWrapper({inputID, defaultValue, ...props}: {inputID: string; defaultValue?: string; onFocus?: () => void; onBlur?: () => void}) {
+    function MockInputWrapper({inputID, defaultValue, ...props}: {inputID: string; defaultValue?: string; onFocus?: () => void; onBlur?: () => void; maxLength?: number}) {
         mockPromptProps(props);
         useEffect(() => {
             mockPromptMount();
@@ -121,12 +106,9 @@ type EditPromptPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, 
 type EditPromptPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>['navigation'];
 
 const mockRoute = createMock<EditPromptPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockSetParams = jest.fn();
-const mockNavigation = createMock<EditPromptPageNavigation>({setParams: mockSetParams});
+const mockNavigation = createMock<EditPromptPageNavigation>({});
 
 describe('EditPromptPage', () => {
-    beforeAll(() => Onyx.init({keys: ONYXKEYS}));
-
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
@@ -220,40 +202,18 @@ describe('EditPromptPage', () => {
 
         expect(JSON.stringify(toJSON())).toContain('prompt::Old prompt');
     });
-    it.each([false, true])('saves and returns to the resolved agent when mapping arrives before mount: %s', async (mappingExistsOnMount) => {
-        // Given the real agent instructions are saved while a route can still hold the temporary accountID
-        const optimisticAccountID = 7234567890123456;
-        const realAccountID = 13001;
-        const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
-        await Onyx.clear();
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved prompt'},
-            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
-        });
-        mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
-        jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
-        // When the route opens, its mapping may already exist or arrive after mount
+
+    it('allows a prompt longer than a chat comment', () => {
+        // Given the prompt editor, which uses a markdown input that otherwise falls back to the chat comment limit
+        // When the page renders
         render(
             <EditPromptPage
-                route={createMock<EditPromptPageRoute>({params: {accountID: optimisticAccountID}})}
+                route={mockRoute}
                 navigation={mockNavigation}
             />,
         );
-        await act(async () => waitForBatchedUpdates());
-        if (!mappingExistsOnMount) {
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
-                await waitForBatchedUpdates();
-            });
-        }
 
-        // Then route repair, Save and Back all use the same resolved agent
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
-        act(() => mockSubmit({prompt: 'Updated value'}));
-        expect(updateAgentPrompt).toHaveBeenCalledWith(realAccountID, 'Updated value', 'Saved prompt');
-        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
-        jest.mocked(Navigation.goBack).mockClear();
-        act(() => mockBack());
-        expect(Navigation.goBack).toHaveBeenCalledWith(backPath);
+        // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
+        expect(mockPromptProps.mock.lastCall?.[0].maxLength).toBe(CONST.AGENT_PROMPT_MAX_LENGTH);
     });
 });

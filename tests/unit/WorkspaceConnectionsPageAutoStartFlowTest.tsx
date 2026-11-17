@@ -1,7 +1,6 @@
 import {render} from '@testing-library/react-native';
 
 import {openPolicyAccountingPage, openPolicyHRPage} from '@libs/actions/PolicyConnections';
-import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceConnectionsPage from '@pages/workspace/connections/WorkspaceConnectionsPage';
 
@@ -31,6 +30,14 @@ let mockActiveTabKey: string | undefined;
 
 const mockStartIntegrationFlow = jest.fn();
 
+// The screen's `setParams` clears `newConnectionName` and `tab` through react-navigation's state update, which lands in a later
+// render than the synchronous call. The mock therefore only records the requested params. Each test applies them when
+// it wants that state update to land, which is what lets the two orderings below be told apart.
+let mockPendingParams: RouteParams | undefined;
+const mockScreenSetParams = jest.fn((params: RouteParams) => {
+    mockPendingParams = params;
+});
+
 // The real `useFocusEffect` re-runs its callback whenever the callback's identity changes while the screen is focused.
 // `useEffect(cb, [cb])` reproduces exactly that, which is the behaviour the guard under test has to survive.
 jest.mock('@react-navigation/native', () => {
@@ -42,28 +49,21 @@ jest.mock('@react-navigation/native', () => {
             mockUseEffect(callback, [callback]);
         },
         useRoute: () => ({params: mockRouteParams}),
-        useNavigation: () => ({}),
+        useNavigation: () => ({setParams: mockScreenSetParams}),
         useIsFocused: () => true,
     };
 });
 
-// `Navigation.setParams` clears `newConnectionName` through react-navigation's state update, which lands in a later
-// render than the synchronous call. The mock therefore only records the requested params; each test applies them when
-// it wants that state update to land, which is what lets the two orderings below be told apart.
-let mockPendingParams: RouteParams | undefined;
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        setParams: jest.fn((params: RouteParams) => {
-            mockPendingParams = params;
-        }),
         navigate: jest.fn(),
         goBack: jest.fn(),
         isNavigationReady: () => Promise.resolve(),
     },
 }));
 
-/** Lands the pending `Navigation.setParams` update, as a real navigation state change eventually would. */
+/** Lands the pending `setParams` update, as a real navigation state change eventually would. */
 function landPendingParamsUpdate() {
     mockRouteParams = {...mockRouteParams, ...mockPendingParams};
     mockPendingParams = undefined;
@@ -154,7 +154,7 @@ describe('WorkspaceConnectionsPage auto-started connect flow', () => {
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
-        expect(Navigation.setParams).toHaveBeenCalled();
+        expect(mockScreenSetParams).toHaveBeenCalled();
 
         // When anything re-creates `startIntegrationFlow` and re-runs the effect before that clear has landed, which a
         // policy update does. This is the window the guard exists for: `newConnectionName` is still set here.
@@ -220,7 +220,7 @@ describe('WorkspaceConnectionsPage tab from the route', () => {
         await waitForBatchedUpdates();
 
         // Then the param is gone, so Back from a panel finds this page, and the Accounting tab is still selected
-        expect(Navigation.setParams).toHaveBeenCalledWith({tab: undefined});
+        expect(mockScreenSetParams).toHaveBeenCalledWith({tab: undefined});
         expect(mockRouteParams.tab).toBeUndefined();
         expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
     });

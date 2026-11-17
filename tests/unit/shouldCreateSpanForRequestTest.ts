@@ -12,6 +12,26 @@ jest.mock('@sentry/react', () => ({
 }));
 
 describe('shouldCreateSpanForRequest', () => {
+    it.each(['blob:https://new.expensify.com/receipt-id', 'blob:http://localhost:8080/receipt-id', 'blob:null/receipt-id'])('drops local file request spans for %s', (url) => {
+        // Given a browser-local file URL that does not represent network traffic
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the local read does not contribute an HTTP performance span
+        expect(shouldCreateSpan).toBe(false);
+    });
+
+    it('keeps HTTP request spans when blob: appears outside the URL scheme', () => {
+        // Given a real HTTP request whose query contains the blob scheme text
+        const url = 'https://www.expensify.com/api/OpenReport?description=blob:receipt';
+
+        // When tracing decides whether to instrument the request
+        const shouldCreateSpan = shouldCreateSpanForRequest(url);
+
+        // Then the HTTP request remains visible in performance monitoring
+        expect(shouldCreateSpan).toBe(true);
+    });
+
     it('creates a span for the API commands we debug with', () => {
         expect(shouldCreateSpanForRequest('https://www.expensify.com/api/OpenReport?')).toBe(true);
     });

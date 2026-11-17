@@ -34,6 +34,8 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -50,9 +52,11 @@ import variables from '@styles/variables';
 import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -71,6 +75,15 @@ type RouteParams = {
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
     tab?: ConnectionsTab;
+};
+
+const TAB_SENTRY_LABELS: Record<ConnectionsTab, SentryLabel> = {
+    [CONST.TAB.CONNECTIONS.ALL]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ALL,
+    [CONST.TAB.CONNECTIONS.ACCOUNTING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.ACCOUNTING,
+    [CONST.TAB.CONNECTIONS.PEOPLE]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.PEOPLE,
+    [CONST.TAB.CONNECTIONS.RECRUITING]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECRUITING,
+    [CONST.TAB.CONNECTIONS.RECEIPTS]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.RECEIPTS,
+    [CONST.TAB.CONNECTIONS.AI]: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.TAB.AI,
 };
 
 type MergeSetupFlow = {
@@ -115,6 +128,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
+    const navigation = useNavigation<PlatformStackNavigationProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS>>();
     const params = route.params as RouteParams | undefined;
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.connections');
 
@@ -162,14 +176,15 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 
     const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
 
-    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page
+    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page.
+    // This clears it on this page's own route, because this can run while the navigation that opened the page is still in flight.
     const linkedTab = params?.tab;
     useFocusEffect(() => {
         if (!linkedTab) {
             return;
         }
         setLastSelectedTab(linkedTab);
-        Navigation.setParams({tab: undefined});
+        navigation.setParams({tab: undefined});
     });
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
@@ -199,7 +214,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             integrationToDisconnect,
             shouldDisconnectIntegrationBeforeConnecting,
         });
-        Navigation.setParams({
+        navigation.setParams({
             newConnectionName: undefined,
             isIntuitEnterpriseSuite: undefined,
             integrationToDisconnect: undefined,
@@ -213,6 +228,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const tabs: Array<TabSelectorBaseItem<ConnectionsTab>> = visibleTabs.map((tab) => ({
         key: tab,
         title: translate(`workspace.connections.tabs.${tab}`),
+        sentryLabel: TAB_SENTRY_LABELS[tab],
     }));
 
     const searchLabel = translate('workspace.connections.findConnections');

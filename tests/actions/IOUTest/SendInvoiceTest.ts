@@ -885,7 +885,7 @@ describe('actions/SendInvoice', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (allTransactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const transactionValue = Object.values(allTransactions).at(0);
                         expect(transactionValue?.errors).not.toBeUndefined();
                         expect(transactionValue?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);

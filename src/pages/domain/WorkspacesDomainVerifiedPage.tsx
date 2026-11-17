@@ -1,6 +1,7 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -17,6 +18,7 @@ function WorkspacesDomainVerifiedPage({route}: WorkspacesDomainVerifiedPageProps
         <BaseDomainVerifiedPage
             domainAccountID={domainAccountID}
             redirectTo={ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(domainAccountID)}
+            confirmSentryLabel={CONST.SENTRY_LABEL.DOMAIN.VERIFIED_CONFIRM.WORKSPACES}
         />
     );
 }

@@ -78,6 +78,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
             CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
             CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
             CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
             CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
             CONST.REPORT.ACTIONS.TYPE.MOVED,
@@ -170,6 +171,7 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
             CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
+            CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
         ])('does not classify the chat, structural, task, or actionable row %s as a system message', (actionName) => {
             // Given an interactive, structural, or unsupported action
             // When selecting its presentation

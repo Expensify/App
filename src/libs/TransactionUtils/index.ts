@@ -32,9 +32,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, OnyxInputOrEntry, PersonalDetails, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {Comment, UnreportedTransaction, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -56,6 +55,7 @@ import {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 } from './duplicates';
+import {getCurrency, getCreated, getFormattedCreated, isCustomUnitRateIDForP2P, getRateID, isExpenseUnreported} from './fields';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 // eslint-disable-next-line import/no-cycle
@@ -148,10 +148,6 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
 
 function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
-}
-
-function shouldUseCommuterExclusionForDisplay(transaction: OnyxEntry<Transaction>, isPolicyExpenseChat: boolean): boolean {
-    return hasAppliedCommuterExclusion(transaction) && isPolicyExpenseChat;
 }
 
 function getDisplayTransactionWithoutInvalidCommuterExclusion({
@@ -587,17 +583,6 @@ function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, date
 }
 
 /**
- * Return the currency field from the transaction, return the modifiedCurrency if present.
- */
-function getCurrency(transaction: OnyxInputOrEntry<Pick<Transaction, 'modifiedCurrency' | 'currency'>>): string {
-    const currency = transaction?.modifiedCurrency ?? '';
-    if (currency) {
-        return currency;
-    }
-    return transaction?.currency ?? CONST.CURRENCY.USD;
-}
-
-/**
  * Determines if a transaction's convertedAmount should be cleared when moving to a different currency workspace.
  * The convertedAmount is calculated for the source workspace's currency, so it becomes stale when:
  * 1. Source and destination workspace currencies differ, AND
@@ -676,6 +661,15 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
  */
 function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/** Falls back to the expense's own currency while its converted amount is unavailable offline. */
+function getTotalForDisplay(transaction: Transaction, reportCurrency: string | undefined, isFromExpenseReport: boolean): {amount: number; currency: string} {
+    const hasConvertedAmount = transaction.convertedAmount != null;
+    return {
+        amount: hasConvertedAmount ? getConvertedAmount(transaction, isFromExpenseReport) : getAmount(transaction, isFromExpenseReport),
+        currency: hasConvertedAmount ? (reportCurrency ?? getCurrency(transaction)) : getCurrency(transaction),
+    };
 }
 
 /**
@@ -760,18 +754,16 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
 }
 
 /**
- * Return report owner as default attendee
+ * Return report owner as default attendee. `reportOwnerAccountID` is the owner of the report the transaction is on,
+ * which the caller reads so it is told when that report lands.
  */
-function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined, reportOwnerAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
 
-    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-    const report = getReportOrDraftReport({reportID: transaction?.reportID});
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
-    return creatorAccountID;
+    return isExpenseUnreported(transaction) ? currentUserAccountID : reportOwnerAccountID;
 }
 
 /**
@@ -990,22 +982,10 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
     return getCommaSeparatedTagNameWithSanitizedColons(getTag(transaction, tagIndex));
 }
 
-function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
-    return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-}
-
-/**
- * Return the created field from the transaction, return the modifiedCreated if present.
- */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
-    const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
-}
-
 /**
  * Determine whether a transaction is made with an Expensify card.
  */
-function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isExpensifyCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'bank'>>): boolean {
     return transaction?.bank === CONST.EXPENSIFY_CARD.BANK;
 }
 
@@ -1014,6 +994,23 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Pick<Transaction, 'managedCard'>>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the reimbursable value of a transaction can be changed by the user.
+ * Company card transactions use the restriction saved at import so later feed changes don't affect existing expenses.
+ * A boolean locks the expense to that value; null or a missing value means "Do Not Force".
+ */
+function isCardTransactionReimbursableEditable(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'bank' | 'comment'>>): boolean {
+    if (!isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        return false;
+    }
+
+    return typeof transaction?.comment?.forceReimbursable !== 'boolean';
 }
 
 /**
@@ -1381,13 +1378,6 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction.comment?.hold;
 }
 
-/**
- * Check if the customUnitRateID has a value default for P2P distance requests
- */
-function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-}
-
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
 }
@@ -1420,13 +1410,6 @@ function getReservationNights(transaction: OnyxEntry<Transaction>): number {
  */
 function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList?.some((reservation) => reservation.paymentType === 'PAY_AT_HOTEL' || reservation.paymentType === 'PAY_AT_VENDOR');
-}
-
-/**
- * Get custom unit rate (distance rate) ID from the transaction object
- */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
-    return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
 function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
@@ -1685,10 +1668,6 @@ function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fie
     return autoFillableFields.includes(fieldType);
 }
 
-function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
-    return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-}
-
 function isUnreportedTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return isExpenseUnreported(transaction ?? undefined) || transaction?.reportID === '';
 }
@@ -1749,6 +1728,15 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     return transactions.some(
         (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
     );
+}
+
+/**
+ * Whether every expense on the report is still scanning, is a pending card charge, or failed SmartScan with missing
+ * required fields, so there's nothing on the report that can be approved yet. A mixed report stays approvable so one
+ * expense that still needs fixing doesn't block approving the rest.
+ */
+function hasOnlyUnsettledExpenses(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.length > 0 && transactions.every((transaction) => isScanning(transaction) || isPending(transaction) || hasSmartScanFailedWithMissingFields([transaction], report));
 }
 
 /**
@@ -1900,7 +1888,6 @@ export {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     hasAppliedCommuterExclusion,
-    shouldUseCommuterExclusionForDisplay,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     isDistanceExpenseType,
     isFetchingWaypointsFromServer,
@@ -1908,6 +1895,7 @@ export {
     hasPendingDistanceReceiptRegeneration,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransactionReimbursableEditable,
     isDuplicate,
     isPending,
     hasOnlyPendingCardTransactions,
@@ -2006,6 +1994,7 @@ export {
     shouldReuseInitialTransaction,
     willFieldBeAutomaticallyFilled,
     getOriginalAmountForDisplay,
+    getTotalForDisplay,
     getOriginalCurrencyForDisplay,
     getMCCForDisplay,
     hasDisplayableMCC,
@@ -2017,6 +2006,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    hasOnlyUnsettledExpenses,
     isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,

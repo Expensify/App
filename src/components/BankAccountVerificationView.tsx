@@ -66,6 +66,7 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
                         iconWidth={variables.cardPreviewHeight}
                     />
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT_VERIFICATION_VIEW.GO_TO_CONCIERGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.m5, bottomSafeAreaPaddingStyle]}
@@ -99,6 +100,7 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT_VERIFICATION_VIEW.VERIFIED_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.m5, bottomSafeAreaPaddingStyle]}

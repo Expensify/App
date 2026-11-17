@@ -33,12 +33,14 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const sections = [
         {
             description: translate('workspace.accounting.accounts'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.ACCOUNTS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
             subscribedSettings: [CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.xero.trackingCategories'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.TRACKING_CATEGORIES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
             title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
             subscribedSettings: [
@@ -48,6 +50,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.xero.customers'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.CUSTOMERS,
             action: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
             },
@@ -56,6 +59,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.accounting.taxes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.TAXES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
             title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
             subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
@@ -83,6 +87,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                     pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={section.sentryLabel}
                         name={section.description}
                         onPress={section.action}
                         value={section.title}

@@ -5,12 +5,14 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +59,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyErrorChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS, cleanPolicies.find(shouldShowPolicyError)],
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, cleanPolicies.find(shouldShowCustomUnitsError)],
+        [CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR, cleanPolicies.find(shouldShowUKFuelRateTaxError)],
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR, cleanPolicies.find(shouldShowEmployeeListError)],
         [
             CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,

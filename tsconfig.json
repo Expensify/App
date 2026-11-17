@@ -42,6 +42,7 @@
         {"path": "./tsconfig.jest.json"},
         {"path": "./tsconfig.bun.json"},
         {"path": "./tsconfig.node.json"},
+        {"path": "./tsconfig.worker.json"},
         {"path": "./server/victory-chart-renderer"}
     ]
 }

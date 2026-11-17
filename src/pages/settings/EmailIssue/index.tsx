@@ -24,7 +24,6 @@ import {requestEmailUnblock} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -38,7 +37,7 @@ function EmailIssuePage() {
     const {showConfirmModal} = useConfirmModal();
     const isFocused = useIsFocused();
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -55,15 +54,14 @@ function EmailIssuePage() {
 
     // Leave whenever the flag is false while this page is mounted. This covers both a successful unblock
     // (the flag clears, so we dismiss) and landing here via a stale deep link when there was never a failure.
-    // Wait for the account to finish loading first, otherwise a still-loading `false` triggers a spurious redirect.
     // Only leave while this page is on top, so a flag that clears while Concierge is open doesn't close Concierge instead.
     // On a cold deep link this runs before the navigation ref is ready, when goBack() would be a no-op, so wait for it.
     useEffect(() => {
-        if (!isFocused || isLoadingOnyxValue(accountMetadata) || hasEmailDeliveryFailure) {
+        if (!isFocused || hasEmailDeliveryFailure) {
             return;
         }
         Navigation.isNavigationReady().then(() => Navigation.goBack());
-    }, [isFocused, accountMetadata, hasEmailDeliveryFailure]);
+    }, [isFocused, hasEmailDeliveryFailure]);
 
     // The request has finished once isUnblockingEmail falls from true to false. A backend failure still
     // returns 200, so if the flag is still set the unblock did not take. Surface the single generic retry modal.
@@ -124,6 +122,7 @@ function EmailIssuePage() {
             </ScrollView>
             <FixedFooter style={styles.gap3}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.EMAIL_ISSUE.GET_HELP_FROM_CONCIERGE}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => {
                         navigateToConciergeChat({
@@ -141,6 +140,7 @@ function EmailIssuePage() {
                     <Button.Text>{translate('emailIssuePage.getHelpFromConcierge')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.EMAIL_ISSUE.COMPLETED_STEPS}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={isUnblockingEmail}

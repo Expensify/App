@@ -3,10 +3,11 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -139,6 +140,7 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         return (
@@ -152,8 +154,9 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
         );
     }
 
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
-    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
+    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
+    const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
+    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
     return (
         <MultiSelect

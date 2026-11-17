@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 
+import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -45,6 +46,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
             {
                 icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR_EDIT_MENU_UPLOAD_PHOTO,
                 onSelected: () => {
                     openPicker({
                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
@@ -61,6 +63,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
             menuItems.push({
                 icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR_EDIT_MENU_REMOVE_PHOTO,
                 value: null,
                 onSelected: () => {
                     clearError();
@@ -75,6 +78,7 @@ function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAva
                 value: null,
                 icon: icons.Eye,
                 text: translate('avatarWithImagePicker.viewPhoto'),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR_EDIT_MENU_VIEW_PHOTO,
                 onSelected: () => {
                     attachmentContext.setCurrentAttachment({source, originalFileName});
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)));

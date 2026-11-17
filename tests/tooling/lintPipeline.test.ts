@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'bun:test';
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
@@ -26,7 +27,7 @@ import {
 } from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {SEATBELT_TSV_RELATIVE, parseSeatbeltTSV, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
-import {NO_DEPRECATED_RULE_ID, stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
+import {NO_DEPRECATED_RULE_ID, stratifyMessages, stratifyNoDeprecated} from '../../scripts/lint/processors/StratifyNoDeprecated';
 import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
@@ -208,6 +209,32 @@ describe('filterReactCompilerMessages', () => {
         expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: true, cacheable: true})).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
+
+    it('passes unsaved editor text to a custom compiler check', async () => {
+        // Given a file with a compiler-dependent message and unsaved text in the editor
+        const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
+        const sources = new Map([['/tmp/src/file.ts', 'const unsaved = useMemo(() => 1, []);\n']]);
+        const checkedSources: string[] = [];
+
+        // When the filter runs with that text, and again without it
+        await filterReactCompilerMessages(
+            messages,
+            '/tmp',
+            (source) => {
+                checkedSources.push(source);
+                return true;
+            },
+            1,
+            sources,
+        );
+        await filterReactCompilerMessages(messages, '/tmp', (source) => {
+            checkedSources.push(source);
+            return true;
+        });
+
+        // Then the editor wrapper's check compiles what is on screen, and callers without sources still get an empty string
+        expect(checkedSources).toEqual(['const unsaved = useMemo(() => 1, []);\n', '']);
+    });
 });
 
 describe('stratifyMessages', () => {
@@ -238,6 +265,36 @@ describe('stratifyMessages', () => {
     it('leaves other rules alone', () => {
         const messages = [makeMessage({ruleID: 'no-console'})];
         expect(stratifyMessages(messages, 'console.log(1)\n')).toEqual(messages);
+    });
+});
+
+describe('stratifyNoDeprecated', () => {
+    it('reads unsaved editor text instead of the file on disk', async () => {
+        // Given a saved file that uses one deprecated API, and unsaved text that uses another at the same spot
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'stratify-'));
+        const filePath = path.join(directory, 'file.ts');
+        fs.writeFileSync(filePath, 'const x = LegacySheet.absoluteFillObject;\n');
+        const messages = [
+            makeMessage({
+                filePath,
+                ruleID: NO_DEPRECATED_RULE_ID,
+                message: '`absoluteFillObject` is deprecated.',
+                line: 1,
+                column: 11,
+            }),
+        ];
+
+        try {
+            // When the processor runs with the unsaved text, and again without it
+            const unsaved = await stratifyNoDeprecated(messages, new Map([[filePath, 'const x = StyleSheet.absoluteFillObject;\n']]));
+            const saved = await stratifyNoDeprecated(messages);
+
+            // Then the editor gets the API it shows, while `npm run lint` still reads the file
+            expect(unsaved.at(0)?.ruleID).toBe(`${NO_DEPRECATED_RULE_ID}/StyleSheet.absoluteFillObject`);
+            expect(saved.at(0)?.ruleID).toBe(`${NO_DEPRECATED_RULE_ID}/LegacySheet.absoluteFillObject`);
+        } finally {
+            fs.rmSync(directory, {recursive: true, force: true});
+        }
     });
 });
 

@@ -28,7 +28,7 @@ on:
 jobs:
   buildSlice:
     name: Build iOS Slice
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     strategy:
       fail-fast: false
       matrix:
@@ -95,7 +95,7 @@ jobs:
 
   composeXCFramework:
     name: Compose XCFramework
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     needs: [buildSlice]
     strategy:
       fail-fast: false
