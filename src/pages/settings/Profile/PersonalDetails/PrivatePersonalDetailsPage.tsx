@@ -372,6 +372,7 @@ function PrivatePersonalDetailsPage() {
                                 label={translate('common.stateOrProvince')}
                                 aria-label={translate('common.stateOrProvince')}
                                 role={CONST.ROLE.PRESENTATION}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS_STATE_OR_PROVINCE}
                                 value={selectedState}
                                 onValueChange={(value: unknown) => setSelectedState(typeof value === 'string' ? value : '')}
                                 shouldSaveDraft
