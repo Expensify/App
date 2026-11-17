@@ -264,19 +264,40 @@ describe('focusAdjacentShownRow', () => {
         expect(document.activeElement).toBe(firstRow);
     });
 
-    it('stops at the ends of the rows', () => {
+    it('wraps around the ends of the rows like a selection list', () => {
         // Given the focus on the first row
         const {container, firstRow, lastRow} = createRows();
         firstRow.focus();
 
-        // When moving up from the first row and down from the last
+        // When moving up from the first row, and then down from the last
         const movedUp = focusAdjacentShownRow(container, firstRow, -1);
+        const focusedAfterUp = document.activeElement;
         const movedDown = focusAdjacentShownRow(container, lastRow, 1);
 
-        // Then nothing moves, and the button after the rows is left to Tab
-        expect(movedUp).toBe(false);
-        expect(movedDown).toBe(false);
+        // Then the focus goes around to the other end, and the button after the rows is still left to Tab
+        expect(movedUp).toBe(true);
+        expect(focusedAfterUp).toBe(lastRow);
+        expect(movedDown).toBe(true);
         expect(document.activeElement).toBe(firstRow);
+    });
+
+    it('leaves a single row alone', () => {
+        // Given a single row with the focus on it
+        const container = document.createElement('div');
+        const onlyRow = document.createElement('div');
+        onlyRow.tabIndex = 0;
+        onlyRow.setAttribute('role', CONST.ROLE.OPTION);
+        setShown(onlyRow, true);
+        container.append(onlyRow);
+        document.body.appendChild(container);
+        onlyRow.focus();
+
+        // When moving down
+        const moved = focusAdjacentShownRow(container, onlyRow, 1);
+
+        // Then there is nowhere to go, so the key is left to the page
+        expect(moved).toBe(false);
+        expect(document.activeElement).toBe(onlyRow);
     });
 
     it('leaves a control that is not a row alone', () => {
@@ -294,7 +315,7 @@ describe('focusAdjacentShownRow', () => {
 
     it('moves between the rows and the button rows marked under them', () => {
         // Given "Custom date" and "Custom range" buttons marked as rows under the presets, with the focus on the last preset
-        const {container, lastRow, customDateButton} = createRows();
+        const {container, firstRow, lastRow, customDateButton} = createRows();
         const buttonRows = document.createElement('div');
         buttonRows.setAttribute(`data-${CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT}`, 'true');
         const createButtonRow = () => {
@@ -315,14 +336,14 @@ describe('focusAdjacentShownRow', () => {
         const focusedAfterFirstDown = document.activeElement;
         focusAdjacentShownRow(container, customDateRow, 1);
         const focusedAfterSecondDown = document.activeElement;
-        const movedPastEnd = focusAdjacentShownRow(container, customRangeRow, 1);
-        focusAdjacentShownRow(container, customRangeRow, -1);
+        focusAdjacentShownRow(container, customRangeRow, 1);
+        const focusedPastEnd = document.activeElement;
         focusAdjacentShownRow(container, customDateRow, -1);
 
-        // Then the button rows continue the presets, and the unmarked button after them is still left to Tab
+        // Then the button rows continue the presets and wrap to the first one, and the unmarked button after them is still left to Tab
         expect(focusedAfterFirstDown).toBe(customDateRow);
         expect(focusedAfterSecondDown).toBe(customRangeRow);
-        expect(movedPastEnd).toBe(false);
+        expect(focusedPastEnd).toBe(firstRow);
         expect(document.activeElement).toBe(lastRow);
     });
 

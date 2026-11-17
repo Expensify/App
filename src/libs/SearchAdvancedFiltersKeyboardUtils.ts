@@ -57,7 +57,7 @@ function focusFirstShownControl(container: HTMLElement): boolean {
 }
 
 /**
- * Focuses the shown row next to the given one, among the rows of its kind, and stops at the ends. A single line input
+ * Focuses the shown row next to the given one, among the rows of its kind, and wraps around the ends like a selection list. A single line input
  * between the rows, like the amount under "Equal to", is a stop too, since the arrow keys have no lines to move through in it.
  * Button rows go with the rows around them, like "Custom date" under the date presets.
  */
@@ -70,10 +70,8 @@ function focusAdjacentShownRow(container: HTMLElement, row: HTMLElement, step: 1
     const rowsOfKind = findShown(container, `${FILTER_ROW_SELECTOR}, ${BUTTON_ROW_SELECTOR}, input`).filter(
         (element) => isInput || isButtonRow || element instanceof HTMLInputElement || element.matches(BUTTON_ROW_SELECTOR) || element.getAttribute('role') === row.getAttribute('role'),
     );
-    const adjacentIndex = rowsOfKind.indexOf(row) + step;
-    // A negative index would count from the end, so the first row stays put on the up arrow.
-    const adjacentRow = adjacentIndex >= 0 ? rowsOfKind.at(adjacentIndex) : undefined;
-    if (!adjacentRow) {
+    const adjacentRow = getAdjacentRow(rowsOfKind, row, step);
+    if (!adjacentRow || adjacentRow === row) {
         return false;
     }
     adjacentRow.focus();
