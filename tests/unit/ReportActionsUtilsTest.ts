@@ -7802,6 +7802,29 @@ describe('ReportActionsUtils', () => {
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
         });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
+        });
     });
 
     describe('getMccGroupCategoryMessage', () => {
