@@ -1372,6 +1372,8 @@ const translations = {
         },
     },
     insightsPage: {
+        generatingAIInsights: 'Generating AI Insights...',
+        generatingAIInsightsSubtitle: "This shouldn't take more than a minute",
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
         parent: 'Parent',

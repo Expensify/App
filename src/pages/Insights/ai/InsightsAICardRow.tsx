@@ -18,7 +18,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 
 import InsightsAICard from './InsightsAICard';
-import InsightsAICardSkeleton from './InsightsAICardSkeleton';
+import InsightsAILoadingIndicator from './InsightsAILoadingIndicator';
 
 const MAX_CARD_COUNT = 4;
 const CARDS_PER_ROW_ON_MEDIUM_SCREEN = 2;
@@ -33,7 +33,7 @@ type InsightsAICardRowProps = {
     hasFailedToLoad: boolean;
 };
 
-/** Row of AI insight cards, with placeholders while the insights load. */
+/** Keeps the generation status visible until the AI insight cards arrive. */
 function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsAICardRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -44,18 +44,20 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
 
     const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
 
-    const cards = isLoading
-        ? Array.from({length: MAX_CARD_COUNT}, (item, index) => <InsightsAICardSkeleton key={index} />)
-        : (insights ?? [])
-              // The type requires a chip, but insights persisted from older responses have only text, and the card would crash on them
-              .filter((insight) => !!insight.chip)
-              .map((insight) => (
-                  <InsightsAICard
-                      key={insight.id}
-                      insight={insight}
-                      insightsScope={insightsScope}
-                  />
-              ));
+    if (isLoading) {
+        return <InsightsAILoadingIndicator />;
+    }
+
+    const cards = (insights ?? [])
+        // The type requires a chip, but insights persisted from older responses have only text, and the card would crash on them
+        .filter((insight) => !!insight.chip)
+        .map((insight) => (
+            <InsightsAICard
+                key={insight.id}
+                insight={insight}
+                insightsScope={insightsScope}
+            />
+        ));
 
     if (!cards.length) {
         return null;

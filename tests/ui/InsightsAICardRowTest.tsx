@@ -14,8 +14,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
-import type ReactNative from 'react-native';
-
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -24,15 +22,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@components/Search/SearchRouter/useAskConcierge', () => jest.fn());
-jest.mock('@pages/Insights/ai/InsightsAICardSkeleton', () => {
-    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockInsightsAICardSkeleton() {
-        return <MockView testID="InsightsAICardSkeleton" />;
-    }
-    return MockInsightsAICardSkeleton;
-});
-
-const SKELETON_TEST_ID = 'InsightsAICardSkeleton';
+const LOADING_TITLE = 'Generating AI Insights...';
+const LOADING_SUBTITLE = "This shouldn't take more than a minute";
 
 const INSIGHTS_SCOPE: InsightsScope = {
     searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
@@ -66,7 +57,7 @@ const TREND: AIInsight = {
 };
 
 async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = false) {
-    render(
+    const result = render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsAICardRow
                 insights={insights}
@@ -76,6 +67,7 @@ async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = fa
         </ComposeProviders>,
     );
     await waitForBatchedUpdatesWithAct();
+    return result;
 }
 
 describe('InsightsAICardRow', () => {
@@ -90,13 +82,36 @@ describe('InsightsAICardRow', () => {
 
     afterEach(() => Onyx.clear());
 
-    it('shows a placeholder for every card while the insights have not arrived', async () => {
+    it('shows one generation message while the insights have not arrived', async () => {
         // Given the dashboard has no insights yet and nothing went wrong
         // When the row renders
         await renderRow(undefined);
 
-        // Then it shows one placeholder per card the backend can send, so the cards don't pop in
-        expect(screen.getAllByTestId(SKELETON_TEST_ID)).toHaveLength(4);
+        // Then it explains what is loading and how long the user should expect to wait
+        expect(screen.getAllByText(LOADING_TITLE)).toHaveLength(1);
+        expect(screen.getByText(LOADING_SUBTITLE)).toBeOnTheScreen();
+    });
+
+    it('replaces the generation message with cards when insights arrive', async () => {
+        // Given the user is waiting for the AI insights
+        const {rerender} = await renderRow(undefined);
+
+        // When the dashboard receives its generated insights
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+                <InsightsAICardRow
+                    insights={[SPIKE]}
+                    insightsScope={INSIGHTS_SCOPE}
+                    hasFailedToLoad={false}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the loading message disappears and the generated card becomes available
+        expect(screen.queryByText(LOADING_TITLE)).toBeNull();
+        expect(screen.queryByText(LOADING_SUBTITLE)).toBeNull();
+        expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
     });
 
     it('renders nothing when the backend found no insights', async () => {
@@ -113,7 +128,7 @@ describe('InsightsAICardRow', () => {
         // When the row renders
         await renderRow(undefined, true);
 
-        // Then the row is hidden, so the placeholders don't stay forever
+        // Then the row is hidden, so the loading message doesn't stay forever
         expect(screen.toJSON()).toBeNull();
     });
 
@@ -126,6 +141,18 @@ describe('InsightsAICardRow', () => {
 
         // Then the row is hidden instead of loading forever
         expect(screen.toJSON()).toBeNull();
+    });
+
+    it('keeps cached insights visible while offline', async () => {
+        // Given the device is offline but previously generated insights are cached
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+
+        // When the row renders the cached insights
+        await renderRow([SPIKE]);
+
+        // Then the user can still read their insight without a generation message
+        expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
+        expect(screen.queryByText(LOADING_TITLE)).toBeNull();
     });
 
     it('shows the title, summary and a whole-number percentage on each card', async () => {
