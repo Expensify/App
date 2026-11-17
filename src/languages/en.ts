@@ -1394,6 +1394,8 @@ const translations = {
         mostTimeToPay: 'Most time to pay',
         averageDays: 'Average days',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
