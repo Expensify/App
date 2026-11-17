@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 
 import {beginSignIn} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -43,6 +44,7 @@ function ExpiredValidateCodeModal() {
                             {translate('validateCodeModal.expiredCodeDescription')}
                             {translate('validateCodeModal.or')}{' '}
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE_MODAL.EXPIRED_CODE_REQUEST_LINK}
                                 onPress={() => {
                                     beginSignIn(credentials?.login ?? '');
                                     // navigate/goBack no-op from the public /v/ route when it's the stack root (security link opened

@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
@@ -41,6 +42,12 @@ type SearchChartDetails = SearchChartModel & {
     formatValue?: ChartValueFormatter;
 };
 
+/** Keeps a metric's Y-axis ticks on values its labels write differently, so no two ticks repeat a label like half an expense rounded to a whole one */
+const Y_AXIS_TICK_STEPS: Partial<Record<SearchChartMetric, number>> = {
+    [CONST.SEARCH.CHART_METRIC.COUNT]: 1,
+    [CONST.SEARCH.CHART_METRIC.DURATION]: AVERAGE_DURATION_PRECISION_IN_SECONDS,
+};
+
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
 
@@ -53,7 +60,7 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** What the chart plots for each group: the money it totals, or how many expenses it holds. Defaults to the amount. */
+    /** What the chart plots for each group: the money it totals, how many expenses it holds, or how long its reports took. Defaults to the amount. */
     metric?: SearchChartMetric;
 
     /** What a group's count counts, which names it in the tooltip. Defaults to expenses. */
@@ -126,14 +133,22 @@ function SearchChartView({
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
+    // Only an amount is money, so other metrics drop the currency symbol from the axis
+    const isAmountMetric = metric === CONST.SEARCH.CHART_METRIC.AMOUNT;
 
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
-    // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
+    // Axis ticks take the bare number instead, to stay short, and `yAxisTickStep` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
         options?.shouldUseCompactNotation
             ? numberFormat(value, {notation: 'compact', maximumFractionDigits: MAX_COUNT_FRACTION_DIGITS}).replace('K', 'k')
             : formatChartCount(value, countDimension, translate, numberFormat);
-    const formatValue = isCountMetric ? formatCount : undefined;
+    const formatDuration: ChartValueFormatter = (value, options) => DateUtils.formatAverageDuration(value, translate, numberFormat, options?.shouldUseCompactNotation);
+    const valueFormatters: Partial<Record<SearchChartMetric, ChartValueFormatter>> = {
+        [CONST.SEARCH.CHART_METRIC.COUNT]: formatCount,
+        [CONST.SEARCH.CHART_METRIC.DURATION]: formatDuration,
+    };
+    const formatValue = valueFormatters[metric];
+    const yAxisTickStep = Y_AXIS_TICK_STEPS[metric];
 
     // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
     const formatTotal = isCountMetric ? convertToDisplayString : undefined;
@@ -200,7 +215,7 @@ function SearchChartView({
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
     const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
-    const unit = isCountMetric ? undefined : {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
+    const unit = isAmountMetric ? {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency} : undefined;
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     const CHART_VIEW_TO_CHART: Record<ChartView, React.ReactNode> = {
@@ -216,7 +231,7 @@ function SearchChartView({
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
                 countDimension={countDimension}
-                shouldUseWholeNumberTicks={isCountMetric}
+                yAxisTickStep={yAxisTickStep}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
             />
@@ -234,7 +249,7 @@ function SearchChartView({
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
                     countDimension={countDimension}
-                    shouldUseWholeNumberTicks={isCountMetric}
+                    yAxisTickStep={yAxisTickStep}
                 />
             ) : (
                 <LineChart
@@ -250,7 +265,7 @@ function SearchChartView({
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
                     countDimension={countDimension}
-                    shouldUseWholeNumberTicks={isCountMetric}
+                    yAxisTickStep={yAxisTickStep}
                 />
             ),
         [CONST.SEARCH.VIEW.PIE]: (

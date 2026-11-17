@@ -73,4 +73,3 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
 }
 
 export default useSubNavigation;
-export type {SubNavigationActions};
