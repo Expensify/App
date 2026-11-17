@@ -29,7 +29,7 @@ import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDro
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
@@ -138,6 +138,7 @@ function InsightsChartWidget({
             today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             shouldShowRunningTotal,
             countDimension,
+            metric: chart.metric,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
@@ -159,6 +160,7 @@ function InsightsChartWidget({
             <InsightsGroupByDropdown
                 groupBy={filters.groupBy}
                 options={groupByOptions}
+                defaultGroupBy={DEFAULT_INSIGHTS_FILTERS[dashboardID].groupBy}
                 onChange={onGroupByChange}
             />
         ) : null;
@@ -182,6 +184,7 @@ function InsightsChartWidget({
                         ? [
                               {
                                   text: translate('insightsPage.viewOnSpend'),
+                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
                                   icon: icons.Expand,
                                   onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
                                   shouldCallAfterModalHide: true,
@@ -192,6 +195,7 @@ function InsightsChartWidget({
                         ? [
                               {
                                   text: translate('spreadsheet.downloadCSV'),
+                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
                                   icon: icons.Table,
                                   onSelected: downloadCSV,
                                   shouldCallAfterModalHide: true,
@@ -248,6 +252,7 @@ function InsightsChartWidget({
                                               rows={rows}
                                               formatValue={formatValue}
                                               isLoading={isLoading}
+                                              skeletonRowCount={groupBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? Object.keys(CONST.SEARCH.WORKFLOW_STAGES).length : undefined}
                                               onRowPress={openDetails}
                                           />
                                       )

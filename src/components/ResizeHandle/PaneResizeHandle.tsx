@@ -1,4 +1,5 @@
 /** The draggable edge of a right-docked pane (the RHP, the side panel) on web, which relies on DOM pointer capture. */
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetPaneWidth, setPaneWidth} from '@libs/actions/PaneWidth';
@@ -8,13 +9,16 @@ import type {LiveSizeVariable} from '@libs/Navigation/helpers/createLiveSizeVari
 import CONST from '@src/CONST';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
-import type {RefObject} from 'react';
+import type {Ref, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {KeyboardResize} from './useKeyboardResize';
+
 import getDraggedSize from './getDraggedSize';
+import useKeyboardResize from './useKeyboardResize';
 import usePointerDrag from './usePointerDrag';
 
 type Drag = {
@@ -46,10 +50,18 @@ type PaneResizeHandleProps = {
 
     /** Positions the strip that picks up a drag over the pane's left edge. */
     style: StyleProp<ViewStyle>;
+
+    /** The handle's focusable element. */
+    ref?: Ref<HTMLDivElement>;
 };
 
-/** A pane and a modal stacked on it can each mount a handle over one live width, so an idle handle must not clear it while another drags. */
-const lastDragRefByLiveWidth = new Map<LiveSizeVariable, RefObject<Drag | null>>();
+type ResizingHandle = {
+    dragRef: RefObject<Drag | null>;
+    keyboardResizeRef: RefObject<KeyboardResize<null> | null>;
+};
+
+/** A pane and a modal stacked on it can each mount a handle over one live width, so an idle handle must not clear it while another resizes. */
+const lastResizingHandleByLiveWidth = new Map<LiveSizeVariable, ResizingHandle>();
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -68,13 +80,19 @@ const LINE_STYLE: React.CSSProperties = {
     pointerEvents: 'none',
 };
 
-/** Pressing and dragging left widens the pane, a click resets it, and coming near the default snaps onto it. */
-function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liveWidth, style}: PaneResizeHandleProps) {
+/**
+ * Pressing and dragging left widens the pane, a click resets it, and coming near the default snaps onto it.
+ * Focused, the arrow keys step the edge and Enter or Space reset it.
+ */
+function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liveWidth, style, ref}: PaneResizeHandleProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [isHovered, setIsHovered] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [isFocusVisible, setIsFocusVisible] = useState(false);
 
     const dragRef = useRef<Drag | null>(null);
+    const keyboardResizeRef = useRef<KeyboardResize<null> | null>(null);
     const lineRef = useRef<HTMLDivElement>(null);
     const snap = {to: defaultWidth, threshold: CONST.RESIZE_HANDLE.PANE_SNAP_THRESHOLD};
     const reset = () => resetPaneWidth(onyxKey);
@@ -83,6 +101,39 @@ function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liv
     const setLineSnapped = (isSnapped: boolean) => {
         lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RESIZE_HANDLE.PANE_SNAPPED_INDICATOR_WIDTH : CONST.RESIZE_HANDLE.PANE_ACTIVE_INDICATOR_WIDTH}px`);
     };
+
+    /** Stores a width painted by a drag or the arrow keys. Shared, so both save the same way. */
+    const settleWidth = (paintedWidth: number | undefined) => {
+        // Nothing gets saved, so no render follows to clear the live width.
+        if (paintedWidth === undefined || paintedWidth === width) {
+            liveWidth.clear();
+            return;
+        }
+
+        // Dropping the saved width rather than saving the default keeps the pane on the default if the default changes.
+        if (paintedWidth === snap.to) {
+            reset();
+            return;
+        }
+
+        setPaneWidth(onyxKey, paintedWidth);
+    };
+
+    const {getKeyboardHandleProps} = useKeyboardResize<null>({
+        keyboardResizeRef,
+        isDragging: () => !!dragRef.current,
+        readSize: () => width,
+        isLeftEdge: true,
+        getBounds: () => ({min, max}),
+        paintSize: (_, size) => liveWidth.write(size),
+        settleSize: ({size}) => settleWidth(size),
+        onActivate: reset,
+        onShowFocus: () => {
+            lastResizingHandleByLiveWidth.set(liveWidth, {dragRef, keyboardResizeRef});
+            setIsFocusVisible(true);
+        },
+        onBlur: () => setIsFocusVisible(false),
+    });
 
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
@@ -110,7 +161,7 @@ function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liv
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = draggedWidth;
         },
-        onEnd: ({hasMovedPointer, liveWidth: draggedWidth}, event, isRelease) => {
+        onEnd: ({hasMovedPointer, liveWidth: draggedWidth, startWidth}, event, isRelease) => {
             setIsDragging(false);
 
             // A cancelled press or reclaimed capture isn't a click, so only a release resets.
@@ -119,25 +170,14 @@ function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liv
                 return;
             }
 
-            // Nothing gets saved, so no render follows to clear the live width.
-            if (draggedWidth === undefined || draggedWidth === width) {
-                liveWidth.clear();
-                return;
-            }
-
-            // Dropping the saved width rather than saving the default keeps the pane on the default if the default changes.
-            if (draggedWidth === snap.to) {
-                reset();
-                return;
-            }
-
-            setPaneWidth(onyxKey, draggedWidth);
+            settleWidth(draggedWidth ?? startWidth);
         },
     });
 
-    // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag leaves it to the drag.
+    // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag or mid-hold leaves it to the resize.
     useLayoutEffect(() => {
-        if (lastDragRefByLiveWidth.get(liveWidth)?.current) {
+        const lastResizingHandle = lastResizingHandleByLiveWidth.get(liveWidth);
+        if (lastResizingHandle?.dragRef.current || lastResizingHandle?.keyboardResizeRef.current) {
             return;
         }
 
@@ -150,20 +190,27 @@ function PaneResizeHandle({onyxKey, width, bounds: {min, max}, defaultWidth, liv
     return (
         <View style={style}>
             {/* A plain `div` because it relies on DOM pointer capture. */}
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- the separator role comes from getKeyboardHandleProps */}
             <div
+                ref={ref}
+                {...getKeyboardHandleProps(null, {size: width, min, max})}
+                aria-label={translate('common.resizePanel')}
                 style={{...HANDLE_STYLE, ...styles.cursorColResize}}
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => setIsHovered(false)}
                 onPointerDown={(event) => {
-                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
+                    // A held arrow's width is painted but not saved yet, so the drag starts from it and saves it in its place.
+                    const pendingKeyboardWidth = keyboardResizeRef.current?.size;
+                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: pendingKeyboardWidth ?? width, hasMovedPointer: false}))) {
                         return;
                     }
-                    lastDragRefByLiveWidth.set(liveWidth, dragRef);
+                    keyboardResizeRef.current = null;
+                    lastResizingHandleByLiveWidth.set(liveWidth, {dragRef, keyboardResizeRef});
                     setIsDragging(true);
                 }}
                 {...pointerDrag.handlers}
             >
-                {(isHovered || isDragging) && (
+                {(isHovered || isDragging || isFocusVisible) && (
                     <div
                         ref={lineRef}
                         aria-hidden

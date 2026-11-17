@@ -376,5 +376,7 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, update
     return false;
 }
 
-export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, getPersistedLastUpdateID, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
+export {apply, doesClientNeedToBeUpdated, getEffectiveLastUpdateID, getPersistedLastUpdateID, saveUpdateInformation};
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
+export {applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};
