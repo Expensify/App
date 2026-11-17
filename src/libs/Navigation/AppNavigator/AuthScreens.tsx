@@ -3,7 +3,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
 import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
-import HoldEducationalModalManager from '@components/HoldEducationalModalManager';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
@@ -175,7 +174,6 @@ function AuthScreens() {
 
     return (
         <PersonalDetailsByLoginProvider>
-            <HoldEducationalModalManager />
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
             <SubmitIntentDeeplinkHandler />

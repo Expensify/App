@@ -1,12 +1,13 @@
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
-import {showHoldEducationalModal, showRejectEducationalModal} from '@components/HoldEducationalModalManager';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+import useHoldSubmitterEducationalModal from '@hooks/useHoldSubmitterEducationalModal';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
@@ -20,13 +21,14 @@ import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {Location} from '@src/types/utils/Layout';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
 import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -97,10 +99,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const {isOffline} = useNetwork();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const {showHoldSubmitterEducationalModal} = useHoldSubmitterEducationalModal();
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
@@ -407,26 +412,24 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
-    const handleHoldEducationalModal = useCallback(
-        (performHold: () => void, moneyRequestChatReport: OnyxEntry<Report>) => {
-            const shouldShowHoldEducationalModal = isCurrentUserSubmitter(moneyRequestChatReport, currentUserAccountID) || isDM(moneyRequestChatReport);
-            const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-            if (isDismissed) {
+    const handleHoldEducationalModal: ReportActionContextMenu['handleHoldEducationalModal'] = (performHold, moneyRequestChatReport) => {
+        const isChatReportDM = isDM(moneyRequestChatReport);
+        const shouldShowHoldEducationalModal = isCurrentUserSubmitter(moneyRequestChatReport, currentUserAccountID) || isChatReportDM;
+        const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+        if (isDismissed || shouldSuppressPromotionalUI) {
+            performHold();
+        } else if (shouldShowHoldEducationalModal) {
+            showHoldSubmitterEducationalModal({isDM: isChatReportDM}).finally(() => {
+                setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
                 performHold();
-            } else if (shouldShowHoldEducationalModal) {
-                showHoldEducationalModal(() => {
-                    setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
-                    performHold();
-                });
-            } else {
-                showRejectEducationalModal(() => {
-                    dismissRejectUseExplanation();
-                    performHold();
-                });
-            }
-        },
-        [currentUserAccountID, dismissedHoldUseExplanation, dismissedRejectUseExplanation, isOffline],
-    );
+            });
+        } else {
+            showHoldOrRejectEducationalModal().finally(() => {
+                dismissRejectUseExplanation();
+                performHold();
+            });
+        }
+    };
 
     useImperativeHandle(ref, () => ({
         showContextMenu,
