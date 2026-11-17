@@ -790,7 +790,7 @@ describe('handleBulkPayItemSelected', () => {
     });
 
     describe('when nothing is owed on any selected report', () => {
-        const businessAccountItem = {key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, text: 'Pay with business account', icon: () => null};
+        const businessAccountItem = {key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, text: 'Pay with business account', icon: () => null, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL};
 
         it('explains why instead of opening the bank account setup', async () => {
             // Given an admin with no business bank account, so the pay menu only offers to set one up
