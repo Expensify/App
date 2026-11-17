@@ -7,6 +7,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionViolationGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -65,6 +66,17 @@ const cases: ChartGroupByCase[] = [
         expectedIcon: 'CreditCard',
         expectedLabel: 'Travel card',
         expectedFilterQuery: 'cardID:123',
+    },
+    {
+        groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+        item: createMock<TransactionViolationGroupListItemType>({
+            groupedBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+            violation: CONST.VIOLATIONS.MISSING_CATEGORY,
+            formattedViolation: 'Missing category',
+        }),
+        expectedIcon: 'Exclamation',
+        expectedLabel: 'Missing category',
+        expectedFilterQuery: 'violationName:missingCategory',
     },
     {
         groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,

@@ -15,6 +15,7 @@ import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/Re
 
 import {fontScale} from '@styles/typography';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
@@ -72,6 +73,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
                     <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                     <TextLink
                         fontSize={fontScale.micro}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_ACTION_HEADER.REPORT_NAME_LINK}
                         onPress={() => {
                             onPress?.();
                         }}

@@ -59,4 +59,3 @@ function useFocusableRow({
 }
 
 export default useFocusableRow;
-export type {FocusableRow};

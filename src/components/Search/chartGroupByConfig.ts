@@ -151,13 +151,17 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.VIOLATION]: {
         titleIconName: 'Exclamation',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? item.formattedViolation : ''),
-        // Search has no violation type filter, so a clicked violation opens the chart's whole query
-        getFilterQuery: () => '',
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${item.violation}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.PAID_BY]: {
         titleIconName: 'Users',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? (item.formattedPaidBy ?? '') : ''),
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.PAID_BY ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY}:${item.accountID}` : ''),
+    },
+    [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: {
+        titleIconName: 'Calendar',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? item.formattedWorkflowStage : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${item.workflowStage}` : ''),
     },
 };
 
