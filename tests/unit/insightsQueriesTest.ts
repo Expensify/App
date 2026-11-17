@@ -5,6 +5,7 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
 import buildInsightsJsonQuery, {applyInsightsFilters, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
@@ -354,7 +355,12 @@ describe('insightsQueries', () => {
 
         it('saves the selected grouping while querying the one fitted to the date range', () => {
             // Given a quarterly dashboard narrowed to a month, which only offers Day and Week
-            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-03-01', to: '2026-03-31'}, groupBy: CONST.SEARCH.GROUP_BY.QUARTER};
+            const filters: InsightsFilters = {
+                ...FILTERS,
+                date: {from: '2026-03-01', to: '2026-03-31'},
+                groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            };
 
             // When its request is built
             const payload = parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts));
@@ -573,7 +579,7 @@ describe('insightsQueries', () => {
     describe('buildFutureExpensesQueryString', () => {
         it('lists the expenses dated after the as-of day through the end of the date range', () => {
             // Given a dashboard over October in two workspaces, counted through October 8
-            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-10-01', to: '2026-10-31'}, policyIDs: ['policyA', 'policyB']};
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-10-01', to: '2026-10-31'}, policyIDs: ['policyA', 'policyB'], defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY};
 
             // When the Spend page query for the left-out expenses is built
             const query = buildFutureExpensesQueryString(filters, '2026-10-08');

@@ -30,8 +30,8 @@ import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable, isShowingRunningTotal} from '@pages/Insights/insightsGroupByUtils';
+import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, getShownGroupBy, isRunningTotalAvailable, isShowingRunningTotal} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import {doesRangeStartBeforeTracking, getTrackedFrom} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
@@ -132,8 +132,7 @@ function InsightsChartWidget({
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
     const canRunningTotal = isRunningTotalAvailable(filters.date);
-    const isRunningTotalShown = isShowingRunningTotal(filters);
-    const shouldShowRunningTotal = isRunningTotalShown && view === CONST.SEARCH.VIEW.LINE;
+    const shouldShowRunningTotal = isShowingRunningTotal(filters) && view === CONST.SEARCH.VIEW.LINE;
     const today = getInsightsLastDay(asOfDate);
     const trackedFrom = getTrackedFrom(snapshot);
 
@@ -173,7 +172,7 @@ function InsightsChartWidget({
     const groupByControl =
         onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={isRunningTotalShown ? INSIGHTS_RUNNING_TOTAL_GROUP_BY : filters.groupBy}
+                groupBy={getShownGroupBy(filters)}
                 options={groupByOptions}
                 defaultGroupBy={DEFAULT_INSIGHTS_FILTERS[dashboardID].groupBy}
                 onChange={onGroupByChange}

@@ -99,8 +99,8 @@ describe('insightsGroupByUtils', () => {
 
     describe('getQueryGroupBy', () => {
         it('queries the Running total bucket when the date range rules the selection out', () => {
-            // Given a quarterly dashboard moved to last month, which only offers Day and Week
-            const filters: InsightsFilters = {date: {preset: LAST_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD'};
+            // Given a quarterly dashboard defaulting to Running total, moved to last month, which only offers Day and Week
+            const filters: InsightsFilters = {date: {preset: LAST_MONTH}, policyIDs: [], groupBy: QUARTER, groupCurrency: 'USD', defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY};
 
             // When the Group by to query with is picked
             const groupBy = getQueryGroupBy(filters);

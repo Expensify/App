@@ -89,12 +89,22 @@ function isRunningTotalAvailable(date: InsightsFilters['date']): boolean {
     return getInsightsGroupByOptions(date).length > 0;
 }
 
-/** Whether the charts show a Running total: when it's picked, or in place of a picked bucket the date range doesn't offer. The picked bucket stays saved, so it comes back on a range that offers it. */
-function isShowingRunningTotal(filters: InsightsFilters): boolean {
-    if (!isRunningTotalAvailable(filters.date)) {
-        return false;
+/** Returns the grouping the dashboard shows: the picked one when the date range offers it, otherwise the dashboard's default when the range offers that, otherwise the nearest offered bucket. */
+function getShownGroupBy({groupBy, defaultGroupBy, date}: InsightsFilters): InsightsGroupBy {
+    const options = getInsightsGroupByOptions(date);
+    const isOffered = (value: InsightsGroupBy) => (value === INSIGHTS_RUNNING_TOTAL_GROUP_BY ? isRunningTotalAvailable(date) : options.some((option) => option === value));
+    if (isOffered(groupBy)) {
+        return groupBy;
     }
-    return filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY || !getInsightsGroupByOptions(filters.date).some((option) => option === filters.groupBy);
+    if (defaultGroupBy && isOffered(defaultGroupBy)) {
+        return defaultGroupBy;
+    }
+    return getFittingGroupBy(groupBy, options);
+}
+
+/** Whether the charts show a Running total */
+function isShowingRunningTotal(filters: InsightsFilters): boolean {
+    return getShownGroupBy(filters) === INSIGHTS_RUNNING_TOTAL_GROUP_BY;
 }
 
 /** Returns the grouping a running total is plotted at: by day for ranges that offer Day (62 days or less), by month otherwise, or by the finest offered grouping when Month isn't offered either, like Week for This quarter. */
@@ -111,11 +121,9 @@ function getRunningTotalGroupBy(date: InsightsFilters['date']): InsightsTimeGrou
 
 /** Returns the real time bucket the charts are queried with, fitted to the date range. Running total queries a real day/month bucket, so it never reaches the backend as the Running total value. */
 function getQueryGroupBy(filters: InsightsFilters): InsightsTimeGroupBy {
-    if (isShowingRunningTotal(filters)) {
-        return getRunningTotalGroupBy(filters.date);
-    }
-    return getFittingGroupBy(filters.groupBy, getInsightsGroupByOptions(filters.date));
+    const shownGroupBy = getShownGroupBy(filters);
+    return shownGroupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY ? getRunningTotalGroupBy(filters.date) : shownGroupBy;
 }
 
-export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable, isShowingRunningTotal};
+export {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy, getShownGroupBy, isRunningTotalAvailable, isShowingRunningTotal};
 export type {InsightsTimeGroupBy};
