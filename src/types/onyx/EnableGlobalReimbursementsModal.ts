@@ -8,6 +8,10 @@ type EnableGlobalReimbursementsModal = {
     bankCurrency: string;
     /** Whether bulk pay could not pay any of several selected reports, set only by the client so the intro explains it for all of them */
     isPayingMultipleReports?: boolean;
+    /** The names of the reports bulk pay left unpaid while paying others, set only by the client so they are listed before the intro opens */
+    unpaidReportNames?: string[];
+    /** The masked number of the bank account, set with unpaidReportNames so the list can name the account */
+    accountNumber?: string;
 };
 
 export default EnableGlobalReimbursementsModal;

@@ -8,6 +8,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
+import {followGlobalReimbursementsBulkPay} from '@libs/actions/GlobalReimbursementsBulkPay';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import type * as PayMoneyRequestActions from '@libs/actions/IOU/PayMoneyRequest';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
@@ -53,6 +54,18 @@ jest.mock('@hooks/useWiseQuoteConfirmModal', () => ({
 jest.mock('@libs/actions/Wise', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Wise'),
     getWiseQuote: jest.fn(),
+}));
+
+// The modal that lists the unpaid reports shows once the payments have a response, so these tests check what bulk pay hands over to it
+jest.mock('@libs/actions/GlobalReimbursementsBulkPay', () => ({
+    followGlobalReimbursementsBulkPay: jest.fn(),
+}));
+
+// Only the leader tab sends the queued requests, so the tests choose which tab pays
+let mockIsClientTheLeader = true;
+jest.mock('@libs/ActiveClientManager', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/ActiveClientManager'),
+    isClientTheLeader: () => mockIsClientTheLeader,
 }));
 
 let mockShouldConfirmWiseQuote = false;
@@ -131,7 +144,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string, ...params: unknown[]) => (key === 'walletPage.wiseGlobalReimbursementsBulkPayModal.title' ? `${key}(${params.join(',')})` : key),
+        translate: (key: string) => key,
         localeCompare: (first: string, second: string) => first && second,
         formatPhoneNumber: (phone: string) => phone,
     }),
@@ -798,6 +811,7 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     afterEach(async () => {
         mockEnabledBetas = new Set();
         mockShouldConfirmWiseQuote = false;
+        mockIsClientTheLeader = true;
         await Onyx.clear();
     });
 
@@ -812,7 +826,13 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         });
     }
 
-    it('pays the other reports and lists the ones that need global reimbursements in a modal', async () => {
+    function getFollowedBulkPay() {
+        return jest.mocked(followGlobalReimbursementsBulkPay).mock.calls.at(0)?.at(0);
+    }
+
+    const PAID_REPORT_ID = '3';
+
+    it('pays the other reports and hands over the ones that need global reimbursements', async () => {
         // Given one flagged report of a workspace whose account has no global reimbursements, and one flagged report of a workspace whose account has them
 
         // When the user selects bulk Pay
@@ -825,15 +845,27 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // And the selection is cleared, the same as after any bulk pay that paid at least one report
         expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
 
-        // And a single modal lists the skipped report, so the user knows which reports still need global reimbursements
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
-                prompt: `${CONST.DOT_SEPARATOR} Report needing GR`,
-                confirmText: 'walletPage.wiseGlobalReimbursementsIntro.getStarted',
-            }),
-        );
+        // And the skipped report is handed over with the paying account and the payment to wait for, so a backend rejection ends up in the same modal
+        expect(followGlobalReimbursementsBulkPay).toHaveBeenCalledTimes(1);
+        expect(getFollowedBulkPay()).toEqual({
+            bankAccount: {bankAccountID: BANK_ACCOUNT_ID, bankCountry: 'US', bankCurrency: CONST.CURRENCY.USD, accountNumber: 'XXXXXX1234'},
+            pendingReportNames: new Map([[PAID_REPORT_ID, 'Payable report']]),
+            skippedReportNames: ['Report needing GR'],
+            hasPaidReports: false,
+        });
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
+    it('lists the skipped reports right away from a tab that does not send the requests', async () => {
+        // Given the mixed selection from the first test, paid from a tab that isn't the leader, which only queues the requests
+        mockIsClientTheLeader = false;
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then no payment is waited for, because its response arrives in the leader tab, and the paid report is counted right away
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(getFollowedBulkPay()).toEqual(expect.objectContaining({pendingReportNames: new Map(), skippedReportNames: ['Report needing GR'], hasPaidReports: true}));
     });
 
     it('skips a flagged report when the bank account comes without the global reimbursements flag', async () => {
@@ -852,8 +884,8 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
 
-        // And the modal lists the skipped report instead of the backend opening the onboarding after a failed payment
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+        // And the skipped report is handed over instead of the backend opening the onboarding after a failed payment
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual(['Report needing GR']);
     });
 
     it('pays every report and shows no modal when the global reimbursements beta is off', async () => {
@@ -867,6 +899,9 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(2);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+
+        // And the payments aren't followed, so each backend rejection opens the setup as it does for a single report
+        expect(followGlobalReimbursementsBulkPay).not.toHaveBeenCalled();
     });
 
     it('pays a report the backend does not flag for global reimbursements, even from an account without them', async () => {
@@ -880,8 +915,8 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '9'})}));
 
-        // And the modal lists only the flagged report
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+        // And only the flagged report is handed over as skipped
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual(['Report needing GR']);
     });
 
     async function payWithBankAccount(bankAccountID: number) {
@@ -901,10 +936,10 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // When the user picks another account without global reimbursements in the bulk Pay menu
         await payWithBankAccount(OTHER_BANK_ACCOUNT_ID);
 
-        // Then the report is paid from that account and no modal opens, because the flag says nothing about it
+        // Then the report is paid from that account and nothing is skipped, because the flag says nothing about it
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '1'}), methodID: OTHER_BANK_ACCOUNT_ID}));
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual([]);
         expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
     });
 
@@ -918,37 +953,7 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // Then only the domestic report is paid, because the flag describes exactly this account
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '9'})}));
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
-    });
-
-    it('opens the global reimbursements onboarding when the user picks Get started', async () => {
-        // Given a mixed selection and a user who confirms the modal
-        mockShowConfirmModal.mockReturnValueOnce(Promise.resolve({action: ModalActions.CONFIRM}));
-
-        // When the user selects bulk Pay
-        await selectBulkPay();
-
-        // Then the onboarding signal is set for the paying bank account, so the existing intro flow takes over
-        await waitFor(async () => {
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({
-                bankAccountID: BANK_ACCOUNT_ID,
-                bankCountry: 'US',
-                bankCurrency: CONST.CURRENCY.USD,
-            });
-        });
-    });
-
-    it('does not open the onboarding when the user picks Not now', async () => {
-        // Given a mixed selection and a user who dismisses the modal
-
-        // When the user selects bulk Pay
-        await selectBulkPay();
-
-        // Then the onboarding stays closed, because the user chose to set it up later
-        await waitFor(() => {
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        });
-        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual(['Report needing GR']);
     });
 
     it('pays a report of another workspace from the same bank account instead of skipping it', async () => {
@@ -962,14 +967,8 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '5'}), methodID: BANK_ACCOUNT_ID}));
 
-        // And the modal lists the first report, which that account can't pay until it sets up global reimbursements
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
-                prompt: `${CONST.DOT_SEPARATOR} Report needing GR`,
-            }),
-        );
+        // And the first report is handed over under that account, which can't pay it until it sets up global reimbursements
+        expect(getFollowedBulkPay()).toEqual(expect.objectContaining({bankAccount: expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}), skippedReportNames: ['Report needing GR']}));
     });
 
     it('lists a report once when several of its expenses are selected', async () => {
@@ -984,8 +983,8 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then the report appears once in the modal, because it is one report the user has to set up global reimbursements for
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+        // Then the report is handed over once, because it is one report the user has to set up global reimbursements for
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual(['Report needing GR']);
     });
 
     it('falls back to a generic name for a skipped report without a name', async () => {
@@ -995,11 +994,11 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then the modal still lists the report, so the list is never empty
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} common.report`}));
+        // Then the report is still handed over, so the modal list is never empty
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual(['common.report']);
     });
 
-    it('opens the onboarding directly when the only selected report needs global reimbursements', async () => {
+    it('hands over the only selected report with nothing paid next to it', async () => {
         // Given a single selected report that needs global reimbursements
         mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'})];
 
@@ -1010,32 +1009,23 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
 
-        // And the onboarding opens without the modal, the same way paying a single report does, with the copy for one report
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({
-            bankAccountID: BANK_ACCOUNT_ID,
-            bankCountry: 'US',
-            bankCurrency: CONST.CURRENCY.USD,
-            isPayingMultipleReports: false,
-        });
+        // And the report is handed over with nothing paid or pending, so the onboarding opens directly, the same way paying a single report does
+        expect(getFollowedBulkPay()).toEqual(expect.objectContaining({pendingReportNames: new Map(), skippedReportNames: ['Report needing GR'], hasPaidReports: false}));
     });
 
-    it('opens the onboarding directly with the copy for several reports when none of them can be paid', async () => {
+    it('hands over every selected report when none of them can be paid', async () => {
         // Given two selected reports paid from the same bank account that needs global reimbursements
         mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '7', chatReportID: '8'})];
 
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then nothing is paid and the onboarding opens without the modal, because there are no paid reports to report on
+        // Then nothing is paid and both reports are handed over, so the onboarding explains that all the selected reports need it
         expect(payMoneyRequest).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
-
-        // And the onboarding explains that all the selected reports need it
-        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, isPayingMultipleReports: true}));
+        expect(getFollowedBulkPay()).toEqual(expect.objectContaining({skippedReportNames: ['Report needing GR', 'Second report needing GR'], hasPaidReports: false}));
     });
 
-    it('lists the skipped reports only after the Wise quote carousel closes', async () => {
+    it('hands over the skipped reports only once the Wise quotes are confirmed', async () => {
         // Given a report that needs global reimbursements and a payable report whose expenses need a Wise quote
         mockShouldConfirmWiseQuote = true;
         const PAYABLE_REPORT_ID = '3';
@@ -1050,10 +1040,10 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then the carousel opens and nothing is paid yet, while the skipped report waits so the two modals don't stack
+        // Then the carousel opens and nothing is paid or handed over yet, because cancelling the carousel backs out of bulk pay
         expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(followGlobalReimbursementsBulkPay).not.toHaveBeenCalled();
 
         // When the user confirms the quotes and the carousel closes
         await act(async () => {
@@ -1064,10 +1054,10 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
             resolveCarouselClose?.({action: ModalActions.CONFIRM});
         });
 
-        // Then the payable report is paid with its quote, and the modal lists the skipped report
+        // Then the payable report is paid with its quote, and the skipped report is handed over with that payment to wait for
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: PAYABLE_REPORT_ID}), wiseQuoteID: 'quote3'}));
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+        expect(getFollowedBulkPay()).toEqual(expect.objectContaining({pendingReportNames: new Map([[PAYABLE_REPORT_ID, 'Payable report']]), skippedReportNames: ['Report needing GR']}));
     });
 
     it('does not show the modal when no report needs global reimbursements', async () => {
@@ -1077,9 +1067,10 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then the report is paid and no modal interrupts the user
+        // Then the report is paid and nothing is skipped, so no modal interrupts the user unless the backend rejects it
         expect(payMoneyRequest).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(getFollowedBulkPay()?.skippedReportNames).toEqual([]);
     });
 });
 
