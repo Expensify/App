@@ -1826,14 +1826,17 @@ function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, de
         }
         reachedApprovers.add(approver);
 
+        const submittersToFollow = workflowSubmitters;
         const stepEntries = defaultRuleEntries
             .filter(([, rule]) => !isSubmitRule(rule) && getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right === approver)
-            .map(([ruleID, rule]) => ({ruleID, rule, listedWorkflowSubmitters: extractSubmitterEmails(rule).filter((email) => workflowSubmitters.has(email))}))
+            .map(([ruleID, rule]) => ({ruleID, rule, listedWorkflowSubmitters: extractSubmitterEmails(rule).filter((email) => submittersToFollow.has(email))}))
             .filter(({listedWorkflowSubmitters}) => listedWorkflowSubmitters.length > 0);
-        const bestStepEntry = stepEntries.reduce<(typeof stepEntries)[number] | undefined>(
-            (best, entry) => (!best || entry.listedWorkflowSubmitters.length > best.listedWorkflowSubmitters.length ? entry : best),
-            undefined,
-        );
+        let bestStepEntry = stepEntries.at(0);
+        for (const stepEntry of stepEntries) {
+            if (bestStepEntry && stepEntry.listedWorkflowSubmitters.length > bestStepEntry.listedWorkflowSubmitters.length) {
+                bestStepEntry = stepEntry;
+            }
+        }
         if (!bestStepEntry) {
             continue;
         }
@@ -1997,7 +2000,8 @@ function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflow
     let defaultWorkflowSubmitters: Set<string> | undefined;
     for (const rule of canReadDefaultWorkflowFromRules ? Object.values(getDefaultWorkflowRules(rules, defaultApprover)) : []) {
         const ruleSubmitters = extractSubmitterEmails(rule);
-        defaultWorkflowSubmitters = new Set(defaultWorkflowSubmitters ? ruleSubmitters.filter((email) => defaultWorkflowSubmitters?.has(email)) : ruleSubmitters);
+        const previousSubmitters = defaultWorkflowSubmitters;
+        defaultWorkflowSubmitters = new Set(previousSubmitters ? ruleSubmitters.filter((email) => previousSubmitters.has(email)) : ruleSubmitters);
     }
 
     const result: Record<string, string> = {};
