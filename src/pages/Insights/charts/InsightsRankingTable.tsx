@@ -231,29 +231,30 @@ function InsightsRankingTable({
                         />
                     ))}
                 </View>
-                {!!formattedAverage && averageWidthPercent !== undefined && (
-                    // Laid out like the rows, so one unbroken line runs over every bar at the average
-                    <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.pointerEventsNone]}>
-                        <View style={[styles.flex1, styles.mnw0]} />
-                        <View style={styles.insightsRankingTableShareColumn}>
-                            <View style={styles.flex1}>
-                                <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent), styles.pt2]}>
-                                    <View style={styles.insightsRankingTableAveragePill}>
-                                        <Text
-                                            variant="micro"
-                                            style={[styles.noWrap, StyleUtils.getColorStyle(theme.textReversed)]}
-                                        >
-                                            {translate('insightsPage.compare.averageValue', formattedAverage)}
-                                        </Text>
+                {!!formattedAverage &&
+                    averageWidthPercent !== undefined && (
+                        // Laid out like the rows, so one unbroken line runs over every bar at the average
+                        <View style={[StyleSheet.absoluteFill, styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.pointerEventsNone]}>
+                            <View style={[styles.flex1, styles.mnw0]} />
+                            <View style={styles.insightsRankingTableShareColumn}>
+                                <View style={styles.flex1}>
+                                    <View style={[styles.insightsRankingTableAverageLineAnchor(averageWidthPercent), styles.pt2]}>
+                                        <View style={styles.insightsRankingTableAveragePill}>
+                                            <Text
+                                                variant="micro"
+                                                style={[styles.noWrap, StyleUtils.getColorStyle(theme.textReversed)]}
+                                            >
+                                                {translate('insightsPage.compare.averageValue', formattedAverage)}
+                                            </Text>
+                                        </View>
+                                        <InsightsRankingTableAverageLine style={styles.flex1} />
                                     </View>
-                                    <InsightsRankingTableAverageLine style={styles.flex1} />
                                 </View>
                             </View>
+                            <View style={styles.insightsRankingTableNumberColumn} />
+                            <View style={styles.insightsRankingTableNumberColumn} />
                         </View>
-                        <View style={styles.insightsRankingTableNumberColumn} />
-                        <View style={styles.insightsRankingTableNumberColumn} />
-                    </View>
-                )}
+                    )}
             </View>
         </View>
     );

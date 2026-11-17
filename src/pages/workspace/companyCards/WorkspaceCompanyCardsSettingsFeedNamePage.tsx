@@ -2,7 +2,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -89,7 +89,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                 style={styles.defaultModalContainer}
             >
                 <CollapsibleHeaderOnKeyboard>
-                    <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
+                    <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
                     <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
                     </Text>

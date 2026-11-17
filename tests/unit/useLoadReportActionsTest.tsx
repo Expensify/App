@@ -30,7 +30,9 @@ describe('useLoadReportActions', () => {
     // Base test data from your example
     const baseProps = {
         reportID: '6549335221793525',
-        reportActions: [/* your 4 reportActions array here */],
+        reportActions: [
+            /* your 4 reportActions array here */
+        ],
         allReportActionIDs: ['8759152536123291182', '2034215190990675144', '186758379215594799'],
         transactionThreadReportID: undefined,
         hasOlderActions: true,
