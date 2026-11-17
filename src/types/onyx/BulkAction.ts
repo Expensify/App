@@ -10,6 +10,9 @@ type BulkActionState = ValueOf<typeof CONST.BULK_ACTION.STATE>;
 /** Why a bulk bank payment left a report unpaid */
 type BulkPaySkipReason = ValueOf<typeof CONST.BULK_ACTION.SKIP_REASON>;
 
+/** Reports a bulk bank payment left unpaid on purpose, grouped by why. The backend can add a reason the App doesn't know yet. */
+type BulkPaySkippedReportIDs = Partial<Record<BulkPaySkipReason, string[]>>;
+
 /** Bulk actions from Search "Select all" that run on the backend */
 type BulkActionType =
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.APPROVE
@@ -38,12 +41,12 @@ type BulkAction = {
     /** How a bulk payment pays the reports, set when it pays through a bank account instead of marking them as paid */
     paymentType?: PaymentMethodType;
 
-    /** Reports a bank payment left unpaid on purpose, grouped by why, set once it is done. The backend can add a reason the App doesn't know yet. */
-    skippedReportIDs?: Partial<Record<BulkPaySkipReason, string[]>>;
+    /** Reports a bank payment left unpaid on purpose, set once it is done. A backend that only skips reports with nothing to pay saves them as a plain list. */
+    skippedReportIDs?: string[] | BulkPaySkippedReportIDs;
 
     /** Whether Concierge should message the result instead of showing it here */
     shouldSendFromConcierge?: boolean;
 };
 
 export default BulkAction;
-export type {BulkActionType, BulkPaySkipReason};
+export type {BulkActionType, BulkPaySkipReason, BulkPaySkippedReportIDs};
