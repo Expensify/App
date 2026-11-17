@@ -102,4 +102,52 @@ describe('insightsDetailsItem', () => {
         // Then the title reads No merchant, matching the chart's label for that group
         expect(item?.title).toBe('search.noMerchant');
     });
+
+    it('names a dependent tag group by its tag and parents', () => {
+        // Given a second-level tag that depends on a first-level tag
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields the key reads are needed
+        const item = {groupedBy: CONST.SEARCH.GROUP_BY.TAG, tag: 'Krakow', tagLevel: 2, parentTagPath: 'Poland'} as GroupedItem;
+        const queryJSON = buildSearchQueryJSON('type:expense');
+
+        // When the Details panel's URL params are built for it
+        const itemParams = queryJSON && getInsightsDetailsItemParams(item, queryJSON);
+
+        // Then the URL carries the level and parents too, since the same tag on another level or under another parent is a different group
+        expect(itemParams).toEqual({itemKey: 'Krakow', tagLevel: 2, parentTagPath: 'Poland'});
+    });
+
+    it('resolves a dependent tag to its label and a filter on its level and parents', () => {
+        // Given the keys of a second-level tag on a chart grouped by the second tag level
+        // When the panel resolves them
+        const item = resolveInsightsDetailsItem({
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            itemKey: 'Krakow',
+            parentTagPath: 'Poland',
+            tagLevel: 2,
+            member: undefined,
+            dateFnsLocale: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+            translate: translate as never,
+        });
+
+        // Then the title names the parent like the chart's label, and the filter skips Krakow under other parents
+        expect(item).toEqual({title: 'Krakow (Poland)', filterQuery: 'tag:Krakow tagLevel:2 tagParent:Poland'});
+    });
+
+    it('resolves no tag for a level that is not a positive whole number', () => {
+        // Given a tag level that is not a level, as in a hand-edited URL
+        // When the panel resolves it
+        const item = resolveInsightsDetailsItem({
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            itemKey: 'Krakow',
+            tagLevel: Number('foo'),
+            member: undefined,
+            dateFnsLocale: undefined,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the resolver only reads the translation keys it passes
+            translate: translate as never,
+        });
+
+        // Then nothing resolves, so the panel shows the not found page instead of listing every expense with the tag
+        expect(item).toBeUndefined();
+    });
 });

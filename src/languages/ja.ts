@@ -1190,6 +1190,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: '出張用のルールを設定する',
             addFirstReceipt: '最初のレシートを追加する',
             addFirstReceiptSubText: 'レシートをスキャンするか手入力します',
+            addName: '氏名を追加してください',
+            addNameSubText: 'Expensify でチームメイトにあなたを認識してもらいましょう。',
+            downloadApp: 'アプリをダウンロード',
+            downloadAppSubText: '領収書をスキャンして経費を提出し、外出先でもレポートを承認できます。',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -1213,6 +1217,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `タグレベル ${level}`,
+        tagLevelLabel: 'タグレベル',
+        parent: '親',
+        shareOfTotal: '全体に占める割合（％）',
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
@@ -1235,10 +1243,16 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: '全利用者の平均',
             allMerchantAverage: '全加盟店の平均',
             allCategoryAverage: '全カテゴリ平均',
+            tagAverage: 'タグ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
+            allViolationAverage: 'すべての違反の平均',
+            noChange: '変更なし',
+            percentChange: '％ 変化',
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        futureExpensesNotShown: (amount: string) => `非表示：将来の経費に${amount}あります。`,
+        violationsTrackedFrom: (date: string) => `違反は${date}から追跡されます。`,
         upsellState: {
             title: 'より多くのインサイトを得るには Control にアップグレードしてください',
             subtitle: '経費ポリシー順守の傾向を追跡し、違反を繰り返すユーザーにフラグを付けます。',
@@ -1260,6 +1274,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        share: 'シェア割合',
         averageDays: '平均日数',
     },
     allSettingsScreen: {
@@ -1825,6 +1840,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
+        someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
@@ -2060,6 +2076,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} レポート`,
             };
         },
+        payViaABA: 'ABA で支払う',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} はAUDの銀行口座をお持ちではありません。口座を追加してもらい、もう一度お試しください。`,
+        submittersMissingABADepositAccount: '1 人以上の申請者が AUD 銀行口座を登録していません。口座を追加するよう依頼してから、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
@@ -2386,6 +2405,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新しい連絡方法',
         goBackContactMethods: '連絡方法に戻る',
+        integrationServerLogin: {
+            title: '連携',
+            description: 'Integration Server API に使用されます。',
+            removeDescription: 'このログインを削除すると、Integration Server API のアクセスが取り消されます。',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `${partnerName} 連携に使用されます。`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `このログインを削除すると、${partnerName} 連携のアクセスが取り消されます。`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'これは現在のデフォルトの連絡方法です。会社により、これを削除または変更することは制限されています。',
     },
     pronouns: {
@@ -4213,7 +4239,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
-            hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
             cannotIncludeCommaOrSemicolon: '名前にコンマまたはセミコロンを含めることはできません',
             incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `使用可能な形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
@@ -4401,7 +4426,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             lastName: '有効な姓を入力してください',
             noDefaultDepositAccountOrDebitCardAvailable: 'デフォルトの入金口座またはデビットカードを追加してください',
             validationAmounts: '入力した検証用金額が正しくありません。銀行明細書をもう一度確認してから、再度お試しください。',
-            fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
             deletePaymentBankAccount: 'この銀行口座は Expensify カードの支払いに使用されているため、削除できません。この口座を削除したい場合は、Concierge までご連絡ください。',
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
@@ -10980,6 +11004,7 @@ ${reportName}`,
             insights: 'インサイト',
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
+            topTags: '人気のタグ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
             travel: '出張',
@@ -11131,6 +11156,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'まもなく';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '2週間後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '1週間後';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
+                        : '同意の有効期限が切れる前にカード接続を再接続してください。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> さん、` : '';
+                    return `${intro}<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {

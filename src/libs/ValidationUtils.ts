@@ -433,13 +433,6 @@ function isValidDisplayName(name: string): boolean {
 }
 
 /**
- * Checks that the provided legal name doesn't contain special characters
- */
-function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
-}
-
-/**
  * Checks that the provided name on card does not contain HTML-like tags (e.g. `<script>`).
  * Lone `<` or `>` characters are allowed; the backend sanitizes the value before embossing.
  */
@@ -946,7 +939,6 @@ export {
     isValidCompanyName,
     isValidNameOnCard,
     isValidDisplayName,
-    isValidLegalName,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
