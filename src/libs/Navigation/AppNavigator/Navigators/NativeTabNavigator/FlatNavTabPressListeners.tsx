@@ -74,7 +74,8 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
                     return;
                 }
                 pendingSearchNavigation.current = {isPending: false};
-                if (queuedSearchKey) {
+                // A user who left Search for another tab in the meantime is not pulled back to it.
+                if (queuedSearchKey && searchNavigation.isFocused()) {
                     openSpendTab(queuedSearchKey);
                 }
             }),

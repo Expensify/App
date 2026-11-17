@@ -1,7 +1,8 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
+index 5302622..62dc1c3 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-@@ -90,6 +90,24 @@
+@@ -96,6 +96,24 @@ export function NativeBottomTabView({
      });
    };
  
@@ -26,7 +27,7 @@ diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/Nati
    // Native tabs are the source of truth for the selected tab.
    // JS sends a requested tab with the native provenance it was based on.
    // Native replies with the selected tab and its new provenance.
-@@ -117,8 +135,9 @@
+@@ -123,8 +141,9 @@ export function NativeBottomTabView({
      // While a hidden route is focused, native keeps the tab it is drawn in selected. Native reporting that tab is not a
      // request to leave the hidden route, but the user tapping it is, unless that tab is the hidden route's explicit host
      // and shows as selected, where the tap is a repeated selection of the hidden route.
@@ -38,7 +39,7 @@ diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/Nati
        dispatch({
          type: 'CONFIRM_STATE',
          confirmed
-@@ -146,7 +165,7 @@
+@@ -152,7 +171,7 @@ export function NativeBottomTabView({
      }
      // Android re-sends an unchanged request on a re-render and rejects it as repeated, which reports the tab under a
      // focused hidden route. Following it would close the hidden route.
