@@ -75,13 +75,17 @@ describe('Native Pusher.sendEvent', () => {
         expect(captureException).not.toHaveBeenCalled();
     });
 
-    it('handles a trigger rejection after the connected check without retrying', async () => {
-        // Given a ready socket that loses its connection before the native send executes.
+    it.each([
+        ['Cannot trigger event client-userIsTyping because connection is in RECONNECTING state', 'RECONNECTING'],
+        ['Cannot trigger event client-userIsTyping because channel private-report-reportID-123 is in SUBSCRIBE_SENT state', CONST.PUSHER.STATE.CONNECTED],
+        ['Cannot trigger event client-userIsTyping because channel private-report-reportID-456 is in UNSUBSCRIBED state', CONST.PUSHER.STATE.CONNECTED],
+    ])('handles a trigger rejection after the connected check without retrying: %s', async (message, connectionState) => {
+        // Given a ready socket whose connection or channel becomes unavailable before the native send executes.
         await subscribeToTyping();
-        const error = new Error('Cannot trigger event client-userIsTyping because connection is in RECONNECTING state');
+        const error = new Error(message);
         const socket = MockedPusher.getInstance();
         const trigger = jest.spyOn(socket, 'trigger').mockImplementationOnce(() => {
-            socket.connectionState = 'RECONNECTING';
+            socket.connectionState = connectionState;
             return Promise.reject(error);
         });
         const log = jest.spyOn(Log, 'info');
@@ -91,13 +95,14 @@ describe('Native Pusher.sendEvent', () => {
         Pusher.sendEvent(channelName, Pusher.TYPE.USER_IS_TYPING, payload);
         await jest.runAllTimersAsync();
 
-        // Then the rejection is consumed with a diagnostic, not retried with stale typing data.
+        // Then the rejection is reported under one fingerprint regardless of report ID or state, without retrying stale typing data.
         expect(trigger).toHaveBeenCalledTimes(1);
         expect(log).toHaveBeenCalledWith('[Pusher] Failed to send client event, ignoring', false, {eventName: Pusher.TYPE.USER_IS_TYPING, error: String(error)});
         expect(captureException).toHaveBeenCalledTimes(1);
         expect(captureException).toHaveBeenCalledWith(error, {
             level: 'warning',
-            extra: {eventName: Pusher.TYPE.USER_IS_TYPING, connectionState: 'RECONNECTING'},
+            fingerprint: ['pusher-native-client-event-send-failure'],
+            extra: {eventName: Pusher.TYPE.USER_IS_TYPING, connectionState},
         });
     });
 

@@ -439,6 +439,8 @@ function sendEvent<EventName extends PusherEventName>(channelName: string, event
         Log.info('[Pusher] Failed to send client event, ignoring', false, {eventName, error: String(error)});
         Sentry.captureException(error, {
             level: 'warning',
+            // Native rejection messages include report IDs and states, which should not split Sentry issues.
+            fingerprint: ['pusher-native-client-event-send-failure'],
             extra: {eventName, connectionState: socket?.connectionState},
         });
     });
