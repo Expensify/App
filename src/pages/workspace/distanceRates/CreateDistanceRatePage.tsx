@@ -21,6 +21,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -94,6 +95,8 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowCountryAndKind = !isDistanceRateUpgrade && isBetaEnabled(CONST.BETAS.MILEAGE_UI);
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
@@ -111,7 +114,7 @@ function CreateDistanceRatePage({
     const [pickedEuroCountry, setPickedEuroCountry] = useState<Country>();
     const euroCountry = (canPickEuroCountry ? pickedEuroCountry : undefined) ?? getDefaultEuroDistanceRateCountry(policy, countryByIp);
     const country = isEuroWorkspace ? euroCountry : getDistanceRateCountryForCurrency(currency, currencyList);
-    const governmentRateCountry = !isDistanceRateUpgrade && isGovernmentRateCountry(country) ? country : undefined;
+    const governmentRateCountry = shouldShowCountryAndKind && isGovernmentRateCountry(country) ? country : undefined;
     const defaultKind = hasGovernmentRate ? CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
     const kind = governmentRateCountry ? (pickedKind ?? defaultKind) : CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM;
     const isGovernmentKind = kind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT;
@@ -124,7 +127,7 @@ function CreateDistanceRatePage({
 
     // Deep links can open this page before the rates list page has loaded the government reference rates
     const fetchDistanceRates = () => {
-        if (isDistanceRateUpgrade) {
+        if (!shouldShowCountryAndKind) {
             return;
         }
         openPolicyDistanceRatesPage(policyID);
@@ -284,7 +287,7 @@ function CreateDistanceRatePage({
                         style={[styles.mh5, styles.flex1]}
                         addBottomSafeAreaPadding
                     >
-                        {!isDistanceRateUpgrade && (
+                        {shouldShowCountryAndKind && (
                             <>
                                 {canPickEuroCountry ? (
                                     <View style={styles.mhn4}>
@@ -350,7 +353,7 @@ function CreateDistanceRatePage({
                         )}
                         {!isGovernmentKind && (
                             <>
-                                {!isDistanceRateUpgrade && (
+                                {shouldShowCountryAndKind && (
                                     <>
                                         <View style={[styles.sectionDividerLine, styles.mv6]} />
                                         <Text
@@ -389,7 +392,7 @@ function CreateDistanceRatePage({
                                         />
                                     </View>
                                 </View>
-                                {!isDistanceRateUpgrade && (
+                                {shouldShowCountryAndKind ? (
                                     <>
                                         <View style={[styles.sectionDividerLine, styles.mv6]} />
                                         <Text
@@ -399,6 +402,8 @@ function CreateDistanceRatePage({
                                             {translate('workspace.distanceRates.rate')}
                                         </Text>
                                     </>
+                                ) : (
+                                    <View style={styles.mt4} />
                                 )}
                                 <InputWrapper
                                     InputComponent={AmountForm}
