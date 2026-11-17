@@ -770,10 +770,10 @@ describe('AddPersonalBankAccountPage', () => {
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.BANK_ACCOUNT_PERSONAL.getRoute(SUB_PAGE_NAMES.ADDRESS));
         });
 
-        it('keeps the user on the legal name step when the name has a comma', async () => {
-            // Given a new user who typed a comma into their legal last name
+        it('keeps the user on the legal name step when the names have a comma or semicolon', async () => {
+            // Given a new user with a comma or semicolon in each legal name, since the step checks each name on its own
             await renderPageOverTab(settingsTabIndex, SUB_PAGE_NAMES.LEGAL_NAME);
-            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Jane');
+            fireEvent.changeText(screen.getByLabelText('Legal first name'), 'Jane;');
             fireEvent.changeText(screen.getByLabelText('Legal last name'), 'Smith, Jr');
             await waitForBatchedUpdatesWithAct();
 
@@ -781,8 +781,8 @@ describe('AddPersonalBankAccountPage', () => {
             fireEvent.press(screen.getByText('Next'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then the error names the characters to remove, and they stay on the step to fix the name
-            expect(screen.getByText('Name cannot contain a comma or semicolon')).toBeOnTheScreen();
+            // Then both names show the error naming the characters to remove, and they stay on the step to fix them
+            expect(screen.getAllByText('Name cannot contain a comma or semicolon')).toHaveLength(2);
             expect(navigateSpy).not.toHaveBeenCalled();
         });
     });
