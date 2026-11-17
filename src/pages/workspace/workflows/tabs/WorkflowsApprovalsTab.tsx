@@ -277,7 +277,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     ) : (
         <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
             {translate('workflowsPage.addApprovalsDescription')}{' '}
-            <TextLink onPress={navigateToWorkflowSourceSettings}>
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVALS_CONFIGURE_VIA_PROVIDER_LINK}
+                onPress={navigateToWorkflowSourceSettings}
+            >
                 {translate('workflowsPage.configureViaProvider', {
                     provider: workflowSourceName,
                 })}

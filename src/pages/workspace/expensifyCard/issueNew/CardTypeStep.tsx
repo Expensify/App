@@ -1,3 +1,4 @@
+import Icon from '@components/Icon';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
@@ -13,8 +14,11 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -37,6 +41,7 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard']);
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -82,32 +87,54 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>
-                <MenuItem
+                <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_TYPE_PHYSICAL}
-                    icon={illustrations.HandCard}
-                    title={translate('workspace.card.issueNewCard.physicalCard')}
-                    description={translate('workspace.card.issueNewCard.physicalCardDescription')}
-                    shouldShowRightIcon
-                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL)}
-                    displayInDefaultIconColor
-                    iconStyles={[styles.ml3, styles.mr2]}
-                    iconWidth={variables.menuIconSize}
-                    iconHeight={variables.menuIconSize}
-                    wrapperStyle={styles.purposeMenuItem}
-                />
-                <MenuItem
+                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL), session)}
+                    style={styles.purposeMenuItem}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <View style={[styles.popoverMenuIcon, styles.ml3, styles.mr2]}>
+                                <Icon
+                                    src={illustrations.HandCard}
+                                    width={variables.menuIconSize}
+                                    height={variables.menuIconSize}
+                                />
+                            </View>
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('workspace.card.issueNewCard.physicalCard')}</MenuItem.Title>
+                            <MenuItem.Description>{translate('workspace.card.issueNewCard.physicalCardDescription')}</MenuItem.Description>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_TYPE_VIRTUAL}
-                    icon={illustrations.VirtualCard}
-                    title={translate('workspace.card.issueNewCard.virtualCard')}
-                    description={translate('workspace.card.issueNewCard.virtualCardDescription')}
-                    shouldShowRightIcon
-                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL)}
-                    displayInDefaultIconColor
-                    iconStyles={[styles.ml3, styles.mr2]}
-                    iconWidth={variables.menuIconSize}
-                    iconHeight={variables.menuIconSize}
-                    wrapperStyle={styles.purposeMenuItem}
-                />
+                    onPress={callIfAuthenticated(() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL), session)}
+                    style={styles.purposeMenuItem}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <View style={[styles.popoverMenuIcon, styles.ml3, styles.mr2]}>
+                                <Icon
+                                    src={illustrations.VirtualCard}
+                                    width={variables.menuIconSize}
+                                    height={variables.menuIconSize}
+                                />
+                            </View>
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('workspace.card.issueNewCard.virtualCard')}</MenuItem.Title>
+                            <MenuItem.Description>{translate('workspace.card.issueNewCard.virtualCardDescription')}</MenuItem.Description>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             </View>
         </InteractiveStepWrapper>
     );
