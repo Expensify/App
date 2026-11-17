@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
         amount: '金額',
     },
     socials: {
@@ -1259,6 +1264,7 @@ const translations: TranslationDeepObject<typeof en> = {
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1823,6 +1829,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
+        someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
@@ -6961,6 +6968,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
             autoCategorizeNewExpenses: '新しい経費を自動分類する',
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7829,16 +7837,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
-            exactOnline: {
-                comingSoon: '近日公開予定',
-                joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
-                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
-            },
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
                 onWaitlist: '順番待ちリストに登録されています',
+                onWaitlistButton: 'ウェイトリスト登録済み',
                 onTheList: 'リストに登録されています！',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
@@ -8633,6 +8636,7 @@ ${reportName}`,
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を次に変更してください:',
                 },
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
+                createWorkspaceWarning: `ワークスペースを作成できません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
             hr: {
@@ -10917,6 +10921,7 @@ ${reportName}`,
         noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
+        violation: '違反',
         receiptTypeValues: {
             ereceipt: '電子領収書',
             itemized: '明細',
@@ -11131,6 +11136,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'まもなく';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '2週間後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '1週間後';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
+                        : '同意の有効期限が切れる前にカード接続を再接続してください。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> さん、` : '';
+                    return `${intro}<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11815,6 +11843,7 @@ ${reportName}`,
             tagOutOfPolicy: 'タグは無効です',
             overLimitAttendee: '人数上限超過',
             customRules: 'カスタムルール違反',
+            ruleViolation: 'ルール違反',
             taxAmountChanged: '税額が変更されました',
             taxOutOfPolicy: '税率が無効になりました',
             taxRateChanged: '税率を変更しました',

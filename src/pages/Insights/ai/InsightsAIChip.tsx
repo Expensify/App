@@ -7,6 +7,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 
 import InsightsChangeBadge from '@pages/Insights/InsightsChangeBadge';
 
@@ -24,19 +25,32 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {numberFormat} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
+    const {translate, numberFormat} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Clock', 'Flag']);
 
-    const value =
-        chip.unit === CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT
-            ? convertToShortDisplayString(chip.value, chip.currency)
-            : numberFormat(chip.value / 100, {style: 'percent', maximumFractionDigits: 0});
+    let value: string;
+    let neutralIcon = icons.Coins;
+    switch (chip.unit) {
+        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT:
+            value = convertToShortDisplayString(chip.value, chip.currency);
+            break;
+        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT:
+            value = numberFormat(chip.value);
+            neutralIcon = icons.Flag;
+            break;
+        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION:
+            value = DateUtils.formatAverageDuration(chip.value, translate, numberFormat, true);
+            neutralIcon = icons.Clock;
+            break;
+        default:
+            value = numberFormat(chip.value / 100, {style: 'percent', maximumFractionDigits: 0});
+    }
 
     if (chip.type === CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL) {
         return (
             <Badge
                 text={value}
-                icon={icons.Coins}
+                icon={neutralIcon}
                 iconFill={theme.badgeInfoText}
                 badgeStyles={[styles.ml0, styles.alignSelfStart, StyleUtils.getBackgroundAndBorderStyle(theme.badgeInfoBG)]}
                 textStyles={StyleUtils.getColorStyle(theme.badgeInfoText)}

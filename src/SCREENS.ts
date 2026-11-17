@@ -955,6 +955,8 @@ const SCREENS = {
         CURRENCY: 'Workspace_Overview_Currency',
         TIMEZONE: 'Workspace_Overview_Timezone',
         CURRENCY_GOVERNMENT_RATE_COUNTRY: 'Workspace_Overview_Currency_Government_Rate_Country',
+        DYNAMIC_WORKSPACE_CURRENCY: 'Dynamic_Workspace_Currency',
+        DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY: 'Dynamic_Workspace_Currency_Government_Rate_Country',
         DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS: 'Dynamic_Workspace_Overview_Address',
         DYNAMIC_WORKSPACE_OVERVIEW_PLAN: 'Dynamic_Workspace_Overview_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',

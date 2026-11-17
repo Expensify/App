@@ -12,6 +12,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
@@ -23,7 +24,8 @@ import {Platform, Text as RNText, StyleSheet} from 'react-native';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';
 
 type TextProps = RNTextProps &
-    ChildrenProps & {
+    ChildrenProps &
+    WithSentryLabelWhenPressable<'onPress' | 'onLongPress'> & {
         /** The color of the text */
         color?: string;
 
@@ -54,6 +56,8 @@ function Text({
     style = {},
     shouldUseDefaultLineHeight = true,
     ref,
+    sentryLabel,
+    dataSet,
     ...props
 }: TextProps) {
     const theme = useTheme();
@@ -97,6 +101,7 @@ function Text({
             // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
             // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
+            dataSet={sentryLabel ? {sentryLabel, sentryLabelExact: true, ...dataSet} : dataSet}
             {...props}
         >
             {displayedChildren}
