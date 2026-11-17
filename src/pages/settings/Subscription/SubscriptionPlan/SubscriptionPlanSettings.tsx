@@ -408,7 +408,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     </View>
                 </>
             )}
-            <View style={styles.sectionDividerLine} />
+            <View style={[styles.sectionDividerLine, {marginHorizontal: menuItemHorizontalPadding}]} />
             <SaveWithExpensifyRow />
         </View>
     );
