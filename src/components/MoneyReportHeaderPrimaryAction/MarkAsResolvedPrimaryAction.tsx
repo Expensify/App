@@ -26,6 +26,7 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID, isDisabled}: Simpl
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.MARK_AS_RESOLVED}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isDisabled}
             onPress={() => {

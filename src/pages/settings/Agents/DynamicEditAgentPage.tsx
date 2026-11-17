@@ -146,6 +146,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
                     onClose={() => clearAgentNameUpdateError(accountID)}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.NAME}
                         name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
                         value={personalDetails?.displayName}
@@ -157,6 +158,7 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
                     onClose={() => clearAgentPromptUpdateError(accountID)}
                 >
                     <MenuItemFieldHTML
+                        sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.INSTRUCTIONS}
                         name={translate('editAgentPage.instructions')}
                         value={agentPrompt ? Parser.replace(agentPrompt, {disabledRules: ['reportMentions']}) : undefined}
                         characterLimit={CONST.AGENT_PROMPT_LIMIT}
@@ -164,24 +166,28 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
                     />
                 </OfflineWithFeedback>
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.VIEW_HISTORY}
                     title={translate('editAgentPage.viewAgentHistory')}
                     icon={icons.MagnifyingGlass}
                     onPress={handleViewHistoryPress}
                     isDisabled={areActionsDisabled}
                 />
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.CHAT}
                     title={translate('editAgentPage.chatWithAgent')}
                     icon={icons.ChatBubble}
                     onPress={handleChatPress}
                     isDisabled={areActionsDisabled}
                 />
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.COPILOT}
                     title={translate('editAgentPage.copilotIntoAccount')}
                     icon={icons.Users}
                     onPress={handleCopilotPress}
                     isDisabled={areActionsDisabled}
                 />
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.DELETE}
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}

@@ -124,6 +124,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORT_ORDER_FIELD}
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                     value={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}

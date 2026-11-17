@@ -4,6 +4,9 @@ import CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message} from '@src/types/onyx/ReportAction';
 
+// A room that isn't in Onyx, so its name can only come from the map passed by the caller
+const MENTIONED_ROOM_ID = '987654';
+
 type LegacyFields = {
     message?: unknown;
     originalMessage?: unknown;
@@ -136,6 +139,17 @@ describe('getReportActionText', () => {
         expect(getReportActionText(buildCommentAction([buildMessageEntry(html)]))).toBe('Please review');
     });
 
+    it('uses the passed names for rooms mentioned by reportID', () => {
+        // Given a server comment that mentions a room by reportID only
+        const action = buildCommentAction([buildMessageEntry(`hello <mention-report reportID="${MENTIONED_ROOM_ID}"></mention-report>`)]);
+
+        // When converting it to text with the name of that room
+        const text = getReportActionText(action, {[MENTIONED_ROOM_ID]: '#admins'});
+
+        // Then the room name is shown instead of #Hidden
+        expect(text).toBe('hello #admins');
+    });
+
     it('returns an empty string when there is no message', () => {
         expect(getReportActionText(buildCommentAction())).toBe('');
         expect(getReportActionText(undefined)).toBe('');
@@ -145,6 +159,17 @@ describe('getReportActionText', () => {
 describe('getTextFromHtml', () => {
     it('converts html to text', () => {
         expect(getTextFromHtml('Hello world')).toBe('Hello world');
+    });
+
+    it('uses the passed names for rooms mentioned by reportID', () => {
+        // Given server HTML that mentions a room by reportID only
+        const html = `hello <mention-report reportID="${MENTIONED_ROOM_ID}"></mention-report>`;
+
+        // When converting it to text with the name of that room
+        const text = getTextFromHtml(html, undefined, {[MENTIONED_ROOM_ID]: '#admins'});
+
+        // Then the room name is shown instead of #Hidden
+        expect(text).toBe('hello #admins');
     });
 
     it('returns an empty string for empty or missing html', () => {

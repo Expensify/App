@@ -1,6 +1,6 @@
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,12 +40,13 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     // A skinny RHP pushed over a centered wide card gets the same slide-and-fade as the centered cards instead of a full-width slide.
     const isWideRHPContext = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    // A card stacked on a wide one is sized by the modal stack's own screen options instead.
+    const {isFloating: isResizableFloatingRHP} = useResizableSingleRHP();
     const {width: singleRHPWidth} = useSingleRHPWidth();
 
     const getHorizontalIOSInterpolatorProps = (props: StackCardInterpolationProps) => {
         // The resizable single RHP's stack measures a fixed-width box, so the slide distance comes from the dragged width instead.
-        if (isResizableSingleRHP) {
+        if (isResizableFloatingRHP) {
             return withScreenWidth(props, singleRHPWidth);
         }
         // A narrow screen on top of a wide RHP uses only half the width, the other half being transparent, so it slides from there.
@@ -65,7 +66,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
         animation: Animations.SLIDE_FROM_RIGHT,
         gestureDirection: 'horizontal',
         web: {
-            cardStyleInterpolator: isResizableSingleRHP ? enhanceCardStyleInterpolator(cardStyleInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles}) : cardStyleInterpolator,
+            cardStyleInterpolator: isResizableFloatingRHP ? enhanceCardStyleInterpolator(cardStyleInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles}) : cardStyleInterpolator,
             presentation: Presentation.TRANSPARENT_MODAL,
             cardOverlayEnabled: false,
             cardStyle: styles.navigationScreenCardStyle,

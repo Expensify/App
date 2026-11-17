@@ -16,6 +16,7 @@ import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
+import {toTextStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONST from '@src/CONST';
 
@@ -356,7 +357,7 @@ function Composer({
             isMobileSafari() || isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
-            isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
+            isComposerFullSize ? toTextStyle({height: '100%', maxHeight: 'none'}) : undefined,
             textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 

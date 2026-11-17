@@ -41,6 +41,9 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
+    "paid-by": null,
+    "workflow-stage": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -307,6 +310,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -320,6 +324,7 @@ key "key"
       / exported
       / posted
       / withdrawn
+      / workflowStage
       / feed
       / title
       / submitterUserID

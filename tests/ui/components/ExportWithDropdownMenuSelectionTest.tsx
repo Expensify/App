@@ -60,6 +60,7 @@ describe('ExportWithDropdownMenu selection', () => {
             await Onyx.set(ONYXKEYS.LAST_EXPORT_METHOD, preferredMethod ? {[POLICY_ID]: preferredMethod} : {});
             render(
                 <ExportWithDropdownMenu
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     report={report}
                     reportActions={undefined}
                     connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

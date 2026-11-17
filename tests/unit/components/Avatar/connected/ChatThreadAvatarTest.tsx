@@ -72,8 +72,9 @@ jest.mock('@hooks/useLocalize', () =>
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@hooks/usePersonalDetails'),
+    useAllPersonalDetailsWithoutSnapshots: (selector: (personalDetails: PersonalDetailsList) => unknown) => [selector(mockPersonalDetails)],
 }));
 
 jest.mock('@components/Avatar/connected/WorkspaceSubscriptAvatar', () => {

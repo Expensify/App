@@ -230,6 +230,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     return (
         <AnimatedSettlementButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.PAY}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
