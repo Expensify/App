@@ -42,6 +42,7 @@ import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 const ONE_PASSWORD_IGNORE_DATA_KEY = '1p-ignore';
+const LAST_PASS_IGNORE_DATA_KEY = 'lpignore';
 
 function BaseTextInput({
     label = '',
@@ -511,7 +512,11 @@ function BaseTextInput({
                                     }}
                                     {...inputProps}
                                     // React Native Web filters raw data-* props, but emits dataSet entries on the HTML input.
-                                    dataSet={shouldSuppressPasswordManager ? {...inputProps.dataSet, [ONE_PASSWORD_IGNORE_DATA_KEY]: 'true', lpignore: 'true'} : inputProps.dataSet}
+                                    dataSet={
+                                        shouldSuppressPasswordManager
+                                            ? {...inputProps.dataSet, [ONE_PASSWORD_IGNORE_DATA_KEY]: 'true', [LAST_PASS_IGNORE_DATA_KEY]: 'true'}
+                                            : inputProps.dataSet
+                                    }
                                     // Filter out role="presentation" so it doesn't strip the native
                                     // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                     role={role === CONST.ROLE.PRESENTATION ? undefined : role}
