@@ -837,9 +837,6 @@ function MenuItem({
     // A copyable row without a label of its own still opens the copy menu on a long press, so it reports that under the
     // copy label.
     const pressableSentryLabel = sentryLabel ?? (copyable ? CONST.SENTRY_LABEL.MENU_ITEM.COPY_LONG_PRESS : undefined);
-    // A plain boolean can't be matched against the props' accessibility union here: TypeScript would have to check both
-    // values against every label combination too, which it gives up on, so the value gets a literal type.
-    const accessibleProps = shouldBeAccessible ? {accessible: true as const} : {accessible: false as const};
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
@@ -928,7 +925,7 @@ function MenuItem({
                                 accessibilityHint={accessibilityHint}
                                 // The label repeats the title, so a masked title also masks the row that carries the label
                                 forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : undefined}
-                                {...accessibleProps}
+                                accessible={shouldBeAccessible}
                                 accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}

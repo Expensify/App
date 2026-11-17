@@ -126,9 +126,7 @@ const restrictedHeaderImportPatterns = [
 const CAST_TO_SENTRY_LABEL_FILES = [
     'src/components/Button/Button.tsx',
     'src/components/MenuItem/MenuItem.tsx',
-    'src/components/MenuItem/layout/MenuItemRoot.tsx',
     'src/components/Pressable/PressableWithFeedback.tsx',
-    'src/components/Pressable/PressableWithoutFocus.tsx',
     'src/components/PressableWithSecondaryInteraction/index.tsx',
     'src/components/PressableWithSecondaryInteraction/index.native.tsx',
 ];

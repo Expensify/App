@@ -23,14 +23,14 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 
     <PopoverMenu.Content>
         <PopoverMenu.Header>Menu title</PopoverMenu.Header>
-        <PopoverMenu.Item text="Edit" onSelect={...} />
+        <PopoverMenu.Item text="Edit" onSelect={...} sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.EDIT} />
         <PopoverMenu.Separator />
 
         <PopoverMenu.Sub id="more">
-            <PopoverMenu.Sub.Trigger text="More" />
+            <PopoverMenu.Sub.Trigger text="More" sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.MORE} />
             <PopoverMenu.Sub.Content>
                 <PopoverMenu.Sub.BackButton />
-                <PopoverMenu.Item text="Archive" onSelect={...} />
+                <PopoverMenu.Item text="Archive" onSelect={...} sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.ARCHIVE} />
             </PopoverMenu.Sub.Content>
         </PopoverMenu.Sub>
     </PopoverMenu.Content>
@@ -43,9 +43,9 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 
 ### Triggers
 
-- **`<Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
-- **`<SecondaryInteractionTrigger>`** — long-press (native) / right-click (web). Always opens; the framework reserves `event.preventDefault()` for OS-level long-press / context-menu suppression so it cannot double as a consumer gate. Conditional opening means conditionally rendering the trigger or doing the work inside the consumer's `onSecondaryInteraction`. Web anchors at a 1×1 rect at the cursor; native at the pressable's bounding rect.
-- **`<Sub.Trigger>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+- **`<Trigger sentryLabel>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
+- **`<SecondaryInteractionTrigger sentryLabel>`** — long-press (native) / right-click (web). Always opens; the framework reserves `event.preventDefault()` for OS-level long-press / context-menu suppression so it cannot double as a consumer gate. Conditional opening means conditionally rendering the trigger or doing the work inside the consumer's `onSecondaryInteraction`. Web anchors at a 1×1 rect at the cursor; native at the pressable's bounding rect.
+- **`<Sub.Trigger text sentryLabel>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
 - **`<Sub.BackButton text?>` / `useSubBackButton()`** — back row inside `<Sub.Content>`. The wrapper's `text` prop defaults to a localized "Go back" and drives the rendered row label. Self-gates to the active sub-level. The hook takes no params (back buttons stay out of typeahead so a "g" keypress doesn't focus the back button on every drilled-in level) and returns the same shape as `useSubTrigger`.
 
 #### Pressables that consume `PressResponderContext`
@@ -61,8 +61,8 @@ Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder —
 
 All rows except `<Group>` auto-hide outside the active sub-level.
 
-- **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` — synchronous-only).
-- **`<RadioItem text isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
+- **`<Item text sentryLabel onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` — synchronous-only).
+- **`<RadioItem text sentryLabel isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
 - **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
 - **`<Label text>`** — non-interactive labelled row.
 - **`<Separator />`** — horizontal divider.

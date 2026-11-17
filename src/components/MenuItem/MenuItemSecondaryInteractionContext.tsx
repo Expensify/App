@@ -72,7 +72,7 @@ function useMenuItemSecondaryInteractionRegistry() {
     // effect dependency on their side, so a fresh identity every render would re-register on every render
     const [register] = useState<RegisterMenuItemSecondaryInteraction>(() => createSecondaryInteractionRegister(setInteraction));
 
-    return {handler: interaction?.handler, sentryLabel: interaction?.sentryLabel, register};
+    return {interaction, register};
 }
 
 export default MenuItemSecondaryInteractionContext;

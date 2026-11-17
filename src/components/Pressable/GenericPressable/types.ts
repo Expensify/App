@@ -18,7 +18,7 @@ type RequiredAccessibilityLabel =
            * When true, indicates that the view is an accessibility element.
            * By default, all the touchable elements are accessible.
            */
-          accessible?: true | undefined;
+          accessible?: boolean;
 
           /**
            * Specifies the accessibility label for the component

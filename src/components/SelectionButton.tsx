@@ -153,9 +153,6 @@ function SelectionButton({
         onPress(event);
     };
 
-    // TypeScript can't match an optional boolean against both the accessibility and the label unions, so it gets a literal type.
-    const accessibleProps = accessible === false ? {accessible: false as const} : {accessible: true as const};
-
     return (
         <PressableWithFeedback
             testID={testID}
@@ -192,7 +189,7 @@ function SelectionButton({
             aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             accessibilityHint={accessibilityHint}
-            {...accessibleProps}
+            accessible={accessible}
             pressDimmingValue={1}
             wrapperStyle={wrapperStyle}
             sentryLabel={sentryLabel}
