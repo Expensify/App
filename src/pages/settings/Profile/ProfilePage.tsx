@@ -396,6 +396,7 @@ function ProfilePage() {
                                             furtherDetails={detail.furtherDetails}
                                             pressableTestID={detail?.testID}
                                             sentryLabel={detail.sentryLabel}
+                                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                         />
                                     ))}
                                 </MenuItemGroup>

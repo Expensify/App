@@ -132,6 +132,33 @@ describe('getChatFSClass', () => {
         expect(result).toBe(CONST.FULLSTORY.CLASS.UNMASK);
     });
 
+    it('unmasks a chat with a custom agent participant', async () => {
+        // Given a DM whose other participant is flagged as a custom agent, which acts as an Expensify system user like Concierge.
+        const agentAccountID = 99;
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[agentAccountID]: {accountID: agentAccountID, isCustomAgent: true}});
+        await waitForBatchedUpdates();
+        const report = createMock<Report>({participants: {[agentAccountID]: {}, [participantAccountID]: {}}});
+
+        // When Fullstory classifies it.
+        const result = getChatFSClass(report);
+
+        // Then the agent allows the chat to be visible, the same as Concierge.
+        expect(result).toBe(CONST.FULLSTORY.CLASS.UNMASK);
+    });
+
+    it('masks a chat whose participants have personal details but no custom agent', async () => {
+        // Given a DM whose participants are known people, none flagged as a custom agent.
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[participantAccountID]: {accountID: participantAccountID, isCustomAgent: false}});
+        await waitForBatchedUpdates();
+        const report = createMock<Report>({participants: {[participantAccountID]: {}}});
+
+        // When Fullstory classifies it.
+        const result = getChatFSClass(report);
+
+        // Then the chat stays masked, because only Concierge or an agent makes a private chat visible.
+        expect(result).toBe(CONST.FULLSTORY.CLASS.MASK);
+    });
+
     it.each([{}, {participants: {}}])('unmasks a report with no participants (%j)', (fields) => {
         // Given a report without participant data.
         const report = createMock<Report>(fields);
