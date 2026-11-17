@@ -6332,6 +6332,44 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
         });
     });
+
+    describe('isUnreportedTransactionOwnedByCurrentUser', () => {
+        it('returns true for an expense that is not on a managed card, whoever holds the card', () => {
+            // Given an unreported expense that is not on a managed card, which only its owner can see
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: false});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user, even though no card of theirs matches
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for an expense with no managedCard flag', () => {
+            // Given a legacy unreported expense that has no managedCard flag, which means it is not on a managed card
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: undefined});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for a managed card expense when the current user holds the card', () => {
+            // Given an unreported expense on a managed card that the current user holds
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, true)).toBe(true);
+        });
+
+        it('returns false for a managed card expense when another member holds the card', () => {
+            // Given an unreported expense on another member's managed card, which an admin can see on their card feed
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it doesn't belong to the current user, so it isn't opened in their self DM
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(false);
+        });
+    });
 });
 
 describe('getSupersededPendingCardTransactionIDs', () => {
