@@ -15,6 +15,7 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
+/** @deprecated Use KeypadAmountEditor.Symbol or prefixCharacter on AmountFormField.Input for display, or CurrencyPickerButton when the symbol was pressable. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type SymbolButtonProps = {
     /** Symbol of the input */
     symbol: string;
@@ -24,6 +25,7 @@ type SymbolButtonProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
+/** @deprecated Use KeypadAmountEditor.Symbol or prefixCharacter on AmountFormField.Input for display, or CurrencyPickerButton when the symbol was pressable. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, textStyle}: SymbolButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const {translate} = useLocalize();
@@ -32,6 +34,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     return isSymbolPressable ? (
         <Tooltip text={translate('common.selectSymbolOrCurrency')}>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SYMBOL_BUTTON.SELECT_CURRENCY}
                 onPress={onSymbolButtonPress}
                 accessibilityLabel={translate('common.selectSymbolOrCurrency')}
                 role={CONST.ROLE.BUTTON}

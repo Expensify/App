@@ -13,12 +13,6 @@ import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdate
 const REPORT_ID = 'report123';
 const FALLBACK_NAME = 'Fallback Name';
 
-jest.mock('@components/ReportActionAvatars', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View} = require('react-native');
-    return () => <View testID="MockedReportActionAvatars" />;
-});
-
 let mockCapturedGroupChatAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedExpenseReportAvatarProps: Record<string, unknown> = {};
@@ -341,7 +335,7 @@ describe('ReportAvatar (connected)', () => {
             />,
         );
 
-        // Then the always-single wrapper gets only the single container style, dropped inside a horizontal stack like the legacy component
+        // Then the always-single wrapper gets only the single container style, dropped inside a horizontal stack like the other kinds
         expect(screen.getByTestId('MockedTaskReportAvatar')).toBeOnTheScreen();
         expect(mockCapturedTaskReportAvatarProps).toEqual({
             reportID: REPORT_ID,
@@ -366,9 +360,8 @@ describe('ReportAvatar (connected)', () => {
         // When the dispatcher renders it
         render(<ReportAvatar reportID={REPORT_ID} />);
 
-        // Then the room routes to its wrapper instead of ReportActionAvatars
+        // Then the room routes to its own wrapper
         expect(screen.getByTestId('MockedRoomAvatar')).toBeOnTheScreen();
-        expect(screen.queryByTestId('MockedReportActionAvatars')).not.toBeOnTheScreen();
         expect(mockCapturedRoomAvatarProps.reportID).toBe(REPORT_ID);
     });
 
@@ -570,9 +563,8 @@ describe('ReportAvatar (connected)', () => {
         render(<ReportAvatar reportID={REPORT_ID} />);
         await waitForBatchedUpdatesWithAct();
 
-        // Then it routes to the default wrapper instead of ReportActionAvatars
+        // Then it routes to the default wrapper
         expect(screen.getByTestId('MockedDefaultReportAvatar')).toBeOnTheScreen();
-        expect(screen.queryByTestId('MockedReportActionAvatars')).not.toBeOnTheScreen();
         expect(mockCapturedDefaultReportAvatarProps.reportID).toBe(REPORT_ID);
     });
 

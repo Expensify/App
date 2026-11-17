@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONFIG from '@src/CONFIG';
 
@@ -51,12 +52,12 @@ const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
             web: {
                 // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
-                cardStyle: {
+                cardStyle: toViewStyle({
                     ...StyleUtils.getNavigationModalCardStyle(),
                     width: shouldUseNarrowLayout ? NARROW_CARD_SAFE_AREA_WIDTH : sidebarWidth,
                     marginLeft: shouldUseNarrowLayout ? 0 : -sidebarWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
-                },
+                }),
             },
         },
 
@@ -70,7 +71,7 @@ const useSplitNavigatorScreenOptions = (sidebarScreenName?: string) => {
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: centralScreenEnter}),
                 cardStyle: shouldUseNarrowLayout
-                    ? {...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH}
+                    ? toViewStyle({...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH})
                     : {
                           ...themeStyles.h100,
                       },

@@ -36,6 +36,7 @@ function LHNEmptyState() {
                 <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('common.emptyLHN.caughtUp')}</Text>
                 <TextLink
                     onPress={() => setActiveTab(CONST.INBOX_TAB.ALL)}
+                    sentryLabel={CONST.SENTRY_LABEL.LHN.EMPTY_STATE_SEE_ALL_CHATS_LINK}
                     style={[styles.textStrong, styles.mt5, styles.ph4, styles.textAlignCenter]}
                 >
                     {translate('common.emptyLHN.seeAllChats')}

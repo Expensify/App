@@ -5,6 +5,7 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React from 'react';
@@ -22,6 +23,7 @@ function BaseImportOnyxState({onFileRead}: {onFileRead: (file: FileObject) => vo
             {({openPicker}) => {
                 return (
                     <MenuItemSectionRoot
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.IMPORT_ONYX}
                         onPress={() => {
                             openPicker({
                                 onPicked: (data) => onFileRead(data.at(0) ?? {}),

@@ -14,7 +14,7 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText' | 'sentryLabel'> & {subscribedSettings?: string[]};
 
 type MenuItemToRender = MenuItemWithSubscribedSettings & {
     /** Optional hint text passed to the MenuItemWithTopDescription */

@@ -1,3 +1,4 @@
+import releaseQuietly from '@libs/cameraCapture/releaseQuietly';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
@@ -85,16 +86,52 @@ const THUMBNAIL_MAX_WIDTH = 512;
  * Used on native to avoid decoding the full 12MP camera photo on the confirmation page.
  * 256px is sufficient for the confirmation screen preview and decodes ~4x faster than 512px.
  */
-function generateThumbnail(sourceUri: string, maxWidth = THUMBNAIL_MAX_WIDTH): Promise<string | undefined> {
-    return ImageManipulator.manipulate(sourceUri)
-        .resize({width: maxWidth})
+type GenerateThumbnailOptions = {
+    /** Width of the thumbnail, in pixels */
+    maxWidth?: number;
+
+    /**
+     * Checked when the job reaches the front of the queue, so a thumbnail nobody needs anymore (its row scrolled away,
+     * or another caller already made it) is not decoded at all.
+     */
+    shouldSkip?: () => boolean;
+};
+
+/**
+ * Thumbnails are made one at a time. Each one decodes the full-size photo in native memory, and redraws it at full
+ * size first when it has to be rotated upright, before shrinking it. A list of local receipts used to ask for all of its
+ * thumbnails at once (every visible row mounts `useLocalReceiptThumbnail` together, and again after every relaunch since
+ * the cache only lives in memory), which held all of those bitmaps together until iOS terminated the app.
+ */
+let thumbnailQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueThumbnailJob<T>(job: () => Promise<T>): Promise<T> {
+    const result = thumbnailQueue.then(job);
+    // A failed job must not stall the ones queued behind it.
+    thumbnailQueue = result.catch(() => undefined);
+    return result;
+}
+
+/** Frees the full-size decode and the thumbnail bitmap as soon as the file is written, since the garbage collector can't see native memory. */
+function renderThumbnail(sourceUri: string, maxWidth: number): Promise<string> {
+    const manipulatorContext = ImageManipulator.manipulate(sourceUri).resize({width: maxWidth});
+    return manipulatorContext
         .renderAsync()
-        .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
+        .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}).finally(() => releaseQuietly(image)))
         .then((result) => result.uri)
-        .catch((error) => {
-            Log.warn(`Failed to generate thumbnail: ${error}`);
-            return undefined;
-        });
+        .finally(() => releaseQuietly(manipulatorContext));
+}
+
+function generateThumbnail(sourceUri: string, {maxWidth = THUMBNAIL_MAX_WIDTH, shouldSkip}: GenerateThumbnailOptions = {}): Promise<string | undefined> {
+    return enqueueThumbnailJob(() => {
+        if (shouldSkip?.()) {
+            return Promise.resolve(undefined);
+        }
+        return renderThumbnail(sourceUri, maxWidth);
+    }).catch((error) => {
+        Log.warn(`Failed to generate thumbnail: ${error}`);
+        return undefined;
+    });
 }
 
 export type {ImageObject};

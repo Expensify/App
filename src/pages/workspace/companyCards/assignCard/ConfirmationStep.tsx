@@ -206,6 +206,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                     </View>
                     <MenuItemAvatarNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CONFIRM_CARDHOLDER}
                         title={cardholderName}
                         description={cardholderEmail}
                         avatarSource={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
@@ -214,11 +215,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CONFIRM_TRANSACTION_START_DATE}
                         name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
                         value={transactionStartDateTitle}
                     />
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CONFIRM_CARD_NAME}
                         name={translate('workspace.companyCards.cardName')}
                         onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                         value={cardToAssign?.customCardName}
@@ -231,6 +234,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                             errorRowStyles={styles.mv2}
                         >
                             <ButtonDisabledWhenOffline
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ASSIGN_CONFIRM_SUBMIT}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 isLoading={assignCard?.isAssigning}

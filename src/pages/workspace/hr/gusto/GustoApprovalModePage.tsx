@@ -26,6 +26,7 @@ function GustoApprovalModePage({
 
     const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>> = {
         testID: 'GustoApprovalModePage',
+        saveSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.HR.APPROVAL_MODE_SAVE.GUSTO,
         isConnected: isGustoConnected,
         approvalModes: CONST.GUSTO.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? undefined,

@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleSuggestion, Policy, PolicyCategories, Report, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -34,46 +34,25 @@ type TrackMerchantRuleSuggestionParams = {
 
     /** Which levels of a multi-level tag were edited */
     editedTagLevels?: number[];
-
-    /**
-     * Whether the edit was made straight from a list of expenses, rather than from the expense itself. Such an edit
-     * records no offer, because the callout has nowhere to appear at the moment it is made.
-     */
-    isEditedFromExpenseList?: boolean;
 };
 
 /**
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
  *
- * Written optimistically rather than from `successData`, so the offer appears at once, offline included: a queued
- * write has no response to key off until reconnect, and this app works offline. `getMerchantRuleSuggestionRollback`
- * is the failure-side counterpart.
+ * Only the server can tell whether an edit repeats, since it alone sees the user's history, so the record starts
+ * unconfirmed and Auth answers it in `suggestNewRuleCreation_<transactionID>`. Recording here rather than waiting
+ * keeps the workspace and expense checks at the call site, where the data already is, and lets an edit made offline
+ * still offer once its queued write is sent.
  *
  * Edits accumulate per expense until the offer is taken, so one rule can carry category, tag and tax together. Only
  * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
  * who actually sees the callout.
  */
-function trackMerchantRuleSuggestion({
-    transactionID,
-    field,
-    reportID,
-    policy,
-    policyCategories,
-    transaction,
-    parentReport,
-    editedTagLevels,
-    isEditedFromExpenseList = false,
-}: TrackMerchantRuleSuggestionParams) {
+function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, policyCategories, transaction, parentReport, editedTagLevels}: TrackMerchantRuleSuggestionParams) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
     // moment somebody turned Rules on. Control only, matching the rule page the callout leads to, so an edit on a
     // Collect workspace does not pay for a write that could never be shown.
     if (!transactionID || !reportID || !isControlPolicy(policy) || !arePolicyRulesEnabled(policy, policyCategories)) {
-        return;
-    }
-
-    // An offer nothing can show is an offer nobody asked for. Editing from a list of expenses leaves no expense detail
-    // on screen, so the record would sit there unseen and fire on whatever expense the user opened next.
-    if (isEditedFromExpenseList) {
         return;
     }
 
@@ -90,65 +69,48 @@ function trackMerchantRuleSuggestion({
         return;
     }
 
-    // Merged rather than set, so dismissals survive and `editedFields` accumulates. `isRetired` belongs to the offer
-    // being replaced, so it is cleared: a new edit is a new offer.
+    // Merged rather than set, so dismissals survive and `editedFields` accumulates.
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
         transactionID,
-        reportID,
+        reportIDs: {[transactionID]: reportID},
         editedFields: {[transactionID]: {[field]: true}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
         ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, true]))}} : {}),
+        // Editing this expense again asks afresh, so whatever became of its last offer is behind it now.
+        retiredTransactionIDs: {[transactionID]: null},
         seenInReportID: null,
-        isRetired: null,
+        seenTransactionID: null,
     });
+
+    // A fresh edit of this field answers to its own response, so an earlier verdict on it must not stand in for one
+    // until Auth replaces it. Other fields keep theirs, which is what lets an offer earned on category survive
+    // editing the tag.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${transactionID}`, {[field]: false});
 }
 
 /**
- * The rollback for a tracked edit, to sit in an update's `failureData`. A rejected edit puts the old value back, and
- * an offer left behind would seed a rule from a value the expense no longer holds. Forgetting the field is enough:
- * once an expense has none left, it stops offering.
+ * Records what the callout showed and where, which is what makes leaving that report retire the offer.
  *
- * Known limitation: if this field was already tracked from an earlier, successful edit, this still forgets it rather
- * than restoring that earlier state, since the flag carries no history to restore. Narrower than the offline case
- * above, and self-heals on the next edit, so it is left as is.
- *
- * @param editedTagLevels - the levels recorded alongside a tag edit, forgotten with it
- */
-function getMerchantRuleSuggestionRollback(
-    transactionID: string | undefined,
-    field: MerchantRuleSuggestionField,
-    editedTagLevels?: number[],
-): OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION> | undefined {
-    if (!transactionID) {
-        return undefined;
-    }
-
-    return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
-        value: {
-            editedFields: {[transactionID]: {[field]: null}},
-            ...(editedTagLevels?.length ? {editedTagLevels: {[transactionID]: Object.fromEntries(editedTagLevels.map((level) => [level, null]))}} : {}),
-        },
-    };
-}
-
-/**
- * Records the report the callout rendered in, which is what makes leaving that report retire the offer.
+ * The expense is recorded here rather than looked up on the way out, so a verdict landing for another expense while
+ * this callout is on screen cannot redirect the retirement onto an offer nobody has seen.
  *
  * @param reportID - the report hosting the expense detail view the callout appeared on
+ * @param transactionID - the expense the callout offered for
  */
-function markMerchantRuleSuggestionSeen(reportID: string) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {seenInReportID: reportID});
+function markMerchantRuleSuggestionSeen(reportID: string, transactionID: string) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {seenInReportID: reportID, seenTransactionID: transactionID});
 }
 
 /**
  * Hides the callout for this expense for the rest of the session. Other expenses still offer, and a new session
  * offers this one again.
  */
-function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
+function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion, transactionID: string) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
-        dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), suggestion.transactionID])],
+        dismissedTransactionIDs: [...new Set([...(suggestion.dismissedTransactionIDs ?? []), transactionID])],
+        // Cleared so leaving the report does not also retire what the user has already taken away.
+        seenInReportID: null,
+        seenTransactionID: null,
     });
 }
 
@@ -157,19 +119,19 @@ function dismissMerchantRuleSuggestion(suggestion: MerchantRuleSuggestion) {
  * the offer is taken.
  */
 function clearMerchantRuleSuggestionFields(transactionID: string) {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {editedFields: {[transactionID]: null}, editedTagLevels: {[transactionID]: null}});
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+        editedFields: {[transactionID]: null},
+        editedTagLevels: {[transactionID]: null},
+        reportIDs: {[transactionID]: null},
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${transactionID}`, null);
 }
 
-/** Ends the current offer without silencing the expense. Returning shows nothing; editing it again offers afresh. */
-function retireMerchantRuleSuggestion() {
-    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {isRetired: true});
+/**
+ * Ends an expense's offer without silencing the expense. Returning shows nothing, and editing it again offers afresh.
+ */
+function retireMerchantRuleSuggestion(transactionID: string) {
+    Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {retiredTransactionIDs: {[transactionID]: true}});
 }
 
-export {
-    trackMerchantRuleSuggestion,
-    getMerchantRuleSuggestionRollback,
-    dismissMerchantRuleSuggestion,
-    markMerchantRuleSuggestionSeen,
-    retireMerchantRuleSuggestion,
-    clearMerchantRuleSuggestionFields,
-};
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};
