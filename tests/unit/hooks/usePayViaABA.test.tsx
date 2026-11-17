@@ -85,7 +85,7 @@ describe('usePayViaABA', () => {
 
         // When two reports are paid without their held expenses
         const onPaid = jest.fn();
-        act(() => result.current.payReportsViaABA(['123', '456'], policy, {shouldReimburseHeldTransactions: false, onPaid}));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}, {reportID: '456'}], policy, {shouldReimburseHeldTransactions: false, onPaid}));
 
         // Then the ABA file is downloaded for them, with what the billing and onboarding checks need about the current user
         expect(payViaABA).toHaveBeenCalledWith(
@@ -104,7 +104,7 @@ describe('usePayViaABA', () => {
         // Given a payment via ABA
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();
-        act(() => result.current.payReportsViaABA(['123'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
 
         // When the download fails
         const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
@@ -123,12 +123,11 @@ describe('usePayViaABA', () => {
         // Given a report submitted by an employee who hasn't added a bank account the ABA file can pay into
         const employeeAccountID = 2;
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', ownerAccountID: employeeAccountID});
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[employeeAccountID]: {accountID: employeeAccountID, login: 'tom@test.com', displayName: 'Tom Jones'}});
         });
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();
-        act(() => result.current.payReportsViaABA(['123'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123', ownerAccountID: employeeAccountID}], policy));
 
         // When the download fails because they're missing a deposit account
         const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
@@ -147,7 +146,7 @@ describe('usePayViaABA', () => {
         // Given several reports being paid via ABA
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();
-        act(() => result.current.payReportsViaABA(['123', '456'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}, {reportID: '456'}], policy));
 
         // When the download fails because one of their submitters is missing a deposit account
         const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
@@ -169,7 +168,7 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a report is paid via ABA
-        act(() => result.current.payReportsViaABA(['123'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
 
         // Then the user is told their account is locked, since the backend rejects payments from locked accounts
         expect(mockShowLockedAccountModal).toHaveBeenCalled();
@@ -183,7 +182,7 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a report is paid via ABA
-        act(() => result.current.payReportsViaABA(['123'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
 
         // Then they're asked to verify their account first, because the file pays out of the workspace's bank account
         expect(payViaABA).not.toHaveBeenCalled();
@@ -207,7 +206,7 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a report is paid via ABA
-        act(() => result.current.payReportsViaABA(['123'], policy));
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
 
         // Then it's loading, so the Pay button can show the user something is happening
         expect(result.current.isDownloadingABAFile).toBe(true);

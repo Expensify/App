@@ -186,7 +186,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
-            payReportsViaABA([reportID], policy);
+            payReportsViaABA([{reportID, ownerAccountID: iouReport?.ownerAccountID}], policy);
             return;
         }
 

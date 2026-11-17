@@ -1916,7 +1916,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA) {
                 // Paying several expenses from one report only needs the report in the file once
                 const reportIDs = [...new Set(itemsToPay.map((item) => item.reportID).filter((reportID): reportID is string => !!reportID))];
-                payReportsViaABA(reportIDs, bulkPayPolicy);
+                payReportsViaABA(
+                    reportIDs.map((reportID) => ({reportID, ownerAccountID: getReportFromSearchSnapshot(reportID, searchData, allReports)?.ownerAccountID})),
+                    bulkPayPolicy,
+                );
                 clearSelectedTransactions();
                 return;
             }

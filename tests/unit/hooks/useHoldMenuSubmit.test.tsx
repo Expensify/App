@@ -78,7 +78,7 @@ describe('useHoldMenuSubmit', () => {
 
         // Then the ABA file is downloaded with that choice instead of marking the report as paid, and the menu closes
         expect(mockPayReportsViaABA).toHaveBeenCalledWith(
-            [expenseReport.reportID],
+            [expect.objectContaining({reportID: expenseReport.reportID})],
             expect.objectContaining({id: policy.id}),
             expect.objectContaining({shouldReimburseHeldTransactions: full}),
         );

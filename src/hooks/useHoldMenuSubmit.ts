@@ -125,7 +125,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
             if (currentMoneyRequestReport?.reportID) {
-                payReportsViaABA([currentMoneyRequestReport.reportID], policy, {shouldReimburseHeldTransactions: full, onPaid: animationCallback});
+                payReportsViaABA([currentMoneyRequestReport], policy, {shouldReimburseHeldTransactions: full, onPaid: animationCallback});
             }
         } else if (currentChatReport && paymentType) {
             payWithWiseQuote({

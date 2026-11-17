@@ -2,13 +2,13 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import type HttpsError from '@libs/Errors/HttpsError';
-import {getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -21,6 +21,8 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
+
+type ReportToPayViaABA = Pick<Report, 'reportID' | 'ownerAccountID'>;
 
 type PayReportsViaABAOptions = {
     shouldReimburseHeldTransactions?: boolean;
@@ -49,21 +51,21 @@ function usePayViaABA() {
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume?: () => void) => resume?.());
     const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
 
-    const getDownloadFailedPrompt = (reportIDs: string[], error?: HttpsError) => {
+    const getDownloadFailedPrompt = (reports: ReportToPayViaABA[], error?: HttpsError) => {
         if (!error?.message.includes(CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT)) {
             return translate('common.downloadFailedDescription');
         }
 
         // We can say who's missing a bank account for single reports only
-        const report = reportIDs.length === 1 ? getReportOrDraftReport({reportID: reportIDs.at(0)}) : undefined;
-        const name = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
+        const submitterAccountID = reports.length === 1 ? reports.at(0)?.ownerAccountID : undefined;
+        const name = getDisplayNameForParticipant({accountID: submitterAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
-    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
+    const downloadABAFile = (reports: ReportToPayViaABA[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
         setIsDownloadingABAFile(true);
         payViaABA({
-            reportIDs,
+            reportIDs: reports.map((report) => report.reportID),
             policy,
             shouldReimburseHeldTransactions,
             introSelected,
@@ -79,7 +81,7 @@ function usePayViaABA() {
             onDownloadFailed: (error) => {
                 showDecisionModal({
                     title: translate('common.downloadFailedTitle'),
-                    prompt: getDownloadFailedPrompt(reportIDs, error),
+                    prompt: getDownloadFailedPrompt(reports, error),
                     secondOptionText: translate('common.buttonConfirm'),
                 });
             },
@@ -87,16 +89,16 @@ function usePayViaABA() {
     };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed
-    const payReportsViaABA = (reportIDs: string[], policy: OnyxEntry<Policy>, options: PayReportsViaABAOptions = {}) => {
+    const payReportsViaABA = (reports: ReportToPayViaABA[], policy: OnyxEntry<Policy>, options: PayReportsViaABAOptions = {}) => {
         if (isAccountLocked) {
             deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
             return;
         }
         if (!isUserValidated) {
-            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reportIDs, policy, options)));
+            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reports, policy, options)));
             return;
         }
-        downloadABAFile(reportIDs, policy, options);
+        downloadABAFile(reports, policy, options);
     };
 
     return {payReportsViaABA, isDownloadingABAFile};
