@@ -690,6 +690,23 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
     });
+
+    it('names the requirement pages that did not save by their page keys, so the next visit opens on them', async () => {
+        // Given the sources page and the documents page failed to save, which records their steps
+        // When the flow opens
+        await renderPage({
+            reimbursementAccount: {
+                achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
+                wiseOnboardingUnsavedPages: {
+                    [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO]: true,
+                    [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true,
+                },
+            },
+        });
+
+        // Then the flow gets the keys its pages go by, since it matches them against its own pages to pick where the visit starts
+        expect(mockFlowProps.mock.lastCall?.[0].unsavedPageKeys).toEqual(['business-source-of-wealth-info', 'business-source-of-wealth-proof']);
+    });
     it('adds the enhanced due diligence pages after the business page once its save returns them', async () => {
         // Given the flow open on the business page, with no requirements yet
         await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'business'});
