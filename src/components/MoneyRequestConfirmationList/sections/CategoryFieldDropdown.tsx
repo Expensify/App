@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -55,7 +56,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
 
     const {updateCategory} = useUpdateTransactionCategory({
         transactionID,
-        transaction: draftTransaction ?? transaction,
+        transaction: shouldUseTransactionDraft(action, iouType) ? (draftTransaction ?? transaction) : transaction,
         report,
         policy,
         policyCategories,

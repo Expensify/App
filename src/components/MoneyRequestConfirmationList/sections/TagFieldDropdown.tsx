@@ -5,6 +5,7 @@ import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionTag from '@hooks/useUpdateTransactionTag';
 
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -36,7 +37,7 @@ type TagFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  * saves through the same hook the full-page selector uses so both leave the expense in the same state.
  */
 function TagFieldDropdown({transactionID, policy, tagListIndex, onClose, ...popoverProps}: TagFieldDropdownProps) {
-    const {reportID, isEditingSplitBill, action} = useConfirmationFields();
+    const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
     const {policyTags} = usePolicyTagsForConfirmation(policy?.id);
     const transactionTag = useTransactionSelector(transactionID, transactionTagSelector) ?? '';
 
@@ -46,7 +47,7 @@ function TagFieldDropdown({transactionID, policy, tagListIndex, onClose, ...popo
 
     const {updateTag} = useUpdateTransactionTag({
         transactionID,
-        transaction: draftTransaction ?? transaction,
+        transaction: shouldUseTransactionDraft(action, iouType) ? (draftTransaction ?? transaction) : transaction,
         report,
         policy,
         policyTags,

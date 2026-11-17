@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
+import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -36,7 +37,9 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     },
 }));
 
-jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn()}));
+// Records the expense each render hands the hook, which is what a pick writes from.
+const mockUseUpdateTransactionCategory = jest.fn<{updateCategory: jest.Mock}, [unknown]>(() => ({updateCategory: jest.fn()}));
+jest.mock('@hooks/useUpdateTransactionCategory', () => (params: unknown) => mockUseUpdateTransactionCategory(params));
 
 const mockCreateAndApplyCategory = jest.fn();
 jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCategory);
@@ -79,12 +82,12 @@ const TRANSACTION_ID = '1';
 const REPORT_ID = 'reportID';
 const POLICY = createRandomPolicy(1);
 
-const renderDropdown = (onClose: () => void, canAddCategory = true) =>
+const renderDropdown = (onClose: () => void, canAddCategory = true, action: IOUAction = CONST.IOU.ACTION.CREATE) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
-            action={CONST.IOU.ACTION.CREATE}
+            action={action}
             iouType={CONST.IOU.TYPE.SUBMIT}
         >
             <CategoryFieldDropdown
@@ -205,5 +208,22 @@ describe('CategoryFieldDropdown', () => {
         // Then pending workspace creation does not block inline category creation
         expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
         expect(screen.getByLabelText('addCategory')).toBeTruthy();
+    });
+
+    it.each([
+        {action: CONST.IOU.ACTION.CREATE, form: 'create form', source: 'draft', expectedCategory: 'Meals'},
+        {action: CONST.IOU.ACTION.EDIT, form: 'expense view', source: 'saved expense', expectedCategory: 'Travel'},
+    ])('writes from the $source on the $form', async ({action, expectedCategory}) => {
+        // Given a saved expense in `Travel`, and a draft with its ID in `Meals`, as a Submit flow the user backed out of leaves it
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, category: 'Travel'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {transactionID: TRANSACTION_ID, reportID: REPORT_ID, category: 'Meals'});
+        await waitForBatchedUpdates();
+
+        // When the category dropdown opens
+        renderDropdown(jest.fn(), true, action);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a pick is written from the expense this form edits: the draft while creating, the saved copy once saved
+        expect(mockUseUpdateTransactionCategory).toHaveBeenLastCalledWith(expect.objectContaining({transaction: expect.objectContaining({category: expectedCategory})}));
     });
 });
