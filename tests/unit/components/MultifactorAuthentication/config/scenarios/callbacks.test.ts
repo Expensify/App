@@ -98,6 +98,7 @@ async function runScenario(scenarioName: MultifactorAuthenticationScenario, {sce
         registrationStateAtStart: undefined,
         isCancelConfirmed,
         recoveryAttempts: 0,
+        recoveredFrom: undefined,
     };
     const {finalizeOutcome} = createActors();
     const actorRef = createActor(finalizeOutcome, {input});

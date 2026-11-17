@@ -39,6 +39,7 @@ type MFAFlowOutcomeContext = {
     isAuthorizationComplete: boolean;
     softPromptApproved: boolean;
     recoveryAttempts: number;
+    recoveredFrom: {reason: MultifactorAuthenticationReason; step: string} | undefined;
     startState: MFARegistrationStateSnapshot;
     endState: MFARegistrationStateSnapshot;
 };
@@ -86,6 +87,7 @@ function trackMFAFlowOutcome(rawContext: MFAFlowOutcomeContext): void {
             isAuthorizationComplete: context.isAuthorizationComplete,
             softPromptApproved: context.softPromptApproved,
             recoveryAttempts: context.recoveryAttempts,
+            recoveredFrom: context.recoveredFrom,
             startState: context.startState,
             endState: context.endState,
         };

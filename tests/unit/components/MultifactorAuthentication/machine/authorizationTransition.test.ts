@@ -134,11 +134,14 @@ describe('MFA authorization', () => {
             },
             {name: 'REGISTRATION_REQUIRED', error: createLocalMFAError(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, 'Authorization transition spec registration required')},
         ])('goes back to the validate-code screen for $name', ({error}) => {
+            // Given the flow is signing the challenge
             const actor = createActorAtState(SIGNING_CHALLENGE);
-
             actor.start();
+
+            // When signing fails in a way a fresh registration can fix
             sendAuthorizeDone(actor, {success: false, error});
 
+            // Then the flow leaves for re-registration instead of the outcome
             const result = actor.getSnapshot();
             expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: MFA_STATE.VALIDATE_CODE}})).toBe(true);
             expect(result.context.error).toBeUndefined();

@@ -35,8 +35,7 @@ type FormError = {
     inputCode?: TranslationPaths;
 };
 
-/** The code input, resend button and submit. Holds the entered code and the resend countdown. */
-function ValidateCodeForm() {
+function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -51,8 +50,8 @@ function ValidateCodeForm() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {submitValidateCode, resendValidateCode, notifyValidateCodeChanged, state} = useMultifactorAuthenticationInternal();
-    const {showsInvalidCodeError, isCancelConfirmed, canResendValidateCode, isValidateCodeFormSubmitting} = state;
+    const {requestCancel, submitValidateCode, resendValidateCode, notifyValidateCodeChanged, state} = useMultifactorAuthenticationInternal();
+    const {showsInvalidCodeError, isCancelConfirmVisible, isCancelConfirmed, canResendValidateCode, isValidateCodeFormSubmitting} = state;
 
     // Refs
     const inputRef = useRef<ValidateCodeInputHandle>(null);
@@ -187,57 +186,6 @@ function ValidateCodeForm() {
     };
 
     return (
-        <>
-            <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterSecurityCode', contactMethod)}</Text>
-            <View style={[styles.mh5]}>
-                <ValidateCodeInput
-                    autoComplete="one-time-code"
-                    testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_INPUT}
-                    name="multifactorAuthenticationValidateCode"
-                    value={inputCode}
-                    onChangeText={onCodeInput}
-                    onFulfill={validateAndSubmitForm}
-                    errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
-                    hasError={hasError}
-                    ref={inputRef}
-                    maxLength={CONST.VALIDATE_CODE_LENGTH}
-                />
-                <MultifactorAuthenticationValidateCodeResendButton
-                    ref={resendButtonRef}
-                    shouldDisableResendCode={shouldDisableResendCode}
-                    hasError={hasError}
-                    resendButtonText="validateCodeForm.securityCodeNotReceived"
-                    onResendValidationCode={resendValidationCode}
-                />
-            </View>
-            <View style={[styles.w100, styles.mtAuto]}>
-                {!!errorMessage && (
-                    <FormHelpMessage
-                        style={[styles.mh5]}
-                        message={errorMessage}
-                    />
-                )}
-                <Button
-                    success
-                    large
-                    testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON}
-                    style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
-                    onPress={validateAndSubmitForm}
-                    text={translate('common.verify')}
-                    isLoading={isFormBusy}
-                    isDisabled={isOffline}
-                />
-            </View>
-        </>
-    );
-}
-
-function MultifactorAuthenticationValidateCodePage() {
-    const {translate} = useLocalize();
-    const {requestCancel, state} = useMultifactorAuthenticationInternal();
-    const {isCancelConfirmVisible, recoveryAttempts} = state;
-
-    return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
@@ -256,9 +204,46 @@ function MultifactorAuthenticationValidateCodePage() {
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                {/* Recovery can email a new code while this screen is still shown, so the form remounts
-                    to drop the old code, its errors and the resend countdown. */}
-                <ValidateCodeForm key={recoveryAttempts} />
+                <Text style={[styles.m5, styles.mt3, styles.textNormal]}>{translate('contacts.enterSecurityCode', contactMethod)}</Text>
+                <View style={[styles.mh5]}>
+                    <ValidateCodeInput
+                        autoComplete="one-time-code"
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_INPUT}
+                        name="multifactorAuthenticationValidateCode"
+                        value={inputCode}
+                        onChangeText={onCodeInput}
+                        onFulfill={validateAndSubmitForm}
+                        errorText={canShowError && formError.inputCode ? translate(formError.inputCode) : ''}
+                        hasError={hasError}
+                        ref={inputRef}
+                        maxLength={CONST.VALIDATE_CODE_LENGTH}
+                    />
+                    <MultifactorAuthenticationValidateCodeResendButton
+                        ref={resendButtonRef}
+                        shouldDisableResendCode={shouldDisableResendCode}
+                        hasError={hasError}
+                        resendButtonText="validateCodeForm.securityCodeNotReceived"
+                        onResendValidationCode={resendValidationCode}
+                    />
+                </View>
+                <View style={[styles.w100, styles.mtAuto]}>
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            style={[styles.mh5]}
+                            message={errorMessage}
+                        />
+                    )}
+                    <Button
+                        success
+                        large
+                        testID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.VALIDATE_CODE_SUBMIT_BUTTON}
+                        style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}
+                        onPress={validateAndSubmitForm}
+                        text={translate('common.verify')}
+                        isLoading={isFormBusy}
+                        isDisabled={isOffline}
+                    />
+                </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

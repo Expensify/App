@@ -17,10 +17,11 @@ import {createActor, waitFor} from 'xstate';
 
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 // Only failures that confirm the credential is unusable belong here. A keystore the device merely
-// failed to read may recover, so it must not reach the deletion path.
+// failed to read reports its own reason, which isn't one of these.
 const EXPECTED_CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = [
     REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
 ] as const;
 
@@ -231,42 +232,26 @@ describe('authorize actor', () => {
         expect(actorRef.getSnapshot().output).toEqual({success: false, error: recoverableError});
     });
 
-    // The operation already retried the read once, so a KEY_ACCESS_FAILED that reaches the actor is
-    // treated as a broken key, the same as a missing one.
-    it('deletes the local credential after a keystore read failure that survived the retry', async () => {
-        const readError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, 'Keystore unavailable');
-        mockAuthorize.mockResolvedValue({success: false, error: readError});
+    it('does not delete credentials when a recoverable failure resolves after the flow was cancelled', async () => {
+        const recoverableError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, 'No matching local credential');
+        let resolveCeremony: (result: {success: false; error: typeof recoverableError}) => void = () => {};
+        mockAuthorize.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveCeremony = resolve;
+                }),
+        );
 
-        const snapshot = await runAuthorizeActor();
+        const {authorize} = createActors();
+        const actorRef = createActor(authorize, {input: AUTHORIZE_INPUT});
+        actorRef.start();
+        await waitForBatchedUpdates();
+        actorRef.stop();
+        resolveCeremony({success: false, error: recoverableError});
+        await waitForBatchedUpdates();
 
-        expect(mockDeleteLocalCredentials).toHaveBeenCalledWith(MFA_TEST_ACCOUNT_ID, expect.any(AbortSignal));
-        expect(mockAddMFABreadcrumb).toHaveBeenCalledWith('Authorization key reset', readError, 'warning');
-        expect(snapshot.output).toEqual({success: false, error: readError});
+        expect(mockDeleteLocalCredentials).not.toHaveBeenCalled();
     });
-
-    it.each([REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL, REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED])(
-        'does not delete credentials when a %s failure resolves after the flow was cancelled',
-        async (reason) => {
-            const recoverableError = createLocalMFAError(reason, 'Recoverable credential failure');
-            let resolveCeremony: (result: {success: false; error: typeof recoverableError}) => void = () => {};
-            mockAuthorize.mockImplementation(
-                () =>
-                    new Promise((resolve) => {
-                        resolveCeremony = resolve;
-                    }),
-            );
-
-            const {authorize} = createActors();
-            const actorRef = createActor(authorize, {input: AUTHORIZE_INPUT});
-            actorRef.start();
-            await waitForBatchedUpdates();
-            actorRef.stop();
-            resolveCeremony({success: false, error: recoverableError});
-            await waitForBatchedUpdates();
-
-            expect(mockDeleteLocalCredentials).not.toHaveBeenCalled();
-        },
-    );
 
     it('passes the account, the requested challenge and the cancellation signal into the platform ceremony', async () => {
         await runAuthorizeActor();

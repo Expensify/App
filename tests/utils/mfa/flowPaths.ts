@@ -88,6 +88,24 @@ type DrivingJourney = {
  * wrong target, the generated expectations adjust and still pass. The hand-written `endState` is the
  * only check that can catch that, and only for transitions the journeys drive.
  */
+/** A returning user's start: the device check passes and the device holds a key, so the flow goes straight to authorization. */
+const RETURNING_USER_START_EVENTS: MfaMachineEvent[] = [
+    createInitEvent(),
+    createActorDoneEvent('validateDevice', {success: true}),
+    createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+];
+
+/** A successful registration after recovery sent the flow back to the validate-code screen, ending in authorization. */
+const REREGISTRATION_EVENTS: MfaMachineEvent[] = [
+    {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+    createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+    {type: 'SOFT_PROMPT_APPROVED'},
+    createActorDoneEvent('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}),
+    createActorDoneEvent('registerCredential', {success: true}),
+];
+
+const AUTHORIZE_SUCCESS_EVENT = createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
+
 const DRIVING_JOURNEYS: DrivingJourney[] = [
     {
         description: 'the teardown journey ends back in the closed state',
@@ -249,21 +267,15 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`,
     },
-    // Recovery depends on the once-per-flow flag in context, so the generated paths, which offer one
-    // failure per actor, never reach it. These journeys drive it explicitly.
+    // The generated paths offer only failures a fresh registration can't fix, so they never reach
+    // recovery. These journeys drive it explicitly.
     {
         description: 'the recovery journey re-registers after REGISTRATION_REQUIRED and reaches the success outcome',
         events: [
-            createInitEvent(),
-            createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            ...RETURNING_USER_START_EVENTS,
             createActorDoneEvent('authorize', {success: false, error: MFA_TEST_REGISTRATION_REQUIRED_ERROR}),
-            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
-            {type: 'SOFT_PROMPT_APPROVED'},
-            createActorDoneEvent('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}),
-            createActorDoneEvent('registerCredential', {success: true}),
-            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            ...REREGISTRATION_EVENTS,
+            AUTHORIZE_SUCCESS_EVENT,
             createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
             createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
@@ -272,16 +284,12 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
     {
         description: 'the recovery journey lands on the failure outcome when the re-registered flow fails the same way again',
         events: [
-            createInitEvent(),
-            createActorDoneEvent('validateDevice', {success: true}),
-            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
-            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            ...RETURNING_USER_START_EVENTS,
+            AUTHORIZE_SUCCESS_EVENT,
             createActorDoneEvent('executeScenarioAction', {success: false, error: MFA_TEST_REGISTRATION_REQUIRED_ERROR}),
-            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
-            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
-            {type: 'SOFT_PROMPT_APPROVED'},
-            createActorDoneEvent('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}),
-            createActorDoneEvent('registerCredential', {success: false, error: MFA_TEST_REGISTRATION_REQUIRED_ERROR}),
+            ...REREGISTRATION_EVENTS,
+            AUTHORIZE_SUCCESS_EVENT,
+            createActorDoneEvent('executeScenarioAction', {success: false, error: MFA_TEST_REGISTRATION_REQUIRED_ERROR}),
             createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`,
@@ -409,9 +417,10 @@ const MFA_ACTOR_EVENT_FIXTURES = {
     ),
     createCredential: createActorEvents('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
     registerCredential: createActorEvents('registerCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_REGISTRATION_ERROR}),
-    // Deliberately two variants: every authorization failure reason routes through the same branch and
-    // renders the same generic screen, so a third fixture would only multiply walked paths without
-    // adding coverage. `authorizationTransition.test.ts` pins the individual reasons by hand instead.
+    // Deliberately two variants: every authorization failure reason that doesn't recover routes through
+    // the same branch and renders the same generic screen, so a third fixture would only multiply walked
+    // paths without adding coverage. `authorizationTransition.test.ts` pins the individual reasons by
+    // hand instead, and the recovery journeys above cover the ones that recover.
     authorize: createActorEvents(
         'authorize',
         {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD},

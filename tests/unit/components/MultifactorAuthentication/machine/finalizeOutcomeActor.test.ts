@@ -32,6 +32,7 @@ const trackMFAFlowOutcomeMock = jest.mocked(trackMFAFlowOutcome);
 
 const ACCOUNT_ID = 12345;
 const END_STATE: MFARegistrationStateSnapshot = {hasServerCredentials: true, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true};
+const RECOVERED_FROM = {reason: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, step: CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.SIGNING_CHALLENGE};
 const START_STATE: MFARegistrationStateSnapshot = {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false};
 
 function buildInput(overrides: Partial<FinalizeOutcomeInput> = {}): FinalizeOutcomeInput {
@@ -48,6 +49,7 @@ function buildInput(overrides: Partial<FinalizeOutcomeInput> = {}): FinalizeOutc
         registrationStateAtStart: START_STATE,
         isCancelConfirmed: false,
         recoveryAttempts: 0,
+        recoveredFrom: undefined,
         ...overrides,
     };
 }
@@ -125,10 +127,19 @@ describe('finalizeOutcome actor', () => {
     });
 
     it('captures the end-of-flow registration snapshot and reports telemetry exactly once', async () => {
-        const input = buildInput({error: createLocalMFAError(REASON.LOCAL_ERRORS.CANCELED, 'user canceled'), isRegistrationComplete: true, softPromptApproved: true, recoveryAttempts: 1});
+        // Given a flow that registered a key, recovered once and then ended in a cancel
+        const input = buildInput({
+            error: createLocalMFAError(REASON.LOCAL_ERRORS.CANCELED, 'user canceled'),
+            isRegistrationComplete: true,
+            softPromptApproved: true,
+            recoveryAttempts: 1,
+            recoveredFrom: RECOVERED_FROM,
+        });
 
+        // When the outcome is finalized
         await runFinalizeOutcomeActor(input);
 
+        // Then the end state is read once and the telemetry gets the whole flow, recovery included
         expect(mockCaptureRegistrationState).toHaveBeenCalledWith(ACCOUNT_ID, undefined);
         expect(trackMFAFlowOutcomeMock).toHaveBeenCalledTimes(1);
         expect(trackMFAFlowOutcomeMock).toHaveBeenCalledWith(
@@ -139,6 +150,7 @@ describe('finalizeOutcome actor', () => {
                 isAuthorizationComplete: true,
                 softPromptApproved: true,
                 recoveryAttempts: 1,
+                recoveredFrom: RECOVERED_FROM,
                 startState: START_STATE,
                 endState: END_STATE,
             }),
