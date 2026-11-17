@@ -14,6 +14,8 @@ import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createAllPolicyReportFieldsSelector} from '@src/selectors/Policy';
@@ -23,6 +25,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import ReportFieldList from './ReportFieldList';
@@ -175,6 +178,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
 }
 
 function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, footer, shouldUseScrollView, onFieldSelected, onError}: ReportFieldBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
@@ -291,15 +295,22 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
     return (
         <ScrollView contentContainerStyle={[style]}>
             {listItems.map((item) => (
-                <MenuItem
+                <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_FIELD_ITEM}
                     key={item.key}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={item.name}
-                    description={item.value}
-                    onPress={() => onFieldSelected(item.field)}
-                />
+                    isCompact
+                    onPress={callIfAuthenticated(() => onFieldSelected(item.field), session)}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{item.name}</MenuItem.Title>
+                            {!!item.value && <MenuItem.Description>{item.value}</MenuItem.Description>}
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             ))}
         </ScrollView>
     );
