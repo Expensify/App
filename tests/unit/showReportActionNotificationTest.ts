@@ -54,6 +54,8 @@ const CURRENT_USER_LOGIN = 'test@user.com';
 const REPORT_ID = '100';
 const OTHER_USER_ACCOUNT_ID = 2;
 const DERIVED_REPORT_NAME = 'Test Report';
+const MENTIONED_ROOM_ID = '200';
+const OTHER_ROOM_ID = '300';
 
 describe('showReportActionNotification', () => {
     beforeAll(() => {
@@ -169,5 +171,32 @@ describe('showReportActionNotification', () => {
 
         expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
         expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
+    });
+
+    it('passes the names of the rooms the comment mentions to showCommentNotification', async () => {
+        // Given a comment that mentions one room by reportID, and another room the comment doesn't mention.
+        // The mentioned room is cached from a partial update with only its name, so the map must be keyed by the mentioned reportID
+        await setupReport();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_ROOM_ID}`, {reportName: '#admins'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_ROOM_ID}`, {reportID: OTHER_ROOM_ID, reportName: '#announce'});
+        await waitForBatchedUpdates();
+        const html = `hello <mention-report reportID="${MENTIONED_ROOM_ID}"></mention-report>`;
+        const reportAction = {
+            reportActionID: 'action4',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: OTHER_USER_ACCOUNT_ID,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: 'COMMENT', html, text: html}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
+        };
+
+        // When the notification is shown
+        Report.showReportActionNotification(REPORT_ID, reportAction, undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, formatPhoneNumber, DERIVED_REPORT_NAME, undefined);
+        await waitForBatchedUpdates();
+
+        // Then only the mentioned room's name is passed, so the body shows it instead of #Hidden
+        expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
+        const reportIDToName = mockShowCommentNotification.mock.calls.at(0)?.at(5);
+        expect(reportIDToName).toEqual({[MENTIONED_ROOM_ID]: '#admins'});
     });
 });

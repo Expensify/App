@@ -61,7 +61,6 @@ import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -94,7 +93,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
@@ -162,8 +161,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     const contactMethodRoute = `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo)}`;
-    const isPreviousPolicy =
-        policyIDParam && !!reimbursementAccount && !isLoadingOnyxValue(reimbursementAccountMetadata) ? policyIDParam === achData?.policyID : isLoadingOnyxValue(reimbursementAccountMetadata);
+    const isPreviousPolicy = !!policyIDParam && !!reimbursementAccount && policyIDParam === achData?.policyID;
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
 
     /**
@@ -285,11 +283,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if (
-            (!policyIDParam && !bankAccountIDParam) ||
-            isLoadingOnyxValue(reimbursementAccountMetadata) ||
-            (policyIDParam !== undefined && backTo === ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyIDParam))
-        ) {
+        if ((!policyIDParam && !bankAccountIDParam) || (policyIDParam !== undefined && backTo === ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyIDParam))) {
             return;
         }
         if (bankAccountIDParam) {
@@ -367,7 +361,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     useEffect(() => {
         // Consume this route intent only once so the response changing isPreviousPolicy does not trigger another request.
         const shouldOpenNewBankAccount = route.params?.stepToOpen === REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW && !hasRequestedNewBankAccountRef.current;
-        if ((!shouldOpenNewBankAccount && isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if (!shouldOpenNewBankAccount && isPreviousPolicy && !!reimbursementAccount) {
             return;
         }
 

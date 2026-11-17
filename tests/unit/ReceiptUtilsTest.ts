@@ -1,4 +1,4 @@
-import {constructReceiptSourceFromFilename, getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {constructReceiptSourceFromFilename, getThumbnailAndImageURIs, shouldValidateFile} from '@libs/ReceiptUtils';
 
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -50,6 +50,30 @@ describe('ReceiptUtils', () => {
 
             expect(result.isEmptyReceipt).toBeUndefined();
             expect(result.image).toBe(source);
+        });
+    });
+
+    describe('shouldValidateFile', () => {
+        it('validates a shared HEIF file so it is converted to JPEG like HEIC', () => {
+            // Given a file shared as image/heif, which Android sends for .heif files
+            const file = {id: 'photo.heif', content: 'file:///photo.heif', mimeType: CONST.SHARE_FILE_MIMETYPE.HEIF};
+
+            // When checking whether the share flow should validate it
+            const result = shouldValidateFile(file);
+
+            // Then it is validated, so the HEIF is converted before upload instead of being sent as is
+            expect(result).toBe(true);
+        });
+
+        it('does not validate a shared JPEG file', () => {
+            // Given a file shared as image/jpeg, which needs no conversion
+            const file = {id: 'photo.jpg', content: 'file:///photo.jpg', mimeType: CONST.SHARE_FILE_MIMETYPE.JPEG};
+
+            // When checking whether the share flow should validate it
+            const result = shouldValidateFile(file);
+
+            // Then it is not validated, so the JPEG is used as is
+            expect(result).toBe(false);
         });
     });
 });

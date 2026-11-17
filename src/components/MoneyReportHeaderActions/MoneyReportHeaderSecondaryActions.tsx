@@ -354,6 +354,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                             '',
                         ),
                         icon: expensifyIcons.Building,
+                        sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_WITH_WORKSPACE,
                         workspacePolicy: wp,
                     };
                     paymentSubMenuItems.push(workspacePolicyItem);
@@ -497,6 +498,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 delegateAccountID,
+                allTransactionViolations,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

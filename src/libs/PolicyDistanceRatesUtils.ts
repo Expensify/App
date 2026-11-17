@@ -17,10 +17,11 @@ import type {Option} from './searchOptions';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
+import {getGovernmentRateSeries, isFuelBandGovernmentRate} from './GovernmentRateUtils';
 import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
-import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from './PolicyUtils';
+import {getDistanceRateCustomUnit, getRateValueWithDecimals, isTaxTrackingEnabled} from './PolicyUtils';
 import StringUtils from './StringUtils';
 import {containsHtmlTag, isRequiredFulfilled} from './ValidationUtils';
 
@@ -304,23 +305,9 @@ function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRate
     return Math.round(convertedAmount * 100) / 100;
 }
 
-/**
- * The series a government rate belongs to: its sourceRateID without the trailing "_<startDate>", e.g. "GB" for the
- * standard UK rate or "GB_<fuelBand>" for a UK fuel band. Fuel band names contain underscores, so only the last one is cut.
- */
-function getGovernmentRateSeries(sourceRateID: string): string {
-    const dateSeparatorIndex = sourceRateID.lastIndexOf('_');
-    return dateSeparatorIndex === -1 ? sourceRateID : sourceRateID.slice(0, dateSeparatorIndex);
-}
-
-/** Whether a government rate is a UK fuel band, whose sourceRateID carries the band between the country code and the date. */
-function isFuelBandGovernmentRate(sourceRateID: string): boolean {
-    return sourceRateID.split('_').length > 2;
-}
-
 /** The tax reclaimable amount, in currency units, as the distance rate tax reclaimable page shows it. */
 function getTaxClaimableDisplayAmount(taxClaimablePercentage: number, rate: number): string {
-    return ((taxClaimablePercentage * rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+    return getRateValueWithDecimals((taxClaimablePercentage * rate) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
 }
 
 /**

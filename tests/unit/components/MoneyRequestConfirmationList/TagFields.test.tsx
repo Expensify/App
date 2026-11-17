@@ -26,11 +26,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 // The new-row flash needs a screen's transition context, which the row is rendered without here.
 jest.mock('@components/MoneyRequestConfirmationList/sections/useFieldRowHighlightStyle', () => () => ({}));
 
-let mockIsAnchoredDropdownsBetaEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
-
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
@@ -120,7 +115,6 @@ describe('TagFields', () => {
     });
 
     beforeEach(async () => {
-        mockIsAnchoredDropdownsBetaEnabled = true;
         mockShouldOpenInDropdown = undefined;
         mockTagListIndexes.length = 0;
         jest.mocked(Navigation.navigate).mockClear();
@@ -134,7 +128,7 @@ describe('TagFields', () => {
     };
 
     it('opens the tag list in place while creating an expense', async () => {
-        // Given a workspace with independent tag lists and the anchored dropdowns beta on
+        // Given a workspace with independent tag lists
         await givenPolicyTags(independentTags);
 
         // When the expense form renders a tag row
@@ -168,20 +162,6 @@ describe('TagFields', () => {
         renderTagRow({tags: dependentTags, hasDependentTags: true});
 
         // Then the row keeps opening the full-page selector
-        await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
-        });
-    });
-
-    it('keeps the full-page selector when the beta is off', async () => {
-        // Given a workspace with independent tags, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-        await givenPolicyTags(independentTags);
-
-        // When the form renders a tag row
-        renderTagRow();
-
-        // Then the row opens the full-page selector as before
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
         });
