@@ -14086,17 +14086,11 @@ describe('ReportUtils', () => {
             // Then the sender gets a green dot, because they must act before the payment can finish
             expect(getReason(waitingInvoice)?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
 
-            // And the invoice shows no green dot once it stops waiting, for anyone who didn't send it, or on a report that isn't an invoice
+            // And the invoice shows no green dot once it stops waiting, or on a report that isn't an invoice
             expect(
                 getReason({
                     ...waitingInvoice,
                     isAwaitingActionFromCurrentUser: false,
-                }),
-            ).toBeNull();
-            expect(
-                getReason({
-                    ...waitingInvoice,
-                    ownerAccountID: currentUserAccountID + 1,
                 }),
             ).toBeNull();
             expect(getReason({...waitingInvoice, type: CONST.REPORT.TYPE.EXPENSE})).toBeNull();

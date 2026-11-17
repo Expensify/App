@@ -1,8 +1,9 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getInvoiceNextStep} from '@libs/NextStepUtils';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
@@ -33,11 +34,8 @@ function useMoneyReportHeaderMoreContentVisibility(reportID: string | undefined)
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
 
-    // Invoices only show the next step while a payment waits for the sender's bank account, because the sender must act
-    // before they can be paid. It doesn't check the policy, because the invoice's policy might not be loaded.
-    const isWaitingOnSenderBankAccount = moneyRequestReport?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT;
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = (isInvoiceReport ? isWaitingOnSenderBankAccount : isGroupPolicy(policy)) && !shouldShowStatusBar;
+    const shouldShowNextStep = (isInvoiceReport ? !!getInvoiceNextStep(moneyRequestReport) : isGroupPolicy(policy)) && !shouldShowStatusBar;
 
     return {
         statusBarType,

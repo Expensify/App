@@ -5377,9 +5377,9 @@ function getReasonAndReportActionThatRequiresAttention({
         }
     }
 
-    // An invoice linked to a bill has no parent chat, so its own green dot tells the sender to act, like adding a bank
-    // account so the bill's payment can finish.
-    if (isInvoiceReport(optionOrReport) && optionOrReport.isAwaitingActionFromCurrentUser && optionOrReport.ownerAccountID === currentUserAccountID) {
+    // An invoice can have no parent chat to show a green dot, so the invoice shows its own. Auth sets
+    // isAwaitingActionFromCurrentUser on an invoice when its sender must act, like adding a bank account so a payment can finish.
+    if (isInvoiceReport(optionOrReport) && optionOrReport.isAwaitingActionFromCurrentUser) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
         };
