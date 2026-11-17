@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -7,6 +6,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,10 +17,10 @@ import {getAccountIDsByLogins, temporaryGetDisplayNameOrDefault, getShortMention
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import asMutable from '@src/types/utils/asMutable';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import {Str} from 'expensify-common';
@@ -48,7 +48,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
 
     const isOurMention = accountID === currentUserAccountID;
 
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const flattenStyle = StyleSheet.flatten(style);
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
@@ -70,6 +70,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             }}
             role={CONST.ROLE.LINK}
             accessibilityLabel={`/${navigationRoute}`}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
         >
             <UserDetailsTooltip
                 accountID={accountID}
@@ -79,6 +80,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             >
                 <Text
                     {...defaultRendererProps}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
                     style={[
                         styles.link,
                         styleWithoutColor,
@@ -129,10 +131,9 @@ function MentionUserLoginLink({tnode, currentUserPersonalDetails, ...props}: Men
 function MentionUserRenderer({tnode, TDefaultRenderer, currentUserPersonalDetails, ...defaultRendererProps}: MentionUserRendererProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const personalDetails = usePersonalDetails();
+    const [user] = useAllPersonalDetailsWithoutSnapshots(personalDetailsSelector(Number(htmlAttribAccountID)));
 
-    if (!isEmpty(htmlAttribAccountID) && personalDetails?.[htmlAttribAccountID]) {
-        const user = personalDetails?.[htmlAttribAccountID];
+    if (!isEmpty(htmlAttribAccountID) && user) {
         const accountID = parseInt(htmlAttribAccountID, 10);
         const displayName = formatPhoneNumber(user?.login ?? '') || temporaryGetDisplayNameOrDefault({passedPersonalDetails: user, translate, formatPhoneNumber});
         return (

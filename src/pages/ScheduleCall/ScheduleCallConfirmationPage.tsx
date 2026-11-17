@@ -1,3 +1,4 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -6,7 +7,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -114,9 +114,9 @@ function ScheduleCallConfirmationPage() {
                     <MenuItemWithLabel label={translate('scheduledCall.confirmation.setupSpecialist')}>
                         <MenuItem.Row>
                             <MenuItem.Leading>
-                                <ReportActionAvatars
-                                    singleAvatarContainerStyle={[styles.actionAvatar]}
-                                    accountIDs={[guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                <AccountAvatar
+                                    accountID={guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    containerStyle={[styles.actionAvatar]}
                                 />
                             </MenuItem.Leading>
                             <MenuItem.Content>

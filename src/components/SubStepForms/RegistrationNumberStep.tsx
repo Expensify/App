@@ -96,6 +96,7 @@ function RegistrationNumberStepImpl({formID, onSubmit, inputID, defaultValue, is
                     <TextLink
                         style={[styles.textMicro]}
                         href={helpLink}
+                        sentryLabel={CONST.SENTRY_LABEL.REGISTRATION_NUMBER_STEP.HELP_LINK}
                     >
                         {translate('businessInfoStep.whatsThisNumber')}
                     </TextLink>
