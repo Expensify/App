@@ -322,6 +322,34 @@ describe('useAssignCard', () => {
         });
     });
 
+    describe('assignCard function - bank access token expiration', () => {
+        it('should go straight to choosing the cardholder when the feed expiration is in the past', () => {
+            // Given a direct feed whose stored bank access token expiration has passed. Cards are assigned with the
+            // feed's central credentials, so this timestamp should not send the admin back through bank consent.
+            const expiredDirectFeedData: CombinedCardFeeds = {
+                [mockDirectFeed]: {
+                    ...mockDirectFeedData[mockDirectFeed],
+                    expiration: Date.now() / 1000 - CONST.DATE.SECONDS_PER_DAY,
+                },
+            };
+            jest.mocked(useCardFeeds).mockReturnValue([expiredDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockDirectFeed,
+                    policyID: mockPolicyID,
+                    onOfflineAssign: mockOnOfflineAssign,
+                }),
+            );
+
+            // When the admin starts assigning a card from that feed
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
+
+            // Then the flow opens the assignee step instead of the bank connection step
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(expect.objectContaining({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE}));
+        });
+    });
+
     describe('assignCard function - single active employee shortcut', () => {
         it('should auto-assign to the single active employee, not the first (deleted) employee in the list', () => {
             // Given a policy whose first (unfiltered) employee is pending deletion, leaving a single active employee later in the list

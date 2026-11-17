@@ -1,6 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
+import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -54,7 +54,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore, isValid} from 'date-fns';
+import {format, isValid} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -1286,10 +1286,6 @@ function splitCardFeedWithDomainID(feedName: CardFeedWithNumber | CardFeedWithDo
     }
 
     return {feedName: feedNamePart as CompanyCardFeedWithNumber, domainID};
-}
-
-function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean {
-    return cardFeed?.expiration ? isBefore(fromUnixTime(cardFeed.expiration), new Date()) : false;
 }
 
 /**
@@ -2637,7 +2633,6 @@ export {
     getCardFeedIcon,
     getBankName,
     getDefaultCommercialFeedDisplayName,
-    isSelectedFeedExpired,
     isTravelCard,
     isTravelCardTransaction,
     getCompanyFeeds,

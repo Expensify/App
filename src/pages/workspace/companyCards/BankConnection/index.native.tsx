@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
 import {updateSelectedFeed} from '@libs/actions/Card';
-import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -64,7 +64,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
-    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const {isNewFeedConnected, newFeed} = checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed);
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
@@ -115,24 +114,22 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
 
         // Handle assign card flow
         if (feed) {
-            if (!isFeedExpired) {
-                if (isFeedConnectionBroken) {
-                    updateBrokenConnection();
-                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-                    return;
-                }
-                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
-                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
-                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
-                if (!assignCard?.isRefreshing) {
-                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-                    return;
-                }
+            if (isFeedConnectionBroken) {
+                updateBrokenConnection();
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                return;
+            }
+            // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+            // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+            // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
+            if (!assignCard?.isRefreshing) {
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+                return;
             }
             // Repairing an existing Plaid feed: PlaidConnectionStep already fired importPlaidAccounts with the
             // prefixed feed + domainAccountID. Don't queue a second import from the bare institutionId here (it would
             // miss the `plaid.` prefix and take the server's create-new-feed branch, duplicating the feed). This
-            // mirrors the web effect, which returns for a still-expired Plaid feed.
+            // mirrors the web effect, which also returns here for a Plaid feed.
             if (isPlaid) {
                 return;
             }
@@ -161,7 +158,6 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         policyID,
         url,
         feed,
-        isFeedExpired,
         assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
