@@ -179,6 +179,26 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
             {code: `${IMPORT} const holder = {utils: wrap(Utils)}; export {holder};`},
+            // Given an alias read after its declaration inside a function declared after it, which knip tracks.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} const Alias = Utils; function run() {Alias.member();} run();`},
+            // Given an alias read both before and after its declaration, where the later read is the one knip counts.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} function run() {Alias.member();} const Alias = Utils; Alias.member(); run();`},
+            // Given two aliases with the same name, where knip matches by name and the read follows the first declaration.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} function first() {const Alias = Utils; return 1;} function second() {const Alias = Utils; return Alias.member();} first(); second();`},
+            // Given an alias read by a parameter of the same name after the declaration, which knip counts because it matches aliases by name.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} const Alias = Utils; function read(Alias) {return Alias.member();} read({});`},
+            // Given an alias read by `Alias?.member`, which is a member access for knip.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} const Alias = Utils; Alias?.member();`},
             // Given an object literal that holds the namespace in a call argument, which is not an alias.
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
@@ -289,6 +309,42 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then both usages are reported.
             {code: `${IMPORT} const First = Utils; const Second = Utils; export {First, Second};`, errors: [usageError('unread alias'), usageError('unread alias')]},
+            // Given an alias read only in a function declared before the alias, which knip does not count because it registers aliases in source order.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} function run() {Alias.member();} const Alias = Utils; Utils.other(); run();`, errors: [usageError('unread alias')]},
+            // Given an alias read at the top level before its declaration with `var`, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} Alias.member(); var Alias = Utils; Utils.other();`, errors: [usageError('unread alias')]},
+            // Given a class method that reads the alias before the declaration, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} class Foo {run() {return Alias.member();}} const Alias = Utils; Utils.other();`, errors: [usageError('unread alias')]},
+            // Given a ternary alias read only before its declaration, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} function run() {target.member();} const target = flag ? Utils : other; run();`, errors: [usageError('unread alias')]},
+            // Given a spread alias read only before its declaration, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} function run() {copy.member();} const copy = {...Utils}; run();`, errors: [usageError('unread alias')]},
+            // Given an object property alias read only before its declaration, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} function run() {holder.utils.member();} const holder = {utils: Utils}; run();`, errors: [usageError('unread alias')]},
+            // Given an alias read only through a non-null assertion, which knip does not see as a member access of the alias.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} const Alias = Utils; Alias!.member(); Utils.other();`, errors: [usageError('unread alias')]},
+            // Given an alias read only by a type query, which knip does not count.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} const Alias = Utils; export type Member = typeof Alias.member; Utils.other();`, errors: [usageError('unread alias')]},
+            // Given an alias that is only destructured, which knip does not count as a member read.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} const Alias = Utils; const {member} = Alias; export {member};`, errors: [usageError('unread alias')]},
             // Given an `@src` source, which resolves to an internal module.
             // When the rule checks how the namespace is used.
             // Then the usage is reported.
@@ -310,12 +366,28 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
             {code: `${IMPORT} export const element = <Foo utils={Utils} />;`},
+            // Given a JSX tag that is a member of the namespace itself, which knip tracks.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} export const element = <Utils.Member />;`},
+            // Given a nested JSX tag on the namespace itself, which knip tracks.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} export const element = <Utils.Group.Member />;`},
+            // Given a `.tsx` alias that is also read as a value, which knip counts.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {code: `${IMPORT} const Alias = Utils; export const element = <Foo value={Alias.member} />;`},
         ],
         invalid: [
             // Given a computed key in a `.tsx` file.
             // When the rule checks how the namespace is used.
             // Then the usage is reported.
             {code: `${IMPORT} export const element = <Foo value={Utils[key]} />;`, errors: [usageError('computed key')]},
+            // Given a `.tsx` alias that is read only as a JSX tag, which knip does not count as a member read of the alias.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {code: `${IMPORT} const Alias = Utils; export const element = <Alias.Member />; Utils.other();`, errors: [usageError('unread alias')]},
         ],
     });
 });

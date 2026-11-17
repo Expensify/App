@@ -119,7 +119,7 @@ function isExportedDeclarator(node) {
  * unless the alias is member-accessed somewhere in the file (knip tracks them in a file with no `NS.member` at all, where the rule is stricter): `const a = NS`, `const a = cond ? NS : other`, `const a = {...NS}` and `const a = {key: NS}`.
  * Passing or exporting the alias does not count as an access. An exported `const a = {...NS}` is tracked.
  * @param {import('estree').Node} reference The identifier that references the namespace.
- * @returns {{aliasName: string, key?: string} | undefined} The variable the namespace is assigned to, and the object key for the `{key: NS}` form.
+ * @returns {{aliasName: string, key?: string, declaratorStart: number} | undefined} The variable the namespace is assigned to, the object key for the `{key: NS}` form, and where the declaration starts.
  */
 function getAssignedAlias(reference) {
     const {parent} = reference;
@@ -146,15 +146,23 @@ function getAssignedAlias(reference) {
     if (!declarator || declarator.id.type !== 'Identifier') {
         return undefined;
     }
-    return {aliasName: declarator.id.name, key};
+    return {aliasName: declarator.id.name, key, declaratorStart: declarator.range[0]};
 }
 
 /** @type {import('eslint').Rule.RuleModule['create']} */
 function create(context) {
-    // Knip matches aliases by name and ignores scopes, so the rule collects names the same way.
-    const memberAccessedNames = new Set();
-    const memberAccessedKeys = new Set();
+    // Knip matches aliases by name and ignores scopes, so the rule collects names the same way. Knip also registers an alias when it reaches the declaration
+    // and counts only the member accesses it reaches afterwards, in source order, whatever the scope. So an access is stored as the position of its latest occurrence.
+    const lastMemberAccessStart = new Map();
     const pendingAliases = [];
+
+    /**
+     * @param {string} readKey `alias` or `alias.key`
+     * @param {import('estree').Node} node
+     */
+    function recordMemberAccess(readKey, node) {
+        lastMemberAccessStart.set(readKey, Math.max(lastMemberAccessStart.get(readKey) ?? -1, node.range[0]));
+    }
 
     /**
      * @param {import('estree').Identifier} identifier
@@ -166,8 +174,15 @@ function create(context) {
 
     /** Whether an alias is member-accessed is only known once the whole file is traversed, so the aliases are reported on Program:exit. */
     function reportUnreadAliases() {
+        // Aliases with the same name are one alias for knip: an access counts once it follows the first declaration of the name.
+        const firstDeclarationStart = new Map();
+        for (const {aliasName, key, declaratorStart} of pendingAliases) {
+            const readKey = key ? `${aliasName}.${key}` : aliasName;
+            firstDeclarationStart.set(readKey, Math.min(firstDeclarationStart.get(readKey) ?? Infinity, declaratorStart));
+        }
         for (const {identifier, aliasName, key} of pendingAliases) {
-            const isRead = key ? memberAccessedKeys.has(`${aliasName}.${key}`) : memberAccessedNames.has(aliasName);
+            const readKey = key ? `${aliasName}.${key}` : aliasName;
+            const isRead = (lastMemberAccessStart.get(readKey) ?? -1) > firstDeclarationStart.get(readKey);
             if (!isRead) {
                 report(identifier, 'unread alias');
             }
@@ -177,14 +192,14 @@ function create(context) {
     return {
         MemberExpression(node) {
             if (node.object.type === 'Identifier') {
-                memberAccessedNames.add(node.object.name);
+                recordMemberAccess(node.object.name, node);
             }
 
             // Collect `holder.key.member` and `holder.key['member']`, which read the `{key: NS}` form.
             const holder = node.object;
             const isStaticMember = !node.computed || isStaticStringKey(node.property);
             if (holder.type === 'MemberExpression' && !holder.computed && holder.object.type === 'Identifier' && isStaticMember) {
-                memberAccessedKeys.add(`${holder.object.name}.${holder.property.name}`);
+                recordMemberAccess(`${holder.object.name}.${holder.property.name}`, node);
             }
         },
 
