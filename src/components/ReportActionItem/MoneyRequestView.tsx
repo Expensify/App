@@ -17,6 +17,7 @@ import UserPills from '@components/UserPills';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAttendees from '@hooks/useAttendees';
@@ -120,6 +121,7 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
+    isCardTransactionReimbursableEditable,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
     isCategoryBeingAnalyzed,
     isCustomUnitRateIDForP2P,
@@ -172,6 +174,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -558,10 +561,11 @@ function MoneyRequestView({
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
     const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
+    // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!policy)) &&
-        canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable) &&
-        !isManagedCardTransactionTransactionUtils(transaction) &&
+        (isManagedCardTransactionTransactionUtils(transaction) || canShowReimbursableToggleForPolicy(policy, updatedTransaction?.reimbursable ?? transactionReimbursable)) &&
+        isCardTransactionReimbursableEditable(transaction) &&
         !isInvoice;
     const canEditReimbursable =
         isEditable &&
@@ -1034,7 +1038,8 @@ function MoneyRequestView({
     const distanceRateCopyValue = rateToDisplay || undefined;
     const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
-    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(descriptionHTML);
+    const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML, {accountIDToName}) : undefined;
     const merchantCopyValue = updatedMerchantTitle;
     const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
@@ -1846,6 +1851,18 @@ function MoneyRequestView({
                             isTitleSelectable={!!reportCopyValue}
                         />
                     </OfflineWithFeedback>
+                )}
+                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                    <MoneyRequestViewAdditionalFields
+                        transaction={transaction}
+                        report={parentReport}
+                        reportActions={parentReportActions}
+                        policy={policy}
+                        policyCategories={policyCategories}
+                        policyTags={reportPolicyTags}
+                        visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                        isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+                    />
                 )}
                 {shouldShowTripRoomLink && (
                     <>
