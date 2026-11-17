@@ -31,6 +31,10 @@ type CloseAccountStep = (typeof CLOSE_ACCOUNT_STEP)[keyof typeof CLOSE_ACCOUNT_S
  * history entries, because the choice is re-opened in response to Back. An entry added then has no user gesture, and Chrome
  * skips such entries on the next Back, so Back would stop closing the choice. Instead this hook keeps two entries that are
  * both added by a click: one for the whole flow and one for the confirmation step.
+ *
+ * After the confirmation, the two entries are removed one after the other. Removed in the same moment, they reach React
+ * Navigation as one change, and it goes back only to the nearest browser entry of the same page, so one entry would stay
+ * and the next Back would do nothing visible.
  */
 function useCloseDomainAccountModal() {
     const {translate} = useLocalize();
@@ -74,11 +78,18 @@ function useCloseDomainAccountModal() {
         };
     }, [step]);
 
-    const endFlow = () =>
-        new Promise<boolean>((resolve) => {
+    const endFlow = async () => {
+        // The confirmation entry is removed first. The flow entry waits two frames, so React Navigation has rendered the
+        // first removal and moved the browser history for it before the second one starts.
+        setStep(CLOSE_ACCOUNT_STEP.DECISION);
+        await new Promise((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+        return new Promise<boolean>((resolve) => {
             flowEndedCallbacksRef.current.push(resolve);
             setStep(null);
         });
+    };
 
     /** Resolves with whether the admin chose to force close the account, or with undefined when they left the flow */
     const showCloseAccountModal = async (count: number): Promise<boolean | undefined> => {

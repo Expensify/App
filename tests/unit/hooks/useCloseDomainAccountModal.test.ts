@@ -28,6 +28,14 @@ function getLatestGuards(): {flowGuard?: HistoryGuard; confirmGuard?: HistoryGua
 describe('useCloseDomainAccountModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 0;
+        });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('resolves with undefined when the choice is dismissed', async () => {
@@ -63,6 +71,59 @@ describe('useCloseDomainAccountModal', () => {
         await waitFor(() => expect(onResolved).toHaveBeenCalledWith(true));
         expect(getLatestGuards().flowGuard?.isVisible).toBe(false);
         expect(getLatestGuards().confirmGuard?.isVisible).toBe(false);
+    });
+
+    it('removes the confirmation entry before the flow entry', async () => {
+        // Given the next frames are held back
+        const frames: FrameRequestCallback[] = [];
+        jest.mocked(requestAnimationFrame).mockImplementation((callback) => {
+            frames.push(callback);
+            return frames.length;
+        });
+        mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CLOSE});
+        mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+        const {result} = renderHook(() => useCloseDomainAccountModal());
+        const onResolved = jest.fn();
+
+        // When the admin confirms
+        act(() => {
+            result.current.showCloseAccountModal(1).then(onResolved);
+        });
+
+        // Then only the confirmation entry is removed, because two entries removed together leave one in browser history
+        await waitFor(() => expect(getLatestGuards().confirmGuard?.isVisible).toBe(false));
+        expect(getLatestGuards().flowGuard?.isVisible).toBe(true);
+        expect(onResolved).not.toHaveBeenCalled();
+
+        // When the next two frames run
+        act(() => frames.shift()?.(0));
+        act(() => frames.shift()?.(0));
+
+        // Then the flow entry is removed on its own and only then the flow resolves with the safe close
+        await waitFor(() => expect(onResolved).toHaveBeenCalledWith(false));
+        expect(getLatestGuards().flowGuard?.isVisible).toBe(false);
+    });
+
+    it('does not confirm account closure when the page unmounts before the flow entry is removed', async () => {
+        // Given the admin confirmed and the next frames are held back
+        jest.mocked(requestAnimationFrame).mockImplementation(() => 1);
+        mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CLOSE});
+        mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+        const {result, unmount} = renderHook(() => useCloseDomainAccountModal());
+        const onResolved = jest.fn();
+        act(() => {
+            result.current.showCloseAccountModal(1).then(onResolved);
+        });
+        await waitFor(() => expect(getLatestGuards().confirmGuard?.isVisible).toBe(false));
+
+        // When the page leaves before the flow entry is removed
+        unmount();
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // Then the flow never resolves with a choice, so the caller cannot close an account from a page that is gone
+        expect(onResolved).not.toHaveBeenCalled();
     });
 
     it('lets the modals leave the history to the flow', async () => {
