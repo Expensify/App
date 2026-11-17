@@ -124,4 +124,3 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
 }
 
 export default MoreMenuPopover;
-export type {MoreMenuPopoverProps};
