@@ -9,7 +9,7 @@ import type {MoneyRequestUpdateParams} from '@hooks/useMoneyRequestUpdateParams'
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateTransactionDate from '@hooks/useUpdateTransactionDate';
 
-import {getFormattedCreated} from '@libs/TransactionUtils';
+import {getCreated, getFormattedCreated} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
@@ -49,7 +49,9 @@ function DateInputField({transaction, updateParams, duplicates, isTrackExpense, 
     const saveDate = (newDate: string) => {
         // An expense always has a date, so clearing only empties the picker until the next pick.
         setIsCleared(!newDate);
-        if (!newDate || newDate === savedDate) {
+        // The stored value can include a time from SmartScan, so picking the day that is already shown still saves the
+        // date without that time, which can clear a futureDate violation, the same as the date page.
+        if (!newDate || newDate === getCreated(transaction)) {
             return;
         }
         updateDate(newDate);

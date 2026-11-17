@@ -8173,6 +8173,70 @@ const plainStyles = (theme: ThemeColors) =>
             width: variables.insightsAICardWidth,
         } satisfies ViewStyle,
 
+        insightsDataTableSkeletonTopOffset: (topOffset: number) =>
+            ({
+                marginTop: topOffset,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableShareColumn: {
+            flex: 1.5,
+            minWidth: 0,
+            alignSelf: 'stretch',
+            paddingRight: variables.insightsRankingTableShareLabelSpace,
+        } satisfies ViewStyle,
+
+        insightsRankingTableNumberColumn: {
+            width: variables.w130,
+        } satisfies ViewStyle,
+
+        insightsRankingTableChangeColumn: {
+            width: variables.w96,
+            alignItems: 'flex-end',
+        } satisfies ViewStyle,
+
+        insightsRankingTableBar: (widthPercent: number) =>
+            ({
+                width: `${widthPercent}%`,
+                minWidth: variables.insightsRankingTableBarMinWidth,
+                height: variables.insightsRankingTableBarHeight,
+                borderRadius: variables.insightsRankingTableBarHeight / 2,
+                backgroundColor: colors.green400,
+                flexShrink: 0,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableBarTrack: {
+            flexDirection: 'row',
+            height: variables.insightsRankingTableBarHeight,
+            borderRadius: variables.insightsRankingTableBarHeight / 2,
+            backgroundColor: theme.border,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAverageLineAnchor: (leftPercent: number, overhangTop = 0, overhangBottom?: number) =>
+            ({
+                position: 'absolute',
+                top: -overhangTop,
+                bottom: -(overhangBottom ?? overhangTop),
+                left: `${leftPercent}%`,
+                width: 0,
+                alignItems: 'center',
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageDashedLine: (width: number) =>
+            ({
+                width,
+            }) satisfies ViewStyle,
+
+        insightsRankingTableAverageLegendMark: {
+            height: variables.insightsRankingTableBarHeight + variables.insightsRankingTableAverageMarkerOverhang * 2,
+        } satisfies ViewStyle,
+
+        insightsRankingTableAveragePill: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingHorizontal: VictoryTheme.averageLine.pillPaddingHorizontal,
+            paddingVertical: VictoryTheme.averageLine.pillPaddingVertical,
+        } satisfies ViewStyle,
+
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,
             height: variables.insightsEmptyStateIllustrationSize,

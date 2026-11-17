@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import AmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/AmountInputField';
+import DateInputField from '@components/ReportActionItem/MoneyRequestViewFields/DateInputField';
 import DescriptionInputField from '@components/ReportActionItem/MoneyRequestViewFields/DescriptionInputField';
 import MerchantInputField from '@components/ReportActionItem/MoneyRequestViewFields/MerchantInputField';
 import TaxAmountInputField from '@components/ReportActionItem/MoneyRequestViewFields/TaxAmountInputField';
@@ -45,6 +46,12 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: jest.fn(() => true),
 }));
+// The calendar is covered by the DatePicker tests; here only what the date field does with a pick matters.
+let mockPickDate: ((date: string) => void) | undefined;
+jest.mock('@components/DatePicker', () => ({onInputChange}: {onInputChange?: (date: string) => void}) => {
+    mockPickDate = onInputChange;
+    return null;
+});
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: jest.fn(() => ({
         getCurrencyDecimals: jest.fn(() => 2),
@@ -465,6 +472,49 @@ describe('saved expense inline fields', () => {
 
             // Then nothing is sent, so no pointless edit shows up on the expense
             expect(updateMoneyRequestTaxAmount).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('DateInputField', () => {
+        it('saves the day already shown when the stored date also has a time', async () => {
+            // Given a saved expense whose stored date carries a SmartScan time on the day the field shows
+            renderField(
+                <DateInputField
+                    transaction={{...transaction, created: '2025-06-01 14:30:00'}}
+                    updateParams={updateParams}
+                    duplicates={NO_DUPLICATES}
+                    isTrackExpense={false}
+                    label="date"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks that same day
+            act(() => mockPickDate?.('2025-06-01'));
+
+            // Then the date is saved without the time, the same as on the date page, so a futureDate violation can clear
+            expect(updateMoneyRequestDate).toHaveBeenCalledTimes(1);
+            expect(updateMoneyRequestDate).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, value: '2025-06-01'}));
+        });
+
+        it('sends nothing when the picked day is the stored date', async () => {
+            // Given a saved expense whose stored date has no time
+            renderField(
+                <DateInputField
+                    transaction={transaction}
+                    updateParams={updateParams}
+                    duplicates={NO_DUPLICATES}
+                    isTrackExpense={false}
+                    label="date"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks the day it already holds
+            act(() => mockPickDate?.('2025-06-01'));
+
+            // Then nothing is sent, so no pointless edit shows up on the expense
+            expect(updateMoneyRequestDate).not.toHaveBeenCalled();
         });
     });
 

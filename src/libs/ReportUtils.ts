@@ -1509,20 +1509,6 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
 }
 
 /**
- * Checks if the report with supplied ID has been approved or not
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, deprecatedAllReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
-}
-
-/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
@@ -3077,6 +3063,23 @@ function isOneTransactionThread(
  */
 function isReportTransactionThread(report: OnyxEntry<Report>) {
     return isMoneyRequest(report) || isTrackExpenseReport(report);
+}
+
+/**
+ * Same as isReportTransactionThread, but takes the parent report and action so callers can subscribe to them
+ */
+function isReportTransactionThreadNew(
+    report: OnyxEntry<Pick<Report, 'parentReportID' | 'parentReportActionID'>>,
+    parentReport: OnyxEntry<Pick<Report, 'type' | 'chatType'>>,
+    parentReportAction: OnyxEntry<ReportAction>,
+) {
+    if (!report?.parentReportID || !report.parentReportActionID || isEmptyObject(parentReportAction)) {
+        return false;
+    }
+    if (parentReport?.type === CONST.REPORT.TYPE.IOU || parentReport?.type === CONST.REPORT.TYPE.EXPENSE) {
+        return isTransactionThread(parentReportAction);
+    }
+    return parentReport?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && isTrackExpenseAction(parentReportAction);
 }
 
 /**
@@ -4957,7 +4960,7 @@ function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<Person
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
+    personalDetailsList: Array<Pick<Partial<OptionData>, 'accountID' | 'login' | 'avatar' | 'pronouns'>> | PersonalDetailsList,
     shouldUseShortForm: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -11214,7 +11217,7 @@ function hasVisibleReportFieldViolations(
         if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin)) {
             return false;
         }
-        return !!getFieldViolation(field);
+        return !!getFieldViolation(field, report);
     });
 }
 
@@ -11276,9 +11279,11 @@ function hasAnyViolations(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ) {
     return (
-        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions) ||
+        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions, report, undefined, policy) ||
         hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions) ||
         hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions)
     );
@@ -11295,11 +11300,13 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
+    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions, report, policy);
 }
 
 function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
@@ -11983,11 +11990,6 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
     // Users can only submit expenses in DMs if they are a 1:1 DM
     if (isDM(report)) {
         return otherParticipants.length === 1;
-    }
-
-    // Prevent requesting money if pending IOU report waiting for their bank account already exists
-    if (hasIOUWaitingOnCurrentUserBankAccount(report, currentUserAccountID)) {
-        return false;
     }
 
     // Members without create-expenses permission get no create options in the workspace chats and reports.
@@ -14497,8 +14499,8 @@ function getChatUsedForOnboarding(onboardingValue: OnyxEntry<Onboarding>, concie
 /**
  * Checks if given field has any violations and returns name of the first encountered one
  */
-function getFieldViolation(reportField: PolicyReportField): ReportViolationName | undefined {
-    if (!reportField) {
+function getFieldViolation(reportField: PolicyReportField, report: OnyxEntry<Report>): ReportViolationName | undefined {
+    if (!reportField || isInvoiceReport(report)) {
         return undefined;
     }
 
@@ -16079,7 +16081,6 @@ export {
     hasEmptyReportsForPolicy,
     hasEnabledListValue,
     hasHeldExpenses,
-    hasIOUWaitingOnCurrentUserBankAccount,
     hasOnlyHeldExpenses,
     hasReceiptError,
     hasReportNameError,
@@ -16147,7 +16148,6 @@ export {
     isOpenReport,
     isReportEligibleForViolationFix,
     getSubmitterUnfixableViolationNames,
-    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,
@@ -16181,6 +16181,7 @@ export {
     isNewDotInvoice,
     isOpenInvoiceReport,
     isReportTransactionThread,
+    isReportTransactionThreadNew,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
