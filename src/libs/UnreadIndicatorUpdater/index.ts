@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type UnreadIndicatorData = {
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
@@ -17,6 +17,29 @@ type UnreadIndicatorData = {
     conciergeReportID?: string;
 };
 
+function isMutedOrHiddenForCurrentUser(report: OnyxEntry<Report>, currentUserAccountID: number) {
+    const notificationPreference = getReportNotificationPreference(report, currentUserAccountID);
+    return isHiddenForCurrentUser(notificationPreference) || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+}
+
+function getUnreadReportInputs(
+    report: OnyxEntry<Report>,
+    reports: OnyxCollection<Report>,
+    {reportNameValuePairs, reportActions, reportAttributes}: Pick<UnreadIndicatorData, 'reportNameValuePairs' | 'reportActions' | 'reportAttributes'>,
+    isOffline: boolean,
+) {
+    const nameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
+    return {
+        isReportArchived: isArchivedReport(nameValuePairs),
+        chatReport,
+        oneTransactionThreadReportID,
+        oneTransactionThreadReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`],
+        derivedIsEmptyReport: report?.reportID ? reportAttributes?.[report.reportID]?.isEmpty : undefined,
+    };
+}
+
 function getUnreadReportsForUnreadIndicator(
     reports: OnyxCollection<Report>,
     currentReportID: string | undefined,
@@ -26,8 +49,6 @@ function getUnreadReportsForUnreadIndicator(
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
     return Object.values(reports ?? {}).filter((report) => {
-        const notificationPreference = getReportNotificationPreference(report, currentUserAccountID);
-
         /**
          * Cheapest predicates first so we reject the large muted/hidden population before doing any expensive work.
          *
@@ -38,17 +59,16 @@ function getUnreadReportsForUnreadIndicator(
          * Furthermore, muted reports may or may not appear in the LHN depending on priority mode,
          * but they should not be considered in the unread indicator count.
          */
-        if (isHiddenForCurrentUser(notificationPreference) || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
+        if (isMutedOrHiddenForCurrentUser(report, currentUserAccountID)) {
             return false;
         }
 
-        const nameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const isReportArchived = isArchivedReport(nameValuePairs);
-        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
-        const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-
-        const derivedIsEmptyReport = report?.reportID ? reportAttributes?.[report.reportID]?.isEmpty : undefined;
+        const {isReportArchived, chatReport, oneTransactionThreadReport, derivedIsEmptyReport} = getUnreadReportInputs(
+            report,
+            reports,
+            {reportNameValuePairs, reportActions, reportAttributes},
+            isOffline,
+        );
         const requiresAttention = report?.reportID ? reportAttributes?.[report.reportID]?.requiresAttention : undefined;
 
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
