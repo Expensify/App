@@ -7456,6 +7456,7 @@ function clearDeleteTransactionNavigateBackUrlAfterTransitions(shouldClear: () =
                 if (isCancelled || !shouldClearUrl) {
                     return;
                 }
+                // One more frame so the popped screen's guard doesn't flash Not Found.
                 frameID = requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
             });
         },

@@ -181,6 +181,27 @@ describe('DeleteTransactionNavigateBackHandler', () => {
         expect(await getNavigateBackUrl()).toBeUndefined();
     });
 
+    it('waits for the unmount when the deleted thread report is removed while the screen is mounted', async () => {
+        // Given a focused expense screen that was just deleted
+        const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
+        await waitForBatchedUpdates();
+
+        // When the delete success data removes the thread report before the pop
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`, null);
+        await flushClear();
+
+        // Then the URL stays while the screen is still mounted, so it does not flash Not Found
+        expect(await getNavigateBackUrl()).toBe(REPORT_URL);
+
+        // When the native stack finally pops it
+        unmount();
+        await flushClear();
+
+        // Then the URL is cleared on the real unmount
+        expect(await getNavigateBackUrl()).toBeUndefined();
+    });
+
     it('does not clear a newer deletion URL from a clear whose frame is still queued', async () => {
         // Given an unmount clear that already passed the transition and queued its animation frame
         let queuedFrame: FrameRequestCallback | undefined;
