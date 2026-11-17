@@ -68,6 +68,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         <View style={[styles.ph5]}>
                             <Text style={[styles.textAlignCenter]}>
                                 <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                     style={styles.link}
                                     onPress={() => {
                                         openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
@@ -85,6 +86,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     <View style={[styles.ph5]}>
                         <Text style={[styles.textAlignLeft]}>
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                 style={styles.link}
                                 onPress={() => {
                                     openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);

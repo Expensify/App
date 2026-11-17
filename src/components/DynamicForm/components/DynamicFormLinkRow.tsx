@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {DynamicFormLink} from '@src/types/onyx';
 
 import React from 'react';
@@ -37,6 +38,7 @@ function DynamicFormLinkRow({link}: DynamicFormLinkRowProps) {
             <TextLink
                 style={[styles.textMicro, styles.ml2]}
                 href={link.url}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.LINK_ROW}
             >
                 {text}
             </TextLink>

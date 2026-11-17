@@ -3759,6 +3759,37 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
                 });
 
+                test('should handle concierge company card consent expiring action', () => {
+                    // Given a thread whose parent action warns that a card feed's consent expires in two weeks
+                    const companyCardConsentExpiringAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                        originalMessage: {
+                            feedName: 'American Express Business',
+                            policyID: '1',
+                            warningDaysBeforeExpiry: 14,
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConsentExpiringAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConsentExpiringAction.reportActionID]: companyCardConsentExpiringAction,
+                        },
+                    };
+
+                    // When the thread name is derived from the parent action
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the localized plain-text warning
+                    expect(reportName).toBe(
+                        "Your American Express Business card connection will need renewed consent in two weeks. Transactions are still syncing now, but may stop importing if the connection isn't renewed. Reconnect the card connection before consent expires.",
+                    );
+                });
+
                 test('should handle automatically paid with Expensify action', () => {
                     const expensifyPayAction: ReportAction = {
                         ...baseParentReportAction,
@@ -4780,6 +4811,47 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('returns false when the outstanding child is the member own open report with expenses on a workspace they cannot create expenses on', async () => {
+            // Given the member's own open report with expenses on an approve-only workspace
+            // When the LHN checks whether their workspace chat needs attention
+            // Then the outstanding-child flag alone does not show the GBR, since the member cannot submit their own report on that workspace
+            const expenseReportID = '7103';
+            const expenseReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: expenseReportID,
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 1,
+                total: -1000,
+            };
+
+            const policyExpenseChat = {
+                ...createPolicyExpenseChat(103, true),
+                policyID: '1',
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const transaction = {
+                ...createRandomTransaction(7103),
+                transactionID: '7103',
+                reportID: expenseReportID,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {role: CONST.POLICY.ROLE.APPROVE_ONLY});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
@@ -17529,6 +17601,13 @@ describe('ReportUtils', () => {
                 employeeList: {},
             };
 
+            const policyWithApproveOnlyUser: Policy = {
+                ...createRandomPolicy(4),
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                employeeList: {},
+            };
+
             const restrictedReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -17549,15 +17628,17 @@ describe('ReportUtils', () => {
             };
 
             // When checking whether a user can join restricted rooms
-            // Then regular workspace members can join, but non-members and guests cannot
+            // Then regular workspace members can join, but non-members, guests, and approve-only members cannot
             expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
             expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(restrictedReport, undefined, policyWithGuestUser, undefined)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(false);
 
             // When checking whether a user can join public rooms
-            // Then non-members and guests can both join
+            // Then non-members, guests, and approve-only members can join
             expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
             expect(canJoinChat(publicReport, undefined, policyWithGuestUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithApproveOnlyUser, undefined)).toBe(true);
         });
     });
 
@@ -28417,6 +28498,27 @@ describe('ReportUtils', () => {
             expect(result).toBe('Test Merchant');
         });
 
+        it('should return the vendor name shown in the Vendor column for VENDOR column', () => {
+            // Given a workspace whose synced vendor list renamed one vendor, and expenses holding that vendor, a vendor no longer synced, and no vendor
+            const policyWithVendors = createMock<Policy>({
+                ...mockPolicy,
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: 'USD', email: ''}]}}},
+            });
+            const renamedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true}}});
+            const unsyncedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true}}});
+            const noVendorTransaction = createMockTransaction();
+
+            // When getting their sort values for the Vendor column
+            const renamedVendorSortValue = getTransactionSortValue(translateLocal, renamedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const unsyncedVendorSortValue = getTransactionSortValue(translateLocal, unsyncedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const noVendorSortValue = getTransactionSortValue(translateLocal, noVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+
+            // Then each expense sorts by the name the column shows, which prefers the synced name and falls back to the stored one
+            expect(renamedVendorSortValue).toBe('Acme Co');
+            expect(unsyncedVendorSortValue).toBe('Former Vendor');
+            expect(noVendorSortValue).toBe('');
+        });
+
         it('should return category for CATEGORY column', () => {
             const transaction = createMockTransaction({category: 'Travel'});
             const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY, mockReport, mockPolicy);
@@ -28574,6 +28676,7 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
@@ -31537,12 +31640,12 @@ describe('getTransactionsWithReceipts', () => {
         const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
         const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
 
-        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+        expect(getTransactionsWithReceipts([withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
     });
 
     it('returns an empty array when no transactions have receipts', () => {
         const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
-        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+        expect(getTransactionsWithReceipts([withoutReceipt])).toEqual([]);
     });
 });
 
@@ -31625,14 +31728,14 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(true);
     });
 
     it('returns false when there are more requests than receipts (manual requests exist)', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 
     it('returns false when at least one receipt has finished scanning', () => {
@@ -31640,7 +31743,7 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 });
 
