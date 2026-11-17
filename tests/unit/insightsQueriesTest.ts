@@ -473,7 +473,7 @@ describe('insightsQueries', () => {
             const approverQuery = applyInsightsFilters(getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER), filters);
 
             // Then each one keeps the violations of its stage over the submissions or approvals of the week, the way the backend counts them, instead of the expense date
-            expect(submitterQuery).toContain('has:submitted-violation submitted:this-week');
+            expect(submitterQuery).toContain('has:submitted-violation anySubmission:this-week');
             expect(approverQuery).toContain('has:approved-violation anyApproval:this-week');
             expect(submitterQuery).not.toContain('date:');
             expect(approverQuery).not.toContain('date:');
@@ -564,9 +564,9 @@ describe('insightsQueries', () => {
         });
 
         it('adds nothing to charts that filter on a date other than the expense date', () => {
-            // Given the chart of violations kept at submission, which filters on the submission date, over this year
+            // Given the chart of violations kept at submission, which filters on any submission date, over this year
             const chart = getComplianceChart(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER);
-            expect(chart.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED);
+            expect(chart.dateFilterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION);
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
 
             // When its query is built to stop at today

@@ -19,11 +19,7 @@ import type {ValueOf} from 'type-fest';
 import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 /** Dates a chart can narrow the page's period by */
-type InsightsDateFilterKey =
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
 
 /** Whose violations a chart counts: the ones kept when expenses were submitted, or when they were approved */
 type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
@@ -229,8 +225,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
-                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
