@@ -69,7 +69,7 @@ function SubscriptCardFeedAvatar({
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                         icon={primaryAvatar}
                         size={size}
-                        testID="ReportActionAvatars-Subscript-MainAvatar"
+                        testID="Avatar-Subscript-MainAvatar"
                     />
                 </AvatarTooltip>
             }
@@ -88,7 +88,7 @@ function SubscriptCardFeedAvatar({
                         width={cardFeedIconSize.width}
                         height={cardFeedIconSize.height}
                         additionalStyles={styles.alignSelfCenter}
-                        testID="ReportActionAvatars-Subscript-CardIcon"
+                        testID="Avatar-Subscript-CardIcon"
                     />
                 </View>
             }

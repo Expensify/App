@@ -113,6 +113,11 @@ jest.mock('@hooks/useOnyx', () => {
     };
 });
 
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@hooks/usePersonalDetails'),
+    useAllPersonalDetailsWithoutSnapshots: (selector: (personalDetails: typeof mockPersonalDetails) => unknown) => [selector(mockPersonalDetails), {status: 'loaded'}],
+}));
+
 jest.mock('@libs/Log', () => ({
     info: jest.fn(),
 }));
