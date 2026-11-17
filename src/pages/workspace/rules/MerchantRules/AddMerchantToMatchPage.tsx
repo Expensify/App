@@ -48,8 +48,14 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const initialMatchType = useInitialMatchType('matchType', form?.matchType);
 
     const goBack = () => {
-        updateDraftMerchantRule({matchType: initialMatchType});
         Navigation.goBack(backToRoute);
+    };
+
+    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
+    // out puts it back the way it was, while saving keeps it alongside the merchant it compares.
+    const discardAndGoBack = () => {
+        updateDraftMerchantRule({matchType: initialMatchType});
+        goBack();
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
@@ -92,7 +98,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('common.merchant')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={discardAndGoBack}
             />
             <FormProvider
                 style={[styles.flex1]}

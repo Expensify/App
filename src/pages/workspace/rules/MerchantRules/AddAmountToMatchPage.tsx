@@ -51,9 +51,13 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
 
     const initialMatchType = useInitialMatchType('amountMatchType', form?.amountMatchType);
 
-    const goBack = () => {
+    const goBack = () => Navigation.goBack(backToRoute);
+
+    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
+    // out puts it back the way it was, while saving keeps it alongside the amount it compares.
+    const discardAndGoBack = () => {
         updateDraftMerchantRule({amountMatchType: initialMatchType});
-        Navigation.goBack(backToRoute);
+        goBack();
     };
 
     const onSubmit = () => {
@@ -70,7 +74,7 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('iou.amount')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={discardAndGoBack}
             />
             <FormProvider
                 style={[styles.flex1]}

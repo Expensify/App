@@ -44,8 +44,14 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
     const initialMatchType = useInitialMatchType('dateMatchType', form?.dateMatchType);
 
     const goBack = () => {
-        updateDraftMerchantRule({dateMatchType: initialMatchType});
         Navigation.goBack(backToRoute);
+    };
+
+    // The comparison is picked on a page of its own, so it reaches the rule before this page is saved. Backing
+    // out puts it back the way it was, while saving keeps it alongside the date it compares.
+    const discardAndGoBack = () => {
+        updateDraftMerchantRule({dateMatchType: initialMatchType});
+        goBack();
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
@@ -74,7 +80,7 @@ function AddDateToMatchPage({route}: AddDateToMatchPageProps) {
         >
             <HeaderWithBackButtonAndTitle
                 title={translate('common.date')}
-                onBackButtonPress={goBack}
+                onBackButtonPress={discardAndGoBack}
             />
             <FormProvider
                 style={[styles.flex1]}
