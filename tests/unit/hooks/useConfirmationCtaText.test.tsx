@@ -26,6 +26,7 @@ const baseParams: Params = {
     receiptPath: '',
     isDistanceRequestWithPendingRoute: false,
     isPerDiemRequest: false,
+    sentryLabel: CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {

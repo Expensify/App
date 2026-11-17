@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Option} from '@libs/searchOptions';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +48,7 @@ function StatePicker({value, errorText, onInputChange = () => {}, forwardedFSCla
     return (
         <>
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
                 sentryLabel={CONST.SENTRY_LABEL.STATE_PICKER.OPEN}
             >
                 <MenuItemField.Row

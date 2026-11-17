@@ -1,5 +1,6 @@
 import type IntlPolyfill from './types';
 
+import polyfillDateTimeFormatRange from './polyfillDateTimeFormatRange';
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
 
@@ -22,6 +23,8 @@ const intlPolyfill: IntlPolyfill = () => {
     polyfillNumberFormat();
 
     polyfillListFormat();
+
+    polyfillDateTimeFormatRange();
 };
 
 export default intlPolyfill;

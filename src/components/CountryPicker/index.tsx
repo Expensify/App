@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Option} from '@libs/searchOptions';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -51,7 +51,7 @@ function CountryPicker({value, errorText, onInputChange = () => {}, label, disab
     return (
         <>
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
+                onPress={callIfAuthenticated(() => setIsPickerVisible(true), session)}
                 isDisabled={disabled}
                 sentryLabel={CONST.SENTRY_LABEL.COUNTRY_PICKER.OPEN}
             >

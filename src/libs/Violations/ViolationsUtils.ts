@@ -81,7 +81,7 @@ type ViolationTranslationParams = {
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
  */
-function filterReceiptViolations(violations: TransactionViolation[]): TransactionViolation[] {
+function filterReceiptViolations<TViolation extends {name: string}>(violations: TViolation[]): TViolation[] {
     const hasItemizedReceiptViolation = violations.some((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const hasReceiptRequiredViolation = violations.some((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
 
@@ -291,7 +291,7 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    return DateUtils.formatToLongDateInUTC(date, dateFnsLocale);
 }
 
 const RULE_VIOLATION_FILTER_ORDER = [

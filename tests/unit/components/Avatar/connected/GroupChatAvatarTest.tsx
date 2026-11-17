@@ -6,7 +6,7 @@ import {getDefaultGroupAvatar} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -42,12 +42,15 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mockGetContainerStyles})));
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => ({
-        [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, firstName: 'Alice', displayName: 'Alice Smith'},
-        [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, firstName: 'Bob', displayName: 'Bob Jones'},
-        [CARL_ACCOUNT_ID]: {accountID: CARL_ACCOUNT_ID, firstName: 'Carl', displayName: 'Carl Fox'},
-    }),
+jest.mock('@hooks/usePersonalDetails', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@hooks/usePersonalDetails'),
+    useAllPersonalDetailsWithoutSnapshots: (selector: (personalDetails: PersonalDetailsList) => unknown) => [
+        selector({
+            [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, firstName: 'Alice', displayName: 'Alice Smith'},
+            [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, firstName: 'Bob', displayName: 'Bob Jones'},
+            [CARL_ACCOUNT_ID]: {accountID: CARL_ACCOUNT_ID, firstName: 'Carl', displayName: 'Carl Fox'},
+        }),
+    ],
 }));
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {

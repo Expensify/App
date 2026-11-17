@@ -197,7 +197,7 @@ jest.mock('@components/ActivityIndicator', () => {
 jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -639,6 +639,16 @@ function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
+// A row's cells sit in one host view, whose style decides how the row lays them out.
+function getRowCellContainerStyle(cellTestID: string): unknown {
+    let cellContainer = screen.getByTestId(cellTestID).parent;
+    while (cellContainer && (typeof cellContainer.type !== 'string' || cellContainer.props.testID === cellTestID)) {
+        cellContainer = cellContainer.parent;
+    }
+    const cellContainerStyle: unknown = StyleSheet.flatten(cellContainer?.props.style);
+    return cellContainerStyle;
+}
+
 function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
     return within(container)
         .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
@@ -667,6 +677,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive={interactive}
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     testID={`selectable-row-${item.id}`}
                 >
                     <Text>{item.name}</Text>
@@ -805,6 +816,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     shouldAllowTextSelection
                     dataSet={{customMarker: true}}
                 >
@@ -833,6 +845,73 @@ describe('Table', () => {
                 tableRow: true,
                 [CONST.COPYABLE_ROW_ELEMENT]: true,
             });
+        });
+
+        it('should not let the grid of a wide row grow', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a wide table, where every row lays out its cells in a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the grid doesn't grow: in older Safari a growing grid centers the first row's cells against the whole list's height, behind the next row
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({gridTemplateColumns: '1fr 1fr 1fr', flexGrow: 0}));
+        });
+
+        it('should keep the flex layout of a narrow row unchanged', () => {
+            const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a narrow table, where rows lay out their cells with flex instead of a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the narrow row still fills its row, since the grid fix only applies to the wide layout
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({flex: 1}));
+            expect(firstRowCellContainerStyle).not.toHaveProperty('gridTemplateColumns');
+            expect(firstRowCellContainerStyle).not.toHaveProperty('flexGrow');
         });
 
         it('should render column headers when Header component is used', () => {
@@ -1297,6 +1376,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View role={CONST.ROLE.CELL}>
                         <Text>{item.name}</Text>
@@ -3359,6 +3439,7 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>

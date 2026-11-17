@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -88,7 +89,7 @@ function WorkspaceMemberRolePickerModal({
 }: WorkspaceMemberRolePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const {availableRoleItems, popoverHeight: contentHeight} = useWorkspaceMemberRolePickerPopover({policy, selectedRole, allowedRoles});
     const resolvedHeight = popoverHeight ?? contentHeight;

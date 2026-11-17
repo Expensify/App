@@ -5,12 +5,15 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
+import InsightsCompareControl from '@pages/Insights/controls/InsightsCompareControl';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
 import InsightsPageControls from '@pages/Insights/controls/InsightsPageControls';
+import InsightsTagLevelControl from '@pages/Insights/controls/InsightsTagLevelControl';
 import InsightsWorkspaceControl from '@pages/Insights/controls/InsightsWorkspaceControl';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
@@ -68,6 +71,12 @@ async function openPill(label: RegExp) {
     await waitForBatchedUpdatesWithAct();
 }
 
+function mockLayout(shouldUseNarrowLayout: boolean) {
+    jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+        createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
+    );
+}
+
 describe('Insights controls', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
@@ -87,7 +96,8 @@ describe('Insights controls', () => {
     });
 
     it('shows the page-level filters the dashboard is narrowed by', async () => {
-        // Given a dashboard on last month, one workspace and USD
+        // Given a dashboard on last month, one workspace and USD, on a wide layout where Export is offered
+        mockLayout(false);
         renderWithProviders(
             <InsightsPageControls
                 filters={FILTERS}
@@ -108,7 +118,8 @@ describe('Insights controls', () => {
     });
 
     it('exports when the dashboard is ready and blocks exports while a chart is loading', async () => {
-        // Given a loaded dashboard with an export action
+        // Given a loaded dashboard with an export action on a wide layout
+        mockLayout(false);
         const onExport = jest.fn();
         const controls = (isExportDisabled: boolean) => (
             <InsightsPageControls
@@ -145,11 +156,9 @@ describe('Insights controls', () => {
         expect(onExport).toHaveBeenCalledTimes(1);
     });
 
-    it.each([false, true])('shows a 16px spinner without hiding the Export label with narrow layout %s', async (shouldUseNarrowLayout) => {
-        // Given an export in progress on either toolbar layout
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
-            createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
-        );
+    it('shows a 16px spinner without hiding the Export label', async () => {
+        // Given an export in progress on the wide toolbar
+        mockLayout(false);
         const onExport = jest.fn();
         renderWithProviders(
             <InsightsPageControls
@@ -175,6 +184,26 @@ describe('Insights controls', () => {
         expect(exportButton).toBeDisabled();
         fireEvent.press(exportButton);
         expect(onExport).not.toHaveBeenCalled();
+    });
+
+    it('hides Export on narrow layouts', async () => {
+        // Given the toolbar on a narrow layout, where exporting the dashboard isn't offered
+        mockLayout(true);
+        renderWithProviders(
+            <InsightsPageControls
+                filters={FILTERS}
+                defaultFilters={FILTERS}
+                onChange={jest.fn()}
+                onExport={jest.fn()}
+            />,
+        );
+
+        // When the toolbar renders
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the filters show but Export does not
+        expect(screen.getByText(/Date: /)).toBeOnTheScreen();
+        expect(screen.queryByTestId('InsightsExportButton')).toBeNull();
     });
 
     it('resets Group currency to the default workspace currency rather than the current one', async () => {
@@ -203,6 +232,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -210,20 +240,79 @@ describe('Insights controls', () => {
 
         // When the user picks Quarter and applies it
         await openPill(/^(Month|search\.filters\.groupBy\.month)$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
         fireEvent.press(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/));
         fireEvent.press(screen.getByText(APPLY));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart is asked to regroup by quarter
+        // Then Group by keeps its own telemetry while updating the chart.
         expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.QUARTER});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.GROUP_BY,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.GROUP_BY,
+        });
     });
 
-    it('resets the grouping to month', async () => {
-        // Given the headline chart grouped by quarter
+    it('applies a configured tag position only after Apply', async () => {
+        // Given level one named Department and level two named Location
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={1}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user selects Location without applying it yet
+        await openPill(/^Department$/);
+        const popupProps = screen.UNSAFE_getByType(BasePopup).props;
+        fireEvent.press(screen.getByText('Location'));
+        expect(onChange).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText(APPLY));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the tag level changes, and its telemetry stays separate from Group by.
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 2});
+        expect(popupProps).toMatchObject({
+            resetSentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.TAG_LEVEL,
+            applySentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.TAG_LEVEL,
+        });
+    });
+
+    it('resets the tag position to level one', async () => {
+        // Given a chart showing the second configured level
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsTagLevelControl
+                tagLevel={2}
+                options={[
+                    {value: 1, label: 'Department'},
+                    {value: 2, label: 'Location'},
+                ]}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the shared grouping menu
+        await openPill(/^Location$/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then level one is selected and saved by the dashboard
+        expect(onChange).toHaveBeenCalledWith({tagLevel: 1});
+    });
+
+    it('resets the grouping to the dashboard default', async () => {
+        // Given the headline chart grouped by quarter on a dashboard that starts on Running total
         const onChange = jest.fn();
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.QUARTER}
+                defaultGroupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -234,16 +323,37 @@ describe('Insights controls', () => {
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the chart goes back to the default monthly buckets with running total off
-        expect(onChange).toHaveBeenCalledWith({groupBy: CONST.SEARCH.GROUP_BY.MONTH});
+        // Then the chart goes back to the grouping the dashboard starts from
+        expect(onChange).toHaveBeenCalledWith({groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
+    });
+
+    it('resets Compare to the dashboard default', async () => {
+        // Given a dashboard that starts on Previous period, compared against the average instead
+        const onChange = jest.fn();
+        renderWithProviders(
+            <InsightsCompareControl
+                value={CONST.SEARCH.COMPARE.AVERAGE}
+                defaultValue={CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
+                onChange={onChange}
+            />,
+        );
+
+        // When the user resets the control
+        await openPill(/(Average|insightsPage\.compare\.average)/);
+        fireEvent.press(screen.getByText(RESET));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the charts go back to the Compare mode the dashboard starts from
+        expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD);
     });
 
     it('only offers the groupings that fit the date range', async () => {
-        // Given the headline chart grouped by week over this month, which is too short for Month, Quarter and Year
-        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH};
+        // Given the headline chart grouped by week over last month, which is too short for Month, Quarter and Year
+        const date: InsightsFilters['date'] = {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH};
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.WEEK}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions(date)}
                 onChange={jest.fn()}
             />,
@@ -265,6 +375,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.DAY}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions(date)}
                 onChange={onChange}
             />,
@@ -285,6 +396,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={CONST.SEARCH.GROUP_BY.MONTH}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={onChange}
             />,
@@ -305,6 +417,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsGroupByDropdown
                 groupBy={INSIGHTS_RUNNING_TOTAL_GROUP_BY}
+                defaultGroupBy={CONST.SEARCH.GROUP_BY.MONTH}
                 options={getInsightsGroupByOptions({preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS})}
                 onChange={jest.fn()}
             />,

@@ -19,6 +19,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -31,6 +32,7 @@ type NetSuiteSectionType = {
     subscribedSettings: string[];
     pendingAction?: PendingAction;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    sentryLabel: SentryLabel;
 };
 
 const payableAccountSetting = [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT];
@@ -51,6 +53,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
         {
             title: travelPayableAccount?.name,
             description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TRAVEL_BILLING_ROW.JOURNAL_POSTING_ACCOUNT,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -66,6 +69,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.travelInvoicingJournalPostingPreference}`)
                 : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
             description: translate('workspace.netsuite.journalPostingPreference.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TRAVEL_BILLING_ROW.JOURNAL_POSTING_PREFERENCE,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -104,6 +108,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                     errorRowStyles={[styles.ph5]}
                 >
                     <MenuItemField
+                        sentryLabel={section.sentryLabel}
                         name={section.description}
                         onPress={section.onPress}
                         value={section.title}
@@ -115,6 +120,8 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.NETSUITE}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.NETSUITE}
                 isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
             />
