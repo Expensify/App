@@ -1186,6 +1186,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
             addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
             addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
+            addName: 'Fügen Sie Ihren Namen hinzu',
+            addNameSubText: 'Helfen Sie Ihrem Team, Sie in Expensify zu erkennen.',
+            downloadApp: 'Laden Sie die App herunter',
+            downloadAppSubText: 'Belege scannen, Ausgaben einreichen und Berichte unterwegs genehmigen.',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1248,6 +1252,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Durchschnitt über alle Händler',
             allCategoryAverage: 'Durchschnitt aller Kategorien',
             averageValue: (amount: string) => `${amount} durchschnittl.`,
+            allViolationAverage: 'Durchschnitt aller Verstöße',
+            noChange: 'Keine Änderung',
+            percentChange: '% Änderung',
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
@@ -1272,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {
@@ -2087,6 +2095,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} Berichte`,
             };
         },
+        payViaABA: 'Per ABA bezahlen',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} hat kein AUD-Bankkonto. Bitte bitten Sie die Person, eines hinzuzufügen, und versuchen Sie es erneut.`,
+        submittersMissingABADepositAccount: 'Eine oder mehrere einreichende Personen haben kein AUD-Bankkonto. Bitte bitten Sie sie, eines hinzuzufügen, und versuchen Sie es erneut.',
     },
     transactionMerge: {
         listPage: {
@@ -4272,7 +4283,6 @@ ${amount} für ${merchant} – ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Datum muss vor dem ${dateString} liegen`,
             dateShouldBeAfter: (dateString: string) => `Datum muss nach ${dateString} liegen`,
-            hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
             cannotIncludeCommaOrSemicolon: 'Name darf kein Komma oder Semikolon enthalten',
             incorrectZipFormat: (zipFormat?: string) => `Ungültiges Postleitzahlenformat${zipFormat ? `Zulässiges Format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4467,7 +4477,6 @@ ${amount} für ${merchant} – ${date}`,
             lastName: 'Bitte gib einen gültigen Nachnamen ein',
             noDefaultDepositAccountOrDebitCardAvailable: 'Bitte fügen Sie ein Standard-Einzahlungskonto oder eine Debitkarte hinzu',
             validationAmounts: 'Die von Ihnen eingegebenen Validierungsbeträge sind falsch. Bitte prüfen Sie Ihren Kontoauszug noch einmal und versuchen Sie es erneut.',
-            fullName: 'Bitte gib einen gültigen vollständigen Namen ein',
             ownershipPercentage: 'Bitte gib eine gültige Prozentzahl ein',
             deletePaymentBankAccount:
                 'Dieses Bankkonto kann nicht gelöscht werden, da es für Zahlungen mit der Expensify Karte verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an Concierge.',
