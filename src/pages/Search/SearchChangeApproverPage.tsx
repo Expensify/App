@@ -39,11 +39,11 @@ import {View} from 'react-native';
 
 type SelectedReportRef = {reportID: string | undefined; policyID?: string};
 
-function areSelectedPoliciesLoaded(selectedReports: SelectedReportRef[], allPolicies: OnyxCollection<Policy>): boolean {
+function areAllSelectedPoliciesLoaded(selectedReports: SelectedReportRef[], allPolicies: OnyxCollection<Policy>): boolean {
     return selectedReports.every((selectedReport) => !!selectedReport.policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
 }
 
-export {areSelectedPoliciesLoaded};
+export {areAllSelectedPoliciesLoaded};
 
 /**
  * Decides whether the bulk change-approver page should auto-apply the only
@@ -179,7 +179,7 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
-    const areSelectedPoliciesLoadedForSelection = areSelectedPoliciesLoaded(selectedReports, allPolicies);
+    const areSelectedPoliciesLoadedForSelection = areAllSelectedPoliciesLoaded(selectedReports, allPolicies);
     const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
     const getApproverTypes = () => {

@@ -1,6 +1,6 @@
 import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
-import {areSelectedPoliciesLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+import {areAllSelectedPoliciesLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +18,7 @@ function buildReport(reportID: string): Report {
 }
 
 describe('SearchChangeApproverPage', () => {
-    describe('areSelectedPoliciesLoaded', () => {
+    describe('areAllSelectedPoliciesLoaded', () => {
         const policyID = 'policyA';
         const policy = createMock<Policy>({id: policyID});
 
@@ -31,7 +31,7 @@ describe('SearchChangeApproverPage', () => {
             const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
 
             // When checking whether the policies for the selection are ready
-            const result = areSelectedPoliciesLoaded(selectedReports, allPolicies);
+            const result = areAllSelectedPoliciesLoaded(selectedReports, allPolicies);
 
             // Then wait for both policies so the page does not show stale approver actions
             expect(result).toBe(false);
@@ -43,7 +43,7 @@ describe('SearchChangeApproverPage', () => {
             const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
 
             // When checking whether the policies for the selection are ready
-            const result = areSelectedPoliciesLoaded(selectedReports, allPolicies);
+            const result = areAllSelectedPoliciesLoaded(selectedReports, allPolicies);
 
             // Then allow the page to show the applicable approver actions
             expect(result).toBe(true);
