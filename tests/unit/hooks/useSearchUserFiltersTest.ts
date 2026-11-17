@@ -172,4 +172,55 @@ describe('useSearchUserFilters', () => {
         expect(result.current.isSearching).toBe(false);
         expect(mockOpenSearchUserFiltersPage).not.toHaveBeenCalled();
     });
+
+    it('clears isSearching when the first page request fails and clears isLoadingMore when loading the next page fails', async () => {
+        // Given the initial lookup rejects
+        mockOpenSearchUserFiltersPage.mockRejectedValueOnce(new Error('network failure'));
+
+        // When the hook mounts
+        const {result, rerender} = renderHook(
+            ({searchTerm}: {searchTerm: string}) =>
+                useSearchUserFilters({
+                    policyIDs: 'policy-1',
+                    searchTerm,
+                }),
+            {initialProps: {searchTerm: 'fail'}},
+        );
+
+        // Then isSearching clears and hasMore stays false once the rejection settles
+        await waitFor(() => {
+            expect(result.current.isSearching).toBe(false);
+        });
+        expect(result.current.hasMore).toBe(false);
+
+        // Given a subsequent search succeeds with a next page cursor
+        mockOpenSearchUserFiltersPage.mockResolvedValueOnce({
+            hasMore: true,
+            nextCursor: 'cursor-2',
+            logins: ['alice@example.com'],
+        });
+        rerender({searchTerm: 'alice'});
+
+        await waitFor(() => {
+            expect(result.current.hasMore).toBe(true);
+        });
+
+        // When loading the next page fails
+        const loadMoreDeferred = createDeferredResponse();
+        mockOpenSearchUserFiltersPage.mockReturnValueOnce(loadMoreDeferred.promise);
+
+        act(() => {
+            result.current.loadMoreUsers();
+        });
+        expect(result.current.isLoadingMore).toBe(true);
+
+        await act(async () => {
+            loadMoreDeferred.reject(new Error('next page failure'));
+            await loadMoreDeferred.promise.catch(() => {});
+        });
+
+        // Then isLoadingMore resets to false while preserving hasMore so the page can be retried
+        expect(result.current.isLoadingMore).toBe(false);
+        expect(result.current.hasMore).toBe(true);
+    });
 });
