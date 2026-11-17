@@ -617,6 +617,7 @@ describe('ReportAlternateTextUtils', () => {
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     lastAction: undefined,
+                    lastOriginalAction: undefined,
                     formatPhoneNumber,
                     rules: undefined,
                 });
