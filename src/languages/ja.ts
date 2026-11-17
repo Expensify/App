@@ -1306,7 +1306,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `申し訳ありません。行 ${rowNumber} では承認者 1 が「Over limit」に設定されていますが、すべてのレポートは承認者 1 に送られます。内容を確認して、もう一度お試しください。`,
         approvalLimitMismatch: `これらの承認者について、承認タイプと承認上限額が一致していません。修正してから、もう一度お試しください。<a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">詳しく見る</a>。`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `おっと！${rowNumber} 行目の「Over limit」承認者は、直前の「Over limit」承認者よりも下限が低くなっています。内容を確認してから、もう一度お試しください。`,
+            `おっと！${rowNumber} 行目の「Over limit」承認者は、直前の「Over limit」承認者よりも上限が低くなっています。内容を確認してから、もう一度お試しください。`,
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesNoneAddedOrUpdated: 'カテゴリーは追加も更新もされていません。',
