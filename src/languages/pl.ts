@@ -1228,6 +1228,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Skonfiguruj zasady dotyczące podróży',
             addFirstReceipt: 'Dodaj swój pierwszy paragon',
             addFirstReceiptSubText: 'Zeskanuj lub wprowadź paragon ręcznie',
+            addName: 'Dodaj swoje imię',
+            addNameSubText: 'Pomóż współpracownikom rozpoznać cię w Expensify.',
+            downloadApp: 'Pobierz aplikację',
+            downloadAppSubText: 'Skanuj paragony, wysyłaj wydatki i zatwierdzaj raporty w dowolnym miejscu.',
         },
         yourSpend: {
             title: 'Twoje wydatki',
@@ -1274,9 +1278,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Średnia dla wszystkich sprzedawców',
             allCategoryAverage: 'Średnia dla wszystkich kategorii',
             averageValue: (amount: string) => `średnio ${amount}`,
+            allViolationAverage: 'Średnia wszystkich naruszeń',
+            noChange: 'Bez zmian',
+            percentChange: '% zmiana',
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
+        futureExpensesNotShown: (amount: string) => `Nie pokazano: ${amount} w przyszłych wydatkach.`,
+        violationsTrackedFrom: (date: string) => `Naruszenia są śledzone od ${date}.`,
         upsellState: {
             title: 'Ulepsz do Control, aby zyskać więcej wglądu',
             subtitle: 'Śledź trendy przestrzegania zasad dotyczących wydatków i oznaczaj osoby wielokrotnie je naruszające.',
@@ -1298,6 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        share: 'Udział',
         averageDays: 'Średnia liczba dni',
     },
     allSettingsScreen: {
@@ -2127,6 +2137,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `raporty: ${formattedCount ?? count}`,
             };
         },
+        payViaABA: 'Zapłać przez ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} nie ma konta bankowego w AUD. Poproś, żeby je dodał/dodała i spróbuj ponownie.`,
+        submittersMissingABADepositAccount: 'Jedna lub więcej osób przesyłających wydatki nie ma konta bankowego w AUD. Poproś je o dodanie takiego konta i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {
@@ -2452,6 +2465,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nowy sposób kontaktu',
         goBackContactMethods: 'Wróć do metod kontaktu',
+        integrationServerLogin: {
+            title: 'Integracje',
+            description: 'Jest używane przez API Integration Server.',
+            removeDescription: 'Usunięcie tego logowania cofnie dostęp API Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Jest używane przez integrację ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Usunięcie tego logowania cofnie dostęp integracji ${partnerName}.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'To jest Twoja domyślna metoda kontaktu. Twoja firma zablokowała możliwość usuwania lub zmiany tej metody.',
     },
     pronouns: {
@@ -4301,7 +4321,6 @@ ${amount} dla ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Data powinna być po ${dateString}`,
-            hasInvalidCharacter: 'Nazwa może zawierać tylko znaki łacińskie',
             cannotIncludeCommaOrSemicolon: 'Nazwa nie może zawierać przecinka ani średnika',
             incorrectZipFormat: (zipFormat?: string) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Upewnij się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4489,7 +4508,6 @@ ${amount} dla ${merchant} - ${date}`,
             lastName: 'Wprowadź poprawne nazwisko',
             noDefaultDepositAccountOrDebitCardAvailable: 'Dodaj domyślne konto depozytowe lub kartę debetową',
             validationAmounts: 'Wprowadzone kwoty weryfikacyjne są nieprawidłowe. Sprawdź wyciąg bankowy i spróbuj ponownie.',
-            fullName: 'Wpisz prawidłowe imię i nazwisko',
             ownershipPercentage: 'Wprowadź prawidłową liczbę procentową',
             deletePaymentBankAccount:
                 'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności Kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
