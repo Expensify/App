@@ -141,6 +141,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 lastActions,
                 conciergeReportID,
+                transactionThreadIDs,
                 isTrackIntentUser,
                 translate,
                 currentUserAccountID,

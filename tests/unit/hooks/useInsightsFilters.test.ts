@@ -5,6 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -75,28 +76,43 @@ describe('useInsightsFilters', () => {
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then it reports on this year, across every workspace, in that currency
+        // Then it reports a running total for this month against the previous period, across every workspace, in that currency
         expect(result.current.filters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
         });
     });
 
-    it('opens Compliance on last month when no selections are stored', async () => {
-        // Given no saved Compliance period to override the default
+    it('keeps Compare off for a stored selection that has no Compare mode', async () => {
+        // Given Spend filters stored with Compare off, which the stored query leaves out
+        await setUpActivePolicy('PLN');
+        await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'});
+
+        // When the dashboard resolves its filters
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the default Compare mode doesn't override the user's choice
+        expect(result.current.filters.compare).toBeUndefined();
+    });
+
+    it('opens Compliance on a running total for this month against the previous period when no selections are stored', async () => {
+        // Given no saved Compliance filters to override the defaults
         await setUpActivePolicy('PLN');
 
         // When Compliance resolves its filters
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then Compliance starts on last month without changing the other defaults
+        // Then Compliance starts on a running total for this month against the previous period
         expect(result.current.filters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
         });
         expect(result.current.defaultFilters).toEqual(result.current.filters);
@@ -120,9 +136,9 @@ describe('useInsightsFilters', () => {
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then the saved filters win while the default period remains last month
+        // Then the saved filters win while the default period remains this month
         expect(result.current.filters).toEqual(stored);
-        expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH});
+        expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
     it('opens on the stored selections where the user has made one', async () => {
@@ -161,9 +177,10 @@ describe('useInsightsFilters', () => {
 
         // Then the defaults ignore the stored selections, keeping the default workspace currency for Group currency's Reset
         expect(result.current.defaultFilters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
         });
     });

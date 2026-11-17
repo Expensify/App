@@ -187,7 +187,6 @@ export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams
 export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
 export type {default as DismissReferralBannerParams} from './DismissReferralBannerParams';
-export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
 export type {default as GetMissingOnyxMessagesParams} from './GetMissingOnyxMessagesParams';
 export type {default as GetNewerActionsParams} from './GetNewerActionsParams';
 export type {default as GetOlderActionsParams} from './GetOlderActionsParams';
@@ -440,6 +439,7 @@ export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDist
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetWorkspaceDistanceAutoUpdateParams} from './SetWorkspaceDistanceAutoUpdateParams';
 export type {default as EnableDistanceRequestTaxParams} from './EnableDistanceRequestTaxParams';
+export type {default as DismissUKFuelRateTaxErrorParams} from './DismissUKFuelRateTaxErrorParams';
 export type {default as SetCustomUnitDefaultCategoryParams} from './SetCustomUnitDefaultCategoryParams';
 export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolicyDistanceRateValueParams';
 export type {default as UpdatePolicyDistanceRateParams} from './UpdatePolicyDistanceRateParams';
@@ -746,7 +746,7 @@ export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthent
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
-export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
+export type {default as GetTransactionsMatchingRuleParams} from './GetTransactionsMatchingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
 export type {default as ToggleTwoFactorAuthRequiredForDomainParams} from './ToggleTwoFactorAuthRequiredForDomainParams';
 export type {default as SetReportDetailsColumnsParams} from './SetReportDetailsColumnsParams';
@@ -756,6 +756,7 @@ export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomai
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as RecordFraudFeedbackParams} from './RecordFraudFeedbackParams';
 export type {default as ChangeCardPINParams} from './ChangeCardPINParams';
 export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
 export type {default as InitiateBankAccountUnlockParams} from './InitiateBankAccountUnlockParams';

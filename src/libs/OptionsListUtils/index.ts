@@ -666,6 +666,9 @@ function getReportOption({
         sortedActions: undefined,
         // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
         lastActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
+        // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -762,6 +765,9 @@ function getReportDisplayOption({
         sortedActions: undefined,
         // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
         lastActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
+        // so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -834,6 +840,8 @@ function getPolicyExpenseReportOption(
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
+        // Passing transactionThreadIDs as undefined is intentional, it is only read to build the chat preview line, which `showChatPreviewLine: false` disables.
+        transactionThreadIDs: undefined,
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
@@ -1152,6 +1160,8 @@ function buildFullOption(
             pendingDeleteMemberAccountIDs: undefined,
             // Passing lastActions as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
             lastActions: undefined,
+            // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            transactionThreadIDs: undefined,
             formatPhoneNumber,
         }),
         isHydrated: true,
@@ -1909,6 +1919,8 @@ function getUserToInviteOption({
         pendingDeleteMemberAccountIDs: undefined,
         // Passing lastActions as undefined is intentional, the invite option has no report, so there is no chat preview to build.
         lastActions: undefined,
+        // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
+        transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,

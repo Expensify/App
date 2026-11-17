@@ -148,3 +148,4 @@ function CategoryPickerModal({
 }
 
 export default CategoryPickerModal;
+export type {CategoryPickerModalProps};
