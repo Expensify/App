@@ -145,6 +145,7 @@ import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, 
 import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
+    canMemberRead as canMemberReadPolicyUtils,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
@@ -1505,20 +1506,6 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
     }
 
     return isInvoiceRoom(getReport(invoiceRoomID, deprecatedAllReports));
-}
-
-/**
- * Checks if the report with supplied ID has been approved or not
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, deprecatedAllReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
 }
 
 /**
@@ -6647,7 +6634,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+function getTransactionsWithReceipts(reportTransactions: Transaction[]): Transaction[] {
     return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
@@ -6658,12 +6645,8 @@ function getTransactionsWithReceipts(iouReportID: string | undefined, reportTran
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(
-    iouReportID: string | undefined,
-    reportPreviewAction: OnyxEntry<ReportAction>,
-    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
-): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
+function areAllRequestsBeingSmartScanned(reportPreviewAction: OnyxEntry<ReportAction>, reportTransactions: Transaction[]): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -11988,11 +11971,6 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         return otherParticipants.length === 1;
     }
 
-    // Prevent requesting money if pending IOU report waiting for their bank account already exists
-    if (hasIOUWaitingOnCurrentUserBankAccount(report, currentUserAccountID)) {
-        return false;
-    }
-
     // Members without create-expenses permission get no create options in the workspace chats and reports.
     if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
         return false;
@@ -13438,9 +13416,12 @@ function canJoinChat(
         return false;
     }
 
-    // For restricted visibility rooms, the user must be a non-guest workspace member to join
-    const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST)) {
+    // For restricted visibility rooms, the user must be a workspace member with room access to join
+    if (
+        isUserCreatedPolicyRoom(report) &&
+        report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED &&
+        !canMemberReadPolicyUtils(policy, currentUserEmail ?? deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS)
+    ) {
         return false;
     }
 
@@ -16079,7 +16060,6 @@ export {
     hasEmptyReportsForPolicy,
     hasEnabledListValue,
     hasHeldExpenses,
-    hasIOUWaitingOnCurrentUserBankAccount,
     hasOnlyHeldExpenses,
     hasReceiptError,
     hasReportNameError,
@@ -16147,7 +16127,6 @@ export {
     isOpenReport,
     isReportEligibleForViolationFix,
     getSubmitterUnfixableViolationNames,
-    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,

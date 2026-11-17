@@ -6691,6 +6691,22 @@ describe('PolicyUtils', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
             });
 
+            it('uses an already computed category rules flag only for a migrated corporate policy', () => {
+                // Given callers that select only whether any category has rules, instead of passing the categories themselves
+
+                // When that flag is passed for policies in different Rules states
+                const migratedCorporateResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, true);
+                const rulesOffResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false}, undefined, true);
+                const teamResult = arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined}, undefined, true);
+                const noCategoryRulesResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, false);
+
+                // Then it only stands in for category rules on a migrated Control policy, so Rules turned off or a Collect policy stay off
+                expect(migratedCorporateResult).toBe(true);
+                expect(rulesOffResult).toBe(false);
+                expect(teamResult).toBe(false);
+                expect(noCategoryRulesResult).toBe(false);
+            });
+
             it('returns true for a team policy with areRulesEnabled explicitly true', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
             });

@@ -47,7 +47,6 @@ import {
     getReportOrDraftReport,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
-    hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -1252,7 +1251,7 @@ function createFilteredOptionList(
          * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
          * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
          */
-        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
+        pendingDeleteMemberAccountIDsByReportID?: Readonly<Record<string, string[]>>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
         /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
         activePolicyID?: string;
@@ -2060,11 +2059,6 @@ function isValidReport(
     }
 
     if (!canUserPerformWriteAction(option.item, option.private_isArchived) && !includeReadOnly) {
-        return false;
-    }
-
-    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
         return false;
     }
 
