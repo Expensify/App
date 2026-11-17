@@ -422,7 +422,7 @@ function PaymentMethodList({
                 }
 
                 if (!isUserExpensifyCard) {
-                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName) || card.lastFourPAN || '';
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
                     const cardTitle = card.nameValuePairs?.cardTitle ?? (isCSVImportCard ? card.cardName : maskCardNumber(card.cardName, card.bank));

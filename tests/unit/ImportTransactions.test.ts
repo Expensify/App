@@ -1463,10 +1463,13 @@ describe('ImportTransactions', () => {
         });
 
         it('falls back to cardName when there is no cardTitle', () => {
+            // Given a card whose nameValuePairs.cardTitle has not been set
             const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: undefined}});
 
+            // When the existing import settings are resolved for that card
             const result = getExistingCardImportSettings(card, savedLayout);
 
+            // Then the raw cardName is used as the display name because cardTitle is absent
             expect(result.cardDisplayName).toBe('Backend Card');
         });
 
