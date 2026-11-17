@@ -17,7 +17,7 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -61,6 +61,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
+    const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -90,14 +91,15 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.dismissToPreviousRHP();
     };
 
-    const data: Array<ListItem<ApproverType>> = [
-        {
+    const data: Array<ListItem<ApproverType>> = [];
+    if (!isDEWEnabled) {
+        data.push({
             text: translate('iou.changeApprover.actions.addApprover'),
             keyForList: APPROVER_TYPE.ADD_APPROVER,
             alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
             isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-        },
-    ];
+        });
+    }
     if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
         data.push({
             text: translate('iou.changeApprover.actions.bypassApprovers'),
@@ -106,7 +108,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
         });
     }
-    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy) && !isDEWEnabled) {
         data.push({
             text: translate('iou.changeApprover.actions.reassignApprover'),
             keyForList: APPROVER_TYPE.REASSIGN_APPROVER,

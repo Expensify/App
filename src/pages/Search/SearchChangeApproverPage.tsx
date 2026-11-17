@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
@@ -173,6 +173,7 @@ function SearchChangeApproverPage() {
     };
     const selectedPolicies = getSelectedPolicies();
     const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+    const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
     const changeApprover = () => {
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
@@ -231,14 +232,16 @@ function SearchChangeApproverPage() {
     };
 
     const getApproverTypes = () => {
-        const data: Array<ListItem<ApproverType>> = [
-            {
+        const data: Array<ListItem<ApproverType>> = [];
+
+        if (!hasSelectedDEWEnabledPolicy) {
+            data.push({
                 text: translate('iou.changeApprover.actions.addApprover'),
                 keyForList: APPROVER_TYPE.ADD_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
                 isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-            },
-        ];
+            });
+        }
 
         const hasAdminPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
@@ -264,7 +267,7 @@ function SearchChangeApproverPage() {
             });
         }
 
-        if (canReassign) {
+        if (canReassign && !hasSelectedDEWEnabledPolicy) {
             data.push({
                 text: translate('iou.changeApprover.actions.reassignApprover'),
                 keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
