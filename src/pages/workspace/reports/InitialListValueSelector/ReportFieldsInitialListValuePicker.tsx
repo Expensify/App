@@ -22,7 +22,7 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
     // Freeze the value that was selected when this picker opened so the pre-selected option stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
     const initialValue = useInitialSelection(value, {resetOnFocus: true});
     const listValueOptions = Object.values(listValues ?? {})
-        .filter((listValue, index) => !disabledOptions.at(index))
+        .filter((listValue, index) => !disabledOptions?.at(index))
         .sort(localeCompare)
         .map((listValue) => ({
             keyForList: listValue,
