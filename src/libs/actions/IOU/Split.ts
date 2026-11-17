@@ -54,6 +54,7 @@ import {
     isMapDistanceRequest,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import getTransactionRevertValues from '@libs/TransactionUtils/getTransactionRevertValues';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
@@ -959,21 +960,21 @@ function completeSplitBill({
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
     const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const optimisticTransaction = {
+        ...updatedTransaction,
+        receipt: {
+            state: CONST.IOU.RECEIPT_STATE.OPEN,
+        },
+        // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+        // so the split details page renders the manual layout while offline instead of waiting for the response.
+        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+    };
 
-    // Save optimistic updated transaction and action
     const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...updatedTransaction,
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.OPEN,
-                },
-                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
-                // so the split details page renders the manual layout while offline instead of waiting for the response.
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            },
+            value: optimisticTransaction,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1007,7 +1008,7 @@ function completeSplitBill({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...unmodifiedTransaction,
+                ...getTransactionRevertValues(unmodifiedTransaction, optimisticTransaction),
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
         },

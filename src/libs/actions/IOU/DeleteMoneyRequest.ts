@@ -929,10 +929,11 @@ function deleteMoneyRequest({
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [
+        // The transaction is only removed on success. Setting back the queue-time copy would restore pending fields that earlier requests already cleared.
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {...transaction, pendingAction: null},
+            value: {pendingAction: null},
         },
     ];
 
