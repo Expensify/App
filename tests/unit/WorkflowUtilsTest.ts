@@ -2497,6 +2497,26 @@ describe('WorkflowUtils', () => {
                 expect(Object.keys(defaultWorkflowRules).sort()).toEqual(['first0', 'first1', 'shared0', 'shared1']);
             });
 
+            it('Should follow a single chain when two default-marked chains share their submit rule', () => {
+                // Given two default-marked chains that both start at approver 1, 1 -> 3 for members 10 and 11 and 1 -> 4 for
+                // member 20, whose submit rules were saved as one rule listing all three members
+                const [sharedSubmitRule] = buildApprovalWorkflowRules(buildWorkflow([10, 11, 20], [1, 3], {isDefault: true}));
+                const largerChainRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1, 3], {isDefault: true})).slice(1);
+                const smallerChainRules = buildApprovalWorkflowRules(buildWorkflow([20], [1, 4], {isDefault: true})).slice(1);
+                const rules = {
+                    sharedSubmit: sharedSubmitRule,
+                    ...Object.fromEntries(smallerChainRules.map((rule, index) => [`smaller${index}`, rule])),
+                    ...Object.fromEntries(largerChainRules.map((rule, index) => [`larger${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read, with approver 1 as the default approver
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then the shared submit rule comes back with the chain routing most of its members, so a workflow routed like
+                // it still counts as the default one, and members returned to it go through every approver of that chain
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(['larger0', 'larger1', 'sharedSubmit']);
+            });
+
             it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
                 // Given the two default-marked workflows above, with approver 1 as the default approver
                 // When an ordinary workflow approved by approver 2 is saved
