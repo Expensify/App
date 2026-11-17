@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -146,6 +147,23 @@ describe('SAMLSignInPage', () => {
         // Then there is nothing left to close and the user leaves the page once
         expect(dismissAuthSession).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs why the in-app browser closed without signing in', async () => {
+        // Given an in-app browser that iOS closes with its reason
+        const logSpy = jest.spyOn(Log, 'hmmm');
+        const cancelledResult = {type: WebBrowserResultType.CANCEL, error: 'The operation couldn’t be completed. (com.apple.AuthenticationServices.WebAuthenticationSession error 1.)'};
+        mockedOpenAuthSessionAsync.mockResolvedValue(cancelledResult);
+
+        // When the page opens it
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the log keeps the reason, so a person cancelling can be told apart from iOS closing the sheet
+        expect(logSpy).toHaveBeenCalledWith(
+            'SAMLSignInPage - Auth session closed without a successful result',
+            expect.objectContaining({type: WebBrowserResultType.CANCEL, error: cancelledResult.error}),
+        );
     });
 
     it('does not try to close the in-app browser on Android', async () => {

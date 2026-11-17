@@ -52,6 +52,7 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
             debouncedScrollToIndex,
             announceProgrammaticScroll,
             setShouldDisableHoverStyle,
+            containerRef: {current: null},
             ...overrides,
         }),
     );

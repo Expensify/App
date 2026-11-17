@@ -187,6 +187,24 @@ function buildMerchantFilterQuery(
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
+
+// Search, Insights and the CSV export skip the cash expense notice that only Classic records, so violation filter skips it too.
+// customRules and ruleViolation belong to the new rules engine, so they're left out until it ships with clearer names.
+const EXCLUDED_VIOLATION_FILTER_VALUES = new Set<string>([CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT, CONST.VIOLATIONS.CUSTOM_RULES, CONST.VIOLATIONS.RULE_VIOLATION]);
+const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => !EXCLUDED_VIOLATION_FILTER_VALUES.has(name));
+
+function isViolationName(name: string): name is OnyxTypes.ViolationName {
+    return VALID_VIOLATION_NAMES.has(name);
+}
+
+/**
+ * Returns the display label for a violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    return isViolationName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
@@ -207,6 +225,7 @@ const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
+const VIOLATION_HAS_VALUES = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION] as const;
 
 function isFooterCount(value: string): value is SearchFooterCount {
     return VALID_FOOTER_COUNTS.has(value);
@@ -219,7 +238,7 @@ function isFooterTotal(value: string): value is SearchFooterTotal {
 const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 
 /** Group-bys only Insights queries use. The Search command doesn't return data for them yet (see https://github.com/Expensify/App/issues/105303) */
-const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY]);
+const INSIGHTS_ONLY_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY, CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]);
 
 function isGroupBySupportedBySearch(groupBy: string | undefined): boolean {
     return !groupBy || !INSIGHTS_ONLY_GROUP_BYS.has(groupBy);
@@ -875,7 +894,7 @@ function getQueryWithFooterSelection(
  * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
-    return queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
+    return queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES);
 }
 
 /**
@@ -908,7 +927,7 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
     return (
         queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
         queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
-        queryHasHasFilter(queryJSON, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], true)
+        queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES, true)
     );
 }
 
@@ -916,7 +935,7 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
  * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
-    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+    return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
 /**
@@ -1688,6 +1707,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
+                    filterKey === FILTER_KEYS.VIOLATION ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
@@ -2074,6 +2094,14 @@ function buildFilterFormValuesFromQuery(
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE_NOT] = receiptTypeValues;
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
+            }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+            const violationNames = filterValues.filter(isViolationName);
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.VIOLATION_NOT] = violationNames;
+            } else {
+                filtersForm[FILTER_KEYS.VIOLATION] = violationNames;
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
@@ -2522,6 +2550,9 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+        return getViolationDisplayName(filterValue, translate);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
         // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
@@ -3559,6 +3590,8 @@ export {
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     shouldRefetchSearchOnReportActionChange,
+    getViolationDisplayName,
+    VIOLATION_FILTER_VALUES,
 };
 
 export type {BuildUserReadableQueryStringParams};

@@ -33,7 +33,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -48,22 +47,21 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
-    const [issueCardForm, issueCardFormMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
     const {isLoading, startWithLoading} = usePressLoading();
 
-    const isLoadingIssueCardForm = isLoadingOnyxValue(issueCardFormMetadata);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
 
     useEffect(() => {
-        if (issueCardForm?.data || isLoadingIssueCardForm) {
+        if (issueCardForm?.data) {
             return;
         }
 
         Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
-    }, [isLoadingIssueCardForm, issueCardForm?.data, policyID]);
+    }, [issueCardForm?.data, policyID]);
 
     // We only allow cards that share the same currency to be on a spend rule
     const availableCardRules = cardRules.filter(
