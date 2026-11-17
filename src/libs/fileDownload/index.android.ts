@@ -11,7 +11,7 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
@@ -85,7 +85,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
                 throw new Error('Failed to download file');
             }
             const contentType = response.headers.get('content-type');
-            if (contentType === 'application/json' && fileName?.includes('.csv')) {
+            if (isErrorResponseForFileDownload(contentType, fileName)) {
                 throw new Error();
             }
             return response.text();

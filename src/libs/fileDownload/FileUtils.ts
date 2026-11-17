@@ -167,6 +167,14 @@ function getDownloadFileName(displayName: string, source: string): string {
 }
 
 /**
+ * Whether the response to a file download is an API error instead of the file. The commands that return CSV files
+ * only respond with JSON when they fail.
+ */
+function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
+    return contentType === 'application/json' && !!fileName?.includes('.csv');
+}
+
+/**
  * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
  * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
  */
@@ -1017,6 +1025,7 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
 
 export {
     showGeneralErrorAlert,
+    isErrorResponseForFileDownload,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
