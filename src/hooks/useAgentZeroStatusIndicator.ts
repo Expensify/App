@@ -74,13 +74,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     // tracked one by one and clear on their own reply or completion, so an older reply cannot
     // clear a newer message. Other kickoffs are counted and clear on the agent's next reply,
     // the safety timeout, or reconnect.
-    const subscribeToOptimisticStore = (onStoreChange: () => void) =>
-        AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
-            if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
-                return;
-            }
-            onStoreChange();
-        });
+    const subscribeToOptimisticStore = (onStoreChange: () => void) => AgentZeroOptimisticStore.subscribeToEntry(reportID, agentAccountID, onStoreChange);
     const getOptimisticSnapshot = () => AgentZeroOptimisticStore.getEntry(reportID, agentAccountID);
     const optimisticEntry = useSyncExternalStore(subscribeToOptimisticStore, getOptimisticSnapshot, getOptimisticSnapshot);
     const pendingOptimisticRequests = AgentZeroOptimisticStore.getPendingCount(optimisticEntry);

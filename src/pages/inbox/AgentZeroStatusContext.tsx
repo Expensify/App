@@ -151,12 +151,7 @@ function AgentZeroStatusGate({
     const optimisticAgentAccountID = includeConcierge ? CONST.ACCOUNT_ID.CONCIERGE : customAgentDMAccountID;
 
     const subscribeToOptimisticStore = (onStoreChange: () => void) =>
-        AgentZeroOptimisticStore.subscribe((updatedReportID, updatedAgentAccountID) => {
-            if (updatedReportID !== reportID || updatedAgentAccountID !== optimisticAgentAccountID) {
-                return;
-            }
-            onStoreChange();
-        });
+        reportID && optimisticAgentAccountID !== undefined ? AgentZeroOptimisticStore.subscribeToEntry(reportID, optimisticAgentAccountID, onStoreChange) : () => {};
     const getHasPendingTurnsSnapshot = () => !!reportID && optimisticAgentAccountID !== undefined && !!AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID)?.turns.length;
     const hasPendingTurns = useSyncExternalStore(subscribeToOptimisticStore, getHasPendingTurnsSnapshot, getHasPendingTurnsSnapshot);
 

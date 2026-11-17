@@ -200,6 +200,16 @@ function subscribe(listener: Listener): () => void {
     };
 }
 
+/** Subscribes to changes for one agent in one report, so a consumer re-renders only for its own entry. */
+function subscribeToEntry(reportID: string, agentAccountID: number, onChange: () => void): () => void {
+    return subscribe((updatedReportID, updatedAgentAccountID) => {
+        if (updatedReportID !== reportID || updatedAgentAccountID !== agentAccountID) {
+            return;
+        }
+        onChange();
+    });
+}
+
 export default {
     getEntry,
     getPendingCount,
@@ -209,6 +219,7 @@ export default {
     completeTurn,
     reconcile,
     subscribe,
+    subscribeToEntry,
 };
 
 export {MAX_AGE_MS};
