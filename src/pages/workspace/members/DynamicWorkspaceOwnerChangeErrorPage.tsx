@@ -76,6 +76,7 @@ function DynamicWorkspaceOwnerChangeErrorPage({route}: DynamicWorkspaceOwnerChan
                 </View>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.OWNER_CHANGE_ERROR_CONFIRM}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.mt6}

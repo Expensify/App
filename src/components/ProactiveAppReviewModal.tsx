@@ -66,6 +66,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Buttons */}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.PROACTIVE_APP_REVIEW_MODAL.POSITIVE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt5]}
@@ -75,6 +76,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
                     <Button.Text>{translate('proactiveAppReview.positiveButton')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.PROACTIVE_APP_REVIEW_MODAL.NEGATIVE}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onNegative}

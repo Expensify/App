@@ -65,6 +65,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
+    // A selector, so the check is cached now that only the early return below reads it
+    const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => isBankAccountEligibleForGlobalReimbursements(list?.[bankAccountID]?.accountData, list?.[bankAccountID]?.bankCurrency),
+    });
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -102,7 +106,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // device holds.
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline && !isOnboardingSubmitted;
-    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+    const [introReadBankAccountID] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID);
+    const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(
+        introReadBankAccountID === bankAccountID && (!!businessAccount?.isLoading || businessAccount?.data?.bankAccountID === bankAccountID),
+    );
 
     // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
     useEffect(() => {
@@ -118,7 +125,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!shouldReadBusinessAccount || hasBusinessAccountReadStarted || isPrefillDone) {
             return;
         }
-        openReimbursementAccountPage({bankAccountID});
+        openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [bankAccountID, shouldReadBusinessAccount, hasBusinessAccountReadStarted, isPrefillDone]);
     const isWaitingForBusinessAccount = shouldReadBusinessAccount && (!hasBusinessAccountReadStarted || !!businessAccount?.isLoading);
 
@@ -206,7 +213,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    if (!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
+    if (!isEligible) {
         return <NotFoundPage onBackButtonPress={goBackToIntro} />;
     }
 

@@ -1,17 +1,23 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchQueryContext} from '@components/Search/SearchContext';
+import type {SearchQueryJSON} from '@components/Search/types';
 
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import * as SearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {buildQueryStringFromFilterFormValues, buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultTheme} from '@src/styles/theme';
 import type {Beta, Policy} from '@src/types/onyx';
 
-import React from 'react';
+import React, {useContext, useMemo} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -27,10 +33,17 @@ jest.mock('@components/BookTravelButton', () => {
 });
 
 // Wrapper component with OnyxListItemProvider
-function Wrapper({children}: {children: React.ReactNode}) {
+function Wrapper({children, queryJSON, defaultQueryJSON}: {children: React.ReactNode; queryJSON?: SearchQueryJSON; defaultQueryJSON?: SearchQueryJSON}) {
+    const searchContext = useContext(SearchQueryContext);
+    const queryContext = useMemo(
+        () => ({...searchContext, currentSearchQueryJSON: queryJSON, currentDefaultSearchQueryJSON: defaultQueryJSON}),
+        [searchContext, queryJSON, defaultQueryJSON],
+    );
     return (
         <OnyxListItemProvider>
-            <LocaleContextProvider>{children}</LocaleContextProvider>
+            <LocaleContextProvider>
+                <SearchQueryContext.Provider value={queryContext}>{children}</SearchQueryContext.Provider>
+            </LocaleContextProvider>
         </OnyxListItemProvider>
     );
 }
@@ -49,6 +62,7 @@ const createPolicy = (type: Policy['type'] = CONST.POLICY.TYPE.TEAM) => ({
 
 describe('EmptySearchView', () => {
     afterEach(async () => {
+        jest.restoreAllMocks();
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
@@ -58,6 +72,156 @@ describe('EmptySearchView', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    describe('reset filters', () => {
+        it.each([
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: true, title: 'search.searchResults.emptyExpenseResults.title'},
+            {shouldShowResetFilters: false, title: 'search.searchResults.emptyResults.title'},
+            {shouldShowResetFilters: undefined, title: 'search.searchResults.emptyResults.title'},
+        ] as const)('uses shouldShowResetFilters=$shouldShowResetFilters independently of title=$title', async ({shouldShowResetFilters, title}) => {
+            // Given an Insights view whose changed feed does not change its similar search hash
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense group-by:merchant');
+            const queryJSON = buildSearchQueryJSON('type:expense group-by:merchant feed:123');
+            expect(queryJSON).toBeDefined();
+            expect(queryJSON?.similarSearchHash).toBe(defaultQueryJSON?.similarSearchHash);
+            const menuSections = jest.spyOn(SearchTypeMenuSections, 'default').mockReturnValue([
+                {
+                    translationPath: 'search.tabs.insights',
+                    menuItems: [
+                        {
+                            key: CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+                            translationPath: 'search.tabs.insights',
+                            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                            icon: 'Basket',
+                            searchQuery: defaultQueryJSON?.inputQuery ?? '',
+                            searchQueryJSON: defaultQueryJSON,
+                            hash: defaultQueryJSON?.hash ?? -1,
+                            recentSearchHash: defaultQueryJSON?.recentSearchHash ?? -1,
+                            similarSearchHash: queryJSON?.similarSearchHash ?? -1,
+                            emptyState: {
+                                title,
+                                subtitle: 'search.searchResults.emptyResults.subtitle',
+                                shouldShowResetFilters,
+                            },
+                        },
+                    ],
+                },
+            ]);
+
+            // When the menu-provided empty state is rendered
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.similarSearchHash ?? -1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the explicit flag controls reset eligibility, regardless of the title
+            expect(screen.getByText(translateLocal(title))).toBeVisible();
+            if (shouldShowResetFilters) {
+                expect(screen.getByText(translateLocal('search.resetFilters'))).toBeVisible();
+            } else {
+                expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+            }
+            menuSections.mockRestore();
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.INVOICE])(
+            'resets filtered empty %s results to the view default',
+            async (type) => {
+                // Given a filter that differs from the current view's defaults
+                const queryJSON = buildSearchQueryJSON(`type:${type} merchant:zzzz`);
+                const defaultQueryJSON = buildSearchQueryJSON(`type:${type}`);
+                if (!queryJSON) {
+                    throw new Error('Invalid test query');
+                }
+                const setParams = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+
+                // When the filtered search has no matching results
+                render(
+                    <Wrapper
+                        queryJSON={queryJSON}
+                        defaultQueryJSON={defaultQueryJSON}
+                    >
+                        <EmptySearchView
+                            similarSearchHash={-1}
+                            type={type}
+                            hasResults
+                            queryJSON={queryJSON}
+                        />
+                    </Wrapper>,
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the empty state offers the same reset action as the filter bar
+                expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
+                expect(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('search.resetFilters')})).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
+                fireEvent.press(screen.getByText(translateLocal('search.resetFilters')));
+                expect(setParams).toHaveBeenCalledWith({q: buildQueryStringWithResetFilters(queryJSON, defaultQueryJSON), rawQuery: undefined});
+                setParams.mockRestore();
+            },
+        );
+
+        it('does not offer reset when the filters match the view default', async () => {
+            // Given a view with unchanged default filters
+            const queryJSON = buildSearchQueryJSON('type:chat');
+
+            // When that view is empty
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={queryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.CHAT}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then there is nothing to reset
+            expect(screen.getByText(translateLocal('search.searchResults.emptyResults.title'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+        });
+
+        it('preserves onboarding actions even when filters can be reset', async () => {
+            // Given a new user with a changed filter but no expenses at all
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:zzzz');
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // When the onboarding empty state is rendered
+            render(
+                <Wrapper
+                    queryJSON={queryJSON}
+                    defaultQueryJSON={defaultQueryJSON}
+                >
+                    <EmptySearchView
+                        similarSearchHash={-1}
+                        type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                        hasResults={false}
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it keeps the creation action without adding a reset button
+            expect(screen.getByText(translateLocal('iou.createExpense'))).toBeVisible();
+            expect(screen.queryByText(translateLocal('search.resetFilters'))).not.toBeOnTheScreen();
+        });
     });
 
     describe('type is Expense', () => {

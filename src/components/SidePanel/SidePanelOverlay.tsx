@@ -3,6 +3,8 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import Animated from 'react-native-reanimated';
 
@@ -20,6 +22,7 @@ function SidePanelOverlay({shouldBeVisible, onBackdropPress}: SidePanelOverlayPr
     return (
         <Animated.View style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(shouldBeVisible)]}>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.OVERLAY}
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}

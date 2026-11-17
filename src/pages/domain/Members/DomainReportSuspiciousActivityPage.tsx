@@ -13,6 +13,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import LockAccountPageBase from '@pages/settings/Security/LockAccount/LockAccountPageBase';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -55,6 +56,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
                 accountID={accountID}
                 domainAccountID={domainAccountID}
                 domainName={domainName}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.REPORT_SUSPICIOUS_ACTIVITY_SUBMIT}
             />
         </DomainNotFoundPageWrapper>
     );

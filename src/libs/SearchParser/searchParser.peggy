@@ -41,6 +41,9 @@
     year: "groupyear",
     quarter: "groupquarter",
     approver: "groupApprover",
+    violation: null,
+    "paid-by": null,
+    "workflow-stage": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -74,7 +77,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -307,6 +310,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -320,6 +324,7 @@ key "key"
       / exported
       / posted
       / withdrawn
+      / workflowStage
       / feed
       / title
       / submitterUserID
@@ -351,7 +356,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare / tagLevel / tagParent)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
