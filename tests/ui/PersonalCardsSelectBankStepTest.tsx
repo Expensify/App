@@ -2,7 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
-import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 
 import SelectBankStep from '@pages/settings/Wallet/PersonalCards/steps/SelectBankStep';
@@ -21,7 +20,6 @@ jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
 jest.mock('@components/Text', () => jest.fn(() => null));
 jest.mock('@hooks/useCompanyCardIcons', () => ({useCompanyCardBankIcons: () => ({})}));
-jest.mock('@hooks/useEnvironment', () => jest.fn());
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
@@ -38,21 +36,21 @@ describe('Personal cards bank selection', () => {
 
     it.each([
         {environment: CONST.ENVIRONMENT.PRODUCTION, activeServer: CONST.SERVER.PRODUCTION, shouldShowMockBank: false},
-        {environment: CONST.ENVIRONMENT.PRODUCTION, activeServer: CONST.SERVER.STAGING, shouldShowMockBank: true},
-        {environment: CONST.ENVIRONMENT.STAGING, activeServer: CONST.SERVER.PRODUCTION, shouldShowMockBank: true},
+        {environment: CONST.ENVIRONMENT.PRODUCTION, activeServer: CONST.SERVER.STAGING, shouldShowMockBank: false},
+        {environment: CONST.ENVIRONMENT.STAGING, activeServer: CONST.SERVER.PRODUCTION, shouldShowMockBank: false},
+        {environment: CONST.ENVIRONMENT.STAGING, activeServer: CONST.SERVER.STAGING, shouldShowMockBank: false},
+        {environment: CONST.ENVIRONMENT.STAGING, activeServer: undefined, shouldShowMockBank: false},
         {environment: CONST.ENVIRONMENT.DEV, activeServer: CONST.SERVER.PRODUCTION, shouldShowMockBank: true},
+        {environment: CONST.ENVIRONMENT.DEV, activeServer: CONST.SERVER.STAGING, shouldShowMockBank: true},
+        {environment: CONST.ENVIRONMENT.DEV, activeServer: CONST.SERVER.QA, shouldShowMockBank: true},
+        {environment: CONST.ENVIRONMENT.DEV, activeServer: undefined, shouldShowMockBank: true},
         {environment: CONST.ENVIRONMENT.PRODUCTION, activeServer: undefined, shouldShowMockBank: false},
         {environment: CONST.ENVIRONMENT.PRODUCTION, activeServer: CONST.SERVER.QA, shouldShowMockBank: false},
+        {environment: CONST.ENVIRONMENT.QA, activeServer: CONST.SERVER.QA, shouldShowMockBank: false},
+        {environment: CONST.ENVIRONMENT.ADHOC, activeServer: CONST.SERVER.PRODUCTION, shouldShowMockBank: false},
     ])('sets Mock Bank visibility to $shouldShowMockBank for $environment on $activeServer', ({environment, activeServer, shouldShowMockBank}) => {
-        // Given production must hide test banks, including before the active server has loaded.
+        // Given Mock Bank is reserved for development builds, regardless of the selected server.
         jest.replaceProperty(CONFIG, 'ENVIRONMENT', environment);
-        jest.replaceProperty(CONFIG, 'IS_USING_LOCAL_WEB', false);
-        jest.mocked(useEnvironment).mockReturnValue({
-            environment,
-            environmentURL: '',
-            isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
-            isDevelopment: environment === CONST.ENVIRONMENT.DEV,
-        });
         jest.mocked(useOnyx).mockImplementation((key) => [key === ONYXKEYS.ACTIVE_SERVER ? activeServer : undefined, {status: 'loaded'}]);
 
         // When the personal card step builds the selectable bank list.
