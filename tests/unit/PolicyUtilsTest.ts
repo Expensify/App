@@ -72,6 +72,8 @@ import {
     getPolicyForAssignedCard,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getRateValueWithDecimals,
+    areRateAmountsEqual,
     getOwnerChangePayerSuccessData,
     getOwnedPaidPolicies,
     getSageIntacctVendors,
@@ -2412,6 +2414,62 @@ describe('PolicyUtils', () => {
                 expect(pickedDefault?.name).toBe('Default Rate');
             });
         });
+        describe('getRateValueWithDecimals', () => {
+            it.each([
+                [0, '0.00'],
+                [1, '1.00'],
+                [0.1, '0.10'],
+                [0.12, '0.12'],
+                [0.123, '0.123'],
+                [0.1234, '0.1234'],
+                [0.12346, '0.1235'],
+                [0.12001, '0.12'],
+                [0.99999, '1.00'],
+                [0.1 + 0.2, '0.30'],
+            ])('formats %s as %s', (value, expected) => {
+                // Given a rate amount with up to four meaningful decimals or extra calculation precision
+                // When preparing the raw amount for an editor
+                const displayValue = getRateValueWithDecimals(value);
+
+                // Then Classic precision is preserved without unnecessary zeros beyond two decimals
+                expect(displayValue).toBe(expected);
+            });
+
+            it('leaves locale separators to the display caller', () => {
+                // Given a locale whose decimal separator is a comma
+                const toCommaDigit = (digit: string) => (digit === '.' ? ',' : digit);
+
+                // When preparing the raw editor value and the localized display value
+                const editorValue = getRateValueWithDecimals(0.123);
+                const displayValue = getRateDisplayValue(0.123, toCommaDigit, true);
+
+                // Then the editor receives a numeric string while the display keeps its locale separator
+                expect(editorValue).toBe('0.123');
+                expect(displayValue).toBe('0,123');
+            });
+        });
+
+        describe('areRateAmountsEqual', () => {
+            it.each<[string | number, string | number, boolean]>([
+                ['0.1', '0.10', true],
+                ['0.1', '0.1000', true],
+                [0.1, '0.1000', true],
+                ['0.1000', 0.1, true],
+                [0.1 + 0.2, '0.3000', true],
+                ['0.12344', '0.1234', true],
+                ['', 0, true],
+                ['0.1000', '0.1001', false],
+                ['0.1234', '0.1235', false],
+            ])('compares %s and %s as %s at editor precision', (firstAmount, secondAmount, expected) => {
+                // Given saved and entered amounts with different padding or calculation precision
+                // When deciding whether an editor should persist a change
+                const areEqual = areRateAmountsEqual(firstAmount, secondAmount);
+
+                // Then formatting differences are ignored without losing meaningful fourth-decimal changes
+                expect(areEqual).toBe(expected);
+            });
+        });
+
         describe('getRateDisplayValue', () => {
             it('should return an empty string for NaN', () => {
                 // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
@@ -6631,6 +6689,22 @@ describe('PolicyUtils', () => {
 
             it('returns false for a team policy with areRulesEnabled undefined', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
+            });
+
+            it('uses an already computed category rules flag only for a migrated corporate policy', () => {
+                // Given callers that select only whether any category has rules, instead of passing the categories themselves
+
+                // When that flag is passed for policies in different Rules states
+                const migratedCorporateResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, true);
+                const rulesOffResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false}, undefined, true);
+                const teamResult = arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined}, undefined, true);
+                const noCategoryRulesResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, false);
+
+                // Then it only stands in for category rules on a migrated Control policy, so Rules turned off or a Collect policy stay off
+                expect(migratedCorporateResult).toBe(true);
+                expect(rulesOffResult).toBe(false);
+                expect(teamResult).toBe(false);
+                expect(noCategoryRulesResult).toBe(false);
             });
 
             it('returns true for a team policy with areRulesEnabled explicitly true', () => {
