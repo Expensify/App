@@ -1,0 +1,143 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index a5b5ba8..c06e8e8 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -89,6 +89,9 @@ @implementation RNSTabBarController {
+   // Set when the selection is shown again together with a tab switch from JS, so it appears on the new tab.
+   BOOL _isSelectionRevealDeferred;
+ 
++  // Views over the items of the tabs native must not select, which take their taps before the tab bar sees them.
++  NSMutableArray<UIControl *> *_Nonnull _preventedSelectionTouchViews;
++
+   RNSTabsNavigationStateObserverRegistry *_observerRegistry;
+ 
+   RNSParentContainerItemRegistry *_Nonnull _parentContainerRegistry;
+@@ -97,6 +100,7 @@ @implementation RNSTabBarController {
+ - (instancetype)init
+ {
+   if (self = [super init]) {
++    _preventedSelectionTouchViews = [NSMutableArray new];
+     _tabScreenControllers = nil;
+     _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
+     _tabsHostComponentView = nil;
+@@ -186,6 +190,104 @@ - (void)viewDidLayoutSubviews
+   if (_tabBarItemSelectionHidden) {
+     [self updateTabBarItemSelectionIn:self.tabBar];
+   }
++  [self updatePreventedSelectionTouchViews];
++}
++
++// The iOS 26 tab bar starts moving its selection lens to an item on touch down, before it asks whether the tab can be
++// selected, so a tap on a tab with `preventNativeSelection` pulls the lens to it and lets it spring back. A view over
++// each such item, outside the tab bar, takes the tap instead and reports it the way the prevented selection does.
++- (void)updatePreventedSelectionTouchViews
++{
++  NSArray<UIView *> *tabButtons = @[];
++  BOOL isTabBarShown = self.isViewLoaded && !self.tabBar.hidden && self.tabBar.alpha > 0 && self.tabBar.window != nil;
++#if !TARGET_OS_TV
++  if (@available(iOS 18.0, *)) {
++    // The bar hidden through the controller keeps `hidden` off on the bar itself.
++    isTabBarShown = isTabBarShown && !self.isTabBarHidden;
++  }
++#endif // !TARGET_OS_TV
++  if (isTabBarShown) {
++    tabButtons = [self tabButtonsIn:self.tabBar];
++  }
++  NSArray<UIViewController *> *viewControllers = self.viewControllers;
++  if (tabButtons.count != viewControllers.count) {
++    tabButtons = @[];
++  }
++
++  // The views are kept between updates and only moved, since an update can run between the touch down and the touch up
++  // of a tap, and a view replaced in between would drop that tap.
++  NSMutableArray<UIControl *> *unusedTouchViews = [_preventedSelectionTouchViews mutableCopy];
++  [_preventedSelectionTouchViews removeAllObjects];
++  for (NSUInteger index = 0; index < tabButtons.count; index++) {
++    UIViewController *viewController = viewControllers[index];
++    // The selected tab keeps its taps: a repeated selection is not prevented.
++    if (viewController == self.selectedViewController || ![self shouldPreventNativeTabSelection:viewController]) {
++      continue;
++    }
++    UIControl *touchView = nil;
++    for (UIControl *unusedTouchView in unusedTouchViews) {
++      if (unusedTouchView.tag == static_cast<NSInteger>(index)) {
++        touchView = unusedTouchView;
++        break;
++      }
++    }
++    if (touchView != nil) {
++      [unusedTouchViews removeObject:touchView];
++    } else {
++      touchView = [UIControl new];
++      touchView.tag = index;
++      // VoiceOver keeps reading the item under the view and activates it through the tab bar.
++      touchView.isAccessibilityElement = NO;
++      [touchView addTarget:self
++                    action:@selector(didTapPreventedSelectionTouchView:)
++          forControlEvents:UIControlEventTouchUpInside];
++      [self.view addSubview:touchView];
++    }
++    UIView *tabButton = tabButtons[index];
++    CGRect frame = [tabButton convertRect:tabButton.bounds toView:self.view];
++    if (!CGRectEqualToRect(touchView.frame, frame)) {
++      touchView.frame = frame;
++    }
++    [_preventedSelectionTouchViews addObject:touchView];
++  }
++  for (UIControl *unusedTouchView in unusedTouchViews) {
++    [unusedTouchView removeFromSuperview];
++  }
++}
++
++- (void)didTapPreventedSelectionTouchView:(UIControl *)touchView
++{
++  NSArray<UIViewController *> *viewControllers = self.viewControllers;
++  if (touchView.tag < 0 || static_cast<NSUInteger>(touchView.tag) >= viewControllers.count) {
++    return;
++  }
++  [self onDidPreventUserFromSelectingViewControllerWithKey:[self screenKeyForViewController:viewControllers[touchView.tag]]];
++}
++
++// The private item views of the iOS 26 tab bar, left to right. The bar draws them twice, once under the selection lens,
++// so they are read from the first view that has any. Empty on a tab bar built another way, which keeps its taps.
++- (NSArray<UIView *> *)tabButtonsIn:(UIView *)view
++{
++  NSMutableArray<UIView *> *tabButtons = [NSMutableArray new];
++  for (UIView *subview in view.subviews) {
++    if ([NSStringFromClass(subview.class) isEqualToString:@"_UITabButton"]) {
++      [tabButtons addObject:subview];
++    }
++  }
++  if (tabButtons.count > 0) {
++    BOOL isRightToLeft = self.tabBar.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
++    return [tabButtons sortedArrayUsingComparator:^NSComparisonResult(UIView *first, UIView *second) {
++      NSComparisonResult leftToRight = [@(CGRectGetMinX(first.frame)) compare:@(CGRectGetMinX(second.frame))];
++      return isRightToLeft ? static_cast<NSComparisonResult>(-leftToRight) : leftToRight;
++    }];
++  }
++  for (UIView *subview in view.subviews) {
++    NSArray<UIView *> *nestedTabButtons = [self tabButtonsIn:subview];
++    if (nestedTabButtons.count > 0) {
++      return nestedTabButtons;
++    }
++  }
++  return @[];
+ }
+ 
+ - (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
+@@ -328,6 +430,7 @@ - (void)performContainerUpdate
+   [self updateTabBarAppearanceIfNeeded];
+   [self updateTabBarA11yIfNeeded];
+   [self updateOrientationIfNeeded];
++  [self updatePreventedSelectionTouchViews];
+ }
+ 
+ /**
+@@ -511,6 +614,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
+ 
+   [self userDidSelectViewController:viewController];
+   _isHandlingExplicitSelectionUpdate = NO;
++  [self updatePreventedSelectionTouchViews];
+ }
+ 
+ #pragma mark - UINavigationControllerDelegate

@@ -127,3 +127,18 @@
 - Upstream PR/issue: not reported yet. The crash comes from the removals that [software-mansion/react-native-screens#5074](https://github.com/software-mansion/react-native-screens/pull/5074), the upstream PR of patch 008, lets reach the host, and that PR does not include this fix, so it belongs there.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
 - PR introducing patch: [#106500](https://github.com/Expensify/App/pull/106500)
+
+### [react-native-screens+4.28.0+010+tab-bar-item-order.patch](react-native-screens+4.28.0+010+tab-bar-item-order.patch)
+
+- Reason: Adds a `tabBarItemOrder` prop to the tabs host: the screen keys in the order their items take in the tab bar. With the flat navigation beta, Expenses and Reports are two items over the one Search screen, and native shows the content of a tab only under its own item, so the tab that holds Search has to take the place of the item to highlight. Moving the tab in React moves its native view, which remounts Search (and on Android replaces the tab's fragment). With this prop the React children keep their order, so no view is moved or recreated: iOS sorts the view controllers it gives `UITabBarController` and sets them without animation when only the order changed, and Android adds the menu items in that order and checks the selected one again after the menu is rebuilt. An empty or missing order keeps the order of the children, which is what every host gets without the beta. `TabsHostA11yCoordinator` paired tabs with menu items by index, so it now matches them by menu item id.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR introducing patch: N/A
+
+### [react-native-screens+4.28.0+011+ios-prevented-tab-selection-touches.patch](react-native-screens+4.28.0+011+ios-prevented-tab-selection-touches.patch)
+
+- Reason: The iOS 26 tab bar starts moving its liquid glass selection lens to an item on touch down, before it asks the delegate whether the tab can be selected. A tap on a tab with `preventNativeSelection`, such as the More item of the flat nav bar or a placeholder whose Search is drawn in another tab, pulled the lens to the item and let it spring back. A transparent view over each such item, placed in the tab bar controller's view rather than in the tab bar, takes the tap before the tab bar sees it and reports it the same way the prevented selection does. The views are kept between updates and only moved, since replacing one between touch down and touch up drops the tap. The selected tab keeps its taps, VoiceOver still activates the item through the tab bar, and a tab bar without the private `_UITabButton` item views (before iOS 26) gets no such views and behaves as before.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR introducing patch: N/A
+

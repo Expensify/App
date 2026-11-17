@@ -13,12 +13,16 @@ type NativeBottomTabViewProps = Parameters<typeof NativeBottomTabView>[0];
 type MockTabsHostProps = {
     navStateRequest: {selectedScreenKey: string};
     tabBarItemSelectionHidden?: boolean;
+    tabBarItemOrder?: string[];
     onTabSelected: (event: {nativeEvent: {selectedScreenKey: string; provenance: number; actionOrigin: string}}) => void;
+    onTabSelectionPrevented: (event: {nativeEvent: {selectedScreenKey: string; provenance: number; preventedScreenKey: string}}) => void;
     children: React.ReactNode;
 };
 
 type MockTabsScreenProps = {
     screenKey: string;
+    title?: string;
+    preventNativeSelection?: boolean;
     specialEffects?: {repeatedTabSelection?: {popToRoot?: boolean; scrollToTop?: boolean}};
     children: React.ReactNode;
 };
@@ -95,9 +99,10 @@ function buildHiddenAccountTabState(): TabNavigationState<ParamListBase> {
     };
 }
 
-// Flat nav: Spend hidden and drawn in the Expenses placeholder, Workspaces hidden and drawn in More, Account hidden with no host
+// Flat nav: Spend hidden and drawn in the Expenses placeholder, Workspaces hidden and drawn in More, Account hidden with
+// no host. Reports is a placeholder Spend can name as its host instead.
 function buildFlatNavTabState(focusedRouteName: string): TabNavigationState<ParamListBase> {
-    const routeNames = ['Inbox', 'Expenses', 'More', 'Spend', 'Workspaces', 'Account'];
+    const routeNames = ['Inbox', 'Expenses', 'Reports', 'More', 'Spend', 'Workspaces', 'Account'];
     return {
         type: 'tab',
         key: 'tab',
@@ -111,6 +116,8 @@ function buildFlatNavTabState(focusedRouteName: string): TabNavigationState<Para
 }
 
 const FLAT_NAV_OPTIONS: Record<string, Record<string, unknown>> = {
+    Expenses: {tabBarItemHiddenRouteName: 'Spend'},
+    Reports: {tabBarItemHiddenRouteName: 'Spend'},
     More: {tabBarSelectionEnabled: false},
     Spend: {tabBarItemHidden: true, tabBarItemHostRouteName: 'Expenses'},
     Workspaces: {tabBarItemHidden: true, tabBarItemHostRouteName: 'More'},
@@ -162,6 +169,10 @@ function renderTabView(
     );
 }
 
+function getFlatNavOptionsWithSpendHost(hostRouteName: string) {
+    return {...FLAT_NAV_OPTIONS, Spend: {tabBarItemHidden: true, tabBarItemHostRouteName: hostRouteName}};
+}
+
 function renderFlatNav(focusedRouteName: string, {navigation = buildNavigation(), options = FLAT_NAV_OPTIONS} = {}) {
     return render(renderTabView(buildFlatNavTabState(focusedRouteName), navigation, [], options));
 }
@@ -169,6 +180,20 @@ function renderFlatNav(focusedRouteName: string, {navigation = buildNavigation()
 function selectNatively(selectedScreenKey: string) {
     act(() => {
         mockLatestHostProps?.onTabSelected({nativeEvent: {selectedScreenKey, provenance: 1, actionOrigin: 'user'}});
+    });
+}
+
+// A tap on a tab native does not select, which it reports instead of selecting it
+function pressPreventedTab(preventedScreenKey: string) {
+    act(() => {
+        mockLatestHostProps?.onTabSelectionPrevented({nativeEvent: {selectedScreenKey: mockLatestHostProps.navStateRequest.selectedScreenKey, provenance: 1, preventedScreenKey}});
+    });
+}
+
+// The press of a prevented placeholder is sent in a task after the bar is committed
+function runPendingTabPress() {
+    act(() => {
+        jest.advanceTimersByTime(0);
     });
 }
 
@@ -193,6 +218,11 @@ describe('NativeBottomTabView', () => {
         contentMounts.length = 0;
         mockLatestHostProps = undefined;
         mockLatestScreenProps.clear();
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it('keeps the native tab when the focused route gets a new key, and remounts only its content', () => {
@@ -336,6 +366,132 @@ describe('NativeBottomTabView', () => {
         // Workspaces, the only route More hosts, is laid out there the same way
         expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
         expect(getHiddenRouteDisplay(screen, 'Workspaces-key')).toBeUndefined();
+    });
+
+    it('keeps a hidden route mounted when it names another host, and trades the places of the two tabs', () => {
+        // Given Spend focused and drawn inside the Expenses placeholder
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When Spend names Reports as its host, as it does when its search moves to the Reports section
+        screen.rerender(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getFlatNavOptionsWithSpendHost('Reports')));
+
+        // Then Spend is not mounted again, since moving it into the Reports tab would rebuild the whole screen
+        expect(contentMounts.filter((mount) => mount.startsWith('Spend-key'))).toEqual(['Spend-key@Expenses']);
+        // And its tab stays selected, takes the place of Reports in the bar and draws the Reports item, so the bar
+        // highlights Reports over the same content
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Reports', 'Expenses', 'More']);
+        expect(mockLatestScreenProps.get('Expenses')?.title).toBe('Reports');
+        expect(mockLatestScreenProps.get('Reports')?.title).toBe('Expenses');
+    });
+
+    it.each([
+        {tappedScreenKey: 'Reports', pressedRouteName: 'Expenses', expectedDispatches: [[expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Expenses'})})]]},
+        {tappedScreenKey: 'Expenses', pressedRouteName: 'Reports', expectedDispatches: []},
+    ])('sends a press on the traded tab $tappedScreenKey to $pressedRouteName, whose item it draws', ({tappedScreenKey, pressedRouteName, expectedDispatches}) => {
+        // Given Spend focused in the Expenses tab, which traded places with Reports because Spend names Reports
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getFlatNavOptionsWithSpendHost('Reports')));
+
+        // When the user taps one of the two tabs, which native reports by the key of the tab and not of the item it draws
+        selectNatively(tappedScreenKey);
+
+        // Then the press goes to the route of the item the user tapped, and JS navigates only when that is not the
+        // selected tab, so the listeners of Expenses and Reports keep answering to their own items
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: `${pressedRouteName}-key`});
+        expect(navigation.dispatch.mock.calls).toEqual(expectedDispatches);
+    });
+
+    it('keeps native from selecting a placeholder whose hidden route is drawn in another tab', () => {
+        // Given Spend drawn in the Expenses placeholder, and Reports a placeholder whose press opens Spend too
+        renderFlatNav('Inbox');
+
+        // When the native tabs are configured
+        // Then native may select Expenses, which shows Spend, but not Reports, which would show an empty tab until JS
+        // moved Spend under it
+        expect(mockLatestScreenProps.get('Expenses')?.preventNativeSelection).toBe(false);
+        expect(mockLatestScreenProps.get('Reports')?.preventNativeSelection).toBe(true);
+    });
+
+    it('shows a pressed placeholder selected over its hidden route before the press starts the navigation', () => {
+        // Given Inbox focused, Spend drawn in Expenses, and a Reports press that navigates, as the app listener does
+        const navigation = buildNavigation();
+        const pressedState = {...buildFlatNavTabState('Spend')};
+        navigation.emit.mockImplementation(() => navigation.getState.mockReturnValue(pressedState));
+        renderFlatNav('Inbox', {navigation});
+
+        // When the user taps Reports, which native reports as a prevented selection
+        pressPreventedTab('Reports');
+
+        // Then the tab with Spend is selected in the place of Reports with the Reports item before the press is sent,
+        // since native mounts the bar only when the task ends and the render of the navigation would hold it back
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Reports', 'Expenses', 'More']);
+        expect(mockLatestScreenProps.get('Expenses')?.title).toBe('Reports');
+        expect(navigation.emit).not.toHaveBeenCalled();
+        // And the press then reaches Reports, whose listener starts the navigation, with the bar left as it is
+        runPendingTabPress();
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Reports-key'});
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Expenses');
+    });
+
+    it('puts the bar back when the press of a placeholder starts no navigation', () => {
+        // Given Inbox focused, Spend drawn in Expenses, and a Reports press no listener answers, as for an anonymous user
+        const navigation = buildNavigation();
+        renderFlatNav('Inbox', {navigation});
+
+        // When the user taps Reports and the press is sent
+        pressPreventedTab('Reports');
+        runPendingTabPress();
+
+        // Then the press is sent, and with the navigation state unchanged the bar selects Inbox in the first order
+        // again, so it does not stay on an item whose route was never opened
+        expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Reports-key'});
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
+    });
+
+    it('lets a pressed placeholder expire when the navigation never names it as the host', () => {
+        // Given Inbox focused, Spend drawn in Expenses, and a Reports press whose listener changes the state without
+        // moving Spend under Reports
+        const navigation = buildNavigation();
+        navigation.emit.mockImplementation(() => navigation.getState.mockReturnValue({...buildFlatNavTabState('Inbox')}));
+        renderFlatNav('Inbox', {navigation});
+
+        // When the user taps Reports and the press stays unanswered
+        pressPreventedTab('Reports');
+        runPendingTabPress();
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        // Then the bar selects Inbox in the first order again, so it does not stay on Reports over a route that never
+        // moved there
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
+    });
+
+    it('leaves a tab in its place when the focused route needs it, and hides the route that named it', () => {
+        // Given Workspaces focused in More while Spend, drawn in Expenses, names More too, as a saved search does
+        const screen = renderFlatNav('Workspaces', {options: getFlatNavOptionsWithSpendHost('More')});
+
+        // When the bar is laid out
+        // Then no tab trades places, since More has to show Workspaces under its own item
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('More');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
+        // And Spend is not laid out in Expenses, so a tap on Expenses does not show a search that belongs under More
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBe('none');
+    });
+
+    it('sends no tab order when no route has an explicit host', () => {
+        // Given the tabs without the flat nav placeholders
+        render(renderTabView(buildTabState('Inbox-key-1'), buildNavigation()));
+
+        // When the native host is configured
+        // Then it gets no order, so the native bar keeps the order of its tabs as before
+        expect(mockLatestHostProps?.tabBarItemOrder).toBeUndefined();
     });
 
     it('hides a hidden route without a host while it is not focused', () => {

@@ -28,7 +28,7 @@ import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
-import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
+import {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
@@ -70,9 +70,9 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
-    // selects the new item in the same commit as Search moves.
+    // selects the new item in the same commit as the section changes.
     const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
-    // A tab with no label has no bar item and draws no icon. It is drawn inside the item of its flat nav slot, or, with no
+    // A tab with no label has no bar item and draws no icon. It shows under the item of its flat nav slot, or, with no
     // slot, inside the first item with no item shown as selected.
     const getScreenOptions = ({route, navigation}: {route: {name: NativeTabRouteName}; navigation: {getState: () => NavigationState}}) =>
         route.name in tabLabels
@@ -80,6 +80,7 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
                   ...screenOptions,
                   ...getTabOptions(route.name),
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
+                  tabBarItemHiddenRouteName: getFlatNavTabHiddenRouteName(route.name),
               }
             : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(navigation))};
 

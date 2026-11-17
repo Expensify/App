@@ -1,0 +1,275 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+index a2b93b0..78ef703 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
+@@ -168,6 +168,14 @@ class TabsContainer internal constructor(
+ 
+     private var interfaceInsetsChangeListener: SafeAreaView? = null
+ 
++    /** Screen keys in the order their items take in the tab bar. Empty keeps the order of the React children. */
++    internal var tabBarItemOrder: List<String> by Delegates.observable(emptyList()) { _, oldValue, newValue ->
++        if (newValue != oldValue) {
++            invalidationFlags.isNavigationMenuStructureInvalidated = true
++            invalidationFlags.isNavigationMenuAppearanceInvalidated = true
++        }
++    }
++
+     internal var tabBarHidden: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
+         if (newValue != oldValue) {
+             updateInterfaceInsets()
+@@ -542,9 +550,10 @@ class TabsContainer internal constructor(
+ 
+     private fun updateNavigationMenuStructure() {
+         val menu = bottomNavigationView.menu
++        val orderedTabs = getTabsInTabBarItemOrder()
+         val isMenuInSync =
+-            menu.size == tabsModel.size &&
+-                tabsModel.withIndex().all { (index, fragment) ->
++            menu.size == orderedTabs.size &&
++                orderedTabs.withIndex().all { (index, fragment) ->
+                     menu.getItem(index).itemId == fragment.menuItemId
+                 }
+ 
+@@ -552,9 +561,27 @@ class TabsContainer internal constructor(
+             return
+         }
+         menu.clear()
+-        tabsModel.forEach { fragment ->
++        orderedTabs.forEach { fragment ->
+             menu.getOrCreateMenuItemForFragment(fragment)
+         }
++        // A rebuilt menu checks its first item. The selected tab did not change, so its item is checked again here,
++        // which does not report a selection.
++        if (navState.isNotEmpty()) {
++            getFragmentForScreenKey(navState.selectedScreenKey)?.let { menu.findItem(it.menuItemId)?.isChecked = true }
++        }
++    }
++
++    /**
++     * The menu draws the items in the order they are added, so a tab takes another place in the bar while its fragment
++     * stays as it is. A screen whose key the order does not list goes after the listed ones.
++     */
++    private fun getTabsInTabBarItemOrder(): List<TabsScreenFragment> {
++        if (tabBarItemOrder.isEmpty()) {
++            return tabsModel
++        }
++        return tabsModel.sortedBy { fragment ->
++            tabBarItemOrder.indexOf(fragment.tabsScreen.screenKey).takeIf { it >= 0 } ?: Int.MAX_VALUE
++        }
+     }
+ 
+     private fun updateBottomNavigationViewAppearance() {
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+index 3df9215..04706b6 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+@@ -51,6 +51,8 @@ class TabsHost(
+ 
+     var tabBarHidden: Boolean by container::tabBarHidden
+ 
++    internal var tabBarItemOrder: List<String> by container::tabBarItemOrder
++
+     var nativeContainerBackgroundColor: Int? by Delegates.observable(null) { _, oldValue, newValue ->
+         if (newValue != oldValue) {
+             container.background = newValue?.toDrawable()
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostA11yCoordinator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostA11yCoordinator.kt
+index 74ca04a..e16c983 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostA11yCoordinator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostA11yCoordinator.kt
+@@ -53,8 +53,9 @@ class TabsHostA11yCoordinator(
+     private fun findTabItemView(menuItemId: Int): View? = bottomNavigationView.menuViewGroup.children.firstOrNull { it.id == menuItemId }
+ 
+     fun setA11yPropertiesToAllTabItems() {
+-        tabsScreenFragments.forEachIndexed { index, fragment ->
+-            val menuItem = bottomNavigationView.menu[index]
++        // The menu can draw the tabs in another order than this list, so each tab is matched to its item by id.
++        tabsScreenFragments.forEach { fragment ->
++            val menuItem = bottomNavigationView.menu.findItem(fragment.menuItemId) ?: return@forEach
+             setA11yPropertiesToTabItem(menuItem, fragment.tabsScreen)
+         }
+     }
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+index 7342e3c..856a054 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+@@ -2,6 +2,7 @@ package com.swmansion.rnscreens.gamma.tabs.host
+ 
+ import android.view.View
+ import com.facebook.react.bridge.JSApplicationIllegalArgumentException
++import com.facebook.react.bridge.ReadableArray
+ import com.facebook.react.bridge.ReadableMap
+ import com.facebook.react.module.annotations.ReactModule
+ import com.facebook.react.uimanager.ThemedReactContext
+@@ -117,6 +118,13 @@ class TabsHostViewManager :
+         view.tabBarHidden = value
+     }
+ 
++    override fun setTabBarItemOrder(
++        view: TabsHost,
++        value: ReadableArray?,
++    ) {
++        view.tabBarItemOrder = value?.toArrayList()?.filterIsInstance<String>() ?: emptyList()
++    }
++
+     override fun setNativeContainerBackgroundColor(
+         view: TabsHost,
+         value: Int?,
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index 3c2acf0..a5b5ba8 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -552,6 +552,17 @@ - (void)updateReactChildrenControllers
+     return;
+   }
+ 
++  // The same tabs in another order take their new places at once: animated, the bar slides the items past each other.
++  BOOL isReorderOnly = [[NSSet setWithArray:self.viewControllers ?: @[]] isEqualToSet:[NSSet setWithArray:_tabScreenControllers]];
++  if (isReorderOnly) {
++    // The items get their new titles and icons at once, so the bar lays them out in the new order in the same frame.
++    [UIView performWithoutAnimation:^{
++      [self setViewControllers:self->_tabScreenControllers animated:NO];
++      [self.tabBar setNeedsLayout];
++      [self.tabBar layoutIfNeeded];
++    }];
++    return;
++  }
+   [self setViewControllers:_tabScreenControllers animated:[[self viewControllers] count] != 0];
+ }
+ 
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+index fa2afb9..cd7c8c8 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+@@ -47,8 +47,12 @@ @implementation RNSTabsHostComponentView {
+   NSMutableArray<UIView *> *_reactSubviews;
+   BOOL _hasModifiedTabsScreensInCurrentTransaction;
+   BOOL _hasModifiedBottomAccessoryInCurrentTransation;
++  BOOL _hasModifiedTabBarItemOrderInCurrentTransaction;
+   BOOL _needsTabBarAppearanceUpdate;
+ 
++  // Screen keys in the order their items take in the tab bar. Empty keeps the order of the React children.
++  NSArray<NSString *> *_Nonnull _tabBarItemOrder;
++
+   RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
+ 
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+@@ -84,7 +88,9 @@ - (void)initState
+ 
+   _hasModifiedTabsScreensInCurrentTransaction = NO;
+   _hasModifiedBottomAccessoryInCurrentTransation = NO;
++  _hasModifiedTabBarItemOrderInCurrentTransaction = NO;
+   _needsTabBarAppearanceUpdate = NO;
++  _tabBarItemOrder = @[];
+ 
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+   _bottomAccessoryWrapperView = nil;
+@@ -100,6 +106,7 @@ - (void)resetProps
+   _colorScheme = UIUserInterfaceStyleUnspecified;
+   _rejectStaleNavStateUpdates = NO;
+   _bottomAccessoryHidden = NO;
++  _tabBarItemOrder = @[];
+ #if !TARGET_OS_TV
+   _nativeContainerBackgroundColor = [UIColor systemBackgroundColor];
+ #else // !TARGET_OS_TV
+@@ -160,9 +167,9 @@ - (void)updateContainer
+     }
+   }
+ 
+-  if (_hasModifiedTabsScreensInCurrentTransaction) {
++  if (_hasModifiedTabsScreensInCurrentTransaction || _hasModifiedTabBarItemOrderInCurrentTransaction) {
+     RNSLog(@"updateContainer: tabControllers: %@", tabControllers);
+-    [_controller childViewControllersHaveChangedTo:tabControllers];
++    [_controller childViewControllersHaveChangedTo:[self tabControllersInTabBarItemOrder:tabControllers]];
+   }
+ 
+   if (_hasModifiedBottomAccessoryInCurrentTransation) {
+@@ -187,6 +194,30 @@ - (void)updateContainer
+   }
+ }
+ 
++// The tab bar draws the items in the order of the view controllers, so a tab takes another place in the bar while its
++// view stays where React mounted it. A screen whose key the order does not list goes after the listed ones.
++- (NSArray<RNSTabsScreenViewController *> *)tabControllersInTabBarItemOrder:
++    (NSArray<RNSTabsScreenViewController *> *)tabControllers
++{
++  if (_tabBarItemOrder.count == 0) {
++    return tabControllers;
++  }
++  NSArray<NSString *> *tabBarItemOrder = _tabBarItemOrder;
++  return [tabControllers
++      sortedArrayWithOptions:NSSortStable
++             usingComparator:^NSComparisonResult(RNSTabsScreenViewController *first,
++                                                 RNSTabsScreenViewController *second) {
++               NSString *firstKey = first.tabScreenComponentView.screenKey;
++               NSString *secondKey = second.tabScreenComponentView.screenKey;
++               NSUInteger firstIndex = firstKey == nil ? NSNotFound : [tabBarItemOrder indexOfObject:firstKey];
++               NSUInteger secondIndex = secondKey == nil ? NSNotFound : [tabBarItemOrder indexOfObject:secondKey];
++               if (firstIndex == secondIndex) {
++                 return NSOrderedSame;
++               }
++               return firstIndex < secondIndex ? NSOrderedAscending : NSOrderedDescending;
++             }];
++}
++
+ - (void)markChildUpdated
+ {
+   [self updateContainer];
+@@ -258,6 +289,16 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+     _controller.tabBarItemSelectionHidden = newComponentProps.tabBarItemSelectionHidden;
+   }
+ 
++  if (newComponentProps.tabBarItemOrder != oldComponentProps.tabBarItemOrder) {
++    NSMutableArray<NSString *> *tabBarItemOrder =
++        [[NSMutableArray alloc] initWithCapacity:newComponentProps.tabBarItemOrder.size()];
++    for (const auto &screenKey : newComponentProps.tabBarItemOrder) {
++      [tabBarItemOrder addObject:RCTNSStringFromString(screenKey)];
++    }
++    _tabBarItemOrder = tabBarItemOrder;
++    _hasModifiedTabBarItemOrderInCurrentTransaction = YES;
++  }
++
+   if (newComponentProps.bottomAccessoryHidden != oldComponentProps.bottomAccessoryHidden) {
+     _bottomAccessoryHidden = newComponentProps.bottomAccessoryHidden;
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+@@ -368,6 +409,7 @@ - (void)mountingTransactionWillMount:(const facebook::react::MountingTransaction
+ {
+   _hasModifiedTabsScreensInCurrentTransaction = NO;
+   _hasModifiedBottomAccessoryInCurrentTransation = NO;
++  _hasModifiedTabBarItemOrderInCurrentTransaction = NO;
+   [_controller reactMountingTransactionWillMount];
+ }
+ 
+@@ -536,7 +578,8 @@ @implementation RNSTabsHostComponentView (ModifiedReactSubviews)
+ 
+ - (BOOL)hasModifiedReactSubviewsInCurrentTransaction
+ {
+-  return _hasModifiedTabsScreensInCurrentTransaction || _hasModifiedBottomAccessoryInCurrentTransation;
++  return _hasModifiedTabsScreensInCurrentTransaction || _hasModifiedBottomAccessoryInCurrentTransation ||
++      _hasModifiedTabBarItemOrderInCurrentTransaction;
+ }
+ 
+ @end
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
+index 138da4d..023ce74 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
+@@ -61,6 +61,7 @@ export interface NativeProps extends ViewProps {
+ 
+   // General
+   tabBarHidden?: CT.WithDefault<boolean, false>;
++  tabBarItemOrder?: ReadonlyArray<string> | undefined;
+   nativeContainerBackgroundColor?: ColorValue | undefined;
+   colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
+ 
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
+index 64b2a09..23b19c6 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
+@@ -78,6 +78,7 @@ export interface NativeProps extends ViewProps {
+   // General
+   tabBarHidden?: CT.WithDefault<boolean, false>;
+   tabBarItemSelectionHidden?: CT.WithDefault<boolean, false>;
++  tabBarItemOrder?: ReadonlyArray<string> | undefined;
+   nativeContainerBackgroundColor?: ColorValue | undefined;
+   colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
+ 

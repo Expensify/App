@@ -62,13 +62,24 @@ function getSearchTabSearchKey(searchTabRoute: {state?: NavigationState | Partia
 }
 
 /**
- * The placeholder a hidden tab route is drawn inside, or undefined for a route the flat nav bar has no slot for, such
- * as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection.
+ * The placeholder whose bar item shows as selected for a hidden tab route, or undefined for a route the flat nav bar
+ * has no slot for, such as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection. Search
+ * stays mounted inside the first placeholder it had: when its section changes, that placeholder trades its place and
+ * item in the bar with the placeholder named here.
  */
 function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavSectionID | undefined): NativeTabItemName | undefined {
     const slot = getFlatNavTabBarSlot({focusedTabRouteName: routeName, activeFlatNavSectionID: searchSectionID});
     return Object.values(SCREENS.NATIVE_TAB_ITEM).find((itemName) => NATIVE_TAB_ITEM_SLOTS[itemName] === slot);
 }
 
-export {findSearchTabRoute, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
+/**
+ * The hidden tab route a press on a placeholder opens: Search for Expenses and Reports. More opens a menu, so it names
+ * no route. While Search is drawn inside another placeholder, the bar takes the press in JS and shows the pressed item
+ * selected over Search at once, instead of natively selecting a placeholder that is empty until Search trades places.
+ */
+function getFlatNavTabHiddenRouteName(routeName: string): typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR | undefined {
+    return routeName === SCREENS.NATIVE_TAB_ITEM.EXPENSES || routeName === SCREENS.NATIVE_TAB_ITEM.REPORTS ? NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR : undefined;
+}
+
+export {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getNativeTabGlyphName, getSearchTabSearchKey, isNativeTabItemName, isNavigationToNativeTabItem};
 export type {NativeTabRouteName};

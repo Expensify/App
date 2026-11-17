@@ -113,6 +113,14 @@
 - PR Introducing Patch: [#106500](https://github.com/Expensify/App/pull/106500)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+008+hidden-tab-host-trades-places.patch](@react-navigation+bottom-tabs+7.19.2+008+hidden-tab-host-trades-places.patch)
+
+- Reason: With patch 006, a hidden route that names another host is drawn inside another native tab. React cannot move a mounted subtree to another parent, so every switch between Expenses and Reports remounted the whole Search navigator and showed an empty screen while it was rebuilt. A hidden route now stays inside the first host it had. When it names another host, the two tabs trade their places in the bar (the `tabBarItemOrder` prop of react-native-screens patch 010) and each draws the item of the other, so the bar highlights the named host over content that never moved. Native reports a tab by its screen key, so the `tabPress` event and the navigation go to the route whose item the tab draws. A tab trades with one tab at a time and the focused route goes first. A route stays laid out while it is not focused only when its tab has the item of the host it names, so no other item shows it. A new `tabBarItemHiddenRouteName` option names the hidden route a press on a visible tab's item opens. While that route is drawn in another tab, native does not select the pressed tab, which would show empty until JS answers. The bar shows the pressed item selected over the hidden route in a commit of its own, and the `tabPress` event is sent in the next task, because native mounts a commit only when the task that made it ends and the render of the navigation would hold the bar back. A press that starts no navigation puts the bar back. Without a hidden route that has a host, no order is sent and nothing changes.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR Introducing Patch: N/A
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.
