@@ -97,7 +97,7 @@ const DotLottieAnimations = {
         h: 204,
     },
     SparkleRotate: {
-        file: require<LottieViewProps['source']>('@assets/animations/SparkleRotate.json'),
+        file: require<LottieViewProps['source']>('@assets/animations/SparkleRotate.lottie'),
         w: 120,
         h: 120,
     },
