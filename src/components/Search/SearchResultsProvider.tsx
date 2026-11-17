@@ -18,7 +18,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext, SearchShouldUseLiveDataContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -110,9 +110,11 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     };
 
     return (
-        <SearchResultsContext value={resultsValue}>
-            <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
-        </SearchResultsContext>
+        <SearchShouldUseLiveDataContext value={shouldUseLiveData}>
+            <SearchResultsContext value={resultsValue}>
+                <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
+            </SearchResultsContext>
+        </SearchShouldUseLiveDataContext>
     );
 }
 
