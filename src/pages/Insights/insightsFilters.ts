@@ -28,6 +28,9 @@ type InsightsFilters = {
     /** What the period on screen is drawn against, or nothing when the charts show it alone. */
     compare?: SearchCompareMode;
 
+    /** Selected 1-based tag position on Spend; other dashboards omit it. */
+    tagLevel?: number;
+
     /** The dashboard's default grouping, shown in place of a picked one the date range doesn't offer */
     defaultGroupBy?: InsightsFilters['groupBy'];
 };

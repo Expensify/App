@@ -3,16 +3,18 @@ import {renderHook} from '@testing-library/react-native';
 
 import useAssignCard from '@hooks/useAssignCard';
 import useCardFeeds from '@hooks/useCardFeeds';
+import * as CurrencyList from '@hooks/useCurrencyList';
 import useIsAllowedToIssueCompanyCard from '@hooks/useIsAllowedToIssueCompanyCard';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 
 import Onyx from 'react-native-onyx';
@@ -413,6 +415,48 @@ describe('useAssignCard', () => {
             const {cardToAssign} = jest.mocked(setAssignCardStepAndData).mock.calls.at(0)?.[0] ?? {};
             expect(cardToAssign?.dateOption).toBeUndefined();
             expect(cardToAssign?.startDate).toBeUndefined();
+        });
+    });
+
+    describe('assignCard function - expired Plaid feed', () => {
+        it('should reconnect with the country stored on the feed, not the one the workspace currency points to', () => {
+            // Given an expired US Plaid feed linked from another workspace into a workspace whose currency is ETB,
+            // which only maps to Ethiopia, a country Plaid does not support
+            const otherWorkspaceAccountID = 22222222;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Plaid institution IDs are dynamic runtime feed names that CompanyCardFeedWithNumber cannot represent.
+            const plaidFeedName = 'plaid.ins_109508' as CompanyCardFeedWithNumber;
+            const plaidFeed = `${plaidFeedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${otherWorkspaceAccountID}` as CompanyCardFeedWithDomainID;
+            const plaidFeedData: CombinedCardFeeds = {
+                [plaidFeed]: {
+                    liabilityType: 'corporate',
+                    pending: false,
+                    domainID: otherWorkspaceAccountID,
+                    customFeedName: 'First Platypus Bank',
+                    feed: plaidFeedName,
+                    country: CONST.COUNTRY.US,
+                    expiration: Date.now() / 1000 - CONST.DATE.SECONDS_PER_DAY,
+                },
+            };
+            jest.mocked(useCardFeeds).mockReturnValue([plaidFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+            jest.mocked(usePolicy).mockReturnValue({...mockPolicy, outputCurrency: 'ETB'});
+            jest.spyOn(CurrencyList, 'useCurrencyListState').mockReturnValue({
+                currencyList: {ETB: {symbol: 'Br', name: 'Ethiopian Birr', ISO4217: '230', countries: ['ET']}},
+            });
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: plaidFeed,
+                    policyID: mockPolicyID,
+                    onOfflineAssign: mockOnOfflineAssign,
+                }),
+            );
+
+            // When the admin starts assigning a card from that feed, which sends them to reconnect it first
+            result.current.assignCard('Plaid Credit Card 3333', 'Plaid Credit Card 3333');
+
+            // Then the Plaid connection opens with the feed's country, because Plaid rejects a link token request for Ethiopia
+            expect(setAddNewCompanyCardStepAndData).toHaveBeenCalledWith({data: {selectedCountry: CONST.COUNTRY.US}});
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(expect.objectContaining({currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION}));
         });
     });
 });

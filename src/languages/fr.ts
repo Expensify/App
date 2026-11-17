@@ -1233,6 +1233,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Niveau de tag ${level}`,
+        tagLevelLabel: 'Niveau de tag',
+        parent: 'Parent',
+        shareOfTotal: 'Part du total (%)',
         viewOnSpend: 'Voir dans Dépenses',
         emptyState: {title: 'Rien à afficher', subtitle: 'Essayez de modifier vos critères ci-dessus'},
         noExpensesState: {
@@ -1258,6 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Moyenne tous dépensiers',
             allMerchantAverage: 'Moyenne tous marchands',
             allCategoryAverage: 'Moyenne toutes catégories',
+            tagAverage: 'Moyenne du tag',
             averageValue: (amount: string) => `${amount} en moyenne`,
             allViolationAverage: 'Moyenne de toutes les infractions',
             noChange: 'Aucun changement',
@@ -11268,6 +11273,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             insights: 'Analyses',
             topSpenders: 'Plus gros dépensiers',
             topCategories: 'Catégories principales',
+            topTags: 'Tags principaux',
             topMerchants: 'Meilleurs commerçants',
             violationsBySubmitter: 'Infractions par déclarant',
             travel: 'Voyage',
