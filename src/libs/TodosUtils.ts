@@ -111,6 +111,47 @@ type TodoBucketContext = {
 };
 
 /**
+ * Gathers everything the to-do predicates need to know about one expense report.
+ */
+function buildTodoBucketContext(
+    report: Report,
+    transactionsByReportID: Record<string, Transaction[]>,
+    {
+        allPolicies,
+        allReportNameValuePairs,
+        allReportActions,
+        allReportMetadata,
+        personalDetailsList,
+        bankAccountList,
+        currentUserAccountID,
+        login,
+        areTransactionsLoaded,
+        rules,
+    }: CreateTodosReportsAndTransactionsParams,
+): TodoBucketContext {
+    const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+    const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
+    return {
+        policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
+        reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
+        expenseReportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`],
+        reportTransactions,
+        reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
+        allReportActions,
+        allExpensesHeld,
+        currentUserPlacedHold:
+            allExpensesHeld &&
+            didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
+        ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
+        bankAccountList,
+        currentUserAccountID,
+        login,
+        areTransactionsLoaded,
+        rules,
+    };
+}
+
+/**
  * Single source of truth for whether a report belongs in a given to-do bucket. Both the all-buckets path
  * (`createTodosReportsAndTransactions`) and the single-bucket path (`getTodoReportsForSearchKey`) call this so
  * the classification rules can't drift between them.
@@ -181,20 +222,8 @@ function reportMatchesTodoBucket(
  * Classifies every expense report into the four to-do buckets (submit/approve/pay/export) and indexes
  * transactions by report ID. Used by the TODOS derived value and the on-demand to-do count hook.
  */
-function createTodosReportsAndTransactions({
-    allReports,
-    allTransactions,
-    allPolicies,
-    allReportNameValuePairs,
-    allReportActions,
-    allReportMetadata,
-    personalDetailsList,
-    bankAccountList,
-    currentUserAccountID,
-    login,
-    areTransactionsLoaded,
-    rules,
-}: CreateTodosReportsAndTransactionsParams) {
+function createTodosReportsAndTransactions(params: CreateTodosReportsAndTransactionsParams) {
+    const {allReports, allTransactions} = params;
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
     const reportsToPay: Report[] = [];
@@ -212,26 +241,7 @@ function createTodosReportsAndTransactions({
         if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
             continue;
         }
-        const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
-        const context: TodoBucketContext = {
-            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
-            reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
-            expenseReportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`],
-            reportTransactions,
-            reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
-            allReportActions,
-            allExpensesHeld,
-            currentUserPlacedHold:
-                allExpensesHeld &&
-                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
-            ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
-            bankAccountList,
-            currentUserAccountID,
-            login,
-            areTransactionsLoaded,
-            rules,
-        };
+        const context = buildTodoBucketContext(report, transactionsByReportID, params);
         if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
         }
@@ -253,50 +263,15 @@ function createTodosReportsAndTransactions({
  * Classifies expense reports for a single to-do bucket only, running just that bucket's predicate.
  * Used by the live search results path so viewing one to-do search doesn't compute the other buckets.
  */
-function getTodoReportsForSearchKey(
-    searchKey: SearchKey,
-    {
-        allReports,
-        allTransactions,
-        allPolicies,
-        allReportNameValuePairs,
-        allReportActions,
-        allReportMetadata,
-        personalDetailsList,
-        bankAccountList,
-        currentUserAccountID,
-        login,
-        areTransactionsLoaded,
-        rules,
-    }: CreateTodosReportsAndTransactionsParams,
-) {
+function getTodoReportsForSearchKey(searchKey: SearchKey, params: CreateTodosReportsAndTransactionsParams) {
     const reports: Report[] = [];
-    const transactionsByReportID = buildTransactionsByReportID(allTransactions);
+    const transactionsByReportID = buildTransactionsByReportID(params.allTransactions);
 
-    for (const report of Object.values(allReports ?? {})) {
+    for (const report of Object.values(params.allReports ?? {})) {
         if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
             continue;
         }
-        const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
-        const context: TodoBucketContext = {
-            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
-            reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
-            expenseReportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`],
-            reportTransactions,
-            reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
-            allReportActions,
-            allExpensesHeld,
-            currentUserPlacedHold:
-                allExpensesHeld &&
-                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
-            ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
-            bankAccountList,
-            currentUserAccountID,
-            login,
-            areTransactionsLoaded,
-            rules,
-        };
+        const context = buildTodoBucketContext(report, transactionsByReportID, params);
 
         if (reportMatchesTodoBucket(searchKey, report, context)) {
             reports.push(report);
@@ -306,5 +281,34 @@ function getTodoReportsForSearchKey(
     return {reports, transactionsByReportID};
 }
 
+/**
+ * Keeps the reports from `reportIDs` that still belong in the `searchKey` to-do bucket, in the same order. Lets a
+ * Home to-do review skip reports that left the row after it started, such as one another approver already approved.
+ */
+function filterReportIDsNeedingTodoAction(searchKey: SearchKey, reportIDs: string[], params: CreateTodosReportsAndTransactionsParams): string[] {
+    const transactionsByReportID = buildTransactionsByReportID(params.allTransactions);
+    return reportIDs.filter((reportID) => {
+        const report = params.allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
+            return false;
+        }
+        return reportMatchesTodoBucket(searchKey, report, buildTodoBucketContext(report, transactionsByReportID, params));
+    });
+}
+
+/**
+ * Orders to-do reports the way their Spend search lists them by default: newest report first. Reports without a
+ * creation date keep their place, as they do on Spend.
+ */
+function sortTodoReportsBySearchOrder(reports: Report[]): Report[] {
+    return [...reports].sort((a, b) => {
+        if (!a.created || !b.created || a.created === b.created) {
+            return 0;
+        }
+        return a.created < b.created ? 1 : -1;
+    });
+}
+
 export default createTodosReportsAndTransactions;
-export {buildTransactionsByReportID, getTodoReportsForSearchKey};
+export {buildTransactionsByReportID, filterReportIDsNeedingTodoAction, getTodoReportsForSearchKey, sortTodoReportsBySearchOrder};
+export type {CreateTodosReportsAndTransactionsParams};

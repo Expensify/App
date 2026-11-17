@@ -7,9 +7,7 @@ import useSearchSections from '@hooks/useSearchSections';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {startSpan} from '@libs/telemetry/activeSpans';
-
-import Navigation from '@navigation/Navigation';
+import openReportInPlace from '@libs/Navigation/helpers/openReportInPlace';
 
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
@@ -22,7 +20,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {startTransition, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
@@ -200,17 +198,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         if (!reportId) {
             return;
         }
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportId}`, {
-            name: 'ReportNavigation',
-            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-        });
-        startTransition(() => {
-            Navigation.setParams({
-                reportID: reportId,
-                reportActionID: undefined,
-                referrer: undefined,
-            });
-        });
+        openReportInPlace(reportId);
     };
 
     const goToNextReport = () => {

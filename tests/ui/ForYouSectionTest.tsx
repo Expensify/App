@@ -21,6 +21,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -215,7 +216,7 @@ async function seedDomainAdmin(domainAccountID: number, requesterAccountIDs: num
 
 // Drive the component by controlling the mocked hook's return value from the report-bucket fixtures.
 function setTodoCounts(todos: TodoFixture) {
-    const singleReportID = (reports: TodoReport[]) => (reports.length === 1 ? reports.at(0)?.reportID : undefined);
+    const reportIDs = (reports: TodoReport[]) => reports.map((report) => report.reportID);
     mockUseTodoCounts.mockReturnValue({
         counts: {
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: todos.reportsToSubmit.length,
@@ -223,11 +224,11 @@ function setTodoCounts(todos: TodoFixture) {
             [CONST.SEARCH.SEARCH_KEYS.PAY]: todos.reportsToPay.length,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: todos.reportsToExport.length,
         },
-        singleReportIDs: {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: singleReportID(todos.reportsToSubmit),
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: singleReportID(todos.reportsToApprove),
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: singleReportID(todos.reportsToPay),
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: singleReportID(todos.reportsToExport),
+        reportIDs: {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportIDs(todos.reportsToSubmit),
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportIDs(todos.reportsToApprove),
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: reportIDs(todos.reportsToPay),
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportIDs(todos.reportsToExport),
         },
     });
 }
@@ -892,8 +893,9 @@ describe('ForYouSection', () => {
         });
     });
 
-    describe('navigation with multiple reports (search route)', () => {
-        it('navigates to SEARCH_ROOT when submit has multiple reports', async () => {
+    describe('navigation with multiple reports (Home to-do review)', () => {
+        it('opens the first submit report over Home and hands the rest to the review', async () => {
+            // Given two reports waiting to be submitted
             await act(async () => {
                 setTodoCounts({
                     ...BASE_TODOS,
@@ -905,18 +907,20 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
+            // When the user presses Begin on the submit row
             pressFirstBeginButton();
+            await waitForBatchedUpdatesWithAct();
 
+            // Then the first report opens in the RHP instead of the Spend search, so the user stays on Home
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
-            expect(typeof calledRoute).toBe('string');
-            if (typeof calledRoute !== 'string') {
-                return;
-            }
-            expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: '1', backTo: ROUTES.HOME}));
+
+            // And both reports are kept for the report screen to page through after each submission
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HOME_TODO_REVIEW)).toEqual({searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT, reportIDs: ['1', '2']});
         });
 
-        it('navigates to SEARCH_ROOT when approve has multiple reports', async () => {
+        it('opens the first approve report over Home and hands the rest to the review', async () => {
+            // Given two reports waiting for the user's approval
             await act(async () => {
                 setTodoCounts({
                     ...BASE_TODOS,
@@ -928,15 +932,14 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
+            // When the user presses Begin on the approve row
             pressFirstBeginButton();
+            await waitForBatchedUpdatesWithAct();
 
+            // Then the first report opens in the RHP with the approve list behind it
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            const calledRoute = mockNavigate.mock.calls.at(0)?.at(0);
-            expect(typeof calledRoute).toBe('string');
-            if (typeof calledRoute !== 'string') {
-                return;
-            }
-            expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: '3', backTo: ROUTES.HOME}));
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HOME_TODO_REVIEW)).toEqual({searchKey: CONST.SEARCH.SEARCH_KEYS.APPROVE, reportIDs: ['3', '4']});
         });
     });
 

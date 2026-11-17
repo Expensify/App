@@ -145,7 +145,7 @@ describe('useTodoCounts', () => {
         await waitForBatchedUpdates();
     });
 
-    it('returns zero counts and no single report IDs when dependencies are not set', async () => {
+    it('returns zero counts and no report IDs when dependencies are not set', async () => {
         const {result} = await renderTodoCounts();
 
         expect(result.current.counts).toEqual({
@@ -154,11 +154,11 @@ describe('useTodoCounts', () => {
             [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
             [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
         });
-        expect(result.current.singleReportIDs).toEqual({
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: undefined,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: undefined,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: undefined,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: undefined,
+        expect(result.current.reportIDs).toEqual({
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: [],
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: [],
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: [],
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: [],
         });
     });
 
@@ -385,14 +385,16 @@ describe('useTodoCounts', () => {
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(1);
         });
 
-        it('exposes the report ID only for buckets that contain exactly one report', async () => {
+        it('exposes the report IDs of every bucket', async () => {
+            // Given the fixture reports set up for each bucket
+            // When the hook classifies them
             const {result} = await renderTodoCounts();
 
-            // Only the export bucket has a single report, so only it surfaces an ID.
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(EXPORT_REPORT_ID);
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBeUndefined();
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBeUndefined();
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBeUndefined();
+            // Then each bucket lists as many report IDs as it counts, so the Home row can page through all of them
+            expect(result.current.reportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toEqual([EXPORT_REPORT_ID]);
+            for (const key of [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY] as const) {
+                expect(result.current.reportIDs[key]).toHaveLength(result.current.counts[key]);
+            }
         });
 
         it('keeps a stable result reference when an Onyx write does not change the counts', async () => {
@@ -513,7 +515,7 @@ describe('useTodoCounts', () => {
 
             // The report should count toward pay because the primary login matches the reimburser.
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(1);
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe('pay_report');
+            expect(result.current.reportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toEqual(['pay_report']);
         });
 
         it('falls back to the session email when personalDetailsList is not available', async () => {
@@ -535,7 +537,7 @@ describe('useTodoCounts', () => {
             const {result} = await renderTodoCounts();
 
             expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(1);
-            expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe('pay_report');
+            expect(result.current.reportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toEqual(['pay_report']);
         });
 
         it('does not count a pay todo when the secondary login does not match the reimburser and personalDetailsList is missing', async () => {
