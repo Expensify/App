@@ -16218,6 +16218,17 @@ describe('SearchUIUtils', () => {
             // Then the column is empty
             expect(violations).toBeUndefined();
         });
+
+        test('shows the violation name itself when it has no short label', () => {
+            // Given an expense with a violation App has no short label for, like one added on the backend before App knows about it
+            const unknownViolationName = 'unknownSubmittedViolation';
+
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction({submittedViolations: [unknownViolationName]}, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the raw name is shown, so the cell is not left empty
+            expect(violations).toBe(unknownViolationName);
+        });
     });
 
     describe('getGroupColumnWidthFlags', () => {
