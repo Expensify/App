@@ -231,39 +231,19 @@ describe('useFilterPanesKeyboardNavigation', () => {
         expect(document.activeElement).toBe(panes.clearButton);
     });
 
-    it('moves the focus into the new view when the content takes away the focused row', async () => {
-        // Given the focus on a report field row in the content
+    it('moves the focus into the content when an arrow key is pressed with the focus on the page', () => {
+        // Given a report field that opened its values and took the focused row away, leaving the focus on the page
         const panes = createPanes();
         renderNavigation(panes);
-        const fieldRow = document.createElement('button');
-        markShown(fieldRow);
-        panes.contentContainer.replaceChildren(fieldRow);
-        fieldRow.focus();
-
-        // When opening the field swaps the row for the field's values
         const valueRow = document.createElement('button');
         markShown(valueRow);
         panes.contentContainer.replaceChildren(valueRow);
-        await Promise.resolve();
 
-        // Then the focus goes to the new view instead of staying on the page, where Enter would press Apply
+        // When the down arrow is pressed
+        const event = pressKey(document.body, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+
+        // Then the focus goes to the new view, so the arrow keys work there again
         expect(document.activeElement).toBe(valueRow);
-    });
-
-    it('leaves the focus alone when the content changes while the focus is elsewhere', async () => {
-        // Given the focus in the filter search, after having been in the content
-        const panes = createPanes();
-        renderNavigation(panes);
-        panes.contentInput.focus();
-        panes.searchInput.focus();
-
-        // When the content swaps its view
-        const valueRow = document.createElement('button');
-        markShown(valueRow);
-        panes.contentContainer.replaceChildren(valueRow);
-        await Promise.resolve();
-
-        // Then the focus stays in the filter search
-        expect(document.activeElement).toBe(panes.searchInput);
+        expect(event.defaultPrevented).toBe(true);
     });
 });

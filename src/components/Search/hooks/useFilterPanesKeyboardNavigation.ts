@@ -156,6 +156,11 @@ function useFilterPanesKeyboardNavigation<Row>({
                 // Adding the same listener again does nothing, so a release that never came cannot stack them.
                 window.addEventListener('keyup', swallowEscapeRelease, true);
             }
+        } else if (event.target === document.body && (event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey || event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey)) {
+            // A filter that swaps its view, like a report field opening its values, takes the focused row with it and leaves the focus on the page.
+            if (!focusFirstShownControl(contentContainer)) {
+                return;
+            }
         } else {
             return;
         }
@@ -195,32 +200,6 @@ function useFilterPanesKeyboardNavigation<Row>({
         const onUnhandledKeyDown = (event: KeyboardEvent) => handleUnhandledArrowKey(event);
         contentContainer.addEventListener('keydown', onUnhandledKeyDown, true);
         return () => contentContainer.removeEventListener('keydown', onUnhandledKeyDown, true);
-    }, [contentContainerRef]);
-
-    // A filter can swap its view, like a report field opening its values, and take the focused row away with it. The
-    // focus then falls to the page, where the arrow keys do nothing and Enter presses Apply, so it goes to the new view.
-    useEffect(() => {
-        const contentContainer = contentContainerRef.current;
-        if (!(contentContainer instanceof HTMLElement)) {
-            return;
-        }
-        let focusedContentElement: Element | null = null;
-        const onFocusIn = (event: FocusEvent) => {
-            focusedContentElement = event.target instanceof Element && contentContainer.contains(event.target) ? event.target : null;
-        };
-        const observer = new MutationObserver(() => {
-            if (!focusedContentElement || focusedContentElement.isConnected || document.activeElement !== document.body) {
-                return;
-            }
-            focusedContentElement = null;
-            focusFirstShownControl(contentContainer);
-        });
-        document.addEventListener('focusin', onFocusIn);
-        observer.observe(contentContainer, {childList: true, subtree: true});
-        return () => {
-            document.removeEventListener('focusin', onFocusIn);
-            observer.disconnect();
-        };
     }, [contentContainerRef]);
 }
 
