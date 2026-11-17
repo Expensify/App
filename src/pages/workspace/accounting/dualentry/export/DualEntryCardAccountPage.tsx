@@ -76,6 +76,7 @@ function DualEntryCardAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT, feedKey)}
                         >
                             <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.DUAL_ENTRY.CARD_ACCOUNT_FEED_ROW}
                                 onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
                                     session,

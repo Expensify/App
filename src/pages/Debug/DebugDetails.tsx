@@ -233,6 +233,7 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DEBUG.DETAILS_DELETE}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onDelete}

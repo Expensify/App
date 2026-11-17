@@ -1,8 +1,9 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
+import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -17,7 +18,6 @@ import type {
     CreateSupportTicketParams,
     DeleteAppReportParams,
     DeleteCommentParams,
-    ExpandURLPreviewParams,
     ExportReportPDFParams,
     FlagCommentParams,
     GetNewerActionsParams,
@@ -86,7 +86,7 @@ import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork, getServerAnchoredDBTime} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
@@ -225,7 +225,7 @@ import {
 import {isAnonymousUser} from '@userActions/Session';
 import {getChangeTransactionsReportOnyxData} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
@@ -1772,7 +1772,7 @@ function getGuidedSetupDataForOpenReport(
         engagementChoice: choice,
         onboardingMessage,
         conciergeChat,
-        companySize: introSelected?.companySize as OnboardingCompanySize,
+        companySize: getIntroSelectedCompanySize(introSelected),
         isSelfTourViewed,
         wasInvited: isPendingInviteOnboarding && isOnboardingCompleted,
         currentUserAccountID,
@@ -3375,29 +3375,14 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
     );
 }
 
-/**
- * Gets metadata info about links in the provided report action
- */
-function expandURLPreview(reportID: string | undefined, reportActionID: string) {
-    if (!reportID) {
-        return;
-    }
-
-    const parameters: ExpandURLPreviewParams = {
-        reportID,
-        reportActionID,
-    };
-
-    API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
-}
-
 /** Marks the new report actions as read
  * @param hasOnceLoadedReportActions Whether the report actions have been loaded at least once.
  * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ * @param readTime When the user saw the report (defaults to now). A delayed read passes it so newer actions stay unread.
  */
-function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false, readTime?: string) {
     if (!reportID) {
         return;
     }
@@ -3407,7 +3392,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
         return;
     }
 
-    const lastReadTime = getDBTimeWithSkew();
+    const lastReadTime = readTime ?? getDBTimeWithSkew();
 
     // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
     // user created. `openReport` clears it on a return trip or a refresh.
@@ -3448,18 +3433,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (
+    const reportActionsFromOtherUsers = Object.values(reportActions ?? {}).filter(
+        (current) =>
             !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
-            (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
-        ) {
-            return current;
-        }
-        return latest;
-    }, null);
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER),
+    );
+    const eligibleReportActions = reportAction?.created
+        ? reportActionsFromOtherUsers
+        : reportActionsFromOtherUsers.filter((action) => ReportActionsUtils.canReportActionTriggerUnreadMarker(action, currentUserAccountID));
+    const unreadCandidates = eligibleReportActions.length > 0 ? eligibleReportActions : reportActionsFromOtherUsers;
+    const latestReportActionFromOtherUsers = unreadCandidates.reduce((latest: ReportAction | null, current) => (!latest || current.created > latest.created ? current : latest), null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -3916,7 +3901,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName, accountIDToName} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
@@ -3930,6 +3915,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
+            accountIDToName,
         ),
     );
     return true;
@@ -3946,6 +3932,7 @@ function editReportComment(
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
+    accountIDToName?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -3958,7 +3945,7 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
-    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
+    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName, accountIDToName}).trim();
     const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID, attachmentIDByLocalSource);
 
@@ -3975,7 +3962,7 @@ function editReportComment(
         originalReportAction.reportActionID,
     );
 
-    const reportComment = Parser.htmlToText(htmlForNewComment);
+    const reportComment = Parser.htmlToText(htmlForNewComment, {accountIDToName});
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -3998,7 +3985,7 @@ function editReportComment(
     const renamedAttachmentLabels = getUploadingAttachmentLabelsRenamedInDraft(textForNewComment, originalCommentHTML);
     const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentIDs, renamedAttachmentLabels);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
-    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
+    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml, {accountIDToName}) : reportComment;
 
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
@@ -4107,6 +4094,7 @@ function editReportComment(
             isOriginalReportArchived,
             videoAttributeCache,
             reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -5675,9 +5663,11 @@ function shouldShowReportActionNotification(
         return false;
     }
 
-    // We don't want to send a local notification if the user preference is daily, mute or hidden.
+    // We don't want to send a local notification if the user preference is daily, mute or hidden,
+    // unless the action is explicitly marked as important for the current user (e.g. a payment they are owed).
+    const isImportant = action ? ReportActionsUtils.isImportantForCurrentUser(action, currentUserAccountID) : false;
     const notificationPreference = getReportNotificationPreference(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
-    if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
+    if (!isImportant && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
     }
@@ -5766,7 +5756,11 @@ function showReportActionNotification(
             derivedMovedFromReportName,
         });
     } else {
-        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
+        // Read the same COMMENT part that the notification body is built from
+        const messageParts = Array.isArray(reportAction.message) ? reportAction.message : [reportAction.message];
+        const commentHtml = messageParts.find((part) => part?.type === CONST.REPORT.MESSAGE.TYPE.COMMENT)?.html;
+        const reportIDToName = buildReportIDToNameMap(allReports, getMentionedReportIDs(commentHtml));
+        LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber, reportIDToName);
     }
 
     notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
@@ -7254,11 +7248,11 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 }
 
 function exportToIntegration(reportID: string, connectionName: ConnectionName, policy: OnyxEntry<Policy>) {
-    const action = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
+    // The server stamps the outcome with its own clock, so the start is too, or a device running ahead would sort the outcome first
+    const action = {...buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy)), created: getServerAnchoredDBTime()};
     const optimisticReportActionID = action.reportActionID;
-    const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -7266,16 +7260,9 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
                 [optimisticReportActionID]: action,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isExportedToIntegration: true,
-            },
-        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -7283,13 +7270,6 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
                 [optimisticReportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isExportedToIntegration: previousExportedValue,
             },
         },
     ];
@@ -9163,8 +9143,7 @@ function changeReportPolicyAndInviteSubmitter({
         CONST.POLICY.ROLE.USER,
         currentUser,
         reportActionsList,
-        undefined,
-        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        {policyExpenseChatNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterLogin].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterLogin].reportActionID;
@@ -9629,7 +9608,6 @@ export {
     downloadReportPDF,
     editReportComment,
     explain,
-    expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
     shareReport,

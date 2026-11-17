@@ -4,7 +4,11 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 
 import CONST from '@src/CONST';
 
+import type {RefObject} from 'react';
+
 import {useEffect, useRef, useState} from 'react';
+
+import useRowFocusSync from './useRowFocusSync';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 
@@ -26,6 +30,9 @@ type UseSelectionListKeyboardFocusParams = {
 
     /** Called when ArrowUp leaves the first row for the search input, so DOM focus can follow */
     onArrowUpToSearchInput?: () => void;
+
+    /** The list's outer element, so the highlight can follow the keyboard focus of its rows */
+    containerRef: RefObject<unknown>;
 };
 
 type UseSelectionListKeyboardFocusResult = {
@@ -50,6 +57,7 @@ function useSelectionListKeyboardFocus({
     setShouldDisableHoverStyle,
     shouldAllowArrowUpToSearchInput = false,
     onArrowUpToSearchInput,
+    containerRef,
 }: UseSelectionListKeyboardFocusParams): UseSelectionListKeyboardFocusResult {
     const hasKeyBeenPressed = useRef(false);
     const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
@@ -100,6 +108,8 @@ function useSelectionListKeyboardFocus({
             announceProgrammaticScroll();
         },
     });
+
+    useRowFocusSync({containerRef, showKeyboardHighlight: setHasKeyBeenPressed, setFocusedIndex});
 
     return {
         focusedIndex,

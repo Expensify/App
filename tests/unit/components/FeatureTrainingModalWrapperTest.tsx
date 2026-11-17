@@ -41,7 +41,7 @@ async function renderWrapper({closeModal, shouldCloseOnConfirm}: {closeModal: je
                 shouldCloseOnConfirm={shouldCloseOnConfirm}
             >
                 <FeatureTraining.Body>
-                    <FeatureTraining.ConfirmButton>{translateLocal('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                    <FeatureTraining.ConfirmButton sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>{translateLocal('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
                 </FeatureTraining.Body>
             </FeatureTrainingModalWrapper>
         </ComposeProviders>,

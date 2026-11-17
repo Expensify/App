@@ -28,14 +28,25 @@ Put flags before file or directory paths. The CLI stops parsing flags once it st
 
 Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx oxlint` invocations. The wrapper applies the seatbelt ratchet and the other post-processors, splits the JS plugins across several oxlint processes (`--shards`), and runs the Onyx lint bypass checks.
 
-Editor integrations and bare `npx oxlint` still run the rule set from `oxlint.config.mts`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
+Bare `npx oxlint` runs the rule set from `oxlint.config.mts` but does **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`.
 
 By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
 
+### Editor setup
+
+The oxlint language server doesn't apply the `scripts/lint/` processors either, so grandfathered seatbelt rows show as errors. [`scripts/lint/lsp/oxlint.ts`](../scripts/lint/lsp/oxlint.ts) wraps it and applies the same processors, so the editor matches `npm run lint`: grandfathered errors show as warnings with the seatbelt note. In VS Code, install the [oxc extension](https://marketplace.visualstudio.com/items?itemName=oxc.oxc-vscode) and add this to `.vscode/settings.json`:
+
+```json
+"oxc.path.oxlint": "scripts/lint/lsp/oxlint.ts"
+```
+
+Other editors that use the oxlint language server can run the same script in place of `oxlint --lsp`. It needs `bun` on the editor's `PATH`.
+
 ## How the rules run
 
+- **Where the rules come from:** the [`eslint-config-expensify`](https://github.com/Expensify/eslint-config-expensify) presets. `buildOxlintConfig` (from `eslint-config-expensify/oxlint`) converts them each time oxlint loads `oxlint.config.mts`, so upgrading the package needs no config edits for preset rules. If an upgrade brings a rule oxlint cannot run, loading fails and names the rule; the fix is usually in the package (`oxlint/tables.js`).
 - **Native rules** come from oxlint itself; type-aware ones run through `oxlint-tsgolint`.
-- **JS plugins** in [`config/oxlint/plugins/`](../config/oxlint/plugins/) run the rules oxlint has no native version of, using the ESLint plugins' own rule code (`eslint`, `eslint-config-expensify`, `eslint-plugin-react`, `typescript-eslint`, ...). That is why those packages stay in `devDependencies`. The repo's own rules live in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) and load under the `rulesdir/` prefix.
+- **JS plugins** run the rules oxlint has no native version of, using the ESLint plugins' own rule code. The App's `hosted` and `rulesdir` plugins in [`config/oxlint/plugins/`](../config/oxlint/plugins/) extend the package's, and the repo's own rules in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) load under `rulesdir/`.
 - **React Compiler rules** (`react-hooks/refs`, `react-hooks/purity`, ...) come from the Rust React Compiler via [`config/oxlint/reactCompilerRust.mjs`](../config/oxlint/reactCompilerRust.mjs).
 - Findings, the seatbelt baseline and `eslint-disable` comments all use the ESLint rule IDs (`@typescript-eslint/no-deprecated`, `react/jsx-no-bind`, ...); [`config/oxlint/ruleNames.mjs`](../config/oxlint/ruleNames.mjs) maps oxlint's names to them. `eslint-disable-next-line <rule>` is still the way to suppress a finding inline.
 - oxlint runs JS plugins on one thread, so `scripts/lint/` splits the files into shards (`--shards=<n>` or `auto`). CI uses `--shards=4`.
@@ -125,7 +136,19 @@ Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The
 
 ### "I'm enabling a new rule repo-wide"
 
-1. Add the rule to `oxlint.config.mts` in `'error'` mode. If oxlint has no native version, add it to the matching JS plugin in `config/oxlint/plugins/` and, for a hosted ESLint rule, to `config/oxlint/ruleNames.mjs`.
+1. Add the rule to an override in `oxlint.config.mts` in `'error'` mode. The name depends on where the rule runs:
+
+    - **oxlint has it:** its own name, like `'no-console'`.
+    - **The presets run ESLint's version as `core/<name>`**, like `core/dot-notation` (`oxlint/generated/rules.json` in `eslint-config-expensify` lists them). Using the native name fails when the config loads, and the message gives the name to use.
+    - **oxlint lacks it and it comes from react, import, jsdoc, @typescript-eslint or react-hooks:** ESLint's version runs in the App's `hosted` plugin, as `hosted/<name>`. Unless `rules.json` already lists it, add its ESLint ID to `APP_HOSTED_ESLINT_RULE_IDS` in `config/oxlint/appHostedRules.mjs`.
+    - **Any other ESLint plugin:** list its package in the override's `jsPlugins` and use the rule's own name:
+
+        ```ts
+        {files: ['tests/**/*'], jsPlugins: ['eslint-plugin-testing-library'], rules: {'testing-library/prefer-screen-queries': 'error'}},
+        ```
+
+    Findings, the seatbelt baseline and `eslint-disable` comments use the ESLint ID in every case. An override replaces a rule's whole setting, so a bare `'error'` drops the preset's options; build the entry with `getPresetRuleEntry(preset, ruleID)` from `eslint-config-expensify/oxlint` to keep them. A core rule that oxlint lacks and no preset enables cannot be turned on from an override; it needs a change in `eslint-config-expensify`.
+
 2. Save the initial baseline:
 
     ```bash

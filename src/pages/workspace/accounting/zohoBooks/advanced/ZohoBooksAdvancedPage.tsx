@@ -57,8 +57,8 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const syncExpensifyCardSettlements = zohoBooksConfig?.sync?.syncExpensifyCardSettlements ?? true;
     const settlementsBankAccount = zohoBooksData?.bankAccounts?.find((account) => account.id === zohoBooksConfig?.sync?.settlementsBankAccountID);
     const syncTravelInvoicingSettlements = zohoBooksConfig?.sync?.syncTravelInvoicingSettlements ?? true;
-    const travelInvoicingSettlementsBankAccount = zohoBooksData?.bankAccounts?.find((account) => account.id === zohoBooksConfig?.sync?.travelInvoicingSettlementsBankAccountID);
-    const travelInvoicingPayableAccount = zohoBooksData?.accounts?.find((account) => account.id === zohoBooksConfig?.export?.travelInvoicingPayableAccountID);
+    const travelBillingSettlementsBankAccount = zohoBooksData?.bankAccounts?.find((account) => account.id === zohoBooksConfig?.sync?.travelInvoicingSettlementsBankAccountID);
+    const travelBillingPayableAccount = zohoBooksData?.accounts?.find((account) => account.id === zohoBooksConfig?.export?.travelInvoicingPayableAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const travelBillingFundID = useTravelBillingFundID(policyID);
@@ -71,7 +71,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         useAccordionAnimation(syncReimbursedReports);
     const {isAccordionExpanded: isSyncExpensifyCardSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncExpensifyCardSettlementsAccordionSection} =
         useAccordionAnimation(syncExpensifyCardSettlements);
-    const {isAccordionExpanded: isSyncTravelInvoicingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelInvoicingSettlementsAccordionSection} =
+    const {isAccordionExpanded: isSyncTravelBillingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelBillingSettlementsAccordionSection} =
         useAccordionAnimation(syncTravelInvoicingSettlements);
 
     return (
@@ -106,6 +106,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.ACCOUNTING_METHOD], zohoBooksConfig?.pendingFields)}>
                     <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.ACCOUNTING_METHOD}
                         onPress={callIfAuthenticated(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT_METHOD.getRoute(policyID)) : undefined), session)}
                     >
                         <MenuItemField.Row
@@ -141,6 +142,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.BILL_PAYMENT_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.BILL_PAYMENT_ACCOUNT}
                         name={translate('workspace.zohoBooks.billPaymentAccount.label')}
                         onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                         value={billPaymentAccount?.name}
@@ -172,6 +174,7 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.zohoBooks.settlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={settlementsBankAccount?.name}
@@ -200,14 +203,15 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         onCloseError={() => policyID && clearZohoBooksErrorField(policyID, CONST.ZOHO_BOOKS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS)}
                     />
                     <Accordion
-                        isExpanded={isSyncTravelInvoicingSettlementsAccordionExpanded}
-                        isToggleTriggered={shouldAnimateSyncTravelInvoicingSettlementsAccordionSection}
+                        isExpanded={isSyncTravelBillingSettlementsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateSyncTravelBillingSettlementsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.TRAVEL_BILLING_SETTLEMENT_ACCOUNT}
                                 name={translate('workspace.zohoBooks.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingSettlementsBankAccount?.name}
+                                value={travelBillingSettlementsBankAccount?.name}
                             >
                                 {areSettingsInErrorFields([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], zohoBooksConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -216,9 +220,10 @@ function ZohoBooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], zohoBooksConfig?.pendingFields)}>
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.ZOHO_BOOKS.TRAVEL_BILLING_PAYABLE_ACCOUNT}
                                 name={translate('workspace.zohoBooks.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingPayableAccount?.name}
+                                value={travelBillingPayableAccount?.name}
                             >
                                 {areSettingsInErrorFields([CONST.ZOHO_BOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], zohoBooksConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

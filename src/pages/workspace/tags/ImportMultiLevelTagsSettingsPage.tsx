@@ -166,6 +166,11 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         addBottomSafeAreaPadding
                     >
                         <Button
+                            sentryLabel={
+                                spreadsheet?.isImportingIndependentMultiLevelTags
+                                    ? CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_MULTI_LEVEL_NEXT
+                                    : CONST.SENTRY_LABEL.WORKSPACE.TAGS.IMPORT_MULTI_LEVEL_IMPORT
+                            }
                             onPress={
                                 spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
                             }

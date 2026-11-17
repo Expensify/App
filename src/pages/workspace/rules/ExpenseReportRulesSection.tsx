@@ -143,6 +143,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_APPROVE_REPORTS_UNDER}
                             onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
@@ -165,6 +166,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.RANDOM_REPORT_AUDIT}
                             onPress={canWriteApprovals ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_RANDOM_REPORT_AUDIT.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row
@@ -215,6 +217,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 >
                     <View style={[styles.mt6, styles.mbn3]}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_REPORTS_UNDER}
                             onPress={canWritePayments ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID)), session) : undefined}
                         >
                             <MenuItemField.Row

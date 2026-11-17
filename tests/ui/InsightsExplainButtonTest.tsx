@@ -83,7 +83,7 @@ describe('InsightsExplainButton', () => {
         fireEvent.press(screen.getByRole('button'));
 
         // Then Explain stays accessible and the click immediately uses the preloaded answer.
-        expect(screen.getByText('Explain')).toBeVisible();
+        expect(screen.getByRole('button', {name: 'Explain'})).toBeVisible();
         expect(mockAskConcierge).toHaveBeenCalledWith(PROMPT, {insightsScope: SCOPE}, 'Travel increased.');
     });
 

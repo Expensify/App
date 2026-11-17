@@ -273,6 +273,7 @@ const WRITE_COMMANDS = {
     DETACH_RECEIPT: 'DetachReceipt',
     PAY_MONEY_REQUEST_WITH_WALLET: 'PayMoneyRequestWithWallet',
     PAY_MONEY_REQUEST: 'PayMoneyRequest',
+    PAY_VIA_ABA: 'PayViaABA',
     MARK_REPORT_PAYMENT_RECEIVED: 'MarkReportPaymentReceived',
     CANCEL_PAYMENT: 'CancelPayment',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
@@ -346,6 +347,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_CUSTOM_TAX_NAME: 'SetPolicyCustomTaxName',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     JOIN_ACCESSIBLE_POLICY: 'JoinAccessiblePolicy',
+    JOIN_ACCOUNTING_INTEGRATION_WAITLIST: 'JoinAccountingIntegrationWaitlist',
     ASK_TO_JOIN_POLICY: 'AskToJoinPolicy',
     ACCEPT_JOIN_REQUEST: 'AcceptJoinRequest',
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
@@ -407,6 +409,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_DISTANCE_AUTO_UPDATE: 'SetWorkspaceDistanceAutoUpdate',
     SET_CUSTOM_UNIT_DEFAULT_CATEGORY: 'SetCustomUnitDefaultCategory',
     ENABLE_DISTANCE_REQUEST_TAX: 'EnableDistanceRequestTax',
+    DISMISS_UK_FUEL_RATE_TAX_ERROR: 'DismissUKFuelRateTaxError',
     UPDATE_POLICY_DISTANCE_RATE: 'UpdatePolicyDistanceRate',
     UPDATE_POLICY_DISTANCE_RATE_VALUE: 'UpdatePolicyDistanceRateValue',
     UPDATE_POLICY_DISTANCE_RATE_NAME: 'UpdatePolicyDistanceRateName',
@@ -1095,6 +1098,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DETACH_RECEIPT]: Parameters.DetachReceiptParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
+    [WRITE_COMMANDS.PAY_VIA_ABA]: Parameters.PayViaABAParams;
     [WRITE_COMMANDS.MARK_REPORT_PAYMENT_RECEIVED]: Parameters.MarkReportPaymentReceivedParams;
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
@@ -1180,6 +1184,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_DISTANCE_AUTO_UPDATE]: Parameters.SetWorkspaceDistanceAutoUpdateParams;
     [WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY]: Parameters.SetCustomUnitDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.EnableDistanceRequestTaxParams;
+    [WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR]: Parameters.DismissUKFuelRateTaxErrorParams;
     [WRITE_COMMANDS.REPORT_EXPORT]: Parameters.ReportExportParams;
     [WRITE_COMMANDS.MARK_AS_EXPORTED]: Parameters.MarkAsExportedParams;
     [WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE]: Parameters.RequestExpensifyCardLimitIncreaseParams;
@@ -1640,6 +1645,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE]: Parameters.UpdateInvoiceCompanyWebsiteParams;
 
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
+    [WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST]: Parameters.JoinAccountingIntegrationWaitlistParams;
     [WRITE_COMMANDS.ASK_TO_JOIN_POLICY]: Parameters.AskToJoinPolicyParams;
 
     // Dismiss Product Training
@@ -1733,6 +1739,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
     OPEN_DEPOSIT_ACCOUNT_SETUP: 'OpenDepositAccountSetup',
+    OPEN_PAYMENT_METHODS: 'OpenPaymentMethods',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
     GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL: 'GetExpensifyCardPendingWalletApproval',
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
@@ -1749,7 +1756,6 @@ const READ_COMMANDS = {
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
-    EXPAND_URL_PREVIEW: 'ExpandURLPreview',
     GET_REPORT_PRIVATE_NOTE: 'GetReportPrivateNote',
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
     OPEN_REPORT_STATUS_PAGE: 'OpenReportStatusPage',
@@ -1826,7 +1832,7 @@ const READ_COMMANDS = {
     OPEN_DOMAIN_PAGE: 'OpenDomainPage',
     GET_SAML_SETTINGS: 'GetSAMLSettings',
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
-    GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
+    GET_TRANSACTIONS_MATCHING_RULE: 'GetTransactionsMatchingRule',
     GET_AGENT_RULE_SUGGESTIONS: 'GetAgentRuleSuggestions',
     GET_AGENT_TEMPLATES: 'GetAgentTemplates',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
@@ -1866,6 +1872,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
     [READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP]: null;
+    [READ_COMMANDS.OPEN_PAYMENT_METHODS]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
     [READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL]: null;
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
@@ -1877,7 +1884,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_NEWER_ACTIONS]: Parameters.GetNewerActionsParams;
     [READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
     [READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS]: Parameters.GetWiseBankAccountFieldsParams;
-    [READ_COMMANDS.EXPAND_URL_PREVIEW]: Parameters.ExpandURLPreviewParams;
     [READ_COMMANDS.GET_REPORT_PRIVATE_NOTE]: Parameters.GetReportPrivateNoteParams;
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
     [READ_COMMANDS.OPEN_REPORT_STATUS_PAGE]: Parameters.OpenReportStatusPageParams;
@@ -1961,7 +1967,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
     [READ_COMMANDS.OPEN_DOMAIN_PAGE]: Parameters.OpenDomainPageParams;
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
-    [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
+    [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE]: Parameters.GetTransactionsMatchingRuleParams;
     [READ_COMMANDS.GET_AGENT_RULE_SUGGESTIONS]: Parameters.GetAgentRuleSuggestionsParams;
     [READ_COMMANDS.GET_AGENT_TEMPLATES]: null;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
@@ -1996,6 +2002,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_INSIGHTS: 'GetInsights',
     GET_SCIM_TOKEN: 'GetSCIMToken',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
+    TRANSLATE_RECEIPT: 'TranslateReceipt',
 
     LOG_OUT: 'LogOut',
     CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
@@ -2018,6 +2025,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     DENY_TRANSACTION: 'DenyTransaction',
     GET_TRANSACTIONS_PENDING_3DS_REVIEW: 'GetTransactionsPending3DSReview',
+    RECORD_FRAUD_FEEDBACK: 'RecordFraudFeedback',
+    GET_TRANSACTIONS_PENDING_FRAUD_REVIEW: 'GetTransactionsPendingFraudReview',
     LINK_CARD_FEED_TO_POLICY: 'LinkCardFeedToPolicy',
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
@@ -2059,6 +2068,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_TRAVEL_ACCESS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS]: Parameters.ParseExpenseFiltersParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.TRANSLATE_RECEIPT]: Parameters.TranslateReceiptParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF]: Parameters.GetExpensifyCardStatementPDFParams;
@@ -2073,6 +2083,8 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;
+    [SIDE_EFFECT_REQUEST_COMMANDS.RECORD_FRAUD_FEEDBACK]: Parameters.RecordFraudFeedbackParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_FRAUD_REVIEW]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY]: Parameters.LinkCardToPolicyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
