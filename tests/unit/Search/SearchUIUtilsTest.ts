@@ -16594,106 +16594,67 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getViolationsForTransaction', () => {
-        const transactionIDForViolations = 'tx-has-violations-1';
-
-        const createSubmittedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
-            ({
-                reportActionID: 'submit-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
-
-        const createApprovedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
-            ({
-                reportActionID: 'approved-action-1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-01-01 00:00:00',
-                originalMessage: {
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    expenseReportID: '1',
-                    ...(violations ? {violations} : {}),
-                },
-            }) as OnyxTypes.ReportAction;
+        const transaction = {
+            submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY, CONST.VIOLATIONS.MISSING_TAG],
+            approvedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY, CONST.VIOLATIONS.OVER_LIMIT],
+        };
 
         test('returns undefined when the has filter does not include submitted or approved violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, undefined, translateLocal)).toBeUndefined();
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.RECEIPT], translateLocal)).toBeUndefined();
+            // When the search has no has filter, or a has filter that is not about violations
+            const withoutHas = SearchUIUtils.getViolationsForTransaction(transaction, undefined, translateLocal);
+            const withReceiptHas = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.RECEIPT], translateLocal);
+
+            // Then the column has nothing to show, because it only describes the violation filters
+            expect(withoutHas).toBeUndefined();
+            expect(withReceiptHas).toBeUndefined();
         });
 
         test('returns only submitted violations when the has filter is submitted-violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal)).toBe(
-                translateLocal('violations.shortName.missingCategory'),
-            );
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then only the violations Search returned for the submit-time snapshots are shown
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}`);
         });
 
         test('returns only approved violations when the has filter is approved-violation', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
-                    },
-                }),
-            ];
+            // Given an expense with both submitted and approved violations
 
-            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], translateLocal)).toBe(
-                translateLocal('violations.shortName.missingComment'),
-            );
+            // When the search filters on approved violations
+            const violations = SearchUIUtils.getViolationsForTransaction(transaction, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], translateLocal);
+
+            // Then only the violations Search returned for the approve-time snapshots are shown
+            expect(violations).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.overLimit')}`);
         });
 
         test('combines submitted and approved violations and removes duplicates', () => {
-            const reportActions = [
-                createSubmittedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
-                    },
-                }),
-                createApprovedAction({
-                    transactions: {
-                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.OVER_LIMIT}],
-                    },
-                }),
-            ];
+            // Given an expense whose missing category violation was there both when submitted and when approved
 
-            expect(
-                SearchUIUtils.getViolationsForTransaction(
-                    reportActions,
-                    transactionIDForViolations,
-                    [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
-                    translateLocal,
-                ),
-            ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+            // When the search filters on both submitted and approved violations
+            const violations = SearchUIUtils.getViolationsForTransaction(
+                transaction,
+                [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                translateLocal,
+            );
+
+            // Then each violation is listed once
+            expect(violations).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`,
+            );
+        });
+
+        test('returns undefined when Search returned no violation names for the expense', () => {
+            // Given an expense whose violations were all dismissed before submitting, so Search returns no names for it
+
+            // When the search filters on submitted violations
+            const violations = SearchUIUtils.getViolationsForTransaction({}, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the column is empty
+            expect(violations).toBeUndefined();
         });
     });
 

@@ -93,6 +93,7 @@ import type {
     SearchMerchantGroup,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
@@ -5902,32 +5903,24 @@ function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportActi
 
 /**
  * Returns the violations to show for a transaction based on the current `has` filter.
- * Submitted and approved snapshots are collected independently, then merged in a Set so
- * a search that includes both filters does not list the same violation twice.
+ * Submitted and approved violations are merged in a Set so a search that includes both filters
+ * does not list the same violation twice.
  */
 function getViolationsForTransaction(
-    reportActions: OnyxTypes.ReportAction[] | undefined,
-    transactionID: string | undefined,
+    transaction: Pick<SearchTransaction, 'submittedViolations' | 'approvedViolations'>,
     has: HasFilterValues | undefined,
     translate?: LocalizedTranslate,
 ): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
     const shouldIncludeSubmittedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
     const shouldIncludeApprovedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
     if (!shouldIncludeSubmittedViolations && !shouldIncludeApprovedViolations) {
         return undefined;
     }
 
-    const violationNames = new Set<string>();
-    if (shouldIncludeSubmittedViolations) {
-        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-    if (shouldIncludeApprovedViolations) {
-        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
+    const violationNames = new Set<string>([
+        ...(shouldIncludeSubmittedViolations ? (transaction.submittedViolations ?? []) : []),
+        ...(shouldIncludeApprovedViolations ? (transaction.approvedViolations ?? []) : []),
+    ]);
 
     return formatTransactionViolationNames(violationNames, translate);
 }
