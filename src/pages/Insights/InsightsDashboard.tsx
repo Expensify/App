@@ -94,10 +94,15 @@ type InsightsDashboardContentProps = {
     children?: React.ReactNode;
 };
 
-/** Splits the charts, in order, into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
-function getDashboardSections(charts: InsightsDashboardChart[]): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+/** Splits the charts into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
+function getDashboardSections(charts: InsightsDashboardChart[], shouldUseNarrowLayout: boolean): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+    const isGridChart = (chart: InsightsDashboardChart | undefined) => !!chart && !chart.chart.isFullWidth;
+    const isAloneInGrid = (index: number) => isGridChart(charts.at(index)) && (index === 0 || !isGridChart(charts.at(index - 1))) && !isGridChart(charts.at(index + 1));
+    // A two-column grid with one chart leaves half a row empty, so on wide layouts that chart moves to the bottom, where the gap ends the page
+    const orderedCharts = shouldUseNarrowLayout ? charts : [...charts.filter((chart, index) => !isAloneInGrid(index)), ...charts.filter((chart, index) => isAloneInGrid(index))];
+
     const sections: Array<InsightsDashboardChart | InsightsDashboardChart[]> = [];
-    for (const chart of charts) {
+    for (const chart of orderedCharts) {
         const lastSection = sections.at(-1);
         if (!chart.chart.isFullWidth && Array.isArray(lastSection)) {
             lastSection.push(chart);
@@ -298,7 +303,7 @@ function InsightsDashboardContent({
                         />
                     )}
                     {renderChart(headlineChart, true)}
-                    {getDashboardSections(supportingCharts).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
+                    {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>
             </ScrollView>
         </TabRootScrollViewMarker>
