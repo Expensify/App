@@ -144,10 +144,12 @@ afterEach(async () => {
 });
 
 test('[Workflows] typing in Find workflow', async () => {
+    // Given a workspace with 50 approval workflows, enough to make each key slow to render
     const scenario = async () => {
         await waitForBatchedUpdatesWithAct();
         const input = screen.getByLabelText(TestHelper.translateLocal('workflowsPage.findWorkflow'));
         const typedText = 'Member';
+        // When the admin types in Find workflow one key at a time
         for (let index = 1; index <= typedText.length; index++) {
             fireEvent.changeText(input, typedText.slice(0, index));
             // Lets the search debounce apply the filter after every key, like typing at a normal speed
@@ -160,5 +162,6 @@ test('[Workflows] typing in Find workflow', async () => {
         }
     };
 
+    // Then Reassure records how long each key takes to render the matching workflows
     await measureRenders(renderPage(), {scenario});
 });
