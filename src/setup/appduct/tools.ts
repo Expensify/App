@@ -5,14 +5,14 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {waitForWrites} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
-import {translateLocal} from '@libs/Localize';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
+import {translate} from '@libs/Localize';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {canMemberAssignRole, getMemberAccountIDsForWorkspace, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getAccountIDsByLogins, getNewAccountIDsAndLogins, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {canMemberAssignRole, getMemberAccountIDsForWorkspace, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 
 import {addMembersToWorkspace} from '@userActions/Policy/Member';
 import {createWorkspace} from '@userActions/Policy/Policy';
@@ -24,12 +24,11 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {InvitedEmailsToAccountIDs, Policy, PolicyEmployeeList} from '@src/types/onyx';
-import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {hasActiveAdminPoliciesSelector, lastWorkspaceNumberSelector, ownerPoliciesSelector} from '@selectors/Policy';
-
 import {Str} from 'expensify-common';
 
 import {getCurrentAccountID, getOnboardingCompletedFlag, getPolicy, getSessionLogin, isRequestPending, isSignedIn, markSignInAttemptLoading, state} from './appductState';
@@ -81,8 +80,8 @@ const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
 const textList = (value: unknown) => (Array.isArray(value) ? value.map(text).filter(Boolean) : []);
 
-// translateLocal reads the locale IntlStore already loaded, which is the same one the render path uses.
-const localeTranslate: LocalizedTranslate = (path, ...parameters) => translateLocal(path, ...parameters);
+// IntlStore holds the locale the render path already loaded, so tool output matches what the UI shows.
+const localeTranslate: LocalizedTranslate = (path, ...parameters) => translate(IntlStore.getCurrentLocale(), path, ...parameters);
 
 const formatPhoneNumber = (phoneNumber: string) => formatPhoneNumberWithCountryCode(phoneNumber, state.countryCode ?? CONST.DEFAULT_COUNTRY_CODE);
 
@@ -216,8 +215,8 @@ const completeOnboardingTool: AppductTool = {
         }
 
         let already = false;
-        if (isGuidedSetupPending()) {
-            if (!(await waitFor(() => !isGuidedSetupPending() && getOnboardingCompletedFlag() === true, ONBOARDING_BUDGET_MS))) {
+        if (isRequestPending(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP)) {
+            if (!(await waitFor(() => !isRequestPending(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP) && getOnboardingCompletedFlag() === true, ONBOARDING_BUDGET_MS))) {
                 return fail('a CompleteGuidedSetup request stayed queued past the timeout, or its response reverted the flag');
             }
         } else if (getOnboardingCompletedFlag() === true) {
@@ -320,7 +319,12 @@ const createWorkspaceTool: AppductTool = {
         const requestedName = text(input.name);
         const policyName =
             requestedName ||
-            generateDefaultWorkspaceName(login, personalDetail?.displayName, lastWorkspaceNumberSelector(state.policies, login, personalDetail?.displayName, localeTranslate), localeTranslate);
+            generateDefaultWorkspaceName(
+                login,
+                personalDetail?.displayName,
+                lastWorkspaceNumberSelector(state.policies, login, personalDetail?.displayName, localeTranslate),
+                localeTranslate,
+            );
         if (!policyName) {
             return fail(`could not name the workspace from login "${login}"; pass name`);
         }
@@ -488,10 +492,11 @@ const inviteMembers: AppductTool = {
 
         if (Object.keys(invitedEmailsToAccountIDs).length > 0) {
             const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, getAllPersonalDetails());
+            const invitation = localeTranslate('workspace.common.invitedYouToWorkspace', currentUserDetail?.displayName ?? '', policy.name);
             addMembersToWorkspace(
                 invitedEmailsToAccountIDs,
                 getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber),
-                `${translateLocal('workspace.common.invitedYouToWorkspace', currentUserDetail?.displayName ?? '', policy.name)}\n\n${translateLocal('workspace.common.welcomeNote')}`,
+                `${invitation}\n\n${localeTranslate('workspace.common.welcomeNote')}`,
                 policy,
                 Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, buildPersonalDetailsByLogin(getAllPersonalDetails()), false, false)),
                 role,
