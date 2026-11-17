@@ -56,7 +56,7 @@ function PayActionButton() {
     const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
     const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
-    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
+    const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton, isChatReportArchived} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -137,6 +137,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             } else {
                 payWithWiseQuote({
@@ -165,6 +166,7 @@ function PayActionButton() {
                     isTrackIntentUser,
                     conciergeChat,
                     rules,
+                    isChatIOUReportArchived: isChatReportArchived,
                 });
             }
         }

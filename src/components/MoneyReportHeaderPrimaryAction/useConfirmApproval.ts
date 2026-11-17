@@ -40,6 +40,7 @@ type UseConfirmApprovalOptions = {
 function useConfirmApproval(
     reportID: string | undefined,
     startApprovedAnimation: () => void,
+    isChatReportArchived: boolean,
     {getAdditionalOnyxData, fallbackReport, fallbackPolicy, fallbackTransactions}: UseConfirmApprovalOptions = {},
 ) {
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -112,6 +113,7 @@ function useConfirmApproval(
             isTrackIntentUser,
             allTransactionViolations: {...autoReportedRejectedExpenseViolations, ...transactionViolations},
             additionalOnyxData: getAdditionalOnyxData?.(),
+            isChatReportArchived,
         });
     };
 

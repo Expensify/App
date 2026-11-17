@@ -66,6 +66,7 @@ type ReportPreviewActionState = {
     onlyShowPayElsewhere: boolean;
     shouldShowPayButton: boolean;
     connectedIntegration: ConnectionName | undefined;
+    isChatReportArchived: boolean;
 };
 
 type ReportPreviewActions = {
