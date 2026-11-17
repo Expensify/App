@@ -111,6 +111,16 @@ function isOptionalOverLimitApprover(approver: Approver | undefined): boolean {
     return approver?.overLimitAmount !== undefined;
 }
 
+/**
+ * Whether an optional over-limit approver's amount is lower than the one of the optional over-limit approver right before them.
+ * Without approval workflow rules, an approver sends reports on to a single over-limit approver, over a single amount, so
+ * optional over-limit approvers in a row only work with amounts that go up. Rules keep to it too, so a workflow saves the same
+ * way either way.
+ */
+function isOverLimitAmountBelowPreviousApprover(overLimitAmount: number | undefined, previousOverLimitAmount: number | undefined): boolean {
+    return overLimitAmount !== undefined && previousOverLimitAmount !== undefined && overLimitAmount < previousOverLimitAmount;
+}
+
 /** The approvers of a workflow imported from a spreadsheet, which lists each one in their own place, over-limit approvers included */
 function getApproversFromImportedApprovers(importedApprovers: ImportedSpreadsheetApprover[]): Approver[] {
     return importedApprovers.map(({email, overLimitAmount}) => ({email, displayName: email, ...(overLimitAmount !== undefined && {overLimitAmount})}));
@@ -2278,6 +2288,7 @@ export {
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     isOptionalOverLimitApprover,
+    isOverLimitAmountBelowPreviousApprover,
     INITIAL_APPROVAL_WORKFLOW,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,

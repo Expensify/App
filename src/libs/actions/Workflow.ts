@@ -18,6 +18,7 @@ import {
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
+    isOverLimitAmountBelowPreviousApprover,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -833,12 +834,8 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
             errors[`approver-${approverIndex}`] = nonMemberApproverError;
         }
 
-        // Without approval workflow rules, an approver sends reports on to a single over-limit approver, over a single amount,
-        // so optional over-limit approvers in a row only work with amounts that go up. Rules keep to it too, so a workflow saves
-        // the same way either way.
-        const overLimitAmount = approver?.overLimitAmount;
         const previousOverLimitAmount = approverIndex > 0 ? approvalWorkflow.approvers.at(approverIndex - 1)?.overLimitAmount : undefined;
-        if (overLimitAmount !== undefined && previousOverLimitAmount !== undefined && overLimitAmount < previousOverLimitAmount) {
+        if (isOverLimitAmountBelowPreviousApprover(approver?.overLimitAmount, previousOverLimitAmount)) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.overLimitAmountBelowPreviousApprover';
         }
     }

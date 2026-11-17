@@ -8,6 +8,7 @@ import type {TupleToUnion} from 'type-fest';
 import {convertToBackendAmount} from './CurrencyUtils';
 import {stripCommaFromAmount, stripSpacesFromAmount} from './MoneyRequestUtils';
 import StringUtils from './StringUtils';
+import {isOverLimitAmountBelowPreviousApprover} from './WorkflowUtils';
 
 const APPROVER_COLUMN_FIELDS = ['approver', 'approvalType', 'limit'] as const;
 
@@ -519,9 +520,7 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
             const previousOverLimitAmount = approvers.at(-1)?.overLimitAmount;
             if (isOverLimitApprover !== limit > 0) {
                 limitMismatchApproverEmails.add(email);
-            } else if (isOverLimitApprover && previousOverLimitAmount !== undefined && limit < previousOverLimitAmount) {
-                // Like in the workflow editor, an over limit approver can't have a lower limit than an over limit approver right
-                // before them, since Classic approval limits can't route reports that way
+            } else if (isOverLimitApprover && isOverLimitAmountBelowPreviousApprover(limit, previousOverLimitAmount)) {
                 error ??= {translationKey: 'spreadsheet.decreasingApprovalLimits', rowNumber};
             }
             approvers.push(isOverLimitApprover && limit > 0 ? {email, overLimitAmount: limit} : {email});
