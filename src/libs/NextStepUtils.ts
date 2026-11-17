@@ -505,6 +505,7 @@ type GetReportNextStepParams = {
     currentUserAccountID: number;
     report: OnyxEntry<Report>;
     reportOwnerLogin: string;
+    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin;
     reportMetadata: ReportMetadata | undefined;
     reportActions: ReportAction[];
     transactions: Record<string, Transaction>;
@@ -523,6 +524,7 @@ function getReportNextStep({
     currentUserAccountID,
     report,
     reportOwnerLogin,
+    reportOwnerPersonalDetailsByLogin,
     reportMetadata,
     reportActions,
     transactions,
@@ -617,7 +619,7 @@ function getReportNextStep({
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules, reportOwnerPersonalDetailsByLogin)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 

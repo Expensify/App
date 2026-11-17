@@ -11288,12 +11288,21 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
 }
 
-function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+/**
+ * @param personalDetailsByLogins - Only the report owner's entry is needed, because the next approver's account ID is only
+ * compared against the owner's. Any other approver resolves to an account ID that never matches the owner's.
+ */
+function shouldBlockSubmitDueToPreventSelfApproval(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): boolean {
     if (!policy?.preventSelfApproval || !isReportOwner(report)) {
         return false;
     }
 
-    const nextApproverAccountID = getNextApproverAccountID(report, rules);
+    const nextApproverAccountID = getNextApproverAccountID(report, rules, undefined, undefined, personalDetailsByLogins);
     const isSubmitterSameAsNextApprover = nextApproverAccountID === report?.ownerAccountID;
 
     if (isOpenExpenseReport(report)) {

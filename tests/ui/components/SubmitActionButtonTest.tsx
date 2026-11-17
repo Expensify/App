@@ -397,9 +397,9 @@ describe('SubmitActionButton', () => {
         expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(true);
         expect(mockedSubmitReport).not.toHaveBeenCalled();
 
-        // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
-        // in this environment, so it is undefined)
-        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
+        // Then the predicate received the same report and policy the header's gate reads (the policy and the owner's
+        // personal details are not hydrated in this environment, so they are undefined and empty)
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined, {});
     });
 
     it.each([
