@@ -106,7 +106,6 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 
@@ -189,7 +188,6 @@ import {
     getReimbursableTotal,
     getReportCustomColumnValue,
     getReportOrDraftReport,
-    getReportForHeader,
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionDisplayAmount,
@@ -2763,17 +2761,11 @@ function getReportActionsSections(
                     continue;
                 }
 
-                const parentReport = report.parentReportID
-                    ? (getReportOrDraftReport({reportID: report.parentReportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`])
-                    : undefined;
-                const reportForHeaderID = getReportForHeader(report, parentReport)?.reportID;
-
                 reportActionItems.push({
                     ...reportAction,
                     reportID,
                     from,
                     reportName: getReportName(report, report?.reportID ? reportAttributesDerivedValue?.[report.reportID]?.reportName : undefined),
-                    isInvoiceLinkedToBill: isLinkedToBillSelector(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportForHeaderID}`]),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
