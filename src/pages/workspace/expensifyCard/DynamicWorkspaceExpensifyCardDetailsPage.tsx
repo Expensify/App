@@ -54,7 +54,7 @@ import {getExportMenuItem} from '@pages/workspace/companyCards/utils';
 import variables from '@styles/variables';
 
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -354,6 +354,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             onAskToUnfreezePress={() => {}}
                         >
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_VIEW_TRANSACTIONS}
                                 onPress={navigateToTransactions}
                                 innerStyles={styles.ph2}
                                 style={styles.w100}
@@ -369,6 +370,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         <CardDetailsActionButtons>
                             {canManageCardFreeze && isCardOpen && !isCardFrozen(card) && (
                                 <CardDetailsActionButton
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_FREEZE}
                                     onPress={handleFreezePress}
                                     isDisabled={isOffline}
                                 >
@@ -376,7 +378,10 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     <CardDetailsActionButton.Text>{translate('cardPage.freezeCard')}</CardDetailsActionButton.Text>
                                 </CardDetailsActionButton>
                             )}
-                            <CardDetailsActionButton onPress={navigateToTransactions}>
+                            <CardDetailsActionButton
+                                onPress={navigateToTransactions}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_VIEW_TRANSACTIONS}
+                            >
                                 <CardDetailsActionButton.Icon src={expensifyIcons.MoneySearch} />
                                 <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
                             </CardDetailsActionButton>
@@ -385,6 +390,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_CARD_NAME}
                             name={translate('workspace.card.issueNewCard.cardName')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
                             value={card?.nameValuePairs?.cardTitle}
@@ -412,10 +418,9 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
                         <MenuItem.Root
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_LIMIT_TYPE}
                             onPress={
-                                canWriteExpensifyCard
-                                    ? callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), false, session)
-                                    : undefined
+                                canWriteExpensifyCard ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path)), session) : undefined
                             }
                         >
                             <MenuItemField.Row
@@ -431,6 +436,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_LIMIT}
                             name={translate('workspace.expensifyCard.cardLimit')}
                             onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
                             value={formattedLimit}
@@ -439,6 +445,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     <View style={styles.mt6}>
                         {canEditSpendRules && (
                             <MenuItemAction
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_EDIT_SPEND_RULES}
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}
                                 onPress={navigateToSpendRules}
@@ -447,6 +454,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         {canWriteExpensifyCard && !isDeactivated && (
                             <View style={styles.mb1}>
                                 <MenuItemAction
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.DETAILS_DEACTIVATE}
                                     icon={expensifyIcons.Trashcan}
                                     title={translate('workspace.expensifyCard.deactivate')}
                                     onPress={() => (isOffline ? showOfflineModal() : deactivateCard())}

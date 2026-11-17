@@ -27,7 +27,7 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -72,6 +73,8 @@ type IOURequestEditReportCommonProps = {
     selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
+    /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
+    isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
@@ -99,6 +102,11 @@ type IOURequestEditReportCommonProps = {
      * Handed the list and the size it needs, in the same render, so the container never learns the size through an effect.
      */
     renderInContainer?: (list: ReactNode, size: ReportListSize) => ReactNode;
+
+    /** Labels of the create, auto-report and remove rows. Each flow passes its own, because the same row does different work in each */
+    createReportSentryLabel: SentryLabel;
+    autoReportSentryLabel: SentryLabel;
+    removeFromReportSentryLabel: SentryLabel;
 };
 
 function IOURequestEditReportCommon({
@@ -114,6 +122,7 @@ function IOURequestEditReportCommon({
     transactionPolicyID,
     removeFromReport,
     isEditing = false,
+    isCreatingExpense = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
@@ -123,6 +132,9 @@ function IOURequestEditReportCommon({
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
+    createReportSentryLabel,
+    autoReportSentryLabel,
+    removeFromReportSentryLabel,
     onDismiss,
     onNavigateAway,
     shouldAutoFocusSearchInput = false,
@@ -227,6 +239,9 @@ function IOURequestEditReportCommon({
                       }
                       if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                           return false;
+                      }
+                      if (isCreatingExpense) {
+                          return canAddTransaction(report, rules);
                       }
                       if (canAddTransaction(report, rules, undefined, true)) {
                           return true;
@@ -367,7 +382,10 @@ function IOURequestEditReportCommon({
     // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
     const createReportOption =
         !createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin) ? undefined : (
-            <MenuItem.Root onPress={handleCreateReport}>
+            <MenuItem.Root
+                onPress={handleCreateReport}
+                sentryLabel={createReportSentryLabel}
+            >
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.Document} />
@@ -409,7 +427,10 @@ function IOURequestEditReportCommon({
         autoReportOption = undefined;
     } else {
         autoReportOption = (
-            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}>
+            <MenuItem.Root
+                onPress={callIfAuthenticated(handleAutoReport, session)}
+                sentryLabel={autoReportSentryLabel}
+            >
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.DocumentMagicWand} />
@@ -463,7 +484,10 @@ function IOURequestEditReportCommon({
             customListHeaderContent={listHeaderContent}
             listFooterContent={
                 shouldShowRemoveFromReport ? (
-                    <MenuItem.Root onPress={removeFromReport}>
+                    <MenuItem.Root
+                        onPress={removeFromReport}
+                        sentryLabel={removeFromReportSentryLabel}
+                    >
                         <MenuItem.Row>
                             <MenuItem.Leading>
                                 <MenuItem.Icon src={icons.Close} />

@@ -33,6 +33,7 @@ function WhyLink({containerStyles}: WhyLinkProps) {
             />
             <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.WHY_LINK.WHY_DO_WE_ASK_LINK}
                     style={[styles.textMicro]}
                     href={CONST.HELP_LINK_URL}
                 >

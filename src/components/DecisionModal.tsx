@@ -63,6 +63,9 @@ type DecisionModalProps = {
     shouldRenderPromptAsHTML?: boolean;
 };
 
+/**
+ * @deprecated Use @hooks/useDecisionModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function DecisionModal({
     title,
     prompt = '',
@@ -123,6 +126,7 @@ function DecisionModal({
                 </View>
                 {!!firstOptionText && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.DECISION_MODAL.FIRST_OPTION}
                         variant={firstOptionVariant}
                         style={styles.mt5}
                         onPress={onFirstOptionSubmit}
@@ -133,6 +137,7 @@ function DecisionModal({
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.DECISION_MODAL.SECOND_OPTION}
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     variant={secondOptionVariant}

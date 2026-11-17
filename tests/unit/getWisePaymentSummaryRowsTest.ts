@@ -91,6 +91,15 @@ describe('getWisePaymentSummaryRows', () => {
         expect(rowsWithoutTax.map(({label}) => label)).not.toContain('Tax');
     });
 
+    it('names the amounts in the past tense in the payment details', () => {
+        // Given a report that was already paid through Wise
+        // When the rows are built for View details
+        const rows = getRows({isPaid: true});
+
+        // Then the admin reads what was debited and what the employee received, as in the payment details mock
+        expect(rows.map(({label}) => label)).toEqual(['Report total', 'Debited amount', 'Employee received', 'Total fees', 'FX rate']);
+    });
+
     it('shows N/A as the FX rate when Wise pays in the same currency', () => {
         // Given a quote where the employee receives the same currency the company is debited in
         // When the rows are built

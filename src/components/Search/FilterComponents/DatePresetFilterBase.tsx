@@ -5,6 +5,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SpacerView from '@components/SpacerView';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,10 +15,14 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {Ref} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -25,6 +30,14 @@ import {View} from 'react-native';
 import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
+
+const CUSTOM_DATE_MODIFIER_TRANSLATION_KEYS: {
+    [Modifier in CustomDateModifier]: Extract<SearchDateModifierLower, Lowercase<Modifier>>;
+} = {
+    [CONST.SEARCH.DATE_MODIFIERS.ON]: 'on',
+    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: 'before',
+    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: 'after',
+};
 
 /** Presets that start a new group (previous periods, then rolling ranges), so a divider is shown above them */
 const PRESET_GROUP_STARTS = new Set<SearchDatePreset>([CONST.SEARCH.DATE_PRESETS.LAST_WEEK, CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]);
@@ -132,6 +145,7 @@ function DatePresetFilterBase({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, dateFnsLocale} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
@@ -369,7 +383,7 @@ function DatePresetFilterBase({
     if (!customDateValue) {
         customDateDescription = undefined;
     } else {
-        customDateDescription = `${translate(`common.${customDateModifier.toLowerCase() as SearchDateModifierLower}`)} ${customDateValue}`;
+        customDateDescription = `${translate(`common.${CUSTOM_DATE_MODIFIER_TRANSLATION_KEYS[customDateModifier]}`)} ${customDateValue}`;
     }
     const handleSingleDateSelected = (date: Date) => {
         setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
@@ -412,21 +426,37 @@ function DatePresetFilterBase({
                     />
                 )}
                 {shouldShowCustomDate && (
-                    <MenuItem
-                        shouldShowRightIcon
-                        viewMode={CONST.OPTION_MODE.COMPACT}
-                        title={customDateTitle}
-                        description={customDateDescription}
-                        onPress={selectCustomDateMode}
-                    />
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
+                        isCompact
+                        onPress={() => callIfAuthenticated(selectCustomDateMode, session)()}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{customDateTitle}</MenuItem.Title>
+                                {!!customDateDescription && <MenuItem.Description>{customDateDescription}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
-                <MenuItem
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customRangeTitle}
-                    description={rangeDescription}
-                    onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE)}
-                />
+                <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
+                    isCompact
+                    onPress={() => callIfAuthenticated(() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE), session)()}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{customRangeTitle}</MenuItem.Title>
+                            {!!rangeDescription && <MenuItem.Description>{rangeDescription}</MenuItem.Description>}
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             </>
         );
     }
@@ -468,7 +498,7 @@ function DatePresetFilterBase({
                             showTooltip
                             item={{
                                 keyForList: dateModifier,
-                                text: translate(`common.${dateModifier.toLowerCase() as SearchDateModifierLower}`),
+                                text: translate(`common.${CUSTOM_DATE_MODIFIER_TRANSLATION_KEYS[dateModifier]}`),
                                 isSelected: selectedDateModifier === dateModifier,
                             }}
                             onSelectRow={() => selectDateModifier(dateModifier)}

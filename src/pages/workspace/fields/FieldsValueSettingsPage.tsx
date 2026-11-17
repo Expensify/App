@@ -160,12 +160,14 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                         </View>
                     </View>
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.VALUE_SETTINGS_VALUE}
                         name={translate('common.value')}
                         value={currentValueName ?? oldValueName}
                         onPress={canWrite && !reportFieldID ? navigateToEditValue : undefined}
                     />
                     {canWrite && !isImportedReportField && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.VALUE_SETTINGS_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={showDeleteModal}

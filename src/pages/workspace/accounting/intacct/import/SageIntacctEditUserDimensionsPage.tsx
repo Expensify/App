@@ -130,6 +130,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                     </View>
                     <View style={[styles.mhn5]}>
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.REMOVE_USER_DIMENSION}
                             title={translate('common.remove')}
                             icon={icons.Trashcan}
                             onPress={() => {

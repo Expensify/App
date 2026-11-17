@@ -358,7 +358,6 @@ export type {
     CardFeedData,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
-    WorkspaceCardFeedsStatus,
     CompanyFeeds,
     CustomCardFeedData,
     FundID,

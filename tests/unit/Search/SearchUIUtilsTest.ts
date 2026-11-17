@@ -21,6 +21,8 @@ import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import type interceptAnonymousUser from '@libs/interceptAnonymousUser';
+
 import Navigation from '@navigation/Navigation';
 
 import type * as ReportUserActions from '@userActions/Report';
@@ -4514,7 +4516,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
                 lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
@@ -5018,7 +5020,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                     shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
@@ -5032,7 +5034,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    formattedQuarter: 'Q4 2025 (Oct 1\u2009–\u2009Dec 31)',
                     shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
@@ -5099,8 +5101,8 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1\u2009–\u2009Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -5136,7 +5138,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                 shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
@@ -5154,7 +5156,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
@@ -5167,7 +5169,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    formattedWeek: 'Dec 21\u2009–\u200927, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
@@ -7489,6 +7491,27 @@ describe('SearchUIUtils', () => {
                 expect(item?.approved).toBe(approvedAt);
             });
 
+            it('should keep the snapshot approved date on a paid report when the live report from OpenReport lacks it', async () => {
+                // Given a paid report whose Search snapshot has an approved date
+                const approvedAt = '2024-12-22 09:30:00';
+                const reportFields = {...report1, reportID: filterTestReportID, type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+                const data = makeFilterTestData({...reportFields, approved: approvedAt});
+
+                // And the same report is already in Onyx without the approved date, as happens after opening it in Inbox first
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, {...reportFields, approved: undefined});
+                await waitForBatchedUpdates();
+
+                // When the expense rows are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the live report is layered over the snapshot report, so the approved date is not lost
+                expect(item?.approved).toBe(approvedAt);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
             it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
                 const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
                 const [sections] = callGetTransactionsSections(data);
@@ -9038,8 +9061,8 @@ describe('SearchUIUtils', () => {
             // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
             // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
             expect(selectedGroupEntries).toEqual([
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
             ]);
         });
     });
@@ -9299,6 +9322,53 @@ describe('SearchUIUtils', () => {
             // Then the expense on hold comes last ascending and first descending, and the unheld expense counts as not held
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unheld', 'never-held', 'held']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['held', 'never-held', 'unheld']);
+        });
+
+        it('should sort the vendor column by the vendor name the column shows, with expenses without a vendor first when ascending', () => {
+            // Given a workspace whose synced vendor list renamed "Zeta" to "Acme", and expenses holding that vendor, a vendor no longer synced, and no vendor
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const policyWithVendors = createMock<OnyxTypes.Policy>({
+                ...baseTransaction.policy,
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {data: {vendors: [{id: 'v-1', name: 'Acme', currency: 'USD', email: ''}]}}},
+            });
+            const transactions: TransactionListItemType[] = [
+                {
+                    ...baseTransaction,
+                    policy: policyWithVendors,
+                    transactionID: 'unsynced',
+                    keyForList: 'unsynced',
+                    comment: {vendor: {externalID: 'gone', name: 'Midway', wasManuallySet: true}},
+                },
+                {...baseTransaction, policy: policyWithVendors, transactionID: 'renamed', keyForList: 'renamed', comment: {vendor: {externalID: 'v-1', name: 'Zeta', wasManuallySet: true}}},
+                {...baseTransaction, policy: policyWithVendors, transactionID: 'no-vendor', keyForList: 'no-vendor', comment: {}},
+            ];
+
+            // When the expenses are sorted by the vendor column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the renamed vendor sorts by its synced name "Acme", the unsynced one by its stored name, and the expense without a vendor comes first ascending
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['no-vendor', 'renamed', 'unsynced']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unsynced', 'renamed', 'no-vendor']);
         });
 
         it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
@@ -10129,6 +10199,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -10219,6 +10290,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
@@ -10252,12 +10324,50 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
 
             expect(submitItem).toBeDefined();
             expect(submitItem?.emptyState?.buttons).toEqual([]);
+        });
+
+        it('passes the session to interceptAnonymousUser from the Submit empty state create expense button', () => {
+            // Given a CTA-eligible group workspace and an anonymous session, which decides whether the button sends the user to sign in
+            const interceptAnonymousUserSpy = jest.spyOn(require<{default: typeof interceptAnonymousUser}>('@libs/interceptAnonymousUser'), 'default').mockImplementation(() => {});
+            const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+                session,
+            });
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            // When the create expense button in the Submit empty state is pressed
+            submitItem?.emptyState?.buttons?.at(0)?.buttonAction();
+
+            // Then the passed session is forwarded to interceptAnonymousUser
+            expect(interceptAnonymousUserSpy).toHaveBeenCalledWith(expect.any(Function), session);
+
+            interceptAnonymousUserSpy.mockRestore();
         });
 
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
@@ -10328,6 +10438,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10406,6 +10517,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10462,6 +10574,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10506,6 +10619,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10526,6 +10640,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10553,6 +10668,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10580,6 +10696,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -10610,6 +10727,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
@@ -10654,6 +10772,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10709,6 +10828,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const menuKeysBeforeInsightsPage = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10758,6 +10878,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItemKeys = sections.flatMap((section) => section.menuItems.map((item) => item.key));
@@ -10791,6 +10912,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const monthlyAccrualSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.MONTHLY_ACCRUAL_SEARCH_KEYS.has(item.key)));
@@ -10833,6 +10955,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
@@ -10868,6 +10991,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => SearchUIUtils.RECONCILIATION_SEARCH_KEYS.has(item.key)));
             expect(reconciliationSectionMenuItems.length).toBeGreaterThan(0);
@@ -10923,6 +11047,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -10965,6 +11090,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
@@ -11022,6 +11148,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
@@ -11106,6 +11233,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const reconciliationItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
@@ -11286,6 +11414,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const expenseReportsSection = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
@@ -11365,6 +11494,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const accountingSection = sections.find((section) => section.translationPath === 'search.tabs.accounting');
@@ -11447,6 +11577,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
 
             const allMenuItems = sections.flatMap((section) => section.menuItems);
@@ -11470,6 +11601,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             })
                 .map((section) => section.menuItems)
                 .flat();
@@ -11549,6 +11681,7 @@ describe('SearchUIUtils', () => {
                 defaultExpensifyCard: undefined,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
+                session: undefined,
             });
             const todoSectionMenuItems = sections.flatMap((section) => section.menuItems.filter((item) => TODO_SEARCH_KEYS.has(item.key)));
 
@@ -11582,6 +11715,7 @@ describe('SearchUIUtils', () => {
                     defaultExpensifyCard: undefined,
                     draftTransactionIDs: [],
                     isTrackIntentUser: false,
+                    session: undefined,
                 });
 
             it('should show the Travel section with Trips when a workspace is set up for Expensify Travel', () => {
@@ -16180,6 +16314,34 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('keeps receiptRequired from an earlier submit action that had no itemizedReceiptRequired', () => {
+            // Given a report submitted with only receiptRequired, then resubmitted with both receipt violations
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
+        });
+
         test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -16367,6 +16529,34 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.itemizedReceiptRequired'),
             );
+        });
+
+        test('keeps receiptRequired from an earlier approval action that had no itemizedReceiptRequired', () => {
+            // Given a report forwarded with only receiptRequired, then approved with both receipt violations
+            const forwardedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'forward-1',
+            );
+            const approvedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'approved-1',
+            );
+
+            // When the approved violations column is built for the expense
+            const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
@@ -16887,6 +17077,23 @@ describe('SearchUIUtils', () => {
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
@@ -16924,6 +17131,22 @@ describe('SearchUIUtils', () => {
 
             // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
             expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
+        });
+
+        it('shows translated names for both the violation filter and its negation', () => {
+            // Given a query that includes one violation and excludes another, e.g. `violation:overLimit -violation:missingCategory`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.VIOLATION]: [CONST.VIOLATIONS.OVER_LIMIT],
+                [FILTER_KEYS.VIOLATION_NOT]: [CONST.VIOLATIONS.MISSING_CATEGORY],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const violationFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+
+            // Then both chips show the readable label instead of the raw identifier the backend uses
+            expect(violationFilters.map((filter) => filter.value)).toEqual([translateLocal('violations.shortName.overLimit'), translateLocal('violations.shortName.missingCategory')]);
         });
     });
 });
@@ -17005,6 +17228,33 @@ describe('getMultiSelectFilterOptions', () => {
             {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
         ]);
         expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
+    });
+});
+
+describe('getViolationFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('sorts the options by translated label', () => {
+        // Given the violation names, whose CONST order doesn't follow their labels
+        // When building the violation picker options
+        const labels = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.text);
+
+        // Then they're in alphabetical order, matching the autocomplete suggestions
+        expect(labels).toEqual([...labels].sort(localeCompare));
+        expect(labels.length).toBeGreaterThanOrEqual(CONST.STANDARD_LIST_ITEM_LIMIT);
+    });
+
+    it('leaves out the Classic-only and new rules engine violations', () => {
+        // Given the Classic-only cash expense notice and the new rules engine violations, which have no clear filter names yet
+        // When building the violation picker options
+        const values = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.value);
+
+        // Then none of them is offered
+        expect(values).not.toContain(CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+        expect(values).not.toContain(CONST.VIOLATIONS.CUSTOM_RULES);
+        expect(values).not.toContain(CONST.VIOLATIONS.RULE_VIOLATION);
     });
 });
 
@@ -17414,11 +17664,11 @@ describe('Trip search', () => {
         report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
     };
 
-    const getTripSections = (shouldReturnTripRooms: boolean) =>
+    const getTripSections = (shouldReturnTripRooms: boolean, data: OnyxTypes.SearchResults['data'] = tripData) =>
         SearchUIUtils.getSections({
             dateFnsLocale: undefined,
             type: CONST.SEARCH.DATA_TYPES.TRIP,
-            data: tripData,
+            data,
             currentAccountID: 628,
             currentUserEmail: 'travel-admin@cplustest.com',
             translate: translateLocal,
@@ -17443,6 +17693,30 @@ describe('Trip search', () => {
             expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
         );
         expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('shows and sorts by the trip fare instead of the room total', () => {
+        // Given a trip whose room total was overwritten to 0 when the room was opened, while its fare is still in the trip payload
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            ...tripData,
+            report_1: buildTrip('1', {total: 0}),
+            reportNameValuePairs_1: {tripData: {payload: {tripPaymentInfo: {totalFare: {amount: 2956.71, currencyCode: 'EUR'}}}}},
+        });
+
+        // When the search results are turned into rows and sorted by total
+        const [rows] = getSectionsByType(getTripSections(true, data), SearchUIUtils.isTripListItemType);
+        const sorted = getSortedSectionsByType(
+            SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.SORT_ORDER.DESC, undefined, {
+                shouldReturnTripRooms: true,
+            }),
+            SearchUIUtils.isTripListItemType,
+        );
+
+        // Then the row shows the fare in cents, rounded since the fare is a float, and sorts by it like the backend does
+        expect(sorted.at(0)).toEqual(expect.objectContaining({reportID: '1', total: 295671, currency: 'EUR'}));
+
+        // And trips without a payload keep the room total
+        expect(sorted.find((row) => row.reportID === '2')?.total).toBe(159732);
     });
 
     it('keeps the expense rows for a trip search without the beta', () => {
@@ -17676,5 +17950,37 @@ describe('getMatchingFilters', () => {
 
         // Then nothing is left, so the list shows its no results message
         expect(matchingFilters).toEqual([]);
+    });
+});
+
+describe('canEditSearchColumns', () => {
+    it('lets users pick the columns of expense and expense report searches', () => {
+        // Given the search types whose tables have customizable columns
+        // When asked whether users can edit their columns
+        // Then both allow it, regardless of trip rooms
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE, false)).toBe(true);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, false)).toBe(true);
+    });
+
+    it('does not let users pick the columns of a task or invoice search', () => {
+        // Given task and invoice searches, whose tables have no customizable columns
+        // When asked whether users can edit their columns
+        // Then neither allows it, so the headings get no column menus
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TASK, false)).toBe(false);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.INVOICE, false)).toBe(false);
+    });
+
+    it('does not let users pick the columns of a trip search that shows expenses', () => {
+        // Given a trip search that doesn't return trip rooms, so its table is the expense table
+        // When asked whether users can edit its columns
+        // Then it doesn't allow it, since the trip columns only apply to the rooms table
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe(false);
+    });
+
+    it('lets users pick the columns of a search that returns trip rooms', () => {
+        // Given a trip search that returns trip rooms
+        // When asked whether users can edit its columns
+        // Then it allows it
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe(true);
     });
 });

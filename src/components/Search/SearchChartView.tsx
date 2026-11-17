@@ -1,6 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
-import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
+import formatChartCount, {MAX_COUNT_FRACTION_DIGITS} from '@components/Charts/utils/formatChartCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
@@ -22,7 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -41,6 +42,12 @@ type SearchChartDetails = SearchChartModel & {
     formatValue?: ChartValueFormatter;
 };
 
+/** Keeps a metric's Y-axis ticks on values its labels write differently, so no two ticks repeat a label like half an expense rounded to a whole one */
+const Y_AXIS_TICK_STEPS: Partial<Record<SearchChartMetric, number>> = {
+    [CONST.SEARCH.CHART_METRIC.COUNT]: 1,
+    [CONST.SEARCH.CHART_METRIC.DURATION]: AVERAGE_DURATION_PRECISION_IN_SECONDS,
+};
+
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
 
@@ -53,8 +60,11 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** What the chart plots for each group: the money it totals, or how many expenses it holds. Defaults to the amount. */
+    /** What the chart plots for each group: the money it totals, how many expenses it holds, or how long its reports took. Defaults to the amount. */
     metric?: SearchChartMetric;
+
+    /** What a group's count counts, which names it in the tooltip. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
 
     isLoading?: boolean;
 
@@ -66,6 +76,9 @@ type SearchChartViewProps = {
 
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
+
+    /** Query a pressed group is narrowed from instead of `queryJSON`, for charts whose data stops short of their date range, so Search lists only what the point plots */
+    drillDownQueryJSON?: Readonly<SearchQueryJSON>;
 
     /** Called with the group whose bar, point, slice or touch-opened tooltip is pressed. Takes precedence over `shouldDrillDownOnPress`. */
     onGroupPress?: (item: GroupedItem) => void;
@@ -87,6 +100,12 @@ type SearchChartViewProps = {
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
+
+    /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
+    trackedFrom?: string;
+
+    /** Day the data was counted through, as a yyyy-MM-dd string, which decides where the line ends and which period is in progress. Defaults to the device's today. */
+    today?: string;
 };
 
 /**
@@ -99,10 +118,12 @@ function SearchChartView({
     groupBy,
     data,
     metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     isLoading,
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
+    drillDownQueryJSON,
     onGroupPress,
     tooltipFooter,
     shouldShowSinglePointAsBar = false,
@@ -110,6 +131,8 @@ function SearchChartView({
     shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
+    trackedFrom,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
 }: SearchChartViewProps) {
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
@@ -119,21 +142,29 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
+    // Only an amount is money, so other metrics drop the currency symbol from the axis
+    const isAmountMetric = metric === CONST.SEARCH.CHART_METRIC.AMOUNT;
 
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
-    // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
+    // Axis ticks take the bare number instead, to stay short, and `yAxisTickStep` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
-    const formatValue = isCountMetric ? formatCount : undefined;
+        options?.shouldUseCompactNotation
+            ? numberFormat(value, {notation: 'compact', maximumFractionDigits: MAX_COUNT_FRACTION_DIGITS}).replace('K', 'k')
+            : formatChartCount(value, countDimension, translate, numberFormat);
+    const formatDuration: ChartValueFormatter = (value, options) => DateUtils.formatAverageDuration(value, translate, numberFormat, options?.shouldUseCompactNotation);
+    const valueFormatters: Partial<Record<SearchChartMetric, ChartValueFormatter>> = {
+        [CONST.SEARCH.CHART_METRIC.COUNT]: formatCount,
+        [CONST.SEARCH.CHART_METRIC.DURATION]: formatDuration,
+    };
+    const formatValue = valueFormatters[metric];
+    const yAxisTickStep = Y_AXIS_TICK_STEPS[metric];
 
     // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
     const formatTotal = isCountMetric ? convertToDisplayString : undefined;
 
     const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
-    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
     const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
     const {series, rows} = buildChartSeries({
@@ -152,7 +183,7 @@ function SearchChartView({
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
         isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
-        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
+        trackedFrom,
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
@@ -173,11 +204,12 @@ function SearchChartView({
             return;
         }
 
-        if (!queryJSON) {
+        const pressedQueryJSON = drillDownQueryJSON ?? queryJSON;
+        if (!pressedQueryJSON) {
             return;
         }
 
-        const query = buildChartDrillDownQuery(queryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item));
 
         if (!query) {
             return;
@@ -194,7 +226,7 @@ function SearchChartView({
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
     const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
-    const unit = isCountMetric ? undefined : {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
+    const unit = isAmountMetric ? {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency} : undefined;
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     const CHART_VIEW_TO_CHART: Record<ChartView, React.ReactNode> = {
@@ -209,7 +241,8 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
-                shouldUseWholeNumberTicks={isCountMetric}
+                countDimension={countDimension}
+                yAxisTickStep={yAxisTickStep}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
             />
@@ -226,7 +259,8 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
-                    shouldUseWholeNumberTicks={isCountMetric}
+                    countDimension={countDimension}
+                    yAxisTickStep={yAxisTickStep}
                 />
             ) : (
                 <LineChart
@@ -241,7 +275,8 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
-                    shouldUseWholeNumberTicks={isCountMetric}
+                    countDimension={countDimension}
+                    yAxisTickStep={yAxisTickStep}
                 />
             ),
         [CONST.SEARCH.VIEW.PIE]: (
@@ -256,6 +291,7 @@ function SearchChartView({
                 valueUnitPosition={unitPosition}
                 valueDecimals={getCurrencyDecimals(currency)}
                 formatValue={formatValue}
+                countDimension={countDimension}
                 shouldShowLegend={shouldShowGroupLabels}
                 shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />

@@ -63,6 +63,7 @@ describe('ExportWithDropdownMenu', () => {
     const renderMenu = () =>
         render(
             <ExportWithDropdownMenu
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 report={mockReport}
                 reportActions={undefined}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}

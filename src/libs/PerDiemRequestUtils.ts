@@ -8,11 +8,12 @@ import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, isValid, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
 
+import DateUtils from './DateUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -218,20 +219,23 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
 }
 
 /**
- * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
+ * Formats a per-diem start or end time for display, e.g. 11:10 PM, 05/16/2023, with the date in the language's own
+ * numeric order, such as 23:10, 16.05.2023 in German. Returns '' when the date can't be read.
  */
-function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function formatPerDiemDateTime(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, `${CONST.DATE.LOCAL_TIME_FORMAT}, ${CONST.DATE.FNS_FORMAT_STRING}`, {locale: dateFnsLocale});
+    if (!isValid(date)) {
+        return '';
+    }
+    return `${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatToNumericDateWithYear(date, dateFnsLocale)}`;
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, dateFnsLocale: DateFnsLocale | undefined) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${formatDateTimeTo12Hour(customUnitRateDate.start, dateFnsLocale)} - ${formatDateTimeTo12Hour(customUnitRateDate.end, dateFnsLocale)}`;
+    return `${formatPerDiemDateTime(customUnitRateDate.start, dateFnsLocale)} - ${formatPerDiemDateTime(customUnitRateDate.end, dateFnsLocale)}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
