@@ -1,20 +1,21 @@
-import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import useAppReturnCount from './useAppReturnCount';
 import useIsTabFocused from './useIsTabFocused';
+import useIsTabVisible from './useIsTabVisible';
 
 /** A return to the app this soon after the last refresh is skipped, so flicking between browser tabs costs nothing. */
 const APP_RETURN_REFRESH_INTERVAL_MS = 60 * 1000;
 
 /**
  * Calls `refresh` when the tab becomes active, when `refreshKey` changes, and when the app becomes
- * visible again. A change landing behind an RHP waits until the screen is visible, so closing an RHP
- * refreshes nothing on its own.
+ * visible again. A change landing behind an RHP that covers the screen on a narrow layout waits until the screen is
+ * visible, so closing an RHP refreshes nothing on its own. On a wide layout the screen stays visible beside the RHP and
+ * refreshes right away.
  */
 function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () => void): void {
     const isTabFocused = useIsTabFocused(tabName);
-    const isScreenVisible = useIsFocused();
+    const isScreenVisible = useIsTabVisible(tabName);
     const onRefresh = useEffectEvent(refresh);
 
     // Currency conversion and the like have nothing local to watch, so a return to the app re-reads them.

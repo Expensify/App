@@ -48,7 +48,7 @@ declare module 'react-native' {
         };
     }
 
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+    interface PressableStateCallbackType {
         readonly isScreenReaderActive: boolean;
         readonly isDisabled: boolean;
     }

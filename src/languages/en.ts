@@ -523,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -1381,6 +1386,7 @@ const translations = {
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1992,6 +1998,7 @@ const translations = {
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
+        someDuplicatesAreUnavailable: "Some of these duplicates couldn't be loaded, so you can only keep all of them.",
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         keepSelected: 'Keep selected',
@@ -7736,6 +7743,7 @@ const translations = {
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -8632,16 +8640,11 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
-            exactOnline: {
-                comingSoon: 'Coming soon',
-                joinWaitlist: 'Join waitlist',
-                onWaitlist: 'You’re on the waitlist',
-                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
                 onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
                 onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
@@ -9684,6 +9687,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -11543,6 +11547,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11774,6 +11779,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12470,6 +12498,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',
