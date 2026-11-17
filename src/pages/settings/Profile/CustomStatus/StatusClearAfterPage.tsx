@@ -23,6 +23,7 @@ import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@u
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -38,11 +39,12 @@ type StatusType = {
     isSelected: boolean;
 };
 
-type StatusExpiryFieldProps = Pick<MenuItemRootProps, 'onPress' | 'sentryLabel'> & {
-    name: string;
-    value: string;
-    error: string;
-};
+type StatusExpiryFieldProps = WithRequiredSentryLabel &
+    Pick<MenuItemRootProps, 'onPress'> & {
+        name: string;
+        value: string;
+        error: string;
+    };
 
 function StatusExpiryField({name, value, error, onPress, sentryLabel}: StatusExpiryFieldProps) {
     return (

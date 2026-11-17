@@ -48,7 +48,7 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, f
                             containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
                             icon={primaryAvatar}
                             size={size}
-                            testID="ReportActionAvatars-Subscript-MainAvatar"
+                            testID="Avatar-Subscript-MainAvatar"
                         />
                     </AvatarPressSlot>
                 </AvatarTooltip>
@@ -64,7 +64,7 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, f
                                 iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(backdropColor ?? theme.componentBG)]}
                                 icon={secondaryAvatar}
                                 size={subscriptSize}
-                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                                testID="Avatar-Subscript-SecondaryAvatar"
                             />
                         </AvatarPressSlot>
                     </AvatarTooltip>

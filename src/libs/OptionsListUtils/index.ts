@@ -47,7 +47,6 @@ import {
     getReportOrDraftReport,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
-    hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -228,7 +227,7 @@ type GetAlternateTextConfig = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     currentUserAccountID: number;
@@ -397,7 +396,7 @@ type CreateOptionParams = {
     sortedActions?: Record<string, ReportAction[]>;
     currentUserAccountID: number;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -664,6 +663,11 @@ function getReportOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
+        lastActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built
+        // (and `alternateText` is overwritten below), so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -758,6 +762,11 @@ function getReportDisplayOption({
         // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
         // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
         sortedActions: undefined,
+        // `lastActions` is only read to build the chat preview line, which `showChatPreviewLine: false` disables, so we pass undefined.
+        lastActions: undefined,
+        // `transactionThreadIDs` is only read to resolve the chat preview's last action. With `showChatPreviewLine: false` the preview is never built,
+        // so we pass undefined instead of threading it from every caller.
+        transactionThreadIDs: undefined,
         currentUserAccountID,
         formatPhoneNumber,
         pendingDeleteMemberAccountIDs,
@@ -824,10 +833,14 @@ function getPolicyExpenseReportOption(
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, a policy expense chat is never a group chat.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing lastActions as undefined is intentional, a policy expense chat option never builds the chat preview line that reads it.
+        lastActions: undefined,
         config: {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
         },
+        // Passing transactionThreadIDs as undefined is intentional, it is only read to build the chat preview line, which `showChatPreviewLine: false` disables.
+        transactionThreadIDs: undefined,
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
@@ -974,7 +987,7 @@ function processReport(
         // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
         currentUserLogin?: string;
     },
     rules: OnyxCollection<Rule>,
@@ -1144,6 +1157,10 @@ function buildFullOption(
             translate,
             // Passing pendingDeleteMemberAccountIDs as undefined is intentional, `report` here is always a 1:1 DM, never a group chat.
             pendingDeleteMemberAccountIDs: undefined,
+            // Passing lastActions as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            lastActions: undefined,
+            // Passing transactionThreadIDs as undefined is intentional, contact options show personal details and never build the chat preview line that reads it.
+            transactionThreadIDs: undefined,
             formatPhoneNumber,
         }),
         isHydrated: true,
@@ -1214,7 +1231,7 @@ function createFilteredOptionList(
         currentUserAccountID: number;
         currentUserLogin?: string;
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
         dateFnsLocale: DateFnsLocale | undefined;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         conciergeReportID: string | undefined;
@@ -1234,7 +1251,7 @@ function createFilteredOptionList(
          * Account IDs pending removal, keyed by reportID, so group chat names and avatar labels leave them out.
          * TODO: Make it required once every caller passes it. Refactor issue: https://github.com/Expensify/App/issues/66421
          */
-        pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
+        pendingDeleteMemberAccountIDsByReportID?: Readonly<Record<string, string[]>>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
         /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
         activePolicyID?: string;
@@ -1459,7 +1476,7 @@ type CreateOptionFromReportParams = {
     policy: OnyxEntry<Policy>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
     conciergeReportID: string | undefined;
@@ -1899,6 +1916,10 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         // Passing pendingDeleteMemberAccountIDs as undefined is intentional, there is no report to build a group chat name from.
         pendingDeleteMemberAccountIDs: undefined,
+        // Passing lastActions as undefined is intentional, the invite option has no report, so there is no chat preview to build.
+        lastActions: undefined,
+        // Passing transactionThreadIDs as undefined is intentional, the invite option has no report, so there is no chat preview to resolve.
+        transactionThreadIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
         currentUserAccountID,
@@ -2041,11 +2062,6 @@ function isValidReport(
         return false;
     }
 
-    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
-        return false;
-    }
-
     if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
         return false;
     }
@@ -2174,7 +2190,7 @@ function prepareReportOptionsForDisplay(
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
         transactionThreadIDs?: Record<string, string | undefined>;
-        lastActions?: Record<string, ReportAction>;
+        lastActions: Record<string, ReportAction> | undefined;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2771,7 +2787,7 @@ type SearchOptionsConfig = {
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
-    lastActions?: Record<string, ReportAction>;
+    lastActions: Record<string, ReportAction> | undefined;
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];

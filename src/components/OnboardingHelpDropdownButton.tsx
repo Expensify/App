@@ -66,6 +66,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('getAssistancePage.scheduleACall'),
             icon: icons.CalendarSolid,
             value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_SCHEDULE_CALL,
             onSelected: () => {
                 clearBookingDraft();
                 Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(reportID));
@@ -77,6 +78,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: DateUtils.formatToLongDateInTimeZone(latestScheduledCall.eventTime, userTimezone, dateFnsLocale, true),
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_EVENT_TIME,
             description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
@@ -96,12 +98,14 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_RESCHEDULE,
             onSelected: () => rescheduleBooking(latestScheduledCall),
             icon: icons.CalendarSolid,
         });
         options.push({
             text: translate('common.cancel'),
             value: CONST.ONBOARDING_HELP.CANCEL,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_CANCEL,
             onSelected: () => cancelBooking(latestScheduledCall),
             icon: icons.Close,
         });
@@ -112,6 +116,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('getAssistancePage.registerForWebinar'),
             icon: icons.Monitor,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.HELP_MENU_REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
             },

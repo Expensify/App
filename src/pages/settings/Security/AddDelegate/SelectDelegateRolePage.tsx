@@ -30,6 +30,7 @@ function DelegateRoleSelectionListHeader() {
             <>
                 {translate('delegate.accessLevelDescription')}{' '}
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT_ACCESS_LEVEL_LEARN_MORE_LINK}
                     style={[styles.link]}
                     href={CONST.COPILOT_HELP_URL}
                 >

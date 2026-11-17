@@ -129,6 +129,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.EXPORT_NOT_READY_CONFIRM}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
                     containerStyle={styles.flex1}

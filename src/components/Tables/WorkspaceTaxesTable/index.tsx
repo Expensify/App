@@ -180,4 +180,4 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
     );
 }
 
-export type {WorkspaceTaxTableRowData, WorkspaceTaxTableColumnKey};
+export type {WorkspaceTaxTableRowData};
