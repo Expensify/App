@@ -48,7 +48,7 @@ Learn how to [configure Zoho Books import, export, and advanced settings](/artic
 If the connection requires authorization again:
 
 1. Select **Workspaces > [workspace name] > Connections**.
-2. Select **Configure** next to Zoho Books.
+2. Select **Fix** next to Zoho Books.
 3. Select **More (⋮)**, then **Enter your credentials**.
 4. Follow the prompts to sign in to Zoho and authorize the connection again.
 
