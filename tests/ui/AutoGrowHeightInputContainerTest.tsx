@@ -487,6 +487,81 @@ describe('AutoGrowHeightInputContainer', () => {
         await waitFor(() => expect(screen.getByTestId('settled-keyboard-height').props.accessibilityLabel).toBe('776'));
     });
 
+    it('leaves the reserved bottom safe area out of the iOS keyboard estimate', async () => {
+        platformReplaceProperty.restore();
+        platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
+
+        let isKeyboardActive = false;
+        let keyboardActiveHeight = 0;
+        let keyboardHeight = 0;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
+        const renderedCaps: number[] = [];
+        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 24, left: 0});
+        mockUseKeyboardState.mockImplementation(() => ({
+            isKeyboardShown: keyboardHeight !== 0,
+            isKeyboardActive,
+            keyboardHeight,
+            keyboardActiveHeight,
+            isKeyboardAnimatingRef: {current: true},
+        }));
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
+        });
+        const renderInput = () => (
+            <AutoGrowHeightInputContainer>
+                {(maxAutoGrowHeight) => {
+                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
+                    renderedCaps.push(maxAutoGrowHeight);
+                    return (
+                        <View
+                            testID="inset-keyboard-height"
+                            accessibilityLabel={String(maxAutoGrowHeight)}
+                        />
+                    );
+                }}
+            </AutoGrowHeightInputContainer>
+        );
+
+        // Given an input whose slot measured 800px before the keyboard opened, on a device with a 24px bottom safe area that the form already reserves
+        const {rerender} = render(renderInput());
+        const container = screen.UNSAFE_getByType(ScrollView);
+        const nativeScrollViewElement = container.children.at(0);
+        if (!nativeScrollViewElement || typeof nativeScrollViewElement === 'string') {
+            throw new Error('Expected the container to render a native scroll view');
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the test renderer types mounted instances as any; this is React Native's mocked scroll view, whose native node the container measures once the keyboard settles
+        const nativeScrollView = nativeScrollViewElement.instance as {getNativeScrollRef: jest.Mock};
+        const mockNativeSlot = (height: number) => ({measure: (callback: MeasureOnSuccessCallback) => callback(0, 0, 300, height, 0, 0)});
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 800, width: 300}}});
+        await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('776'));
+
+        // When a 335px keyboard starts opening, which covers that safe area and so only takes 311px from the slot
+        isKeyboardActive = true;
+        keyboardActiveHeight = 335;
+        rerender(renderInput());
+
+        // Then the cap already matches the 489px slot during the animation, so it does not grow again once the keyboard settles
+        await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('465'));
+        // The mocked native method is shared by every scroll view, so each settled measurement is mocked only once
+        nativeScrollView.getNativeScrollRef.mockReturnValueOnce(mockNativeSlot(489));
+        keyboardHeight = 335;
+        rerender(renderInput());
+        expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('465');
+
+        // When the keyboard closes and the slot returns to 800px
+        renderedCaps.length = 0;
+        isKeyboardActive = false;
+        keyboardActiveHeight = 0;
+        rerender(renderInput());
+        nativeScrollView.getNativeScrollRef.mockReturnValueOnce(mockNativeSlot(800));
+        keyboardHeight = 0;
+        rerender(renderInput());
+
+        // Then the cap never goes past the 800px slot on the way back, so a full input keeps its bottom border and last line
+        await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('776'));
+        expect(Math.max(...renderedCaps)).toBeLessThanOrEqual(800);
+    });
+
     it('adopts the first iOS layout even while the previous keyboard is still hiding', async () => {
         platformReplaceProperty.restore();
         platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');

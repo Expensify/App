@@ -6,8 +6,10 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import captureInputScrolledToEnd from '@libs/captureInputScrolledToEnd';
 import getKeyboardHeight from '@libs/getKeyboardHeight';
 import measureAutoGrowContent from '@libs/measureAutoGrowContent';
+import measureAutoGrowSlot from '@libs/measureAutoGrowSlot';
 
 import variables from '@styles/variables';
 
@@ -51,8 +53,10 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
     const isNativePlatform = Platform.OS !== 'web';
     // Android resizes the screen for the keyboard, so its exact layout already includes the keyboard. Subtracting it again would double-count it when the layout arrives first.
     const isIOS = Platform.OS === 'ios';
+    // The form already reserves the bottom safe area, and the keyboard covers it, so the slot only loses the part of the keyboard above that area.
+    // Subtracting the full keyboard left the slot that much shorter while the keyboard opened, and that much taller while it closed, until keyboardDidShow or keyboardDidHide measured it.
     const nativeKeyboardHeight =
-        isIOS && (isKeyboardActive || isKeyboardShown) ? Math.max(keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight, 0) : 0;
+        isIOS && (isKeyboardActive || isKeyboardShown) ? Math.max((keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight) - bottom, 0) : 0;
     const availableHeightRef = useRef<number>(variables.textInputAutoGrowMaxHeight);
     const viewportHeightRef = useRef(windowHeight);
     const keyboardHeightRef = useRef(nativeKeyboardHeight);
@@ -71,12 +75,17 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
     const [measurementPhase, setMeasurementPhase] = useState<MeasurementPhase>('normal');
     const [measurementRequestVersion, setMeasurementRequestVersion] = useState(0);
     const [maxAutoGrowHeight, setMaxAutoGrowHeight] = useState<number>(variables.textInputAutoGrowMaxHeight);
+    const restoreInputScrollRef = useRef<(() => void) | undefined>(undefined);
+    const hasMeasuredInitialSlotRef = useRef(false);
 
     const startMeasurement = (phase: Exclude<MeasurementPhase, 'normal'>, nextMaxAutoGrowHeight: number, shouldReplaceActiveMeasurement = false) => {
         if (!shouldReplaceActiveMeasurement && measurementPhaseRef.current === phase && maxAutoGrowHeightRef.current === nextMaxAutoGrowHeight) {
             return;
         }
 
+        if (!restoreInputScrollRef.current) {
+            restoreInputScrollRef.current = captureInputScrolledToEnd(contentRef.current);
+        }
         measurementGenerationRef.current += 1;
         measurementPhaseRef.current = phase;
         maxAutoGrowHeightRef.current = nextMaxAutoGrowHeight;
@@ -84,6 +93,30 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
         setMeasurementRequestVersion((currentVersion) => currentVersion + 1);
         setMaxAutoGrowHeight(nextMaxAutoGrowHeight);
     };
+
+    // On web the first onLayout arrives after paint, so a long value painted at the default cap first and then jumped to the slot height.
+    // The slot is already laid out here, so measure it before the first paint.
+    useLayoutEffect(() => {
+        if (isNativePlatform || hasMeasuredInitialSlotRef.current) {
+            return;
+        }
+
+        hasMeasuredInitialSlotRef.current = true;
+        measureAutoGrowSlot(containerRef.current?.getNativeScrollRef() ?? null, (slotHeight) => {
+            const availableHeight = Math.max(slotHeight, variables.componentSizeLarge);
+            availableHeightRef.current = availableHeight;
+            startMeasurement('clamp', availableHeight);
+        });
+    }, [isNativePlatform, startMeasurement]);
+
+    // A cap change can move the focused input away from the end of its text, so scroll it back once the new cap is applied.
+    useLayoutEffect(() => {
+        restoreInputScrollRef.current?.();
+        if (measurementPhase !== 'normal') {
+            return;
+        }
+        restoreInputScrollRef.current = undefined;
+    }, [maxAutoGrowHeight, measurementPhase]);
 
     useLayoutEffect(() => {
         const previousViewportHeight = viewportHeightRef.current;
