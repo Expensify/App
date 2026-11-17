@@ -80,7 +80,9 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
                     icon={icons.Copy}
                     successIcon={icons.Checkmark}
                     successText={translate('qrCodes.copied')}
-                    onPress={() => Clipboard.setString(referralLink)}
+                    onPress={() => {
+                        Clipboard.setString(referralLink);
+                    }}
                     shouldLimitWidth={false}
                 />
             )}

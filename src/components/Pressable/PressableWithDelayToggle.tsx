@@ -18,15 +18,17 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {DistributedOmit} from 'type-fest';
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
-type PressableWithDelayToggleProps = DistributedOmit<PressableProps, 'sentryLabel'> &
+type PressableWithDelayToggleProps = DistributedOmit<PressableProps, 'sentryLabel' | 'onPress'> &
     WithRequiredSentryLabel & {
+        /** False or a rejected promise leaves the control available for retry. */
+        onPress?: () => boolean | void | Promise<boolean | void>;
         text?: string;
 
         /** The text to display once the pressable is pressed */
@@ -101,13 +103,33 @@ function PressableWithDelayToggle({
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
+    const isPendingRef = useRef(false);
+    const isMountedRef = useRef(false);
 
-    const updatePressState = () => {
-        if (!isActive) {
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    const updatePressState = async () => {
+        if (!isActive || isPendingRef.current) {
             return;
         }
-        temporarilyDisableInteractions();
-        onPress?.();
+        // Both nested pressables can receive the same press before React renders again.
+        isPendingRef.current = true;
+        try {
+            const result = onPress?.();
+            const didSucceed = result instanceof Promise ? await result : result;
+            if (didSucceed !== false && isMountedRef.current) {
+                temporarilyDisableInteractions();
+            }
+        } catch {
+            // Failed actions must not display checked feedback or delay a retry.
+        } finally {
+            isPendingRef.current = false;
+        }
     };
 
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
@@ -186,7 +208,9 @@ function PressableWithDelayToggle({
             // Using `ref as any` due to variable component (Text or View) based on 'inline' prop; TypeScript workaround.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
-            onPress={updatePressState}
+            onPress={() => {
+                updatePressState();
+            }}
             accessibilityLabel={accessibilityLabel}
             suppressHighlighting
             accessibilityRole={accessibilityRole}

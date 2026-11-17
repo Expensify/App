@@ -116,7 +116,9 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 icon={icons.Copy}
                                 successIcon={icons.Checkmark}
                                 successText={translate('qrCodes.copied')}
-                                onPress={() => Clipboard.setString(url)}
+                                onPress={() => {
+                                    Clipboard.setString(url);
+                                }}
                                 shouldLimitWidth={false}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />

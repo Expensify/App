@@ -1,12 +1,14 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicTwoFactorAuthPage from '@pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
+import {setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,6 +23,8 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const RECOVERY_CODES = 'aaaa1111, bbbb2222';
+
+jest.mock('@libs/Clipboard', () => ({__esModule: true, default: {setString: jest.fn()}}));
 
 let mockIsFocused = true;
 
@@ -155,6 +159,56 @@ describe('DynamicTwoFactorAuthPage', () => {
         mockGetState.mockReturnValue(buildStackState([PAGE_ROUTE, VERIFY_ROUTE]));
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    it('withholds copied feedback while pending, allows failure retry, and acknowledges only success', async () => {
+        // Given a clipboard write whose result is not yet known
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, recoveryCodes: RECOVERY_CODES});
+        const {promise, resolve} = Promise.withResolvers<boolean>();
+        jest.mocked(Clipboard.setString).mockReturnValueOnce(promise).mockResolvedValueOnce(true);
+        await renderPage();
+        const copyLabel = 'twoFactorAuth.copy, twoFactorAuth.stepCodes';
+
+        // When duplicate presses occur during the pending write
+        fireEvent.press(screen.getByLabelText(copyLabel));
+        fireEvent.press(screen.getByLabelText(copyLabel));
+
+        // Then neither checked feedback nor acknowledgement is shown prematurely
+        expect(Clipboard.setString).toHaveBeenCalledTimes(1);
+        expect(screen.queryByLabelText('common.copied')).toBeNull();
+        expect(setCodesAreCopied).not.toHaveBeenCalled();
+
+        // When the write fails, an immediate retry remains possible
+        await act(async () => resolve(false));
+        expect(screen.getByText('twoFactorAuth.errorStepCodes')).toBeTruthy();
+        expect(setCodesAreCopied).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByLabelText(copyLabel));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then only the successful retry records acknowledgement and checked feedback
+        expect(setCodesAreCopied).toHaveBeenCalledTimes(1);
+        expect(screen.getByLabelText('common.copied')).toBeTruthy();
+        expect(screen.queryByText('twoFactorAuth.errorStepCodes')).toBeNull();
+    });
+
+    it('ignores a successful write that completes after leaving and returning to the page', async () => {
+        // Given a pending clipboard write for this visit
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, recoveryCodes: RECOVERY_CODES});
+        const {promise, resolve} = Promise.withResolvers<boolean>();
+        jest.mocked(Clipboard.setString).mockReturnValueOnce(promise);
+        const view = await renderPage();
+        fireEvent.press(screen.getByLabelText('twoFactorAuth.copy, twoFactorAuth.stepCodes'));
+
+        // When navigation invalidates that visit before the write completes
+        await setFocused(view, false);
+        await setFocused(view, true);
+        await act(async () => resolve(true));
+
+        // Then old recovery-code writes cannot acknowledge the new visit
+        expect(setCodesAreCopied).not.toHaveBeenCalled();
+        expect(screen.queryByLabelText('common.copied')).toBeNull();
     });
 
     it('does not call Toggle again when an unfinished setup already has recovery codes', async () => {
