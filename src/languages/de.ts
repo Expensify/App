@@ -1263,6 +1263,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        futureExpensesNotShown: (amount: string) => `Nicht angezeigt: ${amount} in zukünftigen Ausgaben.`,
+        violationsTrackedFrom: (date: string) => `Verstöße werden ab dem ${date} erfasst.`,
         upsellState: {
             title: 'Upgrade auf Control für mehr Einblicke',
             subtitle: 'Verfolgen Sie Trends bei der Einhaltung der Spesenrichtlinie und markieren Sie Wiederholungstäter.',
@@ -2430,6 +2432,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Neue Kontaktmethode',
         goBackContactMethods: 'Zurück zu den Kontaktmethoden',
+        integrationServerLogin: {
+            title: 'Integrationen',
+            description: 'Dies wird für die Integration Server API verwendet.',
+            removeDescription: 'Wenn Sie diese Anmeldung entfernen, wird der Zugriff der Integration Server API widerrufen.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Dies wird für die ${partnerName}-Integration verwendet.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Wenn Sie diese Anmeldung entfernen, wird der Zugriff der ${partnerName}-Integration widerrufen.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Dies ist Ihre derzeitige standardmäßige Kontaktmethode. Ihr Unternehmen hat das Entfernen oder Ändern eingeschränkt.',
     },
     pronouns: {

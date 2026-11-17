@@ -30,9 +30,12 @@ type InsightsFilters = {
 
     /** Selected 1-based tag position on Spend; other dashboards omit it. */
     tagLevel?: number;
+
+    /** The dashboard's default grouping, shown in place of a picked one the date range doesn't offer */
+    defaultGroupBy?: InsightsFilters['groupBy'];
 };
 
-const DEFAULT_INSIGHTS_FILTERS: Record<InsightsDashboardID, Omit<InsightsFilters, 'groupCurrency'>> = {
+const DEFAULT_INSIGHTS_FILTERS: Record<InsightsDashboardID, Omit<InsightsFilters, 'groupCurrency' | 'defaultGroupBy'>> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
         date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
         policyIDs: [],

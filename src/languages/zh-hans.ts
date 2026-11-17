@@ -1216,6 +1216,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        futureExpensesNotShown: (amount: string) => `未显示：未来报销金额 ${amount}。`,
+        violationsTrackedFrom: (date: string) => `从 ${date} 起开始记录违规情况。`,
         upsellState: {title: '升级到 Control，获取更多洞察', subtitle: '跟踪报销政策合规趋势，并标记屡次违规的用户。', button: '升级至 Control'},
         explain: '解释',
         explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
@@ -2331,6 +2333,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新联系方式',
         goBackContactMethods: '返回联系方式',
+        integrationServerLogin: {
+            title: '集成',
+            description: '用于 Integration Server API。',
+            removeDescription: '删除此登录后，将撤销 Integration Server API 的访问权限。',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `用于 ${partnerName} 集成。`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `删除此登录后，将撤销 ${partnerName} 集成的访问权限。`,
+        },
         yourDefaultContactMethodRestrictedSwitch: '这是你当前的默认联系方式。你的公司已限制移除或更改它。',
     },
     pronouns: {

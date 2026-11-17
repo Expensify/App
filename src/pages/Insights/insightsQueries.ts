@@ -7,10 +7,14 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
+import {addDays, format, parseISO} from 'date-fns';
+
 import type {InsightsChartSpec, InsightsDateFilterKey} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import getInsightsDateRange from './getInsightsDateRange';
+import getInsightsLastDay from './getInsightsLastDay';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -36,6 +40,23 @@ function buildDateFormValues(date: InsightsFilters['date'], dateFilterKey: Insig
         return {[on]: date.on};
     }
     return {[range]: getRangeQueryValue(date.from, date.to)};
+}
+
+/** Returns the day after a date, which a strict `date<` filter takes to keep the date itself in */
+function getDayAfter(date: Date): string {
+    return format(addDays(date, 1), CONST.DATE.FNS_FORMAT_STRING);
+}
+
+/** Builds the filter that narrows the date range to the days the chart has data for: from `trackedFrom` when the range starts earlier, through `lastDay` when it ends later. A custom range keeps the bound that isn't narrowed. */
+function buildDataDaysFormValues(date: InsightsFilters['date'], lastDay: string, trackedFrom: string | undefined): Partial<SearchAdvancedFiltersForm> {
+    const {start, end} = getInsightsDateRange(date);
+    const from = trackedFrom && (!start || start < trackedFrom) ? trackedFrom : undefined;
+    const to = end && end > lastDay ? lastDay : undefined;
+    if (!from && !to) {
+        return {};
+    }
+    const customRange = 'from' in date ? date : undefined;
+    return {[FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(from ?? customRange?.from, to ?? customRange?.to)};
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
@@ -92,11 +113,19 @@ function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     });
 }
 
-/** Builds a chart's query with the page's filters applied. */
-function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): SearchQueryString {
+/** Builds a chart's query with the page's filters applied. Leaves out expenses dated after `lastDay` (yyyy-MM-dd, today unless given) and before `trackedFrom`, the first day the chart's snapshot has data for, so Search lists what the chart plots. Applies to charts on the expense date only. */
+function applyInsightsFilters(
+    chart: InsightsChartSpec,
+    filters: InsightsFilters,
+    compare?: SearchCompareMode,
+    lastDay = getInsightsLastDay(undefined),
+    trackedFrom?: string,
+): SearchQueryString {
+    const isExpenseDateChart = !chart.dateFilterKey || chart.dateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     const query = buildQueryStringFromFilterFormValues(
         {
             ...buildFilterFormValues(filters, true, chart.dateFilterKey),
+            ...(isExpenseDateChart && buildDataDaysFormValues(filters.date, lastDay, trackedFrom)),
             has: chart.has,
             groupBy: chart.groupBy ?? getQueryGroupBy(filters),
             view: chart.view,
@@ -107,6 +136,21 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     );
     // Appended, since the workflow stage isn't a filter the Search filter form has
     return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
+}
+
+/** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces, grouped by the time bucket Spend over time plots. */
+function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: string): SearchQueryString {
+    const {end} = getInsightsDateRange(filters.date);
+    return buildQueryStringFromFilterFormValues(
+        {
+            ...buildFilterFormValues(filters, false),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(getDayAfter(parseISO(asOfDate)), end || undefined),
+            groupBy: getQueryGroupBy(filters),
+            view: CONST.SEARCH.VIEW.TABLE,
+        },
+        {sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+    );
 }
 
 type InsightsChartQuery = {
@@ -209,6 +253,6 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {applyInsightsFilters, buildDateFormValues, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

@@ -1,5 +1,6 @@
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import type {ChartComparison} from '@components/Search/buildChartSeries';
+import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {GroupedItem} from '@components/Search/types';
 
@@ -17,6 +18,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsDashboardChart} from './resolveDashboardState';
 
 import resolveComparisonPeriods from './insightsCompare';
+import {getTrackedFrom, isBucketTracked} from './insightsTrackedFrom';
 import normalizeInsightsSnapshot from './normalizeInsightsSnapshot';
 
 type InsightsChartState = ValueOf<typeof INSIGHTS_CHART_STATE>;
@@ -42,8 +44,6 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const {isOffline} = useNetwork();
 
     const sortedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
-    const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, metric: chart.metric, isOffline});
-
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     const isTagAverage = compare === CONST.SEARCH.COMPARE.AVERAGE && dashboardChart.chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS;
@@ -53,6 +53,15 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     }
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
     const comparedSortedData = useGroupedItems(normalizeInsightsSnapshot(comparedSnapshot, queryJSON?.groupBy), queryJSON && {...queryJSON, limit: undefined});
+
+    const trackedFrom = getTrackedFrom(snapshot);
+    const getDateRange = queryJSON?.groupBy ? CHART_GROUP_BY_CONFIG[queryJSON.groupBy].getDateRange : undefined;
+    const keepTrackedBuckets = (items: GroupedItem[]) => (trackedFrom ? items.filter((item) => isBucketTracked(getDateRange?.(item), trackedFrom)) : items);
+
+    const resolvedCurrent = resolveInsightsChartData({snapshot, queryJSON, sortedData, metric: chart.metric, isOffline});
+    const trackedData = keepTrackedBuckets(resolvedCurrent.data);
+    const current: InsightsChartData =
+        resolvedCurrent.state === INSIGHTS_CHART_STATE.READY && trackedData.length === 0 ? {data: [], state: INSIGHTS_CHART_STATE.EMPTY} : {...resolvedCurrent, data: trackedData};
 
     if (current.state !== INSIGHTS_CHART_STATE.READY) {
         return current;
@@ -78,7 +87,8 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
         }
         case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
             const periods = resolveComparisonPeriods(filters.date);
-            if (!periods) {
+            // A compared period that ends before the chart's data starts has nothing to compare against
+            if (!periods || (!!trackedFrom && periods.comparison.end < trackedFrom)) {
                 return current;
             }
 
@@ -95,7 +105,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
             }
 
             const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
-            return {...current, comparison: {data: compared.data, color, periods}};
+            return {...current, comparison: {data: keepTrackedBuckets(compared.data), color, periods}};
         }
         default:
             return current;

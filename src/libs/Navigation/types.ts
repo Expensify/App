@@ -1623,6 +1623,9 @@ type InsightsDetailsParamList = {
 
         /** Encoded parent tags of the clicked dependent tag */
         parent?: string;
+
+        /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
+        asOf?: string;
     };
 };
 

@@ -62,6 +62,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
 
     const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS[dashboard],
+        defaultGroupBy: DEFAULT_INSIGHTS_FILTERS[dashboard].groupBy,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
     };
     // A stored query leaves Compare out when it's off, so the default only applies before filters are stored.

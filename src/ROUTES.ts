@@ -2463,6 +2463,7 @@ const ROUTES = {
             periodEnd,
             tagLevel,
             parentTagPath,
+            asOfDate,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
@@ -2470,8 +2471,9 @@ const ROUTES = {
             periodEnd?: string;
             tagLevel?: number;
             parentTagPath?: string;
+            asOfDate?: string;
         }) =>
-            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}` as const,
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
