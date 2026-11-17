@@ -149,7 +149,7 @@ static NSString *mainThreadStateForStacktrace(SentryStacktrace *_Nullable stackt
     return @"idle";
 }
 
-// "App hanging between 2.4 and 3.2 seconds." -> 2.4, the lower bound. NAN for any other wording.
+// Returns 2.4 for "App hanging between 2.4 and 3.2 seconds.", the lower bound, and NAN for any other wording.
 static double appHangMinimumDuration(NSString *_Nullable value) {
     static NSRegularExpression *durationExpression = nil;
     static dispatch_once_t onceToken;
