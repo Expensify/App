@@ -1,6 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FeatureList from '@components/FeatureList';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -25,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Domain';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -44,9 +42,9 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
-    const [domain, domainResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
-    const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainMemberSettingsSelector,
     });
 
@@ -55,10 +53,6 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
-
-    if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
-    }
 
     return (
         <ScreenWrapper
