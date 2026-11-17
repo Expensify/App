@@ -31,6 +31,9 @@ type UseColumnResizeParams = {
 
     /** Gap between columns, which handles span. */
     columnGap: number;
+
+    /** Whether a layout is saved under `columnResizingID`, so there are widths to reset. */
+    hasStoredColumnWidths: boolean;
 };
 
 type ColumnResizeHandleDOMProps = React.ComponentPropsWithRef<'div'>;
@@ -44,6 +47,9 @@ type ColumnResizeController = {
 
     /** Whether the column has a resize handle. */
     hasHandle: (columnKey: string) => boolean;
+
+    /** Drops the saved layout, so every column sizes from its content again. `undefined` while no column has been resized. */
+    resetColumnWidths: (() => void) | undefined;
 };
 
 export type {ColumnResizeController, ColumnResizeHandleDOMProps, UseColumnResizeParams};

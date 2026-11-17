@@ -78,6 +78,8 @@ import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -666,16 +668,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                         >
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                    onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription, session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.editor.descriptionInputLabel')}>
+                                            {!!policyDescription && <MenuItem.FieldValueHTML>{policyDescription}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
@@ -977,16 +984,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
                         {(isPolicyAdmin || hasCustomRulesText) && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                                <MenuItemWithTopDescription
-                                    title={policy?.customRules ?? ''}
-                                    description={translate('workspace.rules.customRules.policyText')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                    shouldRenderAsHTML
-                                />
+                                    style={shouldShowRulesDocumentSubSection && styles.mt4}
+                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)), session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>
+                                            {!!policy?.customRules && <MenuItem.FieldValueHTML>{policy.customRules}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </OfflineWithFeedback>
                         )}
                     </Section>
