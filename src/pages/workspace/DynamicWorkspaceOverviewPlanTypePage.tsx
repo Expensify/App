@@ -187,7 +187,10 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                                     count: privateSubscription?.userCount ?? 1,
                                     annualSubscriptionEndDate: autoRenewalDate,
                                 })}{' '}
-                                <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}>
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_SUBSCRIPTIONS_LINK}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
+                                >
                                     {translate('workspace.planTypePage.subscriptions')}
                                 </TextLink>
                                 .
@@ -195,7 +198,13 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                         ) : (
                             <Text style={[styles.mh5, styles.mv3]}>
                                 {translate('workspace.planTypePage.description')}{' '}
-                                <TextLink href={CONST.PLAN_TYPES_AND_PRICING_HELP_URL}>{translate('workspace.planTypePage.subscriptionLink')}</TextLink>.
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE_PRICING_LINK}
+                                    href={CONST.PLAN_TYPES_AND_PRICING_HELP_URL}
+                                >
+                                    {translate('workspace.planTypePage.subscriptionLink')}
+                                </TextLink>
+                                .
                             </Text>
                         )}
                         <SelectionList

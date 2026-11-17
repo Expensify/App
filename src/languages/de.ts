@@ -8846,6 +8846,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     selectWorkspace: 'wähle einen Workspace aus und ändere den Plantyp in',
                 },
                 upgradeWorkspaceWarning: `Arbeitsbereich kann nicht aktualisiert werden`,
+                createWorkspaceWarning: `Arbeitsbereich kann nicht erstellt werden`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Ihr Unternehmen hat das Erstellen von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an eine*n Admin, um Hilfe zu erhalten.',
             },
@@ -11188,6 +11189,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
+        violation: 'Verstoß',
         receiptTypeValues: {
             ereceipt: 'eBeleg',
             itemized: 'Aufgeschlüsselt',
@@ -12101,6 +12103,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             tagOutOfPolicy: 'Tag nicht mehr gültig',
             overLimitAttendee: 'Über Personenlimit',
             customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            ruleViolation: 'Regelverstoß',
             taxAmountChanged: 'Steuerbetrag geändert',
             taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
             taxRateChanged: 'Steuersatz geändert',

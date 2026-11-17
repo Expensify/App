@@ -8872,6 +8872,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     selectWorkspace: 'sélectionnez un espace de travail et modifiez le type de forfait en',
                 },
                 upgradeWorkspaceWarning: `Impossible de mettre à niveau l’espace de travail`,
+                createWorkspaceWarning: `Impossible de créer l’espace de travail`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Votre entreprise a restreint la création d’espaces de travail. Veuillez contacter un administrateur pour obtenir de l’aide.',
             },
@@ -11221,6 +11222,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
+        violation: 'Infraction',
         receiptTypeValues: {
             ereceipt: 'eReçu',
             itemized: 'Détaillé',
@@ -12133,6 +12135,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             tagOutOfPolicy: 'Tag n’est plus valide',
             overLimitAttendee: 'Nombre de personnes dépassé',
             customRules: 'Violation de règle personnalisée',
+            ruleViolation: 'Violation de règle',
             taxAmountChanged: 'Montant de la taxe modifié',
             taxOutOfPolicy: 'Taux de taxe n’est plus valide',
             taxRateChanged: 'Taux d’imposition modifié',

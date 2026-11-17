@@ -9680,6 +9680,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -11539,6 +11540,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -12466,6 +12468,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',
