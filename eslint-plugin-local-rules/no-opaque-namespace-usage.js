@@ -13,11 +13,18 @@ const meta = {
     },
 };
 
-// The forms checked here are the namespace usages that knip 6.34 cannot track (verified by running knip). Every other whole-namespace use
-// (spread into a call, an array or JSX, argument, return, export, `in`, ...) is tracked by knip, so it is allowed. Re-verify the forms when knip is upgraded.
+// The forms checked here are the namespace usages that knip 6.34 treats as "every export of the module is used" (its internal OPAQUE mark), so unused exports of the module are not reported.
+// Verified by running knip with `include: ["nsExports", "nsTypes"]`. Every other whole-namespace use (`f(NS)`, `console.log(NS)`, `typeof NS`, `Reflect.ownKeys(NS)`, `Object.assign({}, NS)`, spread into a call, an array or JSX, return, export, `in`, ...)
+// does not hide anything: knip either does not see the use or sees only a bare reference, and then it reports the exports it cannot attribute (as `nsExports` when no importer of the module accesses `NS.member`, otherwise as `exports`).
+// Re-verify the forms when knip is upgraded.
+// Known differences from knip that are not worth the complexity (found by a differential fuzz of the rule against knip 6.34, none occurs in the repo): knip ignores scope, so an alias of a shadowed
+// or parenthesized namespace (`function f(NS) {const a = NS}`, `const a = (NS)`) and two `{key: NS}` declarations with the same variable and key are handled differently by it; type-only namespaces used as values are invalid TypeScript.
 // Knip only matches a bare identifier, so TypeScript wrappers such as `NS as T` or `NS!` make a usage tracked, and the rule does not look through them.
 
 // Namespace imports of packages are out of scope: knip only reports unused exports of the repo's own modules.
+// Knip registers an alias (`const A = X`, `cond ? X : y`, `{...X}`) for every import that resolves to a file of the repo, whatever the kind: named, default, namespace, type-only
+// (`import type`, `import {type X}`), `import X = require()`, JSON and asset files, re-exports, path aliases and files its config ignores. An import of a package (including `node:` modules)
+// or an unresolvable one is not registered. The rule has no resolver, so INTERNAL_SOURCE_PATTERN stands in for "resolves to a file of the repo".
 // Keep the aliases in sync with `paths` in tsconfig.base.json.
 const INTERNAL_SOURCE_PATTERN = /^(@(assets|components|hooks|libs|navigation|pages|prompts|styles|src|userActions|github|scripts|selectors|server)(\/|$)|tests\/|\.{1,2}(\/|$))/;
 const ENUMERATION_METHODS = new Set(['keys', 'values', 'entries', 'getOwnPropertyNames']);
@@ -116,7 +123,7 @@ function isExportedDeclarator(node) {
 
 /**
  * Knip follows a namespace assigned to a variable only through the member accesses of that variable, so these forms are opaque
- * unless the alias is member-accessed somewhere in the file (knip tracks them in a file with no `NS.member` at all, where the rule is stricter): `const a = NS`, `const a = cond ? NS : other`, `const a = {...NS}` and `const a = {key: NS}`.
+ * unless the alias is member-accessed somewhere in the file (knip stops hiding them only when no importer of the module accesses `NS.member` in any file, a condition a per-file rule cannot see, so the rule is stricter): `const a = NS`, `const a = cond ? NS : other`, `const a = {...NS}` and `const a = {key: NS}`.
  * Passing or exporting the alias does not count as an access. An exported `const a = {...NS}` is tracked.
  * @param {import('estree').Node} reference The identifier that references the namespace.
  * @returns {{aliasName: string, key?: string, declaratorStart: number} | undefined} The variable the namespace is assigned to, the object key for the `{key: NS}` form, and where the declaration starts.
@@ -149,6 +156,25 @@ function getAssignedAlias(reference) {
     return {aliasName: declarator.id.name, key, declaratorStart: declarator.range[0]};
 }
 
+/**
+ * Knip counts `export const a = {...X}` (also nested in an object, `{k: {...X}}`) of any import of the repo as an access to every alias named `a`, in any scope and in any order.
+ * @param {import('estree').Node} reference The identifier that references the import.
+ * @returns {string | undefined} The name of the exported variable the import is spread into.
+ */
+function getExportedSpreadName(reference) {
+    if (reference.parent.type !== 'SpreadElement') {
+        return undefined;
+    }
+    let node = reference.parent.parent;
+    while (node.type === 'ObjectExpression' && node.parent.type === 'Property') {
+        node = node.parent.parent;
+    }
+    if (node.type !== 'ObjectExpression' || node.parent.type !== 'VariableDeclarator' || node.parent.id.type !== 'Identifier' || !isExportedDeclarator(node.parent)) {
+        return undefined;
+    }
+    return node.parent.id.name;
+}
+
 /** @type {import('eslint').Rule.RuleModule['create']} */
 function create(context) {
     // Knip matches aliases by name and ignores scopes, so the rule collects names the same way. Knip also registers an alias when it reaches the declaration
@@ -156,6 +182,7 @@ function create(context) {
     const lastMemberAccessStart = new Map();
     const pendingAliases = [];
     const otherAliasDeclarations = [];
+    const exportedSpreadNames = new Set();
 
     /**
      * @param {string} readKey `alias` or `alias.key`
@@ -183,9 +210,44 @@ function create(context) {
         }
         for (const {identifier, aliasName, key} of pendingAliases) {
             const readKey = key ? `${aliasName}.${key}` : aliasName;
-            const isRead = (lastMemberAccessStart.get(readKey) ?? -1) > firstDeclarationStart.get(readKey);
+            const isRead = (lastMemberAccessStart.get(readKey) ?? -1) > firstDeclarationStart.get(readKey) || (!key && exportedSpreadNames.has(aliasName));
             if (!isRead) {
                 report(identifier, 'unread alias');
+            }
+        }
+    }
+
+    /**
+     * @param {import('estree').Node} bindingNode The import specifier or the `import Name = require()` declaration that declares the local name.
+     * @param {boolean} isInternal Whether the import resolves to a module of the repo.
+     * @param {boolean} isCheckedNamespace Whether the binding is a value namespace import of an internal module.
+     */
+    function processImportBinding(bindingNode, isInternal, isCheckedNamespace) {
+        // Only references bound to this import are checked, so a same-named local or parameter is ignored.
+        for (const variable of context.sourceCode.getDeclaredVariables(bindingNode)) {
+            for (const {identifier} of variable.references) {
+                const spreadName = isInternal ? getExportedSpreadName(identifier) : undefined;
+                if (spreadName) {
+                    exportedSpreadNames.add(spreadName);
+                }
+                if (isCheckedNamespace) {
+                    const usage = getOpaqueUsage(identifier);
+                    if (usage) {
+                        report(identifier, usage);
+                        continue;
+                    }
+                }
+                const alias = getAssignedAlias(identifier);
+                if (!alias) {
+                    continue;
+                }
+                if (isCheckedNamespace) {
+                    pendingAliases.push({identifier, ...alias});
+                } else if (isInternal && !alias.key) {
+                    // Knip registers an alias of every import that resolves to a module of the repo (named, default, type-only, `import = require`, JSON, assets, re-exports), under the same name,
+                    // which is only a declaration for the source order. It does not register an alias of a package or an unresolved import, nor the `{key: value}` form of a non-namespace import.
+                    otherAliasDeclarations.push(alias);
+                }
             }
         }
     }
@@ -205,35 +267,19 @@ function create(context) {
         },
 
         ImportDeclaration(node) {
-            if (node.importKind === 'type') {
-                return;
-            }
             const isInternal = INTERNAL_SOURCE_PATTERN.test(node.source.value);
             for (const specifier of node.specifiers) {
-                const isCheckedNamespace = isInternal && specifier.type === 'ImportNamespaceSpecifier';
-                // Only references bound to this import are checked, so a same-named local or parameter is ignored.
-                for (const variable of context.sourceCode.getDeclaredVariables(specifier)) {
-                    for (const {identifier} of variable.references) {
-                        if (isCheckedNamespace) {
-                            const usage = getOpaqueUsage(identifier);
-                            if (usage) {
-                                report(identifier, usage);
-                                continue;
-                            }
-                        }
-                        const alias = getAssignedAlias(identifier);
-                        if (!alias) {
-                            continue;
-                        }
-                        if (isCheckedNamespace) {
-                            pendingAliases.push({identifier, ...alias});
-                        } else if (!alias.key) {
-                            // Knip registers an alias of any other import (named, default, a package) under the same name, which is only a declaration for the source order.
-                            // The `{key: value}` form is registered for a namespace only.
-                            otherAliasDeclarations.push(alias);
-                        }
-                    }
-                }
+                // A type-only namespace import has no runtime exports to hide, so it is never checked, but knip still registers its aliases like any other import.
+                const isCheckedNamespace = isInternal && specifier.type === 'ImportNamespaceSpecifier' && node.importKind !== 'type';
+                processImportBinding(specifier, isInternal, isCheckedNamespace);
+            }
+        },
+
+        // `import Name = require('./module')` is an import for knip, a default one.
+        TSImportEqualsDeclaration(node) {
+            const reference = node.moduleReference;
+            if (reference.type === 'TSExternalModuleReference' && reference.expression.type === 'Literal' && typeof reference.expression.value === 'string') {
+                processImportBinding(node, INTERNAL_SOURCE_PATTERN.test(reference.expression.value), false);
             }
         },
 
