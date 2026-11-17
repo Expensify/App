@@ -8,7 +8,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -16,6 +15,7 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -23,7 +23,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
-import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
@@ -33,7 +32,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -102,30 +100,7 @@ function AnnualSavingsTooltip() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const activePolicy = usePolicy(activePolicyID);
-    const adminsChatReportID = isPolicyAdmin(activePolicy) && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
-
-    const openAdminsRoom = () => {
-        if (!adminsChatReportID) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-    };
-
-    const openTooltipLink = (href: string) => {
-        if (href.endsWith(CONST.SUBSCRIPTION.ADMINS_ROOM_LINK)) {
-            openAdminsRoom();
-            return;
-        }
-        if (!href.endsWith(CONST.PRICING)) {
-            return;
-        }
-        openLink(CONST.PRICING, environmentURL, false, session);
-    };
 
     const stopRowPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (!event || !('stopPropagation' in event)) {
@@ -134,25 +109,11 @@ function AnnualSavingsTooltip() {
         event.stopPropagation();
     };
 
+    // A regular tooltip cannot receive clicks, and the shared tooltip API should not grow for this icon.
     return (
         <Tooltip
-            isEducationTooltip
-            minWidth={360}
-            maxWidth={360}
+            text={translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
             shouldForceRenderingBelow
-            renderTooltipContentKey={[String(!!adminsChatReportID)]}
-            wrapperStyle={[styles.pv4, styles.ph4, styles.appBG, styles.borderedContentCardLarge, styles.cardShadow]}
-            renderTooltipContent={() => (
-                <View style={styles.gap2}>
-                    <Text style={[styles.textStrong, styles.themeTextColor]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
-                    <View style={styles.renderHTML}>
-                        <RenderHTML
-                            html={translate('subscription.subscriptionSettings.annualSavingsDescription', !!adminsChatReportID)}
-                            onLinkPress={(_event, href) => openTooltipLink(href)}
-                        />
-                    </View>
-                </View>
-            )}
         >
             <PressableWithoutFeedback
                 onPress={stopRowPress}
@@ -186,6 +147,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
     const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
@@ -259,6 +221,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             hasCompletedGuidedSetupFlow,
             conciergePersonalDetails,
             shouldDismissModal: false,
+            delegateAccountID,
         });
     };
 

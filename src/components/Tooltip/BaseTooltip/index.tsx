@@ -53,7 +53,7 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, isFocused = true, isEducationTooltip = false, ref, ...props}: TooltipProps) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, ...props}: TooltipProps) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -98,11 +98,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, isEduc
     }
 
     return (
-        <GenericTooltip
-            {...props}
-            isEducationTooltip={isEducationTooltip}
-            shouldKeepOpenWhileHovered={isEducationTooltip}
-        >
+        <GenericTooltip {...props}>
             {({isVisible, showTooltip, hideTooltip, updateTargetBounds}) =>
                 // Checks if valid element so we can wrap the BoundsObserver around it
                 // If not, we just return the primitive children

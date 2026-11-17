@@ -1,8 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OptionItem from '@components/OptionsPicker/OptionItem';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -80,18 +78,6 @@ function SubscriptionSettings() {
         }
     };
 
-    const subscriptionSizeSection =
-        privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
-            <View style={styles.mt5}>
-                <MenuItemSectionRoot>
-                    <MenuItemField.Row
-                        name={translate('subscription.details.subscriptionSize')}
-                        value={String(privateSubscription.userCount)}
-                    />
-                </MenuItemSectionRoot>
-            </View>
-        ) : null;
-
     if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
         return <NotFoundPage />;
     }
@@ -151,24 +137,12 @@ function SubscriptionSettings() {
                                 <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
                             </View>
                         ) : (
-                            <>
-                                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
-                                    <OptionItem
-                                        title="subscription.details.payPerUse"
-                                        icon={illustrations.SubscriptionPPU}
-                                        style={[styles.mt5, styles.flex0]}
-                                        isDisabled
-                                    />
-                                ) : (
-                                    <OptionItem
-                                        title="subscription.details.annual"
-                                        icon={illustrations.SubscriptionAnnual}
-                                        style={[styles.mt5, styles.flex0]}
-                                        isDisabled
-                                    />
-                                )}
-                                {subscriptionSizeSection}
-                            </>
+                            <OptionItem
+                                title={privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? 'subscription.details.payPerUse' : 'subscription.details.annual'}
+                                icon={privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? illustrations.SubscriptionPPU : illustrations.SubscriptionAnnual}
+                                style={[styles.mt5, styles.flex0]}
+                                isDisabled
+                            />
                         )}
                     </>
                 )}
