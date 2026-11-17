@@ -27,12 +27,14 @@ function MergeResultPage() {
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login, backTo} = params;
 
+    const isTerminalResult = result === CONST.MERGE_ACCOUNT_RESULTS.SUCCESS || result === CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL;
+
     useEffect(() => {
         /**
-         * If the result is success, we need to remove the initial screen from the navigation state
-         * so that the back button closes the modal instead of going back to the initial screen.
+         * For terminal results (success, pending), remove the initial screen from the navigation state so the back button
+         * closes the modal instead of returning to the already-submitted details form.
          */
-        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
+        if (!isTerminalResult) {
             return;
         }
 
@@ -43,10 +45,20 @@ function MergeResultPage() {
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();
-    }, [result]);
+    }, [isTerminalResult]);
 
-    const {heading, onButtonPress, illustration, illustrationStyle, descriptionComponent, secondaryButtonText, onSecondaryButtonPress, shouldShowSecondaryButton, ctaComponent} =
-        useMergeResultConfirmationConfig({result, login});
+    const {
+        heading,
+        onButtonPress,
+        primaryButtonText,
+        illustration,
+        illustrationStyle,
+        descriptionComponent,
+        secondaryButtonText,
+        onSecondaryButtonPress,
+        shouldShowSecondaryButton,
+        ctaComponent,
+    } = useMergeResultConfirmationConfig({result, login});
 
     return (
         <ScreenWrapper
@@ -55,7 +67,7 @@ function MergeResultPage() {
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
-                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
+                shouldShowBackButton={!isTerminalResult}
                 onBackButtonPress={() => {
                     Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
@@ -80,7 +92,7 @@ function MergeResultPage() {
                     )}
                     <ConfirmationPage.PrimaryButton
                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_RESULT_CONFIRM}
-                        text={translate('common.buttonConfirm')}
+                        text={primaryButtonText ?? translate('common.buttonConfirm')}
                         onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()))}
                     />
                 </FixedFooter>

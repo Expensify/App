@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useRedirectToPendingDomainAccountMergeRequest from '@hooks/useRedirectToPendingDomainAccountMergeRequest';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -104,6 +105,8 @@ function AccountValidatePage() {
 
     const mergeWithValidateCode = account?.mergeWithValidateCode;
     const getValidateCodeForAccountMerge = account?.getValidateCodeForAccountMerge;
+
+    useRedirectToPendingDomainAccountMergeRequest(email);
 
     const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
