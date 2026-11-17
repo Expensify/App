@@ -133,6 +133,11 @@ function getAssignedAlias(reference) {
     let declarator;
     let key;
 
+    // Knip registers `const {value: Alias = X} = init` (a default of a property of the top-level pattern) as an alias named `Alias`.
+    if (parent.type === 'AssignmentPattern' && parent.right === reference && parent.left.type === 'Identifier' && isTopLevelDestructuringDefault(parent)) {
+        return {aliasName: parent.left.name, key: undefined, declaratorStart: parent.parent.parent.parent.range[0]};
+    }
+
     if (parent.type === 'VariableDeclarator') {
         declarator = parent;
     } else if (parent.type === 'ConditionalExpression' && parent.test !== reference && parent.parent.type === 'VariableDeclarator') {
@@ -166,7 +171,8 @@ function getExportedSpreadName(reference) {
         return undefined;
     }
     let node = reference.parent.parent;
-    while (node.type === 'ObjectExpression' && node.parent.type === 'Property') {
+    // Knip descends only through properties with an identifier key, so `{'nested': {...X}}` is not followed.
+    while (node.type === 'ObjectExpression' && node.parent.type === 'Property' && node.parent.key.type === 'Identifier') {
         node = node.parent.parent;
     }
     if (node.type !== 'ObjectExpression' || node.parent.type !== 'VariableDeclarator' || node.parent.id.type !== 'Identifier' || !isExportedDeclarator(node.parent)) {

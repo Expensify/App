@@ -211,6 +211,12 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
             {code: `${IMPORT} import {obj} from './other'; Utils.used(); export const copy = {a: {...obj}}; function run() {const copy = Utils; return 1;} run();`},
+            // Given an alias that a destructuring default of a named import declares, which knip registers and reads before a namespace alias with the same name.
+            // When the rule checks how the namespace is used.
+            // Then nothing is reported.
+            {
+                code: `${IMPORT} import {obj} from './other'; function first() {const {value: Alias = obj} = source; return Alias.member;} function second() {const Alias = Utils; consume(Alias);} Utils.other(); first(); second();`,
+            },
             // Given an alias read by a parameter of the same name after the declaration, which knip counts because it matches aliases by name.
             // When the rule checks how the namespace is used.
             // Then nothing is reported.
@@ -383,6 +389,13 @@ describe('no-opaque-namespace-usage', () => {
             // When the rule checks how the namespace is used.
             // Then both usages are reported.
             {code: `${IMPORT} const First = Utils; const Second = Utils; export {First, Second};`, errors: [usageError('unread alias'), usageError('unread alias')]},
+            // Given an exported spread nested under a quoted key, which knip does not follow, so the alias with the same name is not counted as read.
+            // When the rule checks how the namespace is used.
+            // Then the usage is reported.
+            {
+                code: `${IMPORT} import {obj} from './other'; Utils.used(); export const copy = {'nested': {...obj}}; function run() {const copy = Utils; return 1;} run();`,
+                errors: [usageError('unread alias')],
+            },
             // Given an exported spread of a package import, which knip does not count as an access to the alias with the same name.
             // When the rule checks how the namespace is used.
             // Then the usage is reported.
