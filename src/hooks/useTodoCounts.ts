@@ -85,4 +85,4 @@ function useTodoCounts(enabled = true): TodoCountsResult {
 }
 
 export default useTodoCounts;
-export type {TodoCounts, TodoReportIDs};
+export type {TodoCounts};
