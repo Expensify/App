@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
@@ -121,6 +122,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useRequestsKeptOnSAMLSignOut();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
@@ -177,7 +179,7 @@ function AuthScreensInitHandler() {
                 isDelegateSession: Session.isDelegateSession(session),
                 isSupportalTransition,
             });
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            Session.signOutAndRedirectToSignIn(session, false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
             };

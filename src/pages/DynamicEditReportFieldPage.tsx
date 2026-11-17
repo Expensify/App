@@ -158,6 +158,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                                     handleReportFieldDelete();
                                 },
                                 shouldCallAfterModalHide: true,
+                                sentryLabel: CONST.SENTRY_LABEL.REPORT.EDIT_REPORT_FIELD_DELETE,
                             },
                         ]}
                     />
