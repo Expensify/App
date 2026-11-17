@@ -1,4 +1,4 @@
-/** A row of the Concierge page list, styled like an Inbox chat row in focus mode, without the avatar. Each row reads its own data, so a change to one conversation only redraws that row. */
+/** A row of the Concierge page list, styled like an Inbox chat row in focus mode, without the avatar: the title, then the latest message as far as it fits. Each row reads its own data, so a change to one conversation only redraws that row. */
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -39,6 +39,10 @@ type ConciergeConversationRowProps = {
 
 type ConciergeConversationRowContentProps = {
     title: string;
+
+    /** The most recent message, whose first sentence follows the title as far as it fits */
+    lastMessage: string;
+
     isUnread: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     isSelected: boolean;
@@ -56,12 +60,18 @@ function getFirstLine(text: string): string {
     );
 }
 
-function ConciergeConversationRowContent({title, isUnread: isConversationUnread, brickRoadIndicator, isSelected, onPress}: ConciergeConversationRowContentProps) {
+function getFirstSentence(text: string): string {
+    const singleLineText = text.replaceAll(/\s+/g, ' ').trim();
+    return singleLineText.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? singleLineText;
+}
+
+function ConciergeConversationRowContent({title, lastMessage, isUnread: isConversationUnread, brickRoadIndicator, isSelected, onPress}: ConciergeConversationRowContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const firstLine = getFirstLine(title);
+    const lastMessageFirstSentence = getFirstSentence(lastMessage);
 
     return (
         <PressableWithFeedback
@@ -83,12 +93,30 @@ function ConciergeConversationRowContent({title, isUnread: isConversationUnread,
             ]}
         >
             <View style={[styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]}>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, styles.sidebarLinkText, isConversationUnread && styles.sidebarLinkTextBold]}
-                >
-                    {firstLine}
-                </Text>
+                <View style={[styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[
+                            styles.optionDisplayName,
+                            styles.optionDisplayNameCompact,
+                            styles.pre,
+                            styles.sidebarLinkText,
+                            isConversationUnread && styles.sidebarLinkTextBold,
+                            styles.flexShrink0,
+                            styles.mw100,
+                        ]}
+                    >
+                        {firstLine}
+                    </Text>
+                    {!!lastMessageFirstSentence && (
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.pre, styles.ml2]}
+                        >
+                            {lastMessageFirstSentence}
+                        </Text>
+                    )}
+                </View>
             </View>
             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                 <Icon
@@ -107,13 +135,14 @@ function ConciergeThreadRow({conversation, isSelected, onOpenThread}: ConciergeC
         return {reportName: threadAttributes?.reportName ?? '', brickRoadStatus: threadAttributes?.brickRoadStatus};
     };
     const [threadAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: threadAttributesSelector});
-    const isThreadUnreadSelector = (report: OnyxEntry<Report>) => isUnread(report, undefined, false, undefined);
-    const [isThreadUnread = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: isThreadUnreadSelector});
+    const threadSummarySelector = (report: OnyxEntry<Report>) => ({isUnread: isUnread(report, undefined, false, undefined), lastMessageText: report?.lastMessageText ?? ''});
+    const [threadSummary] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: threadSummarySelector});
 
     return (
         <ConciergeConversationRowContent
             title={threadAttributes?.reportName ?? ''}
-            isUnread={isThreadUnread}
+            lastMessage={threadSummary?.lastMessageText ?? ''}
+            isUnread={threadSummary?.isUnread ?? false}
             brickRoadIndicator={threadAttributes?.brickRoadStatus}
             isSelected={isSelected}
             onPress={() => {
@@ -135,9 +164,14 @@ function ConciergeMessageRow({conversation, onOpenMessage}: ConciergeConversatio
     const isMessageUnreadSelector = (report: OnyxEntry<Report>) => !report?.lastReadTime || conversation.lastActivity > report.lastReadTime;
     const [isMessageUnread = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: isMessageUnreadSelector});
 
+    const messageText = getReportActionMessageText(message);
+    const messageTitle = getFirstLine(messageText);
+
     return (
         <ConciergeConversationRowContent
-            title={getReportActionMessageText(message)}
+            title={messageText}
+            // A message without a thread has no replies, so the rest of the message after its heading follows the title
+            lastMessage={messageText.slice(messageText.indexOf(messageTitle) + messageTitle.length)}
             isUnread={isMessageUnread}
             isSelected={false}
             onPress={() => {
