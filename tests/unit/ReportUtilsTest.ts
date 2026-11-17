@@ -20402,7 +20402,6 @@ describe('ReportUtils', () => {
 
         it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
             const otherUserEmail = 'other@test.com';
-            const otherAccountID = 42;
             const policyWithPreventOn: Policy = {
                 ...createRandomPolicy(1),
                 id: policyID,
@@ -20432,10 +20431,6 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                ...participantsPersonalDetails,
-                [otherAccountID]: {accountID: otherAccountID, login: otherUserEmail},
-            });
             await waitForBatchedUpdates();
 
             expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
