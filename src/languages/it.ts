@@ -1255,9 +1255,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Media tutti gli esercenti',
             allCategoryAverage: 'Media di tutte le categorie',
             averageValue: (amount: string) => `${amount} in media`,
+            allViolationAverage: 'Media di tutte le violazioni',
+            noChange: 'Nessuna modifica',
+            percentChange: '% variazione',
         },
         compliance: 'Conformità',
         runningTotal: 'Totale progressivo',
+        futureExpensesNotShown: (amount: string) => `Non mostrato: ${amount} in spese future.`,
+        violationsTrackedFrom: (date: string) => `Le violazioni vengono tracciate a partire dal ${date}.`,
         upsellState: {
             title: 'Passa a Control per maggiori informazioni',
             subtitle: 'Tieni traccia delle tendenze di conformità alla policy spese e segnala i recidivi.',
@@ -1279,6 +1284,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        share: 'Quota%',
         averageDays: 'Giorni medi',
     },
     allSettingsScreen: {
@@ -2086,6 +2092,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} report`,
             };
         },
+        payViaABA: 'Paga tramite ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} non ha un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.`,
+        submittersMissingABADepositAccount: 'Uno o più mittenti non hanno un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.',
     },
     transactionMerge: {
         listPage: {

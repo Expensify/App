@@ -1298,9 +1298,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
             allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
             averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
+            allViolationAverage: 'Μέσος όρος όλων των παραβάσεων',
+            noChange: 'Χωρίς αλλαγή',
+            percentChange: '% μεταβολή',
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        futureExpensesNotShown: (amount: string) => `Δεν εμφανίζονται: ${amount} σε μελλοντικές δαπάνες.`,
+        violationsTrackedFrom: (date: string) => `Οι παραβάσεις παρακολουθούνται από ${date}.`,
         upsellState: {
             title: 'Αναβαθμίστε σε Control για περισσότερες πληροφορίες',
             subtitle: 'Παρακολουθήστε τις τάσεις συμμόρφωσης με την πολιτική εξόδων και επισημάνετε τους επανειλημμένους παραβάτες.',
@@ -1322,6 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
@@ -2137,6 +2143,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} αναφορές`,
             };
         },
+        payViaABA: 'Πληρωμή μέσω ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `Ο/Η ${name} δεν έχει τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και δοκιμάστε ξανά.`,
+        submittersMissingABADepositAccount: 'Ένας ή περισσότεροι αποστολείς δεν έχουν τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και προσπαθήστε ξανά.',
     },
     transactionMerge: {
         listPage: {

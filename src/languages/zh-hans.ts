@@ -1205,9 +1205,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: '所有商户平均值',
             allCategoryAverage: '所有类别平均值',
             averageValue: (amount: string) => `${amount} 平均`,
+            allViolationAverage: '所有违规平均值',
+            noChange: '无更改',
+            percentChange: '百分比变动',
         },
         compliance: '合规',
         runningTotal: '累计总额',
+        futureExpensesNotShown: (amount: string) => `未显示：未来报销金额 ${amount}。`,
+        violationsTrackedFrom: (date: string) => `从 ${date} 起开始记录违规情况。`,
         upsellState: {title: '升级到 Control，获取更多洞察', subtitle: '跟踪报销政策合规趋势，并标记屡次违规的用户。', button: '升级至 Control'},
         explain: '解释',
         explainChartPrompt: (chartTitle: string) => `解释「${chartTitle}」中的数据。`,
@@ -1225,6 +1230,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        share: '占比',
         averageDays: '平均天数',
     },
     allSettingsScreen: {
@@ -1996,6 +2002,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} 份报销单`,
             };
         },
+        payViaABA: '通过 ABA 支付',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} 没有 AUD 银行账户。请让 TA 添加一个后再重试。`,
+        submittersMissingABADepositAccount: '一个或多个提交人没有 AUD 银行账户。请让他们添加一个后再试一次。',
     },
     transactionMerge: {
         listPage: {

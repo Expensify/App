@@ -139,8 +139,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.VIOLATION]: {
         titleIconName: 'Exclamation',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? item.formattedViolation : ''),
-        // Search has no violation type filter, so a clicked violation opens the chart's whole query
-        getFilterQuery: () => '',
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${item.violation}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.PAID_BY]: {
         titleIconName: 'Users',

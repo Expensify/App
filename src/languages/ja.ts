@@ -1240,9 +1240,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: '全加盟店の平均',
             allCategoryAverage: '全カテゴリ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
+            allViolationAverage: 'すべての違反の平均',
+            noChange: '変更なし',
+            percentChange: '％ 変化',
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        futureExpensesNotShown: (amount: string) => `非表示：将来の経費に${amount}あります。`,
+        violationsTrackedFrom: (date: string) => `違反は${date}から追跡されます。`,
         upsellState: {
             title: 'より多くのインサイトを得るには Control にアップグレードしてください',
             subtitle: '経費ポリシー順守の傾向を追跡し、違反を繰り返すユーザーにフラグを付けます。',
@@ -1264,6 +1269,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        share: 'シェア割合',
         averageDays: '平均日数',
     },
     allSettingsScreen: {
@@ -2065,6 +2071,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} レポート`,
             };
         },
+        payViaABA: 'ABA で支払う',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} はAUDの銀行口座をお持ちではありません。口座を追加してもらい、もう一度お試しください。`,
+        submittersMissingABADepositAccount: '1 人以上の申請者が AUD 銀行口座を登録していません。口座を追加するよう依頼してから、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {

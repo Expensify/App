@@ -2,7 +2,8 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {canPayViaABA} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
@@ -30,8 +31,10 @@ import {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -61,9 +64,11 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle', 'Paycheck']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const policy = usePolicy(policyID);
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
@@ -96,6 +101,7 @@ function usePaymentOptions({
     const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -155,8 +161,27 @@ function usePaymentOptions({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy, isPayViaABABetaEnabled);
+
+        // An ABA account is also a business account, so only need to show the pay via business account option if there
+        // is another business account to pay with, e.g. one set up through Corpay
+        if (
+            isExpenseReport &&
+            shouldShowPayWithExpensifyOption &&
+            (!shouldShowPayViaABAOption || getBusinessBankAccountOptions(formatPaymentMethods(bankAccountList, fundList, styles, translate), currency).length > 0)
+        ) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+        }
+        if (shouldShowPayViaABAOption) {
+            buttonOptions.push({
+                text: translate('iou.payViaABA'),
+                icon: icons.Paycheck,
+                value: CONST.PAYMENT_METHODS.ABA,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_VIA_ABA,
+                // The file is downloaded straight from the API, which can't be queued for when the user is back online
+                disabled: isOffline,
+                onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}),
+            });
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
@@ -273,6 +298,12 @@ function usePaymentOptions({
         icons,
         hasActivatedWallet,
         hasPersonalBankAccount,
+        policy,
+        isPayViaABABetaEnabled,
+        isOffline,
+        bankAccountList,
+        fundList,
+        styles,
     ]);
 
     return paymentButtonOptions;

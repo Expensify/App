@@ -1278,9 +1278,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Średnia dla wszystkich sprzedawców',
             allCategoryAverage: 'Średnia dla wszystkich kategorii',
             averageValue: (amount: string) => `średnio ${amount}`,
+            allViolationAverage: 'Średnia wszystkich naruszeń',
+            noChange: 'Bez zmian',
+            percentChange: '% zmiana',
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
+        futureExpensesNotShown: (amount: string) => `Nie pokazano: ${amount} w przyszłych wydatkach.`,
+        violationsTrackedFrom: (date: string) => `Naruszenia są śledzone od ${date}.`,
         upsellState: {
             title: 'Ulepsz do Control, aby zyskać więcej wglądu',
             subtitle: 'Śledź trendy przestrzegania zasad dotyczących wydatków i oznaczaj osoby wielokrotnie je naruszające.',
@@ -1302,6 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        share: 'Udział',
         averageDays: 'Średnia liczba dni',
     },
     allSettingsScreen: {
@@ -2125,6 +2131,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `raporty: ${formattedCount ?? count}`,
             };
         },
+        payViaABA: 'Zapłać przez ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} nie ma konta bankowego w AUD. Poproś, żeby je dodał/dodała i spróbuj ponownie.`,
+        submittersMissingABADepositAccount: 'Jedna lub więcej osób przesyłających wydatki nie ma konta bankowego w AUD. Poproś je o dodanie takiego konta i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {

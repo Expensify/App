@@ -60,10 +60,16 @@ const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'insightsPage.compare.allSpenderAverage',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'insightsPage.compare.allMerchantAverage',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'insightsPage.compare.allCategoryAverage',
+    [CONST.SEARCH.GROUP_BY.VIOLATION]: 'insightsPage.compare.allViolationAverage',
     [CONST.SEARCH.GROUP_BY.APPROVER]: 'insightsPage.compare.allApproverAverage',
     [CONST.SEARCH.GROUP_BY.PAID_BY]: 'insightsPage.compare.allPayerAverage',
     [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'insightsPage.compare.allStageAverage',
 };
+
+/** Returns the label naming the average a chart grouped by `groupBy` is compared against */
+function getAverageLabelKey(groupBy: SearchGroupBy): TranslationPaths {
+    return AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average';
+}
 
 type BuildChartSeriesParams = {
     /** Grouped search results, in the order the search returned them */
@@ -102,8 +108,8 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today with no expenses of its own, which a running total's count no longer shows */
     isEmptyLaterPeriod?: (item: GroupedItem) => boolean;
 
-    /** Returns whether a compared group has expenses of its own, which a running total's count no longer shows. Reads the group's count by default. */
-    hasComparedExpenses?: (item: GroupedItem) => boolean;
+    /** First day the data was recorded, as a yyyy-MM-dd string. A compared bucket that ends before it has no data, so it plots nothing instead of 0. */
+    trackedFrom?: string;
 
     /** Formats labels shared by paired time buckets, and the name of an average */
     translate: LocaleContextProps['translate'];
@@ -153,7 +159,7 @@ function buildChartSeries({
     getInProgressLabel,
     isLaterPeriod,
     isEmptyLaterPeriod,
-    hasComparedExpenses = (item) => !!item.count,
+    trackedFrom,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -221,12 +227,12 @@ function buildChartSeries({
         if (periods && isTimeGroupBy(groupBy) && bucketRange) {
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
-            const compared = comparedItem ?? (counterpartRange && buildEmptyGroup(item));
+            const isCounterpartTracked = !!counterpartRange && (!trackedFrom || counterpartRange.end >= trackedFrom);
+            const compared = comparedItem ?? (isCounterpartTracked ? buildEmptyGroup(item) : undefined);
             return {
                 value: compared && getValue(compared),
                 percentOfTotal: compared && getComparedShare(compared),
                 total: compared && getTotal(compared),
-                hasExpenses: !!comparedItem && hasComparedExpenses(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
                 sortDate: bucketRange.start,
@@ -272,7 +278,6 @@ function buildChartSeries({
         return {
             row: {point, item},
             isEmptyLaterPeriod: !!isEmptyLaterPeriod?.(item),
-            hasComparedExpenses: !!compared?.hasExpenses,
             counterpartStart: compared?.counterpartStart,
             sortDate: compared?.sortDate ?? '',
         };
@@ -291,7 +296,7 @@ function buildChartSeries({
             isInProgress: false,
         };
         const row: SearchChartDataRow = {point};
-        return {row, isEmptyLaterPeriod: false, hasComparedExpenses: hasComparedExpenses(comparedItem), sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
+        return {row, isEmptyLaterPeriod: false, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
     };
 
     const pairedStarts = new Set(pairedRows.map((pairedRow) => pairedRow.counterpartStart));
@@ -311,20 +316,18 @@ function buildChartSeries({
         return first.sortDate < second.sortDate ? -1 : 1;
     });
 
-    // Ends the current line at today, or at the last future expense, instead of drawing $0 through periods that haven't come yet.
+    // Ends the current line at today instead of drawing $0 through periods that haven't come yet.
     const lastCurrentIndex = sortedRows.findLastIndex((sortedRow) => !!sortedRow.row.item && !sortedRow.isEmptyLaterPeriod);
     const plottedRows = sortedRows.map(({row, isEmptyLaterPeriod: isEmpty}, index) =>
         index > lastCurrentIndex && isEmpty ? {...row, point: {...row.point, values: {...row.point.values, [CHART_SERIES_KEY.PRIMARY]: undefined}}} : row,
     );
-    // The chart goes on through the compared period's last expense
-    const lastPlottedIndex = sortedRows.findLastIndex((sortedRow, index) => index <= lastCurrentIndex || sortedRow.hasComparedExpenses);
-    const rows = plottedRows.slice(0, lastPlottedIndex + 1);
+    const rows = comparedRows ? plottedRows : plottedRows.slice(0, lastCurrentIndex + 1);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};
     const comparisonSeries: ChartSeries | undefined =
         averageValue !== undefined
-            ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
+            ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(getAverageLabelKey(groupBy)), isAverage: true}
             : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
 
     return {
@@ -347,5 +350,5 @@ function buildChartSeries({
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
+export {buildChartSeries, getAverageLabelKey, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
 export type {ChartAverage, ChartComparison, SearchChartModel};
