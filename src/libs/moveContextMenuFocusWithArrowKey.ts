@@ -5,8 +5,12 @@
  */
 import CONST from '@src/CONST';
 
+import type {HostInstance} from 'react-native';
+
 import DomUtils from './DomUtils';
 import getHadTabNavigation from './hadTabNavigation';
+
+type KeyDownEventTarget = EventTarget | HostInstance | number;
 
 type ToolbarKeyModifiers = {
     altKey?: boolean;
@@ -18,8 +22,7 @@ type ToolbarKeyModifiers = {
 type ToolbarKeyDownEvent = ToolbarKeyModifiers & {
     key?: string;
     nativeEvent?: ToolbarKeyModifiers & {key?: string};
-    // A DOM node on web. React Native's key events type it as a host instance or a native tag, which can't be queried.
-    currentTarget?: unknown;
+    currentTarget?: KeyDownEventTarget | null;
     preventDefault: () => void;
 };
 
@@ -53,7 +56,7 @@ function getAdjacentHorizontalIndex(currentIndex: number, key: string, lastIndex
     return currentIndex;
 }
 
-function canQueryToolbarButtons(node: unknown): node is Node & ParentNode {
+function canQueryToolbarButtons(node: KeyDownEventTarget | null | undefined): node is Node & ParentNode {
     return typeof node === 'object' && !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
 }
 
@@ -75,7 +78,7 @@ function isActiveToolbarButton(button: Element, activeElement: Element | null): 
     return button === activeElement || button.contains(activeElement);
 }
 
-function getReactionRow(root: unknown, activeElement: Element): (Node & ParentNode) | null {
+function getReactionRow(root: KeyDownEventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
     if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
         return null;
     }
@@ -91,7 +94,7 @@ function getReactionRow(root: unknown, activeElement: Element): (Node & ParentNo
     return null;
 }
 
-function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: unknown): void {
+function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: KeyDownEventTarget | null | undefined): void {
     const key = getPressedKey(event);
     // Arrow shortcuts have empty modifier lists. Alt+Arrow is browser history, so do not steal it.
     if (!isHorizontalArrowKey(key) || hasModifierKey(event)) {
