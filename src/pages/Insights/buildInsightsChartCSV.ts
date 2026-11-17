@@ -1,4 +1,5 @@
 /** Builds a CSV from the current period's loaded chart groups, without exporting individual expenses. */
+import {COUNT_COLUMN_TITLE_KEYS} from '@components/Charts/utils/formatChartCount';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import {getAverageDuration} from '@components/Search/chartMetricValue';
@@ -52,7 +53,7 @@ function buildInsightsChartCSV({
 }: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
-    const countHeader = translate(countDimension === CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT ? 'common.reports' : 'common.expenses');
+    const countHeader = translate(COUNT_COLUMN_TITLE_KEYS[countDimension]);
     const isDurationMetric = metric === CONST.SEARCH.CHART_METRIC.DURATION;
     const valueHeaders = isDurationMetric ? [translate('insightsPage.averageDays')] : [translate('common.total'), translate('common.currency')];
     const header = [groupHeader, countHeader, ...valueHeaders].map(escapeCsvField).join(',');
