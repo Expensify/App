@@ -24,6 +24,7 @@ import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+import type ReactNative from 'react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
@@ -35,8 +36,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Log');
 
 jest.mock('react-native-render-html', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {View: MockView} = require('react-native');
+    const {View: MockView} = jest.requireActual<typeof ReactNative>('react-native');
     return {
         RenderHTMLConfigProvider: ({children}: {children: React.ReactNode}) => children,
         RenderHTMLSource: () => <MockView />,
