@@ -8,14 +8,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDateMaskParts} from '@libs/DateInputMaskUtils';
-import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
 
 import type {ViewStyle} from 'react-native';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {AnimatedTextInputRef} from './RNTextInput';
@@ -24,9 +23,6 @@ import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 import {PressableWithoutFeedback} from './Pressable';
 import RNTextInput from './RNTextInput';
 import Text from './Text';
-
-/** A measured width is rounded to a whole pixel, which can leave it short of the text and wrap the mask */
-const WIDTH_ROUNDING_ALLOWANCE = 1;
 
 /** Reads back the padding the field hands its text, which is what a selection has to leave alone to cover the line */
 function getVerticalPadding(inputStyle: BaseTextInputProps['style']): ViewStyle {
@@ -55,8 +51,6 @@ function DateSegmentsInput({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    // Mask letters are wider than the digits that replace them, so each segment is measured from the text it shows
-    const [measuredWidths, setMeasuredWidths] = useState<Partial<Record<DateSegmentName, number>>>({});
 
     if (!dateSegmentsConfig) {
         return null;
@@ -104,34 +98,31 @@ function DateSegmentsInput({
                     const segmentProps = part.segmentProps;
                     // The mask letters a half typed segment has not reached yet stay on screen, so the date keeps its shape
                     const remainder = part.placeholder.slice(segmentProps.value.length);
-                    const measuredText = `${segmentProps.value}${remainder}`;
-                    const width = (measuredWidths[part.name] ?? measuredText.length * CONST.CHARACTER_WIDTH) + WIDTH_ROUNDING_ALLOWANCE;
+                    const sizingText = `${segmentProps.value}${remainder}`;
 
                     return (
                         <React.Fragment key={part.name}>
-                            <Text
-                                style={[style, styles.ph0, sizedToContent, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
-                                accessible={false}
-                                accessibilityElementsHidden
-                                importantForAccessibility="no"
-                                aria-hidden
-                                onLayout={(event) => {
-                                    const layoutWidth = event.nativeEvent.layout.width;
-                                    if (!layoutWidth) {
-                                        return;
-                                    }
-
-                                    setMeasuredWidths((previous) => (previous[part.name] === layoutWidth ? previous : {...previous, [part.name]: layoutWidth}));
-                                }}
-                            >
-                                {measuredText}
-                            </Text>
                             {/* A row, since the input's `flex: 1` would take a column's height away */}
-                            <View style={[sizedToContent, styles.flexRow, StyleUtils.getWidthStyle(width)]}>
+                            <View style={[sizedToContent, styles.flexRow]}>
+                                {/*
+                                 * The segment takes its width from this copy of the text laid out underneath the input,
+                                 * so the width is already right on the frame the text changes. Measuring the text and
+                                 * then applying the width leaves one frame at the old width, which shows as the date
+                                 * shifting when a value arrives over the mask.
+                                 */}
+                                <Text
+                                    style={[style, styles.ph0, sizedToContent, styles.opacity0]}
+                                    accessible={false}
+                                    accessibilityElementsHidden
+                                    importantForAccessibility="no"
+                                    aria-hidden
+                                >
+                                    {sizingText}
+                                </Text>
                                 <RNTextInput
                                     // The field's own ref has to lead somewhere, and the year is where typing starts
                                     ref={mergeRefs(part.name === 'year' ? ref : undefined, (element: AnimatedTextInputRef | null) => setSegmentRef(part.name, element))}
-                                    style={[style, styles.ph0, styles.w100]}
+                                    style={[style, styles.ph0, styles.pAbsolute, styles.l0, styles.t0, styles.r0, styles.b0]}
                                     value={segmentProps.value}
                                     onKeyPress={(event) => {
                                         onKeyPress?.(event);
