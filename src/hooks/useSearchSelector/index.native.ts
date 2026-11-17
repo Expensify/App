@@ -51,4 +51,3 @@ function useSearchSelector<TSelected extends Option = OptionData>(config: UseSea
 }
 
 export default useSearchSelector;
-export type {ContactState};

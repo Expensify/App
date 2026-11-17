@@ -1,5 +1,6 @@
 import useSingleExecution from '@hooks/useSingleExecution';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import mergeRefs from '@libs/mergeRefs';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -7,6 +8,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
@@ -21,17 +23,19 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 
 type MenuItemLink = string | (() => Promise<string>);
 
-type MenuItemWithLink = MenuItemProps & {
-    link?: MenuItemLink;
+// A link adds a context menu on secondary interaction, so the item needs a label even without onPress.
+type MenuItemWithLink = MenuItemProps &
+    WithSentryLabelWhenPressable<'link'> & {
+        link?: MenuItemLink;
 
-    /** A unique key for the menu item */
-    key?: string;
+        /** A unique key for the menu item */
+        key?: string;
 
-    pendingAction?: OnyxCommon.PendingAction | null;
-    onPendingActionDismiss?: () => void;
-    error?: OnyxCommon.Errors | null;
-    shouldForceOpacity?: boolean;
-};
+        pendingAction?: OnyxCommon.PendingAction | null;
+        onPendingActionDismiss?: () => void;
+        error?: OnyxCommon.Errors | null;
+        shouldForceOpacity?: boolean;
+    };
 
 type MenuItemListProps = {
     /** An array of props that are pass to individual MenuItem components */
@@ -82,32 +86,38 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         // ref is accessed for MenuItem's ref initialization
-        menuItems.map(({key, ref, ...menuItemProps}) => (
-            <OfflineWithFeedback
-                key={key ?? menuItemProps.title}
-                pendingAction={menuItemProps.pendingAction}
-                onClose={menuItemProps.onPendingActionDismiss}
-                errors={menuItemProps.error}
-                shouldForceOpacity={menuItemProps.shouldForceOpacity}
-            >
-                <MenuItem
+        menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, ...menuItemProps}) => {
+            return (
+                <OfflineWithFeedback
                     key={key ?? menuItemProps.title}
-                    wrapperStyle={wrapperStyle}
-                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
-                    ref={mergeRefs(ref, popoverAnchor)}
-                    shouldBlockSelection={!!menuItemProps.link}
-                    icon={icon}
-                    iconWidth={iconWidth}
-                    iconHeight={iconHeight}
-                    {...menuItemProps}
-                    disabled={!!menuItemProps.disabled || isExecuting}
-                    shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
-                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
-                    isFocused={isFocused}
-                />
-            </OfflineWithFeedback>
-        ))
+                    pendingAction={menuItemProps.pendingAction}
+                    onClose={menuItemProps.onPendingActionDismiss}
+                    errors={menuItemProps.error}
+                    shouldForceOpacity={menuItemProps.shouldForceOpacity}
+                >
+                    <MenuItem
+                        key={key ?? menuItemProps.title}
+                        wrapperStyle={wrapperStyle}
+                        shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
+                        ref={mergeRefs(ref, popoverAnchor)}
+                        shouldBlockSelection={!!menuItemProps.link}
+                        icon={icon}
+                        iconWidth={iconWidth}
+                        iconHeight={iconHeight}
+                        {...menuItemProps}
+                        sentryLabel={castToSentryLabel(sentryLabel)}
+                        onPress={shouldUseSingleExecution ? singleExecution(onPress) : onPress}
+                        onSecondaryInteraction={
+                            onSecondaryInteraction ??
+                            (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined)
+                        }
+                        disabled={!!menuItemProps.disabled || isExecuting}
+                        shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
+                        isFocused={isFocused}
+                    />
+                </OfflineWithFeedback>
+            );
+        })
     );
 }
 

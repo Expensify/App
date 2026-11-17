@@ -71,4 +71,3 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
 SubTrigger.displayName = 'PopoverMenu.Sub.Trigger';
 
 export default SubTrigger;
-export type {SubTriggerProps};

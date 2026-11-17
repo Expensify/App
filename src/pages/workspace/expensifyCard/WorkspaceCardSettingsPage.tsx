@@ -126,6 +126,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                             <>
                                                 {translate('workspace.expensifyCard.settlementFrequencyInfo')}{' '}
                                                 <TextLink
+                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.SETTINGS_SETTLEMENT_FREQUENCY_LEARN_MORE_LINK}
                                                     href={CONST.EXPENSIFY_CARD.MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK}
                                                     style={styles.label}
                                                 >

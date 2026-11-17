@@ -1,7 +1,7 @@
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
-import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+import type {UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
 
 import useSearchSelectorBase from './base';
 
@@ -18,4 +18,3 @@ function useSearchSelector<TSelected extends Option = OptionData>(config: UseSea
 }
 
 export default useSearchSelector;
-export type {ContactState};

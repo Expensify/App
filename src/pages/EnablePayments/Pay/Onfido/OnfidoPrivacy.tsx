@@ -69,11 +69,27 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA, onProceed
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
                             <Text style={[styles.mb5]}>
                                 {`${translate('onfidoStep.acceptTerms')} `}
-                                <TextLink href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}>{translate('onfidoStep.facialScan')}</TextLink>
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.PAY_ONFIDO_FACIAL_SCAN_POLICY_LINK}
+                                    href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
+                                >
+                                    {translate('onfidoStep.facialScan')}
+                                </TextLink>
                                 {', '}
-                                <TextLink href={CONST.ONFIDO_PRIVACY_POLICY_URL}>{translate('common.privacy')}</TextLink>
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.PAY_ONFIDO_PRIVACY_POLICY_LINK}
+                                    href={CONST.ONFIDO_PRIVACY_POLICY_URL}
+                                >
+                                    {translate('common.privacy')}
+                                </TextLink>
                                 {` ${translate('common.and')} `}
-                                <TextLink href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}>{translate('common.termsOfService')}</TextLink>.
+                                <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.PAY_ONFIDO_TERMS_OF_SERVICE_LINK}
+                                    href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
+                                >
+                                    {translate('common.termsOfService')}
+                                </TextLink>
+                                .
                             </Text>
                         </View>
                     </FormScrollView>
