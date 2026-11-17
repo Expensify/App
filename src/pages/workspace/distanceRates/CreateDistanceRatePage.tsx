@@ -268,7 +268,7 @@ function CreateDistanceRatePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID="CreateDistanceRatePage"
-                shouldEnableKeyboardAvoidingView={false}
+                shouldKeyboardOffsetBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={styles.flexGrow1}>
@@ -282,7 +282,6 @@ function CreateDistanceRatePage({
                         isSubmitDisabled={isGovernmentKind && !currentGovernmentRate}
                         enabledWhenOffline
                         style={[styles.mh5, styles.flex1]}
-                        submitButtonStyles={[styles.mt0]}
                         addBottomSafeAreaPadding
                     >
                         {!isDistanceRateUpgrade && (
