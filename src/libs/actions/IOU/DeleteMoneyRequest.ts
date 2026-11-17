@@ -660,6 +660,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     currentUserAccountID,
     transactionThread: transactionThreadParam,
     iouReport,
+    isArchivedIOUReport,
     chatReport,
     transactionThreadReportActionsParam,
 }: {
@@ -672,21 +673,21 @@ function getCleanUpTransactionThreadReportOnyxData({
     transactionThread?: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReportActionsParam?: OnyxEntry<OnyxTypes.ReportActions>;
 } &
-    // IouReport and chatReport is required when reportAction is passed. As reportAction can be optional, this union gives better type check
+    // IouReport, chatReport and isArchivedIOUReport are required when reportAction is passed. As reportAction can be optional, this union gives better type check
     (
         | {
               reportAction: ReportAction;
               iouReport: OnyxEntry<OnyxTypes.Report>;
               chatReport: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport: boolean;
           }
         | {
               reportAction?: undefined;
               iouReport?: OnyxEntry<OnyxTypes.Report>;
               chatReport?: OnyxEntry<OnyxTypes.Report>;
+              isArchivedIOUReport?: boolean;
           }
     )) {
-    const allReportNameValuePairs = getAllReportNameValuePairs();
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -757,10 +758,7 @@ function getCleanUpTransactionThreadReportOnyxData({
     ) {
         let canUserPerformWriteAction = true;
         if (chatReport) {
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-
-            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedExpenseReport);
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatIOUReportArchived ?? isArchivedIOUReport);
         }
         const lastVisibleAction = getLastVisibleAction(iouReportID, canUserPerformWriteAction, {}, undefined, undefined, currentUserAccountID);
 
@@ -1022,6 +1020,7 @@ function deleteMoneyRequest({
         currentUserAccountID,
         transactionThread: transactionThreadReport,
         iouReport,
+        isArchivedIOUReport: isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
         chatReport,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });
