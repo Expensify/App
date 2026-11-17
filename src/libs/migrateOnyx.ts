@@ -24,10 +24,11 @@ export default function () {
         const migrationPromises: Array<() => Promise<void>> = [
             MoveFilesOutOfDocuments,
             ReplaceShouldUseStagingServerWithActiveServer,
+            // Runs before the migrations that read or rewrite snapshots, so they don't load the ones it drops
+            ClearUntrackedSearchSnapshots,
             MoveSearchQueryByHashToSnapshots,
             RenameLegacySageIntacctExportDate,
             RemoveSearchRowFieldsFromTransactions,
-            ClearUntrackedSearchSnapshots,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

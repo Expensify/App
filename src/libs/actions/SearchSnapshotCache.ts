@@ -10,18 +10,20 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** When the Search page opened its query. Snapshots used since then (the query and its expanded groups) are on screen and can't be evicted */
+/** When the focused Search page opened its query. Snapshots used since then (the query and its expanded groups) are on screen and can't be evicted */
 let currentPageOpenedAt = Infinity;
 
 /** Each update reads the access record the previous one wrote, so calls fired together don't overwrite each other */
 let accessQueue = Promise.resolve();
 
-/** Unpinned snapshots outside the most recently used MAX_CACHED_SNAPSHOTS */
+/** Snapshots outside the most recently used ones of their kind. Pinned and ordinary snapshots are capped separately */
 function getEvictedHashes(access: SearchSnapshotAccess): string[] {
-    return Object.keys(access)
-        .filter((hash) => access[hash].lastAccessed < currentPageOpenedAt && !access[hash].isPinned)
-        .sort((a, b) => access[b].lastAccessed - access[a].lastAccessed)
-        .slice(CONST.SEARCH.MAX_CACHED_SNAPSHOTS);
+    const newestFirst = Object.keys(access)
+        .filter((hash) => access[hash].lastAccessed < currentPageOpenedAt)
+        .sort((a, b) => access[b].lastAccessed - access[a].lastAccessed);
+    const evictedPinned = newestFirst.filter((hash) => access[hash].isPinned).slice(CONST.SEARCH.MAX_CACHED_PINNED_SNAPSHOTS);
+    const evictedOrdinary = newestFirst.filter((hash) => !access[hash].isPinned).slice(CONST.SEARCH.MAX_CACHED_SNAPSHOTS);
+    return [...evictedPinned, ...evictedOrdinary];
 }
 
 async function updateSnapshotAccess(hashes: number[], isPinned: boolean) {
@@ -48,7 +50,7 @@ async function updateSnapshotAccess(hashes: number[], isPinned: boolean) {
     }
 }
 
-/** Marks Search snapshots as just used and evicts the least recently used unpinned snapshots past the cap */
+/** Marks Search snapshots as just used and evicts the least recently used ones past their cap */
 function trackSearchSnapshotAccess(hashes: number[], isPinned = false) {
     accessQueue = accessQueue.then(() => updateSnapshotAccess(hashes, isPinned));
     return accessQueue;
@@ -60,23 +62,9 @@ function trackSearchPageSnapshotAccess(hash: number, isPinned: boolean) {
     return trackSearchSnapshotAccess([hash], isPinned);
 }
 
-/** Lets the snapshots the Search page used be evicted again once it shows another query or closes */
+/** Lets the snapshots the Search page used be evicted again once it shows another query or loses focus */
 function leaveSearchPage() {
     currentPageOpenedAt = Infinity;
 }
 
-/** Returns the snapshot of a saved search that was edited or deleted to the evictable pool */
-function unpinSearchSnapshot(hash: number) {
-    accessQueue = accessQueue.then(async () => {
-        const access = await readOnceOnyxValue(ONYXKEYS.SEARCH_SNAPSHOT_ACCESS);
-        if (!access?.[hash]) {
-            return;
-        }
-        await Onyx.merge(ONYXKEYS.SEARCH_SNAPSHOT_ACCESS, {[hash]: {isPinned: false}}).catch((error: unknown) =>
-            Log.hmmm('[Search] failed to unpin a cached snapshot', {error: String(error)}),
-        );
-    });
-    return accessQueue;
-}
-
-export {trackSearchSnapshotAccess, trackSearchPageSnapshotAccess, leaveSearchPage, unpinSearchSnapshot};
+export {trackSearchSnapshotAccess, trackSearchPageSnapshotAccess, leaveSearchPage};

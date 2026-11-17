@@ -133,7 +133,7 @@ import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
-import {trackSearchSnapshotAccess, unpinSearchSnapshot} from './SearchSnapshotCache';
+import {trackSearchSnapshotAccess} from './SearchSnapshotCache';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -934,14 +934,9 @@ function getOnyxLoadingData(
     return {optimisticData, finallyData, failureData};
 }
 
-/** @param previousQuery The query an existing saved search had before this save, so its snapshot can be evicted again */
-function saveSearch({id, queryJSON, newName, previousQuery}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string; previousQuery?: string}) {
+function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const normalizedQuery = normalizeDatePresetsInQuery(queryJSON.inputQuery);
     const savedQueryJSON = normalizedQuery === queryJSON.inputQuery ? queryJSON : (buildSearchQueryJSON(normalizedQuery) ?? queryJSON);
-    const previousHash = previousQuery ? buildSearchQueryJSON(previousQuery)?.hash : undefined;
-    if (previousHash !== undefined && previousHash !== savedQueryJSON.hash) {
-        unpinSearchSnapshot(previousHash);
-    }
     const saveSearchName = newName ?? savedQueryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(savedQueryJSON);
 
@@ -1045,12 +1040,7 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
 }
 
-/** @param query The deleted saved search's query, so its snapshot can be evicted again */
-function deleteSavedSearch(savedSearchID: string, query?: string) {
-    const hash = query ? buildSearchQueryJSON(query)?.hash : undefined;
-    if (hash !== undefined) {
-        unpinSearchSnapshot(hash);
-    }
+function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

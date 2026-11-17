@@ -1,4 +1,4 @@
-import {leaveSearchPage, trackSearchPageSnapshotAccess, trackSearchSnapshotAccess, unpinSearchSnapshot} from '@libs/actions/SearchSnapshotCache';
+import {leaveSearchPage, trackSearchPageSnapshotAccess, trackSearchSnapshotAccess} from '@libs/actions/SearchSnapshotCache';
 import ClearUntrackedSearchSnapshots from '@libs/migrations/ClearUntrackedSearchSnapshots';
 
 import CONST from '@src/CONST';
@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const MAX = CONST.SEARCH.MAX_CACHED_SNAPSHOTS;
+const MAX_PINNED = CONST.SEARCH.MAX_CACHED_PINNED_SNAPSHOTS;
 
 function getSnapshotHashes(): Promise<number[]> {
     return new Promise((resolve) => {
@@ -114,16 +115,17 @@ describe('trackSearchSnapshotAccess', () => {
         expect(hashes).toHaveLength(MAX + 1);
     });
 
-    it('evicts a saved search snapshot again once the saved search is edited or deleted', async () => {
-        // Given A pinned saved search
-        await cacheSearches([1000], true);
+    it('caps pinned searches separately, so pins of deleted or edited saved searches age out', async () => {
+        // Given More saved and suggested searches opened than their cap allows, e.g. because some saved searches were deleted
+        await cacheSearches(range(1000, MAX_PINNED + 2), true);
 
-        // When The saved search is deleted and more ordinary searches run than the cap allows
-        await unpinSearchSnapshot(1000);
-        await cacheSearches(range(1, MAX));
+        // When Many ordinary searches run as well
+        await cacheSearches(range(1, MAX + 5));
 
-        // Then Its snapshot was the least recently used, so it is evicted like any other
-        expect(await getSnapshotHashes()).not.toContain(1000);
+        // Then The least recently used pins are evicted, and ordinary searches never push out a pinned one
+        const hashes = await getSnapshotHashes();
+        expect(hashes.filter((hash) => hash >= 1000)).toEqual(range(1002, MAX_PINNED));
+        expect(hashes.filter((hash) => hash < 1000)).toHaveLength(MAX);
     });
 
     it('drops snapshots cached before their use was tracked, once', async () => {

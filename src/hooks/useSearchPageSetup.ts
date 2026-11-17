@@ -96,13 +96,16 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSavedOrSuggestedQuery = hash !== undefined && currentDefaultSearchQueryJSON?.hash === hash;
 
     // A cached query is shown without a new request, so opening it has to mark its snapshot as used here.
-    useEffect(() => {
-        if (hash === undefined) {
+    // Scoped to focus: a frozen tab stays mounted, and would otherwise shield everything tracked from other tabs.
+    function trackFocusedPageSnapshot() {
+        if (hash === undefined || isInPreloadedTab) {
             return;
         }
         trackSearchPageSnapshotAccess(hash, isSavedOrSuggestedQuery);
         return leaveSearchPage;
-    }, [hash, isSavedOrSuggestedQuery]);
+    }
+
+    useFocusEffect(trackFocusedPageSnapshot);
 
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
