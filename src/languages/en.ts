@@ -523,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -1338,6 +1343,10 @@ const translations = {
             addFirstReceiptSubText: 'Scan or manually enter a receipt',
             linkPersonalCard: 'Link personal card',
             linkPersonalCardSubText: 'Import expenses automatically',
+            addName: 'Add your name',
+            addNameSubText: 'Help your teammates recognize you in Expensify.',
+            downloadApp: 'Download the app',
+            downloadAppSubText: 'Scan receipts, submit expenses, and approve reports on the go.',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
             talkToConcierge: 'Talk to Concierge',
@@ -1375,13 +1384,18 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        // @context Column header for each group's portion of the total, as a percentage. A noun, not the verb "to share".
+        share: 'Share',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',
         averageProcessingTime: 'Average processing time',
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -1394,12 +1408,15 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            allViolationAverage: 'All-violation average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
             monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
             quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
             yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
+            noChange: 'No change',
+            percentChange: '% change',
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
@@ -1773,6 +1790,9 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        payViaABA: 'Pay via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
+        submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,
@@ -1992,6 +2012,7 @@ const translations = {
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
+        someDuplicatesAreUnavailable: "Some of these duplicates couldn't be loaded, so you can only keep all of them.",
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         keepSelected: 'Keep selected',
@@ -2559,6 +2580,13 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
+        },
     },
     // cspell:disable
     pronouns: {
@@ -4465,7 +4493,6 @@ const translations = {
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
-            hasInvalidCharacter: 'Name can only include Latin characters',
             cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4677,7 +4704,6 @@ const translations = {
             lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
-            fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
             deletePaymentBankAccount:
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
@@ -9633,6 +9659,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -11492,6 +11519,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11723,6 +11751,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12419,6 +12470,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',

@@ -68,4 +68,3 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
 ScrollableContent.displayName = 'PopoverMenu.ScrollableContent';
 
 export default ScrollableContent;
-export type {ScrollableContentProps};

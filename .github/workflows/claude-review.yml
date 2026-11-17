@@ -16,7 +16,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request_target' && github.event.pull_request.draft != true && !contains(github.event.pull_request.title, 'Revert')) ||
       (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude review'))
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
@@ -40,7 +40,7 @@ jobs:
     concurrency:
       group: claude-review-${{ github.event.pull_request.html_url || github.event.issue.html_url }}
       cancel-in-progress: true
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     env:
       PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
     steps:

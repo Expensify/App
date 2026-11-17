@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -10,7 +11,7 @@ import CONST from '@src/CONST';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import mimeDb from 'mime-db';
@@ -164,6 +165,23 @@ function getDownloadFileName(displayName: string, source: string): string {
         return displayName;
     }
     return `${displayName}.${sourceExtension}`;
+}
+
+/**
+ * Whether the response to a file download is an API error instead of the file. The commands that return CSV and ABA
+ * files only respond with JSON when they fail.
+ */
+function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
+    return contentType === 'application/json' && ['.csv', '.aba'].some((extension) => fileName?.includes(extension));
+}
+
+/**
+ * Rejects with the API's error so the caller can tell the user why the download failed.
+ */
+function rejectWithFileDownloadError(response: Response): Promise<never> {
+    return response.json().then((error: {jsonCode?: number; message?: string}) => {
+        throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+    });
 }
 
 /**
@@ -629,7 +647,11 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            const arr = new Uint8Array(reader.result as ArrayBuffer);
+            if (!(reader.result instanceof ArrayBuffer)) {
+                resolve(null);
+                return;
+            }
+            const arr = new Uint8Array(reader.result);
 
             // Check for JPEG (starts with 0xFF 0xD8)
             if (arr[0] === 0xff && arr[1] === 0xd8) {
@@ -744,9 +766,8 @@ const resizeImageIfNeeded = (file: FileObject) => {
 
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-    );
+    const normalizedExtension = fileExtension.toLowerCase();
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -977,7 +998,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
 function getFileWithUri(file: File) {
     const newFile = file;
     newFile.uri = URL.createObjectURL(newFile);
-    return newFile as FileObject;
+    return newFile;
 }
 
 function getFilesFromClipboardEvent(event: DragEvent) {
@@ -989,15 +1010,15 @@ function getFilesFromClipboardEvent(event: DragEvent) {
     return Array.from(files).map((file) => getFileWithUri(file));
 }
 
-function cleanFileObject(fileObject: FileObject): FileObject {
+function cleanFileObject(fileObject: FileObject): FileObject | null {
     if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile() as FileObject;
+        return fileObject.getAsFile();
     }
 
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject): FileObject {
+function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {
@@ -1017,6 +1038,8 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
 
 export {
     showGeneralErrorAlert,
+    isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,

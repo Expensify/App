@@ -64,7 +64,7 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
         didInitialize.current = true;
 
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled);
+        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {});
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
         if (!shouldShowConnectionOptions) {
             onConnect(false);

@@ -1,4 +1,4 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
 
@@ -41,4 +41,3 @@ function Trigger({children}: TriggerProps): React.ReactElement {
 Trigger.displayName = 'PopoverMenu.Trigger';
 
 export default Trigger;
-export type {TriggerProps};
