@@ -1251,6 +1251,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Gemiddelde voor alle handelaren',
             allCategoryAverage: 'Gemiddelde voor alle categorieën',
             averageValue: (amount: string) => `${amount} gem.`,
+            allViolationAverage: 'Gemiddelde over alle overtredingen',
+            noChange: 'Geen wijziging',
+            percentChange: '% wijziging',
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
@@ -1275,6 +1278,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {

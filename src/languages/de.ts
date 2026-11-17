@@ -1252,6 +1252,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Durchschnitt über alle Händler',
             allCategoryAverage: 'Durchschnitt aller Kategorien',
             averageValue: (amount: string) => `${amount} durchschnittl.`,
+            allViolationAverage: 'Durchschnitt aller Verstöße',
+            noChange: 'Keine Änderung',
+            percentChange: '% Änderung',
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
@@ -1276,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {

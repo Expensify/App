@@ -1205,6 +1205,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: '所有商户平均值',
             allCategoryAverage: '所有类别平均值',
             averageValue: (amount: string) => `${amount} 平均`,
+            allViolationAverage: '所有违规平均值',
+            noChange: '无更改',
+            percentChange: '百分比变动',
         },
         compliance: '合规',
         runningTotal: '累计总额',
@@ -1225,6 +1228,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        share: '占比',
         averageDays: '平均天数',
     },
     allSettingsScreen: {
