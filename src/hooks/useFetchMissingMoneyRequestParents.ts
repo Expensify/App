@@ -21,35 +21,35 @@ type MissingParent = {
     parentReportActionID: string;
 };
 
-/** Unread threads whose parent report isn't in Onyx, keyed by the parent so each parent is listed once. */
+/** Unread threads whose parent report isn't in Onyx. A parent can show up more than once, it's deduplicated after the IOU check. */
 function missingParentsSelector(reports: OnyxCollection<Report>): MissingParent[] {
-    const missingParents = new Map<string, MissingParent>();
+    const missingParents: MissingParent[] = [];
     for (const report of Object.values(reports ?? {})) {
         const parentReportID = report?.parentReportID;
         const parentReportActionID = report?.parentReportActionID;
-        if (!parentReportID || !parentReportActionID || missingParents.has(parentReportID) || reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]) {
+        if (!parentReportID || !parentReportActionID || reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]) {
             continue;
         }
         if ((report.lastVisibleActionCreated ?? '') <= (report.lastReadTime ?? '')) {
             continue;
         }
-        missingParents.set(parentReportID, {parentReportID, parentReportActionID});
+        missingParents.push({parentReportID, parentReportActionID});
     }
-    return [...missingParents.values()];
+    return missingParents;
 }
 
-/** Threads still unread by their own read time although their loaded parent was read after the last comment, keyed by the parent. */
+/** Threads still unread by their own read time although their loaded parent was read after the last comment, as threadReportID to parentReportID. */
 function threadsReadThroughParentSelector(reports: OnyxCollection<Report>): Record<string, string> {
-    const threadIDs: Record<string, string> = {};
+    const parentIDs: Record<string, string> = {};
     for (const report of Object.values(reports ?? {})) {
         const parentReport = report?.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
         const lastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
         if (!report?.parentReportID || !parentReport || lastVisibleActionCreated <= (report.lastReadTime ?? '') || lastVisibleActionCreated > (parentReport.lastReadTime ?? '')) {
             continue;
         }
-        threadIDs[report.parentReportID] = report.reportID;
+        parentIDs[report.reportID] = report.parentReportID;
     }
-    return threadIDs;
+    return parentIDs;
 }
 
 /** Opens each missing parent once without marking it as read, so the LHN can show it as unread. */
@@ -59,6 +59,18 @@ function useFetchMissingMoneyRequestParents() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [missingParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: missingParentsSelector});
     const [threadsReadThroughParent] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: threadsReadThroughParentSelector});
+    // Reading the parent only covers its one transaction thread, never other reply threads under it
+    const [oneTransactionThreadsReadThroughParent] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (reportAttributes) => {
+            const threadIDs: Record<string, string> = {};
+            for (const [threadReportID, parentReportID] of Object.entries(threadsReadThroughParent ?? {})) {
+                if (reportAttributes?.reports?.[parentReportID]?.oneTransactionThreadReportID === threadReportID) {
+                    threadIDs[parentReportID] = threadReportID;
+                }
+            }
+            return threadIDs;
+        },
+    });
     // Only transaction threads, a regular comment thread's parent isn't dropped this way
     const [moneyRequestParents] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: (allReportActions) =>
@@ -72,6 +84,7 @@ function useFetchMissingMoneyRequestParents() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const requestedParentIDs = useRef(new Set<string>());
+    const loadedParentIDs = useRef(new Set<string>());
 
     useEffect(() => {
         const missingParentIDs = new Set((missingParents ?? []).map(({parentReportID}) => parentReportID));
@@ -82,11 +95,17 @@ function useFetchMissingMoneyRequestParents() {
                 continue;
             }
             requestedParentIDs.current.delete(parentReportID);
-            // Reading the expense report doesn't move the thread's read time, so sync it or every cache clear fetches the parent again
-            const threadReportID = threadsReadThroughParent?.[parentReportID];
-            if (threadReportID) {
-                readNewestAction(threadReportID, true);
+            loadedParentIDs.current.add(parentReportID);
+        }
+
+        // Reading the expense report doesn't move the thread's read time, so sync it or every cache clear fetches the parent again
+        for (const parentReportID of loadedParentIDs.current) {
+            const threadReportID = oneTransactionThreadsReadThroughParent?.[parentReportID];
+            if (!threadReportID) {
+                continue;
             }
+            loadedParentIDs.current.delete(parentReportID);
+            readNewestAction(threadReportID, true);
         }
 
         if (priorityMode !== CONST.PRIORITY_MODE.GSD || isLoadingApp || isOffline) {
@@ -98,6 +117,7 @@ function useFetchMissingMoneyRequestParents() {
                 continue;
             }
             requestedParentIDs.current.add(parentReportID);
+            loadedParentIDs.current.delete(parentReportID);
             openReport({
                 reportID: parentReportID,
                 introSelected,
@@ -112,7 +132,7 @@ function useFetchMissingMoneyRequestParents() {
         }
     }, [
         missingParents,
-        threadsReadThroughParent,
+        oneTransactionThreadsReadThroughParent,
         moneyRequestParents,
         priorityMode,
         isLoadingApp,

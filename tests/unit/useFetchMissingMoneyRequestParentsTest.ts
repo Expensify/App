@@ -60,6 +60,10 @@ async function seedColdStart({
     });
 }
 
+async function setOneTransactionThread(threadReportID: string) {
+    await Onyx.merge(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[EXPENSE_REPORT_ID]: {oneTransactionThreadReportID: threadReportID}}});
+}
+
 async function renderFetchMissingParents() {
     const hook = renderHook(() => useFetchMissingMoneyRequestParents());
     await act(async () => {
@@ -143,12 +147,45 @@ describe('useFetchMissingMoneyRequestParents', () => {
         // When it comes back read after the thread's last comment, since reading the report never moves the thread's read time
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, lastReadTime: '2026-11-01 12:00:00.000'});
+            await setOneTransactionThread(THREAD_REPORT_ID);
             await waitForBatchedUpdates();
         });
 
         // Then the thread is marked read too, so the next cache clear doesn't fetch the parent again
         expect(readNewestAction).toHaveBeenCalledTimes(1);
         expect(readNewestAction).toHaveBeenCalledWith(THREAD_REPORT_ID, true);
+    });
+
+    it('leaves a regular reply thread unread even when its loaded parent was read', async () => {
+        // Given the missing expense report was requested, and the unread thread isn't the one collapsed into the expense view
+        await seedColdStart();
+        await renderFetchMissingParents();
+
+        // When the parent comes back read, but its one transaction thread is a different report
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {reportID: EXPENSE_REPORT_ID, lastReadTime: '2026-11-01 12:00:00.000'});
+            await setOneTransactionThread('999');
+            await waitForBatchedUpdates();
+        });
+
+        // Then the thread isn't marked read, the user never opened its replies
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('loads the parent when only a later thread under it has a loaded IOU action', async () => {
+        // Given two unread threads under the same missing parent, and only the second thread's IOU action is loaded
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}299`, {...unreadThread, reportID: '299', parentReportActionID: '399'});
+            await waitForBatchedUpdates();
+        });
+        await seedColdStart();
+
+        // When the hook runs
+        await renderFetchMissingParents();
+
+        // Then the parent is still loaded once, the thread without a loaded action doesn't hide it
+        expect(openReport).toHaveBeenCalledTimes(1);
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: EXPENSE_REPORT_ID}));
     });
 
     it('keeps the thread unread when the loaded parent is unread too', async () => {
@@ -249,7 +286,7 @@ describe('useFetchMissingMoneyRequestParents', () => {
 });
 
 describe('missingParentsSelector', () => {
-    it('lists each missing parent once and skips parents that are already in Onyx', () => {
+    it('lists every unread thread under a missing parent and skips parents that are already in Onyx', () => {
         // Given two unread threads under the same missing parent and one unread thread whose parent is loaded
         const reports = {
             [`${ONYXKEYS.COLLECTION.REPORT}${THREAD_REPORT_ID}`]: unreadThread,
@@ -261,8 +298,11 @@ describe('missingParentsSelector', () => {
         // When selecting the missing parents
         const missingParents = missingParentsSelector(reports);
 
-        // Then only the missing expense report is returned, once
-        expect(missingParents).toEqual([{parentReportID: EXPENSE_REPORT_ID, parentReportActionID: IOU_ACTION_ID}]);
+        // Then both threads of the missing expense report are kept, so the IOU check can still pick the right one
+        expect(missingParents).toEqual([
+            {parentReportID: EXPENSE_REPORT_ID, parentReportActionID: IOU_ACTION_ID},
+            {parentReportID: EXPENSE_REPORT_ID, parentReportActionID: '401'},
+        ]);
     });
 });
 
@@ -281,6 +321,6 @@ describe('threadsReadThroughParentSelector', () => {
         const threads = threadsReadThroughParentSelector(reports);
 
         // Then only the thread under the read expense report is returned
-        expect(threads).toEqual({[EXPENSE_REPORT_ID]: THREAD_REPORT_ID});
+        expect(threads).toEqual({[THREAD_REPORT_ID]: EXPENSE_REPORT_ID});
     });
 });
