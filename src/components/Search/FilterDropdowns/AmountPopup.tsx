@@ -161,24 +161,28 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
             onApply={applyChanges}
             applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
-            {modifierConfig.map((modifier) => (
-                <MenuItem.Root
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
-                    key={modifier}
-                    onPress={callIfAuthenticated(() => setSelectedModifier(modifier), session)}
-                    isCompact
-                >
-                    <MenuItem.Row>
-                        <MenuItem.Content>
-                            <MenuItem.Title>{title[modifier]}</MenuItem.Title>
-                            {!!formatAmount(amountValues[modifier]) && <MenuItem.Description>{formatAmount(amountValues[modifier])}</MenuItem.Description>}
-                        </MenuItem.Content>
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    </MenuItem.Row>
-                </MenuItem.Root>
-            ))}
+            {modifierConfig.map((modifier) => {
+                const formattedAmount = formatAmount(amountValues[modifier]);
+
+                return (
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
+                        key={modifier}
+                        onPress={callIfAuthenticated(() => setSelectedModifier(modifier), session)}
+                        isCompact
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{title[modifier]}</MenuItem.Title>
+                                {!!formattedAmount && <MenuItem.Description>{formattedAmount}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                );
+            })}
         </BasePopup>
     );
 }
