@@ -22,6 +22,7 @@ type MockTabsHostProps = {
 type MockTabsScreenProps = {
     screenKey: string;
     hostedContentSourceScreenKey?: string;
+    interceptsPreventedSelectionTaps?: boolean;
     title?: string;
     preventNativeSelection?: boolean;
     specialEffects?: {repeatedTabSelection?: {popToRoot?: boolean; scrollToTop?: boolean}};
@@ -446,6 +447,40 @@ describe('NativeBottomTabView', () => {
         expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
     });
 
+    it('hides a hidden route on iOS under the items that do not open it', () => {
+        // Given Spend drawn in Expenses on iOS, then Workspaces focused in More while Spend names More, as a saved search does
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+
+        // When the views the hidden routes are drawn in are laid out
+        // Then Spend is not laid out, so a native tap on Expenses or Reports shows the placeholder of the tab instead
+        // of a search that belongs under More, until JS opens the search of the tapped item
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBe('none');
+        // And More shows Workspaces, which is drawn in it, rather than the view of Expenses
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
+    });
+
+    it.each([
+        {tabs: 'flat nav tabs', renderTabs: () => renderFlatNav('Inbox'), screenKey: 'More', expected: true},
+        {
+            tabs: 'tabs without hosted routes',
+            renderTabs: () => render(renderTabView(buildTabState('Inbox-key-1'), buildNavigation(), [], {Spend: {tabBarSelectionEnabled: false}})),
+            screenKey: 'Spend',
+            expected: false,
+        },
+    ])('asks native to take the taps of a tab it must not select only for $tabs', ({renderTabs, screenKey, expected}) => {
+        // Given a tab whose native selection is disabled, in a bar with hosted routes or in one without, as the bar is
+        // without the flat nav beta
+        renderTabs();
+
+        // When the native tabs are configured
+        // Then native keeps the tap away from the tab bar only in the bar with hosted routes, so every other bar
+        // handles the taps on such a tab as before
+        expect(mockLatestScreenProps.get(screenKey)?.preventNativeSelection).toBe(true);
+        expect(mockLatestScreenProps.get(screenKey)?.interceptsPreventedSelectionTaps).toBe(expected);
+    });
+
     it('keeps native from selecting a placeholder whose hidden route is drawn in another tab', () => {
         useTabsThatTradePlaces();
         // Given Spend drawn in the Expenses placeholder, and Reports a placeholder whose press opens Spend too
@@ -496,6 +531,22 @@ describe('NativeBottomTabView', () => {
         expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Reports-key'});
         expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
         expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
+    });
+
+    it('hides a hidden route under a pressed placeholder while it still names a tab that does not open it', () => {
+        useTabsThatTradePlaces();
+        // Given Spend drawn in Expenses, then Workspaces focused in More while Spend names More, as a saved search does
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+        screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getFlatNavOptionsWithSpendHost('More')));
+
+        // When the user taps Reports, which is selected at once over the tab of Spend, before the navigation renders
+        pressPreventedTab('Reports');
+
+        // Then Spend is not laid out yet, so Reports shows the placeholder of the tab rather than the saved search,
+        // until JS opens the search of Reports
+        expect(mockLatestScreenProps.get('Expenses')?.title).toBe('Reports');
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBe('none');
     });
 
     it('lets a pressed placeholder expire when the navigation never names it as the host', () => {

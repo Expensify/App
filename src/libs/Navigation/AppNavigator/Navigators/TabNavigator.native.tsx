@@ -1,8 +1,14 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
+import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
+import {getFlatNavSectionIDForSearchKey} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
@@ -10,6 +16,8 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,6 +30,7 @@ import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unst
 import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
+import {View} from 'react-native';
 
 import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
@@ -52,9 +61,33 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
-/** The Expenses, Reports and More items of the flat nav bar, which show the routes drawn inside them rather than a screen of their own. */
+/** The More item of the flat nav bar, which shows the routes drawn inside it rather than a screen of its own. */
 function NativeTabItemPlaceholder() {
     return null;
+}
+
+/**
+ * The Expenses and Reports items of the flat nav bar, which show Search over this. Search is not laid out under these
+ * items while it is on a search of the More menu, so a tap on one of them then shows this skeleton until Search opens
+ * the search of the item.
+ */
+function NativeTabSearchItemPlaceholder() {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {top} = useSafeAreaInsets();
+    const searchSectionID = useNavigationState((state) => getFlatNavSectionIDForSearchKey(getSearchTabSearchKey(findSearchTabRoute(state))));
+
+    if (!searchSectionID || searchSectionID === FLAT_NAV.SECTION.EXPENSES || searchSectionID === FLAT_NAV.SECTION.REPORTS) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.flex1, styles.appBG]}>
+            {/* The room the Search header takes above its list */}
+            <View style={StyleUtils.getHeight(top + variables.contentHeaderHeight)} />
+            <SearchRowSkeleton />
+        </View>
+    );
 }
 
 type NativeTabNavigatorProps = {
@@ -108,11 +141,11 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
                     <>
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.EXPENSES}
-                            component={NativeTabItemPlaceholder}
+                            component={NativeTabSearchItemPlaceholder}
                         />
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.REPORTS}
-                            component={NativeTabItemPlaceholder}
+                            component={NativeTabSearchItemPlaceholder}
                         />
                         <Tab.Screen
                             name={SCREENS.NATIVE_TAB_ITEM.MORE}

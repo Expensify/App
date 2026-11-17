@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 3c2acf0..dc4cbb7 100644
+index 3c2acf0..5f916b2 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -89,6 +89,9 @@ @implementation RNSTabBarController {
@@ -20,7 +20,7 @@ index 3c2acf0..dc4cbb7 100644
      _tabScreenControllers = nil;
      _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
      _tabsHostComponentView = nil;
-@@ -186,6 +190,104 @@ - (void)viewDidLayoutSubviews
+@@ -186,6 +190,124 @@ - (void)viewDidLayoutSubviews
    if (_tabBarItemSelectionHidden) {
      [self updateTabBarItemSelectionIn:self.tabBar];
    }
@@ -33,7 +33,18 @@ index 3c2acf0..dc4cbb7 100644
 +- (void)updatePreventedSelectionTouchViews
 +{
 +  NSArray<UIView *> *tabButtons = @[];
-+  BOOL isTabBarShown = self.isViewLoaded && !self.tabBar.hidden && self.tabBar.alpha > 0 && self.tabBar.window != nil;
++  // Nothing is looked up or added for a tab bar with no such tab, which is every tab bar that does not ask for it.
++  BOOL hasInterceptedTab = NO;
++  for (UIViewController *viewController in self.viewControllers) {
++    if ([self shouldInterceptPreventedSelectionTapOf:viewController]) {
++      hasInterceptedTab = YES;
++      break;
++    }
++  }
++  if (!hasInterceptedTab && _preventedSelectionTouchViews.count == 0) {
++    return;
++  }
++  BOOL isTabBarShown = hasInterceptedTab && self.isViewLoaded && !self.tabBar.hidden && self.tabBar.alpha > 0 && self.tabBar.window != nil;
 +#if !TARGET_OS_TV
 +  if (@available(iOS 18.0, *)) {
 +    // The bar hidden through the controller keeps `hidden` off on the bar itself.
@@ -55,7 +66,7 @@ index 3c2acf0..dc4cbb7 100644
 +  for (NSUInteger index = 0; index < tabButtons.count; index++) {
 +    UIViewController *viewController = viewControllers[index];
 +    // The selected tab keeps its taps: a repeated selection is not prevented.
-+    if (viewController == self.selectedViewController || ![self shouldPreventNativeTabSelection:viewController]) {
++    if (viewController == self.selectedViewController || ![self shouldInterceptPreventedSelectionTapOf:viewController]) {
 +      continue;
 +    }
 +    UIControl *touchView = nil;
@@ -87,6 +98,15 @@ index 3c2acf0..dc4cbb7 100644
 +  for (UIControl *unusedTouchView in unusedTouchViews) {
 +    [unusedTouchView removeFromSuperview];
 +  }
++}
++
++- (BOOL)shouldInterceptPreventedSelectionTapOf:(nonnull UIViewController *)viewController
++{
++  if (![viewController isKindOfClass:RNSTabsScreenViewController.class] ||
++      ![self shouldPreventNativeTabSelection:viewController]) {
++    return NO;
++  }
++  return static_cast<RNSTabsScreenViewController *>(viewController).tabScreenComponentView.interceptsPreventedSelectionTaps;
 +}
 +
 +- (void)didTapPreventedSelectionTouchView:(UIControl *)touchView
@@ -125,7 +145,7 @@ index 3c2acf0..dc4cbb7 100644
  }
  
  - (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
-@@ -328,6 +430,7 @@ - (void)performContainerUpdate
+@@ -328,6 +450,7 @@ - (void)performContainerUpdate
    [self updateTabBarAppearanceIfNeeded];
    [self updateTabBarA11yIfNeeded];
    [self updateOrientationIfNeeded];
@@ -133,7 +153,7 @@ index 3c2acf0..dc4cbb7 100644
  }
  
  /**
-@@ -511,6 +614,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
+@@ -511,6 +634,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
  
    [self userDidSelectViewController:viewController];
    _isHandlingExplicitSelectionUpdate = NO;
@@ -141,3 +161,46 @@ index 3c2acf0..dc4cbb7 100644
  }
  
  #pragma mark - UINavigationControllerDelegate
+diff --git a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
+index ebd8f2f..f0d3df0 100644
+--- a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
++++ b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.h
+@@ -69,6 +69,11 @@ NS_ASSUME_NONNULL_BEGIN
+ 
+ @property (nonatomic, readonly) BOOL preventNativeSelection;
+ 
++/**
++ * Whether a tap on the item of this screen is taken before the tab bar sees it while `preventNativeSelection` is on.
++ */
++@property (nonatomic, readonly) BOOL interceptsPreventedSelectionTaps;
++
+ @property (nonatomic, readonly) BOOL overrideScrollViewContentInsetAdjustmentBehavior;
+ 
+ @property (nonatomic, readonly, nullable) NSString *tabItemTestID;
+diff --git a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
+index b165717..ac2ba07 100644
+--- a/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/screen/RNSTabsScreenComponentView.mm
+@@ -358,6 +358,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+     _preventNativeSelection = newComponentProps.preventNativeSelection;
+   }
+ 
++  if (newComponentProps.interceptsPreventedSelectionTaps != oldComponentProps.interceptsPreventedSelectionTaps) {
++    _interceptsPreventedSelectionTaps = newComponentProps.interceptsPreventedSelectionTaps;
++  }
++
+   if (newComponentProps.overrideScrollViewContentInsetAdjustmentBehavior !=
+       oldComponentProps.overrideScrollViewContentInsetAdjustmentBehavior) {
+     _overrideScrollViewContentInsetAdjustmentBehavior =
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+index 80a2fec..11afd19 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+@@ -120,6 +120,7 @@ export interface NativeProps extends ViewProps {
+   // Control
+   screenKey: string;
+   preventNativeSelection?: CT.WithDefault<boolean, false>;
++  interceptsPreventedSelectionTaps?: CT.WithDefault<boolean, false>;
+ 
+   // General
+   title?: string | undefined | null;
