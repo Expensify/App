@@ -80,7 +80,7 @@ function FileTypeMenuButton({buttonText, accessibilityLabel, types, onSelect}: F
                     anchorAlignment={ANCHOR_ALIGNMENT}
                     anchorRef={anchorRef}
                     headerText={translate('dynamicForm.selectDocumentToUpload')}
-                    menuItems={types.map((type) => ({key: type.value, text: type.label, icon: icons.Document}))}
+                    menuItems={types.map((type) => ({key: type.value, text: type.label, icon: icons.Document, sentryLabel: CONST.SENTRY_LABEL.DYNAMIC_FORM.FILE_TYPE_MENU_ITEM}))}
                     shouldUseScrollView
                     // The header already spaces the list from the top, so the list's own margins for long lists stay off
                     shouldUseModalPaddingStyle
