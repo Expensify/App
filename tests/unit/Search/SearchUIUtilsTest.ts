@@ -16314,6 +16314,34 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('keeps receiptRequired from an earlier submit action that had no itemizedReceiptRequired', () => {
+            // Given a report submitted with only receiptRequired, then resubmitted with both receipt violations
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
+        });
+
         test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -16501,6 +16529,34 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.itemizedReceiptRequired'),
             );
+        });
+
+        test('keeps receiptRequired from an earlier approval action that had no itemizedReceiptRequired', () => {
+            // Given a report forwarded with only receiptRequired, then approved with both receipt violations
+            const forwardedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'forward-1',
+            );
+            const approvedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'approved-1',
+            );
+
+            // When the approved violations column is built for the expense
+            const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
@@ -17076,6 +17132,22 @@ describe('SearchUIUtils', () => {
             // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
             expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
         });
+
+        it('shows translated names for both the violation filter and its negation', () => {
+            // Given a query that includes one violation and excludes another, e.g. `violation:overLimit -violation:missingCategory`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.VIOLATION]: [CONST.VIOLATIONS.OVER_LIMIT],
+                [FILTER_KEYS.VIOLATION_NOT]: [CONST.VIOLATIONS.MISSING_CATEGORY],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const violationFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+
+            // Then both chips show the readable label instead of the raw identifier the backend uses
+            expect(violationFilters.map((filter) => filter.value)).toEqual([translateLocal('violations.shortName.overLimit'), translateLocal('violations.shortName.missingCategory')]);
+        });
     });
 });
 
@@ -17156,6 +17228,33 @@ describe('getMultiSelectFilterOptions', () => {
             {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
         ]);
         expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
+    });
+});
+
+describe('getViolationFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('sorts the options by translated label', () => {
+        // Given the violation names, whose CONST order doesn't follow their labels
+        // When building the violation picker options
+        const labels = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.text);
+
+        // Then they're in alphabetical order, matching the autocomplete suggestions
+        expect(labels).toEqual([...labels].sort(localeCompare));
+        expect(labels.length).toBeGreaterThanOrEqual(CONST.STANDARD_LIST_ITEM_LIMIT);
+    });
+
+    it('leaves out the Classic-only and new rules engine violations', () => {
+        // Given the Classic-only cash expense notice and the new rules engine violations, which have no clear filter names yet
+        // When building the violation picker options
+        const values = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.value);
+
+        // Then none of them is offered
+        expect(values).not.toContain(CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+        expect(values).not.toContain(CONST.VIOLATIONS.CUSTOM_RULES);
+        expect(values).not.toContain(CONST.VIOLATIONS.RULE_VIOLATION);
     });
 });
 

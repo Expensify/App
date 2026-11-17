@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '天',
         rename: '重命名',
         address: '地址',
+        dayAbbreviation: '天',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: '秒',
@@ -571,6 +572,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: '导出到',
         shareReport: '分享报表',
         reportShared: '报表已分享',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 天`,
+            other: (count: number) => `${formattedCount ?? count} 天`,
+        }),
         amount: '金额',
     },
     socials: {
@@ -1216,6 +1221,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提交所用时间最长',
         slowestToApprove: '审批最慢',
         mostTimeToPay: '最长付款时间',
+        averageDays: '平均天数',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1765,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: '所有报销都已被搁置。请查看评论以了解下一步操作。',
         expenseDuplicate: '此报销与另一笔报销的明细相似。请查看可能重复的报销后再继续。',
         someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
+        someDuplicatesAreUnavailable: '部分重复项无法加载，因此只能全部保留。',
         reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
         keepSelected: '保留所选项',
@@ -8413,6 +8420,7 @@ ${reportName}`,
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
                 upgradeWorkspaceWarning: `无法升级工作空间`,
+                createWorkspaceWarning: `无法创建工作区`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制创建工作区。请联系管理员获取帮助。',
             },
             hr: {
@@ -10623,6 +10631,7 @@ ${reportName}`,
         noVendor: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
+        violation: '违规',
         receiptTypeValues: {
             ereceipt: '电子收据',
             itemized: '明细',
@@ -10830,6 +10839,27 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行</a>进行修复，或者如果不再使用，请<a href='${workspaceCompanyCardSettingsRoute}'>移除该连接</a>。移除后，您已提交的报销不会丢失。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = '即将';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '两周后';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '一周后';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute ? `<a href='${workspaceCompanyCardRoute}'>请在同意到期前重新连接卡片</a>。` : '请在同意到期前重新连接卡片。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>，您的` : '您的';
+                    return `${intro}<strong>${feedName}</strong>卡片连接将在${warningTime}需要重新同意。交易目前仍在同步，但如果不续订同意，交易可能会停止导入。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11503,6 +11533,7 @@ ${reportName}`,
             tagOutOfPolicy: '标签已失效',
             overLimitAttendee: '超出人数上限',
             customRules: '自定义规则违规',
+            ruleViolation: '规则违规',
             taxAmountChanged: '税额已修改',
             taxOutOfPolicy: '税率已失效',
             taxRateChanged: '税率已修改',

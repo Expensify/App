@@ -61,6 +61,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
                 {`${translate('workspace.merge.authenticationError', card.displayName)} `}
                 {!isOffline && (
                     <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_RECONNECT_LINK}
                         style={[styles.link, styles.fontSizeLabel]}
                         onPress={handleConnect}
                     >
@@ -75,6 +76,7 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
             <>
                 {`${translate('workspace.hr.mergeHR.groups.staleSelectionError', card.displayName)} `}
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.MERGE_UPDATE_GROUP_SELECTION_LINK}
                     style={[styles.link, styles.fontSizeLabel]}
                     onPress={() => {
                         if (!canWriteMoreFeatures) {

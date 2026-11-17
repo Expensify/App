@@ -3759,6 +3759,37 @@ describe('ReportUtils', () => {
                     expect(reportName).toBe('The Capital One connection is broken. To restore card imports, log into your bank.');
                 });
 
+                test('should handle concierge company card consent expiring action', () => {
+                    // Given a thread whose parent action warns that a card feed's consent expires in two weeks
+                    const companyCardConsentExpiringAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                        originalMessage: {
+                            feedName: 'American Express Business',
+                            policyID: '1',
+                            warningDaysBeforeExpiry: 14,
+                        },
+                    };
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConsentExpiringAction.reportActionID,
+                    };
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConsentExpiringAction.reportActionID]: companyCardConsentExpiringAction,
+                        },
+                    };
+
+                    // When the thread name is derived from the parent action
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Then it uses the localized plain-text warning
+                    expect(reportName).toBe(
+                        "Your American Express Business card connection will need renewed consent in two weeks. Transactions are still syncing now, but may stop importing if the connection isn't renewed. Reconnect the card connection before consent expires.",
+                    );
+                });
+
                 test('should handle automatically paid with Expensify action', () => {
                     const expensifyPayAction: ReportAction = {
                         ...baseParentReportAction,
@@ -5573,6 +5604,37 @@ describe('ReportUtils', () => {
         });
 
         describe('return only submit expense and track expense options if', () => {
+            it('the workspace chat has a report waiting on the current user to add a bank account', async () => {
+                // Given a workspace chat whose last expense report cannot be paid until its owner adds a bank account
+                const waitingReport: Report = {
+                    reportID: 'waitingOnBankAccountReport',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: currentUserAccountID,
+                    isWaitingOnBankAccount: true,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                };
+                const chatReport: Report = {
+                    reportID: 'waitingOnBankAccountChat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    ownerAccountID: currentUserAccountID,
+                    iouReportID: waitingReport.reportID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, waitingReport);
+                await waitForBatchedUpdates();
+
+                // When the submitter opens the expense options in their workspace chat
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(chatReport, undefined, [currentUserAccountID], undefined, false, false, currentUserAccountID);
+
+                // Then the pending payment does not prevent new expenses, but the approved report still cannot accept them
+                expect(moneyRequestOptions).toEqual([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.TRACK]);
+                expect(canRequestMoney(waitingReport, undefined, [], undefined, currentUserAccountID)).toBe(false);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, null);
+            });
+
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}102`, {
                     reportID: '102',
@@ -31609,12 +31671,12 @@ describe('getTransactionsWithReceipts', () => {
         const withEReceipt: Transaction = {...createRandomTransaction(2), hasEReceipt: true, receipt: {}};
         const withoutReceipt: Transaction = {...createRandomTransaction(3), hasEReceipt: false, receipt: {}};
 
-        expect(getTransactionsWithReceipts(undefined, [withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
+        expect(getTransactionsWithReceipts([withScanReceipt, withEReceipt, withoutReceipt])).toEqual([withScanReceipt, withEReceipt]);
     });
 
     it('returns an empty array when no transactions have receipts', () => {
         const withoutReceipt: Transaction = {...createRandomTransaction(1), hasEReceipt: false, receipt: {}};
-        expect(getTransactionsWithReceipts(undefined, [withoutReceipt])).toEqual([]);
+        expect(getTransactionsWithReceipts([withoutReceipt])).toEqual([]);
     });
 });
 
@@ -31697,14 +31759,14 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1), buildScanningTransaction(2)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(true);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(true);
     });
 
     it('returns false when there are more requests than receipts (manual requests exist)', () => {
         const reportPreviewAction = {...createRandomReportAction(100), childMoneyRequestCount: 2};
         const transactions = [buildScanningTransaction(1)];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 
     it('returns false when at least one receipt has finished scanning', () => {
@@ -31712,7 +31774,7 @@ describe('areAllRequestsBeingSmartScanned', () => {
         const scannedReceipt: Transaction = {...buildScanningTransaction(2), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
         const transactions = [buildScanningTransaction(1), scannedReceipt];
 
-        expect(areAllRequestsBeingSmartScanned(undefined, reportPreviewAction, transactions)).toBe(false);
+        expect(areAllRequestsBeingSmartScanned(reportPreviewAction, transactions)).toBe(false);
     });
 });
 

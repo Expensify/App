@@ -8,6 +8,7 @@ import getPlatform from '@libs/getPlatform';
 import RHP_FLOATING_CARD_INSET, {RHP_FLOATING_CARD_BORDERS_WIDTH} from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSidePanelWidthStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
+import {toTextStyle, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -259,7 +260,7 @@ const webViewStyles = (theme: ThemeColors) =>
             ol: {
                 maxWidth: '100%',
                 whiteSpace: 'normal',
-            },
+            } satisfies ViewStyle & MixedStyleDeclaration,
 
             li: {
                 flexShrink: 1,
@@ -520,9 +521,9 @@ const staticStyles = (theme: ThemeColors) =>
             whiteSpace: 'nowrap',
         },
 
-        verticalAlignTopText: {
+        verticalAlignTopText: toTextStyle({
             verticalAlign: 'text-top',
-        },
+        }),
         verticalAlignTop: {
             verticalAlign: 'top',
         },
@@ -784,7 +785,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // Only the mobile web bar uses this; iOS and Android draw native tab bars.
-        navigationTabBarContainer: {
+        navigationTabBarContainer: toViewStyle({
             // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long
             // label gets the room it needs and, once the labels no longer all fit, the long ones truncate to the same
             // width while the short ones keep theirs.
@@ -804,7 +805,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
-        },
+        }),
 
         navigationTabBarContainerLandscape: {
             height: variables.floatingTabBarLandscapeHeight,
@@ -1994,9 +1995,9 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 20,
         },
 
-        lh140Percent: {
+        lh140Percent: toTextStyle({
             lineHeight: '140%',
-        },
+        }),
 
         formHelp: {
             color: theme.textSupporting,
@@ -6915,7 +6916,7 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
-        receiptPreview: {
+        receiptPreview: toViewStyle({
             position: 'absolute',
             // Fallback corner; ReceiptPreview overrides left/top to sit beside the hovered thumbnail.
             left: 60,
@@ -6928,7 +6929,7 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: theme.shadow,
             backgroundColor: theme.appBG,
-        },
+        }),
 
         receiptPreviewEReceiptsContainer: {
             ...sizing.w100,
@@ -6989,11 +6990,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
-        modalStackNavigatorContainer: {
+        modalStackNavigatorContainer: toViewStyle({
             height: '100%',
             right: 0,
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-        },
+        }),
         animatedRHPNavigatorContainer: {
             height: '100%',
             right: 0,
@@ -7057,7 +7058,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: CONST.RESIZE_HANDLE.PANE_HIT_WIDTH,
         } satisfies ViewStyle,
 
-        sidePanelContent: {
+        sidePanelContent: toViewStyle({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
             bottom: 0,
@@ -7065,7 +7066,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: theme.modalBackground,
             borderLeftColor: theme.border,
-        },
+        }),
         searchBarMargin: {
             marginHorizontal: 20,
             marginBottom: 20,
@@ -7423,7 +7424,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 boxShadow: theme.androidTabBarShadow,
             }) satisfies ViewStyle,
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: DimensionValue) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,

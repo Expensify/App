@@ -21,7 +21,6 @@ import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import asMutable from '@src/types/utils/asMutable';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import {Str} from 'expensify-common';
@@ -49,7 +48,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
 
     const isOurMention = accountID === currentUserAccountID;
 
-    const flattenStyle = StyleSheet.flatten(style as TextStyle);
+    const flattenStyle = StyleSheet.flatten(style);
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
@@ -71,6 +70,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             }}
             role={CONST.ROLE.LINK}
             accessibilityLabel={`/${navigationRoute}`}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
         >
             <UserDetailsTooltip
                 accountID={accountID}
@@ -80,6 +80,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
             >
                 <Text
                     {...defaultRendererProps}
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.MENTION_USER}
                     style={[
                         styles.link,
                         styleWithoutColor,
