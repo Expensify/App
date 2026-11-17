@@ -263,6 +263,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         overflowMenu.push({
             icon: icons.Tag,
             text: translate('subscription.subscriptionSettings.addExpensifyCode'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE,
             onSelected: navigateToExpensifyCode,
         });
     }
@@ -271,6 +272,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         overflowMenu.push({
             icon: icons.Coins,
             text: translate('subscription.details.taxExempt'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.TAX_EXEMPT,
             onSelected: requestTaxExemptStatus,
         });
     }
@@ -301,6 +303,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             />
                         </View>
                         <ThreeDotsMenu
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PLAN_MENU}
                             shouldSelfPosition
                             menuItems={overflowMenu}
                             anchorAlignment={anchorAlignment}
@@ -329,6 +332,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root
                     onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EDIT_SUBSCRIPTION}
                     testID="SubscriptionPlanSettings-subscriptionType"
                     accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
                 >
@@ -360,6 +364,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             name={translate('subscription.details.subscriptionSize')}
                             value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
                             onPress={cardView.canEditSize ? navigateToSubscriptionSize : undefined}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
                             testID="SubscriptionPlanSettings-subscriptionSize"
                         />
                     </OfflineWithFeedback>
@@ -384,6 +389,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             title={translate('subscription.subscriptionSettings.autoRenew')}
                             subtitle={(privateSubscription.autoRenew ?? true) && autoRenewalDate ? translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate) : undefined}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoRenew')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_RENEW_SWITCH}
                             onToggle={toggleAutoRenew}
                             isActive={privateSubscription.autoRenew}
                             disabled={!cardView.canToggleAnnualSettings}
@@ -399,6 +405,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             title={translate('subscription.subscriptionSettings.autoIncrease')}
                             subtitle={autoIncreaseSubtitle}
                             switchAccessibilityLabel={translate('subscription.subscriptionSettings.autoIncrease')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.AUTO_INCREASE_SWITCH}
                             onToggle={toggleAutoIncrease}
                             isActive={privateSubscription.addNewUsersAutomatically ?? false}
                             disabled={!cardView.canToggleAnnualSettings}

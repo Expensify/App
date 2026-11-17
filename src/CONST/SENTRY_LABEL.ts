@@ -3437,6 +3437,7 @@ const SENTRY_LABEL = {
         EXPIRING_SOON_BANNER_MANAGE: 'SettingsSubscription-ExpiringSoonBannerManage',
         PAYMENT_CARD_MENU: 'SettingsSubscription-PaymentCardMenu',
         PLAN_DOWNGRADE: 'SettingsSubscription-PlanDowngrade',
+        PLAN_MENU: 'SettingsSubscription-PlanMenu',
         PLAN_UPGRADE: 'SettingsSubscription-PlanUpgrade',
         SUBSCRIPTION_SIZE: 'SettingsSubscription-SubscriptionSize',
         SUBSCRIPTION_SIZE_SAVE: 'SettingsSubscription-SubscriptionSizeSave',
