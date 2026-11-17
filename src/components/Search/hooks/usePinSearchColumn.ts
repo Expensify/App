@@ -1,11 +1,15 @@
 /** Reads the column pins a Spend query holds, and turns the column menu's pin and unpin choices into a new query. */
-import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PinnedColumns, PinnedColumnSide} from '@libs/SearchPinnedColumnsUtils';
 import {getPinnedColumns, getQueryWithPinnedColumns, setColumnPin} from '@libs/SearchPinnedColumnsUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getValidGroupBy} from '@libs/SearchUIUtils';
+
+import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
+import {useNavigation} from '@react-navigation/native';
 
 type PinSearchColumn = {
     /** Whether the table offers pin items. A grouped table's columns describe its groups rather than the expenses its pins would apply to. */
@@ -19,12 +23,13 @@ type PinSearchColumn = {
 };
 
 function usePinSearchColumn(queryJSON: SearchQueryJSON): PinSearchColumn {
-    const {currentSearchKey} = useSearchQueryContext();
+    const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const pinnedColumns = getPinnedColumns(queryJSON);
 
     const pinColumn = (column: SearchColumnType, side: PinnedColumnSide | undefined) => {
         const query = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, setColumnPin(pinnedColumns, column, side)));
-        navigateToSearchWithColumns(query, currentSearchKey);
+        // A new route would remount Search and send the search again, though pins only reorder the columns.
+        navigation.setParams({q: query, rawQuery: undefined});
     };
 
     return {canPinColumns: !getValidGroupBy(queryJSON.groupBy), pinnedColumns, pinColumn};

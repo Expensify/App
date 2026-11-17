@@ -48,7 +48,7 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {getPinnedColumnOrder, NO_PINNED_COLUMNS} from '@libs/SearchPinnedColumnsUtils';
+import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from '@libs/SearchPinnedColumnsUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
@@ -468,6 +468,8 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
     const isInPreloadedTab = useIsInPreloadedTab();
+    // Pins only reorder the table, so a query that differs by its pins alone must not send the search again.
+    const searchRequestQuery = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, NO_PINNED_COLUMNS));
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
@@ -546,9 +548,9 @@ function Search({
             shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
-        // We don't need to run the effect on change of isFocused.
+        // We don't need to run the effect on change of isFocused, and searchRequestQuery stands in for queryJSON.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, searchRequestQuery, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
