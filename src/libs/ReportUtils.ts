@@ -3489,7 +3489,7 @@ function canIOUBePaid(
     bankAccountList: OnyxEntry<BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    transactions: Transaction[] | undefined,
+    transactions: Transaction[],
     onlyShowPayElsewhere: boolean,
     isChatReportArchived: boolean,
     invoiceReceiverPolicy?: Policy,
@@ -3649,7 +3649,7 @@ function getBadgeFromIOUReport({
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReport(iouReport) || isReportPayer) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, isChatReportArchived, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, reportTransactions, false, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -3659,7 +3659,7 @@ function getBadgeFromIOUReport({
     const canPayElsewhereActor = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
     const canBePaidElsewhere =
         (isInvoiceReport(iouReport) || canPayElsewhereActor) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, reportTransactions, true, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return isPayOptional(iouReport, reportTransactions) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
