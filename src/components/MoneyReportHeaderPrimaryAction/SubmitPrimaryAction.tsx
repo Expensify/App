@@ -127,6 +127,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 

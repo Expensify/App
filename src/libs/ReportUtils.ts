@@ -10967,9 +10967,11 @@ function hasAnyViolations(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ) {
     return (
-        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions) ||
+        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions, report, undefined, policy) ||
         hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions) ||
         hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions)
     );
@@ -10986,11 +10988,13 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
+    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions, report, policy);
 }
 
 function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {

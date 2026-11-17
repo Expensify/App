@@ -156,6 +156,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));

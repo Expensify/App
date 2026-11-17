@@ -124,6 +124,8 @@ function SubmitActionButtonContent() {
         currentUserAccountID,
         currentUserEmail,
         transactions,
+        iouReport,
+        policy,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 

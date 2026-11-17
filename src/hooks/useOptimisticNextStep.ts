@@ -52,6 +52,8 @@ function useOptimisticNextStep(reportID: string | undefined) {
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
 
     let optimisticNextStep = getReportNextStep({
