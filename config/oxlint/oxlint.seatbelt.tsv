@@ -549,7 +549,7 @@
 "../../src/hooks/useMergeResultConfirmationConfig.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingFlow.ts"	"rulesdir/no-onyx-loading-status"	3
-"../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
+"../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useOtherFeedsForFeedSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/usePageRefresh/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
