@@ -145,6 +145,7 @@ import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, 
 import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
+    canMemberRead as canMemberReadPolicyUtils,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
@@ -164,6 +165,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
+    getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasReadOnlyAllReportsAccess,
     hasDynamicExternalWorkflow,
@@ -1504,20 +1506,6 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
     }
 
     return isInvoiceRoom(getReport(invoiceRoomID, deprecatedAllReports));
-}
-
-/**
- * Checks if the report with supplied ID has been approved or not
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, deprecatedAllReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
 }
 
 /**
@@ -5424,11 +5412,10 @@ function getReasonAndReportActionThatRequiresAttention({
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-    // The bare outstanding-child flag only asks the owner to add expenses to their open report, so it is ignored when the current user cannot create expenses on that workspace.
+    // The bare outstanding-child flag on an open report owned by the current user only asks them to add expenses or submit it, so it is ignored when they cannot create or submit expenses on that workspace.
     const isBareOutstandingChildIgnorable =
         !iouReportActionToApproveOrPay?.reportActionID &&
         isOpenExpenseReport(iouReport) &&
-        (iouReport?.transactionCount ?? 0) === 0 &&
         iouReport?.ownerAccountID === currentUserAccountID &&
         !canCreateExpensesOnPolicy(resolvePolicy(iouReport?.policyID), currentUserLogin);
     const hasValidIOUAction =
@@ -6647,7 +6634,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+function getTransactionsWithReceipts(reportTransactions: Transaction[]): Transaction[] {
     return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
@@ -6658,12 +6645,8 @@ function getTransactionsWithReceipts(iouReportID: string | undefined, reportTran
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(
-    iouReportID: string | undefined,
-    reportPreviewAction: OnyxEntry<ReportAction>,
-    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
-): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
+function areAllRequestsBeingSmartScanned(reportPreviewAction: OnyxEntry<ReportAction>, reportTransactions: Transaction[]): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -13438,9 +13421,12 @@ function canJoinChat(
         return false;
     }
 
-    // For restricted visibility rooms, the user must be a non-guest workspace member to join
-    const policyRole = getPolicyRole(policy, currentUserEmail ?? deprecatedCurrentUserEmail);
-    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && (!policyRole || policyRole === CONST.POLICY.ROLE.GUEST)) {
+    // For restricted visibility rooms, the user must be a workspace member with room access to join
+    if (
+        isUserCreatedPolicyRoom(report) &&
+        report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED &&
+        !canMemberReadPolicyUtils(policy, currentUserEmail ?? deprecatedCurrentUserEmail ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS)
+    ) {
         return false;
     }
 
@@ -15186,6 +15172,7 @@ function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): a
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED) ||
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED) ||
         isPayAction(action)
     );
 }
@@ -15581,6 +15568,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.POSTED,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -15651,6 +15639,8 @@ function getTransactionSortValue(
             return getPostedDate(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return getVendorDisplayName(policy, transaction.comment?.vendor);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return getCategory(transaction);
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
@@ -16143,7 +16133,6 @@ export {
     isOpenReport,
     isReportEligibleForViolationFix,
     getSubmitterUnfixableViolationNames,
-    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,

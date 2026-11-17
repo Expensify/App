@@ -92,7 +92,12 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
             descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />,
             ctaComponent: (
                 <Text style={[styles.textAlignCenter, styles.mt2, styles.textSupporting]}>
-                    <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_RESULT_2FA_LEARN_MORE_LINK}
+                        href={CONST.MERGE_ACCOUNT_HELP_URL}
+                    >
+                        {translate('mergeAccountsPage.mergeFailure2FA.learnMore')}
+                    </TextLink>
                 </Text>
             ),
         },
