@@ -18,11 +18,14 @@ type SidePanel = {
 };
 
 /** Insights dashboard and filters the user was looking at when they asked Concierge about it */
-type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
+type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency' | 'tagLevel'> & {
     searchKey: InsightsSearchKey;
 
     /** Violation stage the explained Compliance chart counts. AI cards leave it out, since they cover both stages. */
     violationStage?: InsightsViolationStage;
+
+    /** Encoded ancestor path when explaining a specific dependent tag. */
+    tagParent?: string;
 };
 
 /**

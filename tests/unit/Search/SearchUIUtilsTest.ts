@@ -5955,6 +5955,44 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionTagGroupListItems);
         });
 
+        it('keeps selected-level leaves literal and separates identical names by dependent parent', () => {
+            // Given identical decoded leaves under two encoded ancestor paths
+            const leaf = 'R&amp;D: Path\\name';
+            const queryJSON = buildSearchQueryJSON('groupBy:tag tagLevel:2 limit:5');
+            const data: OnyxTypes.SearchResults['data'] = {
+                group_us: {tag: leaf, tagLevel: 2, parentTagPath: 'US', count: 1, total: 100, currency: 'USD'},
+                group_eu: {tag: leaf, tagLevel: 2, parentTagPath: 'EU', count: 1, total: 200, currency: 'USD'},
+            };
+
+            // When Search prepares chart labels and the expanded groups' expense queries
+            const [rows] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    queryJSON,
+                    groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    dateFnsLocale: undefined,
+                }),
+                SearchUIUtils.isTransactionTagGroupListItemType,
+            );
+
+            // Then labels decode HTML without treating literal colons or backslashes as stored separators
+            expect(rows.map((row) => row.formattedTagName)).toEqual(['R&D: Path\\name', 'R&D: Path\\name']);
+            expect(rows.map((row) => row.formattedTag)).toEqual(['R&D: Path\\name (US)', 'R&D: Path\\name (EU)']);
+            expect(rows.map((row) => row.transactionsQueryJSON?.tagParent)).toEqual(['US', 'EU']);
+            expect(new Set(rows.map((row) => row.transactionsQueryJSON?.hash)).size).toBe(2);
+            expect(SearchUIUtils.getActiveGroupSearchHashes(data, queryJSON)).toEqual(rows.map((row) => row.transactionsQueryJSON?.hash));
+        });
+
         it('should unescape colons in tag names when grouping by tag', () => {
             // Backend sends tags with escaped colons (e.g., 'Parent\: Child')
             const escapedTagName = 'Parent\\: Child';

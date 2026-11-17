@@ -1372,6 +1372,10 @@ const translations = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag level ${level}`,
+        tagLevelLabel: 'Tag level',
+        parent: 'Parent',
+        shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
@@ -1413,6 +1417,7 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            tagAverage: 'Tag average',
             allViolationAverage: 'All-violation average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
@@ -2585,6 +2590,13 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
+        },
     },
     // cspell:disable
     pronouns: {
@@ -11184,6 +11196,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            topTags: 'Top tags',
             violationsBySubmitter: 'Violations by submitter',
             travel: 'Travel',
             trips: 'Trips',

@@ -2,10 +2,11 @@
 
 import type {SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
 
+import {arePaymentsEnabled} from '@libs/PolicyUtils/payments';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {areApprovalsEnabled} from '@libs/PolicyUtils/workflows';
-import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders, isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -143,6 +144,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
             },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                titleKey: 'search.tabs.topTags',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopTags,
+            },
         ],
     },
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
@@ -199,6 +210,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                isPolicyEligible: arePaymentsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,

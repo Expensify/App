@@ -68,6 +68,8 @@ type InsightsChartWidgetProps = {
 
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
+    averageSnapshot?: OnyxEntry<SearchResults>;
 
     /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
     average: ChartAverage | undefined;
@@ -102,9 +104,14 @@ type InsightsChartWidgetProps = {
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
-    /** Shown below the plot once the chart has loaded, including when it has nothing to plot */
+    /** Controls children stay in the header; other children appear below the plot after loading, including empty charts. */
     children?: React.ReactNode;
 };
+
+/** Marks header controls so chart notes can remain below the plot. */
+function InsightsChartControls({children}: React.PropsWithChildren) {
+    return children;
+}
 
 function InsightsChartWidget({
     dashboardID,
@@ -113,6 +120,8 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
     average,
     isDashboardLoaded,
     filters,
@@ -132,8 +141,20 @@ function InsightsChartWidget({
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const controls: React.ReactNode[] = [];
+    const notes: React.ReactNode[] = [];
+    for (const child of React.Children.toArray(children)) {
+        if (React.isValidElement(child) && child.type === InsightsChartControls) {
+            controls.push(child);
+        } else {
+            notes.push(child);
+        }
+    }
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}, filters);
+    const {data, state, comparison} = useInsightsChartData(
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded},
+        filters,
+    );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     useReportChartCaptureLoading(isLoading);
@@ -167,7 +188,6 @@ function InsightsChartWidget({
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
-    // The Details panel covers the Spend dashboard only
     const openDetails =
         dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
             ? (item: GroupedItem) => {
@@ -257,9 +277,10 @@ function InsightsChartWidget({
         <WidgetContainer
             title={translate(chart.titleKey)}
             titleRightContent={
-                !!violationStageControl || !!groupByControl || !!explainButton || !!headerMenu ? (
+                !!violationStageControl || controls.length > 0 || !!groupByControl || !!explainButton || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentEnd, styles.alignItemsCenter, styles.flexShrink1]}>
                         {violationStageControl}
+                        {controls}
                         {groupByControl}
                         {explainButton}
                         {headerMenu}
@@ -330,11 +351,13 @@ function InsightsChartWidget({
             {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && (
                 <>
                     {isTimeGrouped && !!trackedFrom && doesRangeStartBeforeTracking(filters, trackedFrom) && <InsightsTrackedFromNote trackedFrom={trackedFrom} />}
-                    {children}
+                    {notes}
                 </>
             )}
         </WidgetContainer>
     );
 }
+
+InsightsChartWidget.Controls = InsightsChartControls;
 
 export default InsightsChartWidget;

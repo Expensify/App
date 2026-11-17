@@ -226,6 +226,8 @@ const FILTER_KEYS = {
 
     TAG_NOT: 'tagNot',
     TAG: 'tag',
+    TAG_LEVEL: 'tagLevel',
+    TAG_PARENT: 'tagParent',
 
     KEYWORD: 'keyword',
 
@@ -364,6 +366,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CATEGORY_NOT,
         FILTER_KEYS.TAG,
         FILTER_KEYS.TAG_NOT,
+        FILTER_KEYS.TAG_LEVEL,
+        FILTER_KEYS.TAG_PARENT,
         FILTER_KEYS.VENDOR,
         FILTER_KEYS.VENDOR_NOT,
         FILTER_KEYS.PAYER,
@@ -1060,6 +1064,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+        [FILTER_KEYS.TAG_LEVEL]: string;
+        [FILTER_KEYS.TAG_PARENT]: string;
 
         [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
         [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;
