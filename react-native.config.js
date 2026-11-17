@@ -2,6 +2,9 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true' ? true : false;
 
 const config = {
     assets: ['./assets/fonts/native'],
+    // Lets knip see that these are used: react-native-clean-project is a React Native CLI plugin found by the CLI, and expo-font is linked natively.
+    /** @type {import('react-native-clean-project')} */
+    /** @import {} from 'expo-font' */
     dependencies: {},
 };
 

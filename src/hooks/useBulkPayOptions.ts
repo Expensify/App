@@ -30,6 +30,7 @@ import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
@@ -46,6 +47,10 @@ type UseBulkPayOptionProps = {
     currency: string | undefined;
     formattedAmount: string;
     onlyShowPayElsewhere: boolean;
+    hasMultipleCurrencies?: boolean;
+
+    /** Whether the selection can be paid via ABA, i.e. it's from a single workspace that can pay via ABA */
+    shouldShowPayViaABAOption?: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -66,11 +71,14 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
+    hasMultipleCurrencies = false,
+    shouldShowPayViaABAOption = false,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
@@ -117,6 +125,7 @@ function useBulkPayOptions({
                 description: formattedPaymentMethod?.description ?? '',
                 icon: formattedPaymentMethod?.icon,
                 shouldUpdateSelectedIndex: true,
+                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_INVOICE_PAY_MENU.BANK_ACCOUNT,
                 iconStyles: formattedPaymentMethod?.iconStyles,
                 iconHeight: formattedPaymentMethod?.iconSize,
                 iconWidth: formattedPaymentMethod?.iconSize,
@@ -144,9 +153,23 @@ function useBulkPayOptions({
         (ba) => ba.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && ba.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL,
     );
 
+    const payViaABAOption = {
+        ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_VIA_ABA,
+        // The file is downloaded straight from the API, which can't be queued for when the user is back online
+        disabled: isOffline,
+        additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+    };
+
     let bulkPayButtonOptions;
     if (onlyShowPayElsewhere) {
-        bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+        bulkPayButtonOptions = [{...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_ELSEWHERE}];
+    } else if (hasMultipleCurrencies) {
+        // An ABA file pays every report in AUD, so it still works when the reports are in different currencies
+        bulkPayButtonOptions = [
+            ...(shouldShowPayViaABAOption && isExpenseReport ? [payViaABAOption] : []),
+            {...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_ELSEWHERE},
+        ];
     } else if (!selectedReportID || !selectedPolicyID) {
         bulkPayButtonOptions = undefined;
     } else {
@@ -154,7 +177,10 @@ function useBulkPayOptions({
 
         if (shouldShowBusinessBankAccountOptions) {
             if (businessBankAccountOptionList.length === 0) {
-                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                // An ABA account is also a business account, so no need to show the generic pay via business account option
+                if (!shouldShowPayViaABAOption) {
+                    bulkPayButtonOptions.push({...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.BUSINESS});
+                }
             } else {
                 for (const account of businessBankAccountOptionList) {
                     bulkPayButtonOptions.push({
@@ -167,6 +193,7 @@ function useBulkPayOptions({
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         shouldIgnoreKeyForRendering: true,
                         shouldIgnoreCompactStyle: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.BUSINESS_BANK_ACCOUNT,
                         additionalData: {
                             bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -182,13 +209,14 @@ function useBulkPayOptions({
                     text: translate('iou.settleWallet', ''),
                     key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PERSONAL,
                 });
             } else if (canUsePersonalBankAccount) {
-                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+                bulkPayButtonOptions.push({...paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PERSONAL});
             }
 
             if (activeAdminPolicies.length === 0 && !isPersonalOnlyOption) {
-                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                bulkPayButtonOptions.push({...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.BUSINESS});
             }
         }
 
@@ -201,12 +229,17 @@ function useBulkPayOptions({
                     icon: icons.Building,
                     key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_WITH_WORKSPACE,
                 });
             }
         }
 
+        if (shouldShowPayViaABAOption && isExpenseReport) {
+            bulkPayButtonOptions.push(payViaABAOption);
+        }
+
         if (shouldShowPayElsewhereOption) {
-            bulkPayButtonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+            bulkPayButtonOptions.push({...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE], sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.PAY_ELSEWHERE});
         }
 
         if (isInvoiceReport) {
@@ -215,6 +248,7 @@ function useBulkPayOptions({
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_INVOICE_PAY_MENU.ADD_BANK_ACCOUNT,
                     onSelected: () => {
                         const bankAccountRoute = getBankAccountRoute(chatReport, areInvoicesEnabled);
                         Navigation.navigate(bankAccountRoute);
@@ -227,6 +261,7 @@ function useBulkPayOptions({
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_INVOICE_PAY_MENU.PAY_ELSEWHERE,
                         additionalData: {
                             payAsBusiness,
                         },
@@ -239,12 +274,14 @@ function useBulkPayOptions({
                     text: translate('iou.settlePersonal', formattedAmount),
                     icon: icons.User,
                     backButtonText: translate('iou.individual'),
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.INVOICE_INDIVIDUAL,
                     subMenuItems: getInvoicesOptions(false),
                 });
                 bulkPayButtonOptions.push({
                     text: translate('iou.settleBusiness', formattedAmount),
                     icon: icons.Building,
                     backButtonText: translate('iou.business'),
+                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_PAY_MENU.INVOICE_BUSINESS,
                     subMenuItems: getInvoicesOptions(true),
                 });
             } else {
