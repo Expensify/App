@@ -113,6 +113,7 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
+    getFieldViolation,
     getHarvestOriginalReportID,
     getIcons,
     getIconsForParticipants,
@@ -216,6 +217,7 @@ import {
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
+    isReportTransactionThreadNew,
     isResolvedSupportTicket,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
@@ -298,6 +300,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxMergeCollectionInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {addDays, format as formatDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -5604,6 +5607,37 @@ describe('ReportUtils', () => {
         });
 
         describe('return only submit expense and track expense options if', () => {
+            it('the workspace chat has a report waiting on the current user to add a bank account', async () => {
+                // Given a workspace chat whose last expense report cannot be paid until its owner adds a bank account
+                const waitingReport: Report = {
+                    reportID: 'waitingOnBankAccountReport',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: currentUserAccountID,
+                    isWaitingOnBankAccount: true,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                };
+                const chatReport: Report = {
+                    reportID: 'waitingOnBankAccountChat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: true,
+                    ownerAccountID: currentUserAccountID,
+                    iouReportID: waitingReport.reportID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, waitingReport);
+                await waitForBatchedUpdates();
+
+                // When the submitter opens the expense options in their workspace chat
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(chatReport, undefined, [currentUserAccountID], undefined, false, false, currentUserAccountID);
+
+                // Then the pending payment does not prevent new expenses, but the approved report still cannot accept them
+                expect(moneyRequestOptions).toEqual([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.TRACK]);
+                expect(canRequestMoney(waitingReport, undefined, [], undefined, currentUserAccountID)).toBe(false);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${waitingReport.reportID}`, null);
+            });
+
             it("it is an expense report tied to user's own policy expense chat", () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}102`, {
                     reportID: '102',
@@ -20189,6 +20223,33 @@ describe('ReportUtils', () => {
 
             expect(result).toBe(true);
         });
+
+        it('should return true for a missingAttendees violation when the given workspace tracks attendees', () => {
+            // Given a missingAttendees violation on a Control workspace that tracks attendees, which only shows when the workspace is known
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID,
+                    comment: '',
+                    attendees: [],
+                    created: '2024-01-01',
+                    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+                    category: '',
+                },
+            });
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
+            const report = {...createRandomReport(0, undefined), reportID, type: CONST.REPORT.TYPE.EXPENSE};
+            const attendeeTrackingPolicy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), isAttendeeTrackingEnabled: true};
+
+            // When checking whether strict rules block submitting with that report and workspace
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', [transaction], report, attendeeTrackingPolicy);
+
+            // Then submitting is blocked, because the violation is shown for that workspace and the backend enforces it
+            expect(result).toBe(true);
+        });
     });
 
     describe('shouldBlockSubmitDueToDeletedWorkspace', () => {
@@ -27887,6 +27948,27 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
         });
 
+        describe.each([CONST.REPORT.TYPE.INVOICE, CONST.REPORT.TYPE.EXPENSE])('getFieldViolation for %s reports', (type) => {
+            it.each([
+                {value: null, defaultValue: '', isEmpty: true},
+                {value: undefined, defaultValue: '', isEmpty: true},
+                {value: '', defaultValue: '', isEmpty: true},
+                {value: 'Saved value', defaultValue: '', isEmpty: false},
+                {value: null, defaultValue: 'Default value', isEmpty: false},
+                {value: '', defaultValue: 'Default value', isEmpty: true},
+            ])('validates value $value with default $defaultValue', ({value, defaultValue, isEmpty}) => {
+                // Given saved and default values, where an explicit empty value must not fall back to the default
+                const field = {...baseField, value, defaultValue};
+                const report = {...expenseReport, type};
+
+                // When the field is validated in its report context
+                const violation = getFieldViolation(field, report);
+
+                // Then only empty expense fields are required; invoices are exempt regardless of the stored value
+                expect(violation).toBe(type === CONST.REPORT.TYPE.EXPENSE && isEmpty ? CONST.REPORT_VIOLATIONS.FIELD_REQUIRED : undefined);
+            });
+        });
+
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
@@ -27921,7 +28003,8 @@ describe('ReportUtils', () => {
             expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
-        it('should return true when an unpaid invoice report has a required field with no value', async () => {
+        it('should return false when an unpaid invoice report has an empty field', async () => {
+            // Given an unpaid invoice with an empty field, which is exempt from required-field validation
             const fieldWithNoValue: PolicyReportField = {
                 ...baseField,
                 target: CONST.REPORT.TYPE.INVOICE,
@@ -27945,10 +28028,12 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
+            // When the invoice policy is loaded
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
+            // Then no report-field warning is shown for the empty invoice field
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
@@ -32270,5 +32355,45 @@ describe('isExportInProgress', () => {
         // When checking whether the export is running
         // Then it is not, because no outcome will ever arrive and the button must not stay hidden
         expect(isExportInProgress(reportActions)).toBe(false);
+    });
+});
+
+describe('isReportTransactionThreadNew', () => {
+    const thread = {parentReportID: '1', parentReportActionID: '2'};
+    const buildIOUAction = (type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>) =>
+        ({
+            ...createRandomReportAction(2),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
+            originalMessage: {type, amount: 100, currency: 'USD', IOUTransactionID: '3'},
+        }) as ReportAction;
+
+    it('is true for an expense thread under an expense report', () => {
+        // Given a thread whose parent is an expense report and whose parent action created the expense
+        // When checking it with the parent data passed in
+        // Then it is a transaction thread, without reading the parent from Onyx
+        expect(isReportTransactionThreadNew(thread, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(true);
+    });
+
+    it('is true for a tracked expense thread under the self DM', () => {
+        // Given a thread whose parent is the self DM and whose parent action tracked the expense
+        // When checking it
+        // Then it is a transaction thread
+        expect(isReportTransactionThreadNew(thread, {chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.TRACK))).toBe(true);
+    });
+
+    it('is false while the parent report or action is not loaded', () => {
+        // Given a thread whose parent data has not arrived yet
+        // When checking it
+        // Then it is not a transaction thread yet, so callers recheck once the parent loads
+        expect(isReportTransactionThreadNew(thread, undefined, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
+        expect(isReportTransactionThreadNew(thread, {type: CONST.REPORT.TYPE.EXPENSE}, undefined)).toBe(false);
+    });
+
+    it('is false for a report that is not a thread', () => {
+        // Given a report with no parent action
+        // When checking it
+        // Then it is not a transaction thread
+        expect(isReportTransactionThreadNew({parentReportID: '1'}, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
     });
 });

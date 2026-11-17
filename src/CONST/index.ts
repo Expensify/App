@@ -1562,6 +1562,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
+        PAY_VIA_ABA: 'payViaABA',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -3405,6 +3406,9 @@ const CONST = {
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
+
+        // Sent when an employee being paid via ABA has no Australian bank account to pay into
+        MISSING_ABA_DEPOSIT_ACCOUNT: 'Missing AU deposit account',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -5062,6 +5066,7 @@ const CONST = {
         DEBIT_CARD: 'debitCard',
         PERSONAL_BANK_ACCOUNT: 'bankAccount',
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
+        ABA: 'ABA',
     },
 
     PAYMENT_SELECTED: {
@@ -6684,7 +6689,6 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         // Matches complete tags like <script> or <123a>; lone < or > are allowed.
         NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
@@ -10636,6 +10640,7 @@ const CONST = {
             EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
+        NO_CHANGE_PLACEHOLDER: '—',
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_OVER_TIME: 'violationsOverTime',
@@ -10714,9 +10719,13 @@ const CONST = {
         EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
+        INTEGRATIONS: 53,
         NEWDOT: 83,
         OAUTH: 86,
     },
+
+    /** Start of the partnerUserID Auth gives a login it issues to an Integration Server OAuth partner */
+    INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX: 'is-oauth-',
 } as const;
 
 const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {
