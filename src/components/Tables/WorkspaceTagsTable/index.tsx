@@ -240,4 +240,4 @@ export default function WorkspaceTagsTable({
     );
 }
 
-export type {WorkspaceTagTableRowData, WorkspaceTagTableColumnKey};
+export type {WorkspaceTagTableRowData};
