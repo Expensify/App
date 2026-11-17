@@ -71,6 +71,12 @@ async function openPill(label: RegExp) {
     await waitForBatchedUpdatesWithAct();
 }
 
+function mockLayout(shouldUseNarrowLayout: boolean) {
+    jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+        createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
+    );
+}
+
 describe('Insights controls', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
@@ -90,7 +96,8 @@ describe('Insights controls', () => {
     });
 
     it('shows the page-level filters the dashboard is narrowed by', async () => {
-        // Given a dashboard on last month, one workspace and USD
+        // Given a dashboard on last month, one workspace and USD, on a wide layout where Export is offered
+        mockLayout(false);
         renderWithProviders(
             <InsightsPageControls
                 filters={FILTERS}
@@ -111,7 +118,8 @@ describe('Insights controls', () => {
     });
 
     it('exports when the dashboard is ready and blocks exports while a chart is loading', async () => {
-        // Given a loaded dashboard with an export action
+        // Given a loaded dashboard with an export action on a wide layout
+        mockLayout(false);
         const onExport = jest.fn();
         const controls = (isExportDisabled: boolean) => (
             <InsightsPageControls
@@ -148,11 +156,9 @@ describe('Insights controls', () => {
         expect(onExport).toHaveBeenCalledTimes(1);
     });
 
-    it.each([false, true])('shows a 16px spinner without hiding the Export label with narrow layout %s', async (shouldUseNarrowLayout) => {
-        // Given an export in progress on either toolbar layout
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
-            createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
-        );
+    it('shows a 16px spinner without hiding the Export label', async () => {
+        // Given an export in progress on the wide toolbar
+        mockLayout(false);
         const onExport = jest.fn();
         renderWithProviders(
             <InsightsPageControls
@@ -178,6 +184,26 @@ describe('Insights controls', () => {
         expect(exportButton).toBeDisabled();
         fireEvent.press(exportButton);
         expect(onExport).not.toHaveBeenCalled();
+    });
+
+    it('hides Export on narrow layouts', async () => {
+        // Given the toolbar on a narrow layout, where exporting the dashboard isn't offered
+        mockLayout(true);
+        renderWithProviders(
+            <InsightsPageControls
+                filters={FILTERS}
+                defaultFilters={FILTERS}
+                onChange={jest.fn()}
+                onExport={jest.fn()}
+            />,
+        );
+
+        // When the toolbar renders
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the filters show but Export does not
+        expect(screen.getByText(/Date: /)).toBeOnTheScreen();
+        expect(screen.queryByTestId('InsightsExportButton')).toBeNull();
     });
 
     it('resets Group currency to the default workspace currency rather than the current one', async () => {

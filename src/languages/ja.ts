@@ -1245,6 +1245,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allCategoryAverage: '全カテゴリ平均',
             tagAverage: 'タグ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
+            allViolationAverage: 'すべての違反の平均',
+            noChange: '変更なし',
+            percentChange: '％ 変化',
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
@@ -1269,6 +1272,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        share: 'シェア割合',
         averageDays: '平均日数',
     },
     allSettingsScreen: {
@@ -2070,6 +2074,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} レポート`,
             };
         },
+        payViaABA: 'ABA で支払う',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} はAUDの銀行口座をお持ちではありません。口座を追加してもらい、もう一度お試しください。`,
+        submittersMissingABADepositAccount: '1 人以上の申請者が AUD 銀行口座を登録していません。口座を追加するよう依頼してから、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {

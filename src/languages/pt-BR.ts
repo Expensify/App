@@ -1259,6 +1259,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allCategoryAverage: 'Média de todas as categorias',
             tagAverage: 'Média da tag',
             averageValue: (amount: string) => `${amount} média`,
+            allViolationAverage: 'Média de todas as violações',
+            noChange: 'Sem alteração',
+            percentChange: '% de mudança',
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
@@ -1283,6 +1286,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Mais demorados para enviar',
         slowestToApprove: 'Mais lento para aprovar',
         mostTimeToPay: 'Maior prazo para pagar',
+        share: 'Participação',
         averageDays: 'Média de dias',
     },
     allSettingsScreen: {
@@ -2082,6 +2086,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} relatórios`,
             };
         },
+        payViaABA: 'Pagar via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} não tem uma conta bancária em AUD. Peça para que adicione uma e tente novamente.`,
+        submittersMissingABADepositAccount: 'Um ou mais responsáveis pelo envio não têm uma conta bancária em AUD. Peça para que adicionem uma e tente novamente.',
     },
     transactionMerge: {
         listPage: {

@@ -1264,6 +1264,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allCategoryAverage: 'Moyenne toutes catégories',
             tagAverage: 'Moyenne du tag',
             averageValue: (amount: string) => `${amount} en moyenne`,
+            allViolationAverage: 'Moyenne de toutes les infractions',
+            noChange: 'Aucun changement',
+            percentChange: '% de changement',
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
@@ -1288,6 +1291,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
+        share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
     },
     allSettingsScreen: {
@@ -2104,6 +2108,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} notes de frais`,
             };
         },
+        payViaABA: 'Payer via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} n’a pas de compte bancaire en AUD. Veuillez lui demander d’en ajouter un, puis réessayez.`,
+        submittersMissingABADepositAccount: 'Un ou plusieurs déclarants n’ont pas de compte bancaire en AUD. Veuillez leur demander d’en ajouter un, puis réessayez.',
     },
     transactionMerge: {
         listPage: {

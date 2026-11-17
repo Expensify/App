@@ -1256,6 +1256,9 @@ const translations: TranslationDeepObject<typeof en> = {
             allCategoryAverage: 'Gemiddelde voor alle categorieën',
             tagAverage: 'Labelgemiddelde',
             averageValue: (amount: string) => `${amount} gem.`,
+            allViolationAverage: 'Gemiddelde over alle overtredingen',
+            noChange: 'Geen wijziging',
+            percentChange: '% wijziging',
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
@@ -1280,6 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {
@@ -2086,6 +2090,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} rapporten`,
             };
         },
+        payViaABA: 'Betalen via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} heeft geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.`,
+        submittersMissingABADepositAccount: 'Een of meer indieners hebben geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
