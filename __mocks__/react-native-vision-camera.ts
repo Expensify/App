@@ -3,6 +3,7 @@ const useCameraDevices = jest.fn(() => []);
 const useCameraPermission = jest.fn(() => ({hasPermission: false, requestPermission: jest.fn(() => Promise.resolve(false))}));
 const usePhotoOutput = jest.fn(() => ({capturePhoto: jest.fn(), capturePhotoToFile: jest.fn()}));
 const useFrameOutput = jest.fn(() => ({}));
+const VisionCamera = {createFrameOutput: jest.fn(() => ({thread: {}, setOnFrameDroppedCallback: jest.fn()}))};
 
 const Camera = Object.assign(
     jest.fn(() => null),
@@ -12,4 +13,4 @@ const Camera = Object.assign(
     },
 );
 
-export {Camera, useCameraDevice, useCameraDevices, useCameraPermission, useFrameOutput, usePhotoOutput};
+export {Camera, useCameraDevice, useCameraDevices, useCameraPermission, useFrameOutput, usePhotoOutput, VisionCamera};

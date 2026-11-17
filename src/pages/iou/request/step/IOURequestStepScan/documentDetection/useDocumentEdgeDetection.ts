@@ -11,7 +11,6 @@ import {getDocumentDetectorNitroModule} from '@expensify/nitro-utils';
 import {useFocusEffect} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
-import {useFrameOutput} from 'react-native-vision-camera';
 import {createSynchronizable, scheduleOnRN} from 'react-native-worklets';
 
 import type {OneEuroState, ViewEdge} from './edgeGeometry';
@@ -20,6 +19,7 @@ import type {DocumentEdge, QuadPoint} from './types';
 
 import {buildEdge, EDGE_POINT_COUNT, filterOneEuro, getEdgeShape, getViewEdgeAndCorners, hasLocalBendChange, resampleEdge} from './edgeGeometry';
 import documentReader from './readDocument';
+import useDisposableFrameOutput from './useDisposableFrameOutput';
 
 // A module-level value, not an import: under Worklets Bundle Mode a worklet resolves captured imports again on its own runtime.
 const documentDetector = getDocumentDetectorNitroModule();
@@ -29,7 +29,16 @@ const edgeGeometry = {EDGE_POINT_COUNT, buildEdge, filterOneEuro, getEdgeShape, 
 
 const platformReader = {readDocument: documentReader.readDocument};
 
-const FRAME_OUTPUT_RESOLUTION = documentReader.frameResolution;
+const FRAME_OUTPUT_OPTIONS = {
+    targetResolution: documentReader.frameResolution,
+    // 'native' can be an opaque 'private' format on Android.
+    pixelFormat: 'yuv',
+    dropFramesWhileBusy: true,
+    enableCameraMatrixDelivery: false,
+    enablePhysicalBufferRotation: false,
+    enablePreviewSizedOutputBuffers: false,
+    allowDeferredStart: true,
+} as const;
 
 const MIN_ANALYSIS_INTERVAL_MS = 80;
 
@@ -501,34 +510,27 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         updateOutline(corners, detectedEdge, toCameraPoint, detectedAt);
     };
 
-    const frameOutput = useFrameOutput({
-        targetResolution: FRAME_OUTPUT_RESOLUTION,
-        // 'native' can be an opaque 'private' format on Android.
-        pixelFormat: 'yuv',
-        // Without a handler, VisionCamera console.warns on every dropped frame.
-        onFrameDropped: () => {},
-        onFrame(frame) {
-            'worklet';
+    const frameOutput = useDisposableFrameOutput(FRAME_OUTPUT_OPTIONS, (frame: Frame) => {
+        'worklet';
 
-            try {
-                if (!isEnabled) {
-                    if (shownEdge.getDirty() !== null) {
-                        setOutline(null);
-                    }
-                    return;
+        try {
+            if (!isEnabled) {
+                if (shownEdge.getDirty() !== null) {
+                    setOutline(null);
                 }
-                processFrame(frame);
-            } catch (error) {
-                if (loggedErrorCount.getDirty() < MAX_LOGGED_ERRORS) {
-                    loggedErrorCount.setDirty(loggedErrorCount.getDirty() + 1);
-                    scheduleOnRN(logError, error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : undefined);
-                }
-                // A failed frame counts as a missed detection, so the hold timeout still clears the outline.
-                updateOutline(null, undefined, getUnchangedPoint, getTimestamp());
-            } finally {
-                frame.dispose();
+                return;
             }
-        },
+            processFrame(frame);
+        } catch (error) {
+            if (loggedErrorCount.getDirty() < MAX_LOGGED_ERRORS) {
+                loggedErrorCount.setDirty(loggedErrorCount.getDirty() + 1);
+                scheduleOnRN(logError, error instanceof Error ? error.message : String(error), error instanceof Error ? error.stack : undefined);
+            }
+            // A failed frame counts as a missed detection, so the hold timeout still clears the outline.
+            updateOutline(null, undefined, getUnchangedPoint, getTimestamp());
+        } finally {
+            frame.dispose();
+        }
     });
 
     return {frameOutput, edge, isMoving};
