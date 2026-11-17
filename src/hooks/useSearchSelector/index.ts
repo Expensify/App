@@ -1,4 +1,4 @@
-import type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
+import type {UseSearchSelectorConfig, UseSearchSelectorReturn} from './base';
 
 import useSearchSelectorBase from './base';
 
@@ -15,4 +15,3 @@ function useSearchSelector(config: UseSearchSelectorConfig): UseSearchSelectorRe
 }
 
 export default useSearchSelector;
-export type {ContactState};

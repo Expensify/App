@@ -23,7 +23,12 @@ function normalizeAmountInput(inputValue: string, {fromLocaleDigit, allowNegativ
 }
 
 function isForwardDeleteKeyPress(event: AmountEditingKeyPressEvent): boolean {
-    const key = event.nativeEvent.key.toLowerCase();
+    const rawKey = event.nativeEvent.key;
+    if (typeof rawKey !== 'string') {
+        return false;
+    }
+
+    const key = rawKey.toLowerCase();
 
     if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
         // Handle the Mac Accessibility keyboard shortcut on iOS Safari.

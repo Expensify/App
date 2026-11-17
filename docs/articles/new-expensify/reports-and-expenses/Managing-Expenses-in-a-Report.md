@@ -155,7 +155,7 @@ Additional columns can be enabled from the **Columns** picker:
   - Tax rate
   - Withdrawal ID
 
-Clicking a row opens the full expense details in a side panel (web) or details screen (mobile).
+Selecting a row opens the full expense details in a side panel (web) or details screen (mobile). Additional details selected in **Columns**, such as **Purchase amount**, also appear as read-only fields in expense details and single-expense reports.
 
 ---
 
