@@ -66,7 +66,12 @@ describe('HomeAddressRequiredContent', () => {
     it('renders the home address link from the report action HTML', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('Add your <a href="https://example.com">home address</a>.');
 
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
 
         expect(mockRenderHTML).toHaveBeenCalledWith('<comment><muted-text>Add your <a href="https://example.com">home address</a>.</muted-text></comment>');
     });
@@ -75,14 +80,24 @@ describe('HomeAddressRequiredContent', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('');
         jest.mocked(getReportActionText).mockReturnValue('Add your home address.');
 
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
 
         expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });
 
     it('focuses the home address from either supported message-link path', () => {
         // Given the backend may still send the old private-details path, or the new address-only path
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
         const paths = [ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route, ROUTES.SETTINGS_HOME_ADDRESS.route];
 
         for (const path of paths) {
@@ -97,7 +112,12 @@ describe('HomeAddressRequiredContent', () => {
 
     it('leaves an unrelated internal link to the shared renderer', () => {
         // Given a home-address message containing another link
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
 
         // When the renderer asks whether that link has a custom action
         const press = mockGetAnchorPressOverride(`${CONST.NEW_EXPENSIFY_URL}settings/profile`);

@@ -7,7 +7,7 @@ import {isRecord} from '@libs/ObjectUtils';
 import CONFIG from '@src/CONFIG';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
-import {getAuthServerEndpoints} from './AuthServerMetadata';
+import getAuthServerEndpoints from './AuthServerMetadata';
 import {getOAuthRedirectURI, getQAResource} from './Config';
 
 /** A hung token endpoint would otherwise hold the cross-tab refresh lock indefinitely */

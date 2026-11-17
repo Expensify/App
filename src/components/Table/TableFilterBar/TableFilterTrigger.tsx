@@ -54,6 +54,7 @@ export default function TableFilterTrigger() {
 
                 return (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.TABLE.FILTERS}
                         ref={ref}
                         size={CONST.BUTTON_SIZE.SMALL}
                         accessibilityLabel={translate('search.filtersHeader')}

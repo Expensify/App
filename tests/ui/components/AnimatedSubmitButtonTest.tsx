@@ -77,6 +77,7 @@ function CancellableSubmission({onAnimationFinish = () => undefined}: {onAnimati
         <div>
             {isSubmitting ? (
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     text="Submit"
                     onPress={() => undefined}
                     isSubmittingAnimationRunning
@@ -160,6 +161,7 @@ describe('AnimatedSubmitButton web animations', () => {
         act(() =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     isSubmittingAnimationRunning
                 />,
@@ -171,6 +173,7 @@ describe('AnimatedSubmitButton web animations', () => {
         await act(async () =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     isSubmittingAnimationRunning={false}
                 />,
@@ -245,6 +248,7 @@ describe('AnimatedSubmitButton web animations', () => {
         const renderButton = (isSubmittingAnimationRunning: boolean, reportID = '1') =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     reportID={reportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
@@ -272,6 +276,7 @@ describe('AnimatedSubmitButton web animations', () => {
         mockPendingExpenseAction = CONST.EXPENSE_PENDING_ACTION.SUBMIT;
         const button = (
             <AnimatedSubmitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 text="Submit"
                 onPress={jest.fn()}
                 onAnimationFinish={jest.fn()}
@@ -303,6 +308,7 @@ describe('AnimatedSubmitButton web animations', () => {
         const onAnimationFinish = jest.fn();
         const button = (
             <AnimatedSubmitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 text="Submit"
                 onPress={jest.fn()}
                 onAnimationFinish={onAnimationFinish}

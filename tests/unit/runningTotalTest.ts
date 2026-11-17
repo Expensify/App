@@ -102,7 +102,7 @@ describe('applyRunningTotal', () => {
     it('keeps the Average flat while the current line accumulates', () => {
         // Given three uneven months compared against one Average total
         const data = [monthGroup(2026, 1, 100000), monthGroup(2026, 2, 500000), monthGroup(2026, 3, 300000)];
-        const comparison: ChartComparison = {total: 200000};
+        const comparison: ChartComparison = {amount: 200000};
 
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);
@@ -154,7 +154,7 @@ describe('applyRunningTotal', () => {
     it('handles a single period, pairing the one Average point with the one current point', () => {
         // Given one month compared against an Average equal to it
         const data = [monthGroup(2026, 1, 100000)];
-        const comparison: ChartComparison = {total: 100000};
+        const comparison: ChartComparison = {amount: 100000};
 
         // When the points are turned into a running total
         const rows = runningRows(data, comparison);

@@ -128,6 +128,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 style={linkStyle}
                 onPress={anchorPressOverride ?? (() => openLink(attrHref, environmentURL, isAttachment, session))}
                 suppressDefaultStyle
+                sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.LINK}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </TextLink>

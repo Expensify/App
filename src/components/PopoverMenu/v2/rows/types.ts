@@ -40,4 +40,4 @@ type LabelMenuItemForwardProps = DistributiveOmit<
     | 'pendingAction'
 >;
 
-export type {DistributiveOmit, MenuItemForwardProps, LabelMenuItemForwardProps};
+export type {MenuItemForwardProps, LabelMenuItemForwardProps};

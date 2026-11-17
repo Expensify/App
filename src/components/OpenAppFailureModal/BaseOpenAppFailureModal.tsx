@@ -50,12 +50,14 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
                     {`${translate('openAppFailureModal.subtitle')} `}
                     <TextLink
                         href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                        sentryLabel={CONST.SENTRY_LABEL.OPEN_APP_FAILURE_MODAL.CONCIERGE_EMAIL_LINK}
                         style={[styles.link]}
                     >
                         {CONST.EMAIL.CONCIERGE}
                     </TextLink>
                 </Text>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.OPEN_APP_FAILURE_MODAL.REFRESH_AND_TRY_AGAIN}
                     size={CONST.BUTTON_SIZE.LARGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={[styles.mb3]}
@@ -64,6 +66,7 @@ function BaseOpenAppFailureModal({onRefreshAndTryAgainButtonPress}: BaseOpenAppF
                     <Button.Text>{translate('openAppFailureModal.refreshAndTryAgain')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.OPEN_APP_FAILURE_MODAL.CLOSE}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => setIsOpenAppFailureModalOpen(false)}
                 >
