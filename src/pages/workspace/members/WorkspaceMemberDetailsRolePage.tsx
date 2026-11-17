@@ -15,6 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAllowedRolesForMember, isPolicyReimburser} from '@libs/PolicyMemberRoleUtils';
 import {canMemberAssignRole, canRolePay} from '@libs/PolicyUtils';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -42,7 +43,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const [selectedRole, setSelectedRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>();
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);

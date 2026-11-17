@@ -56,8 +56,8 @@ Vendors are managed in Certinia, so the list is read-only in Expensify and refre
 ## How to set a default vendor for Certinia
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. On the Certinia connection, select **Export**.
+2. Select **Connections**, then select **Configure** next to Certinia.
+3. Select **Export**.
 4. Select **Default vendor**.
 5. Select a vendor from your imported Certinia vendor list.
 

@@ -102,6 +102,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION_DONE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}
@@ -129,6 +130,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION_DONE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}

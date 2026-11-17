@@ -86,7 +86,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
-                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -101,6 +100,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                             aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                         {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && !isOAuthFlow && (
                             <View style={[styles.flexRow, styles.pt2]}>
@@ -113,6 +113,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                         )}
                     </View>
                 ))}
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FormProvider>
         </>
     );

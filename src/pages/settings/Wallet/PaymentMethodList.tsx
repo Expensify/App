@@ -22,6 +22,9 @@ import {
     isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
     isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
+    isWiseOnboardingPendingSubmit,
+    isWiseOnboardingSubmitted,
 } from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
@@ -48,7 +51,6 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import getWiseOnboardingPageToContinue from '@libs/Navigation/helpers/getWiseOnboardingPageToContinue';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -59,6 +61,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
 import {updateSelectedFeed} from '@userActions/Card';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +80,7 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -178,8 +182,10 @@ function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem
     }
     const bankAccount = paymentMethod as BankAccount;
     const bankAccountID = bankAccount.accountData?.bankAccountID;
-    const canContinue = !!getWiseOnboardingPageToContinue(bankAccount);
-    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+    const canContinue = isWiseOnboardingPendingSubmit(bankAccount) || isWiseOnboardingMoreInfoNeeded(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount))
+        ? {bankAccountID, canContinue, isOnboardingSubmitted: isWiseOnboardingSubmitted(bankAccount.accountData)}
+        : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {
@@ -231,6 +237,7 @@ function PaymentMethodList({
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isActingAsDelegateSelector,
     });
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -662,8 +669,16 @@ function PaymentMethodList({
                     ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
                     : undefined;
 
+            // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
+            // Cards share this list, and only a bank account's data carries the bankAccountID the Home task reads too
+            const wiseBankAccountID = paymentMethod.accountData && 'bankAccountID' in paymentMethod.accountData ? paymentMethod.accountData.bankAccountID : undefined;
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseOnboardingMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
+            // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
+            const wiseMoreInfoNeededBrickRoadIndicator = shouldShowWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
+
             return {
                 ...paymentMethod,
+                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded && wiseBankAccountID ? {bankAccountID: wiseBankAccountID} : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
@@ -673,10 +688,13 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
-                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod) : undefined,
+                // The more info prompt already tells the admin what Wise waits on, so the in-progress line would repeat it
+                wiseSetupInProgress: shouldShowWiseSetupInProgress && !shouldShowWiseMoreInfoNeeded ? getWiseSetupInProgress(paymentMethod) : undefined,
                 isGlobalReimbursementsEnabled:
                     isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
-                brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
+                brickRoadIndicator: shouldShowConnectionStatus
+                    ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator ?? wiseMoreInfoNeededBrickRoadIndicator)
+                    : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
                           bankConnectionStatus,
@@ -702,13 +720,20 @@ function PaymentMethodList({
     };
 
     const renderListFooterComponent = () => (
-        <MenuItem
-            onPress={onPressItem}
-            title={translate('bankAccount.addBankAccount')}
-            icon={expensifyIcons.Plus}
-            wrapperStyle={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
+        <MenuItem.Root
+            onPress={callIfAuthenticated(onPressItem, session)}
+            style={[styles.paymentMethod, listItemStyle, addBankAccountItemStyle]}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <MenuItem.Icon src={expensifyIcons.Plus} />
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.Title>{translate('bankAccount.addBankAccount')}</MenuItem.Title>
+                </MenuItem.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const hasPersonalBank = filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);

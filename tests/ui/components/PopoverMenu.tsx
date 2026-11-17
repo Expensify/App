@@ -30,32 +30,37 @@ type RestoreFocusType = PopoverMenuProps['restoreFocusType'];
 const mockPopoverWithMeasuredContent = jest.fn<void, [MockMeasuredPopoverProps]>();
 const mockClose = jest.fn<void, [(() => void | Promise<void>) | undefined, boolean | undefined, boolean | undefined]>();
 const mockGetPlatform = jest.mocked(getPlatform);
+const sentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
 jest.mock('@libs/getPlatform');
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
-        {text: 'Item 1'},
+        {text: 'Item 1', sentryLabel},
         {
             text: 'Item 2',
-            subMenuItems: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
+            sentryLabel,
+            subMenuItems: [
+                {text: 'Sub 1', sentryLabel},
+                {text: 'Sub 2', sentryLabel, subMenuItems: [{text: 'Deep 1', sentryLabel}]},
+            ],
         },
-        {text: 'Item 3'},
+        {text: 'Item 3', sentryLabel},
     ];
 
     describe('getItemKey', () => {
         test('returns explicit key if defined', () => {
-            const item = {text: 'Hello', key: 'custom-key'};
+            const item = {text: 'Hello', sentryLabel, key: 'custom-key'};
             expect(getItemKey(item)).toBe('custom-key');
         });
 
         test('falls back to text if no key provided', () => {
-            const item = {text: 'Fallback'};
+            const item = {text: 'Fallback', sentryLabel};
             expect(getItemKey(item)).toBe('Fallback');
         });
 
         test('handles items with empty text and no key', () => {
-            const item = {text: ''};
+            const item = {text: '', sentryLabel};
             expect(getItemKey(item)).toBe('');
         });
     });
@@ -102,7 +107,10 @@ describe('PopoverMenu utils', () => {
             expect(result).toEqual({
                 found: true,
                 indexes: [1],
-                itemsAtLeaf: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
+                itemsAtLeaf: [
+                    {text: 'Sub 1', sentryLabel},
+                    {text: 'Sub 2', sentryLabel, subMenuItems: [{text: 'Deep 1', sentryLabel}]},
+                ],
             });
         });
 
@@ -127,8 +135,8 @@ describe('PopoverMenu utils', () => {
 
         test('returns not found if same text keys appear in different levels but mismatch path', () => {
             const nestedMenu: PopoverMenuItem[] = [
-                {text: 'A', subMenuItems: [{text: 'B'}]},
-                {text: 'B'}, // same text at root
+                {text: 'A', sentryLabel, subMenuItems: [{text: 'B', sentryLabel}]},
+                {text: 'B', sentryLabel}, // same text at root
             ];
 
             const result = resolveIndexPathByKeyPath(nestedMenu, ['B', 'C']);
@@ -200,16 +208,17 @@ jest.mock('@components/FocusableMenuItem', () => {
 
 describe('PopoverMenu integration — submenu open/close behaviors', () => {
     const baseMenu: PopoverMenuItem[] = [
-        {text: 'Item A', key: 'A'},
+        {text: 'Item A', sentryLabel, key: 'A'},
         {
             text: 'Item B',
+            sentryLabel,
             key: 'B',
             subMenuItems: [
-                {text: 'Sub B1', key: 'B1'},
-                {text: 'Sub B2', key: 'B2'},
+                {text: 'Sub B1', sentryLabel, key: 'B1'},
+                {text: 'Sub B2', sentryLabel, key: 'B2'},
             ],
         },
-        {text: 'Item C', key: 'C'},
+        {text: 'Item C', sentryLabel, key: 'C'},
     ];
 
     const anchorRef = React.createRef<ComponentRef<typeof View>>();
@@ -238,7 +247,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         });
 
         // Add new root
-        const newMenu = [...baseMenu, {text: 'Item D', key: 'D'}];
+        const newMenu = [...baseMenu, {text: 'Item D', sentryLabel, key: 'D'}];
         rerender(
             <PopoverMenu
                 isVisible
@@ -333,7 +342,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
             if (item.key === 'B' && item.subMenuItems) {
                 return {
                     ...item,
-                    subMenuItems: [...item.subMenuItems, {text: 'Sub B3', key: 'B3'}],
+                    subMenuItems: [...item.subMenuItems, {text: 'Sub B3', sentryLabel, key: 'B3'}],
                 };
             }
             return item;
@@ -374,7 +383,7 @@ describe('PopoverMenu integration — optional search', () => {
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
-                menuItems={[{text: 'Item'}]}
+                menuItems={[{text: 'Item', sentryLabel}]}
                 onClose={() => {}}
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
@@ -391,7 +400,7 @@ describe('PopoverMenu integration — optional search', () => {
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
-                menuItems={[{text: 'Item'}]}
+                menuItems={[{text: 'Item', sentryLabel}]}
                 searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
                 onClose={() => {}}
                 anchorPosition={anchorPosition}
@@ -461,6 +470,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
             [
                 {
                     text: 'Delete',
+                    sentryLabel,
                     shouldCallAfterModalHide: true,
                     shouldCloseAllModals: true,
                     shouldSkipFocusRestore: true,
@@ -496,12 +506,14 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const onClose = renderLifecycleMenu([
             {
                 text: 'Delete marked',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
             },
             {
                 text: 'Ordinary',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 onSelected,
             },
@@ -530,7 +542,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         'keeps caller-driven restoreFocusType updates visible to the close lifecycle: %s',
         (nextRestoreFocusType) => {
             const onSelected = jest.fn();
-            const menuItems: PopoverMenuItem[] = [{text: 'Caller option', onSelected}];
+            const menuItems: PopoverMenuItem[] = [{text: 'Caller option', sentryLabel, onSelected}];
 
             const {rerender} = render(
                 <PopoverMenu
@@ -565,6 +577,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -604,6 +617,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         renderLifecycleMenu([
             {
                 text: 'Keep open',
+                sentryLabel,
                 shouldCloseModalOnSelect: false,
                 shouldSkipFocusRestore: true,
                 onSelected,
@@ -621,6 +635,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -659,6 +674,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const menuItems: PopoverMenuItem[] = [
             {
                 text: 'Delete',
+                sentryLabel,
                 shouldCallAfterModalHide: true,
                 shouldSkipFocusRestore: true,
                 onSelected: jest.fn(),
@@ -696,6 +712,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
                 menuItems={[
                     {
                         text: 'Delete',
+                        sentryLabel,
                         shouldCallAfterModalHide: true,
                         shouldSkipFocusRestore: true,
                         onSelected: jest.fn(),
@@ -718,6 +735,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     it('keeps legacy focus management for a marked option in the non-iOS hook', () => {
         const menuItem = {
             text: 'Delete',
+            sentryLabel,
             shouldCallAfterModalHide: true,
             shouldSkipFocusRestore: true,
             onSelected: jest.fn(),
@@ -740,9 +758,11 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         renderLifecycleMenu([
             {
                 text: 'Actions',
+                sentryLabel,
                 subMenuItems: [
                     {
                         text: 'Delete nested',
+                        sentryLabel,
                         shouldCallAfterModalHide: true,
                         shouldSkipFocusRestore: true,
                         onSelected: jest.fn(),

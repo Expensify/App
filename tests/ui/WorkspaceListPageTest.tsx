@@ -232,4 +232,49 @@ describe('WorkspaceListPage', () => {
         const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).toBeOnTheScreen();
     });
+
+    it('should show the workspace status filter when the only workspace is an archived Submit workspace where the user is an Editor', async () => {
+        const TEST_POLICY_ID = 'submit-policy-id';
+
+        // Given the archive beta is enabled and the user's only workspace is an archived Submit workspace,
+        // where every member (the owner included) is locked to the Editor role
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ARCHIVE_POLICIES]);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Submit Workspace',
+            type: CONST.POLICY.TYPE.SUBMIT,
+            role: CONST.POLICY.ROLE.EDITOR,
+            archivedDate: '2026-10-28 00:00:00.000',
+        });
+
+        // When the workspaces list renders
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the filter is offered, because a Submit Editor can manage the workspace like an Admin and so can browse it once archived
+        expect(screen.getByLabelText('Filters')).toBeOnTheScreen();
+    });
+
+    it('should not show the workspace status filter when the only archived workspace is one where the user is a regular member', async () => {
+        const TEST_POLICY_ID = 'collect-policy-id';
+
+        // Given the archive beta is enabled and the user's only workspace is an archived Collect workspace where they are a regular member
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ARCHIVE_POLICIES]);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {
+            id: TEST_POLICY_ID,
+            name: 'Collect Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            archivedDate: '2026-10-28 00:00:00.000',
+        });
+
+        // When the workspaces list renders
+        renderPage();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the filter is hidden, because only Admins, Auditors and Submit Editors can access archived workspaces
+        expect(screen.queryByLabelText('Filters')).not.toBeOnTheScreen();
+    });
 });

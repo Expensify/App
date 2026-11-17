@@ -88,7 +88,7 @@ import {
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
@@ -411,8 +411,9 @@ function getExpenseReportPreviewText(
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const description = linkedTransaction ? getDescription(linkedTransaction) : '';
-    const comment = Parser.htmlToText(description || originalMessage?.comment || '').trim();
+    // The transaction is the source of truth. Split actions store the raw `{"comment":""}` payload as their comment
+    const description = linkedTransaction ? getDescription(linkedTransaction) : originalMessage?.comment;
+    const comment = Parser.htmlToText(description ?? '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
@@ -428,12 +429,10 @@ function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
-    oneTransactionThreadReportID?: string,
+    oneTransactionThreadReportID: string | undefined,
 ): LastActionContext {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
-    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
+    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lastAction)) {
         const lastActionOriginalMessage = getOriginalMessage(lastAction);
@@ -525,7 +524,7 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
-    lastAction?: OnyxEntry<ReportAction>;
+    lastAction: OnyxEntry<ReportAction>;
     reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
@@ -547,15 +546,10 @@ function getLastMessageTextForReport({
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
+    let lastReportAction = lastAction;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const transactionThreadReportID = oneTransactionThreadReportID ?? (reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined);
-
-    if (reportID && !lastAction && transactionThreadReportID) {
-        lastReportAction =
-            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID) ?? lastReportAction;
-    }
 
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam);
@@ -789,7 +783,7 @@ function getLastMessageTextForReport({
         const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
+        lastMessageTextFromReport = getMessageTextOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
         lastMessageTextFromReport = getJoinRequestMessage(
             translate,
@@ -1588,7 +1582,7 @@ function getReportAlternateText({
         } else if (isCardIssuedAction(lastAction)) {
             alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID, buildDynamicRoute: createDynamicRoute});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
-            alternateText = getMessageOfOldDotReportAction(translate, lastAction);
+            alternateText = getMessageTextOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getUpdateRoomDescriptionMessage(translate, lastAction)));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {

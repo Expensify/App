@@ -61,7 +61,7 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
     textLabelSupportingEmptyValue: {},
 }));
 
-function renderModal({modal, onInitialGetLocationCompleted = jest.fn()}: {modal: typeof LocationPermissionModal; onInitialGetLocationCompleted?: () => void}) {
+function renderModal({modal}: {modal: typeof LocationPermissionModal}) {
     const ModalComponent = modal;
     const view = render(
         <ModalComponent
@@ -69,7 +69,6 @@ function renderModal({modal, onInitialGetLocationCompleted = jest.fn()}: {modal:
             onGrant={jest.fn()}
             onDeny={jest.fn()}
             resetPermissionFlow={jest.fn()}
-            onInitialGetLocationCompleted={onInitialGetLocationCompleted}
         />,
     );
     rerenderModal = () =>
@@ -79,7 +78,6 @@ function renderModal({modal, onInitialGetLocationCompleted = jest.fn()}: {modal:
                 onGrant={jest.fn()}
                 onDeny={jest.fn()}
                 resetPermissionFlow={jest.fn()}
-                onInitialGetLocationCompleted={onInitialGetLocationCompleted}
             />,
         );
 }
@@ -88,8 +86,8 @@ async function finishIllustrationLoading({asset = mockIllustration}: {asset?: un
     await act(async () => {
         mockLoadedAsset = asset;
         mockIsIllustrationLoading = false;
+        rerenderModal?.();
     });
-    rerenderModal?.();
 }
 
 describe('the location prompt illustration', () => {
@@ -146,19 +144,5 @@ describe('the location prompt illustration', () => {
 
         await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
         expect(getShowConfirmModalOption('iconSource')).toBe(PlaceholderIcon);
-    });
-
-    it('holds the caller spinner until the permission check has run', async () => {
-        const onInitialGetLocationCompleted = jest.fn();
-        renderModal({modal: LocationPermissionModal, onInitialGetLocationCompleted});
-
-        await act(async () => {
-            await Promise.resolve();
-        });
-        expect(onInitialGetLocationCompleted).not.toHaveBeenCalled();
-
-        await finishIllustrationLoading();
-
-        await waitFor(() => expect(onInitialGetLocationCompleted).toHaveBeenCalledTimes(1));
     });
 });

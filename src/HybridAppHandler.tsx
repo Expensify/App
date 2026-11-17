@@ -20,13 +20,14 @@ function HybridAppHandler() {
     const hasRequestedHybridAppSettingsRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
 
-        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials).then(() => {
+        setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot, credentials, session).then(() => {
             if (loggedOutFromOldDot) {
                 endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);

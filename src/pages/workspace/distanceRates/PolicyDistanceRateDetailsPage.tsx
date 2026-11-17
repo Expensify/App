@@ -23,7 +23,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getUKFuelRateTaxErrors} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -31,6 +31,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
+import {dismissUKFuelRateTaxError} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,6 +110,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     if (!rate) {
         return <NotFoundPage />;
     }
+
+    const fuelRateTaxErrors = getUKFuelRateTaxErrors(policy, translate, rateID);
 
     const editRateName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_NAME_EDIT.getRoute(policyID, rateID));
@@ -202,6 +205,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_ENABLE_SWITCH}
                                 disabled={!canWriteDistanceRates}
                                 disabledAction={withReadOnlyFallback()}
                                 showLockIcon={!canWriteDistanceRates || !canDisableOrDeleteRate}
@@ -215,6 +219,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('name')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_NAME}
                             name={translate('common.name')}
                             onPress={canWriteDistanceRates ? editRateName : undefined}
                             value={DistanceRequestUtils.getRateDisplayName(rate)}
@@ -227,6 +232,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('rate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_RATE}
                             name={translate('workspace.distanceRates.rate')}
                             onPress={canWriteDistanceRates ? editRateValue : undefined}
                             value={`${rateValueToDisplay} / ${unitToDisplay}`}
@@ -239,6 +245,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('startDate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_START_DATE}
                             name={translate('workspace.distanceRates.startDate')}
                             onPress={canWriteDistanceRates ? editStartDate : undefined}
                             value={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
@@ -251,26 +258,36 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('endDate')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_END_DATE}
                             name={translate('workspace.distanceRates.endDate')}
                             onPress={canWriteDistanceRates ? editEndDate : undefined}
                             value={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
                         />
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate, 'taxRateExternalID')}
-                            pendingAction={rate?.pendingFields?.taxRateExternalID}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('taxRateExternalID')}
-                        >
-                            <View style={styles.w100}>
-                                <MenuItemField
-                                    name={translate('workspace.taxes.taxRate')}
-                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
-                                    value={taxRate}
-                                />
-                            </View>
-                        </OfflineWithFeedback>
+                        <>
+                            <OfflineWithFeedback
+                                errors={getLatestErrorField(rate, 'taxRateExternalID')}
+                                pendingAction={rate?.pendingFields?.taxRateExternalID}
+                                errorRowStyles={styles.mh5}
+                                onClose={() => clearErrorFields('taxRateExternalID')}
+                            >
+                                <View style={styles.w100}>
+                                    <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RATE}
+                                        name={translate('workspace.taxes.taxRate')}
+                                        onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                        value={taxRate}
+                                    />
+                                </View>
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback
+                                errors={fuelRateTaxErrors}
+                                errorRowStyles={styles.mh5}
+                                pendingAction={customUnit?.pendingFields?.isUKFuelRateTaxErrorDismissed}
+                                onClose={canWriteDistanceRates && customUnit ? () => dismissUKFuelRateTaxError(policyID, customUnit) : undefined}
+                            />
+                        </>
                     )}
                     {/* Expenses use the percentage even without a valid tax rate. The tax rate check lets admins add an amount to a rate that has none. */}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (!!taxRate || !!taxClaimablePercentage) && (
@@ -281,6 +298,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_TAX_RECLAIMABLE}
                                 name={translate('workspace.taxes.taxReclaimableOn')}
                                 onPress={canWriteDistanceRates ? editTaxReclaimableValue : undefined}
                                 value={taxClaimableValueToDisplay}
@@ -289,6 +307,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     )}
                     {canWriteDistanceRates && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.RATE_DETAILS_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

@@ -1,4 +1,5 @@
 import {
+    MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -37,6 +38,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    MembersNeedCategoryError,
     HandleUnusedOptimisticID,
     ReplaceOptimisticAgentAccountID,
     Pagination,

@@ -55,6 +55,7 @@ function SearchAdvancedFiltersBase() {
         <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
             {shouldShowResetFilters && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_RESET_BUTTON}
                     style={[isInLandscapeMode ? styles.flex1 : undefined]}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={resetFilters}
@@ -63,6 +64,7 @@ function SearchAdvancedFiltersBase() {
                 </Button>
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_APPLY_BUTTON}
                 style={[isInLandscapeMode ? styles.flex1 : undefined]}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
@@ -94,7 +96,7 @@ function SearchAdvancedFiltersBase() {
                                 style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
                                 accessible
                                 accessibilityLabel={translate('search.filters.describeSearch.title')}
-                                sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH}
                                 onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
                             >
                                 {({pressed}) => (
