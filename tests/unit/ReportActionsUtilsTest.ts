@@ -19,6 +19,7 @@ import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
@@ -8700,6 +8701,65 @@ describe('ReportActionsUtils', () => {
                     prevSortedVisibleReportActionsObjects: {},
                 }),
             ).toEqual([null, -1]);
+        });
+    });
+
+    describe('getCompanyCardConsentExpiringMessage', () => {
+        const amexFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001` as CompanyCardFeedWithNumber;
+        const buildConsentExpiringAction = (originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING>['originalMessage']) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                reportActionID: 'consent-expiring-1',
+                actorAccountID: 1,
+                created: '2026-11-04',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('shows the bank name when the feed has no custom name', () => {
+            // Given a warning for a feed without a custom name, so Auth sends the internal feed name as the feed name
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: amexFeed, warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the feed the way the Company cards page does instead of showing the internal feed name
+            expect(result).toContain('<strong>American Express</strong>');
+            expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
+        });
+
+        it('keeps the custom feed name', () => {
+            // Given a warning for a feed the admin renamed
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the admin's custom name is shown
+            expect(result).toContain('<strong>Travel cards</strong>');
+        });
+
+        it('mentions the admin who can renew consent', () => {
+            // Given a warning addressed to the admin who can renew consent
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7, mentionedAccountIDs: [12]});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts by mentioning that admin so the room knows who should act
+            expect(result.startsWith('<mention-user accountID="12"/>, your <strong>Travel cards</strong>')).toBe(true);
+        });
+
+        it('addresses the room when no admin is mentioned', () => {
+            // Given a warning with no admin to mention
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts without a mention
+            expect(result.startsWith('Your <strong>Travel cards</strong>')).toBe(true);
+            expect(result).not.toContain('<mention-user');
         });
     });
 

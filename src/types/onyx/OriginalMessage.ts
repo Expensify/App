@@ -1569,6 +1569,32 @@ type OriginalMessageCompanyCardConnectionBroken = {
 };
 
 /**
+ * Original message for an upcoming company card consent expiration
+ */
+type OriginalMessageCompanyCardConsentExpiring = {
+    /** The policy ID that owns the card feed */
+    policyID?: string;
+
+    /** The feed's internal name */
+    bank?: CompanyCardFeedWithNumber;
+
+    /** The feed's custom name, or its internal name when the feed has no custom name */
+    feedName?: string;
+
+    /** The admin who can renew consent, mentioned at the start of the warning */
+    mentionedAccountIDs?: number[];
+
+    /** Unix timestamp for the consent period that created this warning */
+    consentGrantedAt?: number;
+
+    /** Unix timestamp for the expected consent expiration */
+    consentExpiresAt?: number;
+
+    /** Number of days before expiry when this warning was delivered */
+    warningDaysBeforeExpiry?: number;
+};
+
+/**
  * Original message for Plaid balance failure
  */
 type OriginalMessagePlaidBalanceFailure = {
@@ -1917,6 +1943,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING]: OriginalMessageCompanyCardConsentExpiring;
     [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
