@@ -271,7 +271,8 @@ function CreateDistanceRatePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID="CreateDistanceRatePage"
-                shouldKeyboardOffsetBottomSafeAreaPadding={false}
+                shouldEnableKeyboardAvoidingView={shouldShowCountryAndKind}
+                shouldKeyboardOffsetBottomSafeAreaPadding={shouldShowCountryAndKind ? false : undefined}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={styles.flexGrow1}>
@@ -285,9 +286,10 @@ function CreateDistanceRatePage({
                         isSubmitDisabled={isGovernmentKind && !currentGovernmentRate}
                         enabledWhenOffline
                         style={[styles.mh5, styles.flex1]}
+                        submitButtonStyles={shouldShowCountryAndKind ? undefined : [styles.mt0]}
                         addBottomSafeAreaPadding
                     >
-                        {shouldShowCountryAndKind && (
+                        {shouldShowCountryAndKind ? (
                             <>
                                 {canPickEuroCountry ? (
                                     <View style={styles.mhn4}>
@@ -349,11 +351,7 @@ function CreateDistanceRatePage({
                                         <Text style={[styles.textLabelSupporting, styles.flex1]}>{getNoGovernmentRateNote(translate, country)}</Text>
                                     </View>
                                 )}
-                            </>
-                        )}
-                        {!isGovernmentKind && (
-                            <>
-                                {shouldShowCountryAndKind && (
+                                {!isGovernmentKind && (
                                     <>
                                         <View style={[styles.sectionDividerLine, styles.mv6]} />
                                         <Text
@@ -362,8 +360,82 @@ function CreateDistanceRatePage({
                                         >
                                             {translate('common.details')}
                                         </Text>
+                                        <InputWrapper
+                                            ref={inputCallbackRef}
+                                            InputComponent={TextInput}
+                                            inputID={INPUT_IDS.NAME}
+                                            label={translate('common.name')}
+                                            accessibilityLabel={translate('common.name')}
+                                            role={CONST.ROLE.PRESENTATION}
+                                        />
+                                        <View style={[styles.flexRow, styles.gap3, styles.mt2]}>
+                                            <View style={styles.flex1}>
+                                                <InputWrapper
+                                                    InputComponent={DatePicker}
+                                                    inputID={INPUT_IDS.START_DATE}
+                                                    label={translate('workspace.distanceRates.startDate')}
+                                                    shouldDeferShowUntilPositioned
+                                                    shouldDismissKeyboardBeforeShow
+                                                />
+                                            </View>
+                                            <View style={styles.flex1}>
+                                                <InputWrapper
+                                                    InputComponent={DatePicker}
+                                                    inputID={INPUT_IDS.END_DATE}
+                                                    label={translate('workspace.distanceRates.endDate')}
+                                                    shouldDeferShowUntilPositioned
+                                                    shouldDismissKeyboardBeforeShow
+                                                />
+                                            </View>
+                                        </View>
+                                        <View style={[styles.sectionDividerLine, styles.mv6]} />
+                                        <Text
+                                            variant="labelStrong"
+                                            style={styles.mb5}
+                                        >
+                                            {translate('workspace.distanceRates.rate')}
+                                        </Text>
+                                        <InputWrapper
+                                            InputComponent={AmountForm}
+                                            inputID={INPUT_IDS.RATE}
+                                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                            currency={currency}
+                                            isCurrencyPressable={false}
+                                            displayAsTextInput
+                                            label={customAmountLabel}
+                                        />
                                     </>
                                 )}
+                                {isGovernmentKind && !isGovernmentRateTaken && (
+                                    <>
+                                        <View style={[styles.sectionDividerLine, styles.mv6]} />
+                                        <Text
+                                            variant="labelStrong"
+                                            style={styles.mb2}
+                                        >
+                                            {translate('workspace.distanceRates.rate')}
+                                        </Text>
+                                        <View style={styles.mhn5}>
+                                            {governmentAmount ? (
+                                                <MenuItemField
+                                                    name={governmentAmountLabel}
+                                                    value={governmentAmount}
+                                                />
+                                            ) : (
+                                                <View style={[styles.ph5, styles.pv3]}>
+                                                    <Text style={styles.textLabelSupporting}>{governmentAmountLabel}</Text>
+                                                    <SkeletonTextLine
+                                                        lineHeight={lineHeightScale.text}
+                                                        barWidth={GOVERNMENT_AMOUNT_SKELETON_WIDTH}
+                                                    />
+                                                </View>
+                                            )}
+                                        </View>
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            <>
                                 <InputWrapper
                                     ref={inputCallbackRef}
                                     InputComponent={TextInput}
@@ -372,75 +444,33 @@ function CreateDistanceRatePage({
                                     accessibilityLabel={translate('common.name')}
                                     role={CONST.ROLE.PRESENTATION}
                                 />
-                                <View style={[styles.flexRow, styles.gap3, styles.mt2]}>
-                                    <View style={styles.flex1}>
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.START_DATE}
-                                            label={translate('workspace.distanceRates.startDate')}
-                                            shouldDeferShowUntilPositioned
-                                            shouldDismissKeyboardBeforeShow
-                                        />
-                                    </View>
-                                    <View style={styles.flex1}>
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.END_DATE}
-                                            label={translate('workspace.distanceRates.endDate')}
-                                            shouldDeferShowUntilPositioned
-                                            shouldDismissKeyboardBeforeShow
-                                        />
-                                    </View>
+                                <View style={styles.mt4}>
+                                    <InputWrapper
+                                        InputComponent={AmountForm}
+                                        inputID={INPUT_IDS.RATE}
+                                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                        currency={currency}
+                                        isCurrencyPressable={false}
+                                        displayAsTextInput
+                                        label={customAmountLabel}
+                                    />
                                 </View>
-                                {shouldShowCountryAndKind ? (
-                                    <>
-                                        <View style={[styles.sectionDividerLine, styles.mv6]} />
-                                        <Text
-                                            variant="labelStrong"
-                                            style={styles.mb5}
-                                        >
-                                            {translate('workspace.distanceRates.rate')}
-                                        </Text>
-                                    </>
-                                ) : (
-                                    <View style={styles.mt4} />
-                                )}
+                                <View style={styles.mt2}>
+                                    <InputWrapper
+                                        InputComponent={DatePicker}
+                                        inputID={INPUT_IDS.START_DATE}
+                                        label={translate('workspace.distanceRates.startDate')}
+                                        shouldDeferShowUntilPositioned
+                                        shouldDismissKeyboardBeforeShow
+                                    />
+                                </View>
                                 <InputWrapper
-                                    InputComponent={AmountForm}
-                                    inputID={INPUT_IDS.RATE}
-                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                    currency={currency}
-                                    isCurrencyPressable={false}
-                                    displayAsTextInput
-                                    label={customAmountLabel}
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.END_DATE}
+                                    label={translate('workspace.distanceRates.endDate')}
+                                    shouldDeferShowUntilPositioned
+                                    shouldDismissKeyboardBeforeShow
                                 />
-                            </>
-                        )}
-                        {isGovernmentKind && !isGovernmentRateTaken && (
-                            <>
-                                <View style={[styles.sectionDividerLine, styles.mv6]} />
-                                <Text
-                                    variant="labelStrong"
-                                    style={styles.mb2}
-                                >
-                                    {translate('workspace.distanceRates.rate')}
-                                </Text>
-                                <View style={styles.mhn5}>
-                                    {governmentAmount ? (
-                                        <MenuItemField
-                                            name={governmentAmountLabel}
-                                            value={governmentAmount}
-                                        />
-                                    ) : (
-                                        <View style={[styles.ph5, styles.pv3]}>
-                                            <Text style={styles.textLabelSupporting}>{governmentAmountLabel}</Text>
-                                            <SkeletonTextLine
-                                                lineHeight={lineHeightScale.text}
-                                                barWidth={GOVERNMENT_AMOUNT_SKELETON_WIDTH}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
                             </>
                         )}
                     </FormProvider>
