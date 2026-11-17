@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
@@ -154,7 +155,7 @@ function InsightsChartWidget({
         const content = buildInsightsChartCSV({
             data,
             groupBy,
-            dateFilterStart: getDateFilterRange(queryJSON, chart.dateFilterKey).start,
+            dateFilterStart: getDateFilterRange(queryJSON, chart.dateFilterKey ?? getSearchTimeGroupingDateKey(queryJSON)).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
@@ -194,14 +195,20 @@ function InsightsChartWidget({
             <InsightsViolationStageDropdown
                 value={violationStage}
                 onChange={onViolationStageChange}
+                sentryLabel={
+                    chart.graphKey === CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME
+                        ? CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE.VIOLATIONS_OVER_TIME
+                        : CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE.TOP_VIOLATIONS
+                }
             />
         ) : null;
 
+    const explainViolationStage = violationStage ?? chart.violationStage;
     const explainButton =
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={chart.hasViolationStageControl ? {...insightsScope, violationStage} : insightsScope}
+                insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
             />
         ) : null;
 
@@ -251,7 +258,7 @@ function InsightsChartWidget({
             title={translate(chart.titleKey)}
             titleRightContent={
                 !!violationStageControl || !!groupByControl || !!explainButton || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                    <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentEnd, styles.alignItemsCenter, styles.flexShrink1]}>
                         {violationStageControl}
                         {groupByControl}
                         {explainButton}

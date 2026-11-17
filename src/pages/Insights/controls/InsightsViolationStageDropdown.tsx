@@ -13,13 +13,20 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 
 import type {InsightsControlProps} from './insightsControls';
 
 import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
 
-function InsightsViolationStageDropdown({value, onChange}: InsightsControlProps<InsightsViolationStage>) {
+type InsightsViolationStageDropdownProps = InsightsControlProps<InsightsViolationStage> & {
+    /** Tells the charts' stage pills apart in Sentry */
+    sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE>;
+};
+
+function InsightsViolationStageDropdown({value, onChange, sentryLabel}: InsightsViolationStageDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -47,7 +54,7 @@ function InsightsViolationStageDropdown({value, onChange}: InsightsControlProps<
         <DropdownButton
             label={selectedItem?.text ?? ''}
             value={null}
-            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE}
+            sentryLabel={sentryLabel}
             wrapperStyle={[styles.getWidgetHeaderButtonOverflowStyle(variables.componentSizeSmall), styles.flexShrink1]}
             innerStyles={styles.bgTransparent}
             hoverStyles={styles.widgetHeaderMenuButtonHovered}

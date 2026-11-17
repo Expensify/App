@@ -21,7 +21,7 @@ type SidePanel = {
 type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
     searchKey: InsightsSearchKey;
 
-    /** Violation stage the explained chart counts, sent only for a Compliance chart with a violation stage control */
+    /** Violation stage the explained Compliance chart counts. AI cards leave it out, since they cover both stages. */
     violationStage?: InsightsViolationStage;
 };
 

@@ -887,7 +887,10 @@ const SENTRY_LABEL = {
         CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
         CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
         CONTROL_COMPARE: 'Insights-ControlCompare',
-        CONTROL_VIOLATION_STAGE: 'Insights-ControlViolationStage',
+        CONTROL_VIOLATION_STAGE: {
+            VIOLATIONS_OVER_TIME: 'Insights-ControlViolationStage-ViolationsOverTime',
+            TOP_VIOLATIONS: 'Insights-ControlViolationStage-TopViolations',
+        },
         AI_EXPLAIN: 'Insights-AIExplain',
         DASHBOARD_TAB: 'Insights-DashboardTab',
         CHART_MENU: 'Insights-ChartMenu',

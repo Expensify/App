@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
@@ -101,8 +102,9 @@ type SearchChartViewProps = {
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
 
-    /** The date `queryJSON` narrows the period by, which time buckets cover and drill into. Defaults to the expense date. */
+    /** The date `queryJSON` narrows the period by, which time buckets cover and drill into. Defaults to the date the query's filters bucket by. */
     dateFilterKey?: SearchDateFilterKeys;
+
     /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
     trackedFrom?: string;
 
@@ -145,7 +147,8 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON, dateFilterKey) : {};
+    const bucketDateFilterKey = dateFilterKey ?? getSearchTimeGroupingDateKey(queryJSON);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON, bucketDateFilterKey) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
     // Only an amount is money, so other metrics drop the currency symbol from the axis
     const isAmountMetric = metric === CONST.SEARCH.CHART_METRIC.AMOUNT;
@@ -212,7 +215,7 @@ function SearchChartView({
             return;
         }
 
-        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item, dateFilterKey));
+        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item, bucketDateFilterKey));
 
         if (!query) {
             return;

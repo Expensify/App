@@ -59,6 +59,9 @@ type InsightsChartSpec = {
     /** Lets the user switch the chart between submitters' and approvers' violations. The chart's own `has` and `dateFilterKey` are the submitters' default. */
     hasViolationStageControl?: boolean;
 
+    /** Stage whose violations a chart without a stage control counts, which Explain names */
+    violationStage?: InsightsViolationStage;
+
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
@@ -224,6 +227,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
                 has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
                 dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -237,6 +241,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED,
                 titleKey: 'insightsPage.violationsByApprover',
                 ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.APPROVED],
                 view: CONST.SEARCH.VIEW.BAR,
