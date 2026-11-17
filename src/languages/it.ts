@@ -1286,6 +1286,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Tempo massimo per pagare',
         share: 'Quota%',
         averageDays: 'Giorni medi',
+        violationStage: {
+            label: 'Violazioni di',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Mittenti',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvatori',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -11065,6 +11070,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             },
             searchFilters: 'Filtri di ricerca',
             noFiltersSelected: 'Nessun filtro selezionato',
+            anySubmission: 'Qualsiasi invio',
         },
         display: {
             label: 'Visualizza',

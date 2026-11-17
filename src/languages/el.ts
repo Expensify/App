@@ -1329,6 +1329,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        violationStage: {
+            label: 'Παραβάσεις των',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -11332,6 +11337,7 @@ ${reportName}`,
             },
             searchFilters: 'Φίλτρα αναζήτησης',
             noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
+            anySubmission: 'Οποιαδήποτε υποβολή',
         },
         display: {
             label: 'Εμφάνιση',

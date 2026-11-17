@@ -1290,6 +1290,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Délai de paiement le plus long',
         share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
+        violationStage: {
+            label: 'Infractions de',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approbateurs',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11147,6 +11152,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
             searchFilters: 'Filtres de recherche',
             noFiltersSelected: 'Aucun filtre sélectionné',
+            anySubmission: 'Toute soumission',
         },
         display: {
             label: 'Affichage',

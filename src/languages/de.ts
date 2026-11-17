@@ -1283,6 +1283,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        violationStage: {
+            label: 'Verstöße gegen',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11114,6 +11119,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             searchFilters: 'Suchfilter',
             noFiltersSelected: 'Keine Filter ausgewählt',
+            anySubmission: 'Beliebige Einreichung',
         },
         display: {
             label: 'Anzeige',
