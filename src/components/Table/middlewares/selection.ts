@@ -73,6 +73,9 @@ type SelectionState<DataType extends TableData> = {
 
     /** Where each row sits in `rows`, so a selection change can find the rows it touches */
     indexByKey: Map<string, number>;
+
+    /** Whether two rows share a key. A key then maps to several rows, so a selection change can't be applied to just one of them */
+    hasDuplicateKeys: boolean;
 };
 
 // Marking every row as selected or not allocates one object per row, which a table with a very large number of rows can't
@@ -89,10 +92,12 @@ function getSelectionState<DataType extends TableData>(data: DataType[], selecte
 
     const selectedKeySet = new Set(selectedKeys);
 
-    if (!cachedState) {
+    if (!cachedState || cachedState.hasDuplicateKeys) {
         const selectableKeys: string[] = [];
         const indexByKey = new Map<string, number>();
+        let hasDuplicateKeys = false;
         const rows = data.map((item, index) => {
+            hasDuplicateKeys = hasDuplicateKeys || indexByKey.has(item.keyForList);
             indexByKey.set(item.keyForList, index);
             if (!item.disabled && !item.isSelectionDisabled) {
                 selectableKeys.push(item.keyForList);
@@ -100,7 +105,7 @@ function getSelectionState<DataType extends TableData>(data: DataType[], selecte
             return {...item, selected: selectedKeySet.has(item.keyForList)};
         });
 
-        const state = {selectableKeys, selectedKeys, selectedKeySet, rows, indexByKey};
+        const state = {selectableKeys, selectedKeys, selectedKeySet, rows, indexByKey, hasDuplicateKeys};
         selectionStateCache.set(data, state);
         return state;
     }

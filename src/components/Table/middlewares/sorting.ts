@@ -184,16 +184,6 @@ type SortMiddlewareParams<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
 };
 
-/**
- * Sorts table data based on the active sorting configuration.
- *
- * @template T - The type of items in the data array.
- * @template ColumnKey - The type of column keys.
- * @param data - The data to sort.
- * @param activeSorting - The active sorting configuration.
- * @param compareItems - The callback to compare two items in the table.
- * @returns The sorted data.
- */
 type SortedDataCacheEntry = {
     columnKey: string | undefined;
     order: SortOrder;
@@ -206,6 +196,16 @@ type SortedDataCacheEntry = {
 // It is keyed by the array itself, so a new array sorts again and the entry is released together with the old one.
 const sortedDataCache = new WeakMap<object, SortedDataCacheEntry>();
 
+/**
+ * Sorts table data based on the active sorting configuration.
+ *
+ * @template T - The type of items in the data array.
+ * @template ColumnKey - The type of column keys.
+ * @param data - The data to sort.
+ * @param activeSorting - The active sorting configuration.
+ * @param compareItems - The callback to compare two items in the table.
+ * @returns The sorted data.
+ */
 function sort<T, ColumnKey extends string = string>({data, activeSorting, compareItems}: SortMiddlewareParams<T, ColumnKey>): T[] {
     const hasSortingColumn = !!activeSorting.columnKey;
 
@@ -215,7 +215,7 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
     }
 
     const cachedEntry = sortedDataCache.get(data);
-    if (cachedEntry?.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
+    if (cachedEntry && cachedEntry.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
         return cachedEntry.sortedData as T[];
     }
 
