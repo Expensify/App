@@ -73,4 +73,4 @@ function formatTooltipStacks(dataPoint: ChartDataPoint, series: readonly ChartSe
 }
 
 export default formatTooltipStacks;
-export type {TooltipStack, TooltipStacks};
+export type {TooltipStacks};
