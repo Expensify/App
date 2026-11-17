@@ -133,8 +133,8 @@ describe('biometrics operations (native)', () => {
             await expect(areLocalCredentialsKnownToServer(ACCOUNT_ID)).resolves.toBe(false);
         });
 
-        // The library rejects instead of returning an empty key list when the alias does not exist, so
-        // treating every rejection as a read failure would stop routing a first-time device to registration.
+        // A missing alias resolves to an empty key list (covered above); a KEY_NOT_FOUND rejection is also a
+        // confirmed absence and must keep a first-time device on the registration path.
         it('should return false when the alias rejects with KEY_NOT_FOUND, keeping a first-time device on the registration path', async () => {
             mockGetAllKeys.mockRejectedValue(Object.assign(new Error('No key for alias'), {code: 'KEY_NOT_FOUND'}));
             await Onyx.merge(ONYXKEYS.ACCOUNT, {multifactorAuthenticationPublicKeyIDs: [LOCAL_CREDENTIAL_ID]});
