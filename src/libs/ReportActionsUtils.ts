@@ -365,6 +365,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
@@ -397,6 +398,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
@@ -741,7 +743,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length;) {
+    for (let index = 0; index < chronologicalActions.length; ) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
@@ -1838,6 +1840,16 @@ function shouldReportActionBeVisible(
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+}
+
+/** Whether an action can automatically create an unread divider for this account. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const recipients = getOriginalMessage(reportAction)?.actionableForAccountIDs;
+        // Older actions have no recipient metadata, so preserve their existing behavior.
+        return !recipients || recipients.includes(currentUserAccountID);
+    }
+    return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
 }
 
 /**
@@ -3961,7 +3973,7 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
 /**
  * Builds the message for a category visibility change, e.g. "set Bob Sterling to only see the "Meals" and "Fuel" categories".
  * Lists that are too long to read inline show a count, and when shouldShowFullList is true (the action is shown at the top of its thread),
- * those lists are returned in full instead.
+ * those lists are also listed in full below the message.
  * Pass personalDetails from a subscription so member names update when their details load or change.
  */
 function getCategoryVisibilityUpdateMessage(
@@ -3981,19 +3993,6 @@ function getCategoryVisibilityUpdateMessage(
         const hiddenTranslation = translate('common.hidden');
         return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation}));
     };
-
-    if (shouldShowFullList) {
-        const fullLists: string[] = [];
-        if (categoryNames.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
-        }
-        if (accountIDs.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
-        }
-        if (fullLists.length > 0) {
-            return fullLists.join('\n');
-        }
-    }
 
     let members: string;
     if (accountIDs.length === 0) {
@@ -4020,12 +4019,24 @@ function getCategoryVisibilityUpdateMessage(
     }
 
     if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+    } else if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
     }
-    if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
+
+    if (!shouldShowFullList) {
+        return message;
     }
-    return message;
+
+    // The top of the thread repeats the message, then lists in full whatever it only counted
+    const lines = [message];
+    if (categoryNames.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
+    }
+    if (accountIDs.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
+    }
+    return lines.join('\n');
 }
 
 function getWorkspaceCategoryUpdateMessage(
@@ -6227,6 +6238,18 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
     });
 }
 
+function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
+    const {feedName = 'company', bank, policyID = '', warningDaysBeforeExpiry = 0, mentionedAccountIDs} = originalMessage ?? {};
+    const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
+    return translate('report.actions.type.companyCardConsentExpiring', {
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
+        warningDaysBeforeExpiry,
+        workspaceCompanyCardRoute,
+        mentionedAccountID: mentionedAccountIDs?.at(0),
+    });
+}
+
 function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
     const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -6470,6 +6493,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
@@ -6590,6 +6614,7 @@ export {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,

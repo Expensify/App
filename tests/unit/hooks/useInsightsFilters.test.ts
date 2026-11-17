@@ -83,6 +83,7 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
     });
 
@@ -114,6 +115,7 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
         expect(result.current.defaultFilters).toEqual(result.current.filters);
     });
@@ -137,7 +139,7 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then the saved filters win while the default period remains this month
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
         expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
@@ -158,7 +160,7 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then what was stored wins over the page defaults and the default workspace currency
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
     });
 
     it('keeps reporting the page defaults once a selection is stored, so a control can reset to them', async () => {
@@ -182,6 +184,7 @@ describe('useInsightsFilters', () => {
             groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
     });
 

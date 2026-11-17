@@ -353,7 +353,7 @@ function BaseReportActionContextMenu({
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser(session) && !isAnonymousAction) {
             hideContextMenu(false, () => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn(session);
             });
         } else {
             callback();
@@ -467,6 +467,7 @@ function BaseReportActionContextMenu({
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
                                 rules,
+                                isThreadReportParentAction,
                             };
 
                             if ('renderContent' in contextAction) {

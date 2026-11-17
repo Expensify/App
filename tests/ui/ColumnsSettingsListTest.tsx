@@ -27,13 +27,13 @@ const ALL_COLUMNS: SearchCustomColumnIds[] = [
 const DEFAULT_COLUMNS: SearchCustomColumnIds[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
 const GROUP_COLUMNS: SearchCustomColumnIds[] = [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL];
 
-function renderColumnsList({onSave = jest.fn(), isGrouped = false} = {}) {
+function renderColumnsList({onSave = jest.fn(), isGrouped = false, currentColumns = DEFAULT_COLUMNS} = {}) {
     render(
         <NavigationContainer>
             <ColumnsSettingsList
                 allColumns={ALL_COLUMNS}
                 defaultSelectedColumns={DEFAULT_COLUMNS}
-                currentColumns={DEFAULT_COLUMNS}
+                currentColumns={currentColumns}
                 requiredColumns={new Set([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT])}
                 onSave={onSave}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -121,5 +121,17 @@ describe('ColumnsSettingsList search', () => {
         expect(screen.queryByText('Group columns')).not.toBeOnTheScreen();
         expect(screen.getByText('Expense Columns')).toBeOnTheScreen();
         expect(screen.getByText('Merchant')).toBeOnTheScreen();
+    });
+
+    it('keeps the default expense columns of a grouped search that saved only group columns', () => {
+        // Given a grouped search whose saved columns are group columns only, so its groups expand to the default expense columns
+        const onSave = renderColumnsList({isGrouped: true, currentColumns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]});
+
+        // When the user checks Merchant and saves
+        fireEvent.press(screen.getByText('Merchant'));
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then the default expense columns the groups showed are saved with Merchant, instead of being dropped as if they were unchecked
+        expect(onSave).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, ...DEFAULT_COLUMNS, CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
     });
 });

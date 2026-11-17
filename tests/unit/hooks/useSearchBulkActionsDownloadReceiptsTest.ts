@@ -24,6 +24,11 @@ jest.mock('@libs/actions/Export', () => ({
     exportReportsToPDF: jest.fn(() => 'mock-pdf-export-id'),
     exportReceiptsToZip: jest.fn(() => 'mock-receipts-export-id'),
 }));
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Report', () => ({
     exportReportToPDF: jest.fn(),
 }));
