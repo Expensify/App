@@ -134,7 +134,8 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         !isPolicyAdmin(policy) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
-        isMoneyRequestReportPendingDeletion(report);
+        isMoneyRequestReportPendingDeletion(report) ||
+        approverTypes.length === 0;
 
     const confirmButtonOptions = {
         showButton: true,

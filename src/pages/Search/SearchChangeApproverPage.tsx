@@ -39,6 +39,12 @@ import {View} from 'react-native';
 
 type SelectedReportRef = {reportID: string | undefined; policyID?: string};
 
+function areSelectedPoliciesLoaded(selectedReports: SelectedReportRef[], allPolicies: OnyxCollection<Policy>): boolean {
+    return selectedReports.every((selectedReport) => !!selectedReport.policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+}
+
+export {areSelectedPoliciesLoaded};
+
 /**
  * Decides whether the bulk change-approver page should auto-apply the only
  * available approver option. Mirrors the single-report flow, but guards the
@@ -173,11 +179,15 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
-    const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
+    const areSelectedPoliciesLoadedForSelection = areSelectedPoliciesLoaded(selectedReports, allPolicies);
     const hasSelectedDEWEnabledPolicy = selectedPolicies.some((policy) => hasDynamicExternalWorkflow(policy));
 
     const getApproverTypes = () => {
         const data: Array<ListItem<ApproverType>> = [];
+
+        if (!areSelectedPoliciesLoadedForSelection) {
+            return data;
+        }
 
         if (!hasSelectedDEWEnabledPolicy) {
             data.push({
@@ -286,6 +296,10 @@ function SearchChangeApproverPage() {
     // useLayoutEffect (not useEffect) so the RHP closes before the browser paints,
     // avoiding a single-frame flash of an empty list after reports are cleared.
     useLayoutEffect(() => {
+        if (selectedReports.length && !areSelectedPoliciesLoadedForSelection) {
+            return;
+        }
+
         if (selectedReports.length && approverTypes.at(0)) {
             return;
         }
@@ -299,7 +313,7 @@ function SearchChangeApproverPage() {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.closeRHPFlow();
         });
-    }, [approverTypes, selectedReports.length]);
+    }, [approverTypes, areSelectedPoliciesLoadedForSelection, selectedReports.length]);
 
     const shouldAutoApply = shouldAutoApplyApprover({
         isLoadingBulkChangeApproverPage,
@@ -307,7 +321,7 @@ function SearchChangeApproverPage() {
         onyxReports,
         approverTypes,
         selectedApproverType: activeApproverType,
-        areSelectedPoliciesLoaded,
+        areSelectedPoliciesLoaded: areSelectedPoliciesLoadedForSelection,
     });
 
     useEffect(() => {
@@ -336,7 +350,7 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if (!isOffline && isLoadingBulkChangeApproverPage) {
+    if (!isOffline && (isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection)) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -352,7 +366,7 @@ function SearchChangeApproverPage() {
                 title={translate('iou.changeApprover.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            {!!isLoadingBulkChangeApproverPage && !!isOffline ? (
+            {!!isOffline && (!!isLoadingBulkChangeApproverPage || !areSelectedPoliciesLoadedForSelection) ? (
                 <FullPageOfflineBlockingView>
                     <View />
                 </FullPageOfflineBlockingView>

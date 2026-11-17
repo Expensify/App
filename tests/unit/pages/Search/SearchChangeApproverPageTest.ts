@@ -1,6 +1,6 @@
 import {APPROVER_TYPE, getSelectedApproverType} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
-import {canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+import {areSelectedPoliciesLoaded, canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +18,38 @@ function buildReport(reportID: string): Report {
 }
 
 describe('SearchChangeApproverPage', () => {
+    describe('areSelectedPoliciesLoaded', () => {
+        const policyID = 'policyA';
+        const policy = createMock<Policy>({id: policyID});
+
+        it('should return false until every selected report has a loaded policy', () => {
+            // Given a selection containing two reports, but only one of their policies is loaded
+            const selectedReports = [
+                {reportID: 'reportA', policyID},
+                {reportID: 'reportB', policyID: 'policyB'},
+            ];
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
+
+            // When checking whether the policies for the selection are ready
+            const result = areSelectedPoliciesLoaded(selectedReports, allPolicies);
+
+            // Then wait for both policies so the page does not show stale approver actions
+            expect(result).toBe(false);
+        });
+
+        it('should return true when every selected report has a loaded policy', () => {
+            // Given a selection with loaded policies
+            const selectedReports = [{reportID: 'reportA', policyID}];
+            const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
+
+            // When checking whether the policies for the selection are ready
+            const result = areSelectedPoliciesLoaded(selectedReports, allPolicies);
+
+            // Then allow the page to show the applicable approver actions
+            expect(result).toBe(true);
+        });
+    });
+
     describe('getSelectedApproverType', () => {
         it('should keep the selected approver type when it remains available', () => {
             expect(
