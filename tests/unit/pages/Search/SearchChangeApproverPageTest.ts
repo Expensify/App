@@ -116,7 +116,7 @@ describe('SearchChangeApproverPage', () => {
         });
 
         it('should return false when a selected policy uses dynamic external workflow', () => {
-            const dewwPolicy = createMock<Policy>({
+            const dewPolicy = createMock<Policy>({
                 ...policy,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             });
@@ -124,7 +124,7 @@ describe('SearchChangeApproverPage', () => {
                 canReassignAllReports({
                     selectedReports: [{reportID: report.reportID, policyID}],
                     onyxReports: {[report.reportID]: report},
-                    allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: dewwPolicy},
+                    allPolicies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: dewPolicy},
                 }),
             ).toBe(false);
         });
