@@ -683,4 +683,4 @@ export {
     RECEIPT_TRAIL_COMMANDS,
     EXPENSE_EDIT_COMMANDS,
 };
-export type {ReceiptCaptureSource, ReceiptRollbackTrigger, ReceiptServerResultClass, ReceiptTrailRequestData};
+export type {ReceiptCaptureSource};
