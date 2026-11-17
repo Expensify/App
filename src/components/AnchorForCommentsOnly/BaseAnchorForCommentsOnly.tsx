@@ -120,6 +120,7 @@ function BaseAnchorForCommentsOnly({
                             : undefined
                     }
                     suppressHighlighting
+                    sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.LINK}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
                     {...rest}

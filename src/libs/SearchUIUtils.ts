@@ -146,6 +146,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     getValidConnectedIntegration,
+    getVendorDisplayName,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -230,6 +231,7 @@ import {
     getFilterFromQuery,
     getPositiveHasFilterValues,
     getQueryHashes,
+    getViolationDisplayName,
     hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
@@ -237,6 +239,7 @@ import {
     isSearchDatePreset,
     removeNegation,
     sortOptionsWithEmptyValue,
+    VIOLATION_FILTER_VALUES,
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
@@ -274,6 +277,7 @@ import {
 import getFormattedPostedDate from './TransactionUtils/getFormattedPostedDate';
 import shouldShowTransactionPostedYear from './TransactionUtils/shouldShowTransactionPostedYear';
 import {isInvalidMerchantValue} from './ValidationUtils';
+import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchSortBy, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -2884,7 +2888,12 @@ function getPaymentAction(
 ): OnyxTypes.ReportAction | undefined {
     const latestCancellation = findActionByCreated(
         actions,
-        [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE],
+        [
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+        ],
         'latest',
     );
     const isValidPaymentAction = (action: OnyxTypes.ReportAction | undefined): action is OnyxTypes.ReportAction => {
@@ -4463,6 +4472,17 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.VENDOR) {
+        // Resolving a vendor name scans the workspace's whole synced vendor list, so each row's name is resolved once
+        // here instead of twice on every comparison.
+        const vendorNameByTransactionID = new Map(data.map((item) => [item.transactionID, getVendorDisplayName(item.policy, item.comment?.vendor)]));
+        return data.sort((a, b) => {
+            const aValue = vendorNameByTransactionID.get(a.transactionID) ?? '';
+            const bValue = vendorNameByTransactionID.get(b.transactionID) ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CARD) {
         return data.sort((a, b) => {
             const aValue = a.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (a.cardName ?? '');
@@ -5724,7 +5744,8 @@ type HasOptionAvailability = {
 
 type GetHasOptionsConfig = {
     policies?: OnyxCollection<OnyxTypes.Policy>;
-    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    /** The IDs of the workspaces whose categories have rules, from `policyIDsWithCategoryRulesSelector`. */
+    policyIDsWithCategoryRules?: Record<string, true>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
     /**
@@ -5737,8 +5758,10 @@ type GetHasOptionsConfig = {
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
  * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
+ * Violations only show for workspaces with Rules on. Migrated Control workspaces leave areRulesEnabled undefined,
+ * so those fall back to whether their own categories have Classic category rules.
  */
-function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): HasOptionAvailability {
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyIDsWithCategoryRules: Record<string, true> = {}): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
@@ -5751,8 +5774,7 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
-        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, undefined, !!policyIDsWithCategoryRules[policy.id]);
         shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
         shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
 
@@ -5771,13 +5793,13 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyCategories, shouldShowAllOptions = false, selectedValues} = config;
+    const {policies, policyIDsWithCategoryRules, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
                 ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies, policyCategories);
+                : getHasOptionAvailability(policies, policyIDsWithCategoryRules);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
@@ -5805,32 +5827,15 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
     }
 }
 
-type SubmittedTransactionViolationShortName = Exclude<ValueOf<typeof CONST.VIOLATIONS>, typeof CONST.VIOLATIONS.RULE_VIOLATION>;
-
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION));
-
-function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
-    return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
-}
-
-/**
- * Returns a parameter-free display label for a violation name.
- * Falls back to the raw identifier when no short-name translation exists.
- */
-function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
-    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION) {
-        return translate('violations.shortName.customRules');
-    }
-    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
-}
-
 function collectViolationNamesForTransaction(violationNames: Set<string>, violations: ViolationsSnapshot['transactions'] | undefined, transactionID: string) {
     const transactionViolations = violations?.[transactionID];
     if (!transactionViolations?.length) {
         return;
     }
 
-    for (const violation of transactionViolations) {
+    // Search and Insights apply the receipt rule within each snapshot, so an expense whose earlier snapshot has only
+    // receipt required still shows it here.
+    for (const violation of filterReceiptViolations(transactionViolations)) {
         // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
         if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
             violationNames.add(violation.name);
@@ -5843,12 +5848,7 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         return undefined;
     }
 
-    // Match ViolationMessages / submitter surfaces: only one of these receipt rules can apply.
-    if (violationNames.has(CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED)) {
-        violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
-    }
-
-    // Labels are de-duplicated because different names can share one (cashExpenseWithNoReceipt and receiptRequired).
+    // Labels are de-duplicated and sorted so the cell reads the same as the key the backend sorts this column by.
     const labels = translate ? new Set(Array.from(violationNames, (name) => getViolationDisplayName(name, translate))) : violationNames;
     const collator = getCollator(IntlStore.getCurrentLocale());
     return Array.from(labels)
@@ -5884,8 +5884,8 @@ function collectApprovedViolationNamesForTransaction(violationNames: Set<string>
  * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
- * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
- * so both are never shown together for a single expense.
+ * Itemized receipt required supersedes receipt required within each submit action,
+ * so both are shown only when they come from different submit actions.
  */
 function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
     if (!reportActions?.length || !transactionID) {
@@ -5903,8 +5903,8 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
  * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
- * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
- * so both are never shown together for a single expense.
+ * Itemized receipt required supersedes receipt required within each approved or forwarded action,
+ * so both are shown only when they come from different actions.
  */
 function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, translate?: LocalizedTranslate): string | undefined {
     if (!reportActions?.length || !transactionID) {
@@ -6365,6 +6365,13 @@ const FILTER_VIEW_MAP = {
         filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.RECEIPT_TYPE,
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.RECEIPT_TYPE,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.RECEIPT_TYPE,
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION]: {
+        labelKey: 'search.violation',
+        icon: 'Flag',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.VIOLATION,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.VIOLATION,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.VIOLATION,
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
         labelKey: 'search.filters.transactionStatus.label',
@@ -6922,6 +6929,10 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.VIOLATION || key === FILTER_KEYS.VIOLATION_NOT) {
+        return form[key]?.map((violationName) => getViolationDisplayName(violationName, translate)).join(', ');
+    }
+
     if (key === FILTER_KEYS.MERCHANT) {
         const merchant = form[key];
         if (!merchant) {
@@ -7196,16 +7207,25 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
     return [];
 }
 
+/**
+ * Options for the violation filter, sorted by translated label to match the autocomplete suggestions.
+ */
+function getViolationFilterOptions(translate: LocalizedTranslate, localeCompare: LocaleContextProps['localeCompare']) {
+    return VIOLATION_FILTER_VALUES.map((violationName) => ({text: getViolationDisplayName(violationName, translate), value: violationName})).sort((first, second) =>
+        localeCompare(first.text, second.text),
+    );
+}
+
 function getMultiSelectFilterOptions(
     filterKey: SearchAdvancedFiltersKey,
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyIDsWithCategoryRules?: Record<string, true>,
     shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, {policies, policyCategories});
+        return getHasOptions(translate, type, {policies, policyIDsWithCategoryRules});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -8563,6 +8583,8 @@ export {
     isReportDetailsCustomColumn,
     insertColumnBeforeTotalAmount,
     getHasOptions,
+    getHasOptionAvailability,
+    getViolationFilterOptions,
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
     getViolationsForTransaction,

@@ -1,4 +1,4 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
 
@@ -47,4 +47,3 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
 SecondaryInteractionTrigger.displayName = 'PopoverMenu.SecondaryInteractionTrigger';
 
 export default SecondaryInteractionTrigger;
-export type {SecondaryInteractionTriggerProps};

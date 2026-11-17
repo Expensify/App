@@ -234,6 +234,34 @@ describe('createMemberCustomFieldsSelector', () => {
         });
     });
 
+    it.each([null, undefined])('skips a %s employee without losing valid member custom fields', (missingEmployee) => {
+        // Given an employee entry missing at runtime despite the employee list's declared type
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', missingEmployee);
+        employeeList['valid@example.com'] = {employeeUserID: 'U1', employeePayrollID: 'P1'};
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields, a missing employee must not prevent later members from being selected
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then only the valid member remains, with both custom fields preserved
+        expect(result).toEqual({'1': {'valid@example.com': {employeeUserID: 'U1', employeePayrollID: 'P1'}}});
+    });
+
+    it('returns an empty member map when every employee entry is null', () => {
+        // Given a list with no valid employees, which must not produce member placeholders
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', null);
+        Reflect.set(employeeList, 'other@example.com', null);
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields for that policy
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then the policy remains present with no members rather than throwing
+        expect(result).toEqual({'1': {}});
+    });
+
     it('omits a requested policy that is missing or has no employee list', () => {
         // Given a requested ID with no policy in the collection and one whose policy has no employee list
         // When the selector runs
