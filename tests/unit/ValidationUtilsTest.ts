@@ -5,6 +5,7 @@ import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
     getCountryZipRegexDetails,
+    getDisplayNameErrors,
     getFieldRequiredErrors,
     isValidZipCodeForCountry,
     isValidNameOnCard,
@@ -490,6 +491,50 @@ describe('ValidationUtils', () => {
 
             // Then it is rejected, since commas and semicolons are the only characters that names cannot contain
             expect(isValid).toBe(false);
+        });
+    });
+
+    describe('getDisplayNameErrors', () => {
+        it('accepts hyphenated names', () => {
+            // Given a display name with hyphens, which follows the same character rule as legal names
+            // When the display name form validates it
+            const errors = getDisplayNameErrors('Mary-Kate', 'Smith-Jones', translateLocal);
+
+            // Then there are no errors, so the name is saved as the user typed it
+            expect(errors).toEqual({});
+        });
+
+        it('rejects a comma or semicolon in either name', () => {
+            // Given a display name with a semicolon in the first name and a comma in the last name, so both fields are checked
+            // When the display name form validates it
+            const errors = getDisplayNameErrors('Jane;', 'Smith, Jr', translateLocal);
+
+            // Then each name gets the error, since commas and semicolons are the only characters that names cannot contain
+            expect(errors).toEqual({
+                firstName: translateLocal('personalDetails.error.hasInvalidCharacter'),
+                lastName: translateLocal('personalDetails.error.hasInvalidCharacter'),
+            });
+        });
+
+        it('requires a first name but not a last name', () => {
+            // Given an empty display name, which the user may submit by clearing both fields
+            // When the display name form validates it
+            const errors = getDisplayNameErrors('', '', translateLocal);
+
+            // Then only the first name gets an error, since the last name is optional
+            expect(errors).toEqual({firstName: translateLocal('personalDetails.error.requiredFirstName')});
+        });
+
+        it('rejects the reserved words in either name', () => {
+            // Given a display name made of the reserved words, which would let the user pose as Expensify support
+            // When the display name form validates it
+            const errors = getDisplayNameErrors('Expensify', 'Concierge', translateLocal);
+
+            // Then each name gets the reserved word error, since either name alone is enough to pose as Expensify support
+            expect(errors).toEqual({
+                firstName: translateLocal('personalDetails.error.containsReservedWord'),
+                lastName: translateLocal('personalDetails.error.containsReservedWord'),
+            });
         });
     });
 
