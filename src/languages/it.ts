@@ -1143,6 +1143,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Esamina 1 richiesta di amministratore del dominio',
                 other: `Esamina ${count} richieste di amministratore del dominio`,
             }),
+            reportSubmitted: 'Report inviato',
+            reportApproved: 'Report approvato',
+            reportPaid: 'Report pagato',
+            reportExported: 'Report esportato',
         },
         upcomingTravel: 'Prossimi viaggi',
         upcomingTravelSection: {

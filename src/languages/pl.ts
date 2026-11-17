@@ -1164,6 +1164,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `Przejrzyj ${count} próśb administratora domeny`,
                 other: `Przejrzyj ${count} prośby administratora domeny`,
             }),
+            reportSubmitted: 'Raport wysłany',
+            reportApproved: 'Raport zatwierdzony',
+            reportPaid: 'Raport opłacony',
+            reportExported: 'Raport wyeksportowany',
         },
         upcomingTravel: 'Nadchodząca podróż',
         upcomingTravelSection: {

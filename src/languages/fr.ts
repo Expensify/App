@@ -1144,6 +1144,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `Examiner ${count} demande d'administrateur de domaine`,
                 other: `Examiner ${count} demandes d'administrateur de domaine`,
             }),
+            reportSubmitted: 'Note de frais soumise',
+            reportApproved: 'Note de frais approuvée',
+            reportPaid: 'Note de frais payée',
+            reportExported: 'Note de frais exportée',
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
