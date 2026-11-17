@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
-import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidDisplayName} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,8 +24,8 @@ function Name({onNext, onMove, isEditing}: SubPageProps) {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
         const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-        if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
-            errors[inputID] = translate('bankAccount.error.fullName');
+        if (values[inputID] && !isValidDisplayName(String(values[inputID]))) {
+            errors[inputID] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
         }
 
         return errors;

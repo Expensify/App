@@ -198,6 +198,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
 
     mergeTransactionRequest({
         isVendorMatchingBetaEnabled: false,
+        isSourceActionIOUReportArchived: false,
         iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
@@ -325,6 +326,7 @@ describe('mergeTransactionRequest', () => {
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -453,6 +455,7 @@ describe('mergeTransactionRequest', () => {
         // When the merge fires
         mergeTransactionRequest({
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -564,6 +567,7 @@ describe('mergeTransactionRequest', () => {
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -725,6 +729,7 @@ describe('mergeTransactionRequest', () => {
 
         mergeTransactionRequest({
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -841,6 +846,7 @@ describe('mergeTransactionRequest', () => {
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -1080,6 +1086,7 @@ describe('mergeTransactionRequest', () => {
             // When: The merge request is executed
             mergeTransactionRequest({
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1292,6 +1299,7 @@ describe('mergeTransactionRequest', () => {
             // When: The merge request is executed
             mergeTransactionRequest({
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1453,6 +1461,7 @@ describe('mergeTransactionRequest', () => {
             // When: The merge request is executed
             mergeTransactionRequest({
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1591,6 +1600,7 @@ describe('mergeTransactionRequest', () => {
             // When: The merge request is executed for the unreported source transaction
             mergeTransactionRequest({
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1739,6 +1749,7 @@ describe('mergeTransactionRequest', () => {
             // When: The merge request is executed
             mergeTransactionRequest({
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,

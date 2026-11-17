@@ -100,6 +100,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                             aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                         {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && !isOAuthFlow && (
                             <View style={[styles.flexRow, styles.pt2]}>

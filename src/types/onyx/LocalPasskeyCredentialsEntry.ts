@@ -28,4 +28,4 @@ type PasskeyCredential = {
 type LocalPasskeyCredentialsEntry = PasskeyCredential[];
 
 export default LocalPasskeyCredentialsEntry;
-export type {PasskeyCredential, PasskeyTransport};
+export type {PasskeyCredential};

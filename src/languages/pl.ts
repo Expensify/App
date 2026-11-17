@@ -435,6 +435,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dni',
         rename: 'Zmień nazwę',
         address: 'Adres',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -581,6 +582,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Eksporty do',
         shareReport: 'Udostępnij raport',
         reportShared: 'Udostępniono raport',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dzień`,
+            other: (count: number) => `${formattedCount ?? count} dni`,
+        }),
         amount: 'Kwota',
     },
     socials: {
@@ -1224,6 +1229,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Skonfiguruj zasady dotyczące podróży',
             addFirstReceipt: 'Dodaj swój pierwszy paragon',
             addFirstReceiptSubText: 'Zeskanuj lub wprowadź paragon ręcznie',
+            addName: 'Dodaj swoje imię',
+            addNameSubText: 'Pomóż współpracownikom rozpoznać cię w Expensify.',
+            downloadApp: 'Pobierz aplikację',
+            downloadAppSubText: 'Skanuj paragony, wysyłaj wydatki i zatwierdzaj raporty w dowolnym miejscu.',
         },
         yourSpend: {
             title: 'Twoje wydatki',
@@ -1294,6 +1303,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Najdłużej oczekujące na wysłanie',
         slowestToApprove: 'Najwolniejszy w zatwierdzaniu',
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
+        averageDays: 'Średnia liczba dni',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1874,6 +1884,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Wszystkie wydatki zostały wstrzymane. Sprawdź komentarze, aby poznać kolejne kroki.',
         expenseDuplicate: 'Ten wydatek ma szczegóły podobne do innego. Sprawdź duplikaty, aby kontynuować.',
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
+        someDuplicatesAreUnavailable: 'Nie udało się wczytać niektórych z tych duplikatów, więc możesz tylko zachować wszystkie.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
         keepSelected: 'Zachowaj wybrane',
@@ -4373,7 +4384,6 @@ ${amount} dla ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Data powinna być po ${dateString}`,
-            hasInvalidCharacter: 'Nazwa może zawierać tylko znaki łacińskie',
             cannotIncludeCommaOrSemicolon: 'Nazwa nie może zawierać przecinka ani średnika',
             incorrectZipFormat: (zipFormat?: string) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Upewnij się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4561,7 +4571,6 @@ ${amount} dla ${merchant} - ${date}`,
             lastName: 'Wprowadź poprawne nazwisko',
             noDefaultDepositAccountOrDebitCardAvailable: 'Dodaj domyślne konto depozytowe lub kartę debetową',
             validationAmounts: 'Wprowadzone kwoty weryfikacyjne są nieprawidłowe. Sprawdź wyciąg bankowy i spróbuj ponownie.',
-            fullName: 'Wpisz prawidłowe imię i nazwisko',
             ownershipPercentage: 'Wprowadź prawidłową liczbę procentową',
             deletePaymentBankAccount:
                 'To konto bankowe nie może zostać usunięte, ponieważ jest używane do płatności Kartą Expensify. Jeśli mimo to chcesz usunąć to konto, skontaktuj się z Concierge.',
@@ -8046,16 +8055,11 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Wystąpił błąd z połączeniem skonfigurowanym w Expensify Classic. [Przejdź do Expensify Classic, aby rozwiązać ten problem.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Przejdź do Expensify Classic, aby zarządzać swoimi ustawieniami.',
-            exactOnline: {
-                comingSoon: 'Wkrótce dostępne',
-                joinWaitlist: 'Dołącz do listy oczekujących',
-                onWaitlist: 'Jesteś na liście oczekujących',
-                waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Wkrótce dostępne',
                 joinWaitlist: 'Dołącz do listy oczekujących',
                 onWaitlist: 'Jesteś na liście oczekujących',
+                onWaitlistButton: 'Na liście oczekujących',
                 onTheList: 'Jesteś na liście!',
                 waitlistDescription: 'Concierge wyśle ci wiadomość, żeby dać znać, kiedy ta integracja będzie gotowa i jak ją połączyć.',
             },
@@ -8855,6 +8859,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     selectWorkspace: 'wybierz przestrzeń roboczą i zmień typ planu na',
                 },
                 upgradeWorkspaceWarning: `Nie można uaktualnić przestrzeni roboczej`,
+                createWorkspaceWarning: `Nie można utworzyć przestrzeni roboczej`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Twoja firma ograniczyła możliwość tworzenia przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
             },
@@ -11192,6 +11197,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
+        violation: 'Naruszenie',
         receiptTypeValues: {
             ereceipt: 'eParagon',
             itemized: 'Szczegółowy',
@@ -11412,6 +11418,29 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Połączenie ${feedName} jest zerwane od 30 dni. <a href='${workspaceCompanyCardRoute}'>Zaloguj się do swojego banku</a>, żeby je naprawić albo <a href='${workspaceCompanyCardSettingsRoute}'>usuń połączenie</a>, jeśli nie jest już używane. Nie stracisz żadnych przesłanych wydatków, jeśli je usuniesz.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'wkrótce';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'za dwa tygodnie';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'za tydzień';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Połącz kartę ponownie, zanim zgoda wygaśnie</a>.`
+                        : 'Połącz kartę ponownie, zanim zgoda wygaśnie.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, połączenie karty ` : 'Połączenie karty ';
+                    return `${intro}<strong>${feedName}</strong> będzie wymagało odnowienia zgody ${warningTime}. Transakcje są nadal synchronizowane, ale mogą przestać być importowane, jeśli zgoda nie zostanie odnowiona. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12099,6 +12128,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             tagOutOfPolicy: 'Tag nie jest już ważny',
             overLimitAttendee: 'Przekroczono limit osób',
             customRules: 'Naruszenie reguły niestandardowej',
+            ruleViolation: 'Naruszenie reguły',
             taxAmountChanged: 'Zmodyfikowano kwotę podatku',
             taxOutOfPolicy: 'Stawka podatku nie jest już ważna',
             taxRateChanged: 'Zmodyfikowano stawkę podatku',
