@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {DimensionValue} from 'react-native';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -13,7 +15,7 @@ type SplitAmountDisplayProps = {
     /** The split item data containing amount, currency, and editable state. */
     splitItem: SplitListItemType;
     /** The width of the content area. */
-    contentWidth?: number | string;
+    contentWidth?: DimensionValue;
     /** Whether to remove default spacing from the container. */
     shouldRemoveSpacing?: boolean;
 };

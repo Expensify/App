@@ -26,21 +26,20 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
+import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
-    getAmount,
-    getConvertedAmount,
     getCurrency,
     getMCCForDisplay,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
     getReimbursable,
     getTaxName,
+    getTotalForDisplay,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
     isOnHold,
@@ -49,6 +48,7 @@ import {
     isTimeRequest,
 } from '@libs/TransactionUtils';
 import getFormattedPostedDate from '@libs/TransactionUtils/getFormattedPostedDate';
+import {getTaxCodeForDisplay} from '@libs/TransactionUtils/tax';
 
 import variables from '@styles/variables';
 
@@ -615,7 +615,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={shouldHideTaxValueByRequestType || !isTaxCodeCustomized(transactionItem.taxCode, policy) ? '' : (transactionItem.taxCode ?? '')} />
+                        <TextCell text={getTaxCodeForDisplay(transactionItem, policy)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -692,13 +692,7 @@ function TransactionItemRowWide({
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
                 const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
-                const hasConvertedAmount = transactionItem.convertedAmount != null;
-                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
-                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
-                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
-                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
-                // When converted, display in the report's output currency; otherwise use the transaction's own currency.
-                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                const {amount: totalAmount, currency: totalCurrency} = getTotalForDisplay(transactionItem, report?.currency ?? policy?.outputCurrency, isFromExpenseReport);
                 return (
                     <View
                         key={column}
