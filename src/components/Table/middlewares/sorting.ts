@@ -191,10 +191,8 @@ type SortedDataCacheEntry = {
     sortedData: unknown[];
 };
 
-// Sorting is O(n log n) and runs from the table's render, which also runs for a selection change that leaves the data alone.
-// With a very large number of rows that repeated sort dominates every click, so the last result is kept per data array.
-// It is keyed by the array itself, so a new array sorts again and the entry is released together with the old one.
-const sortedDataCache = new WeakMap<object, SortedDataCacheEntry>();
+// Re-sorting on every selection change is too slow for very large tables, so the last result is kept per data array.
+const sortedDataCache = new WeakMap<WeakKey, SortedDataCacheEntry>();
 
 /**
  * Sorts table data based on the active sorting configuration.
@@ -216,6 +214,7 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
 
     const cachedEntry = sortedDataCache.get(data);
     if (cachedEntry && cachedEntry.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its sorted items have the same type
         return cachedEntry.sortedData as T[];
     }
 

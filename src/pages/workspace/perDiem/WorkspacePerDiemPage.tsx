@@ -70,9 +70,8 @@ function getPerDiemRowKey(rateID: string, subRateID: string) {
     return `${rateID}:${subRateID}`;
 }
 
-// A workspace can have well over a hundred thousand subrates, and building the rows touches every one of them. The page renders
-// on every selection change, so the three steps below keep their last result, keyed by the object they are built from. A new
-// policy value builds them again, and an unchanged one is reused. The entries are released together with the objects they key.
+// The page renders on every selection change, and a workspace can have over a hundred thousand subrates, so each step
+// below keeps its last result per source object instead of rebuilding every row.
 const subRatesDataCache = new WeakMap<Record<string, Rate>, SubRateData[]>();
 const selectableSubRatesCache = new WeakMap<SubRateData[], Record<string, SubRateData>>();
 const perDiemRowsCache = new WeakMap<SubRateData[], {params: PerDiemRowsParams; rows: PerDiemTableRowData[]}>();

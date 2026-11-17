@@ -78,13 +78,12 @@ type SelectionState<DataType extends TableData> = {
     hasDuplicateKeys: boolean;
 };
 
-// Marking every row as selected or not allocates one object per row, which a table with a very large number of rows can't
-// afford on every selection change. The last state is kept per data array: while the data stays the same, a selection change
-// copies the rows array and replaces only the rows whose flag flipped, so every other row keeps its identity.
-// It is keyed by the data array, so new data starts over and the entry is released together with the old data.
-const selectionStateCache = new WeakMap<object, SelectionState<TableData>>();
+// Cloning every row on each selection change is too slow for very large tables, so the last state is kept per data array.
+// While the data is unchanged, only the rows whose selected flag flipped are replaced.
+const selectionStateCache = new WeakMap<WeakKey, SelectionState<TableData>>();
 
 function getSelectionState<DataType extends TableData>(data: DataType[], selectedKeys: string[]): SelectionState<DataType> {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its rows were built from the same item type
     const cachedState = selectionStateCache.get(data) as SelectionState<DataType> | undefined;
     if (cachedState?.selectedKeys === selectedKeys) {
         return cachedState;
@@ -233,8 +232,7 @@ export default function useSelection<DataType extends TableData>({
      * rows in the table
      */
     const handleSelectAll = () => {
-        // Any existing selection, full or partial, is cleared. Checking whether every selectable row is selected would not change that,
-        // and doing it with includes inside every is quadratic, which froze tables with a very large number of rows.
+        // Any existing selection is cleared, so there is no need to check whether every row is selected (that check was quadratic).
         if (selectedKeys.length > 0) {
             onRowSelectionChange?.([]);
             return;

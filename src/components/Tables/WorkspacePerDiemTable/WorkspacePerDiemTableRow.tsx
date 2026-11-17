@@ -35,8 +35,7 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {selectedKeys, isMobileSelectionEnabled} = useTableContext();
-    // Inline editing pauses while rows are being selected. It is decided here rather than in the row data, so the data doesn't
-    // have to be rebuilt for every subrate when selection mode turns on or off.
+    // Checked here instead of in the row data, so toggling selection mode doesn't rebuild every row.
     const isSelectionModeActive = selectedKeys.length > 0 || isMobileSelectionEnabled;
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
