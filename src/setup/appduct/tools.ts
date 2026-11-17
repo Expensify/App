@@ -301,9 +301,7 @@ const createWorkspaceTool: AppductTool = {
     timeoutMs: 180_000,
     handler: async (input) => {
         if (!(await waitFor(() => isSignedIn() && state.isLoadingApp === false, POLICY_BUDGET_MS))) {
-            return fail(
-                `workspace preconditions never held within ${POLICY_BUDGET_MS}ms: signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}`,
-            );
+            return fail(`workspace preconditions never held within ${POLICY_BUDGET_MS}ms: signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}`);
         }
 
         const accountID = getCurrentAccountID() ?? CONST.DEFAULT_NUMBER_ID;
@@ -357,7 +355,7 @@ const createWorkspaceTool: AppductTool = {
             shouldAddOnboardingTasks: false,
             shouldAddGuideWelcomeMessage: false,
             introSelected: state.introSelected,
-            activePolicy: getPolicy(state.activePolicyID ?? ''),
+            activePolicy: state.activePolicyID ? getPolicy(state.activePolicyID) : undefined,
             conciergeChat: state.conciergeChat,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: login,
@@ -425,9 +423,7 @@ const inviteMembers: AppductTool = {
         }
 
         if (!(await waitFor(() => isSignedIn() && state.isLoadingApp === false, POLICY_BUDGET_MS))) {
-            return fail(
-                `invite preconditions never held within ${POLICY_BUDGET_MS}ms: signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}`,
-            );
+            return fail(`invite preconditions never held within ${POLICY_BUDGET_MS}ms: signedIn=${isSignedIn()}, isLoadingApp=${String(state.isLoadingApp)}`);
         }
 
         const accountID = getCurrentAccountID() ?? CONST.DEFAULT_NUMBER_ID;
