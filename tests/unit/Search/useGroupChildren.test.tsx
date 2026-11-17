@@ -40,6 +40,7 @@ type HookArgs = Parameters<typeof useGroupChildren>[0];
 const baseArgs: HookArgs = {
     groupKey: GROUP_KEY,
     groupTransactions: rows,
+    groupCount: undefined,
 };
 
 const renderGroupChildren = (overrides: Partial<HookArgs> = {}) => renderHook(() => useGroupChildren({...baseArgs, ...overrides}));

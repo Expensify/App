@@ -71,6 +71,12 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     minWidth?: number;
 
     /**
+     * Narrowest width a drag may give this column. Set when the cell keeps content that does not truncate, so the
+     * usual drag bound would paint it over the next column. Omitted to use the usual drag bound.
+     */
+    dragMinWidth?: number;
+
+    /**
      * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather
      * than truncating. Set this on a column that should truncate instead of widening the table any further.
      */

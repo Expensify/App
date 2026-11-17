@@ -59,6 +59,7 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={approvalRowState}
                     testIDPrefix="your-spend-approval"
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SPEND_AWAITING_APPROVAL_ROW}
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
@@ -71,6 +72,7 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={paymentRowState}
                     testIDPrefix="your-spend-payment"
+                    sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SPEND_REPAID_ROW}
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
@@ -92,6 +94,7 @@ function YourSpendSection() {
                         isExpanded={isExpanded}
                         onPress={() => setIsExpanded((prev) => !prev)}
                         collapsedLabel={translate('homePage.seeMore', {count: hiddenCount})}
+                        sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_YOUR_SPEND}
                     />
                 )}
             </WidgetContainer>

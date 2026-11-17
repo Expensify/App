@@ -139,7 +139,7 @@ class ReactCompilerFilter extends Processor {
     }
 
     process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
-        return filterReactCompilerMessages(messages, context.projectRoot, this.checkCompiler, this.workerCount);
+        return filterReactCompilerMessages(messages, context.projectRoot, this.checkCompiler, this.workerCount, context.sources);
     }
 }
 
@@ -148,6 +148,7 @@ async function filterReactCompilerMessages(
     projectRoot: string,
     checkCompiler?: CompilerCheck,
     workerCount = navigator.hardwareConcurrency || 4,
+    sources?: ReadonlyMap<string, string>,
 ): Promise<LintMessage[]> {
     const byFile = new Map<string, LintMessage[]>();
     for (const message of messages) {
@@ -176,10 +177,11 @@ async function filterReactCompilerMessages(
 
     await Promise.all(
         candidateNames.map(async (filename) => {
-            let source = '';
+            const unsavedSource = sources?.get(filename);
+            let source = unsavedSource ?? '';
             if (!checkCompiler) {
                 try {
-                    source = await file(filename).text();
+                    source = unsavedSource ?? (await file(filename).text());
                 } catch {
                     memoized.set(filename, false);
                     return;

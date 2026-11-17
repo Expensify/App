@@ -15,6 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import EditPromptPage from '@pages/settings/Agents/Fields/DynamicEditPromptPage';
 import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,7 +33,7 @@ let mockBack: () => void;
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'home'));
 
 const mockPromptMount = jest.fn();
-const mockPromptProps = jest.fn<void, [{onFocus?: () => void; onBlur?: () => void}]>();
+const mockPromptProps = jest.fn<void, [{onFocus?: () => void; onBlur?: () => void; maxLength?: number}]>();
 
 jest.mock('@pages/settings/Agents/scrollToMultilineInput', () => jest.fn());
 
@@ -103,7 +104,7 @@ jest.mock('@components/Form/FormProvider', () => {
 
 jest.mock('@components/Form/InputWrapper', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
-    function MockInputWrapper({inputID, defaultValue, ...props}: {inputID: string; defaultValue?: string; onFocus?: () => void; onBlur?: () => void}) {
+    function MockInputWrapper({inputID, defaultValue, ...props}: {inputID: string; defaultValue?: string; onFocus?: () => void; onBlur?: () => void; maxLength?: number}) {
         mockPromptProps(props);
         useEffect(() => {
             mockPromptMount();
@@ -255,5 +256,19 @@ describe('EditPromptPage', () => {
         jest.mocked(Navigation.goBack).mockClear();
         act(() => mockBack());
         expect(Navigation.goBack).toHaveBeenCalledWith(backPath);
+    });
+
+    it('allows a prompt longer than a chat comment', () => {
+        // Given the prompt editor, which uses a markdown input that otherwise falls back to the chat comment limit
+        // When the page renders
+        render(
+            <EditPromptPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+
+        // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
+        expect(mockPromptProps.mock.lastCall?.[0].maxLength).toBe(CONST.AGENT_PROMPT_MAX_LENGTH);
     });
 });

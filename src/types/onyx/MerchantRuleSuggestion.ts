@@ -8,14 +8,15 @@ type MerchantRuleSuggestionField = ValueOf<typeof CONST.MERCHANT_RULE_SUGGESTION
 /**
  * The expense edits that can become a merchant rule, which drive the "Create a rule" callout.
  *
- * RAM-only, so the callout can appear again on the same expense next session.
+ * Everything the user does lives here, and RAM-only, so the callout can appear again on the same expense next
+ * session. What the server says about these edits is held apart, in `MerchantRuleSuggestionConfirmation`.
  */
 type MerchantRuleSuggestion = {
-    /** The most recently edited expense, the one currently offering */
-    transactionID: string;
+    /** The expense currently offering, which is the one edited most recently */
+    transactionID?: string;
 
-    /** That expense's transaction thread, where the callout can show */
-    reportID: string;
+    /** Each recorded expense's transaction thread, where its callout can show */
+    reportIDs?: Record<string, string>;
 
     /**
      * Fields edited so far, keyed by expense. Keying by expense lets `Onyx.merge` accumulate them without a read, and
@@ -41,9 +42,33 @@ type MerchantRuleSuggestion = {
      */
     seenInReportID?: string;
 
-    /** Whether the offer was seen and left. Unlike dismissing, editing the expense again offers afresh. */
-    isRetired?: boolean;
+    /**
+     * The expense whose offer the callout showed, which is the one leaving that report retires.
+     *
+     * Recorded alongside the report rather than read back from the confirmation on the way out, because a verdict for
+     * another expense can land while this one's callout is on screen. Retiring whatever is offering by then would end
+     * an offer the user never saw.
+     */
+    seenTransactionID?: string;
+
+    /**
+     * Expenses whose offer was seen and left. Unlike dismissing, editing the expense again offers afresh.
+     *
+     * Keyed by expense rather than held as one flag, so leaving one expense's offer does not silence the next one
+     * before it has been made.
+     */
+    retiredTransactionIDs?: Record<string, boolean>;
 };
 
+/**
+ * Auth's verdict on one expense's recorded edits, keyed by field. A field reads true once the same value has been
+ * given to the same merchant often enough for a rule to be worth offering, and false once it has not.
+ *
+ * Written by Auth into `suggestNewRuleCreation_<transactionID>`, so it outlives the session while the edits it answers
+ * do not. That costs nothing: a verdict alone shows no callout, since only a field present in both halves can seed a
+ * rule.
+ */
+type MerchantRuleSuggestionConfirmation = Partial<Record<MerchantRuleSuggestionField, boolean>>;
+
 export default MerchantRuleSuggestion;
-export type {MerchantRuleSuggestionField};
+export type {MerchantRuleSuggestionConfirmation, MerchantRuleSuggestionField};

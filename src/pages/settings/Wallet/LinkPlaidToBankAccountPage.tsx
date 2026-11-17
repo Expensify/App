@@ -105,6 +105,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     description={translate('walletPage.linkPlaid.successDescription')}
                     descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankCheck}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.LINK_PLAID_SUCCESS_CONFIRM}
                     onButtonPress={() => Navigation.goBack(backPath)}
                     buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
@@ -121,6 +122,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     description={translate('walletPage.linkPlaid.wrongAccountDescription')}
                     descriptionStyle={styles.textSupportingNormal}
                     illustration={illustrations.BankX}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.LINK_PLAID_WRONG_ACCOUNT_CONFIRM}
                     onButtonPress={() => Navigation.goBack(backPath)}
                     buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
@@ -142,6 +144,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     </ConfirmationPage.Content>
                     <FixedFooter>
                         <ConfirmationPage.PrimaryButton
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.LINK_PLAID_CONFIRM}
                             text={translate('common.buttonConfirm')}
                             onPress={() => Navigation.goBack(backPath)}
                         />

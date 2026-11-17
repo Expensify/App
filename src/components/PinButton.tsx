@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {togglePinnedState} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,7 @@ function PinButton({report}: PinButtonProps) {
     return (
         <Tooltip text={report.isPinned ? translate('common.unPin') : translate('common.pin')}>
             <PressableWithFeedback
-                onPress={callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, report.isPinned ?? false), false, session)}
+                onPress={callIfAuthenticated(() => togglePinnedState(report.reportID, report.isPinned ?? false), session)}
                 style={styles.touchableButtonImage}
                 accessibilityLabel={report.isPinned ? translate('common.unPin') : translate('common.pin')}
                 role={CONST.ROLE.BUTTON}

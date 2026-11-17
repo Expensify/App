@@ -171,6 +171,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                     >
                         {({openPicker}) => (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.UPLOAD_PHOTO}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
@@ -195,7 +196,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                     accessible
                                     accessibilityRole="button"
                                     accessibilityLabel={translate('avatarPage.selectAvatar')}
-                                    sentryLabel="EditAgentAvatar-BotAvatarSelector"
+                                    sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.BOT_AVATAR_SELECTOR}
                                     onPress={() => {
                                         setSelectedBotAvatar(() => id);
                                         setImageData(EMPTY_IMAGE_DATA);

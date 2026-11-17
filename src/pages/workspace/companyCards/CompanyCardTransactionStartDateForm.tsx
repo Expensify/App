@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -22,7 +23,7 @@ import {View} from 'react-native';
 
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
 
-type CompanyCardTransactionStartDateFormProps = {
+type CompanyCardTransactionStartDateFormProps = WithRequiredSentryLabel & {
     /** Supporting copy shown below the page header */
     description: string;
 
@@ -57,6 +58,7 @@ function CompanyCardTransactionStartDateForm({
     testID,
     isSaveDisabled = false,
     shouldResetStartDateOnCustomSelection = false,
+    sentryLabel,
 }: CompanyCardTransactionStartDateFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -124,6 +126,7 @@ function CompanyCardTransactionStartDateForm({
                     addBottomSafeAreaPadding
                     footerContent={
                         <Button
+                            sentryLabel={sentryLabel}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             onPress={submit}

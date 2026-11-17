@@ -10,6 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {clearShareBankAccount} from '@userActions/BankAccounts';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
@@ -43,6 +44,7 @@ function WorkspaceWorkflowsPayerSuccessPage() {
                 illustration={illustrations.ShareBank}
                 descriptionStyle={[styles.ph4, styles.textSupporting]}
                 illustrationStyle={styles.successBankSharedCardIllustration}
+                buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.PAYER_SUCCESS_CONFIRM}
                 onButtonPress={onButtonPress}
                 buttonText={translate('common.buttonConfirm')}
             />

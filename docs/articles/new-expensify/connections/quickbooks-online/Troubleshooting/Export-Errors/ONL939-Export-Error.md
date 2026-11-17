@@ -35,7 +35,7 @@ To resolve the error, update the export configuration for reimbursable expenses.
 
 1. Go to the **Workspaces** navigation tab on the left.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Click **Export**.
 5. Under **Export reimbursable expenses as**, change the export type from **Journal Entry** to **Vendor Bill**.
 6. Click **Save**.
@@ -44,7 +44,7 @@ To resolve the error, update the export configuration for reimbursable expenses.
 
 1. Tap the **Workspaces** navigation tab on the bottom.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to QuickBooks Online.
 4. Tap **Export**.
 5. Under **Export reimbursable expenses as**, change the export type from **Journal Entry** to **Vendor Bill**.
 6. Tap **Save**.

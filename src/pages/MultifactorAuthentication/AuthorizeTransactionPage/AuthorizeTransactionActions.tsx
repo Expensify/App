@@ -31,6 +31,7 @@ function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDe
             ) : (
                 <>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_DENY}
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}
@@ -39,6 +40,7 @@ function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDe
                         <Button.Text>{translate('multifactorAuthentication.reviewTransaction.deny')}</Button.Text>
                     </Button>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={styles.flex1}

@@ -1,9 +1,9 @@
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {TransactionItemRowProps} from '@components/TransactionItemRow/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,12 +16,18 @@ import React from 'react';
 
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
+import InlineCategoryPicker from './InlineCategoryPicker';
+
 type CategoryCellProps = TransactionDataCellProps &
-    EditableProps<string> & {
+    Omit<EditableProps<string>, 'onSave'> & {
+        onSave?: TransactionItemRowProps['onEditCategory'];
         policyID?: string;
+
+        /** The account the expense belongs to, passed only when the current user owns it, so the picker lists just their categories */
+        ownerAccountID?: number;
     };
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID, ownerAccountID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
 
@@ -65,8 +71,9 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             onStartEditing={startEditing}
             anchorRef={anchorRef}
             popoverContent={
-                <CategoryPickerModal
+                <InlineCategoryPicker
                     policyID={policyID}
+                    onSave={onSave}
                     selectedCategory={categoryForComparison}
                     searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     isVisible={isPopoverVisible}
@@ -77,6 +84,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}
                     onSelected={handleCategorySelected}
+                    ownerAccountID={ownerAccountID}
                 />
             }
         >

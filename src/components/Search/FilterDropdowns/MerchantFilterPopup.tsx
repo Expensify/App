@@ -15,7 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {BOTTOM_SHEET_TOP_PADDING} from '@libs/getBottomSheetHeight';
 import {getMerchantFilterFormValues} from '@libs/SearchQueryUtils';
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -75,7 +75,7 @@ function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, cl
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
             style={[{maxHeight}]}
             shouldSubmitOnEnter
         >

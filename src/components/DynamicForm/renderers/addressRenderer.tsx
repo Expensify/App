@@ -1,4 +1,4 @@
-import getAddressInputKeys, {getAddressCountry, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -8,7 +8,7 @@ import React from 'react';
 import type {DynamicFieldRenderer} from './types';
 
 /** An address drawn as one input per part, each under its own draft key. Every part has its own label, so no heading is drawn above them */
-const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue}) => {
+const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
     // The street arrives as the field's answer. The other parts of a sensitive address are not drafted either, so they start from memory too.
@@ -34,7 +34,12 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 cityContainerStyles={styles.mt4}
                 shouldSaveDraft={shouldSaveDraft}
                 shouldDisplayCountrySelector
+                // Only the country asks for a new form, so the rest of the address stays editable offline
+                shouldAllowCountryChange={!disabled}
                 shouldDisplayStateSelector={isStateAsked(country)}
+                stateOptions={getStateOptions(country)}
+                // The pick can switch to any country with a state list, so the code is kept even while the current country has none
+                shouldKeepStateCode
                 forwardedFSClass={forwardedFSClass}
                 onCountryChange={(pickedCountry) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes

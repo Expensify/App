@@ -56,29 +56,34 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PREFERRED_EXPORTER,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.path)),
             title: exportConfiguration?.exporter ?? policyOwner,
             subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.OUT_OF_POCKET,
             title: translate('workspace.xero.purchaseBill'),
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PURCHASE_BILL_DATE,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.path)),
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_DATE],
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.PURCHASE_BILL_STATUS,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
         {
             description: translate('workspace.xero.exportInvoices'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.INVOICES,
             title: translate('workspace.xero.salesInvoice'),
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
@@ -87,6 +92,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                   {
                       title: translate('workspace.xero.bankTransactions'),
                       description: translate('workspace.common.travelBilling'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.TRAVEL_BILLING,
                       onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path)),
                       subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
@@ -94,11 +100,13 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.COMPANY_CARD,
             title: translate('workspace.xero.bankTransactions'),
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.BANK_ACCOUNT,
             onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.path))),
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
@@ -107,6 +115,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             ? [
                   {
                       description: translate('workspace.accounting.defaultVendor'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.EXPORT_ROW.DEFAULT_VENDOR,
                       onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
                       title: defaultVendorName,
                       // No fallback vendor name: Xero posts company card expenses as bank transactions and never
@@ -139,6 +148,7 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={menuItem.sentryLabel}
                         name={menuItem.description}
                         onPress={menuItem?.onPress}
                         value={menuItem.title}

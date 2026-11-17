@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAddress';
@@ -98,6 +99,7 @@ function TimeSensitiveSection() {
         <HomeTaskGroup
             title="homePage.timeSensitiveSection.title"
             rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
         />
     );
 }

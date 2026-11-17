@@ -7,7 +7,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TaxOptionsListUtils', () => {
@@ -128,6 +128,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: emptySearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
 
@@ -137,6 +138,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: search,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
@@ -145,6 +147,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: tokenizeSearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
@@ -153,6 +156,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: wrongSearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
         });
         expect(wrongSearchResult).toStrictEqual(wrongSearchResultList);
@@ -200,6 +204,7 @@ describe('TaxOptionsListUtils', () => {
             policy,
             searchValue: emptySearch,
             localeCompare,
+            translate: translateLocal,
             transaction,
             selectedOptions: [{modifiedName: 'Tax rate 2 (3%)'}],
         });

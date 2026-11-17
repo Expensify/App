@@ -365,7 +365,7 @@ function useChartInteractions({
         isTooltipActive.set(false);
     };
 
-    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {isTouchPinned, setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         hideTooltip();
         applyTargetIndex(-1);
     });
@@ -518,6 +518,8 @@ function useChartInteractions({
         onChartMoved,
         /** Hides the tooltip, whether it is shown by a hover or pinned by a touch tap */
         dismissTooltip,
+        /** Whether the tooltip is shown by a touch tap */
+        isTouchPinned,
         /** Marks a touch on this chart, so the screen's touch start keeps the tooltip and lets the tap switch it */
         onChartTouchStart,
     };
