@@ -181,6 +181,9 @@ type TextInputOptions = {
     /** Input mode e.g., 'text', 'email', 'numeric') */
     inputMode?: InputModeOptions;
 
+    /** Web only. Opt in when this search accepts email addresses without using email input mode. */
+    shouldIgnorePasswordManager?: boolean;
+
     errorText?: string;
 
     /** Whether the text input should be shown as a header inside list */

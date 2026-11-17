@@ -1,3 +1,4 @@
+// cspell:ignore lpignore
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -39,6 +40,8 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
+
+const ONE_PASSWORD_IGNORE_DATA_KEY = '1p-ignore';
 
 function BaseTextInput({
     label = '',
@@ -99,9 +102,18 @@ function BaseTextInput({
     sentryLabel,
     rightHandSideComponent,
     role,
+    shouldIgnorePasswordManager,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
+    // Email fields outside login are not credentials. Keep the original input semantics and let login explicitly opt out.
+    const shouldSuppressPasswordManager =
+        shouldIgnorePasswordManager ??
+        (inputProps.inputMode === CONST.INPUT_MODE.EMAIL ||
+            inputProps.keyboardType === 'email-address' ||
+            inputProps.autoComplete === 'email' ||
+            inputProps.autoCompleteType === 'email' ||
+            inputProps.textContentType === 'emailAddress');
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
     const helpMessageId = useId();
@@ -498,6 +510,8 @@ function BaseTextInput({
                                         input.current = element as HTMLInputElement | null;
                                     }}
                                     {...inputProps}
+                                    // React Native Web filters raw data-* props, but emits dataSet entries on the HTML input.
+                                    dataSet={shouldSuppressPasswordManager ? {...inputProps.dataSet, [ONE_PASSWORD_IGNORE_DATA_KEY]: 'true', lpignore: 'true'} : inputProps.dataSet}
                                     // Filter out role="presentation" so it doesn't strip the native
                                     // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                     role={role === CONST.ROLE.PRESENTATION ? undefined : role}

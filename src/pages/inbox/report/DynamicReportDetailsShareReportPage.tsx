@@ -109,6 +109,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage: sections.length > 0 ? '' : getHeaderMessage(translate, debouncedSearchTerm.trim().toLowerCase(), countryCode),

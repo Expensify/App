@@ -1,4 +1,7 @@
+// cspell:ignore lpignore
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+
+import TextInput from '@components/TextInput';
 
 import {LoginProvider} from '@pages/signin/SignInLoginContext';
 
@@ -105,6 +108,21 @@ describe('BaseLoginForm', () => {
             errors: null,
         });
         await waitForBatchedUpdates();
+    });
+
+    it('explicitly preserves password-manager autofill for the login input', () => {
+        // Given the real login form
+        // When the username field renders
+        renderForm();
+
+        // Then its shared input is exempt from email suppression and retains username autofill
+        const {props} = screen.getByTestId('username');
+        expect(screen.UNSAFE_getByType(TextInput).props.shouldIgnorePasswordManager).toBe(false);
+        expect(props.autoCompleteType).toBe('username');
+        expect(props.textContentType).toBe('username');
+        expect(props.name).toBe('username');
+        expect(props).not.toHaveProperty('dataSet.1p-ignore');
+        expect(props).not.toHaveProperty('dataSet.lpignore');
     });
 
     it('shows agent sign-in blocked error when an agent email is entered', async () => {

@@ -101,6 +101,7 @@ function DynamicTaskShareDestinationSelectorModal() {
         value: searchTerm,
         headerMessage: getHeaderMessage(translate, filteredOptions.recentReports && filteredOptions.recentReports.length !== 0, false, searchTerm, countryCode, false),
         label: translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
         hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
     };
 

@@ -245,6 +245,7 @@ function MoneyRequestAttendeeSelector({
 
     const textInputOptions = {
         label: searchInputLabel ?? translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
         hint: offlineMessage,
         value: searchTerm,
         onChangeText: setSearchTerm,

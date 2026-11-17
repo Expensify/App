@@ -97,6 +97,7 @@ function BaseTextInput({
     sentryLabel,
     rightHandSideComponent,
     shouldAllowFocusInLandscapeMode = false,
+    shouldIgnorePasswordManager: _shouldIgnorePasswordManager,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;

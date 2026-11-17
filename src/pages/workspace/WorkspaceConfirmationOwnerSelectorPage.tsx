@@ -130,6 +130,7 @@ function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: Workspace
         onChangeText: setSearchTerm,
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
         headerMessage,
     };
 

@@ -229,6 +229,7 @@ function DynamicTaskAssigneeSelectorModal() {
         onChangeText: setSearchTerm,
         headerMessage,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
     };
 
     const confirmButtonOptions = isEditingTask

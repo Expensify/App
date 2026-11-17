@@ -236,6 +236,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
+        shouldIgnorePasswordManager: true,
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage,
