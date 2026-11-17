@@ -1394,6 +1394,8 @@ const translations = {
         mostTimeToPay: 'Most time to pay',
         averageDays: 'Average days',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -1788,6 +1790,9 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        payViaABA: 'Pay via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
+        submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,

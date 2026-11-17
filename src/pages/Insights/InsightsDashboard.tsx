@@ -32,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -49,6 +49,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
+import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getEnabledStages, getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -71,6 +72,12 @@ type InsightsDashboardContentProps = {
     hasFailedToLoad: boolean;
 
     headlineChart: InsightsDashboardChart;
+
+    /** Last day the charts count expenses through, as the backend resolved today */
+    asOfDate: string | undefined;
+
+    /** Expenses in the date range dated after `asOfDate`, which every chart leaves out */
+    futureExpenses: InsightsFutureExpenses | undefined;
 
     /** Charts below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
@@ -120,6 +127,8 @@ function InsightsDashboardContent({
     insightsScope,
     hasFailedToLoad,
     headlineChart,
+    asOfDate,
+    futureExpenses,
     supportingCharts,
     filters,
     upgradeablePolicyIDs,
@@ -256,7 +265,16 @@ function InsightsDashboardContent({
             supportsDrillIn={supportsDrillIn}
             onRetry={onRetry}
             onGroupByChange={isHeadline ? onGroupByChange : undefined}
-        />
+            asOfDate={asOfDate}
+        >
+            {isHeadline && !!asOfDate && !!futureExpenses?.count && (
+                <InsightsFutureExpensesNote
+                    futureExpenses={futureExpenses}
+                    asOfDate={asOfDate}
+                    filters={filters}
+                />
+            )}
+        </InsightsChartWidget>
     );
 
     const renderGrid = (gridCharts: InsightsDashboardChart[]) => {
@@ -491,6 +509,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
+                            asOfDate={dashboard?.asOfDate}
+                            futureExpenses={dashboard?.futureExpenses}
                             supportingCharts={supportingCharts}
                             filters={filters}
                             upgradeablePolicyIDs={upgradeablePolicyIDs}

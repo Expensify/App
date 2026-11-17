@@ -1284,6 +1284,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
+        futureExpensesNotShown: (amount: string) => `Nie pokazano: ${amount} w przyszłych wydatkach.`,
+        violationsTrackedFrom: (date: string) => `Naruszenia są śledzone od ${date}.`,
         upsellState: {
             title: 'Ulepsz do Control, aby zyskać więcej wglądu',
             subtitle: 'Śledź trendy przestrzegania zasad dotyczących wydatków i oznaczaj osoby wielokrotnie je naruszające.',
@@ -2129,6 +2131,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `raporty: ${formattedCount ?? count}`,
             };
         },
+        payViaABA: 'Zapłać przez ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} nie ma konta bankowego w AUD. Poproś, żeby je dodał/dodała i spróbuj ponownie.`,
+        submittersMissingABADepositAccount: 'Jedna lub więcej osób przesyłających wydatki nie ma konta bankowego w AUD. Poproś je o dodanie takiego konta i spróbuj ponownie.',
     },
     transactionMerge: {
         listPage: {

@@ -10,7 +10,7 @@ import type {BankAccountList, OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {canMemberWrite} from './permissions';
+import {canMemberWrite, isPolicyAdmin} from './permissions';
 import {isGroupPolicy} from './policyType';
 
 /**
@@ -128,6 +128,18 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/**
+ * Whether the current user can pay the workspace's reports via ABA
+ */
+function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+
+    // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
+    const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
+
+    return isPayViaABABetaEnabled && isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+}
+
 /** Get the ISO codes of the workspace's reimbursement countries, leaving out countries waiting to be deleted */
 function getReimbursementCountryISOs(countries: NonNullable<Policy['reimbursement']>['countries']): string[] {
     return Object.entries(countries ?? {})
@@ -183,6 +195,7 @@ export {
     hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    canPayViaABA,
     getReimbursementCountryISOs,
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,

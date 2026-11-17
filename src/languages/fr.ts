@@ -1265,6 +1265,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
+        futureExpensesNotShown: (amount: string) => `Non affiché : ${amount} en dépenses futures.`,
+        violationsTrackedFrom: (date: string) => `Les violations sont suivies à partir du ${date}.`,
         upsellState: {
             title: "Passez à Control pour obtenir plus d'informations",
             subtitle: 'Suivez les tendances de conformité aux politiques de dépenses et signalez les récidivistes.',
@@ -2103,6 +2105,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} notes de frais`,
             };
         },
+        payViaABA: 'Payer via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} n’a pas de compte bancaire en AUD. Veuillez lui demander d’en ajouter un, puis réessayez.`,
+        submittersMissingABADepositAccount: 'Un ou plusieurs déclarants n’ont pas de compte bancaire en AUD. Veuillez leur demander d’en ajouter un, puis réessayez.',
     },
     transactionMerge: {
         listPage: {

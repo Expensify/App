@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
-import {getDateFilterRange} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
@@ -31,9 +31,12 @@ import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDro
 import type {InsightsChartSpec, InsightsChartStage} from '@pages/Insights/dashboardSpecs';
 import {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
+import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import DEFAULT_INSIGHTS_FILTERS, {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import DEFAULT_INSIGHTS_FILTERS from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, getShownGroupBy, isRunningTotalAvailable, isShowingRunningTotal} from '@pages/Insights/insightsGroupByUtils';
+import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import {doesRangeStartBeforeTracking, getTrackedFrom} from '@pages/Insights/insightsTrackedFrom';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -43,13 +46,13 @@ import type {InsightsDashboardID, InsightsScope, SearchResults} from '@src/types
 import type {OnyxEntry} from 'react-native-onyx';
 import type {NonEmptyTuple} from 'type-fest';
 
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import InsightsDataTable from './InsightsDataTable';
 import InsightsRankingTable from './InsightsRankingTable';
+import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -94,6 +97,12 @@ type InsightsChartWidgetProps = {
 
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+
+    /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
+    asOfDate?: string;
+
+    /** Shown below the plot once the chart has loaded, including when it has nothing to plot */
+    children?: React.ReactNode;
 };
 
 function InsightsChartWidget({
@@ -112,6 +121,8 @@ function InsightsChartWidget({
     supportsDrillIn = true,
     onRetry,
     onGroupByChange,
+    asOfDate,
+    children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -140,7 +151,9 @@ function InsightsChartWidget({
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
     const canRunningTotal = isRunningTotalAvailable(filters.date);
-    const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
+    const shouldShowRunningTotal = isShowingRunningTotal(filters) && view === CONST.SEARCH.VIEW.LINE;
+    const today = getInsightsLastDay(asOfDate);
+    const trackedFrom = getTrackedFrom(snapshot);
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
@@ -154,7 +167,7 @@ function InsightsChartWidget({
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
-            today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            today,
             shouldShowRunningTotal,
             countDimension,
             metric: chart.metric,
@@ -171,14 +184,15 @@ function InsightsChartWidget({
                   if (!itemParams) {
                       return;
                   }
-                  Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID, graphKey: chart.graphKey, ...itemParams}));
+                  const detailsAsOfDate = asOfDate !== getInsightsLastDay(undefined) ? asOfDate : undefined;
+                  Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID, graphKey: chart.graphKey, ...itemParams, asOfDate: detailsAsOfDate}));
               }
             : undefined;
 
     const groupByControl =
         onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={filters.groupBy}
+                groupBy={getShownGroupBy(filters)}
                 options={groupByOptions}
                 defaultGroupBy={DEFAULT_INSIGHTS_FILTERS[dashboardID].groupBy}
                 onChange={onGroupByChange}
@@ -193,6 +207,14 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const queryJSONForSearch = buildSearchQueryJSON(applyInsightsFilters(chart, filters, undefined, today, trackedFrom)) ?? queryJSON;
+    const openOnSpend = () => {
+        if (!queryJSONForSearch) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSONForSearch)}));
+    };
+
     const headerMenu =
         !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn)) ? (
             <WidgetHeaderMenu
@@ -206,7 +228,7 @@ function InsightsChartWidget({
                                   text: translate('insightsPage.viewOnSpend'),
                                   sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
                                   icon: icons.Expand,
-                                  onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                                  onSelected: openOnSpend,
                                   shouldCallAfterModalHide: true,
                               },
                           ]
@@ -257,7 +279,7 @@ function InsightsChartWidget({
                             rowLimit={chart.limit}
                             comparison={comparison}
                             isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
-                            queryJSON={queryJSON}
+                            queryJSON={queryJSONForSearch}
                             isLoading={isLoading}
                         />
                     ) : (
@@ -271,10 +293,13 @@ function InsightsChartWidget({
                                 countDimension={countDimension}
                                 isLoading={isLoading}
                                 shouldDrillDownOnPress={supportsDrillIn}
+                                drillDownQueryJSON={queryJSONForSearch}
                                 comparison={comparison}
                                 shouldShowRunningTotal={shouldShowRunningTotal}
                                 stages={stackStages}
                                 chartContainerStyle={cardPaddingHorizontal}
+                                trackedFrom={trackedFrom}
+                                today={today}
                                 shouldShowSinglePointAsBar
                                 shouldShowGroupLabels={isTimeGrouped}
                                 onGroupPress={openDetails}
@@ -296,6 +321,12 @@ function InsightsChartWidget({
                         </View>
                     ))}
             </Animated.View>
+            {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && (
+                <>
+                    {isTimeGrouped && !!trackedFrom && doesRangeStartBeforeTracking(filters, trackedFrom) && <InsightsTrackedFromNote trackedFrom={trackedFrom} />}
+                    {children}
+                </>
+            )}
         </WidgetContainer>
     );
 }
