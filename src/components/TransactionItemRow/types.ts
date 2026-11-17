@@ -68,6 +68,12 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Whether the expense was ever rejected, provided on search transactions when the Rejected column is shown or sorted by */
     declined?: SearchTransaction['declined'];
+
+    /** Submit-time violation names, included when there is a has:submitted-violation filter */
+    submittedViolations?: SearchTransaction['submittedViolations'];
+
+    /** Approve-time violation names, included when there is a has:approved-violation filter */
+    approvedViolations?: SearchTransaction['approvedViolations'];
 };
 
 type TransactionItemRowProps = {
