@@ -28,7 +28,7 @@ import {
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
-    getManagerAccountID,
+    getManagerAccountEmail,
     getReimbursementChoice,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -273,11 +273,7 @@ function isSubmitAction({
     // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isWorkflowApprover =
-        !isReportSubmitter &&
-        currentUserAccountID !== undefined &&
-        !!ownerLogin &&
-        !isSubmitAndClose(policy) &&
-        currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+        !isReportSubmitter && !!currentUserLogin && !!ownerLogin && !isSubmitAndClose(policy) && currentUserLogin === getManagerAccountEmail(policy, ownerLogin, rules, report.total ?? 0);
 
     if (!isReportSubmitter && !isAdmin && !isWorkflowApprover) {
         return false;

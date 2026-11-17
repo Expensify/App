@@ -6078,7 +6078,7 @@ function canEditMoneyRequest(
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        deprecatedCurrentUserEmail === getManagerAccountEmail(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
     if (isWorkflowApproverEditing) {
         return true;
     }
@@ -6273,7 +6273,7 @@ function canCurrentUserEditExpense(
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
         !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        deprecatedCurrentUserEmail === getManagerAccountEmail(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
 
     return isAdmin || isManager || isRequestor || isApprover;
 }

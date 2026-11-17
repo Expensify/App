@@ -12,7 +12,7 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getManagerAccountID,
+    getManagerAccountEmail,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -165,17 +165,14 @@ function isSubmitAction(
         return false;
     }
 
-    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const isWorkflowApprover =
-        !isReportSubmitter &&
-        currentUserAccountID !== undefined &&
-        !!ownerLogin &&
-        !isSubmitAndClose(policy) &&
-        currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
     // A role that cannot create expenses cannot submit its own report.
     if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
         return false;
     }
+
+    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
+    const isWorkflowApprover =
+        !isReportSubmitter && !!currentUserEmail && !!ownerLogin && !isSubmitAndClose(policy) && currentUserEmail === getManagerAccountEmail(policy, ownerLogin, rules, report.total ?? 0);
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
