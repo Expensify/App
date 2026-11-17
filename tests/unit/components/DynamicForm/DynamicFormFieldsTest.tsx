@@ -901,8 +901,20 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'GB'});
 
-        // Then there is no state input, since the picker only lists US states and Canadian provinces
+        // Then there is no state input, since the picker only lists states for the US, Canada, Australia and Brazil
         expect(rendered.has(addressKeys.state)).toBe(false);
+    });
+
+    it('lists Australian states for an address in Australia', () => {
+        // Given an address whose draft holds a country the state picker has its own list for
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress], {[addressKeys.country]: 'AU'});
+
+        // Then the state is asked from the Australian list, not from US states
+        expect(rendered.get(addressKeys.state)?.optionsList).toHaveProperty('NSW');
     });
 
     it('lists Canadian provinces for an address restored with Canada as its country', () => {
