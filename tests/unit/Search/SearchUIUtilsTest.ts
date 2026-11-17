@@ -13510,6 +13510,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should not show Violations on expense search when no submitted-violation data is present', () => {
+            // Given an expense that Search returned without any violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13523,62 +13524,44 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+
+            // Then the Violations column is hidden, because it would be empty
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
-        test('Should not show Violations when FORWARDED snapshot data is present without a violation has-filter', () => {
+        test('Should not show Violations when approved violation names are present without a violation has-filter', () => {
+            // Given an expense that has approved violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
-                transactionID: 'forwarded-without-filter',
+                transactionID: 'approved-without-filter',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
                 reportID,
+                approvedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
 
             // @ts-expect-error minimal dataset for getColumnsToShow
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search without a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: []});
+
+            // Then the Violations column is hidden, because it only describes the violation filters
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should show Violations only when submitted-violation data is present', () => {
+            // Given an expense that Search returned with submitted violation names
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13586,36 +13569,25 @@ describe('SearchUIUtils', () => {
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
                 reportID,
+                submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
 
             // @ts-expect-error minimal dataset for getColumnsToShow
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: [], shouldShowViolationsColumn: true});
+
+            // Then the Violations column is shown
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 
         test('Should inject Violations into custom column layouts when submitted-violation data is present', () => {
+            // Given an expense with submitted violation names and a custom column layout without Violations
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13624,6 +13596,7 @@ describe('SearchUIUtils', () => {
                 modifiedMerchant: '',
                 category: 'Advertising',
                 reportID,
+                submittedViolations: [CONST.VIOLATIONS.MISSING_CATEGORY],
             };
             const customVisibleColumns = [
                 CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -13637,36 +13610,24 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                            violations: {
-                                transactions: {
-                                    [tx.transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
-                                },
-                            },
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data,
                 visibleColumns: customVisibleColumns,
                 shouldShowViolationsColumn: true,
             });
+
+            // Then Violations is added just before the total
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
 
         test('Should keep Violations in custom column layouts when the user selected it', () => {
+            // Given an expense without violation names and a custom column layout that includes Violations
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const tx = {
                 ...baseTransaction,
@@ -13687,26 +13648,18 @@ describe('SearchUIUtils', () => {
             const data: OnyxTypes.SearchResults['data'] = {
                 [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
                 [`transactions_${tx.transactionID}`]: tx,
-                [`reportActions_${reportID}`]: {
-                    '1': {
-                        reportActionID: '1',
-                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                        created: '2025-01-01 00:00:00',
-                        originalMessage: {
-                            amount: 1000,
-                            currency: CONST.CURRENCY.USD,
-                        },
-                    },
-                },
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
 
+            // When the columns are worked out for a search with a violation filter
             const columns = SearchUIUtils.getColumnsToShow({
                 currentAccountID: submitterAccountID,
                 data,
                 visibleColumns: customVisibleColumns,
                 shouldShowViolationsColumn: true,
             });
+
+            // Then the column the user chose stays
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         });
 

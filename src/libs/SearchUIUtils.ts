@@ -7680,7 +7680,7 @@ function getColumnsToShow({
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
-    const updateColumns = (transaction: OnyxTypes.Transaction) => {
+    const updateColumns = (transaction: SearchTransaction) => {
         const transactionWithSearchFields = transaction as OnyxTypes.Transaction & {policy?: OnyxTypes.Policy; report?: OnyxTypes.Report};
         const transactionReport = transactionWithSearchFields.report ?? (Array.isArray(data) ? undefined : data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
         const explicitTransactionPolicyID = [transactionReport?.policyID, transactionWithSearchFields.policy?.id].find(Boolean);
@@ -7718,8 +7718,7 @@ function getColumnsToShow({
 
         // Only show violations column when the query explicitly filters for those violations.
         if (shouldShowViolationsColumn && !isExpenseReportView && !Array.isArray(data)) {
-            const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
-            if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID) || getApprovedViolationsForTransaction(reportActions, transaction.transactionID)) {
+            if (transaction.submittedViolations?.length || transaction.approvedViolations?.length) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
             }
         }
