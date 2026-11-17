@@ -3,6 +3,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
+import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 
 import type {NonEmptyTuple} from 'type-fest';
@@ -44,7 +45,7 @@ type TooltipComparison = {
 /** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
 function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
     if (comparedValue === 0) {
-        return '—';
+        return CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER;
     }
 
     const difference = primaryValue - comparedValue;

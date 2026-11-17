@@ -204,6 +204,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     icon: icons.Trashcan,
                     text: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: () => {
                         showConfirmModal({
@@ -242,6 +243,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     icon: icons.Close,
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS.DISABLE,
                     onSelected: () => {
                         clearTableSelection();
 
@@ -283,6 +285,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     icon: icons.Checkmark,
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.LIST_VALUES_BULK_ACTIONS.ENABLE,
                     onSelected: () => {
                         clearTableSelection();
 
