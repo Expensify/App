@@ -1244,6 +1244,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Ρύθμιση ειδικών κανόνων για ταξίδια',
             addFirstReceipt: 'Προσθέστε την πρώτη σας απόδειξη',
             addFirstReceiptSubText: 'Σαρώστε ή καταχωρίστε χειροκίνητα μια απόδειξη',
+            addName: 'Προσθέστε το όνομά σας',
+            addNameSubText: 'Βοηθήστε τους συναδέλφους σας να σας αναγνωρίζουν στο Expensify.',
+            downloadApp: 'Κατεβάστε την εφαρμογή',
+            downloadAppSubText: 'Σαρώστε αποδείξεις, υποβάλετε δαπάνες και εγκρίνετε αναφορές όπου κι αν βρίσκεστε.',
         },
         upcomingTravel: 'Επερχόμενα ταξίδια',
         upcomingTravelSection: {
@@ -1294,9 +1298,14 @@ const translations: TranslationDeepObject<typeof en> = {
             allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
             allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
             averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
+            allViolationAverage: 'Μέσος όρος όλων των παραβάσεων',
+            noChange: 'Χωρίς αλλαγή',
+            percentChange: '% μεταβολή',
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        futureExpensesNotShown: (amount: string) => `Δεν εμφανίζονται: ${amount} σε μελλοντικές δαπάνες.`,
+        violationsTrackedFrom: (date: string) => `Οι παραβάσεις παρακολουθούνται από ${date}.`,
         upsellState: {
             title: 'Αναβαθμίστε σε Control για περισσότερες πληροφορίες',
             subtitle: 'Παρακολουθήστε τις τάσεις συμμόρφωσης με την πολιτική εξόδων και επισημάνετε τους επανειλημμένους παραβάτες.',
@@ -1318,6 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
@@ -2133,6 +2143,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} αναφορές`,
             };
         },
+        payViaABA: 'Πληρωμή μέσω ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `Ο/Η ${name} δεν έχει τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και δοκιμάστε ξανά.`,
+        submittersMissingABADepositAccount: 'Ένας ή περισσότεροι αποστολείς δεν έχουν τραπεζικό λογαριασμό σε AUD. Παρακαλούμε ζητήστε τους να προσθέσουν έναν και προσπαθήστε ξανά.',
     },
     transactionMerge: {
         listPage: {
@@ -4321,7 +4334,6 @@ ${amount} για ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Η ημερομηνία πρέπει να είναι πριν από ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Η ημερομηνία πρέπει να είναι μετά από ${dateString}`,
-            hasInvalidCharacter: 'Το όνομα μπορεί να περιλαμβάνει μόνο λατινικούς χαρακτήρες',
             cannotIncludeCommaOrSemicolon: 'Το όνομα δεν μπορεί να περιέχει κόμμα ή ερωτηματικό',
             incorrectZipFormat: (zipFormat?: string) => `Μη έγκυρη μορφή ταχυδρομικού κώδικα${zipFormat ? `Αποδεκτή μορφή: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Βεβαιωθείτε ότι ο αριθμός τηλεφώνου είναι έγκυρος (π.χ. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4523,7 +4535,6 @@ ${amount} για ${merchant} - ${date}`,
             lastName: 'Παρακαλούμε εισαγάγετε ένα έγκυρο επώνυμο',
             noDefaultDepositAccountOrDebitCardAvailable: 'Παρακαλούμε προσθέστε έναν προεπιλεγμένο λογαριασμό κατάθεσης ή χρεωστική κάρτα',
             validationAmounts: 'Τα ποσά επαλήθευσης που εισαγάγατε είναι εσφαλμένα. Παρακαλούμε ελέγξτε ξανά το αντίγραφο κίνησης του λογαριασμού σας και προσπαθήστε ξανά.',
-            fullName: 'Παρακαλούμε εισαγάγετε ένα έγκυρο πλήρες όνομα',
             ownershipPercentage: 'Παρακαλώ εισαγάγετε έναν έγκυρο αριθμό ποσοστού',
             deletePaymentBankAccount:
                 'Αυτός ο τραπεζικός λογαριασμός δεν μπορεί να διαγραφεί επειδή χρησιμοποιείται για πληρωμές με την Κάρτα Expensify. Αν εξακολουθείτε να θέλετε να διαγράψετε αυτόν τον λογαριασμό, παρακαλούμε επικοινωνήστε με το Concierge.',

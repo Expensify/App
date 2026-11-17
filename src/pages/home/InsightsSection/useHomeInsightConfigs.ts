@@ -6,8 +6,7 @@ import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
-import {isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import {isShowingRunningTotal} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -82,7 +81,7 @@ function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; date: InsightsF
         configs,
         date: filters.date,
         isResolved: areFiltersResolved,
-        shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date),
+        shouldShowRunningTotal: isShowingRunningTotal(filters),
     };
 }
 
