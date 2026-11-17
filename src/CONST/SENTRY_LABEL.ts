@@ -3440,6 +3440,7 @@ const SENTRY_LABEL = {
         PLAN_MENU: 'SettingsSubscription-PlanMenu',
         PLAN_UPGRADE: 'SettingsSubscription-PlanUpgrade',
         SUBSCRIPTION_SIZE: 'SettingsSubscription-SubscriptionSize',
+        SIZE_NOT_SET_LEARN_MORE: 'SettingsSubscription-SizeNotSetLearnMore',
         SUBSCRIPTION_SIZE_SAVE: 'SettingsSubscription-SubscriptionSizeSave',
         TAX_EXEMPT: 'SettingsSubscription-TaxExempt',
         PAYMENT_CARD_SECURITY_LINK: 'SettingsSubscription-PaymentCardSecurityLink',

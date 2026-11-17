@@ -10,6 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
@@ -51,6 +52,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {KeyboardEvent as ReactKeyboardEvent, MouseEventHandler} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -75,6 +77,26 @@ const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type SubscriptionSizeHint = {
+    text: string;
+    linkLabel: string;
+};
+
+// Locales store this hint as HTML with one pricing anchor. HelpText renders its message inside Text, and RenderHTML throws there, so the anchor is split into a TextLink that can live in the row.
+const SUBSCRIPTION_SIZE_HINT_PATTERN = /^<muted-text(?:-label)?>([\s\S]*?)<a href="([^"]+)">([\s\S]*?)<\/a>\s*<\/muted-text(?:-label)?>$/;
+
+function getSubscriptionSizeHint(html: string): SubscriptionSizeHint | undefined {
+    const match = html.match(SUBSCRIPTION_SIZE_HINT_PATTERN);
+    if (!match?.[2].endsWith(CONST.PRICING)) {
+        return undefined;
+    }
+
+    return {
+        text: match[1].replace(/^\s+/, ''),
+        linkLabel: match[3].trim(),
+    };
+}
 
 function AnnualSavingsTooltip() {
     const styles = useThemeStyles();
@@ -205,6 +227,19 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE));
     };
+
+    // The hint sits inside the size row's press target, so the link has to stop the event or Learn more also opens the size page.
+    const openPricingFromSizeHint = (event: GestureResponderEvent | ReactKeyboardEvent) => {
+        event.stopPropagation();
+        openLink(CONST.PRICING, environmentURL, false, session);
+    };
+
+    const keepSizeHintLinkFromOpeningSizeRow: MouseEventHandler = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const subscriptionSizeHint = cardView.showSizeNotSetHelper ? getSubscriptionSizeHint(translate('subscription.subscriptionSettings.sizeNotSet')) : undefined;
 
     const navigateToExpensifyCode = () => {
         if (isActingAsDelegate) {
@@ -360,27 +395,42 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         errors={privateSubscription.errorFields?.userCount}
                         onClose={clearUpdateSubscriptionSizeError}
                     >
-                        <MenuItemField
-                            name={translate('subscription.details.subscriptionSize')}
-                            value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
-                            onPress={cardView.canEditSize ? navigateToSubscriptionSize : undefined}
+                        <MenuItem.Root
+                            onPress={cardView.canEditSize ? callIfAuthenticated(navigateToSubscriptionSize, session) : undefined}
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
                             testID="SubscriptionPlanSettings-subscriptionSize"
-                        />
-                    </OfflineWithFeedback>
-                    {cardView.showSizeNotSetHelper && (
-                        <View style={[styles.renderHTML, settingsRowHorizontalPadding, styles.mb3]}>
-                            <RenderHTML
-                                html={translate('subscription.subscriptionSettings.sizeNotSet')}
-                                onLinkPress={(_event, href) => {
-                                    if (!href.endsWith(CONST.PRICING)) {
-                                        return;
+                        >
+                            <MenuItemField.Row
+                                name={translate('subscription.details.subscriptionSize')}
+                                value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
+                            >
+                                {cardView.canEditSize && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                            {cardView.showSizeNotSetHelper && (
+                                <MenuItem.HelpText
+                                    message={
+                                        subscriptionSizeHint ? (
+                                            <>
+                                                {subscriptionSizeHint.text}
+                                                <TextLink
+                                                    onPress={openPricingFromSizeHint}
+                                                    onMouseDown={keepSizeHintLinkFromOpeningSizeRow}
+                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SIZE_NOT_SET_LEARN_MORE}
+                                                >
+                                                    {subscriptionSizeHint.linkLabel}
+                                                </TextLink>
+                                            </>
+                                        ) : (
+                                            translate('subscription.subscriptionSettings.sizeNotSet')
+                                                .replaceAll(/<[^>]+>/g, '')
+                                                .replaceAll(/\s+/g, ' ')
+                                                .trim()
+                                        )
                                     }
-                                    openLink(CONST.PRICING, environmentURL, false, session);
-                                }}
-                            />
-                        </View>
-                    )}
+                                />
+                            )}
+                        </MenuItem.Root>
+                    </OfflineWithFeedback>
                     <View
                         style={settingsRowHorizontalPadding}
                         testID="SubscriptionPlanSettings-autoRenew"
