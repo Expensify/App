@@ -672,7 +672,7 @@ describe('hasMoneyRequestDraftUserEdits', () => {
         // Given odometer drafts holding a reading, a photo, and nothing at all
         const readingDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {odometerStart: 10}});
         const photoDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {odometerEndImage: 'file://odometer-end.jpg'}});
-        const emptyDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {odometerStart: null, odometerEnd: null}});
+        const emptyDraft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {}});
 
         // When checking them for user edits
         // Then the reading and the photo would be lost, so those drafts are dirty, and the empty one is clean
