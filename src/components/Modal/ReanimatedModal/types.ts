@@ -23,7 +23,7 @@ type GestureHandlerProps = {
     onSwipeComplete?: () => void;
 
     /** Threshold for swipe gesture. */
-    swipeThreshold: number;
+    swipeThreshold?: number;
 
     /** Threshold for swipe gesture. */
     swipeDirection?: SwipeDirection | SwipeDirection[];

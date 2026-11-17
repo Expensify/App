@@ -64,6 +64,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.REVIEW_DUPLICATES}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             isDisabled={isDisabled}
             onPress={() => {

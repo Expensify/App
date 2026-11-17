@@ -72,7 +72,15 @@ type ParentNavigationSubtitleProps = {
 
 /** Picks the fields that find a report's parent, so the subtitle doesn't re-render when other fields of the report change */
 function parentNavigationReportSelector(report: OnyxEntry<Report>) {
-    return report && {hasParentAccess: getReportHasParentAccess(report), isExpenseReport: isExpenseReport(report), ownerAccountID: report.ownerAccountID, policyID: report.policyID};
+    return (
+        report && {
+            hasParentAccess: getReportHasParentAccess(report),
+            isExpenseReport: isExpenseReport(report),
+            ownerAccountID: report.ownerAccountID,
+            policyID: report.policyID,
+            type: report.type,
+        }
+    );
 }
 
 function ParentNavigationSubtitle({
@@ -118,6 +126,7 @@ function ParentNavigationSubtitle({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const hasAccessToParentReport = !!parentNavigationReportID && hasParentAccess !== false;
+    const shouldShowPolicyNameOnly = currentReport?.type === CONST.REPORT.TYPE.BILL && !reportName && !!workspaceName;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
         const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
@@ -148,7 +157,7 @@ function ParentNavigationSubtitle({
             currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
-    if (!reportName) {
+    if (!reportName && !shouldShowPolicyNameOnly) {
         return;
     }
 
@@ -307,6 +316,7 @@ function ParentNavigationSubtitle({
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
+                                sentryLabel={CONST.SENTRY_LABEL.PARENT_NAVIGATION_SUBTITLE.PARENT_REPORT_LINK}
                                 accessibilityLabel={translate('threads.parentNavigationSummary', reportName, workspaceName)}
                                 style={[
                                     pressableStyles,
@@ -330,7 +340,9 @@ function ParentNavigationSubtitle({
                     </Text>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>
+                        {shouldShowPolicyNameOnly ? workspaceName : ` ${translate('threads.in')} ${workspaceName}`}
+                    </Text>
                 )}
             </Text>
         </View>

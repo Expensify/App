@@ -54,7 +54,7 @@ If appropriate for your accounting setup, you may also adjust or remove the Smar
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
 4. Review the selected entity in the export configuration.
 5. Update the entity if necessary.
 6. Click **Save**.

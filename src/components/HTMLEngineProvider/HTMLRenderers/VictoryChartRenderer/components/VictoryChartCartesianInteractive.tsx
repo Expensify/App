@@ -73,7 +73,7 @@ function VictoryChartCartesianInteractive() {
                         onDismiss={dismissTooltip}
                     >
                         <ChartTooltipSummary
-                            amount={activeTooltipData.amount}
+                            value={activeTooltipData.amount}
                             percentage={activeTooltipData.percentage}
                         />
                     </ChartTooltip>

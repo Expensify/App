@@ -5,6 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -34,7 +35,7 @@ async function getStoredQuery(): Promise<string | undefined> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.SEARCH_FILTERS,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value as Record<string, unknown> | undefined);
             },
         });
@@ -75,13 +76,72 @@ describe('useInsightsFilters', () => {
         const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
-        // Then it reports on the year to date, across every workspace, in that currency
+        // Then it reports a running total for this month against the previous period, across every workspace, in that currency
         expect(result.current.filters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            tagLevel: 1,
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
+    });
+
+    it('keeps Compare off for a stored selection that has no Compare mode', async () => {
+        // Given Spend filters stored with Compare off, which the stored query leaves out
+        await setUpActivePolicy('PLN');
+        await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'});
+
+        // When the dashboard resolves its filters
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the default Compare mode doesn't override the user's choice
+        expect(result.current.filters.compare).toBeUndefined();
+    });
+
+    it('opens Compliance on a running total for this month against the previous period when no selections are stored', async () => {
+        // Given no saved Compliance filters to override the defaults
+        await setUpActivePolicy('PLN');
+
+        // When Compliance resolves its filters
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then Compliance starts on a running total for this month against the previous period
+        expect(result.current.filters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+            policyIDs: [],
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+        });
+        expect(result.current.defaultFilters).toEqual(result.current.filters);
+    });
+
+    it('preserves a saved Compliance period instead of applying the new default', async () => {
+        // Given an explicit Compliance selection that must survive the default change
+        await setUpActivePolicy('PLN');
+        const stored: InsightsFilters = {
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            policyIDs: ['A1'],
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            groupCurrency: 'USD',
+        };
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].searchKey]: {query: buildInsightsQueryString(stored)},
+        });
+        await waitForBatchedUpdates();
+
+        // When Compliance restores the saved query
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.COMPLIANCE));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the saved filters win while the default period remains this month
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
+        expect(result.current.defaultFilters.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH});
     });
 
     it('opens on the stored selections where the user has made one', async () => {
@@ -101,7 +161,7 @@ describe('useInsightsFilters', () => {
         await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         // Then what was stored wins over the page defaults and the default workspace currency
-        expect(result.current.filters).toEqual(stored);
+        expect(result.current.filters).toEqual({...stored, tagLevel: 1, defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY});
     });
 
     it('keeps reporting the page defaults once a selection is stored, so a control can reset to them', async () => {
@@ -120,10 +180,12 @@ describe('useInsightsFilters', () => {
 
         // Then the defaults ignore the stored selections, keeping the default workspace currency for Group currency's Reset
         expect(result.current.defaultFilters).toEqual({
-            date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
             policyIDs: [],
-            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             groupCurrency: 'PLN',
+            defaultGroupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY,
         });
     });
 
@@ -165,7 +227,7 @@ describe('useInsightsFilters', () => {
         });
 
         // Then the stored query carries the new bucket and everything the other controls had already narrowed
-        expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD policyID:A1 date:last-12-months');
+        expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD policyID:A1 date:last-12-months');
     });
 
     it('keeps the selected grouping saved when a new date range rules it out', async () => {
@@ -182,7 +244,7 @@ describe('useInsightsFilters', () => {
         });
 
         // Then quarter stays saved, so it comes back once a range that offers it is picked
-        expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD date:this-month');
+        expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD date:this-month');
         expect(result.current.filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
@@ -214,6 +276,59 @@ describe('useInsightsFilters', () => {
             writeSpy.mockRestore();
         });
 
+        it('waits for complete tag metadata before resetting and saving a removed level', async () => {
+            // Given a saved level two and only partial metadata for a tags-enabled workspace
+            await setUpActivePolicy('USD');
+            writeSpy.mockImplementation((_command, _params, onyxData: {optimisticData: Parameters<typeof Onyx.update>[0]}) => Onyx.update(onyxData.optimisticData));
+            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy};
+            await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [POLICY_ID], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: {name: 'Department', orderWeight: 0, required: false, tags: {}}});
+            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, policies));
+            await waitFor(() => expect(result.current.isResolved).toBe(true));
+            expect(result.current.filters.tagLevel).toBe(2);
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            // When the full tag-list read confirms that only level one exists
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {hasOnceLoaded: true, isLoading: false});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the dashboard fits level one and persists it across devices instead of reviving level two later
+            await waitFor(() => expect(result.current.filters.tagLevel).toBe(1));
+            expect(result.current.tagLevelOptions).toEqual([{value: 1, label: 'Department'}]);
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, expect.anything(), expect.anything());
+            expect(await getStoredQuery()).toContain('tagLevel:1');
+        });
+
+        it('keeps a saved level when any selected workspace still has it', async () => {
+            // Given one shallow workspace and another with two configured levels
+            await setUpActivePolicy('USD');
+            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
+            const otherPolicy = {...policy, id: '2'};
+            await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD', tagLevel: 2});
+            const first = {name: 'Department', orderWeight: 0, required: false, tags: {}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {Department: first});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}2`, {Department: first, Location: {...first, name: 'Location', orderWeight: 1}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}`, {hasOnceLoaded: true, isLoading: false});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}2`, {hasOnceLoaded: true, isLoading: false});
+
+            // When the dashboard opens with both workspaces selected
+            const {result} = renderHook(() =>
+                useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, undefined, {[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy, [`${ONYXKEYS.COLLECTION.POLICY}2`]: otherPolicy}),
+            );
+            await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+            // Then the second position stays available without a reset write
+            expect(result.current.filters.tagLevel).toBe(2);
+            expect(result.current.tagLevelOptions).toEqual([
+                {value: 1, label: 'Department'},
+                {value: 2, label: 'Location'},
+            ]);
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
         it('saves a Compare mode change to the server, since it does not fetch the dashboard again', async () => {
             // Given a dashboard with no Compare mode picked
             await setUpActivePolicy('PLN');
@@ -229,7 +344,7 @@ describe('useInsightsFilters', () => {
             });
 
             // Then the full query is saved under the dashboard's search key, so the choice survives signing out
-            const inputQuery = buildInsightsQueryString({...stored, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD});
+            const inputQuery = buildInsightsQueryString({...stored, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD, tagLevel: 1});
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery})}, expect.anything());
         });
 
@@ -248,7 +363,58 @@ describe('useInsightsFilters', () => {
 
             // Then no separate save is sent, and the selection is only stored locally
             expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, expect.anything(), expect.anything());
-            expect(await getStoredQuery()).toBe('groupBy:quarter groupCurrency:USD date:last-12-months');
+            expect(await getStoredQuery()).toBe('groupBy:quarter tagLevel:1 groupCurrency:USD date:last-12-months');
+        });
+
+        it('saves a change the page skips fetching for, since GetInsights never runs to save it', async () => {
+            // Given a dashboard whose page won't fetch charts for any selection, like one showing the Control plan upsell
+            await setUpActivePolicy('PLN');
+            const stored: InsightsFilters = {date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'};
+            await storeFilters(stored);
+            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, () => true));
+            await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+            // When the user picks a different date range, which would otherwise be left to GetInsights to save
+            await act(async () => {
+                result.current.setFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the selection is saved on its own, so it survives signing out
+            const inputQuery = buildInsightsQueryString({...stored, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, tagLevel: CONST.INSIGHTS.DEFAULT_TAG_LEVEL});
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery})}, expect.anything());
+        });
+
+        it('decides whether to save from the selection being made, not the one being left', async () => {
+            // Given a dashboard on a workspace the page skips fetching for, while every other selection fetches
+            await setUpActivePolicy('PLN');
+            await storeFilters({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS}, policyIDs: ['A1'], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'});
+            const shouldSkipFetch = jest.fn((next: InsightsFilters) => next.policyIDs.includes('A1'));
+            const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND, shouldSkipFetch));
+            await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+            // When the user moves to a workspace the page fetches for
+            await act(async () => {
+                result.current.setFilters({policyIDs: ['B2']});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the check sees the new workspace and no separate save is sent, because GetInsights saves it
+            expect(shouldSkipFetch).toHaveBeenLastCalledWith(expect.objectContaining({policyIDs: ['B2']}));
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, expect.anything(), expect.anything());
+
+            // When the user moves back to the workspace the page skips fetching for
+            await act(async () => {
+                result.current.setFilters({policyIDs: ['A1']});
+                await waitForBatchedUpdates();
+            });
+
+            // Then the selection is saved on its own, since no GetInsights call will save it
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH_FILTERS,
+                {jsonQuery: JSON.stringify({searchKey: SPEND_SEARCH_KEY, inputQuery: 'groupBy:month tagLevel:1 groupCurrency:USD policyID:A1 date:last-12-months'})},
+                expect.anything(),
+            );
         });
     });
 });

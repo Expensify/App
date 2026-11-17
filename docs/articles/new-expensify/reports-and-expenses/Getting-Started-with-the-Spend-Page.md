@@ -98,6 +98,8 @@ The **Spend** page footer shows the **Total spend** for what you're viewing. Whe
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
 - **Expenses:** the number of expenses currently selected (shown when you've made a selection).
 
+To change what the footer shows, select it. Select **Count** to choose **Expenses** or **Reports**. Select **Total** to choose **Reimbursable**, **Non-reimbursable**, **Billable**, or **Non-billable**.
+
 Credits and refunds are negative amounts, so they reduce the **Total spend** instead of adding to it. If you select a $100 expense and a -$100 credit, the **Total spend** reads $0.00.
 
 The total is shown in your default currency until you choose a different one.
@@ -105,7 +107,7 @@ The total is shown in your default currency until you choose a different one.
 ### How to change the total spend currency
 
 1. On the **Spend** page, optionally select the rows you want to total using the checkboxes. Leave everything unselected to convert the whole search result.
-2. In the footer, select the currency shown next to the **Total spend** amount.
+2. In the footer, select the **Total spend** amount, then select **Currency**.
 3. In the currency picker, search for and select the currency you want.
 4. Select **Apply**.
 

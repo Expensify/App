@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -142,6 +143,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
@@ -161,6 +164,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
@@ -201,7 +206,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showDelegateNoAccessModal();
             return;
         }
-
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         // Bills show BillPaymentButton, which never ends the approved animation, so Pay would stay on the bill after it is paid.
         const shouldAnimateApproval = !skipAnimation && !isBillPayReport(moneyRequestReport, accountID);
         if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
@@ -231,6 +239,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateAccountID,
             isTrackIntentUser,
             rules,
+            allTransactionViolations,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);

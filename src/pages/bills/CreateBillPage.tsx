@@ -62,6 +62,7 @@ function CreateBillPage() {
     const canCreateBill = useCanCreateBill();
     const receiverDetails = usePersonalDetailByLogin(receiverEmail);
     const [currency, setCurrency] = useState<string>(CONST.CURRENCY.USD);
+    const [defaultDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [file, setFile] = useState<FileObject>();
     const [fileError, setFileError] = useState('');
@@ -177,6 +178,7 @@ function CreateBillPage() {
                                     <Button
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         accessibilityLabel={translate('billPay.attachPDF')}
+                                        sentryLabel={CONST.SENTRY_LABEL.CREATE_BILL.ATTACH_PDF}
                                         onPress={() => openPicker({onPicked: attachFile})}
                                     >
                                         <Button.Icon src={icons.ReceiptPlus} />
@@ -235,7 +237,7 @@ function CreateBillPage() {
                             inputID="date"
                             valueType="string"
                             label={translate('common.date')}
-                            defaultValue={format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                            defaultValue={defaultDate}
                             shouldSaveDraft
                         />
                     </View>

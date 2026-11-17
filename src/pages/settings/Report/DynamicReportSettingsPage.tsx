@@ -73,6 +73,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.NOTIFICATION_PREFERENCE}
                             name={translate('notificationPreferencesPage.label')}
                             onPress={() => {
                                 if (!reportID) {
@@ -85,6 +86,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.WRITE_CAPABILITY}
                             name={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                             value={writeCapabilityText}
@@ -110,6 +112,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.VISIBILITY}
                                 name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));

@@ -49,11 +49,14 @@ describe('ConnectToQuickbooksOnlineFlow (web)', () => {
     });
 
     it('disables taxes and opens the QBO setup link inline on mount', () => {
+        // Given a workspace starting the web QBO connection flow
+        // When the connection flow mounts
         render(<ConnectToQuickbooksOnlineFlow policyID={POLICY_ID} />);
 
-        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false);
+        // Then taxes are disabled without requesting optimistic government rates
+        expect(mockedEnablePolicyTaxes).toHaveBeenCalledWith(POLICY_ID, false, false, {});
         expect(mockedGetQuickbooksOnlineSetupLink).toHaveBeenCalledWith(POLICY_ID, undefined, false);
-        expect(mockedOpenLink).toHaveBeenCalledWith(`https://qbo-setup.example/${POLICY_ID}`, ENVIRONMENT_URL);
+        expect(mockedOpenLink).toHaveBeenCalledWith(`https://qbo-setup.example/${POLICY_ID}`, ENVIRONMENT_URL, false, undefined);
     });
 
     it('does not navigate to a setup screen', () => {

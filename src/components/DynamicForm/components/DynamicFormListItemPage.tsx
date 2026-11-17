@@ -24,7 +24,7 @@ import {View} from 'react-native';
 import DynamicFormFields from './DynamicFormFields';
 
 /** The editor of one list entry, or of a new one: the entry's fields and a Save button */
-function DynamicFormListItemPage({currentPageName, allFields, values, currency, maxFileSize, onRefreshRequirements, onListItemSave}: DynamicFormSubPageProps) {
+function DynamicFormListItemPage({currentPageName, allFields, values, currency, maxFileSize, onRefreshRequirements, isRefreshingRequirements, onListItemSave}: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const page = parseListItemPageName(currentPageName);
@@ -76,7 +76,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
             submitButtonText={translate('common.save')}
             validate={(inputValues) => getDynamicFieldErrors(listField.itemFields, withInputValues(inputValues), translate)}
             onSubmit={(inputValues) => onListItemSave(listField.key, item?.id, withInputValues(inputValues))}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.mh5, styles.flexGrow1, styles.mt3]}
             submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             enabledWhenOffline
@@ -84,7 +84,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
             {({inputValues}) => (
                 <>
                     <Text
-                        style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
+                        style={[styles.textHeadlineLineHeightXXL, styles.mb6]}
                         accessibilityRole={CONST.ROLE.HEADER}
                         aria-level={2}
                     >
@@ -97,6 +97,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
                         currency={currency}
                         maxFileSize={maxFileSize}
                         onRefreshRequirements={onRefreshRequirements}
+                        isRefreshingRequirements={isRefreshingRequirements}
                     />
                 </>
             )}

@@ -3,7 +3,6 @@ name: Validate Github Actions
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths: ['.github/**', 'scripts/**', 'package.json', 'package-lock.json', '**/tsconfig*.json']
 
 jobs:

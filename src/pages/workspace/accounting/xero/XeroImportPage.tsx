@@ -4,7 +4,6 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 
@@ -28,7 +26,6 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? '-1';
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
     const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
@@ -36,12 +33,14 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const sections = [
         {
             description: translate('workspace.accounting.accounts'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.ACCOUNTS,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
             title: translate('workspace.accounting.importAsCategory'),
             subscribedSettings: [CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES],
         },
         {
             description: translate('workspace.xero.trackingCategories'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.TRACKING_CATEGORIES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
             title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
             subscribedSettings: [
@@ -51,6 +50,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.xero.customers'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.CUSTOMERS,
             action: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
             },
@@ -59,6 +59,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.accounting.taxes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_ROW.TAXES,
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
             title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
             subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
@@ -67,7 +68,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="XeroImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={currentXeroOrganizationName}
@@ -86,6 +87,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                     pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={section.sentryLabel}
                         name={section.description}
                         onPress={section.action}
                         value={section.title}

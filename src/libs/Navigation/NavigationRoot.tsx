@@ -4,6 +4,7 @@ import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useTheme from '@hooks/useTheme';
 
 import FS from '@libs/Fullstory';
@@ -145,13 +146,15 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const previousAuthenticated = usePrevious(authenticated);
 
     const [initialState] = useState(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
         const shouldRedirectCompletedUser = !!path && isOnboardingPath(path) && !isJoinWorkspaceTaskPath(path);
-        if (isOnboardingCompleted && shouldRedirectCompletedUser) {
+        // An initial state skips OnboardingGuard, so copilot and supportal sessions are kept out of onboarding here too
+        if ((isOnboardingCompleted || shouldSuppressPromotionalUI) && shouldRedirectCompletedUser) {
             return getAdaptedStateFromPath(ROUTES.HOME);
         }
 

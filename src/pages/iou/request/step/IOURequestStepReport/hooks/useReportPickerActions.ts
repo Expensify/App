@@ -85,6 +85,7 @@ type ReportPickerListProps = Pick<
     | 'transactionPolicyID'
     | 'removeFromReport'
     | 'isEditing'
+    | 'isCreatingExpense'
     | 'isUnreported'
     | 'isPerDiemRequest'
     | 'isTimeRequest'
@@ -212,7 +213,7 @@ function useReportPickerActions({
             return;
         }
 
-        const report = getReportOrDraftReport(item.value);
+        const report = getReportOrDraftReport({reportID: item.value});
         // Handle regular report selection
         handleRegularReportSelection(item, report);
     };
@@ -286,6 +287,7 @@ function useReportPickerActions({
             transactionPolicyID: targetExpensePolicyID,
             removeFromReport,
             isEditing,
+            isCreatingExpense: isCreateReport,
             isUnreported,
             isPerDiemRequest: transaction ? isPerDiemTransaction : false,
             isTimeRequest: transaction ? isTimeRequestUtil(transaction) : false,

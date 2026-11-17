@@ -155,8 +155,7 @@ function TransactionGroupListExpandedImpl({
     }
 
     const getTransactionPolicyID = (transaction: TransactionListItemType) =>
-        [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
-        (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+        [transaction.report?.policyID, transaction.policy?.id].find(Boolean) ?? (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
 
     const getPolicyCategoriesForTransaction = (transaction: TransactionListItemType) =>
         policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
@@ -204,14 +203,11 @@ function TransactionGroupListExpandedImpl({
     const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
-        const transactionThreadReport = getReportOrDraftReport(
-            transactionItem?.reportAction?.childReportID,
-            undefined,
-            undefined,
-            undefined,
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
-        );
+        const parentReport = getReportOrDraftReport({reportID: transactionItem?.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]});
+        const transactionThreadReport = getReportOrDraftReport({
+            reportID: transactionItem?.reportAction?.childReportID,
+            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
+        });
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 
         return {
@@ -451,6 +447,7 @@ function TransactionGroupListExpandedImpl({
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
                     <LinkButton
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SHOW_MORE_BUTTON}
                         onPress={onShowMoreButtonPress}
                         isNested
                         size={CONST.BUTTON_SIZE.MEDIUM}

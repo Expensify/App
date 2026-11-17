@@ -40,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator, hasIntegrationServerLoginError} from '@libs/UserUtils';
 import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
@@ -56,6 +56,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -79,6 +80,7 @@ function ProfilePage() {
     const scrollEnabled = useScrollEnabled();
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -97,7 +99,9 @@ function ProfilePage() {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
-    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
+    const contactMethodBrickRoadIndicator = hasIntegrationServerError
+        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+        : getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
@@ -125,7 +129,7 @@ function ProfilePage() {
         onPress?: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         testID?: string;
-        sentryLabel?: string;
+        sentryLabel: SentryLabel;
 
         /** Replaces the default name and value line, for a value that is not plain text */
         content?: ReactNode;
@@ -218,7 +222,7 @@ function ProfilePage() {
         description: string;
         title: string;
         testID: string;
-        sentryLabel: string;
+        sentryLabel: SentryLabel;
         action: () => void;
         brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
         furtherDetails?: string;

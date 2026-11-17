@@ -391,47 +391,47 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         }
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: optimisticRates,
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: optimisticRates,
+                        },
                     },
                 },
             },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: successRates,
+                        },
                     },
                 },
             },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: failureRates,
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: failureRates,
+                        },
                     },
                 },
             },
-        },
-    ];
+        ],
+    };
 
     const params: SetPolicyDistanceRatesEnabledParams = {
         policyID,
@@ -439,7 +439,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
         customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, onyxData);
 }
 
 function deletePolicyDistanceRates(
@@ -1156,29 +1156,17 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
  * Turns government rate auto-update on or off for a workspace. The rate copying, unit correction and missing `customUnit`
  * behavior are documented on buildOnyxDataForGovernmentRateAutoUpdate, which provides the Onyx data used here.
  */
-function setWorkspaceDistanceAutoUpdate(
-    policyID: string,
-    customUnit: CustomUnit | undefined,
-    shouldAutoUpdateGovernmentDistanceRates: boolean,
-    governmentMileageRates: GovernmentMileageRate[],
-    outputCurrency: string | undefined,
-    countryCode?: string,
-    previousAutoUpdateEnabled?: boolean,
-    previousCountryCode?: string,
-) {
+function setWorkspaceDistanceAutoUpdate(policy: Policy, shouldAutoUpdateGovernmentDistanceRates: boolean, governmentMileageRates: GovernmentMileageRate[], countryCode?: string) {
     const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
-        policyID,
-        customUnit,
+        policy,
         shouldAutoUpdateGovernmentDistanceRates,
         governmentMileageRates,
-        outputCurrency,
+        policy.outputCurrency,
         countryCode,
-        previousAutoUpdateEnabled,
-        previousCountryCode,
     );
 
     const parameters: SetWorkspaceDistanceAutoUpdateParams = {
-        policyID,
+        policyID: policy.id,
         shouldAutoUpdateGovernmentDistanceRates,
         ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
         ...(countryCode ? {countryCode} : {}),

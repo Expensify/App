@@ -5,12 +5,14 @@ import {
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyAdmin,
     shouldShowCustomUnitsError,
+    shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +59,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyErrorChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS, cleanPolicies.find(shouldShowPolicyError)],
         [CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR, cleanPolicies.find(shouldShowCustomUnitsError)],
+        [CONST.INDICATOR_STATUS.HAS_UK_FUEL_RATE_TAX_ERROR, cleanPolicies.find(shouldShowUKFuelRateTaxError)],
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR, cleanPolicies.find(shouldShowEmployeeListError)],
         [
             CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
@@ -68,7 +71,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
                 ),
             ),
         ],
-        [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
+        [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR, cleanPolicies.find((cleanPolicy) => shouldShowReimbursableExportDestinationAccountError(cleanPolicy))],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
         [

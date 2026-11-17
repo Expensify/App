@@ -104,6 +104,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                   iconHeight: typeof bank.icon === 'number' ? undefined : bank.iconSize,
                   shouldIgnoreCompactStyle: true,
                   value: `${bank.methodID}`,
+                  sentryLabel: CONST.SENTRY_LABEL.BILL_PAYMENT_BUTTON.BANK_ACCOUNT,
                   onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.VBBA, bank.methodID),
               }))
             : [
@@ -111,6 +112,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                       text: translate('iou.settleBusiness'),
                       value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                       icon: icons.Bank,
+                      sentryLabel: CONST.SENTRY_LABEL.BILL_PAYMENT_BUTTON.ADD_BANK_ACCOUNT,
                       onSelected: () =>
                           Navigation.navigate(
                               isBillReport(report) && report?.policyID
@@ -128,6 +130,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
             <ButtonWithDropdownMenu
                 customText={translate('iou.settlePayment', convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency))}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
+                sentryLabel={CONST.SENTRY_LABEL.BILL_PAYMENT_BUTTON.SETTLE}
                 isSplitButton={false}
                 shouldAlwaysShowDropdownMenu
                 isDisabled={isDisabled || !!report?.pendingFields?.reimbursed}
@@ -141,6 +144,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                         text: translate('billPay.markAsPaid'),
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         icon: icons.CheckCircle,
+                        sentryLabel: CONST.SENTRY_LABEL.BILL_PAYMENT_BUTTON.MARK_AS_PAID,
                         onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                     },
                 ]}

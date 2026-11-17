@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,9 +32,18 @@ type TravelBillingContinuousReconciliationSectionProps = {
     connectionName: ConnectionName;
     isAutoSyncEnabled: boolean;
     isPayableAccountSet: boolean;
+    switchSentryLabel: SentryLabel;
+    reconciliationAccountSentryLabel: SentryLabel;
 };
 
-function TravelBillingContinuousReconciliationSection({policy, connectionName, isAutoSyncEnabled, isPayableAccountSet}: TravelBillingContinuousReconciliationSectionProps) {
+function TravelBillingContinuousReconciliationSection({
+    policy,
+    connectionName,
+    isAutoSyncEnabled,
+    isPayableAccountSet,
+    switchSentryLabel,
+    reconciliationAccountSentryLabel,
+}: TravelBillingContinuousReconciliationSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -72,6 +82,7 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
                 title={translate('workspace.accounting.syncTravelBillingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
                 switchAccessibilityLabel={translate('workspace.accounting.syncTravelBillingSettlements')}
+                switchSentryLabel={switchSentryLabel}
                 disabled={isToggleDisabled}
                 showLockIcon={isToggleDisabled}
                 disabledText={
@@ -92,6 +103,7 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
             {!!travelBillingContinuousReconciliation && (
                 <OfflineWithFeedback pendingAction={travelBillingContinuousReconciliationPendingAction}>
                     <MenuItemField
+                        sentryLabel={reconciliationAccountSentryLabel}
                         name={translate('workspace.accounting.reconciliationAccount')}
                         onPress={navigateToTravelBillingReconciliationAccountSettings}
                         value={travelBillingReconciliationBankAccount?.name}

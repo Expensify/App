@@ -2,7 +2,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 
-import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {isDistanceRequest as isDistanceRequestTransactionUtils, isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import useTrackExpenseSubmission from '@pages/iou/request/step/confirmation/submission/useTrackExpenseSubmission';
@@ -10,8 +10,6 @@ import getTransactionTaxValues from '@pages/iou/request/step/confirmation/submis
 import guardSubmission from '@pages/iou/request/step/confirmation/submission/utils/guardSubmission';
 import {SUBMISSION_PATH} from '@pages/iou/request/step/confirmation/submission/utils/resolveSubmissionPath';
 import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
-
-import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -27,32 +25,10 @@ type RequestMoneyConfirmationProps = ConfirmationVariantProps & {
  * Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
 function RequestMoneyConfirmation({submissionPath, submissionParams, orchestratorProps, listProps}: RequestMoneyConfirmationProps) {
-    const {
-        transaction,
-        policy,
-        iouType,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-        isUnreported,
-        isPolicyExpenseChat,
-        isSelfDMDestination,
-        submitLock,
-    } = submissionParams;
+    const {transaction, policy, iouType, isManualDistanceRequest, isOdometerDistanceRequest, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
 
-    const transactionTaxValues = getTransactionTaxValues({
-        transaction,
-        policy,
-        isPolicyExpenseChat,
-        isUnreported,
-        isTrackExpense: iouType === CONST.IOU.TYPE.TRACK,
-        isSelfDMDestination,
-        isDistanceRequest,
-        isPerDiemRequest,
-        isTimeRequest,
-    });
+    const transactionTaxValues = getTransactionTaxValues({transaction, policy, iouType, isPolicyExpenseChat, isSelfDMDestination});
 
     const submissionHookParams = {
         ...submissionParams,

@@ -38,16 +38,13 @@ type ConnectBankAccountProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
-    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setUSDBankAccountStep?: (step: string | null) => void;
-
     policyID?: string;
 
     /** Route to return to when navigating back out of the flow */
     backTo?: Route;
 };
 
-function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep, policyID, backTo}: ConnectBankAccountProps) {
+function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, policyID, backTo}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
@@ -98,6 +95,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                         description={translate('bankAccount.bbaAddedDescription')}
                         headingStyle={styles.mh5}
                         buttonText={translate('common.confirm')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_ADDED_CONFIRM}
                         onButtonPress={() => Navigation.dismissModal()}
                     />
                 </ScreenWrapper>
@@ -108,7 +106,6 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={() => Navigation.dismissModal()}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
-                setUSDBankAccountStep={setUSDBankAccountStep}
                 isNonUSDWorkspace={false}
             />
         );
@@ -134,7 +131,13 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 <View style={[styles.m5, styles.flex1]}>
                     <Text>
                         {translate('connectBankAccountStep.maxAttemptsReached')} {translate('common.please')}{' '}
-                        <TextLink onPress={handleNavigateToConciergeChat}>{translate('common.contactUs')}</TextLink>.
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.CONNECT_BANK_ACCOUNT_CONTACT_US_LINK}
+                            onPress={handleNavigateToConciergeChat}
+                        >
+                            {translate('common.contactUs')}
+                        </TextLink>
+                        .
                     </Text>
                 </View>
             )}
@@ -149,7 +152,6 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 <FinishChatCard
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
                     backTo={backTo}
                     policy={policy}
                 />

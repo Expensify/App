@@ -11,7 +11,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, SearchResults, Session, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -97,6 +97,7 @@ describe('Bill Pay', () => {
         const waitingBill: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, billSenderAccountID: vendorAccountID};
         const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
             actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- The fixture represents an old action that still has this field.
             originalMessage: {},
         });
         const personalDetails = {
@@ -123,6 +124,7 @@ describe('Bill Pay', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: vendorAccountID};
         const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
             actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- The fixture represents an old action that still has this field.
             originalMessage: {},
         });
 
@@ -249,6 +251,7 @@ describe('Bill Pay', () => {
                 draftTransactionIDs: undefined,
                 isTrackIntentUser: false,
                 hasBills: true,
+                session: createMock<Session>({accountID, email}),
             };
 
             // When the menu builds the suggested searches from the workspace settings.

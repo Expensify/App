@@ -14,9 +14,6 @@ function clearSessionStorage() {
     sessionStorage.clear();
 }
 
-/**
- * Clears the last visited tab paths, so a tab can't restore a path that belongs to another account.
- */
 function clearLastVisitedTabPaths() {
     for (const key of Object.values(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH)) {
         sessionStorage.removeItem(key);

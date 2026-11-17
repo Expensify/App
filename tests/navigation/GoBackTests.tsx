@@ -1144,6 +1144,68 @@ describe('Go back on the narrow layout', () => {
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
         });
 
+        it('Should go back to the page whose cleared route param is an empty string', () => {
+            // Given a report whose linked action param was cleared to '' (e.g. after jumping to the latest messages) with a thread opened on top of it
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 2,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.INBOX,
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '1', reportActionID: ''},
+                                                    },
+                                                    {
+                                                        name: SCREENS.REPORT,
+                                                        params: {reportID: '2'},
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitBeforeGoBack = tabState?.routes.at(1);
+            expect(reportsSplitBeforeGoBack?.state?.index).toBe(2);
+            expect(reportsSplitBeforeGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '2'});
+
+            // When the thread goes back to the parent report, whose URL has no reportActionID segment
+            act(() => {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            });
+
+            // Then pop to the existing parent report instead of replacing the thread with a duplicate of it, because an empty param means the same URL as a missing one
+            const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const reportsSplitAfterGoBack = tabStateAfter?.routes.at(1);
+            expect(reportsSplitAfterGoBack?.state?.index).toBe(1);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
+            expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
+        });
+
         it('Should replace the current page with the same one with different params', () => {
             // Given the initialized navigation on the narrow layout with the reports split navigator
             render(

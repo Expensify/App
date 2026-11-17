@@ -36,7 +36,10 @@ function ConfirmCompanyLabel() {
     return (
         <Text>
             {`${translate('businessInfoStep.confirmCompanyIsNot')} `}
-            <TextLink href={CONST.LIST_OF_RESTRICTED_BUSINESSES}>{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
+            <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_RESTRICTED_BUSINESSES_LINK}
+                href={CONST.LIST_OF_RESTRICTED_BUSINESSES}
+            >{`${translate('businessInfoStep.listOfRestrictedBusinesses')}.`}</TextLink>
         </Text>
     );
 }
@@ -66,6 +69,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('businessInfoStep.letsDoubleCheck')}</Text>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_NAME}
                 name={translate('businessInfoStep.businessName')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.BUSINESS_NAME);
@@ -73,27 +77,34 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME]}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_TAX_ID}
                 name={translate('businessInfoStep.taxIDNumber')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.TAX_ID_NUMBER);
                 }}
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_TAX_ID]}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_ADDRESS}
                 name={translate('common.companyAddress')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_ADDRESS);
                 }}
                 value={`${values[BUSINESS_INFO_STEP_KEYS.STREET]}, ${values[BUSINESS_INFO_STEP_KEYS.CITY]}, ${values[BUSINESS_INFO_STEP_KEYS.STATE]} ${values[BUSINESS_INFO_STEP_KEYS.ZIP_CODE]}`}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_PHONE}
                 name={translate('common.phoneNumber')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.PHONE_NUMBER);
                 }}
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_PHONE]}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_WEBSITE}
                 name={translate('businessInfoStep.companyWebsite')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_WEBSITE);
@@ -101,6 +112,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 value={values[BUSINESS_INFO_STEP_KEYS.COMPANY_WEBSITE]}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_TYPE}
                 name={translate('businessInfoStep.companyType')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
@@ -112,6 +124,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 }
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INCORPORATION_DATE}
                 name={translate('businessInfoStep.incorporationDate')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_DATE);
@@ -119,6 +132,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_DATE]}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INCORPORATION_STATE}
                 name={translate('businessInfoStep.incorporationState')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
@@ -126,6 +140,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 value={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : undefined}
             />
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BUSINESS_INFO_INDUSTRY_CODE}
                 name={translate('companyStep.industryClassificationCode')}
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_CODE);
