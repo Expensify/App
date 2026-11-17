@@ -870,8 +870,10 @@ describe('AgentZeroStatusContext', () => {
 
         it('clears each message only when its own reply lands, even if the completion event never arrives', async () => {
             // Given two messages are pending and neither completion event will reach this tab.
-            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'first-question', responseReportActionID: 'first-reply'});
-            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'second-question', responseReportActionID: 'second-reply'});
+            const firstReplyID = 'first-reply';
+            const secondReplyID = 'second-reply';
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'first-question', responseReportActionID: firstReplyID});
+            AgentZeroOptimisticStore.addTurn(reportID, CONST.ACCOUNT_ID.CONCIERGE, null, {questionReportActionID: 'second-question', responseReportActionID: secondReplyID});
             const {result} = renderHook(
                 () => ({
                     ...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE),
@@ -883,8 +885,8 @@ describe('AgentZeroStatusContext', () => {
 
             // When the reply to the first message is saved.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                'first-reply': {
-                    reportActionID: 'first-reply',
+                [firstReplyID]: {
+                    reportActionID: firstReplyID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                     created: '2026-11-17 10:00:00.000',
@@ -899,8 +901,8 @@ describe('AgentZeroStatusContext', () => {
 
             // When the second reply is still being sent, and then is saved.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                'second-reply': {
-                    reportActionID: 'second-reply',
+                [secondReplyID]: {
+                    reportActionID: secondReplyID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                     created: '2026-11-17 10:01:00.000',
@@ -909,7 +911,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {'second-reply': {pendingAction: null}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[secondReplyID]: {pendingAction: null}});
             await waitForBatchedUpdates();
 
             // Then the indicator ends with the reply to the latest message, not earlier.
