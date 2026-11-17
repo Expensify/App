@@ -17,13 +17,15 @@ import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+let mockIsFocused = true;
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualNav,
-        useIsFocused: () => true,
+        useIsFocused: () => mockIsFocused,
         useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
         usePreventRemove: jest.fn(),
     };
@@ -37,6 +39,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
+
+const mockUseDynamicBackPath = jest.requireMock<jest.Mock>('@hooks/useDynamicBackPath');
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -88,6 +92,10 @@ describe('DynamicContactMethodDetailsPage', () => {
         const globalFetchMock = getGlobalFetchMock();
         global.fetch = globalFetchMock;
         mockFetch = globalFetchMock;
+        mockIsFocused = true;
+        jest.mocked(Navigation.goBack).mockClear();
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue('');
+        mockUseDynamicBackPath.mockReturnValue('');
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -173,5 +181,54 @@ describe('DynamicContactMethodDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('goes back to the contact methods list when the screen is refocused after being validated under another screen', async () => {
+        // Given an unvalidated contact method, opened from the contact methods list
+        const detailsPath = `settings/profile/contact-methods/${encodeURIComponent(fakeEmail)}/details`;
+        Onyx.merge(ONYXKEYS.SESSION, {email: 'primary@gmail.com'});
+        Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        Onyx.merge(ONYXKEYS.LOGINS, {[`1_${fakeEmail}`]: {partnerID: 1, partnerUserID: fakeEmail, validatedDate: ''}});
+        await waitForBatchedUpdates();
+
+        // Given the test tools modal covers the page, so the hook resolves listPath from the modal's route
+        mockIsFocused = false;
+        mockUseDynamicBackPath.mockReturnValue(`test-tools?backTo=${detailsPath}`);
+        const {rerender} = render(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the queued code is validated on reconnect while the modal is still open
+        await act(async () => {
+            Onyx.merge(ONYXKEYS.LOGINS, {[`1_${fakeEmail}`]: {validatedDate: '2024-01-01'}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing navigates yet, because the page isn't focused
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        // When the modal closes, focus comes back before the root state event refreshes listPath, but the live route is already the details page
+        jest.mocked(Navigation.getActiveRoute).mockReturnValue(detailsPath);
+        mockIsFocused = true;
+        rerender(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it goes back to the list, not to the modal route it would replace the RHP with
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+        expect(Navigation.goBack).toHaveBeenCalledWith('settings/profile/contact-methods');
+    });
+
+    it('does not navigate when an already validated contact method is opened', async () => {
+        // Given a contact method that is already validated
+        Onyx.merge(ONYXKEYS.SESSION, {email: 'primary@gmail.com'});
+        Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        Onyx.merge(ONYXKEYS.LOGINS, mockLoginList);
+        await waitForBatchedUpdates();
+
+        // When its details page is opened
+        render(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user stays on it, since there was no validation to react to
+        expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 });
