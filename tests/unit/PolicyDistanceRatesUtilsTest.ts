@@ -21,7 +21,7 @@ import {
 
 import CONST from '@src/CONST';
 import type {CurrencyList, GovernmentMileageRate, Policy} from '@src/types/onyx';
-import type {CustomUnit, GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
+import type {GovernmentRateSnapshot, Rate} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
