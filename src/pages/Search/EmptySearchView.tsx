@@ -267,6 +267,7 @@ function EmptySearchViewContent({
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                             {translate('travel.subtitle')}{' '}
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EMPTY_STATE_BOOK_TRAVEL_DEMO_LINK}
                                 onPress={() => {
                                     Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
                                 }}

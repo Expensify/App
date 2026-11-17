@@ -436,6 +436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'ημέρες',
         rename: 'Μετονομασία',
         address: 'Διεύθυνση',
+        dayAbbreviation: 'η',
         hourAbbreviation: 'χ',
         minuteAbbreviation: 'μ',
         secondAbbreviation: 'ς',
@@ -573,6 +574,10 @@ const translations: TranslationDeepObject<typeof en> = {
         commuter: 'επιβάτης καθημερινών μετακινήσεων',
         shareReport: 'Κοινοποιήστε την αναφορά',
         reportShared: 'Η αναφορά κοινοποιήθηκε',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ημέρα`,
+            other: (count: number) => `${formattedCount ?? count} ημέρες`,
+        }),
         amount: 'Ποσό',
     },
     socials: {
@@ -1313,6 +1318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Περισσότερος χρόνος για υποβολή',
         slowestToApprove: 'Πιο αργοί στην έγκριση',
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
+        averageDays: 'Μέσος όρος ημερών',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -1896,6 +1902,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Όλες οι δαπάνες τέθηκαν σε αναμονή. Παρακαλούμε ελέγξτε τα σχόλια για τα επόμενα βήματα.',
         expenseDuplicate: 'Αυτή η δαπάνη έχει παρόμοιες λεπτομέρειες με μία άλλη. Παρακαλούμε ελέγξτε τα διπλότυπα για να συνεχίσετε.',
         someDuplicatesArePaid: 'Κάποια από αυτά τα διπλότυπα έχουν ήδη εγκριθεί ή πληρωθεί.',
+        someDuplicatesAreUnavailable: 'Δεν ήταν δυνατή η φόρτωση ορισμένων από αυτά τα διπλότυπα, οπότε μπορείτε μόνο να τα κρατήσετε όλα.',
         reviewDuplicates: 'Ελέγξτε τα διπλότυπα',
         keepAll: 'Διατήρηση όλων',
         keepSelected: 'Διατήρηση επιλογής',
@@ -7204,6 +7211,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
             autoCategorizeNewExpenses: 'Αυτόματη κατηγοριοποίηση νέων δαπανών',
+            enableAtLeastOneCategory: 'Ενεργοποίησε τουλάχιστον μία κατηγορία.',
             showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
@@ -8101,16 +8109,11 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Προέκυψε σφάλμα με μια σύνδεση που έχει ρυθμιστεί στο Expensify Classic. [Μεταβείτε στο Expensify Classic για να διορθώσετε αυτό το ζήτημα.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Μεταβείτε στο Expensify Classic για να διαχειριστείτε τις ρυθμίσεις σας.',
-            exactOnline: {
-                comingSoon: 'Έρχεται σύντομα',
-                joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
-                onWaitlist: 'Είστε σε λίστα αναμονής',
-                waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Έρχεται σύντομα',
                 joinWaitlist: 'Εγγραφείτε στη λίστα αναμονής',
                 onWaitlist: 'Είστε σε λίστα αναμονής',
+                onWaitlistButton: 'Σε λίστα αναμονής',
                 onTheList: 'Είστε στη λίστα!',
                 waitlistDescription: 'Ο Concierge θα σας στείλει ένα μήνυμα για να σας ενημερώσει πότε θα είναι έτοιμη αυτή η ενσωμάτωση και πώς να τη συνδέσετε.',
             },
@@ -9161,6 +9164,7 @@ ${reportName}`,
                     selectWorkspace: 'επιλέξτε έναν χώρο εργασίας και αλλάξτε τον τύπο πλάνου σε',
                 },
                 upgradeWorkspaceWarning: `Δεν είναι δυνατή η αναβάθμιση του χώρου εργασίας`,
+                createWorkspaceWarning: `Δεν είναι δυνατή η δημιουργία χώρου εργασίας`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Η εταιρεία σας έχει περιορίσει τη δημιουργία χώρων εργασίας. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για βοήθεια.',
             },
@@ -11360,6 +11364,7 @@ ${reportName}`,
         noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
+        violation: 'Παράβαση',
         receiptTypeValues: {
             ereceipt: 'ηλεκτρονική απόδειξη',
             itemized: 'Αναλυτικό',
@@ -11559,6 +11564,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'σύντομα';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'σε δύο εβδομάδες';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'σε μία εβδομάδα';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση</a>.`
+                        : 'Επανασυνδέστε την κάρτα πριν λήξει η συγκατάθεση.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, η σύνδεση της κάρτας ` : 'Η σύνδεση της κάρτας ';
+                    return `${intro}<strong>${feedName}</strong> θα χρειαστεί ανανέωση συγκατάθεσης ${warningTime}. Οι συναλλαγές εξακολουθούν να συγχρονίζονται, αλλά μπορεί να σταματήσουν να εισάγονται αν δεν ανανεωθεί η συγκατάθεση. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12262,6 +12290,7 @@ ${reportName}`,
             tagOutOfPolicy: 'Η ετικέτα δεν είναι πλέον έγκυρη',
             overLimitAttendee: 'Υπέρβαση ορίου ατόμων',
             customRules: 'Παραβίαση προσαρμοσμένου κανόνα',
+            ruleViolation: 'Παραβίαση κανόνα',
             taxAmountChanged: 'Το ποσό φόρου τροποποιήθηκε',
             taxOutOfPolicy: 'Ο φορολογικός συντελεστής δεν είναι πλέον έγκυρος',
             taxRateChanged: 'Ο φορολογικός συντελεστής τροποποιήθηκε',

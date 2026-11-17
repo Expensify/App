@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'jours',
         rename: 'Renommer',
         address: 'Adresse',
+        dayAbbreviation: 'j',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exports vers',
         shareReport: 'Partager la note de frais',
         reportShared: 'Note de frais partagée',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} jour`,
+            other: (count: number) => `${formattedCount ?? count} jours`,
+        }),
         amount: 'Montant',
     },
     socials: {
@@ -1274,6 +1279,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Le plus long à soumettre',
         slowestToApprove: 'Plus lent à approuver',
         mostTimeToPay: 'Délai de paiement le plus long',
+        averageDays: 'Jours en moyenne',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1850,6 +1856,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Toutes les dépenses ont été mises en attente. Veuillez examiner les commentaires pour connaître les prochaines étapes.',
         expenseDuplicate: 'Cette dépense présente des détails similaires à une autre. Veuillez examiner les doublons pour continuer.',
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
+        someDuplicatesAreUnavailable: "Certains de ces doublons n'ont pas pu être chargés, vous pouvez donc uniquement tous les conserver.",
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
         keepSelected: 'Garder la sélection',
@@ -7110,6 +7117,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
             autoCategorizeNewExpenses: 'Catégoriser automatiquement les nouvelles dépenses',
+            enableAtLeastOneCategory: 'Veuillez activer au moins une catégorie.',
             showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
@@ -8003,16 +8011,11 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Une erreur s’est produite avec une connexion configurée dans Expensify Classic. [Accédez à Expensify Classic pour corriger ce problème.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Accédez à Expensify Classic pour gérer vos paramètres.',
-            exactOnline: {
-                comingSoon: 'Bientôt disponible',
-                joinWaitlist: 'Rejoindre la liste d’attente',
-                onWaitlist: 'Vous êtes sur la liste d’attente',
-                waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Bientôt disponible',
                 joinWaitlist: 'Rejoindre la liste d’attente',
                 onWaitlist: 'Vous êtes sur la liste d’attente',
+                onWaitlistButton: 'Sur liste d’attente',
                 onTheList: 'Vous êtes sur la liste !',
                 waitlistDescription: 'Concierge vous enverra un message pour vous informer lorsque cette intégration sera prête et vous expliquer comment la connecter.',
             },
@@ -8823,6 +8826,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     selectWorkspace: 'sélectionnez un espace de travail et modifiez le type de forfait en',
                 },
                 upgradeWorkspaceWarning: `Impossible de mettre à niveau l’espace de travail`,
+                createWorkspaceWarning: `Impossible de créer l’espace de travail`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Votre entreprise a restreint la création d’espaces de travail. Veuillez contacter un administrateur pour obtenir de l’aide.',
             },
@@ -11172,6 +11176,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
+        violation: 'Infraction',
         receiptTypeValues: {
             ereceipt: 'eReçu',
             itemized: 'Détaillé',
@@ -11392,6 +11397,29 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La connexion ${feedName} est interrompue depuis 30 jours. <a href='${workspaceCompanyCardRoute}'>Connectez-vous à votre banque</a> pour la corriger ou <a href='${workspaceCompanyCardSettingsRoute}'>supprimez la connexion</a> si elle n’est plus utilisée. Vous ne perdrez aucune dépense soumise si vous la supprimez.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'bientôt';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'dans deux semaines';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'dans une semaine';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnectez la carte avant l'expiration du consentement</a>.`
+                        : "Reconnectez la carte avant l'expiration du consentement.";
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la connexion de votre carte ` : 'La connexion de votre carte ';
+                    return `${intro}<strong>${feedName}</strong> devra renouveler son consentement ${warningTime}. Les transactions sont encore synchronisées, mais elles pourraient ne plus être importées si le consentement n'est pas renouvelé. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12084,6 +12112,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             tagOutOfPolicy: 'Tag n’est plus valide',
             overLimitAttendee: 'Nombre de personnes dépassé',
             customRules: 'Violation de règle personnalisée',
+            ruleViolation: 'Violation de règle',
             taxAmountChanged: 'Montant de la taxe modifié',
             taxOutOfPolicy: 'Taux de taxe n’est plus valide',
             taxRateChanged: 'Taux d’imposition modifié',

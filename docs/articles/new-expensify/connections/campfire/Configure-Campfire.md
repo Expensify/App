@@ -73,7 +73,7 @@ On the Campfire connection, select **Advanced** to configure:
   - **Cash** exports out-of-pocket expenses when they are paid.
 - **Sync reimbursed reports** – When a report is paid via ACH, Expensify creates a bill payment in Campfire. Choose the **Bill payment account** that Campfire credits.
 - **Sync Expensify Card settlements** – Create the Expensify Card settlement payment in Campfire. Choose the **Expensify Card settlement account** the settlement is paid from. This option only appears when the Expensify Card is set up on the workspace.
-- **Sync Travel Invoicing settlements** – Create Travel Invoicing settlement payments in Campfire. Choose a **Travel Invoicing settlement account** and a **Travel Invoicing payable account**. This option only appears when Travel Invoicing is turned on.
+- **Sync Consolidated Travel Billing settlements** – Create Consolidated Travel Billing settlement payments in Campfire. Choose a **Consolidated Travel Billing settlement account** and a **Consolidated Travel Billing payable account**. This option only appears when Consolidated Travel Billing is turned on.
 
 ---
 
@@ -106,7 +106,7 @@ Active Campfire accounts with these subtypes import as categories: expense, cost
 
 ## Do I need a bill payment or settlement account?
 
-You need a **Bill payment account** only when **Sync reimbursed reports** is on. You need a settlement account only when **Sync Expensify Card settlements** or **Sync Travel Invoicing settlements** is on.
+You need a **Bill payment account** only when **Sync reimbursed reports** is on. You need a settlement account only when **Sync Expensify Card settlements** or **Sync Consolidated Travel Billing settlements** is on.
 
 ## Why don't I see Sync Expensify Card settlements?
 

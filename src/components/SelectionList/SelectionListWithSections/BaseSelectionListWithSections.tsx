@@ -138,6 +138,7 @@ function BaseSelectionListWithSectionsImpl({
         setShouldDisableHoverStyle,
         shouldAllowArrowUpToSearchInput,
         onArrowUpToSearchInput: focusSearchInputFromList,
+        containerRef,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);

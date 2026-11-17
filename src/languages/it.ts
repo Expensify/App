@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'giorni',
         rename: 'Rinomina',
         address: 'Indirizzo',
+        dayAbbreviation: 'g',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Esporta in',
         shareReport: 'Condividi report',
         reportShared: 'Report condiviso',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} giorno`,
+            other: (count: number) => `${formattedCount ?? count} giorni`,
+        }),
         amount: 'Importo',
     },
     socials: {
@@ -1270,6 +1275,7 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        averageDays: 'Giorni medi',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1839,6 +1845,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Tutte le spese sono state messe in sospeso. Controlla i commenti per conoscere i prossimi passaggi.',
         expenseDuplicate: 'Questa spesa ha dettagli simili a un’altra. Controlla i duplicati per continuare.',
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
+        someDuplicatesAreUnavailable: 'Non è stato possibile caricare alcuni di questi duplicati, quindi puoi solo conservarli tutti.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
         keepSelected: 'Mantieni selezionati',
@@ -7047,6 +7054,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
             autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
+            enableAtLeastOneCategory: 'Abilita almeno una categoria.',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
@@ -7932,16 +7940,11 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Si è verificato un errore con una connessione configurata in Expensify Classic. [Vai a Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai a Expensify Classic per gestire le tue impostazioni.',
-            exactOnline: {
-                comingSoon: 'Presto in arrivo',
-                joinWaitlist: 'Unisciti alla lista d’attesa',
-                onWaitlist: 'Sei in lista d’attesa',
-                waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Presto in arrivo',
                 joinWaitlist: 'Unisciti alla lista d’attesa',
                 onWaitlist: 'Sei in lista d’attesa',
+                onWaitlistButton: 'In lista d’attesa',
                 onTheList: 'Sei in lista!',
                 waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
             },
@@ -8745,6 +8748,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     selectWorkspace: 'seleziona uno spazio di lavoro e cambia il tipo di piano in',
                 },
                 upgradeWorkspaceWarning: `Impossibile eseguire l'upgrade dello spazio di lavoro`,
+                createWorkspaceWarning: `Impossibile creare lo spazio di lavoro`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione degli spazi di lavoro. Contatta un amministratore per assistenza.',
             },
             hr: {
@@ -11090,6 +11094,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
+        violation: 'Violazione',
         receiptTypeValues: {
             ereceipt: 'eRicevuta',
             itemized: 'Dettagliata',
@@ -11308,6 +11313,29 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La connessione ${feedName} è interrotta da 30 giorni. <a href='${workspaceCompanyCardRoute}'>Accedi alla tua banca</a> per risolvere il problema oppure <a href='${workspaceCompanyCardSettingsRoute}'>rimuovi la connessione</a> se non è più utilizzata. Non perderai nessuna spesa inviata se la rimuovi.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'presto';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'tra due settimane';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'tra una settimana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Riconnetti la carta prima della scadenza del consenso</a>.`
+                        : 'Riconnetti la carta prima della scadenza del consenso.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la connessione della tua carta ` : 'La connessione della tua carta ';
+                    return `${intro}<strong>${feedName}</strong> dovrà rinnovare il consenso ${warningTime}. Le transazioni vengono ancora sincronizzate, ma potrebbero smettere di essere importate se il consenso non viene rinnovato. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12001,6 +12029,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             tagOutOfPolicy: 'Tag non più valido',
             overLimitAttendee: 'Oltre il limite di persone',
             customRules: 'Violazione regola personalizzata',
+            ruleViolation: 'Violazione regola',
             taxAmountChanged: 'Importo imposta modificato',
             taxOutOfPolicy: 'Aliquota fiscale non più valida',
             taxRateChanged: 'Aliquota fiscale modificata',
