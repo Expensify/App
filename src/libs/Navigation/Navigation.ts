@@ -7,7 +7,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {filterObject, shallowCompare} from '@libs/ObjectUtils';
 import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -38,6 +38,7 @@ import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationS
 
 import {consumePreMountReplaceOutcome, getFocusedRouteFromNavigatorState, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import {clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -49,6 +50,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import {clearLastVisitedTabPaths} from './helpers/lastVisitedTabPathUtils';
 import linkTo from './helpers/linkTo';
 import getMinimalAction, {getNestedAction, isNamedActionPayload} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
@@ -363,9 +365,10 @@ const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'poli
 /**
  * @private
  * If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
+ * Empty-string params are dropped because they produce the same URL as a missing param, e.g. a cleared `reportActionID`.
  */
 function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
-    return omit(routeParams, routeParamsIgnore);
+    return filterObject(omit(routeParams, routeParamsIgnore), (_key, value) => value !== '');
 }
 
 /**
@@ -767,6 +770,12 @@ function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
  */
 function resetToAppRoot() {
     navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+}
+
+/** Called on every session boundary (sign-out, copilot switch), so add any new per-session navigation cache here. */
+function clearSessionNavigationState() {
+    clearPreservedNavigatorStates();
+    clearLastVisitedTabPaths();
 }
 
 /**
@@ -1392,6 +1401,7 @@ export default {
     waitForProtectedRoutes,
     resetToHome,
     resetToAppRoot,
+    clearSessionNavigationState,
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,

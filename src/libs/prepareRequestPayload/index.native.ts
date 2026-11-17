@@ -5,6 +5,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
+import CONST from '@src/CONST';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import RNFS from 'react-native-fs';
@@ -84,7 +85,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 }
             }
 
-            if (key === 'file' && initiatedOffline) {
+            if ((key === 'file' || CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key)) && initiatedOffline) {
                 const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);

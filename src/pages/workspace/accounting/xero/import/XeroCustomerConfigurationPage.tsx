@@ -40,6 +40,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_CUSTOMERS_SWITCH}
                 accordionStyle={styles.overflowHidden}
                 subMenuItems={
                     <MenuItemSectionRoot>

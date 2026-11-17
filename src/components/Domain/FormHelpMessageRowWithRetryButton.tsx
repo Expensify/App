@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -13,7 +14,7 @@ import {View} from 'react-native';
 type FormHelpMessageRowButtonSize = typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 type FormHelpMessageRowButtonVariant = typeof CONST.BUTTON_VARIANT.DANGER;
 
-type FormHelpMessageRowWithRetryButtonProps = {
+type FormHelpMessageRowWithRetryButtonProps = WithRequiredSentryLabel & {
     /** The error message to display in the form help row. */
     message: string;
 
@@ -29,7 +30,14 @@ type FormHelpMessageRowWithRetryButtonProps = {
     shouldAlignButtonToMessage?: boolean;
 };
 
-function FormHelpMessageRowWithRetryButton({message, size = CONST.BUTTON_SIZE.MEDIUM, onRetry, variant, shouldAlignButtonToMessage = false}: FormHelpMessageRowWithRetryButtonProps) {
+function FormHelpMessageRowWithRetryButton({
+    message,
+    size = CONST.BUTTON_SIZE.MEDIUM,
+    onRetry,
+    variant,
+    shouldAlignButtonToMessage = false,
+    sentryLabel,
+}: FormHelpMessageRowWithRetryButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -40,6 +48,7 @@ function FormHelpMessageRowWithRetryButton({message, size = CONST.BUTTON_SIZE.ME
                 style={[styles.mt0, styles.mb0, shouldAlignButtonToMessage ? styles.flexShrink1 : styles.flex1]}
             />
             <ButtonDisabledWhenOffline
+                sentryLabel={sentryLabel}
                 size={size}
                 variant={variant}
                 onPress={onRetry}

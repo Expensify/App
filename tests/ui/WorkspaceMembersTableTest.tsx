@@ -179,4 +179,51 @@ describe('WorkspaceMembersTable', () => {
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Nina', 'Brian', 'Carol']);
         });
     });
+
+    describe('owner role', () => {
+        it('includes the owner when filtering by Admins, because ownership is no longer a separate role', async () => {
+            // Given an owner whose real role is Workspace admin, plus a member and an auditor
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'zara', login: 'zara@example.com', email: 'zara@example.com', name: 'Zara', accountID: 1, role: CONST.POLICY.ROLE.ADMIN, isOwner: true}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 2, role: CONST.POLICY.ROLE.ADMIN}),
+                buildMember({keyForList: 'mia', login: 'mia@example.com', email: 'mia@example.com', name: 'Mia', accountID: 3, role: CONST.POLICY.ROLE.USER}),
+                buildMember({keyForList: 'ben', login: 'ben@example.com', email: 'ben@example.com', name: 'Ben', accountID: 4, role: CONST.POLICY.ROLE.AUDITOR}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Admins filter is applied
+            act(() => {
+                tableRef.current?.updateFilter({key: 'role', value: ['admins']});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the owner is kept with the other workspace admins
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Adam', 'Zara']);
+        });
+
+        it('sorts the owner with other workspace admins when sorting by Role', async () => {
+            // Given an owner whose real role is Workspace admin, so Role sorting should not isolate them
+            const members: WorkspaceMemberRowData[] = [
+                buildMember({keyForList: 'zara', login: 'zara@example.com', email: 'zara@example.com', name: 'Zara', accountID: 1, role: CONST.POLICY.ROLE.ADMIN, isOwner: true}),
+                buildMember({keyForList: 'adam', login: 'adam@example.com', email: 'adam@example.com', name: 'Adam', accountID: 2, role: CONST.POLICY.ROLE.ADMIN}),
+                buildMember({keyForList: 'mia', login: 'mia@example.com', email: 'mia@example.com', name: 'Mia', accountID: 3, role: CONST.POLICY.ROLE.USER}),
+                buildMember({keyForList: 'ben', login: 'ben@example.com', email: 'ben@example.com', name: 'Ben', accountID: 4, role: CONST.POLICY.ROLE.AUDITOR}),
+            ];
+
+            const tableRef = React.createRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>();
+            renderTable(members, tableRef);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the Role header is pressed, which sorts descending first
+            const [roleHeader] = screen.getAllByLabelText(TestHelper.translateLocal('common.role'));
+            fireEvent.press(roleHeader);
+
+            // Then workspace admins (owner included) group together, then members, then auditors
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'role', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Zara', 'Adam', 'Mia', 'Ben']);
+        });
+    });
 });

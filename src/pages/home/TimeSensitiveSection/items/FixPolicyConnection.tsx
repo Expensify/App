@@ -34,10 +34,13 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
         : translate('homePage.timeSensitiveSection.fixPolicyConnection.defaultSubtitle');
 
     const isHRConnection = (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES as readonly PolicyConnectionName[]).includes(connectionName);
-    const fixRoute = isHRConnection ? ROUTES.WORKSPACE_HR.getRoute(policyID) : ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID);
+    const fixTab = isHRConnection ? CONST.TAB.CONNECTIONS.PEOPLE : CONST.TAB.CONNECTIONS.ACCOUNTING;
+    const fixRoute = ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, fixTab);
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_POLICY_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_POLICY_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
             subtitle={subtitle}

@@ -1,5 +1,7 @@
 import {render} from '@testing-library/react-native';
 
+import BaseHTMLEngineProvider from '@components/HTMLEngineProvider/BaseHTMLEngineProvider';
+import HTMLRenderersContext from '@components/HTMLEngineProvider/HTMLRenderersContext';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
@@ -22,6 +24,9 @@ jest.mock('react-native-render-html', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {
+        HTMLContentModel: {block: 'block', mixed: 'mixed', none: 'none', textual: 'textual'},
+        HTMLElementModel: {fromCustomModel: (model: unknown) => model},
+        TRenderEngineProvider: ({children}: {children: React.ReactNode}) => children,
         RenderHTMLConfigProvider: ({children, ...configProps}: {children: React.ReactNode}) => {
             mockConfigProps = configProps;
             return children;
@@ -67,13 +72,20 @@ describe('RenderHTML', () => {
     });
 
     it('enables selection while preserving inherited HTML configuration', () => {
+        // Given the renderer registry that BaseHTMLEngineProvider puts in HTMLRenderersContext
+        const registry = {emoji: () => null};
+
+        // When selectable HTML is rendered under it
         render(
-            <RenderHTML
-                html="<strong>test</strong>"
-                isSelectable
-            />,
+            <HTMLRenderersContext.Provider value={registry}>
+                <RenderHTML
+                    html="<strong>test</strong>"
+                    isSelectable
+                />
+            </HTMLRenderersContext.Provider>,
         );
 
+        // Then the nested config provider keeps the inherited config and gets the same registry, because it replaces the parent's renderers wholesale
         expect(mockConfigProps).toEqual(
             expect.objectContaining({
                 defaultTextProps: expect.objectContaining({selectable: true, textBreakStrategy: 'simple'}),
@@ -81,6 +93,23 @@ describe('RenderHTML', () => {
                 enableExperimentalBRCollapsing: true,
             }),
         );
+        expect(mockConfigProps?.renderers).toBe(registry);
+    });
+
+    it('gives selectable HTML the app renderer registry from BaseHTMLEngineProvider', () => {
+        // Given selectable HTML rendered inside the real app HTML provider
+        // When the nested config provider for selectable HTML mounts
+        render(
+            <BaseHTMLEngineProvider>
+                <RenderHTML
+                    html="<strong>test</strong>"
+                    isSelectable
+                />
+            </BaseHTMLEngineProvider>,
+        );
+
+        // Then it gets the app's custom renderers, because without them mentions and emoji in selectable HTML would render as plain tags
+        expect(mockConfigProps?.defaultTextProps).toMatchObject({selectable: true});
         expect(mockConfigProps?.renderers).toHaveProperty('mention-user');
         expect(mockConfigProps?.renderers).toHaveProperty('emoji');
     });

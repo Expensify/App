@@ -40,7 +40,7 @@ import {
     MODAL_ROUTES_TO_DISMISS,
     removeStalePreMountsFromResetAction,
 } from './GetStateForActionHandlers';
-import syncBrowserHistory from './syncBrowserHistory';
+import recordBlockedNavigation from './recordBlockedNavigation';
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -105,8 +105,9 @@ function handleNavigationGuards(
     const guardResult = evaluateGuards(state, action, guardContext);
 
     if (guardResult.type === 'BLOCK') {
-        syncBrowserHistory(state);
-        return state;
+        recordBlockedNavigation();
+        // React Navigation only syncs the browser history back after a blocked browser back press when the state object changes.
+        return {...state};
     }
 
     if (guardResult.type === 'REDIRECT') {

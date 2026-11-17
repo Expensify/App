@@ -40,7 +40,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const isAppLoadPending = useIsAppLoadPending();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -120,7 +120,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             confirmButtonOptions={confirmButtonOptions}
-                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
                             shouldFooterBeInsideList={shouldFooterBeInsideList}

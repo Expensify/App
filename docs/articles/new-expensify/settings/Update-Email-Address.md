@@ -29,13 +29,14 @@ Adding an additional contact method helps you:
 
 To add or update a contact method:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Profile**.
-2. In the **Public** section, select **Contact methods**.
-3. Select **New contact method**.
-4. Enter the verification code sent to your current default contact method. 
-5. Enter the new email address or phone number you want to add.
-6. Click **Add**.
-7. Enter the verification code sent to the new contact method, then select **Verify**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. In the **Public** section, select **Contact methods**.
+4. Select **New contact method**.
+5. Enter the verification code sent to your current default contact method. 
+6. Enter the new email address or phone number you want to add.
+7. Click **Add**.
+8. Enter the verification code sent to the new contact method, then select **Verify**.
 
 After verifying, select any contact method to:
 
@@ -45,12 +46,13 @@ After verifying, select any contact method to:
 
 ## How to set a contact method as your default
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Profile**.
-2. In the **Public** section, select **Contact methods**.
-3. Select the contact method you want to make the default.
-4. Select **Set as default**.
-5. Enter the verification code sent to your current default contact method.
-6. Once verified, the selected contact method becomes your new default.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Profile**.
+3. In the **Public** section, select **Contact methods**.
+4. Select the contact method you want to make the default.
+5. Select **Set as default**.
+6. Enter the verification code sent to your current default contact method.
+7. Once verified, the selected contact method becomes your new default.
 
 ---
 

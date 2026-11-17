@@ -48,4 +48,3 @@ function usePressResponderProps(consumer: ConsumablePressProps): ConsumablePress
 }
 
 export default usePressResponderProps;
-export type {ConsumablePressProps};

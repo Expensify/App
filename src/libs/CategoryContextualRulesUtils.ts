@@ -9,12 +9,16 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import {getCategoryTaxRuleTaxID, getRuleDeletionPendingAction, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
+import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {getTaxByID} from './PolicyUtils';
+import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -25,8 +29,12 @@ import {
 type CategoryContextualRule = {
     key: string;
     summary: string;
+    /** What the rule matches on, shown under the summary so two rules with the same action can be told apart. */
+    conditionSummary?: string;
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
-    dynamicRoutePath: DynamicRouteSuffix;
+    dynamicRoutePath: DynamicRouteSuffix | ReturnType<typeof DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute>;
+    /** Sentry label for the rule row, one variant per rule type */
+    sentryLabel: SentryLabel;
     pendingAction?: PendingAction;
     /** Optimistically deleted rules stay listed (struck through) but must not be openable. */
     isDisabled?: boolean;
@@ -58,7 +66,7 @@ function getFlagForReviewContextualSummary(
  */
 function getCategoryContextualRules({
     policy,
-    policyCategories,
+    policyRules,
     category,
     categoryName,
     translate,
@@ -67,7 +75,8 @@ function getCategoryContextualRules({
 }: {
     policy: Policy | undefined;
     /** Read for the pending delete of the category a tax default depends on. */
-    policyCategories: PolicyCategories | undefined;
+    /** Holds the rule that acts as this category's tax default. */
+    policyRules?: OnyxCollection<Rule>;
     category: PolicyCategory | undefined;
     categoryName: string;
     translate: LocaleContextProps['translate'];
@@ -88,6 +97,7 @@ function getCategoryContextualRules({
     if (flagSummary && (isOffline || !isFlagPendingDelete)) {
         rules.push({
             key: `flag-for-review-${categoryName}`,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.FLAG_FOR_REVIEW,
             summary: flagSummary,
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT.path,
             pendingAction: flagPendingAction,
@@ -107,6 +117,7 @@ function getCategoryContextualRules({
         if (summary) {
             rules.push({
                 key: `require-fields-${categoryName}`,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.REQUIRE_FIELDS,
                 summary,
                 dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT.path,
                 pendingAction: requireFieldsPendingAction,
@@ -115,22 +126,35 @@ function getCategoryContextualRules({
         }
     }
 
-    // A tax default lives in `policy.rules.expenseRules` rather than on the category, and carries no pending state of
-    // its own, so it follows the Expense defaults table and borrows the delete of the category or rate it depends on.
-    const taxID = getCategoryTaxRuleTaxID(policy.rules?.expenseRules, categoryName);
-    if (taxID) {
-        const taxPendingAction = getRuleDeletionPendingAction(policy, policyCategories, categoryName, taxID);
-        const isTaxPendingDelete = taxPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        if (isOffline || !isTaxPendingDelete) {
-            const taxDisplayName = getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
-            rules.push({
-                key: `tax-${categoryName}`,
-                summary: translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', translate('common.tax').toLowerCase(), taxDisplayName),
-                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
-                pendingAction: taxPendingAction,
-                isDisabled: isTaxPendingDelete,
-            });
+    // An expense default is an ordinary rule rather than something stored on the category, so it is looked up by
+    // what it matches on. The summary is the table's, so a rule reads the same in both places.
+    for (const {ruleID, rule} of getCategoryExpenseDefaultRules(policyRules, policy.id, categoryName)) {
+        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(rule), policy, translate, convertToDisplayString);
+        if (!summary) {
+            continue;
         }
+
+        // Deleting the category a rule matches on leaves the rule in place on the server, so only the rate it
+        // applies lends its pending delete here.
+        const rulePendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, getExpenseDefaultTaxID(rule));
+        const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        // The editor refuses a rule it cannot represent, such as one built from an `or` tree, so opening this row
+        // would land on Not Found. It stays listed, because the rule does apply to the category.
+        const isRuleOpenable = isEditableExpenseDefaultRule(rule);
+        if (!isOffline && isRulePendingDelete) {
+            continue;
+        }
+
+        rules.push({
+            key: `expense-default-${ruleID}`,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_RULE_ROW.TAX,
+            summary,
+            // The category is left out, since naming the page the admin is already on reads as noise.
+            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
+            dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
+            pendingAction: rulePendingAction,
+            isDisabled: isRulePendingDelete || !isRuleOpenable,
+        });
     }
 
     return rules;

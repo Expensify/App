@@ -4,7 +4,7 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the ESLint processor use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
+React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the lint pipeline use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
 
 ## Manual memoization
 
@@ -18,10 +18,11 @@ A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each change
 
 ### What the CI check enforces
 
-The check enforces two rules:
+The check enforces three rules:
 
 1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with the React Compiler. This prevents new Rules of React violations from entering the codebase.
 2. **No regressions.** If a file compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+3. **No lost caching.** The check compiles each modified file as it is on `main` and on your branch. It fails when a call that the compiler cached on `main` now runs on every render, or when a component or hook that cached something on `main` is no longer compiled. A file can keep compiling while losing its caching, which is how removing `useMemo` from compiled code slowed the app down in Expensify/App#104522.
 
 The check does **not** fail if:
 - A file has no React components or hooks (utilities, types, constants are silently skipped)
@@ -37,6 +38,15 @@ FAILED   src/components/MyComponent.tsx (new file must compile)
 ```
 
 Compile-failure messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated; see the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+
+A lost-caching failure names each call that lost its cache:
+
+```
+FAILED  src/hooks/useReportActionsPagination.ts (lost caching: cached on main)
+    useReportActionsPagination: getFilteredReportActionsForReportView now runs on every render
+```
+
+To fix it, call every hook first and compute after the last one, or move the computation into its own hook or child component. A function reported as no longer compiled usually lost its last hook call, so the compiler now skips it. Turn it into a plain function that its caller runs after its own hooks.
 
 ### Local usage
 

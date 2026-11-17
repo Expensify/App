@@ -401,4 +401,42 @@ describe('SubmitActionButton', () => {
         // in this environment, so it is undefined)
         expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
     });
+
+    it.each([
+        {archiveReason: CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED, isBlocked: true},
+        {archiveReason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY, isBlocked: false},
+    ])('blocks submission only when the workspace chat was archived because its workspace was deleted ($archiveReason)', ({archiveReason, isBlocked}) => {
+        // Given an expense report whose workspace chat is archived with the given close reason. useOnyx is mocked, so
+        // the selectors don't run and each key returns the already-selected value.
+        const chatReportID = '2002';
+        const reportInArchivedChat = {...iouReport, chatReportID};
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(reportInArchivedChat);
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`) {
+                return createOnyxResult(true);
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`) {
+                return createOnyxResult(archiveReason);
+            }
+            return createOnyxResult(undefined);
+        });
+
+        // When the press handler runs
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then a deleted workspace disables the button before the backend can reject the submission, while a removed
+        // member can still submit because their workspace still exists
+        expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(isBlocked);
+        if (isBlocked) {
+            expect(mockedSubmitReport).not.toHaveBeenCalled();
+        } else {
+            expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({expenseReport: reportInArchivedChat}));
+        }
+    });
 });

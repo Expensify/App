@@ -2,11 +2,11 @@ import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutFooterSelections, getSearchRootParamsFromRootState, hasFooterSelections} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutGroupBy, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -27,9 +27,14 @@ type SearchQueryProviderProps = {
     children: React.ReactNode;
 };
 
-/** Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash. */
+/**
+ * Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash.
+ * Returns `undefined` when no tab navigator has Search state, so `usePreviousDefined` keeps the last real query
+ * instead of resetting to the default. This happens once the Spend navigator is dropped, for example after
+ * "Go to room" and "Go to workspace" push two more tab navigators.
+ */
 function selectSearchQueryParams(state: NavigationState | undefined) {
-    const searchRootParams = getSearchRootParamsFromRootState(state);
+    const searchRootParams = getSearchRootParamsFromRootState(state, false);
     if (!searchRootParams) {
         return undefined;
     }
@@ -56,10 +61,9 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
     const definedQueryParam = queryParam ?? buildSearchQueryString();
     const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
-    const {isBetaEnabled} = usePermissions();
-    const shouldDropFooterSelections = !isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) && !!parsedSearchQueryJSON && hasFooterSelections(parsedSearchQueryJSON);
-    const currentSearchQueryJSON =
-        shouldDropFooterSelections && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutFooterSelections(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
+    // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
+    const shouldDropGroupBy = useShouldReturnTripRooms(parsedSearchQueryJSON?.type) && !!parsedSearchQueryJSON?.groupBy;
+    const currentSearchQueryJSON = shouldDropGroupBy && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutGroupBy(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 

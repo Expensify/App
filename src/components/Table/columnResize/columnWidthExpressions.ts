@@ -41,7 +41,7 @@ function getColumnWidthValue(columnKey: string, resolvedWidth: number): string {
     return `var(${getColumnWidthVariableName(columnKey)}, ${resolvedWidth}px)`;
 }
 
-/** Track that grows into the row's leftover width, keeping trailing headless columns pinned right. */
+/** Track that grows into the row's leftover width, keeping trailing headless columns at the right edge. */
 function getGrowableColumnTrack(widthValue: string): string {
     return `minmax(${widthValue}, 1fr)`;
 }

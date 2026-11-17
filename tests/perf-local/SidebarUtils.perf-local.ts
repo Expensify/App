@@ -104,6 +104,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
+                policies: {},
                 reports: allReports,
                 isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -116,6 +117,7 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs: {},
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             }),
         );
     });
@@ -125,6 +127,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
+                policies: {},
                 reports: allReports,
                 isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.GSD,
@@ -137,6 +140,7 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs: {},
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             }),
         );
     });

@@ -29,8 +29,6 @@ jest.mock('react-native-reanimated', () => {
             ...actual.default,
             View: jest.fn((props: React.ComponentProps<typeof WebView>) => <WebView {...props} />),
         },
-        // Jest does not compile app worklets. Keep the real web hook with explicit dependencies.
-        useAnimatedStyle: (updater: Parameters<typeof actual.useAnimatedStyle>[0]) => actual.useAnimatedStyle(updater, [updater]),
         useReducedMotion: jest.fn(() => false),
     };
 });
@@ -46,6 +44,7 @@ jest.mock('react-native-reanimated/src/createAnimatedComponent/AnimatedComponent
 );
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockPendingExpenseAction]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({justifyContentCenter: {justifyContent: 'center'}})));
+jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getHeight: (height: number) => ({height})})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({Send: () => null}),
@@ -78,6 +77,7 @@ function CancellableSubmission({onAnimationFinish = () => undefined}: {onAnimati
         <div>
             {isSubmitting ? (
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     text="Submit"
                     onPress={() => undefined}
                     isSubmittingAnimationRunning
@@ -161,6 +161,7 @@ describe('AnimatedSubmitButton web animations', () => {
         act(() =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     isSubmittingAnimationRunning
                 />,
@@ -172,6 +173,7 @@ describe('AnimatedSubmitButton web animations', () => {
         await act(async () =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     isSubmittingAnimationRunning={false}
                 />,
@@ -246,6 +248,7 @@ describe('AnimatedSubmitButton web animations', () => {
         const renderButton = (isSubmittingAnimationRunning: boolean, reportID = '1') =>
             root.render(
                 <AnimatedSubmitButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     {...props}
                     reportID={reportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
@@ -273,6 +276,7 @@ describe('AnimatedSubmitButton web animations', () => {
         mockPendingExpenseAction = CONST.EXPENSE_PENDING_ACTION.SUBMIT;
         const button = (
             <AnimatedSubmitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 text="Submit"
                 onPress={jest.fn()}
                 onAnimationFinish={jest.fn()}
@@ -304,6 +308,7 @@ describe('AnimatedSubmitButton web animations', () => {
         const onAnimationFinish = jest.fn();
         const button = (
             <AnimatedSubmitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 text="Submit"
                 onPress={jest.fn()}
                 onAnimationFinish={onAnimationFinish}

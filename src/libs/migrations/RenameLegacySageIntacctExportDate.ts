@@ -25,7 +25,7 @@ export default function RenameLegacySageIntacctExportDate(): Promise<void> {
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.POLICY,
             callback: (policies: OnyxCollection<Policy>) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
 
                 const updates: OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.POLICY> = {};
                 for (const policy of Object.values(policies ?? {})) {

@@ -22,7 +22,7 @@ function SuccessPage() {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = () => {
-        quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY);
+        quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY.getRoute());
     };
 
     const onButtonPress = () => {

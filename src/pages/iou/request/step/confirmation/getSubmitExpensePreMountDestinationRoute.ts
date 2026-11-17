@@ -92,7 +92,7 @@ function getSubmitExpensePreMountDestinationRoute({
     // passes in via destinationReport still resolves here, because getReportOrDraftReport checks its `report`
     // slot before falling back to the draft slot - and that is intentional: the caller copies that draft into
     // COLLECTION.REPORT before reveal, so it is safe to treat as renderable.
-    const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID;
+    const isDestinationReportRenderable = !!destinationReportID && !!getReportOrDraftReport({reportID: destinationReportID, reportDraft: {}, report: destinationReport})?.reportID;
     // Only pre-insert a report that's actually renderable. This is false when the destination ID points at a report
     // that exists on the server but isn't in Onyx yet (e.g. deep-linked or evicted reportID with no draft) - pre-inserting
     // it would show an infinite skeleton after backing out.

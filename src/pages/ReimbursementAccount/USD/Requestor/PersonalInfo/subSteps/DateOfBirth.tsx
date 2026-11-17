@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 
 import useLocalize from '@hooks/useLocalize';
@@ -12,10 +11,8 @@ import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/He
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
@@ -24,8 +21,7 @@ function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobDefaultValue = reimbursementAccount?.achData?.[PERSONAL_INFO_DOB_KEY] ?? reimbursementAccountDraft?.[PERSONAL_INFO_DOB_KEY] ?? '';
@@ -35,14 +31,6 @@ function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    if (isLoadingReimbursementAccount) {
-        return (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <DateOfBirthStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

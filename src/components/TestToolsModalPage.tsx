@@ -3,6 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -27,7 +28,7 @@ function TestToolsModalPage({route}: TestToolsModalPageProps) {
                 <PressableWithoutFeedback
                     accessible={false}
                     style={[styles.cursorDefault, styles.mt5]}
-                    sentryLabel="TestToolsModalPage-ReleaseOptions"
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOLS_MODAL_PAGE.RELEASE_OPTIONS}
                 >
                     <TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER.getRoute(route.params?.backTo)} />
                 </PressableWithoutFeedback>

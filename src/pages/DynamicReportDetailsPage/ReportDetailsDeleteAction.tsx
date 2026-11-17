@@ -92,12 +92,13 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
             if (deleteResult.action === 'redirected') {
                 return;
             }
-            removeTransaction(iouTransactionID);
+            removeTransaction(iouTransactionID, {isDeleted: true});
         }
     };
 
     return (
         <MenuItemAction
+            sentryLabel={shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.REPORT_DETAILS.EDIT_SPLITS : CONST.SENTRY_LABEL.REPORT_DETAILS.DELETE}
             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
             icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
             title={deleteMenuItemTitle}

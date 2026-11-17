@@ -5,7 +5,7 @@ import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy} from '@pa
 import CONST from '@src/CONST';
 
 const {DAY, WEEK, MONTH, QUARTER, YEAR} = CONST.SEARCH.GROUP_BY;
-const {THIS_MONTH, LAST_MONTH, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
+const {THIS_MONTH, LAST_MONTH, THIS_YEAR, YEAR_TO_DATE, LAST_12_MONTHS} = CONST.SEARCH.DATE_PRESETS;
 
 describe('insightsGroupByUtils', () => {
     beforeEach(() => {
@@ -21,7 +21,7 @@ describe('insightsGroupByUtils', () => {
         it.each<[string, InsightsFilters['date'], Array<InsightsFilters['groupBy']>]>([
             ['this month', {preset: THIS_MONTH}, [DAY, WEEK]],
             ['last month', {preset: LAST_MONTH}, [DAY, WEEK]],
-            ['year to date in October', {preset: YEAR_TO_DATE}, [WEEK, MONTH, QUARTER]],
+            ['this year', {preset: THIS_YEAR}, [WEEK, MONTH, QUARTER]],
             ['last 12 months', {preset: LAST_12_MONTHS}, [WEEK, MONTH, QUARTER]],
             ['a range under two weeks', {from: '2026-03-01', to: '2026-03-10'}, [DAY]],
             ['a range of 13 days', {from: '2026-03-01', to: '2026-03-13'}, [DAY]],
@@ -41,15 +41,15 @@ describe('insightsGroupByUtils', () => {
             expect(options).toEqual(expected);
         });
 
-        it('offers Day and Week for year to date in January', () => {
-            // Given it's late January, so the year so far is a few weeks long
+        it('offers the whole year options for year to date in January', () => {
+            // Given it's late January, and year to date is a deprecated alias of this year
             jest.setSystemTime(new Date(2026, 0, 20));
 
             // When the Group by options are listed for year to date
             const options = getInsightsGroupByOptions({preset: YEAR_TO_DATE});
 
-            // Then the range is too short for monthly points and short enough for daily ones
-            expect(options).toEqual([DAY, WEEK]);
+            // Then they fit the whole year, not just the few weeks so far
+            expect(options).toEqual([WEEK, MONTH, QUARTER]);
         });
     });
 

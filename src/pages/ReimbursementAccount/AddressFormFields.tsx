@@ -11,12 +11,12 @@ import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import {CANADIAN_PROVINCES, US_STATES} from '@src/CONST/STATES_BY_COUNTRY';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -55,30 +55,23 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldSaveDraft?: boolean;
 
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles of the city input, which sits 24px below the street unless the caller spaces its inputs differently */
+    cityContainerStyles?: StyleProp<ViewStyle>;
     shouldDisplayCountrySelector?: boolean;
     shouldDisplayStateSelector?: boolean;
     stateSelectorLabel?: string;
     stateSelectorModalHeaderTitle?: string;
     stateSelectorSearchInputTitle?: string;
+
+    /** The states to list instead of the US states or Canadian provinces */
+    stateOptions?: Record<string, string>;
+
+    /** Whether a picked address fills the state with its code outside the US and Canada, for a caller that lists the states of other countries */
+    shouldKeepStateCode?: boolean;
     onCountryChange?: (country: unknown) => void;
     shouldAllowCountryChange?: boolean;
 };
-
-const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.PROVINCES[key].provinceISO] = COMMON_CONST.PROVINCES[key].provinceName;
-        return acc;
-    },
-    {} as Record<string, string>,
-);
-
-const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typeof COMMON_CONST.STATES>).reduce(
-    (acc, key) => {
-        acc[COMMON_CONST.STATES[key].stateISO] = COMMON_CONST.STATES[key].stateName;
-        return acc;
-    },
-    {} as Record<string, string>,
-);
 
 function isCountry(country: string): country is Country {
     return country in CONST.ALL_COUNTRIES;
@@ -92,11 +85,14 @@ function AddressFormFields({
     inputKeys,
     streetTranslationKey,
     containerStyles,
+    cityContainerStyles,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
     stateSelectorLabel,
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
+    stateOptions,
+    shouldKeepStateCode = false,
     onCountryChange,
     shouldAllowCountryChange = true,
     forwardedFSClass,
@@ -124,11 +120,11 @@ function AddressFormFields({
                     inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
+                    shouldKeepStateCode={shouldKeepStateCode}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
@@ -146,7 +142,7 @@ function AddressFormFields({
                 value={values?.city}
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
-                containerStyles={styles.mt6}
+                containerStyles={cityContainerStyles ?? styles.mt6}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="address-line2"
             />
@@ -155,7 +151,7 @@ function AddressFormFields({
                 <View style={[styles.mt3, styles.mhn5]}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
-                        optionsList={shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
+                        optionsList={stateOptions ?? (shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? CANADIAN_PROVINCES : US_STATES)}
                         shouldSaveDraft={shouldSaveDraft}
                         description={stateSelectorLabel ?? translate('common.state')}
                         modalHeaderTitle={stateSelectorModalHeaderTitle ?? translate('common.state')}

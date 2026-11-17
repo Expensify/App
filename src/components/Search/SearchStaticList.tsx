@@ -203,7 +203,7 @@ function SearchStaticList({
 
         return (
             <PressableWithoutFeedback
-                sentryLabel="SearchStaticList-item"
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM}
                 accessibilityRole="button"
                 accessibilityLabel=""
                 onPress={() => onPressItem(item)}
@@ -284,7 +284,7 @@ function SearchStaticList({
                 ]}
             >
                 <PressableWithoutFeedback
-                    sentryLabel="SearchStaticList-wide-item"
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_WIDE_ITEM}
                     accessibilityRole="button"
                     accessibilityLabel=""
                     onPress={() => onPressItem(item)}
@@ -307,6 +307,7 @@ function SearchStaticList({
                         isSelected={false}
                         isDisabled
                         shouldShowCheckbox={canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.STATIC_LIST_ITEM_CHECKBOX}
                         shouldShowErrors
                         violations={item.violations}
                         isDateColumnCreated={isCreatedDateType(type)}
@@ -359,13 +360,16 @@ function SearchStaticList({
             onLayout={onLayout}
         >
             {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, pageGutterMargin]}>
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
                     {canSelectMultiple && (
                         <View
+                            style={styles.pv2}
                             accessibilityElementsHidden
                             importantForAccessibility="no-hide-descendants"
                         >
                             <Checkbox
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                                 accessibilityLabel={translate('workspace.people.selectAll')}
                                 isChecked={false}
                                 disabled
@@ -374,7 +378,7 @@ function SearchStaticList({
                             />
                         </View>
                     )}
-                    <View style={[styles.pr9, styles.flex1]}>
+                    <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
                         <SearchTableHeader
                             canSelectMultiple={canSelectMultiple}
                             columns={columns}

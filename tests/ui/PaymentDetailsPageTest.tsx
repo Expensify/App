@@ -97,7 +97,6 @@ describe('PaymentDetailsPage Activity list', () => {
     beforeEach(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAYMENT_HISTORY]);
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries([BOB, TODD, ...OTHER_MEMBERS].map((member) => [member.accountID, member])));
         await waitForBatchedUpdatesWithAct();
     });
@@ -114,9 +113,10 @@ describe('PaymentDetailsPage Activity list', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the count matches the deduped members and each member is listed with their email
+        // Then the count matches the deduped members and each member is listed with their email.
+        // Once the list loads, the sticky table header renders a second copy of the count, so match the first one
         expect(await screen.findByText('Activity')).toBeOnTheScreen();
-        expect(screen.getByText('2 active users')).toBeOnTheScreen();
+        expect(screen.getAllByText('2 active users').at(0)).toBeOnTheScreen();
         expect(screen.getByText(BOB.displayName)).toBeOnTheScreen();
         expect(screen.getByText(TODD.displayName)).toBeOnTheScreen();
         expect(screen.getByText(BOB.login)).toBeOnTheScreen();
@@ -138,7 +138,7 @@ describe('PaymentDetailsPage Activity list', () => {
         // Then only the matching member stays in the list, and the count still shows every active user
         await waitFor(() => expect(screen.queryByText(TODD.displayName)).toBeNull());
         expect(screen.getByText(BOB.displayName)).toBeOnTheScreen();
-        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
+        expect(screen.getAllByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`).at(0)).toBeOnTheScreen();
 
         // And a search that matches nobody shows the no-results message
         fireEvent.changeText(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), 'zzzz');
@@ -171,7 +171,7 @@ describe('PaymentDetailsPage Activity list', () => {
         await screen.findByText(BOB.displayName);
 
         // Then the count and the search field say members, and no active-user copy is shown
-        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} members`)).toBeOnTheScreen();
+        expect(screen.getAllByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} members`).at(0)).toBeOnTheScreen();
         expect(screen.getByPlaceholderText(COLLECT_SEARCH_PLACEHOLDER)).toBeOnTheScreen();
         expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).toBeNull();
         expect(screen.queryByText(/active user/)).toBeNull();
@@ -187,7 +187,7 @@ describe('PaymentDetailsPage Activity list', () => {
         await screen.findByText(BOB.displayName);
 
         // Then the count and the search field still say active users
-        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
+        expect(screen.getAllByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`).at(0)).toBeOnTheScreen();
         expect(screen.getByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
         expect(screen.queryByPlaceholderText(COLLECT_SEARCH_PLACEHOLDER)).toBeNull();
     });
@@ -203,7 +203,7 @@ describe('PaymentDetailsPage Activity list', () => {
         await screen.findByText(BOB.displayName);
 
         // Then the bill keeps the active-user copy, because the wording follows the bill and not the current plan
-        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
+        expect(screen.getAllByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`).at(0)).toBeOnTheScreen();
         expect(screen.queryByText(/members/)).toBeNull();
     });
 

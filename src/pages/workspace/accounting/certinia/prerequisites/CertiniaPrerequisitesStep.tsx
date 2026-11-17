@@ -59,7 +59,10 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
                     <Text style={styles.textNormal}>
                         {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
-                        <TextLink href={isSandbox ? CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.PREREQUISITES_PSA_BUNDLE_LINK}
+                            href={isSandbox ? CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION}
+                        >
                             {translate('workspace.certinia.prerequisites.installBundlePSALink', {version: CONST.CERTINIA_PSA_BUNDLE_VERSION})}
                         </TextLink>
                     </Text>
@@ -68,7 +71,10 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
                     <Text style={styles.textNormal}>
                         {translate('workspace.certinia.prerequisites.installBundleDescription')}{' '}
-                        <TextLink href={isSandbox ? CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION}>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.PREREQUISITES_FFA_BUNDLE_LINK}
+                            href={isSandbox ? CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.SANDBOX : CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION}
+                        >
                             {translate('workspace.certinia.prerequisites.installBundleFFALink', {version: CONST.CERTINIA_FFA_BUNDLE_VERSION})}
                         </TextLink>
                     </Text>
@@ -110,6 +116,7 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect, isSandbo
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={isLastStep ? CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.PREREQUISITES_CONNECT : CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.PREREQUISITES_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

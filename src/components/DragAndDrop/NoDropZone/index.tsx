@@ -1,9 +1,8 @@
 import useDragAndDrop from '@hooks/useDragAndDrop';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import mergeRefs from '@libs/mergeRefs';
-
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 
 import type {ComponentRef} from 'react';
 
@@ -12,7 +11,7 @@ import {View} from 'react-native';
 
 import type NoDropZoneProps from './types';
 
-function NoDropZone({children, ref}: NoDropZoneProps) {
+function NoDropZone({children}: NoDropZoneProps) {
     const styles = useThemeStyles();
     const noDropZone = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
 
@@ -21,13 +20,9 @@ function NoDropZone({children, ref}: NoDropZoneProps) {
         shouldAllowDrop: false,
     });
 
-    const setNoDropZone = (element: ComponentRef<typeof View> | HTMLDivElement | null) => {
-        noDropZone.current = element;
-    };
-
     return (
         <View
-            ref={mergeRefs(setNoDropZone, ref)}
+            ref={viewRef(noDropZone)}
             style={[styles.fullScreen]}
         >
             {children}
