@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import usePrevious from '@hooks/usePrevious';
 
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import {canCreateRoomInReport, doesReportContainRequestsFromMultipleUsers, getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
+import {doesReportContainRequestsFromMultipleUsers, getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -74,6 +74,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -1729,7 +1730,6 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
-    report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
     currentUserEmail?: string,
 ): boolean {
@@ -1796,7 +1796,7 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID, report, policy, currentUserEmail)) {
+    if (isActionableWhisperRequiringRoomCreationPermission(reportAction, policy, currentUserEmail)) {
         return false;
     }
 
@@ -1888,7 +1888,7 @@ function isReportActionVisible(
         if (!staticVisibility) {
             return false;
         }
-        if ((!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) || isActionableWhisperRequiringRoomCreationPermission(reportAction, reportID)) {
+        if (!canUserPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
             return false;
         }
         return true;
@@ -3487,16 +3487,10 @@ function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<Rep
 }
 
 /**
- * Checks if a report action's visibility depends on whether the current user can create rooms in the report.
+ * Checks if a report action's visibility depends on whether the current user can create rooms on the policy.
  */
-function isActionableWhisperRequiringRoomCreationPermission(
-    reportAction: OnyxEntry<ReportAction>,
-    reportID: string | undefined,
-    report?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    currentUserEmail?: string,
-): boolean {
-    return isActionableReportMentionWhisper(reportAction) && !canCreateRoomInReport(reportAction.reportID ?? reportID, report, policy, currentUserEmail);
+function isActionableWhisperRequiringRoomCreationPermission(reportAction: OnyxEntry<ReportAction>, policy?: OnyxEntry<Policy>, currentUserEmail?: string): boolean {
+    return isActionableReportMentionWhisper(reportAction) && !(!policy || canCreateRoomsOnPolicy(policy, currentUserEmail ?? ''));
 }
 
 function getExportIntegrationLastMessageText(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {

@@ -127,6 +127,7 @@ describe('visibleReportActions', () => {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+        const policyReportWithoutWhisperID = 'policyReportWithoutWhisperID';
         const unrelatedReportID = 'unrelatedReportID';
 
         const allReportActions: OnyxCollection<ReportActions> = {
@@ -142,6 +143,14 @@ describe('visibleReportActions', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     created: '2026-11-11 12:01:00.000',
                     message: [],
+                },
+            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReportWithoutWhisperID}`]: {
+                comment1: {
+                    reportActionID: 'comment1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-11-11 12:02:00.000',
+                    message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
                 },
             },
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unrelatedReportID}`]: {},
@@ -162,34 +171,36 @@ describe('visibleReportActions', () => {
 
         const currentValue: VisibleReportActionsDerivedValue = {
             [reportID]: {[whisperActionID]: true, [deletedWhisperActionID]: false},
+            [policyReportWithoutWhisperID]: {comment1: true},
             [unrelatedReportID]: {},
         };
 
-        // When the policy role changes to approve-only and triggers an incremental recompute
-        const demotedResult = visibleReportActionsConfig.compute(
-            [allReportActions, {accountID: 1, email: 'member@test.com'}, {[reportKey]: {reportID, policyID}}, {}, {[policyKey]: approveOnlyPolicy}],
-            {
-                currentValue,
-                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: approveOnlyPolicy}},
-                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
-            },
-        );
+        const allReports: OnyxCollection<Report> = {
+            [reportKey]: {reportID, policyID},
+            [`${ONYXKEYS.COLLECTION.REPORT}${policyReportWithoutWhisperID}`]: {reportID: policyReportWithoutWhisperID, policyID},
+        };
 
-        // Then the whisper is hidden for the report on that policy, and unrelated reports are not recomputed
+        // When the policy role changes to approve-only and triggers an incremental recompute
+        const demotedResult = visibleReportActionsConfig.compute([allReportActions, {accountID: 1, email: 'member@test.com'}, allReports, {}, {[policyKey]: approveOnlyPolicy}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: approveOnlyPolicy}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
+
+        // Then the whisper is hidden on the report that has one, while reports without room whispers keep their cached object reference
         expect(demotedResult[reportID]?.[whisperActionID]).toBe(false);
+        expect(demotedResult[policyReportWithoutWhisperID]).toBe(currentValue[policyReportWithoutWhisperID]);
         expect(demotedResult[unrelatedReportID]).toBe(currentValue[unrelatedReportID]);
 
         // When the policy role is promoted back to member, the live whisper shows while the deleted whisper stays hidden
-        const promotedResult = visibleReportActionsConfig.compute(
-            [allReportActions, {accountID: 1, email: 'member@test.com'}, {[reportKey]: {reportID, policyID}}, {}, {[policyKey]: memberPolicy}],
-            {
-                currentValue: demotedResult,
-                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: memberPolicy}},
-                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
-            },
-        );
+        const promotedResult = visibleReportActionsConfig.compute([allReportActions, {accountID: 1, email: 'member@test.com'}, allReports, {}, {[policyKey]: memberPolicy}], {
+            currentValue: demotedResult,
+            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: memberPolicy}},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+        });
 
         expect(promotedResult[reportID]?.[whisperActionID]).toBe(true);
         expect(promotedResult[reportID]?.[deletedWhisperActionID]).toBe(false);
+        expect(promotedResult[policyReportWithoutWhisperID]).toBe(currentValue[policyReportWithoutWhisperID]);
     });
 });

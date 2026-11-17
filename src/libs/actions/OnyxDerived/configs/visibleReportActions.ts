@@ -11,7 +11,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,7 +34,6 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  */
 function computeReportVisibility(
     reportID: string,
-    report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     currentUserEmail: string | undefined,
     reportActions: ReportActions,
@@ -66,7 +65,6 @@ function computeReportVisibility(
                 reportID,
                 isSupportTicketReport,
                 reportActions,
-                report,
                 policy,
                 currentUserEmail,
             );
@@ -81,6 +79,38 @@ function computeReportVisibility(
     }
 
     return reportVisibility;
+}
+
+/**
+ * Updates cached visibility only for `ACTIONABLE_REPORT_MENTION_WHISPER` entries on a report when
+ * only its workspace policy changed, avoiding a full recompute of every action on the workspace.
+ */
+function updateReportMentionWhispersVisibility(
+    reportID: string,
+    policy: OnyxEntry<Policy>,
+    currentUserEmail: string | undefined,
+    reportActions: ReportActions,
+    currentUserAccountID: number | undefined,
+    isSupportTicketReport: boolean,
+    currentReportVisibility: Record<string, boolean> | undefined,
+): Record<string, boolean> | undefined {
+    let nextReportVisibility = currentReportVisibility;
+
+    for (const [actionID, action] of Object.entries(reportActions)) {
+        if (!action || actionID !== action.reportActionID || !isActionableReportMentionWhisper(action)) {
+            continue;
+        }
+        const isVisible = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, reportID, isSupportTicketReport, reportActions, policy, currentUserEmail);
+        if (nextReportVisibility?.[action.reportActionID] === isVisible) {
+            continue;
+        }
+        if (nextReportVisibility === currentReportVisibility) {
+            nextReportVisibility = {...currentReportVisibility};
+        }
+        nextReportVisibility[action.reportActionID] = isVisible;
+    }
+
+    return nextReportVisibility;
 }
 
 export default createOnyxDerivedValueConfig({
@@ -126,7 +156,6 @@ export default createOnyxDerivedValueConfig({
                   ...Object.keys(reportNameValuePairsUpdates ?? {})
                       .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ''))
                       .filter((reportID) => isSupportTicket(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])),
-                  ...policyChangedReportIDs,
               ])
             : new Set(Object.keys(allReportActions).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '')));
 
@@ -144,7 +173,31 @@ export default createOnyxDerivedValueConfig({
             const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
             const isSupportTicketReport = isSupportTicket(report);
             const isReplacedSupportTicket = isSupportTicketReport && !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`]?.reopenedAsReportID;
-            result[reportID] = computeReportVisibility(reportID, report, policy, currentUserEmail, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+            result[reportID] = computeReportVisibility(reportID, policy, currentUserEmail, reportActions, currentUserAccountID, isSupportTicketReport, isReplacedSupportTicket);
+        }
+
+        for (const reportID of policyChangedReportIDs) {
+            if (reportIDsToProcess.has(reportID)) {
+                continue;
+            }
+            const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!reportActions) {
+                continue;
+            }
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const policy = report?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+            const nextReportVisibility = updateReportMentionWhispersVisibility(
+                reportID,
+                policy,
+                currentUserEmail,
+                reportActions,
+                currentUserAccountID,
+                isSupportTicket(report),
+                result[reportID],
+            );
+            if (nextReportVisibility) {
+                result[reportID] = nextReportVisibility;
+            }
         }
 
         return result;
