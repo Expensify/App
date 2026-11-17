@@ -700,9 +700,9 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [CONST.DIGITS_CONFIG.ENABLE_NEW_CATEGORIES, `${CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${CONST.DIGITS_FIELD.DEPARTMENTS}`],
+                // Export and advanced pages are added in later releases.
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,
@@ -852,6 +852,7 @@ function getSynchronizationErrorMessage(
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.AUTHENTICATION_ERROR_LEARN_MORE_LINK}
                             style={[styles?.link, styles?.fontSizeLabel]}
                             href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
                         >

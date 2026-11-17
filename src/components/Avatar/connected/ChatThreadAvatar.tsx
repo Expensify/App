@@ -2,12 +2,12 @@ import type {HorizontalStackingOptions} from '@components/Avatar/layouts/Horizon
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
 import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 
@@ -24,6 +24,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -67,7 +68,6 @@ type ChatThreadAvatarProps = {
 function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscriptContainerStyle, horizontalStacking, sort, fallbackDisplayName}: ChatThreadAvatarProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
     const defaultAvatars = useDefaultAvatars();
 
     const [thread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
@@ -99,6 +99,7 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
     // Concierge for harvested and automatic actions.
     const actorAccountID = getReportActionActorAccountID(parentAction, undefined, undefined);
     const humanAgentAccountID = isParentActionLinked ? getHumanAgentAccountIDFromReportAction(parentAction) : undefined;
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(personalDetailsListSelector([delegateAccountID, humanAgentAccountID]));
     // The copilot and a revealed agent only show once their personal details have loaded. Until then the actor or Concierge stands alone, though the copilot badge still shows.
     const loadedDelegateAccountID = delegateAccountID && personalDetails?.[delegateAccountID] ? delegateAccountID : undefined;
     const loadedHumanAgentAccountID = humanAgentAccountID && personalDetails?.[humanAgentAccountID] ? humanAgentAccountID : undefined;

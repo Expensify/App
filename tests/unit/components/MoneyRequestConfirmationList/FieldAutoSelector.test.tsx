@@ -88,7 +88,7 @@ describe('FieldAutoSelector', () => {
 
         // Then the category is selected, because the list is no longer remounted when the draft arrives
         expect(mockSetMoneyRequestCategory).toHaveBeenCalledTimes(1);
-        expect(mockSetMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, 'Travel', undefined, expect.any(Function), false);
+        expect(mockSetMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, 'Travel', undefined, false);
     });
 
     it('selects the only required category again once a stale draft is re-initialized as a scan', () => {
@@ -162,7 +162,7 @@ describe('FieldAutoSelector', () => {
 
         // Then the category is selected on the second scan too, so every expense of the batch is submitted with it
         expect(mockSetMoneyRequestCategory).toHaveBeenCalledTimes(2);
-        expect(mockSetMoneyRequestCategory).toHaveBeenLastCalledWith(NEXT_TRANSACTION_ID, 'Travel', undefined, expect.any(Function), false);
+        expect(mockSetMoneyRequestCategory).toHaveBeenLastCalledWith(NEXT_TRANSACTION_ID, 'Travel', undefined, false);
     });
 
     describe('required tag', () => {

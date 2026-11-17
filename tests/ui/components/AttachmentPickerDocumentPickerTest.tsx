@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 
+import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {DocumentPickerResponse, KeepLocalCopyResponse, NonEmptyArray} from '@react-native-documents/picker';
@@ -89,7 +90,10 @@ function renderPicker() {
             <LocaleContextProvider>
                 <AttachmentPicker shouldSkipAttachmentTypeModal>
                     {({openPicker}) => (
-                        <Button onPress={() => openPicker({onPicked, onCanceled, onClosed})}>
+                        <Button
+                            onPress={() => openPicker({onPicked, onCanceled, onClosed})}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                        >
                             <Button.Text>Choose file</Button.Text>
                         </Button>
                     )}

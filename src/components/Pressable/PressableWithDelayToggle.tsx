@@ -13,8 +13,10 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {DistributedOmit} from 'type-fest';
 
 import React from 'react';
 
@@ -23,53 +25,54 @@ import type PressableProps from './GenericPressable/types';
 
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
-type PressableWithDelayToggleProps = PressableProps & {
-    text?: string;
+type PressableWithDelayToggleProps = DistributedOmit<PressableProps, 'sentryLabel'> &
+    WithRequiredSentryLabel & {
+        text?: string;
 
-    /** The text to display once the pressable is pressed */
-    textChecked?: string;
+        /** The text to display once the pressable is pressed */
+        textChecked?: string;
 
-    tooltipText: string;
+        tooltipText: string;
 
-    /** The tooltip text to display once the pressable is pressed */
-    tooltipTextChecked: string;
+        /** The tooltip text to display once the pressable is pressed */
+        tooltipTextChecked: string;
 
-    /** Styles to apply to the container */
-    styles?: StyleProp<ViewStyle>;
+        /** Styles to apply to the container */
+        styles?: StyleProp<ViewStyle>;
 
-    /** Styles to apply to the root PressableView */
-    wrapperStyles?: StyleProp<ViewStyle>;
+        /** Styles to apply to the root PressableView */
+        wrapperStyles?: StyleProp<ViewStyle>;
 
-    textStyles?: StyleProp<TextStyle>;
-    iconStyles?: StyleProp<ViewStyle>;
-    icon?: IconAsset;
+        textStyles?: StyleProp<TextStyle>;
+        iconStyles?: StyleProp<ViewStyle>;
+        icon?: IconAsset;
 
-    /** The icon to display once the pressable is pressed */
-    iconChecked?: IconAsset;
+        /** The icon to display once the pressable is pressed */
+        iconChecked?: IconAsset;
 
-    /**
-     * Should be set to `true` if this component is being rendered inline in
-     * another `Text`. This is due to limitations in RN regarding the
-     * vertical text alignment of non-Text elements
-     */
-    inline?: boolean;
-    accessibilityRole?: string;
-    ref?: PressableRef;
+        /**
+         * Should be set to `true` if this component is being rendered inline in
+         * another `Text`. This is due to limitations in RN regarding the
+         * vertical text alignment of non-Text elements
+         */
+        inline?: boolean;
+        accessibilityRole?: string;
+        ref?: PressableRef;
 
-    /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
-    shouldUseButtonBackground?: boolean;
+        /** Whether to use background color based on button states, e.g., hovered, active, pressed...  */
+        shouldUseButtonBackground?: boolean;
 
-    /** Whether to always use active (hovered) background by default */
-    shouldHaveActiveBackground?: boolean;
+        /** Whether to always use active (hovered) background by default */
+        shouldHaveActiveBackground?: boolean;
 
-    /** Preset icon size */
-    iconSize?: IconSize;
+        /** Preset icon size */
+        iconSize?: IconSize;
 
-    /** Custom accessibility label that overrides the tooltipText-based label for both states */
-    accessibilityLabel?: string;
+        /** Custom accessibility label that overrides the tooltipText-based label for both states */
+        accessibilityLabel?: string;
 
-    accessibilityLabelChecked?: string;
-};
+        accessibilityLabelChecked?: string;
+    };
 
 function PressableWithDelayToggle({
     iconChecked,
@@ -187,6 +190,7 @@ function PressableWithDelayToggle({
             accessibilityLabel={accessibilityLabel}
             suppressHighlighting
             accessibilityRole={accessibilityRole}
+            sentryLabel={sentryLabel}
         >
             {content}
         </Text>

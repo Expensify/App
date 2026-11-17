@@ -17,13 +17,10 @@ type InsightsExplainButtonProps = {
 
     /** Dashboard and filters sent with the prompt so Concierge explains the data the user sees */
     insightsScope: InsightsScope;
-
-    /** Tints the glyph and label with the link color instead of the muted one */
-    isAccented?: boolean;
 };
 
-/** Asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false}: InsightsExplainButtonProps) {
+/** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
+function InsightsExplainButton({explainPrompt, insightsScope}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -33,8 +30,6 @@ function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false
     if (!shouldShowAskConcierge) {
         return null;
     }
-
-    const glyphColor = isAccented ? theme.link : theme.icon;
 
     return (
         <Button
@@ -47,10 +42,10 @@ function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false
         >
             <Button.Icon
                 src={icons.Sparkles}
-                fill={glyphColor}
-                hoverFill={glyphColor}
+                fill={theme.icon}
+                hoverFill={theme.icon}
             />
-            <Button.Text style={[styles.textMicroBold, isAccented ? styles.link : styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
+            <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
         </Button>
     );
 }

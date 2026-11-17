@@ -5,7 +5,8 @@ import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {isReportActionEntry} from '@libs/SearchUIUtils';
+import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
+import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +84,8 @@ function useSearchAutoRefetch({
     const handledTransactionWriteIDRef = useRef(transactionWrites?.writeID);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
+    const isGroupedSearch = !!getValidGroupBy(queryJSON.groupBy);
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
@@ -156,14 +159,21 @@ function useSearchAutoRefetch({
         // Editing an expense changes no transaction ID, so the ID checks above miss it. The footer total, row actions
         // and filter membership are computed by the server, so a user write to a transaction the results depend on
         // needs a refetch. Reads that rewrite transactions, like OpenReport, never raise this signal.
-        const hasWrittenResultTransaction = !isChat && !!newTransactionWrite && hasWrittenTransactionInSearchResults(newTransactionWrite.transactionIDs, transactions, searchResultsData);
+        const hasWrittenResultTransaction =
+            !isChat && !!newTransactionWrite && hasWrittenTransactionInSearchResults(newTransactionWrite.transactionIDs, transactions, searchResultsData, isGroupedSearch);
         if (newTransactionWrite) {
             handledTransactionWriteIDRef.current = newTransactionWrite.writeID;
         }
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
+        // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
+        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedWorkflowReportAction(reportActions, previousReportActions);
+
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasWrittenResultTransaction || hasChangedResultMemberCustomField) || hasPendingSearchRef.current) {
+        if (
+            (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasWrittenResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
+            hasPendingSearchRef.current
+        ) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -199,7 +209,14 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasWrittenResultTransaction && !hasChangedResultMemberCustomField && !hadPendingSearch && currentSearchResultIDs.length > 0) {
+            if (
+                !hasAGenuinelyNewID &&
+                !hasWrittenResultTransaction &&
+                !hasChangedResultMemberCustomField &&
+                !hasRelevantReportActionChange &&
+                !hadPendingSearch &&
+                currentSearchResultIDs.length > 0
+            ) {
                 // Most transaction rows were never loaded into Onyx, so a row missing from Onyx is not a deletion. Only a member that just left the collection is.
                 const reportActionsIDsSet = new Set(reportActionsIDs);
                 const hasDeletedID = isChat
@@ -235,6 +252,8 @@ function useSearchAutoRefetch({
         memberCustomFields,
         previousMemberCustomFields,
         isChat,
+        shouldRefetchOnReportActionChange,
+        isGroupedSearch,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
@@ -308,14 +327,22 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 /**
  * Whether a transaction a user write just changed affects the current results: it is on screen, or it now belongs
  * to a report on screen, whose row owes its count and total to the server.
+ *
+ * Grouped results only hold the groups. Their transactions and reports live in each group's child snapshot, so neither
+ * check can tell whether a write touches a group, and any written transaction counts.
  */
 function hasWrittenTransactionInSearchResults(
     writtenTransactionIDs: string[],
     transactions: OnyxCollection<Transaction>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
+    isGroupedSearch: boolean,
 ): boolean {
     if (!searchResultsData) {
         return false;
+    }
+
+    if (isGroupedSearch) {
+        return true;
     }
 
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
@@ -326,6 +353,32 @@ function hasWrittenTransactionInSearchResults(
         const reportID = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
         return !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     });
+}
+
+const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);
+
+/**
+ * Whether a workflow report action was added, which can change the report's approver, workflow dates and its submitted or approved violations.
+ *
+ * Onyx only replaces the report action maps it writes, so maps with an unchanged reference are skipped, and the walk stops at the first match.
+ */
+function hasAddedWorkflowReportAction(reportActions: OnyxCollection<ReportActions>, previousReportActions: OnyxCollection<ReportActions>): boolean {
+    for (const [key, actions] of Object.entries(reportActions ?? {})) {
+        const previousActions = previousReportActions?.[key];
+        if (!actions || actions === previousActions) {
+            continue;
+        }
+        for (const [reportActionID, reportAction] of Object.entries(actions)) {
+            if (previousActions?.[reportActionID]) {
+                continue;
+            }
+            if (reportAction && WORKFLOW_ACTION_TYPES.has(reportAction.actionName)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {

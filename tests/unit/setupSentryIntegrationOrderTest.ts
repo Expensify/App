@@ -17,6 +17,7 @@ jest.mock('@libs/telemetry/integrations', () => ({
     thirdPartyErrorFilterIntegration: {name: 'ThirdPartyErrorsFilter'},
     classCallCheckNoiseFilterIntegration: {name: 'ClassCallCheckNoiseFilter'},
     googleTranslateRecursionNoiseFilterIntegration: {name: 'GoogleTranslateRecursionNoiseFilter'},
+    canvasKitNoiseFilterIntegration: {name: 'CanvasKitNoiseFilter'},
 }));
 
 jest.mock('@sentry/react-native', () => ({
@@ -34,6 +35,15 @@ function initIntegrationNames(): string[] {
 describe('setupSentry integration order', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('registers the CanvasKit rejection filter', () => {
+        // Given the web CanvasKit filter export
+        // When Sentry initializes
+        const names = initIntegrationNames();
+
+        // Then the filter participates in event processing
+        expect(names).toContain('CanvasKitNoiseFilter');
     });
 
     it.each(['ClassCallCheckNoiseFilter', 'GoogleTranslateRecursionNoiseFilter'])('registers thirdPartyErrorFilter before %s, whose predicate reads its tag', (filterName) => {

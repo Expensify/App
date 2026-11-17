@@ -35,6 +35,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             avatarID: policy.id,
             icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.COPY_EXISTING_CONNECTION,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);

@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useIsTabVisible from '@hooks/useIsTabVisible';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,13 +31,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
@@ -64,7 +66,10 @@ type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
     insightsScope: InsightsScope;
-    isLoadingAIInsights: boolean;
+
+    /** Whether the last request for the dashboard failed */
+    hasFailedToLoad: boolean;
+
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -94,7 +99,7 @@ function InsightsDashboardContent({
     state,
     aiInsights,
     insightsScope,
-    isLoadingAIInsights,
+    hasFailedToLoad,
     headlineChart,
     supportingCharts,
     filters,
@@ -120,6 +125,7 @@ function InsightsDashboardContent({
         fillsVisibleArea: shouldShowStandInView,
     });
 
+    const {countDimension, supportsDrillIn} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
 
     if (didRequestFail) {
@@ -236,7 +242,7 @@ function InsightsDashboardContent({
                         <InsightsAICardRow
                             insights={aiInsights}
                             insightsScope={insightsScope}
-                            isLoading={isLoadingAIInsights}
+                            hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
                     <InsightsChartWidget
@@ -250,6 +256,8 @@ function InsightsDashboardContent({
                         isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         insightsScope={insightsScope}
+                        countDimension={countDimension}
+                        supportsDrillIn={supportsDrillIn}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
                     />
@@ -273,6 +281,8 @@ function InsightsDashboardContent({
                                         isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         insightsScope={insightsScope}
+                                        countDimension={countDimension}
+                                        supportsDrillIn={supportsDrillIn}
                                         onRetry={onRetry}
                                     />
                                 ))}
@@ -299,6 +309,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
+    const wasFocusedRef = useRef(isFocused);
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
@@ -314,7 +326,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
@@ -330,7 +342,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -338,12 +350,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = wasFocusedRef.current;
+        wasFocusedRef.current = isFocused;
+        // An RHP opened beside a wide dashboard leaves it visible, so only closing the RHP fetches again, because the RHP may have changed the expenses behind the charts.
+        if (!isDashboardVisible || (wasFocused && !isFocused)) {
             return;
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
@@ -412,7 +427,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ) : (
                 (!!tabSelector || !!pageControls) && (
                     <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        <View
+                            style={[
+                                styles.centeredContentWidthLimiter,
+                                styles.flexRow,
+                                styles.flexWrap,
+                                styles.alignItemsCenter,
+                                tabSelector ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                styles.gap2,
+                            ]}
+                        >
                             {tabSelector}
                             {pageControls}
                         </View>
@@ -448,8 +472,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
                             }}
-                            // Offline no response is coming, so the row hides instead of loading forever
-                            isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
+                            hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
                             supportingCharts={supportingCharts}
                             filters={filters}
