@@ -253,7 +253,7 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
 }
 
 /**
- * Makes the target's countries match the source's, dropping each source bankAccountID (the backend remaps it per-caller).
+ * Makes the target's countries match the source's, dropping each source bankAccountID.
  * Keeps a target country that already has its own bank account.
  */
 function buildReimbursementCountriesPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'reimbursement'> | undefined {
