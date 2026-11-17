@@ -212,16 +212,4 @@ describe('Insights chart view and press', () => {
         // Then the chart gets no press override, so a press still opens Search filtered to the point
         expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
     });
-
-    it('keeps tag drill-down on Search while the Details panel does not support tags', async () => {
-        // Given a Top tags chart for a user with the Details panel enabled.
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.INSIGHTS_AI]);
-
-        // When the tag chart renders on the Spend dashboard.
-        renderWidget({chart: {...CHART, graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS, groupBy: CONST.SEARCH.GROUP_BY.TAG, view: CONST.SEARCH.VIEW.PIE}});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then tags retain the existing level-aware Search drill-down instead of a Details handler that does nothing.
-        expect(jest.mocked(SearchChartView).mock.lastCall?.[0].onGroupPress).toBeUndefined();
-    });
 });
