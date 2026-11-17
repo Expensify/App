@@ -1,6 +1,6 @@
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import Parser from '@libs/Parser';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
@@ -30,17 +30,18 @@ function useDraftMessageVideoAttributeCache({
     isEditInProgressRef,
 }: UseDraftMessageVideoAttributeCacheProps): DraftMessageVideoAttributeCache {
     const prevDraftMessage = usePrevious(draftMessage);
-    const accountIDToName = useAccountIDToNameMap();
-    const reportIDToName = useReportIDToNameMap();
+    const editingReportActionHtml = isEditing ? getReportActionHtml(editingReportAction) : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(editingReportActionHtml);
+    const reportIDToName = useMentionedReportIDToNameMap(editingReportActionHtml);
 
     useEffect(() => {
-        if (!isEditing) {
+        if (editingReportActionHtml === undefined) {
             return;
         }
 
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(editingReportAction), {
+        const originalMessage = Parser.htmlToMarkdown(editingReportActionHtml, {
             reportIDToName,
             accountIDToName,
             cacheVideoAttributes: (videoSource, attrs) => draftMessageVideoAttributeCache.set(videoSource, attrs),
@@ -53,7 +54,7 @@ function useDraftMessageVideoAttributeCache({
             return;
         }
         updateDraftMessageProp(draftMessage);
-    }, [draftMessage, editingReportAction, isEditInProgressRef, isEditing, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
+    }, [draftMessage, editingReportAction, editingReportActionHtml, isEditInProgressRef, prevDraftMessage, accountIDToName, reportIDToName, updateDraftMessageProp]);
 
     return draftMessageVideoAttributeCache;
 }

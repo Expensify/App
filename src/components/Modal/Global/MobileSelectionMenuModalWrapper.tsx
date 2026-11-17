@@ -8,7 +8,7 @@ import getPlatform from '@libs/getPlatform';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -19,7 +19,7 @@ import Modal from '..';
 import {ModalActions} from './ModalContext';
 
 type MobileSelectionMenuModalWrapperProps = ModalProps &
-    WithSentryLabel & {
+    WithRequiredSentryLabel & {
         testID?: string;
 
         /** Prevent the background input from regaining focus on iOS when entering selection mode. */

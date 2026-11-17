@@ -1,0 +1,56 @@
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 99cac83..30d9757 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -7880,6 +7880,9 @@ function checkResetContainers(ctx, dataProp, { didColumnsChange = false } = {})
+     state.scrollForNextCalculateItemsInView = void 0;
+   }
+   state.positionsAreCurrent = false;
++  if (state.props.maintainVisibleContentPosition.data) {
++    state.userScrollAnchorReset = void 0;
++  }
+   calculateItemsInView(ctx, { dataChanged: true, doMVCP: true });
+   if ((_a3 = state.pendingEndMeasurements) == null ? void 0 : _a3.size) {
+     const removedMeasurements = new Set(state.pendingEndMeasurements);
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index a7a89dd..f55dea9 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -7859,6 +7859,9 @@ function checkResetContainers(ctx, dataProp, { didColumnsChange = false } = {})
+     state.scrollForNextCalculateItemsInView = void 0;
+   }
+   state.positionsAreCurrent = false;
++  if (state.props.maintainVisibleContentPosition.data) {
++    state.userScrollAnchorReset = void 0;
++  }
+   calculateItemsInView(ctx, { dataChanged: true, doMVCP: true });
+   if ((_a3 = state.pendingEndMeasurements) == null ? void 0 : _a3.size) {
+     const removedMeasurements = new Set(state.pendingEndMeasurements);
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 99cac83..30d9757 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -7880,6 +7880,9 @@ function checkResetContainers(ctx, dataProp, { didColumnsChange = false } = {})
+     state.scrollForNextCalculateItemsInView = void 0;
+   }
+   state.positionsAreCurrent = false;
++  if (state.props.maintainVisibleContentPosition.data) {
++    state.userScrollAnchorReset = void 0;
++  }
+   calculateItemsInView(ctx, { dataChanged: true, doMVCP: true });
+   if ((_a3 = state.pendingEndMeasurements) == null ? void 0 : _a3.size) {
+     const removedMeasurements = new Set(state.pendingEndMeasurements);
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index a7a89dd..f55dea9 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -7859,6 +7859,9 @@ function checkResetContainers(ctx, dataProp, { didColumnsChange = false } = {})
+     state.scrollForNextCalculateItemsInView = void 0;
+   }
+   state.positionsAreCurrent = false;
++  if (state.props.maintainVisibleContentPosition.data) {
++    state.userScrollAnchorReset = void 0;
++  }
+   calculateItemsInView(ctx, { dataChanged: true, doMVCP: true });
+   if ((_a3 = state.pendingEndMeasurements) == null ? void 0 : _a3.size) {
+     const removedMeasurements = new Set(state.pendingEndMeasurements);

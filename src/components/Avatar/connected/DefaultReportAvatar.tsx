@@ -1,10 +1,9 @@
 import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
-import {PersonalDetailsContext} from '@components/OnyxListItemProvider';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import {getIconsForParticipants, getParticipantIcon, isOneOnOneChat, isSelfDM, isSupportTicket, isSystemChat} from '@libs/ReportUtils';
@@ -19,7 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {accountIDSelector} from '@selectors/Session';
-import React, {use} from 'react';
+import React from 'react';
 
 type DefaultReportAvatarProps = {
     /** Report whose avatar to render */
@@ -63,9 +62,7 @@ function DefaultReportAvatar({reportID, size, containerStyle, fallbackDisplayNam
     // Resolved inside the selector, so a participants change only re-renders when the pictured account changes.
     const chatAccountIDSelector = (report: OnyxEntry<Report>) => getChatAccountID(report, currentUserAccountID);
     const [accountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: chatAccountIDSelector});
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // On Search, the snapshot can hold an account missing from the live list. The live list covers the gap while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
+    const [personalDetails] = usePersonalDetailsByIDs([accountID]);
 
     // The unknown account stands in while there is no account to picture, such as a report that hasn't loaded.
     let avatar: Icon = {id: CONST.DEFAULT_NUMBER_ID, type: CONST.ICON_TYPE_AVATAR, source: defaultAvatars.FallbackAvatar, name: ''};

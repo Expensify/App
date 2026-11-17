@@ -37,6 +37,9 @@ function ReportPickerModal({
     return (
         <IOURequestEditReportCommon
             {...listProps}
+            createReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_CREATE_REPORT}
+            autoReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_AUTO_REPORT}
+            removeFromReportSentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_REMOVE_FROM_REPORT}
             onDismiss={onClose}
             // The list closes the container before it navigates on, e.g. to the restricted-action page, so the sheet never stays over the new screen.
             onNavigateAway={onClose}

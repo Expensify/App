@@ -4,35 +4,15 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
-import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
 import {containsHtmlTag} from './ValidationUtils';
-
-function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
-    const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
-
-    if (!policyTaxRates) {
-        return taxRateText;
-    }
-
-    const {defaultExternalID, foreignTaxDefault} = policyTaxRates;
-    let suffix;
-
-    if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-        suffix = translate('common.default');
-    } else if (taxID === defaultExternalID) {
-        suffix = translate('workspace.taxes.workspaceDefault');
-    } else if (taxID === foreignTaxDefault) {
-        suffix = translate('workspace.taxes.foreignDefault');
-    }
-    return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
-}
 
 function formatRequireItemizedReceiptsOverText(
     translate: LocaleContextProps['translate'],
@@ -66,27 +46,6 @@ function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: st
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
     );
     return approverRule;
-}
-
-function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: string) {
-    const expenseRule = expenseRules?.find((rule) =>
-        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
-    );
-    return expenseRule;
-}
-
-function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
-    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
-    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
-    // rate an expense picks up would not be the one the admin set.
-    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
-
-    // If the default taxRate is not found in expenseRules, use the default value for policy
-    if (!categoryDefaultTaxRate) {
-        return defaultTaxRate;
-    }
-
-    return categoryDefaultTaxRate;
 }
 
 function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string, shouldClearPendingAction?: boolean) {
@@ -188,6 +147,19 @@ function isCategoryMissing(category: string | undefined): boolean {
  */
 function isCategoryVisibleToMember(policyCategory: PolicyCategory | undefined, accountID: number): boolean {
     return !!policyCategory && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]);
+}
+
+/**
+ * A workspace default category, such as the distance or per diem one, only applies to members who can use it, so this
+ * returns an empty category for a member it's hidden from. The default is kept while the category isn't loaded, since
+ * its visibility isn't known yet.
+ */
+function getMemberDefaultCategory(defaultCategory: string | undefined, policyCategories: OnyxEntry<PolicyCategories>, accountID: number): string {
+    if (!defaultCategory) {
+        return '';
+    }
+    const policyCategory = policyCategories?.[defaultCategory];
+    return !policyCategory || isCategoryVisibleToMember(policyCategory, accountID) ? defaultCategory : '';
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -393,10 +365,8 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 }
 
 export {
-    formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     getMemberVisibleCategoryNames,
@@ -418,4 +388,5 @@ export {
     getDisabledCategoryKey,
     canCreateCategoryFromSearch,
     isCategoryVisibleToMember,
+    getMemberDefaultCategory,
 };

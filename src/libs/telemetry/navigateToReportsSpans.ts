@@ -44,9 +44,9 @@ function readSearchQueryAttributes(): SpanAttributes {
  * Both start at the tab tap and share the same scenario. Each can be ended from several places; the first
  * end wins, because ending an already-ended span does nothing.
  */
-function startNavigateToReportsSpans() {
+function startNavigateToReportsSpans(attributes?: SpanAttributes) {
     for (const spanId of SPAN_IDS) {
-        startSpan(spanId, {name: spanId, op: spanId, forceTransaction: true});
+        startSpan(spanId, {name: spanId, op: spanId, forceTransaction: true, attributes});
     }
 }
 

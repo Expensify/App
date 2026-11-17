@@ -80,6 +80,8 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const dateLabel = row ? formatDate(row.created, dateFnsLocale) : '';
     const amountLabel = row ? convertAmountToDisplayString(row.amount, row.currency) : '';
     const {success, error} = getBadgeAppearance(row?.state ?? CONST.PAYMENT_HISTORY.STATE.PAID);
+    // The amount due by invoice may not be settled yet, so hide the Paid badge for a plain invoice bill.
+    const shouldShowStateBadge = !row?.isUnsettledInvoice;
 
     const receiptSource = getReceiptSource(purchases, purchaseID);
     const isInvoice = isInvoiceBilling(purchases, purchaseID);
@@ -117,17 +119,21 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                             {amountLabel}
                         </Text>
                     </View>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Badge
-                            text={getBadgeText(getPaymentDetailsBadge(purchases, purchaseID), row.state, translate, dateFnsLocale)}
-                            success={success}
-                            error={error}
-                            isCondensed
-                            badgeStyles={styles.ml0}
-                            textStyles={styles.userSelectText}
-                        />
-                        {row.showsTax && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{translate('subscription.paymentHistory.inclTax')}</Text>}
-                    </View>
+                    {(shouldShowStateBadge || row.showsTax) && (
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            {shouldShowStateBadge && (
+                                <Badge
+                                    text={getBadgeText(getPaymentDetailsBadge(purchases, purchaseID), row.state, translate, dateFnsLocale)}
+                                    success={success}
+                                    error={error}
+                                    isCondensed
+                                    badgeStyles={styles.ml0}
+                                    textStyles={styles.userSelectText}
+                                />
+                            )}
+                            {row.showsTax && <Text style={[styles.textLabelSupporting, styles.userSelectText]}>{translate('subscription.paymentHistory.inclTax')}</Text>}
+                        </View>
+                    )}
                 </View>
             )}
             {!!billedToName && (

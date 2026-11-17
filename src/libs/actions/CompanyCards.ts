@@ -79,6 +79,20 @@ type ImportCSVCompanyCardsData = {
     existingInstanceID?: string;
 };
 
+type StartCardFeedRefreshParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+
+    /**
+     * Country stored on the feed. Required, even when undefined, so every caller passes it: a Plaid feed reconnects in this
+     * country, and only falls back to a guess from outputCurrency and countryByIp when the feed has none.
+     */
+    feedCountry: string | undefined;
+    outputCurrency?: string;
+    currencyList?: CurrencyList;
+    countryByIp?: string;
+};
+
 type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
     reportID: '0';
     pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -1547,12 +1561,12 @@ function importCSVCompanyCards({
  *
  * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh({policyID, feed, feedCountry, outputCurrency, currencyList, countryByIp}: StartCardFeedRefreshParams) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
     if (isPlaidFeed) {
-        const selectedCountry = CardUtils.getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        const selectedCountry = CardUtils.getPlaidCountryForFeed(feedCountry, outputCurrency, currencyList, countryByIp);
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 

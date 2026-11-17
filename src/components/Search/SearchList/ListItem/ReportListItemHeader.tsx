@@ -1,6 +1,7 @@
 import Checkbox from '@components/Checkbox';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {
@@ -45,7 +46,7 @@ import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
@@ -160,6 +161,7 @@ function HeaderFirstRow<TItem extends ListItem>({
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -298,6 +300,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
+    // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
+    const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
 
     const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
         useReportPaymentContext({
@@ -305,6 +309,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
@@ -328,6 +334,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: reportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
+            policyID: snapshotReport?.policyID || reportItem.policyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -337,6 +344,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             confirmSubmitReportViolations,
@@ -353,7 +362,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
-            allViolations,
+            allViolations: {...autoReportedRejectedExpenseViolations, ...allViolations},
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             ...pressTimeInputs,

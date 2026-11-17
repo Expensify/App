@@ -14,7 +14,7 @@ import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 function SearchChartWrapper({children, title, groupBy}: {children: React.ReactNode; title?: string; groupBy: SearchGroupBy}) {
     const styles = useThemeStyles();
     const {cardPadding} = useLayoutSpacing();
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar', 'Exclamation']);
     const {titleIconName} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
 

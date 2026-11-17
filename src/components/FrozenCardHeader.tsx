@@ -72,6 +72,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                     {adminFrozenTextPrefix}
                     <TextLink
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                        sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                         style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
@@ -87,6 +88,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                    sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                     style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
@@ -105,6 +107,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
                 <View style={equalButtonWrapperStyles}>
                     <Button
+                        sentryLabel={canUnfreezeCard ? CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.UNFREEZE : CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.ASK_TO_UNFREEZE}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}
