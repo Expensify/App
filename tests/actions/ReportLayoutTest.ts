@@ -1,9 +1,14 @@
-import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout, setSingleExpenseReportView} from '@libs/actions/ReportLayout';
+import type {SearchCustomColumnIds} from '@components/Search/types';
+
+import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns, setReportLayout} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/API');
 
@@ -11,7 +16,6 @@ const mockWrite = jest.mocked(API.write);
 
 const LAYOUT_OPTION_NVP_NAME = 'expensify_layoutOption';
 const GROUP_BY_OPTION_NVP_NAME = 'expensify_groupByOption';
-const SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME = 'expensify_singleExpenseReportView';
 const NAME_VALUE_PAIRS_KEY_PREFIX = 'nameValuePairs[';
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
@@ -70,6 +74,10 @@ describe('setReportLayout', () => {
         mockWrite.mockClear();
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('writes layoutOption=matrix and clears groupByOption atomically when None is selected', () => {
         setReportLayout(CONST.REPORT_LAYOUT.LAYOUT_OPTION.MATRIX, null, CONST.REPORT_LAYOUT.GROUP_BY.TAG);
 
@@ -113,6 +121,56 @@ describe('setReportLayout', () => {
             [`nameValuePairs[${GROUP_BY_OPTION_NVP_NAME}]`]: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
         });
     });
+    it('only updates the layout locally in a Supportal session so the customer keeps their own layout', () => {
+        // Given a support agent logged into a customer's account
+        jest.spyOn(NetworkStore, 'isSupportAuthToken').mockReturnValue(true);
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+
+        // When the agent groups the report by tag to troubleshoot
+        setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
+
+        // Then nothing is sent or queued for the backend, so the customer's saved layout is untouched
+        expect(mockWrite).not.toHaveBeenCalled();
+
+        // And the agent's view still switches to the new grouping
+        expect(onyxUpdateSpy).toHaveBeenCalledWith([expect.objectContaining({key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, value: CONST.REPORT_LAYOUT.GROUP_BY.TAG})]);
+    });
+});
+
+describe('setReportDetailsColumns', () => {
+    const selectedColumns: SearchCustomColumnIds[] = [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.CATEGORY];
+
+    beforeEach(() => {
+        mockWrite.mockClear();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('saves the columns to the backend in a normal session', () => {
+        // Given a customer using their own account
+        // When they pick the columns to show inside a report
+        setReportDetailsColumns(selectedColumns, null);
+
+        // Then the choice is saved to their account so it applies on every device
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, {columns: JSON.stringify(selectedColumns)}, expect.any(Object));
+    });
+
+    it('only updates the columns locally in a Supportal session so the customer keeps their own columns', () => {
+        // Given a support agent logged into a customer's account, where SetReportDetailsColumns is not allowed
+        jest.spyOn(NetworkStore, 'isSupportAuthToken').mockReturnValue(true);
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+
+        // When the agent shows more columns to troubleshoot
+        setReportDetailsColumns(selectedColumns, null);
+
+        // Then nothing is sent or queued for the backend, so there is no permission error and the customer's columns are untouched
+        expect(mockWrite).not.toHaveBeenCalled();
+
+        // And the agent's view still shows the new columns
+        expect(onyxUpdateSpy).toHaveBeenCalledWith([expect.objectContaining({key: ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, value: selectedColumns})]);
+    });
 });
 
 describe('isMatrixLayout', () => {
@@ -148,42 +206,5 @@ describe('getReportLayoutSelection', () => {
     it('defaults to CATEGORY when neither NVP is set', () => {
         expect(getReportLayoutSelection(null, null)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
         expect(getReportLayoutSelection(undefined, undefined)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
-    });
-});
-
-describe('setSingleExpenseReportView', () => {
-    beforeEach(() => {
-        mockWrite.mockClear();
-    });
-
-    it('saves the table view on the account NVP', () => {
-        // Given a user who hasn't picked a view yet
-        // When they switch to the table view
-        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
-
-        // Then the choice is saved on their account so it applies on every device
-        expect(mockWrite).toHaveBeenCalledTimes(1);
-        expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
-        expect(getWrittenNameValuePairs()).toEqual({[SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME]: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE});
-    });
-
-    it('applies the new view optimistically and restores the previous view on failure', () => {
-        // Given a user who is on the table view
-        // When they switch back to the expense view
-        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
-
-        // Then the expense view shows right away, and the table view comes back if the request fails
-        const onyxData = mockWrite.mock.calls.at(0)?.[2];
-        expect(onyxData?.optimisticData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE}]);
-        expect(onyxData?.failureData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE}]);
-    });
-
-    it('clears the optimistic view on failure when no view was saved before', () => {
-        // Given a user who hasn't picked a view yet
-        // When they switch to the table view
-        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
-
-        // Then a failed request falls back to the default view
-        expect(mockWrite.mock.calls.at(0)?.[2]?.failureData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: null}]);
     });
 });
