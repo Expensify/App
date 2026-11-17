@@ -176,7 +176,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     shouldEnableDetailPageNavigation
                     openParentReportInCurrentTab
                 />
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {shouldRenderActionsInHeaderRow && (
                         <MoneyReportHeaderActions
                             reportID={reportIDProp}
