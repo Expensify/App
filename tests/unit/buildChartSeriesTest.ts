@@ -6,6 +6,7 @@ import type {ChartComparisonPeriods} from '@components/Search/comparisonBuckets'
 import applyRunningTotal from '@components/Search/runningTotal';
 import type {
     TransactionDayGroupListItemType,
+    TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
@@ -59,7 +60,29 @@ function dayGroup(day: string): TransactionDayGroupListItemType {
     return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
 }
 
-const getLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '');
+/** A grouped submitter result, carrying how long the member's reports took to complete the charted workflow stage */
+function memberGroup(name: string, averageDuration: number | null, total = 100000, percentOfTotal?: number): TransactionMemberGroupListItemType {
+    return {
+        groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+        accountID: name.length,
+        displayName: name,
+        formattedFrom: name,
+        keyForList: `member_${name}`,
+        count: 1,
+        total,
+        currency: CONST.CURRENCY.USD,
+        percentOfTotal,
+        averageDuration,
+        transactions: [],
+    };
+}
+
+const getLabel = (item: GroupedItem) => {
+    if (item.groupedBy === CONST.SEARCH.GROUP_BY.FROM) {
+        return item.formattedFrom ?? '';
+    }
+    return item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '';
+};
 const getCurrencyDecimals = () => 2;
 
 /** A point as the chart reads it, plotting one series. */
@@ -868,6 +891,123 @@ describe('buildChartSeries with the count metric', () => {
 
         // Then each point carries the share, for the tooltip to quote beside the count
         expect(rows.map((row) => row.point.percentOfTotal)).toEqual([10, 30]);
+    });
+});
+
+describe('buildChartSeries with the duration metric', () => {
+    const DAY = CONST.DATE.SECONDS_PER_DAY;
+
+    /** Builds a member chart plotting durations, the way the Efficiency dashboard draws one */
+    const buildDurationSeries = (params: Partial<Parameters<typeof buildChartSeries>[0]> & {data: GroupedItem[]}) =>
+        buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.FROM,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            ...params,
+        });
+
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
+    it('plots how long each group took, in seconds, instead of what it totals', () => {
+        // Given members ranked by how long their reports took, where the slower member spent less
+        const data = [memberGroup('Alice', 4 * DAY, 10000), memberGroup('Bob', DAY, 90000)];
+
+        // When the series is built for a chart plotting durations
+        const {rows} = buildDurationSeries({data});
+
+        // Then each value is the member's average duration, untouched, because scales, sorting and deltas all work in seconds
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([4 * DAY, DAY]);
+    });
+
+    it('leaves out a group none of whose reports completed the stage', () => {
+        // Given a member with no duration, next to members who have one
+        const data = [memberGroup('Alice', 2 * DAY), memberGroup('Bob', null), memberGroup('Carol', DAY)];
+
+        // When the series is built for a chart plotting durations
+        const {rows} = buildDurationSeries({data});
+
+        // Then that member is not drawn, because a bar at 0 days would read as reports that took no time at all
+        expect(rows.map((row) => row.point.label)).toEqual(['Alice', 'Carol']);
+    });
+
+    it('works out each share among the drawn groups rather than reading the share of spend', () => {
+        // Given members the search reported shares of total spend for, and one with no duration
+        const data = [memberGroup('Alice', 3 * DAY, 10000, 10), memberGroup('Bob', DAY, 90000, 90), memberGroup('Carol', null, 0, 0)];
+
+        // When the series is built for a donut plotting durations
+        const {rows} = buildDurationSeries({data, view: CONST.SEARCH.VIEW.PIE});
+
+        // Then each share is the member's part of the durations drawn, so the slices split the time and not the money
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([75, 25]);
+    });
+
+    it('compares each group against its own duration in the compared rows', () => {
+        // Given members and their durations in the previous period, where one member has no compared duration
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', 2 * DAY), memberGroup('Bob', null)];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then the compared values are in seconds too, so the delta between them is a change in time,
+        // and a member with no compared duration has nothing to compare rather than a drop from 0
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
+    });
+
+    it('leaves a compared group with no expenses in that period with nothing to compare', () => {
+        // Given members and the previous period, which reports a member it has no expenses for with a count and duration of 0
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', 2 * DAY), {...memberGroup('Bob', 0), count: 0}];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then that member has no compared value, because a bar at 0 days would read as reports that took no time at all
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2 * DAY, undefined]);
+    });
+
+    it('works out the compared shares among the compared durations', () => {
+        // Given members and their durations in the previous period
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+        const compared = [memberGroup('Alice', DAY), memberGroup('Bob', DAY)];
+
+        // When the series is built for a bar chart compared against those rows
+        const {rows} = buildDurationSeries({data, comparison: {data: compared, color: themeColors.green200}});
+
+        // Then each series reports its own split of time, because the compared period had a different total
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.PRIMARY])).toEqual([(4 / 6) * 100, (2 / 6) * 100]);
+        expect(rows.map((row) => row.point.seriesPercentOfTotal?.[CHART_SERIES_KEY.COMPARISON])).toEqual([50, 50]);
+    });
+
+    it('draws the average in seconds, without converting it like an amount', () => {
+        // Given members and the average duration the dashboard returned for the chart
+        const data = [memberGroup('Alice', 4 * DAY), memberGroup('Bob', 2 * DAY)];
+
+        // When the series is built for a bar chart compared against the average
+        const {series, rows} = buildDurationSeries({data, comparison: {[CONST.SEARCH.CHART_METRIC.DURATION]: 3 * DAY}});
+
+        // Then the average line sits at the same seconds the bars do, because dividing it into dollars would put it on a scale the bars don't use
+        expect(series.at(1)?.isAverage).toBe(true);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([3 * DAY, 3 * DAY]);
+    });
+
+    it('still converts amounts and reads the share of spend when the chart plots the amount', () => {
+        // Given members carrying both a duration and the share of spend the search reported
+        const data = [memberGroup('Alice', 3 * DAY, 10000, 10), memberGroup('Bob', null, 90000, 90)];
+
+        // When the series is built for a chart plotting amounts
+        const {rows} = buildDurationSeries({data, metric: CONST.SEARCH.CHART_METRIC.AMOUNT});
+
+        // Then the duration is ignored, so adding it to the member rows leaves amount charts as they were
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([100, 900]);
+        expect(rows.map((row) => row.point.percentOfTotal)).toEqual([10, 90]);
     });
 });
 

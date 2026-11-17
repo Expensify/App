@@ -354,6 +354,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
+    // Auto-categorizing can't do anything without an enabled category, so the toggle shows off + locked instead of on + locked.
+    // Wait for the categories to load so a saved-on setting doesn't flash off.
+    const isAutoCategorizeToggleLocked = !policy?.areCategoriesEnabled || (policyCategories !== undefined && !hasEnabledCategories);
+    const autoCategorizeToggleTooltip = isAutoCategorizeToggleLocked && policy?.areCategoriesEnabled ? translate('workspace.categories.enableAtLeastOneCategory') : undefined;
+
     const menuItems = [];
     // The former Settings page's toggles are surfaced directly in this menu. Selecting a toggle row (click or Enter)
     // flips it; the Switch is a display-only indicator and the menu stays open on select.
@@ -371,12 +376,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             pendingAction: policy?.pendingFields?.autoCategorizeNewExpenses,
             errors: policy?.errorFields?.autoCategorizeNewExpenses,
             onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
+            switchTooltipText: autoCategorizeToggleTooltip,
             switchProps: {
-                isOn: policy?.autoCategorizeNewExpenses ?? true,
+                isOn: !isAutoCategorizeToggleLocked && (policy?.autoCategorizeNewExpenses ?? true),
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
                 onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value, getReviewWorkspaceSettingsTaskCompletion()),
-                disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
+                disabled: isAutoCategorizeToggleLocked,
             },
         });
     }
