@@ -4,8 +4,8 @@ import FocusTrapExtraContainersContext from '@components/FocusTrap/FocusTrapExtr
 import RHPResizeHandle from '@components/RHPResizeHandle';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useOnyx from '@hooks/useOnyx';
+import useResizableSingleRHP from '@hooks/useResizableSingleRHP';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
@@ -62,7 +62,7 @@ type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, t
 
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
-const singleRHPWidth = variables.rhpWidth;
+const defaultSingleRHPWidth = variables.rhpWidth;
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -224,15 +224,18 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({
             inputRange: [0, 1, 2],
-            outputRange: [singleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+            outputRange: [defaultSingleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
         }),
         superWideRHPSidePanelOffset,
     );
 
     const overlayPositionLeft = -1 * calculateSuperWideRHPWidth(windowWidth);
 
+    // The committed width, so the overlays beside a resized single card catch up with its edge once a drag ends.
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
-    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    let focusedRHPWidth: OverlayPositionValue = resizableSingleRHPWidth;
     if (isSuperWideRHPFocused) {
         focusedRHPWidth = animatedWidth;
     } else if (isWideRHPFocused) {
@@ -249,11 +252,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
-    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {isResizable: isResizableSingleRHP, isFloating: isResizableFloatingRHP} = useResizableSingleRHP();
     const [resizeHandleElement, setResizeHandleElement] = useState<HTMLDivElement | null>(null);
-    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
+    // A single card stacked on a wide one sizes itself (see useModalStackScreenOptions), so only the lone floating card needs the fixed stack box.
+    const stackContentStyle = styles.singleRHPStackBox(isResizableFloatingRHP);
 
     const screenListeners = {
         blur: () => {

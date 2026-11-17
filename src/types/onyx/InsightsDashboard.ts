@@ -54,12 +54,24 @@ type AIInsightChangeChip = AIInsightChipValue & {
     direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
 };
 
-/** Chip showing a share or amount for signals that have no direction */
-type AIInsightNeutralChip = AIInsightChipValue & {
+/** Chip showing an observed statistic rather than a change */
+type AIInsightNeutralChip = (
+    | AIInsightChipValue
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
+
+          /** Average processing duration in seconds */
+          value: number;
+      }
+) & {
     type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
 };
 
-/** An AI insight's statistic: a change, or a share or amount with no direction */
+/** An AI insight's statistic: a change or an observed value */
 type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
 
 /** AI-written insight about the dashboard's data */

@@ -376,6 +376,13 @@ function useConfirmationListDataWithPolicy({
             policyForMovingExpenses,
             customUnitRateID,
         },
+        splitCategoryTaxControllerProps: {
+            transactionID,
+            transaction,
+            policy,
+            policyCategories,
+            isEditingSplitBill,
+        },
         splitBillControllerProps: {
             transaction,
             isTypeSplit,

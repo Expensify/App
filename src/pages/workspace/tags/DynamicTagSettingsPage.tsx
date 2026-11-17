@@ -19,6 +19,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +72,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const {canWrite: canWriteTags, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
@@ -112,7 +114,13 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
             });
             return;
         }
-        setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight, isVendorMatchingBetaEnabled);
+        setWorkspaceTagEnabled(
+            policyData,
+            {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}},
+            policyTag.orderWeight,
+            isVendorMatchingBetaEnabled,
+            getReviewWorkspaceSettingsTaskCompletion(),
+        );
     };
 
     const navigateToEditTag = () => {
