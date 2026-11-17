@@ -11,7 +11,8 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
+import {getTransactionsMatchingRule} from '@libs/actions/Policy/Rules';
+import {buildExpenseDefaultFilters} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import type {CodingRuleFilter} from '@src/types/onyx/Policy';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 
@@ -53,27 +53,25 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW);
-    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION);
+    const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION);
 
-    const merchant = form?.merchantToMatch ?? '';
-    const operator = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+    // The preview matches on everything the rule does, so it asks with the tree the rule would be saved with.
+    const filters = buildExpenseDefaultFilters(form ?? {});
+
+    // A fresh tree is built on every render, so the request is keyed on what the tree holds rather than on its
+    // identity. Keying on the tree itself asks again on every render, and each answer renders again.
+    const serializedFilters = filters ? JSON.stringify(filters) : '';
 
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !serializedFilters) {
             return;
         }
 
-        const filters: CodingRuleFilter = {
-            left: 'merchant',
-            operator,
-            right: merchant,
-        };
-
-        getTransactionsMatchingCodingRule(policyID, filters);
-    }, [merchant, operator, policyID, isOffline]);
+        getTransactionsMatchingRule(policyID, serializedFilters);
+    }, [serializedFilters, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-    const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
+    const hasMatchingTransactions = !!filters && matchingTransactionsArray.length > 0;
 
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;

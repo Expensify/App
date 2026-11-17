@@ -198,6 +198,7 @@ function WorkspaceMemberRoleList({
                 {translate('workspace.common.roleSelectorFeedback')}{' '}
                 <TextLink
                     style={[styles.textLabel, styles.link]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.ROLE_FEEDBACK_CONCIERGE_LINK}
                     onPress={() => {
                         navigateToConciergeChat({
                             conciergeReportID,

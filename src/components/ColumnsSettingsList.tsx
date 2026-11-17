@@ -125,12 +125,18 @@ function ColumnsSettingsList({
     }));
 
     const [columns, setColumns] = useState(() => {
-        const selectedColumnIds = currentColumns.filter((columnId) => allCustomColumns.includes(columnId));
+        const currentGroupColumns = currentColumns.filter((columnId) => groupColumns.includes(columnId));
+        const currentTypeColumns = currentColumns.filter((columnId) => allColumns.includes(columnId));
 
-        if (!selectedColumnIds.length) {
+        if (!currentGroupColumns.length && !currentTypeColumns.length) {
             return defaultColumns;
         }
 
+        // A search can save columns for only one of the sections, and the table shows the other section's defaults then.
+        const selectedColumnIds = [
+            ...(currentGroupColumns.length ? currentGroupColumns : defaultGroupColumns),
+            ...(currentTypeColumns.length ? currentTypeColumns : defaultSelectedColumns.filter((columnId) => allColumns.includes(columnId))),
+        ];
         const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
         const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
@@ -277,6 +283,7 @@ function ColumnsSettingsList({
                     <TextLink
                         onPress={resetColumns}
                         style={styles.pr2}
+                        sentryLabel={CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.RESET_COLUMNS_LINK}
                     >
                         {translate('search.resetColumns')}
                     </TextLink>

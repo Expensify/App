@@ -53,6 +53,13 @@ type ReauthenticationResult = {
 // next SAML sign-in begins.
 let hasQueuedSAMLReauthRedirect = false;
 
+class UnableToRetryAuthenticateError extends Error {
+    constructor() {
+        super('Unable to retry Authenticate request');
+        this.name = 'UnableToRetryAuthenticateError';
+    }
+}
+
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
 Onyx.connectWithoutView({
@@ -275,7 +282,7 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
                 if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                     // When a fetch() fails due to a network issue and an error is thrown we won't log the user out. Most likely they
                     // have a spotty connection and will need to retry reauthenticate when they come back online. Error so it can be handled by the retry mechanism.
-                    const error = new Error('Unable to retry Authenticate request');
+                    const error = new UnableToRetryAuthenticateError();
                     trackAuthenticationError(error, {
                         errorType: 'network_retry',
                         functionName: 'reauthenticate',
@@ -346,6 +353,11 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
                 return {wasSuccessful: true};
             })
             .catch((error) => {
+                // Already tracked as network_retry above, so rethrow for the retry mechanism without reporting it again as unexpected_error
+                if (error instanceof UnableToRetryAuthenticateError) {
+                    throw error;
+                }
+
                 if (error instanceof HttpsError && !shouldRetryAuthenticateError(error)) {
                     // Reuse the standard Authenticate response handling so HTTP
                     // failures and body-level failures produce the same UX.

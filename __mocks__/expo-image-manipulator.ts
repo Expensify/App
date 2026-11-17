@@ -3,7 +3,8 @@ import type {ImageResult} from 'expo-image-manipulator';
 const mockResult: ImageResult = {uri: 'mock://manipulated.jpg', width: 1, height: 1};
 
 const mockRenderer = {
-    renderAsync: jest.fn(() => Promise.resolve({saveAsync: jest.fn(() => Promise.resolve(mockResult))})),
+    renderAsync: jest.fn(() => Promise.resolve({saveAsync: jest.fn(() => Promise.resolve(mockResult)), release: jest.fn()})),
+    release: jest.fn(),
 };
 
 const ImageManipulator = {
