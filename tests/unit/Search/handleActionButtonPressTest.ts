@@ -671,7 +671,13 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.PAYMENT_METHODS.ABA, text: 'Pay via ABA', icon: () => null, additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA}},
+            item: {
+                key: CONST.PAYMENT_METHODS.ABA,
+                text: 'Pay via ABA',
+                icon: () => null,
+                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+                additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+            },
         });
 
         // Then they verify their account before anything is paid, because unlike Mark as paid, the ABA file pays out of the workspace's bank account
