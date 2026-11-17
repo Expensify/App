@@ -25,7 +25,7 @@ import Onyx from 'react-native-onyx';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isManagedCardTransaction} from './index';
+import {getAmount, getCurrency, getDescription, getFormattedCreated, getMerchant, isCardTransactionReimbursableEditable, isExpensifyCardTransaction} from './index';
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
@@ -92,8 +92,12 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
             validTransactions.push(transaction);
         }
 
-        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
-        const filtered = removeSettledAndApprovedTransactions(validTransactions);
+        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions.
+        // A peer whose report isn't loaded still references this transaction, so it is kept for the cleanup.
+        const filtered = validTransactions.filter((transaction) => {
+            const report = getReportOrDraftReport({reportID: transaction.reportID});
+            return !report || isReportMergeableForDuplicates(report, transaction.reportID);
+        });
 
         for (const transaction of filtered) {
             result.add(transaction.transactionID);
@@ -197,11 +201,15 @@ function removeTransactionFromDuplicateTransactionViolation(
 
 /**
  * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
- * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
- * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ * accept. A report is mergeable when it is open or awaiting first-level approval, and an unreported expense stays
+ * editable in Auth. Anything approved, closed (Submit & Close), or reimbursed is rejected server-side, and a report
+ * that isn't loaded could be any of those, so it isn't treated as mergeable.
  */
-function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
-    return !report || isOpenReport(report) || isProcessingReport(report);
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: string | undefined): boolean {
+    if (!report) {
+        return !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return isOpenReport(report) || isProcessingReport(report);
 }
 
 /**
@@ -209,7 +217,9 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}))) as Transaction[];
+    return transactions.filter(
+        (transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}), transaction.reportID),
+    ) as Transaction[];
 }
 
 /**
@@ -217,8 +227,8 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
  * in those cases.
  */
-function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
-    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, keptReportID: string | undefined, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport, keptReportID) && transactionIDList.length > 0;
 }
 
 /**
@@ -396,11 +406,18 @@ function compareDuplicateTransactionFields(
                     }
                 }
             } else if (fieldName === 'reimbursable') {
-                // Preserve the imported reimbursable value because company card feeds can be configured as reimbursable.
-                // Use the kept transaction to avoid restoring the review step when navigating back through a cash expense's thread.
-                // Checking any managed card in the duplicates could instead overwrite a kept cash expense's value.
+                // The resolved reimbursable value is applied to the transaction that is kept, so when that kept transaction
+                // is a card expense whose reimbursable value can't be changed, we keep its own value and hide the
+                // reimbursable review step. Expensify Card expenses are always non-reimbursable, and company card expenses
+                // keep their forced value (e.g. "Force Yes" stays reimbursable). We gate on the selected (kept) transaction
+                // rather than the reviewing transaction: the Review* pages recompute this from the thread's transaction (which
+                // may be the cash expense) while the kept transaction is the card expense, so gating on the reviewing
+                // transaction would re-add the reimbursable step on back navigation. Gating on any duplicate in the set
+                // would instead wrongly change the reimbursable value of a kept cash expense.
                 const selectedTransaction = transactions.find((transactionItem) => transactionItem?.transactionID === selectedTransactionID) ?? firstTransaction;
-                if (isManagedCardTransaction(selectedTransaction)) {
+                if (isExpensifyCardTransaction(selectedTransaction)) {
+                    keep[fieldName] = false;
+                } else if (!isCardTransactionReimbursableEditable(selectedTransaction)) {
                     keep[fieldName] = selectedTransaction?.[keys[0]] ?? selectedTransaction?.[keys[1]] ?? false;
                 } else if (areAllFieldsEqualForKey) {
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];

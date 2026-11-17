@@ -45,6 +45,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
         {
             icon: icons.LinkCopy,
             text: translate('workspace.common.createNewConnection'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONNECTION_OPTIONS.CREATE_NEW_CONNECTION,
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -53,6 +54,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
         {
             icon: icons.Copy,
             text: translate('workspace.common.reuseExistingConnection'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONNECTION_OPTIONS.REUSE_EXISTING_CONNECTION,
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);

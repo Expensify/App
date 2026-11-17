@@ -25,6 +25,7 @@ import {
     generateReportID,
     getReimbursableTotal,
     getTransactionDetails,
+    isArchivedReport,
     isExpenseReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -74,7 +75,7 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
-import {createDistanceRequest} from './Split';
+import {commitDistanceRequest, planDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(
@@ -187,6 +188,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 type ResolveDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
@@ -208,6 +210,7 @@ function mergeDuplicates({
     allTransactionViolations,
     allReportActionsList,
     allReportsList,
+    allReportNameValuePairsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const {transaction: originalSelectedTransaction, transactionList, ...restParams} = params;
@@ -335,6 +338,7 @@ function mergeDuplicates({
                 transactionThread,
                 iouReport,
                 chatReport,
+                isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
                 transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
@@ -733,10 +737,11 @@ function createExpenseByType({
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const duplicateRequestType = getDuplicateRequestType(transaction);
+            const {writeBarrier, ...distanceBaseParams} = params;
             const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
+                ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so createDistanceRequest's
+                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
                 // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
                 moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
@@ -773,7 +778,9 @@ function createExpenseByType({
                 participantsPolicyTags,
                 rules,
             };
-            return createDistanceRequest(distanceParams);
+            const distanceRequestPlan = planDistanceRequest(distanceParams);
+            commitDistanceRequest(distanceRequestPlan, writeBarrier);
+            return {iouReport: distanceRequestPlan.iouReport, transactionID: distanceRequestPlan.transactionID};
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
