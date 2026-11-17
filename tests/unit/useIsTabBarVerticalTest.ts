@@ -4,7 +4,7 @@ import useIsTabBarVertical from '@libs/Navigation/AppNavigator/Navigators/Native
 
 import type {VerticalBarEdge} from '@expensify/nitro-utils';
 
-const nativeVerticalBar = {
+const mockNativeVerticalBar = {
     edge: 'unspecified' as VerticalBarEdge,
     listeners: new Set<(edge: VerticalBarEdge) => void>(),
     setEdge(edge: VerticalBarEdge) {
@@ -19,19 +19,19 @@ jest.mock('@expensify/nitro-utils', () => ({
     VERTICAL_BAR_EDGE: {UNSPECIFIED: 'unspecified', LEADING: 'leading', TRAILING: 'trailing'},
     VerticalBarNitroModule: {
         get edge() {
-            return nativeVerticalBar.edge;
+            return mockNativeVerticalBar.edge;
         },
         addEdgeListener: (onChange: (edge: VerticalBarEdge) => void) => {
-            nativeVerticalBar.listeners.add(onChange);
-            return () => nativeVerticalBar.listeners.delete(onChange);
+            mockNativeVerticalBar.listeners.add(onChange);
+            return () => mockNativeVerticalBar.listeners.delete(onChange);
         },
     },
 }));
 
 describe('useIsTabBarVertical', () => {
     beforeEach(() => {
-        nativeVerticalBar.edge = 'unspecified';
-        nativeVerticalBar.listeners.clear();
+        mockNativeVerticalBar.edge = 'unspecified';
+        mockNativeVerticalBar.listeners.clear();
     });
 
     it('reports a column only while UIKit names an edge for the vertical bar', () => {
@@ -40,14 +40,14 @@ describe('useIsTabBarVertical', () => {
         expect(result.current).toBe(false);
 
         // When the phone folds so that the bar moves to the trailing edge, and then rotates so that it goes away again
-        act(() => nativeVerticalBar.setEdge('trailing'));
+        act(() => mockNativeVerticalBar.setEdge('trailing'));
         const isVerticalWhileFolded = result.current;
-        act(() => nativeVerticalBar.setEdge('unspecified'));
+        act(() => mockNativeVerticalBar.setEdge('unspecified'));
 
         // Then the hook follows the native trait both ways and stops listening once unmounted
         expect(isVerticalWhileFolded).toBe(true);
         expect(result.current).toBe(false);
         unmount();
-        expect(nativeVerticalBar.listeners.size).toBe(0);
+        expect(mockNativeVerticalBar.listeners.size).toBe(0);
     });
 });
