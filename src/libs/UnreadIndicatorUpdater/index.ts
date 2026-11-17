@@ -45,10 +45,11 @@ function getUnreadReportsForUnreadIndicator(
     currentReportID: string | undefined,
     draftComment: string | undefined,
     {reportNameValuePairs, reportActions, reportAttributes, currentUserLogin = '', currentUserAccountID = CONST.DEFAULT_NUMBER_ID, conciergeReportID}: UnreadIndicatorData = {},
+    reportsToCheck?: Array<OnyxEntry<Report>>,
 ) {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
-    return Object.values(reports ?? {}).filter((report) => {
+    return (reportsToCheck ?? Object.values(reports ?? {})).filter((report) => {
         /**
          * Cheapest predicates first so we reject the large muted/hidden population before doing any expensive work.
          *
@@ -98,4 +99,150 @@ function getUnreadReportsForUnreadIndicator(
     });
 }
 
-export default {getUnreadReportsForUnreadIndicator};
+type UnreadReportsTrackerState = {
+    reports: OnyxCollection<Report>;
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    reportActions: OnyxCollection<ReportActions>;
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined;
+    currentUserAccountID: number;
+    isOffline: boolean;
+};
+
+const keyCountByCollection = new WeakMap<Record<string, unknown>, number>();
+
+function forEachChangedKey<T>(previous: Record<string, T> | undefined, next: Record<string, T> | undefined, hasChanged: (key: string) => boolean, onChange: (key: string) => void) {
+    const nextKeys = Object.keys(next ?? {});
+    let keptKeyCount = 0;
+    for (const key of nextKeys) {
+        if (previous?.[key] !== undefined) {
+            keptKeyCount++;
+        }
+        if (hasChanged(key)) {
+            onChange(key);
+        }
+    }
+    if (next) {
+        keyCountByCollection.set(next, nextKeys.length);
+    }
+
+    // Every previous key is still there, so none were removed
+    if (previous && keptKeyCount === keyCountByCollection.get(previous)) {
+        return;
+    }
+    for (const key of Object.keys(previous ?? {})) {
+        if (!next || !(key in next)) {
+            onChange(key);
+        }
+    }
+}
+
+/**
+ * Gives the same reports as getUnreadReportsForUnreadIndicator, but only checks again the reports whose data changed since the last call.
+ * The unread reports still go through getUnreadReportsForUnreadIndicator every time, since its last check depends on the current report and draft.
+ */
+function createUnreadReportsTracker() {
+    let previous: UnreadReportsTrackerState | undefined;
+    const unreadReportKeys = new Set<string>();
+    const dependencyReportIDsByReportKey = new Map<string, string[]>();
+    const dependentReportKeysByReportID = new Map<string, Set<string>>();
+
+    const setDependencies = (reportKey: string, reportIDs: string[]) => {
+        for (const reportID of dependencyReportIDsByReportKey.get(reportKey) ?? []) {
+            dependentReportKeysByReportID.get(reportID)?.delete(reportKey);
+        }
+        if (!reportIDs.length) {
+            dependencyReportIDsByReportKey.delete(reportKey);
+            return;
+        }
+        dependencyReportIDsByReportKey.set(reportKey, reportIDs);
+        for (const reportID of reportIDs) {
+            const dependentReportKeys = dependentReportKeysByReportID.get(reportID) ?? new Set<string>();
+            dependentReportKeys.add(reportKey);
+            dependentReportKeysByReportID.set(reportID, dependentReportKeys);
+        }
+    };
+
+    return (reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined, data: UnreadIndicatorData = {}): string[] => {
+        const isOffline = getIsOffline();
+        const currentUserAccountID = data.currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const {reportNameValuePairs, reportActions, reportAttributes} = data;
+        const reportKeysToCheck = new Set<string>();
+        const addReport = (reportKey: string) => {
+            reportKeysToCheck.add(reportKey);
+            for (const dependentReportKey of dependentReportKeysByReportID.get(reportKey.slice(ONYXKEYS.COLLECTION.REPORT.length)) ?? []) {
+                reportKeysToCheck.add(dependentReportKey);
+            }
+        };
+
+        // The account and offline state are read for every report, so a change to either checks them all again
+        if (!previous || previous.currentUserAccountID !== currentUserAccountID || previous.isOffline !== isOffline) {
+            unreadReportKeys.clear();
+            dependencyReportIDsByReportKey.clear();
+            dependentReportKeysByReportID.clear();
+            for (const reportKey of Object.keys(reports ?? {})) {
+                reportKeysToCheck.add(reportKey);
+            }
+        } else {
+            const {reports: previousReports, reportNameValuePairs: previousNameValuePairs, reportActions: previousReportActions, reportAttributes: previousAttributes} = previous;
+            if (reports !== previousReports) {
+                forEachChangedKey(previousReports, reports, (key) => reports?.[key] !== previousReports?.[key], addReport);
+            }
+            if (reportNameValuePairs !== previousNameValuePairs) {
+                forEachChangedKey(
+                    previousNameValuePairs,
+                    reportNameValuePairs,
+                    (key) => reportNameValuePairs?.[key] !== previousNameValuePairs?.[key],
+                    (key) => reportKeysToCheck.add(`${ONYXKEYS.COLLECTION.REPORT}${key.slice(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length)}`),
+                );
+            }
+            if (reportActions !== previousReportActions) {
+                forEachChangedKey(
+                    previousReportActions,
+                    reportActions,
+                    (key) => reportActions?.[key] !== previousReportActions?.[key],
+                    (key) => reportKeysToCheck.add(`${ONYXKEYS.COLLECTION.REPORT}${key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length)}`),
+                );
+            }
+            if (reportAttributes !== previousAttributes) {
+                // Onyx can store an unchanged attribute entry as a new object, so compare the only value read here
+                forEachChangedKey(
+                    previousAttributes,
+                    reportAttributes,
+                    (reportID) => reportAttributes?.[reportID]?.isEmpty !== previousAttributes?.[reportID]?.isEmpty,
+                    (reportID) => reportKeysToCheck.add(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`),
+                );
+            }
+        }
+
+        for (const reportKey of reportKeysToCheck) {
+            const report = reports?.[reportKey];
+            if (!report || isMutedOrHiddenForCurrentUser(report, currentUserAccountID)) {
+                setDependencies(reportKey, []);
+                unreadReportKeys.delete(reportKey);
+                continue;
+            }
+
+            const inputs = getUnreadReportInputs(report, reports, data, isOffline);
+            // isUnread reads the one transaction thread, and the chat decides which thread that is
+            setDependencies(
+                reportKey,
+                [report.chatReportID, inputs.oneTransactionThreadReportID].filter((reportID): reportID is string => !!reportID),
+            );
+            if (isUnread(report, inputs.oneTransactionThreadReport, inputs.isReportArchived, inputs.derivedIsEmptyReport)) {
+                unreadReportKeys.add(reportKey);
+            } else {
+                unreadReportKeys.delete(reportKey);
+            }
+        }
+
+        previous = {reports, reportNameValuePairs, reportActions, reportAttributes, currentUserAccountID, isOffline};
+
+        const unreadReports = [...unreadReportKeys].map((reportKey) => reports?.[reportKey]);
+        return getUnreadReportsForUnreadIndicator(reports, currentReportID, draftComment, data, unreadReports)
+            .map((report) => report?.reportID)
+            .filter((reportID): reportID is string => !!reportID)
+            .sort();
+    };
+}
+
+export default {getUnreadReportsForUnreadIndicator, createUnreadReportsTracker};
