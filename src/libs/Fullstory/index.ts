@@ -143,6 +143,8 @@ const FS: Fullstory = {
                 properties: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
                     nps_response_date: 'date',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
+                    nudged_date: 'date',
                 },
             },
         });

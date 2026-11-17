@@ -97,6 +97,11 @@ type ReportNextStep = {
 
     /** The fill color of the icon */
     iconFill?: string;
+
+    /** Only set while the report waits for final approval or payment on a workspace that auto-exports */
+    autoExport?: {
+        messageKey: ValueOf<typeof CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY>;
+    } | null;
 };
 
 /** Model of report data */

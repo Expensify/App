@@ -62,6 +62,7 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidCountryForFeed,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getSelectedFeed,
@@ -1433,6 +1434,34 @@ describe('CardUtils', () => {
 
         it('Should return false for a custom feed', () => {
             expect(isCSVFeedOrExpensifyCard(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`)).toBe(false);
+        });
+    });
+
+    describe('getPlaidCountryForFeed', () => {
+        const currencyList = {
+            ETB: {symbol: 'Br', name: 'Ethiopian Birr', ISO4217: '230', countries: ['ET']},
+        };
+
+        it('Should return the feed country instead of the country of the workspace currency', () => {
+            // Given a US Plaid feed linked to a workspace whose currency is ETB, which only maps to Ethiopia, a country Plaid does not support
+            const feedCountry = CONST.COUNTRY.US;
+
+            // When the country to reconnect the feed with is picked
+            const country = getPlaidCountryForFeed(feedCountry, 'ETB', currencyList);
+
+            // Then it is the feed's country, because Plaid rejects a link token request for Ethiopia
+            expect(country).toBe(CONST.COUNTRY.US);
+        });
+
+        it('Should fall back to the country of the workspace currency when the feed has no country', () => {
+            // Given a Plaid feed with no stored country on an ETB workspace
+            const feedCountry = undefined;
+
+            // When the country to reconnect the feed with is picked
+            const country = getPlaidCountryForFeed(feedCountry, 'ETB', currencyList);
+
+            // Then it comes from the workspace currency, since that is the only hint left
+            expect(country).toBe('ET');
         });
     });
 

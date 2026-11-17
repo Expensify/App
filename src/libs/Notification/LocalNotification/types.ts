@@ -19,6 +19,7 @@ type LocalNotificationModule = {
         onClick: LocalNotificationClickHandler,
         derivedReportName: string | undefined,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        reportIDToName?: Record<string, string>,
     ) => void;
     showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;

@@ -112,10 +112,10 @@ describe('WorkspaceTravelBillingMonthlyLimitPage', () => {
         goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         microtaskQueueSpy = jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback) => callback?.());
 
-        // Seed a current monthly spend limit of $100.00 so reducing to $50.00 triggers the confirmation.
+        // Seed a travel feed that lists the policy, with a current monthly spend limit of $100.00 so reducing to $50.00 triggers the confirmation.
         await act(async () => {
             await Onyx.merge(getTravelBillingCardSettingsKey(FUND_ID), {
-                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {monthlySpendLimitPerUser: CURRENT_LIMIT_CENTS},
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {linkedPolicyIDs: [POLICY_ID], monthlySpendLimitPerUser: CURRENT_LIMIT_CENTS},
             });
             await waitForBatchedUpdatesWithAct();
         });

@@ -49,7 +49,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -504,7 +504,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     <MenuItem.Root
                         onPress={
                             canEditCategory
-                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), false, session)
+                                ? callIfAuthenticated(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), session)
                                 : undefined
                         }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
