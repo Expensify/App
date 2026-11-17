@@ -8,6 +8,7 @@ import type {RefObject} from 'react';
 import type {CameraRef, Frame, PreviewView} from 'react-native-vision-camera';
 
 import {getDocumentDetectorNitroModule} from '@expensify/nitro-utils';
+import {useFocusEffect} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
 import {useFrameOutput} from 'react-native-vision-camera';
@@ -231,6 +232,16 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
             documentDetector?.release(token);
         };
     }, [owner]);
+
+    useFocusEffect(() => {
+        const clearOutline = () => {
+            outlineState.setBlocking(null);
+            shownEdge.setBlocking(null);
+            edge.set(null);
+        };
+        clearOutline();
+        return clearOutline;
+    });
 
     const setOutline = (outline: DocumentEdge | null) => {
         'worklet';
@@ -465,10 +476,16 @@ function useDocumentEdgeDetection({cameraRef, isEnabled}: UseDocumentEdgeDetecti
         'worklet';
 
         const startedAt = getTimestamp();
-        if (startedAt - lastAnalysisAt.getDirty() < MIN_ANALYSIS_INTERVAL_MS) {
+        const msSinceLastAnalysis = startedAt - lastAnalysisAt.getDirty();
+        if (msSinceLastAnalysis < MIN_ANALYSIS_INTERVAL_MS) {
             return;
         }
         lastAnalysisAt.setDirty(startedAt);
+
+        if (msSinceLastAnalysis > OUTLINE_HOLD_MS && outlineState.getDirty() !== null) {
+            outlineState.setBlocking(null);
+            setOutline(null);
+        }
 
         const frameOwner = owner.getDirty();
         if (!documentDetector || frameOwner === 0) {

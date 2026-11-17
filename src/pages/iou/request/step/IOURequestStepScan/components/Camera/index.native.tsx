@@ -41,7 +41,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -107,6 +107,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
+
+    useFocusEffect(() => hideReceiptEnhancementToast);
 
     const toggleMultiScanAndHideToast = () => {
         hideReceiptEnhancementToast();
