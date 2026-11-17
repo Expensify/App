@@ -8,6 +8,7 @@ import android.app.Application
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.database.CursorWindow
+import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
