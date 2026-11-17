@@ -217,6 +217,29 @@ describe('BulkActionStatusManager', () => {
         expect(mockClearBulkAction).toHaveBeenCalledTimes(1);
     });
 
+    it('reads a plain list of skipped reports as reports with nothing owed', async () => {
+        // Given a finished bank payment from a backend that saves the skipped reports as a plain list, since it only skips reports with nothing owed
+        await Onyx.set(BULK_ACTION_KEY, {
+            state: CONST.BULK_ACTION.STATE.DONE,
+            action: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
+            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            total: 5,
+            failedReportIDs: [],
+            skippedReportIDs: ['3333333333333333', '4444444444444444'],
+        });
+
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user opens the reports that weren't paid
+        expect(screen.getAllByText('bulkAction.skippedBankPayBody')).toHaveLength(1);
+        expect(screen.queryByText('bulkAction.notPaidBody')).toBeNull();
+        fireEvent.press(screen.getByText('bulkAction.viewFailedReports'));
+
+        // Then both reports are explained together as having nothing owed, instead of one group per report, and Search opens on both
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringMatching(/reportID%3A3333333333333333%2C4444444444444444/));
+    });
+
     it('opens both the failed and the skipped reports of a bank payment', async () => {
         // Given a finished bank payment where one report failed and another was skipped
         await Onyx.set(BULK_ACTION_KEY, {
