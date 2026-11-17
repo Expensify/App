@@ -37,7 +37,8 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {graphKey, item: itemKey, end: periodEnd} = route.params;
+    const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath} = route.params;
+    const tagLevel = level ? Number(level) : undefined;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
     const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);
@@ -56,6 +57,8 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   groupBy: chartSpec.groupBy ?? getQueryGroupBy(filters),
                   itemKey,
                   periodEnd,
+                  parentTagPath,
+                  tagLevel,
                   member,
                   dateFnsLocale,
                   translate,

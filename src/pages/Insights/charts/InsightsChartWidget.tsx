@@ -153,9 +153,8 @@ function InsightsChartWidget({
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
-    // The Details panel does not support tags yet. Tags and other dashboards keep their Search drill-down.
     const openDetails =
-        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && groupBy !== CONST.SEARCH.GROUP_BY.TAG && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
+        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
             ? (item: GroupedItem) => {
                   const itemParams = getInsightsDetailsItemParams(item, queryJSON);
                   if (!itemParams) {

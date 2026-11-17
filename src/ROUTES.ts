@@ -2418,12 +2418,17 @@ const ROUTES = {
             graphKey,
             itemKey,
             periodEnd,
+            tagLevel,
+            parentTagPath,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
             itemKey: string;
             periodEnd?: string;
-        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}` as const,
+            tagLevel?: number;
+            parentTagPath?: string;
+        }) =>
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
