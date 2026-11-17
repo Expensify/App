@@ -24,6 +24,29 @@ index 6799c8a..4324707 100644
          const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
              const layout = measureItemLayout(viewHolderRef.current, recyclerViewManager.tryGetLayout(index));
              // comapre height with stored layout
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+@@ -208,13 +208,19 @@ export class RecyclerViewManager {
+         return !this.hasRenderedProgressively;
+     }
+     computeItemViewability() {
++        if (!this.hasLayout()) {
++            return;
++        }
+         // Using higher buffer for masonry to avoid missing items
+         this.itemViewabilityManager.shouldListenToVisibleIndices &&
+             this.itemViewabilityManager.updateViewableItems(this.propsRef.masonry
+                 ? this.engagedIndicesTracker.getEngagedIndices().toArray()
+                 : this.computeVisibleIndices().toArray());
+     }
+     recordInteraction() {
++        if (!this.hasLayout()) {
++            return;
++        }
+         this.itemViewabilityManager.recordInteraction();
+     }
+     recomputeViewableItems() {
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 index 08724d1..bc5b0ae 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
@@ -47,3 +70,17 @@ index 08724d1..bc5b0ae 100644
                  return new Promise((resolve) => {
                      const { horizontal } = recyclerViewManager.props;
                      if (scrollViewRef.current &&
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/viewability/ViewabilityManager.js
+@@ -25,6 +25,10 @@ export default class ViewabilityManager {
+         };
+         this.updateViewableItems = (newViewableIndices) => {
+             var _a;
++            // Check listeners and layout BEFORE getWindowSize(), which throws when there is no layoutManager (patch 002 skips 0x0 layouts)
++            if (!this.shouldListenToVisibleIndices || !this.rvManager.hasLayout()) {
++                return;
++            }
+             const listSize = this.rvManager.getWindowSize();
+             if (listSize === undefined || !this.shouldListenToVisibleIndices) {
+                 return;

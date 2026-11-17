@@ -107,4 +107,41 @@ describe('getBottomSheetHeight', () => {
         // Then the caller's ceiling wins, less the top padding, instead of the dropdown cap
         expect(height).toBe(maxHeight - BOTTOM_SHEET_TOP_PADDING);
     });
+
+    it('fills the window up to the status bar when asked to', () => {
+        // Given a phone in landscape, where the sheet takes the whole screen rather than a share of it
+        const windowHeight = 400;
+
+        // When the sheet is asked to fill the window while it would prefer the standard dropdown height
+        const height = getBottomSheetHeight({
+            preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            windowHeight,
+            keyboardHeight: 0,
+            topSafeAreaInset: TOP_INSET,
+            minHeight: MIN_HEIGHT,
+            shouldFillWindow: true,
+        });
+
+        // Then it takes everything below the status bar, less its own top padding
+        expect(height).toBe(windowHeight - TOP_INSET - BOTTOM_SHEET_TOP_PADDING);
+    });
+
+    it('fills only the room above the keyboard when asked to fill the window', () => {
+        // Given a phone in landscape with the keyboard open
+        const windowHeight = 400;
+        const keyboardHeight = 150;
+
+        // When the sheet is asked to fill the window
+        const height = getBottomSheetHeight({
+            preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            windowHeight,
+            keyboardHeight,
+            topSafeAreaInset: TOP_INSET,
+            minHeight: MIN_HEIGHT,
+            shouldFillWindow: true,
+        });
+
+        // Then it stops at the keyboard, so nothing in it is hidden behind the keyboard
+        expect(height).toBe(windowHeight - keyboardHeight - TOP_INSET - BOTTOM_SHEET_TOP_PADDING);
+    });
 });

@@ -750,7 +750,7 @@ describe('actions/IOU', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
                     callback: (metadata) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(metadata?.pendingNewTransactionIDs);
                     },
                 });

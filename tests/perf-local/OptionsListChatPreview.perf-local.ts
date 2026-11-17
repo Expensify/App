@@ -15,7 +15,7 @@ import type {TupleToUnion} from 'type-fest';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
@@ -240,6 +240,7 @@ const buildOptionList = () =>
             maxRecentReports: REPORTS_COUNT,
             transactionThreadIDs,
             lastActions,
+            formatPhoneNumber,
         },
         undefined,
     );
@@ -311,7 +312,7 @@ describe('OptionsListChatPreview', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 getPreviewOptionsConfig(MAX_ELEMENTS),
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             ),
         );
@@ -330,7 +331,7 @@ describe('OptionsListChatPreview', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 getPreviewOptionsConfig(WIDE_MAX_ELEMENTS),
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             ),
         );
@@ -350,7 +351,7 @@ describe('OptionsListChatPreview', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 getPreviewOptionsConfig(MAX_ELEMENTS),
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
         });
@@ -370,7 +371,7 @@ describe('OptionsListChatPreview', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 getPreviewOptionsConfig(WIDE_MAX_ELEMENTS),
-                translateLocal,
+                {translate: translateLocal, formatPhoneNumber},
                 undefined,
             );
         });

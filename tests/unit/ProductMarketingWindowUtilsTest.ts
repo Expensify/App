@@ -2,17 +2,17 @@ import {isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWin
 import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
-    updateKey: 'productUpdateSeptember2026',
+    updateKey: 'productUpdateOctober2026',
     visual: {type: 'illustration', name: 'Rules'},
-    heading: 'productMarketingWindow.heading',
-    body: 'productMarketingWindow.body',
+    heading: 'productMarketingWindow.member.heading',
+    body: 'productMarketingWindow.member.body',
     ctaLabel: 'common.learnMore',
     ctaUrl: 'https://help.expensify.com',
 };
 
-const OLDER_UPDATE_KEY = 'productUpdateAugust2026';
+const OLDER_UPDATE_KEY = 'productUpdateSeptember2026';
 // A key a future release will add that this client has never heard of, which marks the client as stale.
-const UNKNOWN_UPDATE_KEY = 'productUpdateOctober2026';
+const UNKNOWN_UPDATE_KEY = 'productUpdateNovember2026';
 
 describe('ProductMarketingWindowUtils', () => {
     describe('isProductMarketingAnnouncementDismissed', () => {

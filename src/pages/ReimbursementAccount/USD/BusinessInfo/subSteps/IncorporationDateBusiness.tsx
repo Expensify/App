@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,13 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
@@ -28,24 +24,20 @@ function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
-                errors.incorporationDate = translate('common.error.dateInvalid');
-            } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
-                errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
-            }
+        if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('common.error.dateInvalid');
+        } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 
@@ -54,14 +46,6 @@ function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
-
-    if (isLoadingReimbursementAccount) {
-        return (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <FormProvider

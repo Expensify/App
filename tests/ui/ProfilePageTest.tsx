@@ -14,6 +14,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {ProfileNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import PublicProfilePage from '@pages/ProfilePage';
+import StatusPage from '@pages/settings/Profile/CustomStatus/StatusPage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 
 import CONST from '@src/CONST';
@@ -210,7 +211,7 @@ describe('ProfilePage contact method indicator', () => {
 
 const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
-const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT) => {
+const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT, page = ProfilePage) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -218,7 +219,7 @@ const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROF
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
                             name={SCREENS.SETTINGS.PROFILE.ROOT}
-                            component={ProfilePage}
+                            component={page}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>
@@ -267,6 +268,16 @@ describe('ProfilePage - agent account', () => {
 
         await waitForBatchedUpdatesWithAct();
     }
+
+    it('uses the translated name for the status message field', async () => {
+        // Given an English-speaking user whose status can be edited
+        await setupUser('user@expensify.com');
+        // When the actual Status page and its text input render
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT, StatusPage);
+        await waitForBatchedUpdatesWithAct();
+        // Then the field is named by its visible label, not the internal form ID
+        expect(screen.getByLabelText('Message')).toBeOnTheScreen();
+    });
 
     it('shows contact methods and private section but hides pronouns and timezone for agent account', async () => {
         await setupUser('testbot_123@expensify.ai', true);
@@ -412,6 +423,18 @@ describe('ProfilePage - agent account', () => {
 
         expect(screen.queryByTestId('ai-prompt-input')).toBeNull();
         expect(screen.queryByTestId('save-prompt-button')).toBeNull();
+    });
+
+    it('allows an AI prompt longer than a chat comment', async () => {
+        // Given an agent account, whose profile shows a markdown prompt input that otherwise falls back to the chat comment limit
+        await setupUser('testbot_123@expensify.ai', true);
+
+        // When the profile page renders
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
+        expect(screen.getByTestId('ai-prompt-input').props.maxLength).toBe(CONST.AGENT_PROMPT_MAX_LENGTH);
     });
 
     it('calls openProfilePage on mount for agent account', async () => {

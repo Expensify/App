@@ -23,7 +23,6 @@ function usePolicyIcons(policyID?: string, accountID?: number, fallbackDisplayNa
         type: CONST.ICON_TYPE_WORKSPACE,
         name,
         // A workspace with no uploaded avatar has `avatarURL: ''`, which has to fall through to the default avatar.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: policyAvatar?.avatarURL || getDefaultWorkspaceAvatar(name),
     };
 

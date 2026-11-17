@@ -35,7 +35,6 @@ function BusinessCentralPreferredExporterSelectPage({policy}: WithPolicyConnecti
     const savedExporter = businessCentralConfig?.export?.exporter;
 
     // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const exporter = savedExporter || policyOwner;
     const exporters = getAdminEmployees(policy);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT.getRoute(policyID) : undefined;

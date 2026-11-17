@@ -1,6 +1,7 @@
 import DynamicFormFlow from '@components/DynamicForm';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
-import type {DynamicFormLayout} from '@components/DynamicForm/types';
+import type {DynamicFormFlowProps, DynamicFormLayout} from '@components/DynamicForm/types';
+import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
@@ -24,6 +25,7 @@ import {View} from 'react-native';
 import {useArgs} from 'storybook/preview-api';
 
 import {StoryRouterProvider} from '../../.storybook/mocks/storyRouter';
+import wiseBankAccountFieldsGB from '../../tests/data/wise/wiseBankAccountFieldsGB';
 
 const defaultStyles = styles(defaultTheme);
 
@@ -422,16 +424,40 @@ function SinglePage({fields, draftValues, isFlat}: Preset) {
     );
 }
 
-type FlowProps = Preset & {
+type FlowProps = Pick<Preset, 'draftValues'> & {
+    schema: DynamicFormSchema;
+
+    /** Receives a changed field marked refreshOnChange, for stories that swap the schema like a server would */
+    onRefreshRequirements?: DynamicFormFlowProps['onRefreshRequirements'];
+
+    /** Title of the confirmation page */
+    confirmationTitle?: string;
+
     layout: DynamicFormLayout;
     confirmation: 'auto' | 'yes' | 'no';
+
+    /** Shows the submit button's spinner, as while the request is in flight */
+    isSubmitting?: boolean;
+
+    /** Shows the error the request failed with, next to the submit button */
+    submitError?: string;
 
     /** Remounts the route stack when it changes, so a new schema starts from its first page */
     resetKey: string;
 };
 
 /** The whole flow on a story-owned route stack: pages, resume, the entry editor pages and the confirmation are all clickable */
-function Flow({fields, draftValues, isFlat, layout, confirmation, resetKey}: FlowProps) {
+function Flow({
+    schema,
+    draftValues,
+    confirmationTitle = 'Let’s double check that everything looks right',
+    layout,
+    confirmation,
+    isSubmitting,
+    submitError,
+    resetKey,
+    onRefreshRequirements,
+}: FlowProps) {
     const isDraftReady = useSeededDraft(draftValues);
     if (!isDraftReady) {
         return <View />;
@@ -446,36 +472,39 @@ function Flow({fields, draftValues, isFlat, layout, confirmation, resetKey}: Flo
             routePrefix={FLOW_ROUTE_PREFIX}
         >
             <DynamicFormFlow
-                schema={toSchema(fields, isFlat)}
+                schema={schema}
                 formID={STORYBOOK_FORM_ID}
                 headerTitle="Add bank account"
-                confirmationTitle="Let’s double check that everything looks right"
+                confirmationTitle={confirmationTitle}
                 testID="DynamicFormFlowStory"
                 buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, pageName, action)}
                 onSubmit={(values) => alert(JSON.stringify(values, null, 4))}
                 onBack={() => alert('Left the flow')}
-                onRefreshRequirements={(inputID, value) => console.debug('Refresh requirements', inputID, value)}
+                onRefreshRequirements={onRefreshRequirements ?? ((inputID, value) => console.debug('Refresh requirements', inputID, value))}
                 layout={layout}
                 hasConfirmation={hasConfirmation}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
             />
         </StoryRouterProvider>
     );
 }
 
-type FlowStoryProps = Pick<FlowProps, 'layout' | 'confirmation'> & {
+type FlowStoryProps = Pick<FlowProps, 'layout' | 'confirmation' | 'isSubmitting' | 'submitError'> & {
     preset: PresetName;
 };
 
-function FlowFromPreset({preset, layout, confirmation}: FlowStoryProps) {
+function FlowFromPreset({preset, layout, confirmation, isSubmitting, submitError}: FlowStoryProps) {
     const presetValues: Preset = PRESETS[preset];
     return (
         <Flow
             resetKey={preset}
-            fields={presetValues.fields}
+            schema={toSchema(presetValues.fields, presetValues.isFlat)}
             draftValues={presetValues.draftValues}
-            isFlat={presetValues.isFlat}
             layout={layout}
             confirmation={confirmation}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
         />
     );
 }
@@ -484,6 +513,8 @@ const flowArgTypes = {
     preset: {options: PRESET_NAMES, control: {type: 'select'}},
     layout: {options: ['auto', 'stepper', 'pages'], control: {type: 'radio'}},
     confirmation: {options: ['auto', 'yes', 'no'], control: {type: 'radio'}},
+    isSubmitting: {control: {type: 'boolean'}},
+    submitError: {control: {type: 'text'}},
 } as const;
 
 function presetFlowStory(preset: PresetName): StoryFn<FlowStoryProps> {
@@ -538,14 +569,46 @@ function Playground({preset, fields, draftValues, isFlat, layout}: PlaygroundPro
     return (
         <Flow
             resetKey={resetKey}
-            fields={schema}
+            schema={toSchema(schema, isFlat)}
             draftValues={draftValues ?? {}}
-            isFlat={isFlat}
             layout="auto"
             confirmation="auto"
         />
     );
 }
+
+const WISE_GB_ADDRESS_KEYS = getAddressInputKeys('address');
+
+/** The holder details the App prefills from the profile, as in the design */
+const WISE_GB_DRAFT: Preset['draftValues'] = {
+    currency: 'GBP',
+    accountHolderName: 'Todd Clyde',
+    address: '123 Buckingham Palace Road',
+    [WISE_GB_ADDRESS_KEYS.city]: 'London',
+    [WISE_GB_ADDRESS_KEYS.zipCode]: 'SW1W 0DH',
+    [WISE_GB_ADDRESS_KEYS.country]: 'GB',
+};
+
+type WiseBankAccountStoryProps = Pick<FlowProps, 'layout' | 'confirmation'>;
+
+/** The GBP form exactly as GetWiseBankAccountFields writes it to Onyx */
+function WiseBankAccountGBFlow({layout, confirmation}: WiseBankAccountStoryProps) {
+    const {translate} = useLocalize();
+    return (
+        <Flow
+            resetKey="wiseBankAccountGB"
+            schema={wiseBankAccountFieldsGB.schema}
+            draftValues={WISE_GB_DRAFT}
+            confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
+            layout={layout}
+            confirmation={confirmation}
+        />
+    );
+}
+
+const WiseBankAccountGB: StoryFn<WiseBankAccountStoryProps> = WiseBankAccountGBFlow.bind({});
+WiseBankAccountGB.args = {layout: 'auto', confirmation: 'auto'};
+WiseBankAccountGB.argTypes = {layout: flowArgTypes.layout, confirmation: flowArgTypes.confirmation};
 
 const FlowStory = presetFlowStory('originalBankAccount');
 FlowStory.storyName = 'Flow';
@@ -590,4 +653,5 @@ export {
     LoneCurrency,
     AmountWithCurrency,
     UnknownType,
+    WiseBankAccountGB,
 };

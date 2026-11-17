@@ -4,12 +4,14 @@ import type {
     UpdateBusinessCentralAccountingMethodParams,
     UpdateBusinessCentralAutoCreateEntitiesParams,
     UpdateBusinessCentralAutoSyncParams,
+    UpdateBusinessCentralCardProgramAccountParams,
     UpdateBusinessCentralCompanyParams,
     UpdateBusinessCentralCustomerMappingParams,
     UpdateBusinessCentralDefaultVendorParams,
     UpdateBusinessCentralEnableNewCategoriesParams,
     UpdateBusinessCentralExportDateParams,
     UpdateBusinessCentralExporterParams,
+    UpdateBusinessCentralExportToMultipleAccountsParams,
     UpdateBusinessCentralExportToNextOpenPeriodParams,
     UpdateBusinessCentralFieldMappingParams,
     UpdateBusinessCentralNonreimbursableAccountParams,
@@ -30,6 +32,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {BusinessCentralCoding, BusinessCentralCodingOfflineFeedbackKeys, BusinessCentralCustomerMappings, BusinessCentralExport, BusinessCentralSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
@@ -483,6 +486,102 @@ function updateBusinessCentralPaymentMethod(
     write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_PAYMENT_METHOD, parameters, onyxData);
 }
 
+function updateBusinessCentralExportToMultipleAccounts(
+    policyID: string,
+    enabled: BusinessCentralExport['exportToMultipleAccounts'],
+    oldEnabled?: BusinessCentralExport['exportToMultipleAccounts'],
+) {
+    const onyxData = prepareBusinessCentralConfigSectionOnyxData(policyID, 'export', CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS, enabled, oldEnabled ?? null);
+    const parameters: UpdateBusinessCentralExportToMultipleAccountsParams = {policyID, enabled};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_EXPORT_TO_MULTIPLE_ACCOUNTS, parameters, onyxData);
+}
+
+/**
+ * An empty `cardProgramAccountID` clears the feed's override, so the feed exports to the workspace's company card account.
+ * The pending and error state lives under the prefixed feed key so only that feed's row shows the indicator.
+ */
+function updateBusinessCentralCardProgramAccount(
+    policyID: string,
+    feedKey: CardFeedWithNumber,
+    cardProgramAccountID: ValueOf<BusinessCentralExport['cardProgramAccounts']>,
+    oldCardProgramAccountID?: ValueOf<BusinessCentralExport['cardProgramAccounts']>,
+) {
+    const pendingField = `${CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: cardProgramAccountID || null,
+                                },
+                            },
+                            pendingFields: {
+                                [pendingField]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [pendingField]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            pendingFields: {
+                                [pendingField]: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {
+                            export: {
+                                cardProgramAccounts: {
+                                    [feedKey]: oldCardProgramAccountID ?? null,
+                                },
+                            },
+                            pendingFields: {
+                                [pendingField]: null,
+                            },
+                            errorFields: {
+                                [pendingField]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateBusinessCentralCardProgramAccountParams = {policyID, feedKey, cardProgramAccountID};
+    write(WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
 function updateBusinessCentralExportToNextOpenPeriod(
     policyID: string,
     enabled: BusinessCentralExport['exportToNextOpenPeriod'],
@@ -645,4 +744,6 @@ export {
     updateBusinessCentralReimbursementBankAccount,
     updateBusinessCentralSyncExpensifyCardSettlements,
     updateBusinessCentralSettlementsBankAccount,
+    updateBusinessCentralExportToMultipleAccounts,
+    updateBusinessCentralCardProgramAccount,
 };

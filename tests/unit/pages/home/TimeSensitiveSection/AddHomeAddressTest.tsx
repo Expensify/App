@@ -5,12 +5,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import AddHomeAddress from '@src/pages/home/TimeSensitiveSection/items/AddHomeAddress';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -99,6 +99,7 @@ function TimeSensitiveSection() {
         <HomeTaskGroup
             title="homePage.timeSensitiveSection.title"
             rows={useTimeSensitiveItems()}
+            expandToggleSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SECTION_EXPAND_TOGGLE_TIME_SENSITIVE}
         />
     );
 }
@@ -166,12 +167,16 @@ describe('AddHomeAddress navigation', () => {
         jest.restoreAllMocks();
     });
 
-    it('opens private personal details on top of the profile page', () => {
+    it('opens the address-only home address page on top of the preferences page', () => {
+        // Given the Home page task asking the member to add the home address their commute is measured from
         render(<AddHomeAddress />);
 
+        // When the member presses its CTA
         fireEvent.press(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta'));
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
-        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1));
+        // Then the address-only page opens over the preferences page, so the member is not asked for a legal name,
+        // date of birth, phone number or magic code just to add an address
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HOME_ADDRESS);
+        expect(swapBackgroundTabForRHPTarget).toHaveBeenCalledWith(mockRootState, ROUTES.SETTINGS_HOME_ADDRESS);
     });
 });

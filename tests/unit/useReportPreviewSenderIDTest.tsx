@@ -3,9 +3,11 @@ import {act, renderHook} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
+
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as MoneyRequestReportUtils from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -199,5 +201,28 @@ describe('useReportPreviewSenderID', () => {
         );
         await waitForBatchedUpdatesWithAct();
         expect(result.current).toBe(CURRENT_USER_ACCOUNT_ID);
+    });
+    it('should not filter the report transactions again when the hook re-renders with the same data', async () => {
+        // Given a report preview whose transactions are already loaded
+        const getAllNonDeletedTransactionsSpy = jest.spyOn(MoneyRequestReportUtils, 'getAllNonDeletedTransactions');
+        const {rerender} = renderHook(
+            ({iouReport}: {iouReport: Report}) =>
+                useReportPreviewSenderID({
+                    action: validAction,
+                    iouReport,
+                    chatReport: mockedDMChatRoom,
+                }),
+            {wrapper, initialProps: {iouReport: iouReportR14932}},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const callCountAfterLoad = getAllNonDeletedTransactionsSpy.mock.calls.length;
+
+        // When the parent re-renders the row with an equal but new report object, as a chat re-render does
+        rerender({iouReport: {...iouReportR14932}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the transactions are reused, because filtering them on every render of every preview made chats with report previews slow
+        expect(getAllNonDeletedTransactionsSpy).toHaveBeenCalledTimes(callCountAfterLoad);
+        getAllNonDeletedTransactionsSpy.mockRestore();
     });
 });

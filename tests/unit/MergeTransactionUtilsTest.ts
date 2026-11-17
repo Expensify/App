@@ -30,7 +30,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests
@@ -346,7 +346,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -395,6 +395,7 @@ describe('MergeTransactionUtils', () => {
                 distanceExpense,
                 {...distanceExpense, transactionID: 'secondTransaction'},
                 mockLocaleCompare,
+                translateLocal,
                 mockGetCurrencyDecimals,
                 [],
                 excludingWorkspace,
@@ -448,6 +449,7 @@ describe('MergeTransactionUtils', () => {
                     distanceExpense,
                     {...distanceExpense, transactionID: 'secondTransaction'},
                     mockLocaleCompare,
+                    translateLocal,
                     mockGetCurrencyDecimals,
                     [],
                     excludingWorkspace,
@@ -501,6 +503,7 @@ describe('MergeTransactionUtils', () => {
                 distanceExpense,
                 {...distanceExpense, transactionID: 'secondTransaction'},
                 mockLocaleCompare,
+                translateLocal,
                 mockGetCurrencyDecimals,
                 [],
                 excludingWorkspace,
@@ -534,7 +537,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -557,7 +560,7 @@ describe('MergeTransactionUtils', () => {
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -584,7 +587,7 @@ describe('MergeTransactionUtils', () => {
                 },
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -611,7 +614,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.AUD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -644,7 +647,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -677,7 +680,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -710,7 +713,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).toContain('attendees');
             });
@@ -750,7 +753,7 @@ describe('MergeTransactionUtils', () => {
                             attendees: sourceAttendees,
                         },
                     };
-                    return getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                    return getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
                 };
 
                 it('should not conflict when neither expense has attendees', () => {
@@ -818,7 +821,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).not.toContain('attendees');
             });
@@ -846,7 +849,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('taxValue');
             expect(result.conflictFields).toContain('merchant');
@@ -864,7 +867,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
@@ -1106,7 +1109,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for merchant
-            const result = getDisplayValue('merchant', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'merchant',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return empty string
             expect(result).toBe('');
@@ -1121,8 +1133,26 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for boolean fields
-            const reimbursableResult = getDisplayValue('reimbursable', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
-            const billableResult = getDisplayValue('billable', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const reimbursableResult = getDisplayValue(
+                'reimbursable',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
+            const billableResult = getDisplayValue(
+                'billable',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return translated Yes/No values
             expect(reimbursableResult).toBe('common.yes');
@@ -1138,7 +1168,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for amount
-            const result = getDisplayValue('amount', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'amount',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return formatted currency string
             expect(result).toBe('$10.00');
@@ -1154,7 +1193,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for description
-            const result = getDisplayValue('description', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'description',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return cleaned text without HTML and with spaces instead of line breaks
             expect(result).toBe('This is a test description with line breaks and more text');
@@ -1168,7 +1216,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for tag
-            const result = getDisplayValue('tag', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue('tag', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare, formatPhoneNumber);
 
             // Then it should return sanitized tag names separated by commas
             expect(result).toBe('Department, Engineering, Frontend');
@@ -1185,7 +1233,16 @@ describe('MergeTransactionUtils', () => {
                     ],
                 },
             };
-            const result = getDisplayValue('attendees', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'attendees',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             expect(result).toBe('Test User 1, Test User 2');
         });
@@ -1200,8 +1257,26 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display values for string fields
-            const merchantResult = getDisplayValue('merchant', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
-            const categoryResult = getDisplayValue('category', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const merchantResult = getDisplayValue(
+                'merchant',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
+            const categoryResult = getDisplayValue(
+                'category',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return the string values
             expect(merchantResult).toBe('Starbucks Coffee');
@@ -1216,7 +1291,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'reportID',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return translated "None"
             expect(result).toBe('common.none');
@@ -1231,7 +1315,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'reportID',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return the reportName
             expect(result).toBe('Test Report Name');
@@ -1257,7 +1350,16 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, getTransactionDetails(transaction), undefined, translateLocal, convertToDisplayString, mockLocaleCompare);
+            const result = getDisplayValue(
+                'reportID',
+                transaction,
+                getTransactionDetails(transaction),
+                undefined,
+                translateLocal,
+                convertToDisplayString,
+                mockLocaleCompare,
+                formatPhoneNumber,
+            );
 
             // Then it should return the report's name from Onyx
             expect(result).toBe(report.reportName);
@@ -1273,7 +1375,14 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'merchant',
+                fieldValue,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                translate: translateLocal,
+                destinationPolicy: undefined,
+            });
 
             // Then it should return an object with the field value
             expect(result).toEqual({
@@ -1290,7 +1399,14 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 2500;
 
             // When we get updated values for amount field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'amount',
+                fieldValue,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                translate: translateLocal,
+                destinationPolicy: undefined,
+            });
 
             // Then it should include both amount and currency
             expect(result).toEqual({
@@ -1309,7 +1425,14 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = '456';
 
             // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'reportID',
+                fieldValue,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                translate: translateLocal,
+                destinationPolicy: undefined,
+            });
 
             // Then it should include both reportID and reportName
             expect(result).toEqual({
@@ -1344,7 +1467,14 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Distance Merchant';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'merchant',
+                fieldValue,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                translate: translateLocal,
+                destinationPolicy: undefined,
+            });
 
             // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({
@@ -1799,7 +1929,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get mergeable data and conflict fields
-            const {conflictFields} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
+            const {conflictFields} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, translateLocal, mockGetCurrencyDecimals);
 
             // Then amount should still be a conflict field (not auto-resolved by transactionType: 'card')
             expect(conflictFields).toContain('amount');

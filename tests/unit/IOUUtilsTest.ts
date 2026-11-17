@@ -876,6 +876,79 @@ describe('canApproveIOU', () => {
         expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
+    it('should return false when the only expense failed SmartScan with missing fields', async () => {
+        // Given a submitted expense report whose only expense failed SmartScan and has no amount
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        const scanFailedTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+
+        // When checking if approve action is available
+        // Then it should return false because there is nothing the approver can approve until the missing fields are filled in
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [scanFailedTransaction])).toBe(false);
+    });
+
+    it('should return true when a report mixes a complete expense with an expense that failed SmartScan', async () => {
+        // Given a submitted expense report with one complete expense and one expense that failed SmartScan
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        const completeTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const scanFailedTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '456',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+
+        // When checking if approve action is available
+        // Then it should return true because one expense that still needs fixing shouldn't block approving the complete one
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [completeTransaction, scanFailedTransaction])).toBe(true);
+    });
+
     it('should return true for Submit workspace report when user is manager', async () => {
         const report: Report = {
             ...createRandomReport(Number(REPORT_ID), undefined),
@@ -1273,6 +1346,19 @@ describe('formatCurrentUserToAttendee', () => {
     });
 });
 
+describe('isP2PRecipient', () => {
+    const CURRENT_USER_ACCOUNT_ID = 1;
+
+    it('returns true for another user', () => {
+        // Given a participant that is another user
+        const participant = {accountID: 2, isPolicyExpenseChat: false};
+
+        // When checking whether the expense goes 1:1 to that user
+        // Then it does, so the expense can't hold a negative amount
+        expect(IOUUtils.isP2PRecipient(participant, CURRENT_USER_ACCOUNT_ID)).toBe(true);
+    });
+});
+
 describe('isParticipantP2P', () => {
     it('should return true for P2P participant with accountID and isPolicyExpenseChat false', () => {
         const participant = {
@@ -1485,5 +1571,122 @@ describe('isLookingAroundSearchRoutingActive', () => {
     it('is inactive for a non-LOOKING_AROUND user, online or offline', () => {
         expect(IOUUtils.isLookingAroundSearchRoutingActive(false, false)).toBe(false);
         expect(IOUUtils.isLookingAroundSearchRoutingActive(false, true)).toBe(false);
+    });
+});
+
+describe('getDefaultReimbursableForPolicy', () => {
+    // These cases pin down what an ABSENT `defaultReimbursable` means at expense creation time. It has to
+    // agree with getCashExpenseReimbursableMode on the Rules page, otherwise the page claims a rule is
+    // enforced while newly created expenses quietly ignore it.
+    it('treats an absent defaultReimbursable as reimbursable', () => {
+        // Given a group policy that has no stored defaultReimbursable
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then it defaults to reimbursable, which is what the backend assumes for an absent value
+        expect(result).toBe(true);
+    });
+
+    it('honors a locked non-reimbursable policy in its policy expense chat', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then the lock applies, because the expense goes to that workspace
+        expect(result).toBe(false);
+    });
+
+    it('ignores a locked non-reimbursable policy when the expense does not go to that workspace', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created outside its policy expense chat, such as a P2P expense
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: false, isCreatingTrackExpense: false});
+
+        // Then it stays reimbursable, because that workspace's rules do not apply to the expense
+        expect(result).toBe(true);
+    });
+
+    it('still reports reimbursable for a locked policy whose defaultReimbursable is absent', () => {
+        // Given a workspace with a locked reimbursable field but no stored default
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then it is reimbursable - the same answer the Rules page now shows, instead of the two disagreeing
+        expect(result).toBe(true);
+    });
+
+    it('uses the stored default for an unlocked policy', () => {
+        // Given a workspace defaulting to non-reimbursable without locking the field
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+        // When a new expense is created in its policy expense chat
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: true, isCreatingTrackExpense: false});
+
+        // Then the stored default applies
+        expect(result).toBe(false);
+    });
+
+    it('stays reimbursable for a P2P expense with no policy', () => {
+        // Given no policy at all, which is the P2P case
+        // When a new expense is created
+        const result = IOUUtils.getDefaultReimbursableForPolicy({policy: undefined, isPolicyExpenseChat: false, isCreatingTrackExpense: false});
+
+        // Then it is reimbursable, the long-standing behavior for P2P
+        expect(result).toBe(true);
+    });
+});
+
+describe('calculateDefaultReimbursable', () => {
+    it('applies a locked non-reimbursable workspace rule to a submitted expense', () => {
+        // Given a workspace locked to "cash expenses are always non-reimbursable"
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When submitting a new expense to its policy expense chat
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policy,
+            participant: {isPolicyExpenseChat: true},
+        });
+
+        // Then the expense is created non-reimbursable
+        expect(result).toBe(false);
+    });
+
+    it('defaults to reimbursable when the workspace has no stored defaultReimbursable', () => {
+        // Given a workspace whose policy blob is missing defaultReimbursable
+        const policy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: undefined};
+
+        // When submitting a new expense to its policy expense chat
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policy,
+            participant: {isPolicyExpenseChat: true},
+        });
+
+        // Then the expense is reimbursable
+        expect(result).toBe(true);
+    });
+
+    it('does not apply a locked workspace rule when an unreported expense is submitted to a P2P participant', () => {
+        // Given the policy for moving expenses is locked to "cash expenses are always non-reimbursable"
+        const policyForMovingExpenses: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+        // When an unreported expense is submitted to a P2P participant
+        const result = IOUUtils.calculateDefaultReimbursable({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            policyForMovingExpenses,
+            participant: {isPolicyExpenseChat: false},
+            transactionReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+        });
+
+        // Then the expense stays reimbursable, because the unrelated workspace's lock does not reach P2P expenses
+        expect(result).toBe(true);
     });
 });

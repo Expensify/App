@@ -1,7 +1,9 @@
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
@@ -40,7 +42,10 @@ function handleSkeletonLayout() {
 function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!props.hasFilterBars);
+    const containerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : undefined;
+    // Laid out during the idle preload while nobody sees it, so it must not end the spans of a tap or submit made elsewhere.
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
     // not un-hide it mid-swap.
@@ -53,7 +58,7 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
                 <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
                     <SearchRowSkeleton
                         shouldAnimate
-                        onLayout={handleSkeletonLayout}
+                        onLayout={isInPreloadedTab ? undefined : handleSkeletonLayout}
                         containerStyle={containerStyle}
                     />
                 </View>

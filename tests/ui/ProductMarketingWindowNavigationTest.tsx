@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
+import {getActiveProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 import en from '@src/languages/en';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -27,11 +27,11 @@ const FIRST_SCREEN_TEXT = 'First screen content';
 const SECOND_SCREEN_TEXT = 'Second screen content';
 const MODAL_SCREEN_TEXT = 'Centered modal screen content';
 
-const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
+const announcement = getActiveProductMarketingAnnouncement(false);
 if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
-const windowHeading = en.productMarketingWindow.heading;
+const windowHeading = en.productMarketingWindow.member.heading;
 
 type TestRootParamList = {
     [SCREENS.CONCIERGE]: undefined;

@@ -3,7 +3,10 @@ import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -42,6 +45,8 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
+    // The confirmation form only ever holds the current user's own expense.
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -57,6 +62,12 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
         isEditing: action === CONST.IOU.ACTION.EDIT,
         isEditingSplit: isEditingSplitBill,
     });
+    // Only the create row's re-enable path reads this, so skip the report scan when the row can't show.
+    const policyData = usePolicyData(canAddCategory ? policy?.id : undefined);
+    // Creating a category requires a real workspace. Writing to a draft would clear its default categories.
+    const isDraftOnlyPolicy = !policyData.policy?.id || policyData.policy.id !== policy?.id;
+    const canCreateSearchedCategory = canAddCategory && !isDraftOnlyPolicy;
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID: policy?.id, policyData, updateCategory});
 
     const openAddCategory = () => {
         onClose();
@@ -81,6 +92,8 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
             onSelected={handleSelected}
             onAddCategory={canAddCategory ? openAddCategory : undefined}
             addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
+            onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
+            ownerAccountID={currentUserAccountID}
         />
     );
 }

@@ -1,14 +1,14 @@
 ---
 title: Connect to Campfire
-description: Learn how to connect Campfire to Expensify with an API key, choose a subsidiary, and reconnect or disconnect the integration.
-keywords: [New Expensify, Campfire integration, connect Campfire, Campfire API key, Campfire subsidiary, Campfire accounting sync, Campfire authentication error, disconnect Campfire, Workspace Admin]
-internalScope: Audience is Workspace Admins connecting Campfire as an accounting integration. Covers adding the Campfire connection, entering the API key, choosing a subsidiary, fixing an authentication error, and disconnecting. Does not cover configuring import, export, or advanced sync settings, or exporting reports.
+description: Learn how to connect Campfire to Expensify with an API key, choose an entity, and reconnect or disconnect the integration.
+keywords: [New Expensify, Campfire integration, connect Campfire, Campfire API key, Campfire entity, Campfire accounting sync, Campfire authentication error, disconnect Campfire, Workspace Admin]
+internalScope: Audience is Workspace Admins connecting Campfire as an accounting integration. Covers adding the Campfire connection, entering the API key, choosing an entity, fixing an authentication error, and disconnecting. Does not cover configuring import, export, or advanced sync settings, or exporting reports.
 order: 1
 ---
 
 # Connect to Campfire
 
-Connect Campfire to your Expensify workspace to sync your accounting data. This article walks you through connecting Campfire with an API key, choosing a subsidiary, and completing the initial setup.
+Connect Campfire to your Expensify workspace to sync your accounting data. This article walks you through connecting Campfire with an API key, choosing an entity, and completing the initial setup.
 
 Once connected, the integration imports:
 
@@ -30,8 +30,8 @@ To connect Campfire, you must:
 ## How to connect Campfire to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. In the **Connections** section next to **Campfire**, select **Connect**.
+2. Select **Connections**.
+3. Select **Campfire**.
 4. On the **Campfire setup** page, follow the on-screen instructions to generate an API key in Campfire.
 5. Paste the key into the **API key** field.
 6. Select **Confirm**.
@@ -44,13 +44,13 @@ Expensify validates the API key and starts the first sync with Campfire.
 
 ## What happens after you connect to Campfire
 
-After the connection is established, the **Connections** section updates to show your connected Campfire integration, including:
+After the connection is established, Campfire appears as connected on the **Connections** page. Select **Configure** next to Campfire to see:
 
 - The connection status and last sync timestamp.
-- The selected subsidiary.
+- The selected entity.
 - The **Import**, **Export**, and **Advanced** configuration tabs.
 
-If your Campfire organization has multiple subsidiaries, you can choose which one to connect. If only one eligible subsidiary is available, Expensify selects it automatically. The selected subsidiary determines which accounting data is available in Expensify.
+If your Campfire organization has multiple entities, you can choose which one to connect. If only one eligible entity is available, Expensify selects it automatically. The selected entity determines which accounting data is available in Expensify.
 
 After the first sync, you can configure how data imports and exports. Learn how to [configure Campfire import, export, and advanced settings](/articles/new-expensify/connections/campfire/Configure-Campfire).
 
@@ -61,8 +61,8 @@ After the first sync, you can configure how data imports and exports. Learn how 
 If the saved API key becomes invalid, Expensify displays an error on the Campfire connection. To reconnect to Campfire:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Next to **Campfire**, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Fix** next to Campfire.
+3. Select **More (⋮)**.
 4. Select **Enter your credentials**.
 5. Create a new API key in Campfire and paste it into the **API key** field.
 6. Select **Confirm**.
@@ -74,8 +74,8 @@ Expensify syncs again with the new key.
 ## How to disconnect Campfire
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. Next to **Campfire**, select the three dots **(⋮)**.
+2. Select **Connections**, then select **Configure** next to Campfire.
+3. Select **More (⋮)**.
 4. Select **Disconnect**.
 5. Select **Disconnect** again to confirm.
 
@@ -97,10 +97,10 @@ If your Campfire API key is rejected or later becomes invalid, the connection sh
 
 Yes. Expensify encrypts your API key and stores it securely on its servers. The key is never exposed in the app or stored on your device.
 
-## Why can’t I select a Campfire subsidiary?
+## Why can’t I select a Campfire entity?
 
-**Subsidiary** is only selectable when your Campfire organization has more than one eligible subsidiary. Expensify only uses active entities and skips elimination and adjusting entities. If none are eligible, the sync fails. Add an active entity in Campfire, then sync the connection again.
+**Entity** is only selectable when your Campfire organization has more than one eligible entity. Expensify only uses active entities and skips elimination and adjusting entities. If none are eligible, the sync fails. Add an active entity in Campfire, then sync the connection again.
 
 ## Why don’t I see tax rates after connecting to Campfire?
 
-The **Tax rates** option only appears on the **Import** page when your Campfire subsidiary has tax rates set up.
+The **Tax rates** option only appears on the **Import** page when your Campfire entity has tax rates set up.

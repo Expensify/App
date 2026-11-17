@@ -12,6 +12,7 @@ import {hasDependentTags} from '@libs/PolicyUtils';
 import {getDecodedTagName} from '@libs/TagUtils';
 import {getTagForDisplay} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -79,6 +80,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
                     anchorAlignment={anchorAlignment}
+                    searchInputThreshold={CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}
                     popoverHeight={popoverHeight}
                     shouldMeasureAnchorPositionFromTop={!shouldOpenAbove}
                     shouldSwitchPositionIfOverflow={false}

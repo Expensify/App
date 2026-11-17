@@ -3,7 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import CountrySelection from '@pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearReimbursementAccount, clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {navigateToBankAccountRoute, prepareStandaloneBankAccountSetup} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -29,20 +29,16 @@ jest.mock('@hooks/useThemeStyles', () =>
     })),
 );
 jest.mock('@userActions/ReimbursementAccount', () => ({
-    clearReimbursementAccount: jest.fn(),
-    clearReimbursementAccountDraft: jest.fn(),
+    prepareStandaloneBankAccountSetup: jest.fn(),
     navigateToBankAccountRoute: jest.fn(),
-    updateReimbursementAccountDraft: jest.fn(),
 }));
 
 const Stack = createStackNavigator();
 
 describe('BankAccountPurpose CountrySelection', () => {
     const mockedCountrySelectionList = jest.mocked(CountrySelectionList);
-    const mockedClearReimbursementAccount = jest.mocked(clearReimbursementAccount);
-    const mockedClearReimbursementAccountDraft = jest.mocked(clearReimbursementAccountDraft);
+    const mockedPrepareStandaloneBankAccountSetup = jest.mocked(prepareStandaloneBankAccountSetup);
     const mockedNavigateToBankAccountRoute = jest.mocked(navigateToBankAccountRoute);
-    const mockedUpdateReimbursementAccountDraft = jest.mocked(updateReimbursementAccountDraft);
 
     let mockMountCount = 0;
     let mockUnmountCount = 0;
@@ -52,10 +48,8 @@ describe('BankAccountPurpose CountrySelection', () => {
         mockMountCount = 0;
         mockUnmountCount = 0;
         mockedCountrySelectionList.mockClear();
-        mockedClearReimbursementAccount.mockClear();
-        mockedClearReimbursementAccountDraft.mockClear();
+        mockedPrepareStandaloneBankAccountSetup.mockClear();
         mockedNavigateToBankAccountRoute.mockClear();
-        mockedUpdateReimbursementAccountDraft.mockClear();
         mockedCountrySelectionList.mockImplementation(() => {
             React.useEffect(() => {
                 mockMountCount += 1;
@@ -70,6 +64,7 @@ describe('BankAccountPurpose CountrySelection', () => {
     });
 
     it('keeps the child list mounted while persisting the selected country and navigating', async () => {
+        // Given the country list mounted within the bank account setup screen.
         render(
             <NavigationContainer>
                 <Stack.Navigator>
@@ -85,6 +80,7 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);
 
+        // When the user chooses Lithuania and confirms bank account setup.
         act(() => {
             initialProps?.onCountrySelected('LT');
         });
@@ -100,9 +96,8 @@ describe('BankAccountPurpose CountrySelection', () => {
             jest.runOnlyPendingTimers();
         });
 
-        expect(mockedClearReimbursementAccount).toHaveBeenCalled();
-        expect(mockedClearReimbursementAccountDraft).toHaveBeenCalled();
-        expect(mockedUpdateReimbursementAccountDraft).toHaveBeenCalledWith({country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT});
+        // Then setup preserves the selected country and the list stays mounted while navigating.
+        expect(mockedPrepareStandaloneBankAccountSetup).toHaveBeenCalledWith(CONST.BBA_COUNTRY_CURRENCY_MAP.LT, 'LT');
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
         expect(mockMountCount).toBe(1);
         expect(mockUnmountCount).toBe(0);

@@ -39,7 +39,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 type DynamicExpensifyCardLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT>;
 
@@ -69,9 +69,9 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
 
     const getNewAvailableSpend = (newLimit: number) => getExpensifyCardNewAvailableSpend(cardRef.current, newLimit);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
+    };
 
     const updateCardLimit = (newLimit: number) => {
         const latestCard = cardRef.current;
@@ -114,21 +114,18 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
         updateCardLimit(newLimit);
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
-            if (errors.limit) {
-                return errors;
-            }
-
-            const limitError = getExpensifyCardLimitError(values.limit);
-            if (limitError) {
-                errors.limit = getExpensifyCardLimitErrorMessage(translate, limitError);
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
+        if (errors.limit) {
             return errors;
-        },
-        [translate],
-    );
+        }
+
+        const limitError = getExpensifyCardLimitError(values.limit);
+        if (limitError) {
+            errors.limit = getExpensifyCardLimitErrorMessage(translate, limitError);
+        }
+        return errors;
+    };
 
     return (
         <AccessOrNotFoundWrapper

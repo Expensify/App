@@ -2,8 +2,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {transactionViolationsByIDsSelector} from '@src/selectors/TransactionViolations';
 import type {Transaction} from '@src/types/onyx';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 /**
@@ -11,7 +9,7 @@ import useOnyx from './useOnyx';
  * in an unrelated report does not re-render the consumer.
  */
 function useReportTransactionViolations(transactions: Transaction[]) {
-    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const transactionIDs = transactions.map((transaction) => transaction.transactionID);
     return useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(transactionIDs)});
 }
 

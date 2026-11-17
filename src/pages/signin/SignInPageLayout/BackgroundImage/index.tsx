@@ -1,3 +1,5 @@
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -5,7 +7,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 
-import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import type BackgroundImageProps from './types';
@@ -24,14 +26,10 @@ const BackgroundDesktop = lazy(() =>
 function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
 
-    const BackgroundComponent = useMemo(() => {
-        if (isSmallScreen) {
-            return BackgroundMobile;
-        }
-        return BackgroundDesktop;
-    }, [isSmallScreen]);
+    const BackgroundComponent = isSmallScreen ? BackgroundMobile : BackgroundDesktop;
 
     useEffect(() => {
         if (!isAnonymous) {

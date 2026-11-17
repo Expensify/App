@@ -7,10 +7,8 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 
-import type {Dispatch, SetStateAction} from 'react';
-
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect} from 'react';
 
 import type {MiddlewareHookResult} from './types';
 
@@ -59,15 +57,9 @@ type SelectionMethods = {
 
     /** Clear all of the currently selected rows in the table */
     clearSelection: () => void;
-
-    /** Set whether or not the mobile selection modal is visible */
-    setMobileSelectionModalRowKey: Dispatch<SetStateAction<string | null>>;
 };
 
-type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>> & {
-    /** Whether or not the mobile selection modal is visible */
-    mobileSelectionModalRowKey: string | null;
-};
+type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({
     data,
@@ -90,10 +82,6 @@ export default function useSelection<DataType extends TableData>({
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
     const isFocused = useIsFocused();
 
-    // When a user long-presses a row on mobile, store the key of the row that will be selected if
-    // the user confirms the selection
-    const [mobileSelectionModalRowKey, setMobileSelectionModalRowKey] = useState<string | null>(null);
-
     const selectableKeys = data.filter((item) => !item.disabled && !item.isSelectionDisabled).map((item) => item.keyForList);
     const selectedKeySet = new Set(selectedKeys);
     const tableRowData: Array<TableRow<DataType>> = data.map((item) => ({...item, selected: selectedKeySet.has(item.keyForList)}));
@@ -107,13 +95,13 @@ export default function useSelection<DataType extends TableData>({
     });
 
     // The shift anchor deliberately survives clears — a vanished anchor re-resolves and stale deselects are no-ops, so the next shift+click still ranges from the last click.
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         onRowSelectionChange?.([]);
-    }, [onRowSelectionChange]);
+    };
 
     // Disable selection mode when the Android hardware back button is pressed. A table that is always in selection mode
     // has none to leave, so the press has to fall through to navigation instead.
-    const androidBackButtonDisableSelectionMode = useCallback(() => {
+    const androidBackButtonDisableSelectionMode = () => {
         if (!isSelectionModeEnabled || shouldAlwaysEnableSelection) {
             return false;
         }
@@ -121,7 +109,7 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
         setSelectionModeEnabled(false);
         return true;
-    }, [isSelectionModeEnabled, shouldAlwaysEnableSelection, clearSelection, setSelectionModeEnabled]);
+    };
 
     useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
 
@@ -226,13 +214,11 @@ export default function useSelection<DataType extends TableData>({
 
     return {
         middleware,
-        mobileSelectionModalRowKey,
         methods: {
             handleSelectAll,
             handleMultipleRowSelection,
             handleSingleRowSelection,
             clearSelection,
-            setMobileSelectionModalRowKey,
         },
     };
 }

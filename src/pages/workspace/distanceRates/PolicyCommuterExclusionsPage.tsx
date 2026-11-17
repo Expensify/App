@@ -3,7 +3,7 @@ import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -23,8 +23,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit, hasCompanyAddress, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import {hasOfficeLocations} from '@libs/OfficeLocationUtils';
+import {getDistanceRateCustomUnit, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -68,7 +69,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         selector: (policy) => ({
             commuterExclusions: policy?.commuterExclusions,
             unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
-            hasWorkspaceAddress: hasCompanyAddress(policy),
+            hasOfficeLocations: hasOfficeLocations(policy),
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
         }),
@@ -103,7 +104,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         if (item.keyForList === selectedKey) {
             return;
         }
-        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasOfficeLocations) {
             confirmModal.showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
                 prompt: (
@@ -152,7 +153,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         }
 
         if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
-            if (!policyData?.hasWorkspaceAddress) {
+            if (!policyData?.hasOfficeLocations) {
                 return;
             }
             if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
@@ -224,6 +225,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_SAVE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={onSave}
@@ -236,16 +238,15 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const isHomeAndOfficeSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
     const workArrangementFooter = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={translate(
+        <MenuItemField
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT}
+            name={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
+            value={translate(
                 hasOfficeWorkArrangement(existingCommuterExclusions)
                     ? 'workspace.distanceRates.commuterExclusions.workArrangement.officeBasedTitle'
                     : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
             )}
-            description={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT.getRoute(policyID))}
-            wrapperStyle={[styles.ph5, styles.pt3]}
         />
     );
 

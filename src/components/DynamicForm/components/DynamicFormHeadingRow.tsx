@@ -30,6 +30,7 @@ function DynamicFormHeadingRow({heading, isFirst}: DynamicFormHeadingRowProps) {
                 <Text
                     style={styles.textStrong}
                     accessibilityRole={CONST.ROLE.HEADER}
+                    aria-level={3}
                 >
                     {title}
                 </Text>

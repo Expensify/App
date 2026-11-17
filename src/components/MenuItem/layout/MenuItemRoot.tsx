@@ -5,6 +5,7 @@ import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@component
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import type Text from '@components/Text';
 
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,8 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import getPlatform from '@libs/getPlatform';
+import mergeRefs from '@libs/mergeRefs';
 
 import variables from '@styles/variables';
 
@@ -22,7 +25,7 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
-import type {ComponentRef, PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren, Ref} from 'react';
 import type {AccessibilityState, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -30,7 +33,8 @@ import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
     WithSentryLabel &
-    WithTestID & {
+    WithTestID &
+    ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -60,6 +64,9 @@ type MenuItemRootProps = PropsWithChildren &
          * buttons must stay reachable, since an accessible parent hides its children on iOS.
          */
         shouldBeAccessible?: boolean;
+
+        /** The pressable row, for a caller that moves focus to it */
+        ref?: Ref<ComponentRef<typeof View>>;
     };
 
 function MenuItemRoot({
@@ -73,6 +80,8 @@ function MenuItemRoot({
     shouldAllowTextSelection = false,
     accessibilityState,
     shouldBeAccessible = true,
+    ref,
+    forwardedFSClass,
 }: MenuItemRootProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -91,7 +100,7 @@ function MenuItemRoot({
         shouldSuppressCopyableTextRowPress,
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
-    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, fsClass: rowFSClass, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
@@ -164,11 +173,13 @@ function MenuItemRoot({
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}
-                        ref={pressableRef}
+                        ref={mergeRefs<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof Text> | undefined>(pressableRef, ref)}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessibilityState={accessibilityState}
+                        // Masked leaves report themselves after the first render, so a preset that names the row up front passes its mask here
+                        forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : rowFSClass}
                         accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}

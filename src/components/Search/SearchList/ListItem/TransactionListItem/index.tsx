@@ -1,10 +1,12 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverAnchor,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
@@ -14,6 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -21,15 +24,18 @@ import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchActionPress from '@hooks/useSearchActionPress';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
+    getAttendees,
     isDeletedTransaction as isDeletedTransactionUtil,
+    isDistanceRequest,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowAttendees,
@@ -37,6 +43,7 @@ import {
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
+import {syncCustomUnitOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,7 +81,6 @@ function TransactionListItem<TItem extends ListItem>(props: TransactionListItemP
 
 function TransactionListItemInner<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -94,6 +100,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     ownerBillingGracePeriodEnd,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const transactionItem = item as unknown as TransactionListItemType;
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
@@ -111,18 +118,15 @@ function TransactionListItemInner<TItem extends ListItem>({
     // so the screen does not re-render every row when the moving policy changes.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const explicitPolicyID = snapshotReport?.policyID || transactionItem.report?.policyID;
     let policyID = explicitPolicyID || activePolicyIDFromOnyx;
     if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         policyID = policyForMovingExpensesID;
     }
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
     const reportActions = actionsData ? Object.values(actionsData) : [];
@@ -137,7 +141,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [submitterLogin] = usePersonalDetail(transactionItem?.report?.ownerAccountID, loginSelector);
     const [transaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
-    const [transactionViolationsForRow] = useOnyxWithoutSnapshots(transactionViolationsKey);
+    const [liveTransactionViolations] = useOnyxWithoutSnapshots(transactionViolationsKey);
+    // Fall back to the search snapshot when the violations aren't in live Onyx yet (e.g. the expense was never opened),
+    // otherwise the row hides violations the Search API already returned
+    const transactionViolationsForRow = liveTransactionViolations ?? snapshotData?.[transactionViolationsKey];
     const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
@@ -151,21 +158,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
-    const {
-        amountOwed,
-        currentUserAccountID,
-        currentUserLogin,
-        introSelected,
-        isASAPSubmitBetaEnabled,
-        isSelfTourViewed,
-        activePolicy,
-        chatReportPolicy,
-        delegateEmail,
-        delegateAccountID,
-        conciergeChat,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -198,6 +194,10 @@ function TransactionListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
+    const liveTransaction = transaction ?? transactionItem;
+    const customUnitRateID = isDistanceRequest(liveTransaction) ? liveTransaction.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(policyForViolations, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
@@ -212,14 +212,16 @@ function TransactionListItemInner<TItem extends ListItem>({
         onyxViolations,
         policyCategories,
         transaction?.category ?? transactionItem.category ?? '',
-        transaction?.comment?.attendees ?? transactionItem.attendees,
-        currentUserDetails,
+        getAttendees(transaction ?? transactionItem),
+        submitterLogin,
         isAttendeeTrackingEnabled(policyForViolations),
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
         isInvoice,
     );
 
-    const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
+    const rateOnyxViolations = syncCustomUnitOutOfPolicyViolation(attendeeOnyxViolations, liveTransaction, policyForViolations, distanceOriginalPolicy);
+
+    const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -233,19 +235,28 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const beginSearchActionPress = useSearchActionPress();
 
-    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+    const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+        const pressTimeInputs = await beginSearchActionPress(liveTransactionItem.action);
+        if (!pressTimeInputs) {
+            return;
+        }
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            policyID: explicitPolicyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -255,20 +266,17 @@ function TransactionListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
-            amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
             currentUserAccountID,
             currentUserLogin,
-            introSelected,
-            isSelfTourViewed,
             activePolicy,
             chatReport,
             chatReportPolicy,
@@ -280,7 +288,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             allViolations,
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
-            conciergeChat,
+            ...pressTimeInputs,
         });
     };
 

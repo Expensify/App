@@ -756,6 +756,20 @@ const tests = [
         },
     },
     {
+        query: 'type:expense any-approval:never',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: CONST.SEARCH.DATE_PRESETS.NEVER,
+            },
+        },
+    },
+    {
         query: 'type:expense anyApproval>2026-04-01',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -938,6 +952,51 @@ const tests = [
             view: 'table',
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:approver',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense group-by:approver columns:group-approver,group-expenses,group-total',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            view: 'table',
+            groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense has:approved-violation approver:22982540',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                    right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+                },
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                    right: '22982540',
+                },
+            },
         },
     },
     {
@@ -1389,6 +1448,34 @@ const keywordTests = [
             filters: {
                 operator: 'neq',
                 left: 'declined',
+                right: 'no',
+            },
+        },
+    },
+    {
+        query: 'held:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'held',
+                right: 'yes',
+            },
+        },
+    },
+    {
+        query: '-held:no',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'held',
                 right: 'no',
             },
         },

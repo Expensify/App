@@ -10,13 +10,9 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 
-jest.mock(
-    'expo-web-browser',
-    () => ({
-        openAuthSessionAsync: jest.fn(),
-    }),
-    {virtual: true},
-);
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
 
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');

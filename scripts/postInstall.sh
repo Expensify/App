@@ -39,3 +39,6 @@ bun scripts/applyPatches.ts
 # files, and project mode does not follow `references`. `npx tsc` at the repo root therefore checks
 # nothing and exits 0. Use `npx tsc --build`, which walks the references, or `npm run typecheck`.
 ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"
+
+# Pin the launcher's local Worker CLI from the standalone lockfile as well as linking the workspace package.
+bun scripts/installCloudflareWorker.ts

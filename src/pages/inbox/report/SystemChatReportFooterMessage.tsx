@@ -18,7 +18,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
@@ -29,38 +29,34 @@ function SystemChatReportFooterMessage() {
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const adminChatReportIDSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => {
-            const adminPolicy = activePolicyID
-                ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]
-                : Object.values(allPolicies ?? {}).find(
-                      (policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
-                  );
+    const adminChatReportIDSelector = (allPolicies: OnyxCollection<Policy>) => {
+        const adminPolicy = activePolicyID
+            ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]
+            : Object.values(allPolicies ?? {}).find((policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
-            return String(adminPolicy?.chatReportIDAdmins ?? CONST.DEFAULT_NUMBER_ID);
-        },
-        [activePolicyID, currentUserLogin],
-    );
+        return String(adminPolicy?.chatReportIDAdmins ?? CONST.DEFAULT_NUMBER_ID);
+    };
 
     const [adminChatReportID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: adminChatReportIDSelector});
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
 
-    const content = useMemo(() => {
-        switch (choice) {
-            case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
-                return (
-                    <RenderHTML
-                        html={translate('systemChatFooterMessage.newDotManageTeam', {
-                            adminReportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-                            href: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
-                        })}
-                    />
-                );
-            default:
-                return <RenderHTML html={translate('systemChatFooterMessage.default')} />;
-        }
-    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate, environmentURL]);
+    let content;
+    switch (choice) {
+        case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
+            content = (
+                <RenderHTML
+                    html={translate('systemChatFooterMessage.newDotManageTeam', {
+                        adminReportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+                        href: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
+                    })}
+                />
+            );
+            break;
+        default:
+            content = <RenderHTML html={translate('systemChatFooterMessage.default')} />;
+            break;
+    }
 
     return (
         <Banner

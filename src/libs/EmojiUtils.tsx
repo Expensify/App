@@ -123,7 +123,8 @@ const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => {
 };
 
 const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
-    if (!emojiList) {
+    // Persisted emoji history can contain non-array values despite its declared Onyx type.
+    if (!Array.isArray(emojiList)) {
         return [];
     }
 

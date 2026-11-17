@@ -81,6 +81,9 @@ type ImportedSpreadsheet = {
     isImportingMultiLevelTags: boolean;
     isImportingIndependentMultiLevelTags: boolean;
 
+    /** Whether the imported tag lists are appended to the existing (accounting connection) tag lists instead of replacing them */
+    isAppendingToExistingLists?: boolean;
+
     /** Whether the GL code is in the adjacent column */
     isGLAdjacent: boolean;
 

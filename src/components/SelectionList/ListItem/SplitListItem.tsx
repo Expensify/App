@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {ListItemProps, SplitListItemType} from './types';
@@ -40,17 +40,14 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(item.originalAmount, item.currency);
 
-    const onSplitExpenseValueChange = useCallback(
-        (value: string) => {
-            const numericValue = Number(value);
-            // Skip update if value is just "-" or produces NaN (intermediate input state)
-            if (Number.isNaN(numericValue)) {
-                return;
-            }
-            item.onSplitExpenseValueChange(item.transactionID, numericValue, item.mode);
-        },
-        [item],
-    );
+    const onSplitExpenseValueChange = (value: string) => {
+        const numericValue = Number(value);
+        // Skip update if value is just "-" or produces NaN (intermediate input state)
+        if (Number.isNaN(numericValue)) {
+            return;
+        }
+        item.onSplitExpenseValueChange(item.transactionID, numericValue, item.mode);
+    };
 
     const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
 
@@ -66,9 +63,9 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
 
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
-    const focusHandler = useCallback(() => {
+    const focusHandler = () => {
         item.onInputFocus?.(item);
-    }, [item]);
+    };
 
     // Only connect the auto-focus ref to the selected item so useAutoFocusInput's useFocusEffect
     // cleanup can cancel any pending focus task when the screen starts closing, preventing

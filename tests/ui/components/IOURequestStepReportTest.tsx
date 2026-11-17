@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchResultsContext} from '@components/Search/SearchContext';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
 import {setTransactionReport} from '@libs/actions/Transaction';
 
 import DynamicIOURequestEditReportWithWritableReportOrNotFound from '@pages/iou/request/step/DynamicIOURequestEditReport';
@@ -81,6 +82,10 @@ jest.mock('@libs/actions/Transaction', () => {
         setTransactionReport: jest.fn(),
     };
 });
+
+jest.mock('@libs/actions/OutstandingReports', () => ({
+    fetchOutstandingReports: jest.fn(),
+}));
 
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
@@ -291,6 +296,53 @@ describe('IOURequestStepReport', () => {
 
         // Then the report from the search results is listed
         expect(await screen.findByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_2}`)).toBeTruthy();
+    });
+
+    it('should load the outstanding reports from the server when the report field list is opened', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const fakePolicy = {...createRandomPolicy(Number(POLICY_ID_1)), role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM};
+
+        // Given a report the user owns on a workspace
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {...DEFAULT_SPLIT_TRANSACTION, isFromGlobalCreate: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_1}`, {
+            ...createRandomReport(Number(REPORT_ID_1), undefined),
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: fakePolicy.id,
+            ownerAccountID: ACCOUNT_ID,
+        });
+
+        // When the report field list is opened
+        render(
+            <OnyxListItemProvider>
+                <HTMLProviderWrapper>
+                    <CurrentUserPersonalDetailsProvider>
+                        <LocaleContextProvider>
+                            <DynamicIOURequestStepReportWithWritableReportOrNotFound
+                                route={{
+                                    key: 'Dynamic_Money_Request_Report--30aPPAdjWan56sE5OpcG',
+                                    name: 'Dynamic_Money_Request_Report',
+                                    params: {
+                                        action: 'create',
+                                        iouType: 'submit',
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: REPORT_ID_1,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here.
+                                navigation={undefined}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsProvider>
+                </HTMLProviderWrapper>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        // Then the first page of the user's outstanding reports is requested from the server
+        expect(fetchOutstandingReports).toHaveBeenCalledWith(ACCOUNT_ID, undefined, 0);
     });
 
     it("should list a member's report that is only in the search results when an admin moves the member's expense", async () => {

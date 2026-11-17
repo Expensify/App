@@ -25,7 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ImportField = 'jobs' | 'customers';
@@ -42,28 +42,25 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
     const importedValue = importMappings?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT);
 
-    const updateMapping = useCallback(
-        (importField: ImportField, isEnabled: boolean) => {
-            let newValue;
-            if (!isEnabled) {
-                // if the import is off, then we send default as the value for mapping
-                newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const updateMapping = (importField: ImportField, isEnabled: boolean) => {
+        let newValue;
+        if (!isEnabled) {
+            // if the import is off, then we send default as the value for mapping
+            newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+        } else {
+            // when we enable any field, and if the other one already has a value set, we should set that,
+            const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? importCustomer : importJobs;
+            if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+                // fallback to Tag
+                newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
             } else {
-                // when we enable any field, and if the other one already has a value set, we should set that,
-                const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? importCustomer : importJobs;
-                if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    // fallback to Tag
-                    newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
-                } else {
-                    newValue = otherFieldValue;
-                }
+                newValue = otherFieldValue;
             }
-            if (newValue) {
-                updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
-            }
-        },
-        [config?.syncOptions?.mapping, policyID, importCustomer, importJobs],
-    );
+        }
+        if (newValue) {
+            updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
+        }
+    };
 
     return (
         <ConnectionLayout
@@ -86,6 +83,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                 isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOMERS_SWITCH}
                 onToggle={(isEnabled: boolean) => {
                     updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, isEnabled);
                 }}
@@ -98,6 +96,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                 isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_JOBS_SWITCH}
                 onToggle={(isEnabled: boolean) => {
                     updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS, isEnabled);
                 }}
@@ -114,6 +113,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                     title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                     isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CROSS_SUBSIDIARY_CUSTOMERS_SWITCH}
                     onToggle={(isEnabled: boolean) => {
                         updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                     }}
@@ -129,6 +129,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                     )}
                 >
                     <MenuItemField
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOMERS_OR_PROJECTS_DISPLAYED_AS}
                         name={translate('workspace.common.displayedAs')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));

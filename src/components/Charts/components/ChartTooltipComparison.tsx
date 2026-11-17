@@ -1,11 +1,10 @@
-import formatAmountWithPercentage from '@components/Charts/utils/formatAmountWithPercentage';
 import type {TooltipChange, TooltipRow} from '@components/Charts/utils/formatTooltipComparison';
+import formatTooltipValue from '@components/Charts/utils/formatTooltipValue';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -21,25 +20,24 @@ type ChartTooltipComparisonProps = {
     change?: TooltipChange;
 };
 
-/** Renders each compared series' amount in the chart tooltip, followed by the change between them */
+/** Renders each compared series' value in the chart tooltip, followed by the change between them */
 function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const changeColor = change?.isIncrease ? theme.danger : theme.successHover;
+    const changeColor = StyleUtils.getSpendChangeColor(!!change?.isIncrease);
 
     return (
         <>
             {rows.map((row) => {
-                const amountContent = formatAmountWithPercentage(row.amount, row.percentage);
+                const content = formatTooltipValue(row);
                 return (
                     <View
                         key={row.key}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
                     >
-                        <View style={[styles.chartTooltipDot, StyleUtils.getBackgroundColorStyle(row.color)]} />
-                        <Text style={styles.chartTooltipText}>{row.label ? `${row.label}: ${amountContent}` : amountContent}</Text>
+                        <View style={row.isAverage ? styles.chartTooltipAverageDash : [styles.chartTooltipDot, StyleUtils.getBackgroundColorStyle(row.color)]} />
+                        <Text style={styles.chartTooltipText}>{row.label ? `${row.label}: ${content}` : content}</Text>
                     </View>
                 );
             })}
@@ -51,7 +49,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatAmountWithPercentage(change.amount, change.percentage)}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatTooltipValue(change)}</Text>
                 </View>
             )}
         </>

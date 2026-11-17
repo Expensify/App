@@ -14,7 +14,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
 
@@ -32,13 +32,11 @@ function NewChatSelectorPage() {
     const roomPageInputRef = useRef<WorkspaceNewRoomPageRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
-    const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const containerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
-    const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
+    const onTabFocusTrapContainerElementChanged = (activeTabElement?: HTMLElement | null) => {
         setActiveTabContainerElement(activeTabElement ?? null);
-    }, []);
+    };
 
     // We're focusing the input using internal onPageSelected to fix input focus inconsistencies.
     // More info: https://github.com/Expensify/App/issues/59388

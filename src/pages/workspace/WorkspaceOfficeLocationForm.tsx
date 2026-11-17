@@ -7,7 +7,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';

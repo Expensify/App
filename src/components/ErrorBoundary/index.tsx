@@ -1,3 +1,4 @@
+import isBrowserExtensionError from '@libs/isBrowserExtensionError';
 import Log from '@libs/Log';
 
 import React, {useEffect} from 'react';
@@ -10,14 +11,19 @@ import logError from './logError';
 const onUnhandledRejection = (event: PromiseRejectionEvent) => {
     let rejection: unknown = event.reason;
     if (event.reason instanceof Error) {
-        Log.alert(`Unhandled Promise Rejection: ${event.reason.message}\nStack: ${event.reason.stack}`, {}, false);
+        // Each alert sends its own Log request, so an extension that keeps failing would flood the API with errors we can't fix
+        if (isBrowserExtensionError(event.reason)) {
+            return;
+        }
+
+        Log.hmmm(`Unhandled Promise Rejection: ${event.reason.message}\nStack: ${event.reason.stack}`);
         return;
     }
 
     if (typeof event.reason === 'object' && event.reason !== null) {
         rejection = JSON.stringify(event.reason);
     }
-    Log.alert(`Unhandled Promise Rejection: ${String(rejection)}`, {}, false);
+    Log.hmmm(`Unhandled Promise Rejection: ${String(rejection)}`);
 };
 
 function ErrorBoundary({errorMessage, children}: Omit<BaseErrorBoundaryProps, 'logError'>) {

@@ -8,7 +8,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useCallback, useMemo, useRef} from 'react';
+import {useState} from 'react';
 
 import useInitial from './useInitial';
 import useOnyx from './useOnyx';
@@ -41,27 +41,23 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const isReportArchived = useReportIsArchived(report?.reportID);
     const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
 
-    const getSortedAllReportActionsSelector = useCallback(
-        (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true, undefined, nonEmptyStringReportID);
-        },
-        [hasWriteAccess, nonEmptyStringReportID],
-    );
+    const getSortedAllReportActionsSelector = (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
+        return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true, undefined, nonEmptyStringReportID);
+    };
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
         selector: getSortedAllReportActionsSelector,
     });
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
-    // Default (regular inbox chats): snapshot lastReadTime at first render via a ref — production behavior.
-    const firstRenderLastReadTime = useRef(report?.lastReadTime);
+    // Default (regular inbox chats): snapshot lastReadTime at first render.
+    const [firstRenderLastReadTime] = useState(report?.lastReadTime);
     // Concierge only: snapshot the first non-undefined lastReadTime. On a cold open the report can be
     // undefined on first render; useInitial waits for the first defined (pre-read) value instead of
-    // latching undefined like a first-render ref, so the unread anchor can still resolve after the report loads.
+    // latching undefined like a first-render snapshot, so the unread anchor can still resolve after the report loads.
     const firstDefinedLastReadTime = useInitial(report?.lastReadTime);
 
-    const id = useMemo(() => {
-        /* eslint-disable react-hooks/refs -- firstRenderLastReadTime snapshots lastReadTime at first render for a stable unread anchor */
+    const getPaginationAnchorID = () => {
         if (treatAsNoPaginationAnchor) {
             return undefined;
         }
@@ -74,49 +70,29 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return undefined;
         }
 
-        const initialLastReadTime = shouldSnapshotInitialLastReadTime ? firstDefinedLastReadTime : firstRenderLastReadTime.current;
+        const initialLastReadTime = shouldSnapshotInitialLastReadTime ? firstDefinedLastReadTime : firstRenderLastReadTime;
         if (!initialLastReadTime || !sortedAllReportActions?.length) {
             return undefined;
         }
 
         return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
-        /* eslint-enable react-hooks/refs */
-    }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions, shouldSnapshotInitialLastReadTime, firstDefinedLastReadTime]);
+    };
+    const id = getPaginationAnchorID();
 
     const {
         data: reportActions,
         hasNextPage,
         hasPreviousPage,
         resourceItem,
-    } = useMemo(() => {
-        if (!sortedAllReportActions?.length) {
-            return {data: [], hasNextPage: false, hasPreviousPage: false};
-        }
-
-        return getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
-    }, [id, reportActionPages, sortedAllReportActions]);
+    } = sortedAllReportActions?.length
+        ? getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id)
+        : {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem: undefined};
 
     // When `treatAsNoPaginationAnchor` is set, we intentionally ignore `reportActionID` for pagination
     // (same as `id` above), so we must not surface a "linked" action from that id either.
-    const linkedAction = useMemo(() => {
-        if (treatAsNoPaginationAnchor) {
-            return undefined;
-        }
-        if (!reportActionID) {
-            return undefined;
-        }
-        return resourceItem?.item;
-    }, [resourceItem?.item, reportActionID, treatAsNoPaginationAnchor]);
+    const linkedAction = !treatAsNoPaginationAnchor && reportActionID ? resourceItem?.item : undefined;
 
-    const oldestUnreadReportAction = useMemo(() => {
-        if (treatAsNoPaginationAnchor) {
-            return undefined;
-        }
-        if (shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID) {
-            return resourceItem.item;
-        }
-        return undefined;
-    }, [resourceItem, shouldLinkToOldestUnreadReportAction, reportActionID, treatAsNoPaginationAnchor]);
+    const oldestUnreadReportAction = !treatAsNoPaginationAnchor && shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID ? resourceItem.item : undefined;
 
     return {
         reportActions,

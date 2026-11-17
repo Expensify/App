@@ -27,6 +27,7 @@ import React, {useRef} from 'react';
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     readOnly?: boolean;
     violations?: Record<string, TransactionViolation[]>;
+    policyID: string;
 };
 
 function UnreportedExpenseListItem<TItem extends ListItem>({
@@ -39,6 +40,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onSelectRow,
     violations,
+    policyID,
 }: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
@@ -53,7 +55,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const transactionReportID = getNonEmptyStringOnyxID(transactionItem.reportID);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
-    const transactionPolicy = usePolicy(transactionReport?.policyID ?? transactionItem.policyID);
+    const transactionPolicy = usePolicy(policyID);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -96,6 +98,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         }}
                         isDisabled={isItemDisabled}
                         shouldShowCheckbox={!readOnly}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM_CHECKBOX}
                         style={styles.p3}
                         isHover={hovered}
                     />

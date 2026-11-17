@@ -6,17 +6,16 @@ import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
     DeletePolicyAgentRuleParams,
+    DeleteRuleParams,
     GenerateRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
+    SetRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
-import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
-import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
@@ -24,13 +23,13 @@ import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
-import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleBody} from '@src/types/onyx/Rule';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -38,69 +37,6 @@ import Onyx from 'react-native-onyx';
 
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
-
-/**
- * Builds the `codingRuleValue` sent to `SetPolicyCodingRule`. Writes go through the legacy command rather than
- * `SetRule` because it dual-writes into both `policy.rules.codingRules` and the `rules_` collection, while
- * `SetRule` only writes the new collection. Older clients read `codingRules`, so writing only the new collection
- * would silently stop them seeing rules created or edited on a newer client. This whole path goes away once the
- * minimum supported version reads the `rules_` collection.
- *
- * This reads the built rule rather than the form so the optimistic Onyx value and the saved rule share one
- * definition of what an empty field is. Reading the form separately let a padded merchant, a whitespace-only
- * description, or a tax selected before the rates loaded reach the server after the rule had already dropped it.
- */
-function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, created: string): Partial<CodingRule> {
-    const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
-    const {ACTIONS: ACTION} = CONST.RULES;
-
-    const valuesByField = new Map<string, ExpenseDefaultAction['value']>();
-    for (const action of Object.values(ruleValue.actions)) {
-        if (action.name !== ACTION.SET) {
-            continue;
-        }
-        valuesByField.set(action.field, action.value);
-    }
-
-    const getStringValue = (field: string): string | undefined => {
-        const value = valuesByField.get(field);
-        return typeof value === 'string' ? value : undefined;
-    };
-    const getBooleanValue = (field: string): boolean | undefined => {
-        const value = valuesByField.get(field);
-        return typeof value === 'boolean' ? value : undefined;
-    };
-
-    const taxValue = valuesByField.get(FIELD.TAX);
-    const tax = isExpenseDefaultTaxValue(taxValue) ? taxValue : undefined;
-    const merchant = getStringValue(FIELD.MERCHANT);
-    const category = getStringValue(FIELD.CATEGORY);
-    const tag = getStringValue(FIELD.TAG);
-    const vendorID = getStringValue(FIELD.VENDOR_ID);
-    const comment = getStringValue(FIELD.COMMENT);
-    const reimbursable = getBooleanValue(FIELD.REIMBURSABLE);
-    const billable = getBooleanValue(FIELD.BILLABLE);
-
-    const {left, operator, right} = ruleValue.filters;
-
-    return {
-        ruleID,
-        filters: {
-            left,
-            operator,
-            right: typeof right === 'string' ? right : String(right),
-        },
-        ...(merchant && {merchant}),
-        ...(category && {category}),
-        ...(tag && {tag}),
-        ...(tax && {tax}),
-        ...(vendorID && {vendorID}),
-        ...(comment && {comment}),
-        ...(reimbursable !== undefined && {reimbursable}),
-        ...(billable !== undefined && {billable}),
-        created,
-    };
-}
 
 /** How long a `GetRules` read may stay marked in flight before the flag is treated as stale. */
 const RULES_FETCH_TIMEOUT_MS = 30 * 1000;
@@ -122,13 +58,19 @@ function getRules() {
         return;
     }
 
-    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
+    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES | typeof ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED;
 
     const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             value: true,
+        },
+        {
+            // This attempt has not failed yet, so an earlier failure stops standing for it.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
+            value: false,
         },
     ];
     const successData: Array<OnyxUpdate<RulesFetchKey>> = [
@@ -150,10 +92,18 @@ function getRules() {
             value: false,
         },
         {
-            // A failed attempt still counts as one. Left false, the prefetch hook sees a fetch as needed again the
-            // moment the in-flight flag clears, so a server error retries for as long as the screen stays mounted.
+            // A failure means the collection never arrived, so a screen opened later asks for it again rather than
+            // resolving a category's tax against rules that never arrived. The prefetch hook asks at most once
+            // per mount, which is what keeps a server error from retrying on every render.
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            value: false,
+        },
+        {
+            // Tells the attempt that failed apart from one still to send, so a screen waiting on the collection
+            // stops waiting. Without it, a collection that never arrived reads the same either way.
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED,
             value: true,
         },
     ];
@@ -161,12 +111,14 @@ function getRules() {
     API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
 
     // A read that throws, which is what a 5xx, a 429 or a socket error does, applies neither its success nor its
-    // failure data, and `API.read` reports nothing back to the caller. Without a bound the in-flight flag would
-    // outlive its request and block every later fetch for the session. Clearing a flag that is already false once
-    // the response has landed costs nothing, so the timer runs either way.
+    // failure data, and `API.read` reports nothing back to the caller. The timer stands in for the failure data
+    // that never ran, so a screen waiting on the collection stops waiting instead of waiting for the session. The
+    // fetched flag is left alone, so this is as retryable as any other failure. Writing a flag that already holds
+    // this value once the response has landed costs nothing, so the timer runs either way.
     clearTimeout(staleRulesFetchTimeoutID);
     staleRulesFetchTimeoutID = setTimeout(() => {
         Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, true);
     }, RULES_FETCH_TIMEOUT_MS);
 }
 
@@ -180,6 +132,7 @@ function getRules() {
 function resetRulesFetchState() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
     Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, false);
+    Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_FETCH_FAILED, false);
 }
 
 /**
@@ -232,26 +185,17 @@ function getAgentRuleSuggestions(policyID: string | undefined) {
 }
 
 /**
- * Creates or updates a merchant rule. Editing a rule reuses its `ruleID`, since the rules engine has no separate update command.
+ * Creates or updates a rule of any kind. Editing a rule reuses its `ruleID`, since the rules engine has no separate update command.
  * @param policyID - The ID of the policy the rule belongs to
- * @param formValues - The merchant rule editor's values
- * @param policy - Used to resolve the selected tax rate
+ * @param ruleBody - The triggers, filters and actions to store, built by whichever editor owns this kind of rule
+ * @param priority - Determines the order rules are applied in when more than one matches
  * @param ruleID - The ID of the rule being edited, or undefined to create one
  * @param existingRule - The rule being edited, restored on failure
  * @param shouldUpdateMatchingTransactions - Whether to apply the rule to transactions that already match it
  */
-function setMerchantRule(
-    policyID: string,
-    formValues: Partial<MerchantRuleFormValues>,
-    policy: Policy | undefined,
-    ruleID?: string,
-    existingRule?: Rule,
-    shouldUpdateMatchingTransactions = false,
-) {
-    const ruleValue = buildMerchantRule(formValues, policy);
-
-    if (!policyID || !ruleValue) {
-        Log.warn('Invalid params for setMerchantRule', {policyID, merchantToMatch: formValues.merchantToMatch});
+function setRule(policyID: string, ruleBody: RuleBody | undefined, priority: number, ruleID?: string, existingRule?: Rule, shouldUpdateMatchingTransactions = false) {
+    if (!policyID || !ruleBody) {
+        Log.warn('Invalid params for setRule', {policyID, ruleID});
         return;
     }
 
@@ -259,12 +203,17 @@ function setMerchantRule(
     const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
+    // A rule migrated from the old policy rules carries a higher priority than anything this editor creates, and
+    // priority is what decides which of two matching rules the engine applies last. Saving the editor's priority
+    // over it would change which tax an expense ends up with on an edit that never touched the tax.
+    const resolvedPriority = existingRule?.priority ?? priority;
+
+    // Shared between the optimistic rule and the request so the rule shown while offline matches what the server saves.
+    const ruleScope = {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, priority: resolvedPriority};
 
     const optimisticRule: Rule = {
-        ...ruleValue,
-        scope: CONST.RULES.SCOPE.POLICY,
-        scopeID: policyID,
-        priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
+        ...ruleBody,
+        ...ruleScope,
         created,
         pendingAction: isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
@@ -287,14 +236,15 @@ function setMerchantRule(
         ],
     };
 
-    const parameters: SetPolicyCodingRuleParams = {
-        policyID,
-        codingRuleID: targetRuleID,
-        codingRuleValue: JSON.stringify(buildLegacyCodingRule(ruleValue, targetRuleID, created)),
+    const parameters: SetRuleParams = {
+        ...ruleScope,
+        ruleID: targetRuleID,
+        // FormData cannot carry an object, so the rule body goes over the wire as a string.
+        value: JSON.stringify(ruleBody),
         shouldUpdateMatchingTransactions,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_RULE, parameters, onyxData);
 }
 
 /**
@@ -340,7 +290,15 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
     }
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
+/**
+ * Asks which of a policy's expenses a rule would apply to.
+ *
+ * The previous answer is cleared first. The collection is keyed by transaction, so without the clear a preview
+ * that matches fewer expenses than the last one keeps showing the ones it no longer matches.
+ */
+function getTransactionsMatchingRule(policyID: string, filters: string) {
+    Onyx.setCollection(ONYXKEYS.COLLECTION.RULE_MATCHING_TRANSACTION, {});
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -363,18 +321,17 @@ function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRule
         },
     ];
 
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_RULE, {scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID, filters}, {optimisticData, successData, failureData});
 }
 
 /**
- * Deletes a merchant rule
- * @param policyID - The ID of the policy the rule belongs to
+ * Deletes a rule of any kind
  * @param ruleID - The ID of the rule to delete
  * @param rule - The rule being deleted, restored on failure
  */
-function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undefined) {
-    if (!policyID || !ruleID) {
-        Log.warn('Invalid params for deleteMerchantRule', {policyID, ruleID});
+function deleteRule(ruleID: string, rule: Rule | undefined) {
+    if (!ruleID) {
+        Log.warn('Invalid params for deleteRule', {ruleID});
         return;
     }
 
@@ -392,29 +349,25 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
         ],
     };
 
-    // An empty codingRuleValue tells SetPolicyCodingRule to delete rather than upsert the rule.
-    const parameters: SetPolicyCodingRuleParams = {
-        policyID,
-        codingRuleID: ruleID,
-        codingRuleValue: '',
-        shouldUpdateMatchingTransactions: false,
-    };
+    const parameters: DeleteRuleParams = {ruleID};
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.DELETE_RULE, parameters, onyxData);
 }
 
 const PROMPT_ERROR_BY_STATE: Partial<Record<GeneratedRuleState, TranslationPaths>> = {
     [CONST.GENERATED_RULE.STATE.UNSUPPORTED]: 'workspace.rules.newRule.promptErrors.unsupported',
     [CONST.GENERATED_RULE.STATE.MULTIPLE_RULES]: 'workspace.rules.newRule.promptErrors.multipleRules',
     [CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE]: 'workspace.rules.newRule.promptErrors.unintelligible',
+    [CONST.GENERATED_RULE.STATE.AGENT_RULE]: 'workspace.rules.newRule.promptErrors.unsupported',
 };
 
 /**
- * Asks Concierge to turn a description into values for the given rule form. The response only confirms the job was
- * queued. The answer arrives later under `ONYXKEYS.GENERATED_RULE`, so the form stays loading until it does.
+ * Asks Concierge to turn a description into rule form values. The answer carries its own rule type, which can differ
+ * from `ruleType`. The response only confirms that the server queued the job. The answer arrives later under
+ * `ONYXKEYS.GENERATED_RULE`. Therefore the form stays in the loading state until the answer arrives.
  * @returns the generationID the answer carries
  */
-function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: string): string {
+function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRuleType): string {
     const generationID = rand64();
     type GenerateRuleKey = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM | typeof ONYXKEYS.GENERATED_RULE;
 
@@ -445,11 +398,67 @@ function generateRule(policyID: string, ruleType: GeneratedRuleType, prompt: str
     return generationID;
 }
 
+type AgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM | typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
+
+/**
+ * Asks Concierge whether RuleBot can carry out an agent rule before the rule saves. The agent rule form shows its loading
+ * state until the answer arrives under `ONYXKEYS.GENERATED_RULE`. A failed request gets a `failed` answer, so the rule
+ * still saves.
+ * @returns the generationID the answer carries
+ */
+function checkAgentRulePrompt(formID: AgentRuleFormID, policyID: string, prompt: string): string {
+    const generationID = rand64();
+    type CheckAgentRuleKey = AgentRuleFormID | typeof ONYXKEYS.GENERATED_RULE;
+
+    const optimisticData: Array<OnyxUpdate<CheckAgentRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: formID,
+            value: {isLoading: true},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<CheckAgentRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GENERATED_RULE,
+            value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
+        },
+    ];
+
+    const parameters: GenerateRuleParams = {policyID, generationID, prompt};
+
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+
+    return generationID;
+}
+
+/** Stops the loading state of an agent rule form */
+function stopAgentRuleCheckLoading(formID: AgentRuleFormID) {
+    Onyx.merge(formID, {isLoading: false});
+}
+
 /** Shows on the prompt form why a description did not become a rule */
 function setNewRulePromptError(state: GeneratedRuleState) {
+    setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
+}
+
+/** Shows an error on the prompt form */
+function setNewRulePromptErrorMessage(translationKey: TranslationPaths) {
     Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
         isLoading: false,
-        errors: getMicroSecondOnyxErrorWithTranslationKey(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage'),
+        errors: getMicroSecondOnyxErrorWithTranslationKey(translationKey),
+    });
+}
+
+/** Stops the loading state of the prompt form when the answer is shown in the form and not as an error */
+function stopNewRulePromptLoading() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {isLoading: false});
+}
+
+/** Shows the empty description error above the submit button of the new rule prompt form */
+function setNewRulePromptEmptyError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.rules.newRule.selectTemplateOrDescribe'),
     });
 }
 
@@ -457,13 +466,20 @@ function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
 
+/**
+ * Clears the prompt form and its draft. The answer stays, because a page that opens after the form closes reads it by
+ * its generationID. The next `generateRule` call clears it.
+ */
 function clearNewRulePrompt() {
     Onyx.set(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, null);
     clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
-    clearGeneratedRule();
 }
 
-function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
+/**
+ * @param title - Known title of the rule, for example from a selected suggestion. The list shows it right away instead
+ * of the prompt, until the server returns its generated title.
+ */
+function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string, title?: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
         return;
@@ -483,6 +499,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
                                 ruleID: agentRuleID,
                                 created: new Date().toISOString(),
                                 prompt,
+                                ...(title ? {title} : {}),
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             },
                         },
@@ -721,18 +738,23 @@ export {
     getAgentRuleSuggestions,
     getRules,
     resetRulesFetchState,
-    setMerchantRule,
+    setRule,
     importMerchantRulesSpreadsheet,
-    deleteMerchantRule,
-    getTransactionsMatchingCodingRule,
+    deleteRule,
+    getTransactionsMatchingRule,
     addPolicyAgentRule,
     generateRule,
+    setNewRulePromptEmptyError,
     setNewRulePromptError,
+    setNewRulePromptErrorMessage,
     clearGeneratedRule,
     clearNewRulePrompt,
+    stopNewRulePromptLoading,
+    checkAgentRulePrompt,
+    stopAgentRuleCheckLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,
     clearPolicyAgentRuleErrors,
 };
-export type {ImportedMerchantRule};
+export type {AgentRuleFormID, ImportedMerchantRule};

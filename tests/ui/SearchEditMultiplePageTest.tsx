@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -8,6 +8,10 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
+import {updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
+import type * as BulkEditActions from '@libs/actions/IOU/BulkEdit';
+import Navigation from '@libs/Navigation/Navigation';
 
 import SearchEditMultiplePage from '@pages/Search/SearchEditMultiple/SearchEditMultiplePage';
 
@@ -26,6 +30,8 @@ import type {ValueOf} from 'type-fest';
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {ActivityIndicator as RNActivityIndicator} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -33,6 +39,12 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// Saving runs a heavy Onyx update, so it is stubbed to observe when it runs relative to the spinner.
+jest.mock('@libs/actions/IOU/BulkEdit', () => ({
+    ...jest.requireActual<typeof BulkEditActions>('@libs/actions/IOU/BulkEdit'),
+    updateMultipleMoneyRequests: jest.fn(),
+}));
 
 jest.mock('@userActions/Policy/Category', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Policy/Category'),
@@ -52,7 +64,7 @@ const DONE_REPORT_ID = 'doneReport';
 const OPEN_TRANSACTION_ID = 'openTransaction';
 const DONE_TRANSACTION_ID = 'doneTransaction';
 
-// `reimbursable: false` means the field is NOT disabled on the workspace, which is what makes the row render at all.
+// Explicitly unlock Reimbursable for the baseline permission checks.
 const policy: Policy = {
     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
     id: POLICY_ID,
@@ -131,8 +143,9 @@ function renderPage() {
     );
 }
 
-async function selectTransactions(selectedTransactionIDs: string[]) {
+async function selectTransactions(selectedTransactionIDs: string[], draftChanges: Partial<Transaction> = {}) {
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+        ...draftChanges,
         transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
         selectedTransactionIDs,
     });
@@ -164,6 +177,8 @@ describe('SearchEditMultiplePage', () => {
     });
 
     afterEach(async () => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -184,6 +199,184 @@ describe('SearchEditMultiplePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByLabelText(/^Reimbursable/).props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+    });
+
+    it.each([
+        {name: 'missing lock flags', locked: undefined, values: [false, false], visible: true},
+        {name: 'locked fields with expenses differing from the defaults', locked: true, values: [true, true], visible: true},
+        {name: 'locked fields with expenses matching the defaults', locked: true, values: [false, false], visible: false},
+        {name: 'a mixed selection of matching and differing expenses', locked: true, values: [true, false], visible: false},
+    ])('applies individual Reimbursable and Billable visibility rules for $name', async ({locked, values, visible}) => {
+        // Given two cash expenses on the same report, so only the workspace defaults and current values determine visibility
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            ...policy,
+            defaultReimbursable: false,
+            defaultBillable: false,
+            disabledFields: locked === undefined ? {} : {reimbursable: locked, defaultBillable: locked},
+        });
+        const secondTransactionID = 'secondTransaction';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {reimbursable: values[0], billable: values[0]});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, {
+            ...buildTransaction(secondTransactionID, OPEN_REPORT_ID),
+            reimbursable: values[1],
+            billable: values[1],
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OPEN_REPORT_ID}`, {
+            [`action-${secondTransactionID}`]: buildIOUAction(OPEN_REPORT_ID, secondTransactionID),
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, secondTransactionID]);
+
+        // When Edit multiple evaluates the whole selection
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a field is available only when every selected expense supports individual editing
+        if (visible) {
+            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^Billable/)).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^Billable/)).not.toBeOnTheScreen();
+        }
+    });
+
+    it.each([
+        {defaultReimbursable: true, reimbursable: false, visible: true},
+        {defaultReimbursable: true, reimbursable: true, visible: false},
+        {defaultReimbursable: false, reimbursable: undefined, visible: true},
+        {defaultReimbursable: undefined, reimbursable: undefined, visible: false},
+    ])('uses default $defaultReimbursable for a locked expense with reimbursable $reimbursable', async ({defaultReimbursable, reimbursable, visible}) => {
+        // Given a locked cash expense, including omitted values that individual editing treats as reimbursable
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...policy, defaultReimbursable, disabledFields: {reimbursable: true}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {...buildTransaction(OPEN_TRANSACTION_ID, OPEN_REPORT_ID), reimbursable});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When Edit multiple checks whether the expense needs correction
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only expenses that differ from the locked default remain correctable
+        if (visible) {
+            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        }
+    });
+
+    it('keeps Reimbursable hidden when the reported expense policy is missing', async () => {
+        // Given a reported cash expense whose workspace has not loaded, so its rules cannot be checked
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When Edit multiple opens without the workspace data
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then an absent policy is not mistaken for an unlocked workspace
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+    });
+
+    it('shows Reimbursable for "Do Not Force" company card expenses on an "Always" workspace', async () => {
+        // Given a workspace whose cash expenses are always non-reimbursable, and a company card expense stamped "Do Not Force"
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {defaultReimbursable: false, disabledFields: {reimbursable: true}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {managedCard: true, comment: {forceReimbursable: null}});
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row shows, because the workspace cash expense rules don't apply to card expenses
+        expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+    });
+
+    it.each([true, false])('hides Reimbursable when the selection contains a company card expense forced to %s', async (forceReimbursable) => {
+        // Given a cash expense and a company card expense locked at import
+        const cardTransactionID = 'cardTransaction';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${cardTransactionID}`, {
+            ...buildTransaction(cardTransactionID, OPEN_REPORT_ID),
+            managedCard: true,
+            reimbursable: forceReimbursable,
+            comment: {forceReimbursable},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, cardTransactionID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Reimbursable row is hidden, because the forced expense's reimbursable value can't change
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        [undefined, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO, true],
+        [null, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES, true],
+        [true, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO, false],
+        [false, CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES, false],
+    ] as const)('keeps restriction %s when the current feed setting is %s', async (forceReimbursable, feedSetting, expectedEditable) => {
+        // Given an imported company card expense whose feed setting has since changed
+        const cardID = 1234;
+        const fundID = '5678';
+        const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {managedCard: true, cardID, comment: {forceReimbursable}});
+        await Onyx.set(ONYXKEYS.CARD_LIST, {[cardID]: {cardID, bank: feed, fundID, state: CONST.EXPENSIFY_CARD.STATE.OPEN}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${fundID}`, {
+            settings: {companyCards: {[feed]: {forceReimbursable: feedSetting}}},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row follows the expense's saved restriction, not the current feed setting
+        if (expectedEditable) {
+            expect(screen.getByLabelText(/^Reimbursable/)).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+        }
+    });
+
+    it.each([true, false])('hides Reimbursable for an unreported company card expense forced to %s', async (forceReimbursable) => {
+        // Given a forced company card expense that has not been added to a report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${OPEN_TRANSACTION_ID}`, {
+            managedCard: true,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            reimbursable: forceReimbursable,
+            comment: {forceReimbursable},
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID]);
+
+        // When the Edit multiple page opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then unreported expenses still respect their saved restriction
+        expect(screen.queryByLabelText(/^Reimbursable/)).not.toBeOnTheScreen();
+    });
+
+    it('shows the spinner before applying the changes on save, then applies them and dismisses the RHP', async () => {
+        // Given a bulk edit with a pending merchant change on an expense that is not finalized, so no confirm modal shows
+        const dismissSpy = jest.spyOn(Navigation, 'dismissToPreviousRHP').mockImplementation(() => {});
+        await selectTransactions([OPEN_TRANSACTION_ID], {merchant: 'New merchant'});
+        const renderResult = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText('Save'));
+
+        // Then the spinner is painted first and the heavy update has not run yet, which is what save hands to startWithLoading for
+        expect(renderResult.UNSAFE_queryByType(RNActivityIndicator)).not.toBeNull();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+
+        // When the deferred macrotask fires
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the changes are applied to the selected expense and the RHP is dismissed
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledTimes(1);
+        expect(updateMultipleMoneyRequests).toHaveBeenCalledWith(expect.objectContaining({transactionIDs: [OPEN_TRANSACTION_ID], changes: {merchant: 'New merchant'}}));
+        expect(dismissSpy).toHaveBeenCalledTimes(1);
     });
 
     it('fetches policy categories and tags when they are enabled but not loaded yet', async () => {

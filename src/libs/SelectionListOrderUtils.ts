@@ -5,8 +5,12 @@ function shouldMoveInitialSelectionToTop(itemCount: number): boolean {
     return itemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 }
 
-function moveInitialSelectionToTop<T extends {value?: number | string}>(items: T[], initialSelectedValues: string[]): T[] {
-    if (initialSelectedValues.length === 0 || !shouldMoveInitialSelectionToTop(items.length)) {
+/**
+ * Moves the pre-selected items to the top of the list, keeping the rest in their original order.
+ * No-ops for short lists (below `minItemCountToPin`) or when nothing is pre-selected.
+ */
+function moveInitialSelectionToTop<T extends {value?: number | string}>(items: T[], initialSelectedValues: string[], minItemCountToPin: number = CONST.STANDARD_LIST_ITEM_LIMIT): T[] {
+    if (initialSelectedValues.length === 0 || items.length < minItemCountToPin) {
         return items;
     }
 

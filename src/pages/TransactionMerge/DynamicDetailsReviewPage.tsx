@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -32,6 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getDescription} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +43,7 @@ import type {Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import MergeFieldReview from './MergeFieldReview';
@@ -49,7 +51,7 @@ import MergeFieldReview from './MergeFieldReview';
 type DynamicDetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE>;
 
 function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {transactionID, isOnSearch} = route.params;
@@ -62,6 +64,9 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     const sourceReportOwnerAsAttendee = useReportOwnerAsAttendee(sourceTransaction);
     const targetReportOwnerAsAttendee = useReportOwnerAsAttendee(targetTransaction);
 
+    const mergeDescriptionsHtml = `${getDescription(targetTransaction)}${getDescription(sourceTransaction)}`;
+    const accountIDToName = useMentionedAccountIDToNameMap(mergeDescriptionsHtml);
+
     // The workspace of the report the merged expense is currently headed to, which is the one whose rules apply to it.
     // An unreported expense lands in the self-DM, which has no workspace, so nothing resolves here.
     const [chosenReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(mergeTransaction?.reportID)}`);
@@ -69,85 +74,62 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
 
-    const conflictFields = useMemo(() => {
-        if (!transactionID || !targetTransaction || !sourceTransaction) {
-            return [];
-        }
-
+    let conflictFields: MergeFieldKey[];
+    if (!transactionID || !targetTransaction || !sourceTransaction) {
+        conflictFields = [];
+    } else {
         const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             [targetTransactionReport, sourceTransactionReport],
             targetTransactionPolicy,
             sourceTransactionPolicy,
         );
-
         setMergeTransactionKey(transactionID, mergeableData);
-        return detectedConflictFields as MergeFieldKey[];
-    }, [
-        targetTransaction,
-        sourceTransaction,
-        transactionID,
-        localeCompare,
-        sourceTransactionReport,
-        targetTransactionReport,
-        targetTransactionPolicy,
-        sourceTransactionPolicy,
-        getCurrencyDecimals,
-    ]);
+        conflictFields = detectedConflictFields as MergeFieldKey[];
+    }
 
     // Handle selection
-    const handleSelect = useCallback(
-        (transaction: Transaction, transactionDetails: TransactionDetails, field: MergeFieldKey) => {
-            const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
+    const handleSelect = (transaction: Transaction, transactionDetails: TransactionDetails, field: MergeFieldKey) => {
+        const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
-            // Clear error if it has
-            setHasErrors((prev) => {
-                const newErrors = {...prev};
-                delete newErrors[field];
-                return newErrors;
-            });
+        // Clear error if it has
+        setHasErrors((prev) => {
+            const newErrors = {...prev};
+            delete newErrors[field];
+            return newErrors;
+        });
 
-            const selectedTransactionPolicy = transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy;
+        const selectedTransactionPolicy = transaction.transactionID === targetTransaction?.transactionID ? targetTransactionPolicy : sourceTransactionPolicy;
 
-            // Update both the field value and track which transaction was selected (persisted in Onyx)
-            const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues({
-                transaction,
-                field,
-                fieldValue,
-                getCurrencyDecimals,
-                mergeTransaction,
-                searchReports: [targetTransactionReport, sourceTransactionReport],
-                policy: selectedTransactionPolicy,
-                // Selecting a report is what moves the merged expense to a workspace, so it decides which workspace's
-                // rules apply to it: the workspace of the expense whose report was picked. Any other selection leaves
-                // the expense on the report already chosen, whose workspace is resolved from Onyx above.
-                destinationPolicy: field === 'reportID' ? selectedTransactionPolicy : chosenReportPolicy,
-            });
-
-            setMergeTransactionKey(transactionID, {
-                ...updatedValues,
-                selectedTransactionByField: {
-                    ...currentSelections,
-                    [field]: transaction.transactionID,
-                } as Partial<Record<MergeFieldKey, string>>,
-            });
-        },
-        [
-            mergeTransaction,
-            transactionID,
-            targetTransactionReport,
-            sourceTransactionReport,
-            targetTransaction?.transactionID,
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-            chosenReportPolicy,
+        // Update both the field value and track which transaction was selected (persisted in Onyx)
+        const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+        const updatedValues = getMergeFieldUpdatedValues({
+            transaction,
+            field,
+            fieldValue,
             getCurrencyDecimals,
-        ],
-    );
+            translate,
+            mergeTransaction,
+            searchReports: [targetTransactionReport, sourceTransactionReport],
+            policy: selectedTransactionPolicy,
+            // Selecting a report is what moves the merged expense to a workspace, so it decides which workspace's
+            // rules apply to it: the workspace of the expense whose report was picked. Any other selection leaves
+            // the expense on the report already chosen, whose workspace is resolved from Onyx above.
+            destinationPolicy: field === 'reportID' ? selectedTransactionPolicy : chosenReportPolicy,
+        });
+
+        setMergeTransactionKey(transactionID, {
+            ...updatedValues,
+            selectedTransactionByField: {
+                ...currentSelections,
+                [field]: transaction.transactionID,
+            } as Partial<Record<MergeFieldKey, string>>,
+        });
+    };
 
     const validateAndContinue = () => {
         if (!mergeTransaction) {
@@ -170,38 +152,22 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
     };
 
     // Build merge fields array with all necessary information
-    const mergeFields = useMemo(
-        () =>
-            buildMergeFieldsData({
-                conflictFields,
-                targetTransaction,
-                sourceTransaction,
-                targetReportOwnerAsAttendee,
-                sourceReportOwnerAsAttendee,
-                mergeTransaction,
-                targetTransactionPolicy,
-                sourceTransactionPolicy,
-                translate,
-                convertToDisplayString,
-                localeCompare,
-                reports: [targetTransactionReport, sourceTransactionReport],
-            }),
-        [
-            conflictFields,
-            targetTransaction,
-            sourceTransaction,
-            targetReportOwnerAsAttendee,
-            sourceReportOwnerAsAttendee,
-            mergeTransaction,
-            targetTransactionReport,
-            sourceTransactionReport,
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-            translate,
-            convertToDisplayString,
-            localeCompare,
-        ],
-    );
+    const mergeFields = buildMergeFieldsData({
+        conflictFields,
+        targetTransaction,
+        sourceTransaction,
+        targetReportOwnerAsAttendee,
+        sourceReportOwnerAsAttendee,
+        mergeTransaction,
+        targetTransactionPolicy,
+        sourceTransactionPolicy,
+        translate,
+        convertToDisplayString,
+        localeCompare,
+        formatPhoneNumber,
+        reports: [targetTransactionReport, sourceTransactionReport],
+        accountIDToName,
+    });
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
     const shouldShowSubmitError = conflictFields.length > 1 && !isEmptyObject(hasErrors);
@@ -244,6 +210,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
                         />
                     )}
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.DETAILS_REVIEW_CONTINUE_BUTTON}
                         size={CONST.BUTTON_SIZE.LARGE}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={validateAndContinue}

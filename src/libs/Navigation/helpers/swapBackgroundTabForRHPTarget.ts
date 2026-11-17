@@ -38,7 +38,7 @@ function getCrossTabContext(currentState: NavigationState | undefined, route: Ro
         }
 
         const matchingTabNavigatorRoute = getMatchingFullScreenRoute(targetFocusedRoute);
-        const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute as NavigationPartialRoute) : undefined;
+        const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute) : undefined;
         const matchingFullScreenRoute = matchingTabState?.routes?.at(matchingTabState.index ?? 0) as NavigationPartialRoute | undefined;
 
         const tabRoute = currentState.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
