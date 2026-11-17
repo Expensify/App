@@ -49,5 +49,3 @@ For company card expenses, Expensify uses:
 Any selected vendor must still be active in Zoho Books.
 
 Reimbursable expenses use a different process: during report export, Expensify finds the employee's Zoho Books vendor by matching their email address. Selecting a company card vendor doesn't change that employee-vendor match. The employee vendor must use the same currency as the exported bill.
-
-Learn how to [export reports to Zoho Books](/articles/new-expensify/connections/zoho-books/Export-Reports-to-Zoho-Books).
