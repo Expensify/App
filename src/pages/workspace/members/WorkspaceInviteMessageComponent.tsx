@@ -57,8 +57,8 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
@@ -122,6 +122,7 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -217,8 +218,11 @@ function WorkspaceInviteMessageComponent({
                 avatar: currentUserPersonalDetails?.avatar,
             },
             filteredReportActions,
-            shouldShowApproverRow ? validatedApprover : undefined,
-            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+            {
+                approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
+                hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+                policyCategories,
+            },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearWorkspaceInviteWorkArrangementDraft(policyID);
@@ -283,8 +287,13 @@ function WorkspaceInviteMessageComponent({
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
-    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
-    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail;
+    // formatPhoneNumber replaces spaces with a non-breaking space unconditionally, even for strings it otherwise
+    // returns unchanged, so an ordinary multi-word display name would get its spaces silently swapped. Only format
+    // when the display name is actually an SMS login.
+    const invitingMemberName = Str.isSMSLogin(invitingMemberDetails?.displayName ?? '')
+        ? formatPhoneNumber(invitingMemberDetails?.displayName ?? '')
+        : (invitingMemberDetails?.displayName ?? '');
+    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : formatPhoneNumber(invitingMemberEmail);
     const approverName = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: approverDetails,
         defaultValue: workspaceInviteApproverDraft,
