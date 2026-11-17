@@ -364,6 +364,33 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
             // Then the row doesn't show the amount, matching the hidden column in the wide layout
             expect(screen.queryByText(getNarrowRowText('$5.00'))).toBeNull();
         });
+
+        it('shows the full date range on its own line', async () => {
+            // Given a narrow table layout and a rate that is only valid for part of the year
+            // When the distance rates page renders
+            await renderPage([buildRate('cars', {startDate: '2026-08-01', endDate: '2026-08-31'})]);
+
+            // Then the whole date range is its own text, so it isn't cut off behind the rate on phones
+            expect(screen.getByText(TestHelper.translateLocal('iou.rateValidDateRange', {startDate: 'Aug 1, 2026', endDate: 'Aug 31, 2026'}))).toBeTruthy();
+        });
+
+        it('hides the enable toggle', async () => {
+            // Given a narrow table layout and an enabled rate
+            // When the distance rates page renders
+            await renderPage([buildRate('cars')]);
+
+            // Then the row has no switch, since its width goes to the stacked rate details and rates are toggled from bulk selection or the details page
+            expect(screen.queryByRole(CONST.ROLE.SWITCH)).toBeNull();
+        });
+    });
+
+    it('shows the enable toggle in the wide layout', async () => {
+        // Given the wide table layout and an enabled rate
+        // When the distance rates page renders
+        await renderPage([buildRate('cars')]);
+
+        // Then the row keeps its switch column
+        expect(screen.getByRole(CONST.ROLE.SWITCH)).toBeTruthy();
     });
 
     it('prefills a raw amount and saves the converted percentage on blur', async () => {
