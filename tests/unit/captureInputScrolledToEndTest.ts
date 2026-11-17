@@ -60,16 +60,47 @@ describe('captureInputScrolledToEnd on web', () => {
         expect(restore).toBeUndefined();
     });
 
-    it('leaves an input whose text fits alone', () => {
-        // Given a focused input whose whole value fits in the box
-        const input = createScrollableInput(98, 98, 0);
+    it('keeps the caret at the end in view when an input that fits is shrunk', () => {
+        // Given a focused multiline input whose whole value fits, with autofocus' caret at the end, as on mobile web before the keyboard opens
+        const input = document.createElement('textarea');
+        input.value = 'Line 1\nLine 2\nTest';
+        let currentScrollTop = 0;
+        Object.defineProperty(input, 'scrollHeight', {value: 540});
+        Object.defineProperty(input, 'clientHeight', {value: 540, configurable: true});
+        Object.defineProperty(input, 'scrollTop', {
+            get: () => currentScrollTop,
+            set: (value: number) => {
+                currentScrollTop = Math.max(0, Math.min(value, 540 - input.clientHeight));
+            },
+        });
         const content = mountContent(input);
         input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+
+        // When the container captures it, and the keyboard then shrinks the box to 283px
+        const restore = captureInputScrolledToEndWeb(content);
+        Object.defineProperty(input, 'clientHeight', {value: 283});
+        restore?.();
+
+        // Then the input scrolls to the end, so the caret and last line stay visible above the keyboard
+        expect(restore).toBeDefined();
+        expect(input.scrollTop).toBe(257);
+    });
+
+    it('leaves an input that fits alone when the caret is not at the end', () => {
+        // Given a focused input whose value fits, with the caret moved to the start
+        const input = document.createElement('textarea');
+        input.value = 'Line 1\nLine 2\nTest';
+        Object.defineProperty(input, 'scrollHeight', {value: 98});
+        Object.defineProperty(input, 'clientHeight', {value: 98});
+        const content = mountContent(input);
+        input.focus();
+        input.setSelectionRange(0, 0);
 
         // When the container checks it before changing the cap
         const restore = captureInputScrolledToEndWeb(content);
 
-        // Then there is nothing to restore, because nothing was scrolled
+        // Then there is nothing to restore, so the browser keeps the caret where the user put it
         expect(restore).toBeUndefined();
     });
 
