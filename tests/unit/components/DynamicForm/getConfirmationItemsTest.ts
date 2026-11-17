@@ -1,7 +1,9 @@
+import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
 import {getAllFields} from '@components/DynamicForm/utils/paginate';
 import type {SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
 
+import CONST from '@src/CONST';
 import type {DynamicFormPage} from '@src/types/onyx';
 
 import {translateLocal} from '../../../utils/TestHelper';
@@ -40,6 +42,93 @@ describe('getConfirmationItems', () => {
         // Then the SSN is masked to its last four digits and the page is opened
         expect(ssnRow?.title).toBe('•••-••-1234');
         expect(onEditPage).toHaveBeenCalledWith(0);
+    });
+
+    describe('offline', () => {
+        const bankPages: DynamicFormPage[] = [
+            {
+                key: 'bank',
+                title: 'Bank',
+                content: [
+                    {key: 'currency', type: 'currency', required: true, label: 'Currency', refreshOnChange: true},
+                    {key: 'sortCode', type: 'text', required: true, label: 'Sort code'},
+                    {key: 'homeAddress', type: 'address', required: true, label: 'Address', refreshOnChange: true},
+                ],
+            },
+        ];
+        const values = {currency: 'GBP', sortCode: '403020', homeAddress: '1 Main St'};
+
+        it('disables only the rows whose change asks the server for a new form', () => {
+            // Given a currency that changes the requirements, next to a sort code that does not
+            // When the confirmation page is built offline
+            const [group] = getConfirmationItems(bankPages, getAllFields(bankPages), values, translateLocal, jest.fn(), jest.fn(), true);
+            const getRow = (id: string) => group.rows.find((row) => row.id === id);
+
+            // Then the currency row cannot be opened, since a new pick would only queue a refresh, while the sort code can still be corrected
+            expect(getRow('currency')).toEqual(expect.objectContaining({disabled: true}));
+            expect(getRow('sortCode')).not.toEqual(expect.objectContaining({disabled: true}));
+
+            // And the address row stays open, since only its country refreshes and that picker is locked on the page itself
+            expect(getRow('homeAddress')).not.toEqual(expect.objectContaining({disabled: true}));
+        });
+
+        it('keeps every row enabled online', () => {
+            // Given the same answers
+            // When the confirmation page is built online
+            const [group] = getConfirmationItems(bankPages, getAllFields(bankPages), values, translateLocal, jest.fn(), jest.fn(), false);
+
+            // Then the currency row opens its page, since a new form can be fetched
+            expect(group.rows.find((row) => row.id === 'currency')).not.toEqual(expect.objectContaining({disabled: true}));
+        });
+    });
+
+    describe('field errors', () => {
+        const bankPages: DynamicFormPage[] = [
+            {
+                key: 'bank',
+                title: 'Bank',
+                content: [
+                    {key: 'accountNumber', type: 'text', required: true, label: 'Account number'},
+                    {key: 'sortCode', type: 'text', required: true, label: 'Sort code'},
+                    {key: 'homeAddress', type: 'address', required: true, label: 'Address'},
+                ],
+            },
+        ];
+        const values = {accountNumber: '87654321', homeAddress: '1 Main St'};
+
+        it('marks the rows the errors name, and the address row when one of its parts is missing', () => {
+            // Given a sort code left empty and an address without its city, after the user pressed Confirm
+            const fieldErrors = {sortCode: 'This field is required.', [getAddressInputKeys('homeAddress').city]: 'This field is required.'};
+
+            // When the confirmation page is built with those errors
+            const [group] = getConfirmationItems(bankPages, getAllFields(bankPages), values, translateLocal, jest.fn(), jest.fn(), false, fieldErrors);
+            const getRow = (id: string) => group.rows.find((row) => row.id === id);
+
+            // Then the empty sort code and the incomplete address show a red dot and the reason, so the user sees what blocks Confirm without leaving the page
+            expect(getRow('sortCode')).toEqual(expect.objectContaining({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, errorText: 'This field is required.'}));
+            expect(getRow('homeAddress')).toEqual(expect.objectContaining({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, errorText: 'This field is required.'}));
+
+            // And the answered account number stays clean
+            expect(getRow('accountNumber')).toEqual(expect.objectContaining({brickRoadIndicator: undefined, errorText: undefined}));
+        });
+
+        it('shows an error about a whole list under its entries', () => {
+            // Given a list of owners with one entry more than allowed, after the user pressed Confirm
+            const ownerPages: DynamicFormPage[] = [
+                {
+                    key: 'ownership',
+                    title: 'Ownership',
+                    content: [{key: 'owners', label: 'Owners', type: 'list', required: true, itemFields: [{key: 'firstName', type: 'text', required: true}]}],
+                },
+            ];
+            const ownerValues = {owners: [{id: 'jane', firstName: 'Jane'}]};
+
+            // When the confirmation page is built with an error for the list
+            const [group] = getConfirmationItems(ownerPages, getAllFields(ownerPages), ownerValues, translateLocal, jest.fn(), jest.fn(), false, {owners: 'Too many owners'});
+
+            // Then the error follows the entries, since an entry row cannot show it and the footer alone would not say what to fix
+            expect(group.rows.at(-1)).toEqual({kind: 'error', id: 'owners-error', title: 'Too many owners'});
+        });
     });
 
     it('groups a masked SSN starting with zeros like any other SSN', () => {

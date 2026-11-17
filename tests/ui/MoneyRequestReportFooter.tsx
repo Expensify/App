@@ -120,7 +120,6 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowMerchant: false,
             shouldShowCategories: false,
             shouldShowTax: false,
-            isParticipantPickerVisible: false,
             hasParticipantSection: false,
         },
         errorState: {shouldDisplayFieldError: false, formError: 'common.error.fieldRequired' as TranslationPaths, clearFormErrors: jest.fn(), setFormError: jest.fn()},
@@ -151,6 +150,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         initOnyxDerivedValues();
         return waitForBatchedUpdatesWithAct();
+    });
+
+    beforeEach(async () => {
+        // The report owner must be signed in so creation eligibility retains the existing report as the default.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: FAKE_ACCOUNT_ID, email: 'reportfooter@example.com'});
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterEach(async () => {

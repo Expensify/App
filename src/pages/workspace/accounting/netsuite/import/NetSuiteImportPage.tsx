@@ -25,6 +25,17 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+const IMPORT_FIELD_ROW_SENTRY_LABELS = {
+    departments: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_FIELD_ROW.DEPARTMENTS,
+    classes: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_FIELD_ROW.CLASSES,
+    locations: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_FIELD_ROW.LOCATIONS,
+};
+
+const CUSTOM_FIELD_ROW_SENTRY_LABELS = {
+    [CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOM_FIELD_ROW.CUSTOM_SEGMENTS,
+    [CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.IMPORT_CUSTOM_FIELD_ROW.CUSTOM_LISTS,
+};
+
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -56,6 +67,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 isActive
                 disabled
                 switchAccessibilityLabel={translate('workspace.netsuite.import.expenseCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.EXPENSE_CATEGORIES_SWITCH}
                 onToggle={() => {}}
             />
             {CONST.NETSUITE_CONFIG.IMPORT_FIELDS.map((importField) => (
@@ -64,6 +76,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     pendingAction={settingsPendingAction([importField], config?.pendingFields)}
                 >
                     <MenuItemField
+                        sentryLabel={IMPORT_FIELD_ROW_SENTRY_LABELS[importField]}
                         name={translate(`workspace.netsuite.import.importFields.${importField}.title`)}
                         onPress={() => {
                             if (!policyID) {
@@ -88,6 +101,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 )}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CUSTOMERS_OR_PROJECTS}
                     name={translate(`workspace.netsuite.import.customersOrJobs.title`)}
                     onPress={() => {
                         if (!policyID) {
@@ -116,6 +130,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     shouldPlaceSubtitleBelowSwitch
                     isActive={config?.syncOptions?.syncTax ?? false}
                     switchAccessibilityLabel={translate('common.tax')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.TAX_SWITCH}
                     onToggle={(isEnabled: boolean) => {
                         if (!policyID) {
                             return;
@@ -136,6 +151,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldDisableStrikeThrough
                     >
                         <MenuItemField
+                            sentryLabel={CUSTOM_FIELD_ROW_SENTRY_LABELS[importField]}
                             name={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             onPress={() => {
                                 if (!policyID) {

@@ -49,6 +49,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.accounting.accounts')}
                 subtitle={translate('workspace.rillet.accountTypesDescription')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive
@@ -59,6 +60,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                 title={translate('workspace.rillet.enableNewAccountsTitle')}
                 subtitle={translate('workspace.rillet.enableNewAccountsDescription')}
                 switchAccessibilityLabel={translate('workspace.rillet.enableNewAccountsTitle')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.ENABLE_NEW_ACCOUNTS_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={enableNewCategories}
@@ -79,6 +81,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                         key={field.id}
                         title={field.name}
                         switchAccessibilityLabel={field.name}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.DIMENSION_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={isImported}
@@ -95,6 +98,7 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.taxes.taxRates')}
                         switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.TAX_RATES_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}

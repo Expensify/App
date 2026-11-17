@@ -99,6 +99,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
 const SECURITY_MATCH_TERMS = ['password', '2fa', 'two factor', 'two-factor'];
 const NO_NAVIGATION_SUGGESTIONS: SearchQueryItem[] = [];
+const NO_NAVIGATION_SUGGESTION_SOURCES: NavigationSuggestionSourceItem[][] = [];
 
 type BuildTopLevelNavigationItemsParams = {
     labels: {
@@ -382,8 +383,9 @@ function buildAccountNavigationItems({sections, rightElement, getItemText, getDe
     );
 }
 
-function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
-    const {translate, localeCompare} = useLocalize();
+// Own hook so React Compiler caches the sources independently of the query.
+function useNavigationSuggestionSources(shouldBuildSources: boolean, shouldWatchForApprovals: boolean): NavigationSuggestionSourceItem[][] {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
@@ -394,7 +396,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -403,8 +404,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     // A blank query matches nothing, so skip building the sources; workspace menu items are the costliest.
-    if (!canQueryMatchNavigationSuggestions(query)) {
-        return NO_NAVIGATION_SUGGESTIONS;
+    if (!shouldBuildSources) {
+        return NO_NAVIGATION_SUGGESTION_SOURCES;
     }
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -486,7 +487,20 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems, workspaceItems, domainItems, accountItems, createItems], localeCompare);
+    return [topLevelItems, spendItems, workspaceItems, domainItems, accountItems];
+}
+
+function useNavigationSuggestions(query: string, shouldWatchForApprovals = true): SearchQueryItem[] {
+    const {localeCompare} = useLocalize();
+    const canQueryMatch = canQueryMatchNavigationSuggestions(query);
+    const sources = useNavigationSuggestionSources(canQueryMatch, shouldWatchForApprovals);
+    const createItems = useCreateNavigationSuggestions(query, canQueryMatch);
+
+    if (!canQueryMatch) {
+        return NO_NAVIGATION_SUGGESTIONS;
+    }
+
+    return buildNavigationSuggestions(query, [...sources, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;

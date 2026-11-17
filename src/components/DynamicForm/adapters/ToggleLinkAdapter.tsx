@@ -1,11 +1,14 @@
+import FSClassView from '@components/FSClassView';
 import TextLink from '@components/TextLink';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef, Ref} from 'react';
+import type {View} from 'react-native';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type ToggleLinkAdapterProps = ForwardedFSClassProps & {
     /** The empty string means unanswered, which reads as off */
@@ -29,12 +32,17 @@ function ToggleLinkAdapter({value, onInputChange = () => {}, label, toggledLabel
     const isOn = value === true;
 
     return (
-        <View
+        <FSClassView
             ref={ref}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
-            <TextLink onPress={() => onInputChange(!isOn)}>{isOn ? (toggledLabel ?? label) : label}</TextLink>
-        </View>
+            <TextLink
+                onPress={() => onInputChange(!isOn)}
+                sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.TOGGLE_LINK}
+            >
+                {isOn ? (toggledLabel ?? label) : label}
+            </TextLink>
+        </FSClassView>
     );
 }
 

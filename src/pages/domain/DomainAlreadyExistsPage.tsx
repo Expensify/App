@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -93,10 +94,12 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                 </ConfirmationPage.Content>
                 <FixedFooter>
                     <ConfirmationPage.SecondaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ALREADY_EXISTS_NEVER_MIND}
                         text={translate('domain.common.neverMind')}
                         onPress={goToDomainsList}
                     />
                     <ConfirmationPage.PrimaryButton
+                        sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ALREADY_EXISTS_REQUEST_ACCESS}
                         text={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
                         isLoading={isRequestPending}
                         isDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}

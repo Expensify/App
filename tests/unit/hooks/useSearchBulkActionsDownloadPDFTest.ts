@@ -10,6 +10,7 @@ import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReportsToPDF} from '@libs/actions/Export';
 import {exportReportToPDF} from '@libs/actions/Report';
+import type * as SearchActions from '@libs/actions/Search';
 import {getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 
@@ -85,6 +86,7 @@ jest.mock('@hooks/useEnvironment', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),

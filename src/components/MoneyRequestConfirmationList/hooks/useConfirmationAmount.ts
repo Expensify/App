@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {computePerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import type {getAttendees} from '@libs/TransactionUtils';
-import {isFailedScanAmountPlaceholder, isScanning, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {isFailedScanAmountPlaceholder, isScanning} from '@libs/TransactionUtils';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -42,6 +42,9 @@ type UseConfirmationAmountParams = {
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
+    /** Whether the expense is a scan, whose amount is read off the receipt so it is not split per attendee */
+    isScanRequest: boolean;
+
     /** Per-diem sub-rates from the previous render, used to detect rate changes */
     prevSubRates: SubRates;
 };
@@ -64,12 +67,11 @@ function useConfirmationAmount({
     distanceRequestAmount,
     distanceCurrency,
     isPerDiemRequest,
+    isScanRequest,
     prevSubRates,
 }: UseConfirmationAmountParams) {
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-
-    const isScanRequest = isScanRequestUtil(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
 
@@ -97,7 +99,7 @@ function useConfirmationAmount({
     const attendeeCount = iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1;
     const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute || isScanRequest ? '' : convertToDisplayString(amountToBeUsed / attendeeCount, displayCurrency);
 
-    return {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest};
+    return {amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
 }
 
 export default useConfirmationAmount;

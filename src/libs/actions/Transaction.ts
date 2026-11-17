@@ -1410,6 +1410,7 @@ function getChangeTransactionsReportOnyxData({
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                iouReport: newReport,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1444,8 +1445,8 @@ function getChangeTransactionsReportOnyxData({
         // 3. Keep track of the new report totals
         // Source report uses original transaction details (expense is being removed at its original amount)
         // Target report uses transactionForViolations (expense arrives with the updated rate/amount after auto-selecting workspace rate)
-        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
-        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, undefined, allowNegative) ?? {};
+        const {amount: sourceTransactionAmount = 0, currency: sourceTransactionCurrency} = getTransactionDetails(transaction, undefined, allowNegative) ?? {};
+        const {amount: targetTransactionAmount = 0, currency: targetTransactionCurrency} = getTransactionDetails(transactionForViolations, undefined, allowNegative) ?? {};
         const resolvedTargetTransactionCurrency = targetTransactionCurrency ?? transaction.currency;
         const oldReportTotal = oldReport?.total ?? 0;
 

@@ -3,9 +3,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSearchBulkEditPolicyID from '@hooks/useSearchBulkEditPolicyID';
+import {useSearchBulkEditSelection} from '@hooks/useSearchBulkEditPolicyID';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,8 @@ function SearchEditMultipleCategoryPage() {
     const {translate} = useLocalize();
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
-    const policyID = useSearchBulkEditPolicyID();
+    const {policyID, isEverySelectedExpenseOwn} = useSearchBulkEditSelection();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const currentCategory = draftTransaction?.category ?? '';
 
@@ -52,6 +54,7 @@ function SearchEditMultipleCategoryPage() {
                 policyID={policyID}
                 selectedCategory={currentCategory}
                 onSubmit={saveCategory}
+                ownerAccountID={isEverySelectedExpenseOwn ? currentUserAccountID : undefined}
             />
         </ScreenWrapper>
     );

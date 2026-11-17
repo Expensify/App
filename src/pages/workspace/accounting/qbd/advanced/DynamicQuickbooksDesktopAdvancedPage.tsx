@@ -48,6 +48,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
             title: translate('workspace.qbd.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
+            switchSentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.AUTO_CREATE_VENDOR_SWITCH,
             isActive: !!qbdConfig?.shouldAutoCreateVendor,
             onToggle: (isOn: boolean) => {
                 updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
@@ -70,7 +71,10 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qbdConfig?.pendingFields)}>
-                <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}>
+                <MenuItemSectionRoot
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.AUTO_SYNC}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={qbdConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -88,7 +92,10 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     pendingAction={settingsPendingAction(fxExpenseAccountSettings, qbdConfig?.pendingFields)}
                     style={styles.mt3}
                 >
-                    <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path))}>
+                    <MenuItemSectionRoot
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path))}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.FX_EXPENSE_ACCOUNT}
+                    >
                         <MenuItemField.Row
                             name={translate('workspace.qbd.advancedConfig.fxExpenseAccount')}
                             value={selectedFxExpenseAccountName}
@@ -105,6 +112,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     title={item.title}
                     subtitle={item.subtitle}
                     switchAccessibilityLabel={item.switchAccessibilityLabel}
+                    switchSentryLabel={item.switchSentryLabel}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={styles.mv3}
                     isActive={item.isActive}
