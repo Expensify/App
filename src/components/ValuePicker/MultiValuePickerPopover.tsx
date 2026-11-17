@@ -57,4 +57,3 @@ function MultiValuePickerPopover({items, selectedValues, onApply, applyButtonSen
 }
 
 export default MultiValuePickerPopover;
-export type {MultiValuePickerPopoverProps};

@@ -112,4 +112,4 @@ function DynamicFormDropdownField({
 }
 
 export default DynamicFormDropdownField;
-export type {DynamicFormDropdownFieldProps, DynamicFormDropdownFieldRenderProps};
+export type {DynamicFormDropdownFieldRenderProps};

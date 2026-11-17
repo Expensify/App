@@ -58,4 +58,3 @@ function CurrencyPickerPopover({selectedCurrencyCode, onSelected, forwardedFSCla
 }
 
 export default CurrencyPickerPopover;
-export type {CurrencyPickerPopoverProps};
