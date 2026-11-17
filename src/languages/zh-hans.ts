@@ -12803,8 +12803,8 @@ ${reportName}`,
             other: `已将 ${count} 份报表中的 ${doneCount} 份标记为已支付`,
         }),
         paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `已支付 ${count} 份报表中的 ${doneCount} 份`,
-            other: `已支付 ${count} 份报表中的 ${doneCount} 份`,
+            one: `已支付 ${count} 份报销单中的 ${doneCount} 份`,
+            other: `已支付 ${count} 份报销单中的 ${doneCount} 份`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `已暂挂 ${count} 份报表中 ${doneCount} 份的报销费用`,
@@ -12848,8 +12848,8 @@ ${reportName}`,
             other: `${count} 份报表无法标记为已支付。`,
         }),
         skippedBankPayBody: ({count}: {count: number}) => ({
-            one: '1 份报表未通过银行账户支付，因为它不可报销或总金额为零或更少。如有需要，你可以手动将其标记为已支付。',
-            other: `${count} 份报表未通过银行账户支付，因为它们不可报销或总金额为零或更少。如有需要，你可以手动将其标记为已支付。`,
+            one: '有 1 份报销单未通过银行账户支付，因为它不可报销或总金额小于或等于 0。如有需要，你可以手动将其标记为已支付。',
+            other: `有 ${count} 份报销单未通过银行账户支付，因为它们要么不需要报销，要么总金额小于或等于 0。若你愿意，可以手动将其标记为已支付。`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: '无法暂挂 1 份报表的报销费用。',
@@ -12874,6 +12874,18 @@ ${reportName}`,
         notMovedBody: ({count}: {count: number}) => ({
             one: '1 份报表无法移动。',
             other: `${count} 份报表无法移动。`,
+        }),
+        skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '有 1 份报销单未支付，因为银行账户需要先完成全球报销设置。',
+            other: `由于需要先为银行账户设置全球报销功能，${count} 份报表尚未支付。`,
+        }),
+        skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
+            one: '有 1 份报销未付款，因为该成员的银行账户尚未设置为全球报销。',
+            other: `由于成员的银行账户尚未设置为支持全球报销，已有 ${count} 份报销单未获支付。`,
+        }),
+        skippedNeedsQuoteBody: ({count}: {count: number}) => ({
+            one: '1 份报表未被支付，因为它是以另一种货币支付的。请在该报表中完成付款以确认汇率。',
+            other: `由于以其他货币付款，${count} 份报销单尚未支付。请在每份报销单中逐一支付，以确认汇率。`,
         }),
     },
     earlyRenewal: {
