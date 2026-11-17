@@ -1314,8 +1314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         invalidApprovalType: (rowNumber: number) => `Oups ! La ligne ${rowNumber} a un type d’approbation autre que « Always » ou « Over limit ». Veuillez examiner et réessayer.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Oups ! La ligne ${rowNumber} définit l’Approbateur 1 sur « Over limit », mais chaque note de frais est envoyée à l’Approbateur 1. Veuillez examiner et réessayer.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Oups ! La ligne ${rowNumber} a un approbateur « Over limit » sans limite, ou une limite pour un approbateur qui n’est pas « Over limit ». Veuillez examiner et réessayer.`,
+        approvalLimitMismatch: `Le type d’approbation et la limite d’approbation de ces approbateurs ne correspondent pas. Veuillez corriger cela et réessayer. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">En savoir plus</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Oups ! La ligne ${rowNumber} a un approbateur « Over limit » avec une limite inférieure à celle de l’approbateur « Over limit » juste avant lui. Veuillez examiner et réessayer.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>

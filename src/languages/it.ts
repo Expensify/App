@@ -1307,8 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approverRepeated: (rowNumber: number) => `Ops! La riga ${rowNumber} elenca lo stesso approvatore più di una volta. Controlla e riprova.`,
         invalidApprovalType: (rowNumber: number) => `Ops! La riga ${rowNumber} ha un tipo di approvazione diverso da "Always" o "Over limit". Controlla e riprova.`,
         firstApproverOverLimit: (rowNumber: number) => `Ops! La riga ${rowNumber} imposta l'Approvatore 1 su "Over limit", ma ogni report va all'Approvatore 1. Controlla e riprova.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Ops! La riga ${rowNumber} ha un approvatore "Over limit" senza limite, oppure un limite per un approvatore che non è "Over limit". Controlla e riprova.`,
+        approvalLimitMismatch: `C'è una discrepanza tra il tipo di approvazione e il limite di approvazione di questi approvatori. Correggila e riprova. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Scopri di più</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Ops! La riga ${rowNumber} ha un approvatore "Over limit" con un limite inferiore a quello dell'approvatore "Over limit" subito prima. Controlla e riprova.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! Il campo ("${fieldName}") contiene uno o più valori più lunghi di ${limit} caratteri. Controlla e riprova.`,

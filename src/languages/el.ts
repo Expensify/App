@@ -1352,8 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         invalidApprovalType: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τύπο έγκρισης που δεν είναι «Always» ή «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Ουπς! Η γραμμή ${rowNumber} ορίζει τον Εγκρίνοντα 1 ως «Over limit», αλλά κάθε αναφορά πηγαίνει στον Εγκρίνοντα 1. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Ουπς! Η γραμμή ${rowNumber} έχει εγκρίνοντα «Over limit» χωρίς όριο ή όριο για εγκρίνοντα που δεν είναι «Over limit». Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitMismatch: `Ο τύπος έγκρισης και το όριο έγκρισης δεν ταιριάζουν για αυτούς τους εγκρίνοντες. Διορθώστε το και δοκιμάστε ξανά. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Μάθετε περισσότερα</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Ουπς! Η γραμμή ${rowNumber} έχει εγκρίνοντα «Over limit» με χαμηλότερο όριο από τον εγκρίνοντα «Over limit» ακριβώς πριν από αυτόν. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>

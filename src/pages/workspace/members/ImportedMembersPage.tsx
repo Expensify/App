@@ -1,9 +1,11 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
@@ -11,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
@@ -48,11 +51,14 @@ import SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheetMemberData} from '@src/types/onyx';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -190,6 +196,25 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             return;
         }
 
+        // A mismatched approval type and limit can happen on any number of approvers, so they're listed together in a modal
+        // that scrolls once the list gets long, instead of as an error for the first row with one
+        const {approversByRow, limitMismatchApproverEmails} = canImportApprovers ? getApprovers() : {approversByRow: [], limitMismatchApproverEmails: []};
+        if (limitMismatchApproverEmails.length > 0) {
+            showConfirmModal({
+                title: translate('spreadsheet.importFailedTitle'),
+                subtitle: (
+                    <View style={[styles.renderHTML, styles.mb4]}>
+                        <RenderHTML html={translate('spreadsheet.approvalLimitMismatch')} />
+                    </View>
+                ),
+                prompt: limitMismatchApproverEmails.map((email) => `${CONST.DOT_SEPARATOR} ${formatPhoneNumber(email)}`).join('\n'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldEnablePromptScroll: true,
+            });
+            return;
+        }
+
         let isRoleMissing = false;
         let shouldShowMemberRolePermissionWarning = false;
 
@@ -232,7 +257,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         // Approvers are matched against members by email, so both are read the way the backend stores logins
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (shouldUseApprovalWorkflowRules ? email.trim().toLowerCase() : email));
-        const {approversByRow} = canImportApprovers ? getApprovers() : {approversByRow: []};
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
         const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);

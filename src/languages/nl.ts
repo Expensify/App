@@ -1303,8 +1303,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan één keer. Controleer het en probeer het opnieuw.`,
         invalidApprovalType: (rowNumber: number) => `Oeps! Rij ${rowNumber} heeft een goedkeuringstype dat niet "Always" of "Over limit" is. Controleer het en probeer het opnieuw.`,
         firstApproverOverLimit: (rowNumber: number) => `Oeps! Rij ${rowNumber} zet Fiatteur 1 op "Over limit", maar elk rapport gaat naar Fiatteur 1. Controleer het en probeer het opnieuw.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Oeps! Rij ${rowNumber} heeft een fiatteur met "Over limit" zonder limiet, of een limiet voor een fiatteur die niet op "Over limit" staat. Controleer het en probeer het opnieuw.`,
+        approvalLimitMismatch: `Het goedkeuringstype en de goedkeuringslimiet van deze fiatteurs komen niet overeen. Pas dit aan en probeer het opnieuw. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Meer informatie</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Oeps! Rij ${rowNumber} heeft een fiatteur met "Over limit" en een lagere limiet dan de fiatteur met "Over limit" direct ervoor. Controleer het en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>

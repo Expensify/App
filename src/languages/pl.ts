@@ -1332,8 +1332,7 @@ const translations: TranslationDeepObject<typeof en> = {
         invalidApprovalType: (rowNumber: number) => `Ups! Wiersz ${rowNumber} ma typ zatwierdzania inny niż „Always” lub „Over limit”. Sprawdź to i spróbuj ponownie.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Ups! Wiersz ${rowNumber} ustawia osobę zatwierdzającą 1 na „Over limit”, ale każdy raport trafia do osoby zatwierdzającej 1. Sprawdź to i spróbuj ponownie.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Ups! Wiersz ${rowNumber} ma osobę zatwierdzającą „Over limit” bez limitu albo limit dla osoby zatwierdzającej, która nie ma typu „Over limit”. Sprawdź to i spróbuj ponownie.`,
+        approvalLimitMismatch: `Typ zatwierdzania i limit zatwierdzania tych osób zatwierdzających nie są ze sobą zgodne. Popraw to i spróbuj ponownie. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Dowiedz się więcej</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Ups! Wiersz ${rowNumber} ma osobę zatwierdzającą „Over limit” z niższym limitem niż osoba zatwierdzająca „Over limit” bezpośrednio przed nią. Sprawdź to i spróbuj ponownie.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej wartości dłuższych niż ${limit} znaków. Sprawdź je i spróbuj ponownie.`,

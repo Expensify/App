@@ -440,7 +440,6 @@ type ImportedApproversError = {
         | 'spreadsheet.approverRepeated'
         | 'spreadsheet.invalidApprovalType'
         | 'spreadsheet.firstApproverOverLimit'
-        | 'spreadsheet.approvalLimitMismatch'
         | 'spreadsheet.decreasingApprovalLimits';
 
     /** The row's number in the spreadsheet, counting the header row */
@@ -461,11 +460,15 @@ type GetImportedApproversParams = {
 
 /**
  * Reads the approvers each member row of a members import lists, in order, and finds the first row listing them in a way a
- * workflow can't hold. Limits are converted to cents, so their cells are expected to hold valid amounts.
+ * workflow can't hold, along with every approver whose approval type and limit don't match. Limits are converted to cents, so
+ * their cells are expected to hold valid amounts.
  */
 function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, currencySymbol, currency}: GetImportedApproversParams): {
     approversByRow: ImportedSpreadsheetApprover[][];
     error?: ImportedApproversError;
+
+    /** The approvers with a limit who get every report, or who are over limit approvers without a limit, each listed once */
+    limitMismatchApproverEmails: string[];
 } {
     const getCell = (position: number, field: ApproverColumnField, rowIndex: number) => {
         const columnIndex = mappedColumns.indexOf(getApproverColumnRole(position, field));
@@ -475,6 +478,7 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
     const rowCount = Math.max((spreadsheetData.at(0)?.length ?? 0) - firstRowIndex, 0);
 
     let error: ImportedApproversError | undefined;
+    const limitMismatchApproverEmails = new Set<string>();
     const approversByRow = Array.from({length: rowCount}, (_, index) => {
         const rowIndex = index + firstRowIndex;
         const rowNumber = rowIndex + 1;
@@ -509,16 +513,15 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
                 error ??= {translationKey: 'spreadsheet.firstApproverOverLimit', rowNumber};
             }
 
-            // Like in the workflow editor, an over limit approver needs a limit above zero, and the other approvers get every report
+            // Like in the workflow editor, an over limit approver needs a limit above zero, and the other approvers get every report.
+            // Admins fix these approver by approver, so they're all listed rather than only the first row with one.
             const limit = limitAmount ? convertToBackendAmount(Number.parseFloat(limitAmount)) : 0;
-            if (isOverLimitApprover !== limit > 0) {
-                error ??= {translationKey: 'spreadsheet.approvalLimitMismatch', rowNumber};
-            }
-
-            // Like in the workflow editor, an over limit approver can't have a lower limit than an over limit approver right before
-            // them, since Classic approval limits can't route reports that way
             const previousOverLimitAmount = approvers.at(-1)?.overLimitAmount;
-            if (isOverLimitApprover && previousOverLimitAmount !== undefined && limit < previousOverLimitAmount) {
+            if (isOverLimitApprover !== limit > 0) {
+                limitMismatchApproverEmails.add(email);
+            } else if (isOverLimitApprover && previousOverLimitAmount !== undefined && limit < previousOverLimitAmount) {
+                // Like in the workflow editor, an over limit approver can't have a lower limit than an over limit approver right
+                // before them, since Classic approval limits can't route reports that way
                 error ??= {translationKey: 'spreadsheet.decreasingApprovalLimits', rowNumber};
             }
             approvers.push(isOverLimitApprover && limit > 0 ? {email, overLimitAmount: limit} : {email});
@@ -526,7 +529,7 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
         return approvers;
     });
 
-    return {approversByRow, error};
+    return {approversByRow, error, limitMismatchApproverEmails: [...limitMismatchApproverEmails]};
 }
 
 export {findColumnName, findDuplicate, generateColumnNames, getApproverColumnRole, getCompanyCardColumnMappings, getImportedApprovers, normalizeImportedAmount, parseApproverColumnRole};

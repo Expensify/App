@@ -1307,8 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         invalidApprovalType: (rowNumber: number) => `Ops! A linha ${rowNumber} tem um tipo de aprovação diferente de "Always" ou "Over limit". Revise e tente novamente.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Ops! A linha ${rowNumber} define o Aprovador 1 como "Over limit", mas todo relatório vai para o Aprovador 1. Revise e tente novamente.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Ops! A linha ${rowNumber} tem um aprovador "Over limit" sem limite, ou um limite para um aprovador que não é "Over limit". Revise e tente novamente.`,
+        approvalLimitMismatch: `Há uma incompatibilidade entre o tipo de aprovação e o limite de aprovação desses aprovadores. Corrija isso e tente novamente. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Saiba mais</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Ops! A linha ${rowNumber} tem um aprovador "Over limit" com um limite menor que o do aprovador "Over limit" logo antes dele. Revise e tente novamente.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Ops! O campo ("${fieldName}") contém um ou mais valores com mais de ${limit} caracteres. Revise e tente novamente.`,

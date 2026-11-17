@@ -1452,8 +1452,7 @@ const translations = {
         approverRepeated: (rowNumber: number) => `Oops! Row ${rowNumber} lists the same approver more than once. Please review and try again.`,
         invalidApprovalType: (rowNumber: number) => `Oops! Row ${rowNumber} has an approval type that isn't "Always" or "Over limit". Please review and try again.`,
         firstApproverOverLimit: (rowNumber: number) => `Oops! Row ${rowNumber} sets Approver 1 to "Over limit", but every report goes to Approver 1. Please review and try again.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Oops! Row ${rowNumber} has an "Over limit" approver without a limit, or a limit for an approver who isn't "Over limit". Please review and try again.`,
+        approvalLimitMismatch: `There's a mismatch between the approval type and approval limit for these approvers. Please fix it and try again. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Learn more</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Oops! Row ${rowNumber} has an "Over limit" approver with a lower limit than the "Over limit" approver right before them. Please review and try again.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Oops! The field ("${fieldName}") contains one or more values longer than ${limit} characters. Please review and try again.`,

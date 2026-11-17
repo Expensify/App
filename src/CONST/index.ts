@@ -9959,6 +9959,7 @@ const CONST = {
 
         CATEGORIES_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories#import-custom-categories',
         MEMBERS_ARTICLE_LINK: 'https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles#import-a-group-of-members',
+        APPROVAL_WORKFLOWS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals#how-to-import-approval-workflows-from-a-spreadsheet',
         TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags',
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
         IMPORT_TRANSACTIONS_ARTICLE_LINK:

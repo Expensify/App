@@ -1307,8 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Ups! Zeile ${rowNumber} hat eine Genehmigungsart, die weder „Always“ noch „Over limit“ ist. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Ups! Zeile ${rowNumber} setzt Genehmiger 1 auf „Over limit“, aber jeder Bericht geht an Genehmiger 1. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `Ups! Zeile ${rowNumber} hat einen Genehmiger mit „Over limit“ ohne Limit oder ein Limit für einen Genehmiger, der nicht auf „Over limit“ steht. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
+        approvalLimitMismatch: `Genehmigungsart und Genehmigungslimit dieser Genehmiger passen nicht zusammen. Bitte korrigieren Sie das und versuchen Sie es erneut. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">Mehr erfahren</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `Ups! Zeile ${rowNumber} hat einen Genehmiger mit „Over limit“, dessen Limit niedriger ist als das des Genehmigers mit „Over limit“ direkt davor. Bitte prüfen Sie dies und versuchen Sie es erneut.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>

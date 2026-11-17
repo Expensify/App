@@ -1292,8 +1292,7 @@ const translations: TranslationDeepObject<typeof en> = {
         invalidApprovalType: (rowNumber: number) => `おっと！行 ${rowNumber} の承認タイプが「Always」でも「Over limit」でもありません。内容を確認して、もう一度お試しください。`,
         firstApproverOverLimit: (rowNumber: number) =>
             `おっと！行 ${rowNumber} で承認者 1 が「Over limit」に設定されていますが、すべてのレポートは承認者 1 に送られます。内容を確認して、もう一度お試しください。`,
-        approvalLimitMismatch: (rowNumber: number) =>
-            `おっと！行 ${rowNumber} に、上限のない「Over limit」の承認者、または「Over limit」ではない承認者の上限があります。内容を確認して、もう一度お試しください。`,
+        approvalLimitMismatch: `これらの承認者の承認タイプと承認上限が一致していません。修正してから、もう一度お試しください。<a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">詳細はこちら</a>。`,
         decreasingApprovalLimits: (rowNumber: number) =>
             `おっと！行 ${rowNumber} に、直前の「Over limit」の承認者より低い上限の「Over limit」の承認者があります。内容を確認して、もう一度お試しください。`,
         fieldValueTooLong: (fieldName: string, limit: number) => `おっと！フィールド（「${fieldName}」）に${limit}文字を超える値が1つ以上含まれています。確認してもう一度お試しください。`,

@@ -1251,7 +1251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         approverRepeated: (rowNumber: number) => `哎呀！第 ${rowNumber} 行中同一审批人被列出了多次。请检查后重试。`,
         invalidApprovalType: (rowNumber: number) => `哎呀！第 ${rowNumber} 行的审批类型既不是“Always”也不是“Over limit”。请检查后重试。`,
         firstApproverOverLimit: (rowNumber: number) => `哎呀！第 ${rowNumber} 行将审批人 1 设为“Over limit”，但每份报表都会交给审批人 1。请检查后重试。`,
-        approvalLimitMismatch: (rowNumber: number) => `哎呀！第 ${rowNumber} 行有未设置限额的“Over limit”审批人，或为非“Over limit”审批人设置了限额。请检查后重试。`,
+        approvalLimitMismatch: `这些审批人的审批类型与审批限额不匹配。请修正后重试。<a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">了解详情</a>。`,
         decreasingApprovalLimits: (rowNumber: number) => `哎呀！第 ${rowNumber} 行中“Over limit”审批人的限额低于紧邻其前的“Over limit”审批人。请检查后重试。`,
         fieldValueTooLong: (fieldName: string, limit: number) => `哎呀！字段（“${fieldName}”）包含一个或多个超过 ${limit} 个字符的值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',

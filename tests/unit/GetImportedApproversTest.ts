@@ -25,11 +25,18 @@ describe('getImportedApprovers', () => {
         ]);
 
         // When the approvers are read
-        const {approversByRow, error} = getImportedApprovers({spreadsheetData, mappedColumns: MAPPED_COLUMNS, containsHeader: true, currencySymbol: '$', currency: 'USD'});
+        const {approversByRow, error, limitMismatchApproverEmails} = getImportedApprovers({
+            spreadsheetData,
+            mappedColumns: MAPPED_COLUMNS,
+            containsHeader: true,
+            currencySymbol: '$',
+            currency: 'USD',
+        });
 
         // Then every row gets its approvers in order, with emails read the way logins are stored, approval types read whatever
         // their casing and separators, and an empty approval type read as Always
         expect(error).toBeUndefined();
+        expect(limitMismatchApproverEmails).toEqual([]);
         expect(approversByRow).toEqual([
             [{email: 'manager@example.com'}, {email: 'director@example.com', overLimitAmount: 125050}, {email: 'cfo@example.com', overLimitAmount: 200000}],
             [{email: 'manager@example.com'}, {email: 'cfo@example.com'}],
@@ -56,21 +63,6 @@ describe('getImportedApprovers', () => {
             'spreadsheet.firstApproverOverLimit',
         ],
         [
-            'an over limit approver without a limit',
-            ['submitter@example.com', 'manager@example.com', '', '', 'director@example.com', 'Over limit', '0', '', '', ''],
-            'spreadsheet.approvalLimitMismatch',
-        ],
-        [
-            'a limit for an approver without an approval type',
-            ['submitter@example.com', 'manager@example.com', '', '', 'director@example.com', '', '100', '', '', ''],
-            'spreadsheet.approvalLimitMismatch',
-        ],
-        [
-            'a limit for an approver who gets every report',
-            ['submitter@example.com', 'manager@example.com', '', '', 'director@example.com', 'Always', '100', '', '', ''],
-            'spreadsheet.approvalLimitMismatch',
-        ],
-        [
             'an over limit approver with a lower limit than the one right before them',
             ['submitter@example.com', 'manager@example.com', '', '', 'director@example.com', 'Over limit', '200', 'cfo@example.com', 'Over limit', '100'],
             'spreadsheet.decreasingApprovalLimits',
@@ -84,5 +76,24 @@ describe('getImportedApprovers', () => {
 
         // Then the error explains the problem and names the row the way the spreadsheet numbers it, header included
         expect(error).toEqual({translationKey, rowNumber: 3});
+    });
+
+    it('lists every approver whose approval type and limit do not match, once each, instead of flagging a row', () => {
+        // Given an over limit approver without a limit, and approvers with a limit who get every report, with or without an
+        // approval type, one of them on two rows
+        const spreadsheetData = toColumns([
+            HEADER,
+            ['first@example.com', 'manager@example.com', '', '', 'director@example.com', 'Over limit', '0', '', '', ''],
+            ['second@example.com', 'manager@example.com', '', '', 'cfo@example.com', 'Always', '100', '', '', ''],
+            ['third@example.com', 'manager@example.com', '', '', 'cfo@example.com', '', '100', 'ceo@example.com', 'Over limit', '200'],
+        ]);
+
+        // When the approvers are read
+        const {error, limitMismatchApproverEmails} = getImportedApprovers({spreadsheetData, mappedColumns: MAPPED_COLUMNS, containsHeader: true});
+
+        // Then every approver to fix is listed once, in the order the spreadsheet first lists them, without an error for a row, since
+        // the admin fixes these approver by approver
+        expect(limitMismatchApproverEmails).toEqual(['director@example.com', 'cfo@example.com']);
+        expect(error).toBeUndefined();
     });
 });
