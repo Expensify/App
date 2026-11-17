@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 
@@ -29,8 +30,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 
 import type CustomSubPageProps from './types';
 
@@ -140,6 +141,11 @@ function InternationalDepositAccountContent({
     };
 
     const handleBackButtonPress = () => {
+        if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
+            handleFinishStep();
+            return true;
+        }
+
         if (isEditing) {
             goBackToConfirmStep();
             return true;
@@ -159,13 +165,31 @@ function InternationalDepositAccountContent({
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
+    const hasMovedToSuccess = useRef(false);
+    const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
+    const leaveFlow = useEffectEvent(() => handleFinishStep());
+
     const handleNextScreen = () => {
         if (isEditing) {
             goBackToConfirmStep();
             return;
         }
+        if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION) {
+            hasMovedToSuccess.current = true;
+        }
         nextPage();
     };
+
+    // Each step stays mounted under the next one. Returning to a completed confirmation means
+    // the user went back from success, so leave the flow instead of allowing another submission.
+    useEffect(() => {
+        if (!hasMovedToSuccess.current || !isFocused || prevIsFocused) {
+            return;
+        }
+        hasMovedToSuccess.current = false;
+        leaveFlow();
+    }, [isFocused, prevIsFocused]);
 
     return (
         <ScreenWrapper

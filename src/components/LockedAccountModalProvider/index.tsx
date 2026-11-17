@@ -1,8 +1,13 @@
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 // This component is compiled by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
@@ -27,8 +32,14 @@ function LockedAccountModalProvider({children}: React.PropsWithChildren) {
             showConfirmModal({
                 title: translate('lockedAccount.title'),
                 prompt: translate('lockedAccount.description'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
+                confirmText: translate('unlockAccountPage.chatWithConcierge'),
+                cancelText: translate('common.dismiss'),
+                shouldShowCancelButton: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.CONCIERGE);
             });
         },
     };

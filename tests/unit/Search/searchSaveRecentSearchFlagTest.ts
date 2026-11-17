@@ -1,8 +1,10 @@
 import {isFirstPageSearchInFlight, search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -56,6 +58,10 @@ describe('search shouldSaveRecentSearch flag', () => {
         mockedMakeRequestWithSideEffects.mockResolvedValue(undefined);
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('serializes the flag into jsonQuery when passed', async () => {
         // Given a query the user typed on the Search page
         // When the search is fired with the save-recent-search flag
@@ -107,6 +113,29 @@ describe('search shouldSaveRecentSearch flag', () => {
         resolveRequest();
         await request;
         expect(isFirstPageSearchInFlight(queryJSON, false, false)).toBe(false);
+    });
+
+    it('sends the flag as false in a Supportal session so support agents cannot change the customer saved search', async () => {
+        // Given a support agent logged into a customer's account
+        jest.spyOn(NetworkStore, 'isSupportAuthToken').mockReturnValue(true);
+
+        // When the agent submits a query on the Search page, which normally saves it as the customer's recent search and last filters
+        await search({
+            queryJSON: getQueryJSON('merchant:delta'),
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+
+        // Then the backend is told not to save it, so the customer keeps their own filters and columns
+        expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: false}));
+
+        // And the agent's own view still remembers the query locally, so the Search tab reopens on it during the session
+        const optimisticData = mockedMakeRequestWithSideEffects.mock.calls.at(-1)?.[2]?.optimisticData ?? [];
+        expect(optimisticData).toContainEqual(
+            expect.objectContaining({key: ONYXKEYS.SEARCH_FILTERS, value: {[CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query: expect.stringContaining('merchant:delta') as unknown}}}),
+        );
     });
 
     it('preserves the flag on a totals request queued behind an in-flight search', async () => {
