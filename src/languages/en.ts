@@ -102,14 +102,17 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
         resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
-        // @context Spoken by screen readers for the width of a table column while its edge is resized.
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        // @context Accessible name of the draggable edge of a side panel, such as the right-hand panel.
+        resizePanel: 'Resize panel',
+        // @context Spoken by screen readers for the width of a table column or panel while its edge is resized.
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -402,6 +405,7 @@ const translations = {
         searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
         category: 'Category',
+        amount: 'Amount',
         vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
@@ -519,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -1330,8 +1339,8 @@ const translations = {
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
             customizeExpenseCategories: 'Customize your expense categories',
             customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
-            createExpense: 'Create an expense',
-            createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
+            addFirstReceipt: 'Add your first receipt',
+            addFirstReceiptSubText: 'Scan or manually enter a receipt',
             linkPersonalCard: 'Link personal card',
             linkPersonalCardSubText: 'Import expenses automatically',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
@@ -1373,9 +1382,11 @@ const translations = {
         violationsByApprover: 'Violations by approver',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',
+        averageProcessingTime: 'Average processing time',
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -1646,6 +1657,7 @@ const translations = {
         removeThisExpense: 'Remove this expense',
         removeExpenseConfirmation: 'Are you sure you want to remove this receipt? This action cannot be undone.',
         addExpense: 'Add expense',
+        createAnExpense: 'Create an expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -3538,6 +3550,7 @@ const translations = {
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `If report is over ${amount}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
@@ -3592,8 +3605,8 @@ const translations = {
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
-        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
-        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
+        overLimitAmountBelowPreviousApprover: 'Enter a report total at least as high as the previous approver’s.',
+        overLimitAmountAboveNextApprover: 'Enter a report total no higher than the next approver’s.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -3615,7 +3628,7 @@ const translations = {
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
-        header: 'Add more approvers and confirm.',
+        header: 'Add more approvers or confirm',
         additionalApprover: 'Additional approver',
         submitButton: 'Add workflow',
     },
@@ -3623,6 +3636,9 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
+        hiddenRoutesTitle: 'Some reports will be routed differently',
+        hiddenRoutesPrompt:
+            'This workflow was set up with approvers who send some reports to other approvers, depending on the report total. Saving it keeps only the approvers shown here, so every report will go through them.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -3636,24 +3652,19 @@ const translations = {
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
         title: 'Set approver',
+        setFirstApprover: 'Set first approver',
+        addApprover: 'Add approver',
         description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
-        additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `When should ${approverName} approve?`,
+        always: 'Always',
+        overSetAmount: 'Only for reports over a set amount',
+        reportTotal: 'Report total',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} only approves reports over ${amount}.`,
+        removeApprover: 'Remove approver',
         next: 'Next',
-        removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -3919,6 +3930,7 @@ const translations = {
         submitted: 'submitted',
         approved: 'approved',
         paid: 'paid',
+        receivedPayment: 'received payment',
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
@@ -5370,6 +5382,10 @@ const translations = {
         viewTripDetails: 'View trip details',
         trip: 'Trip',
         trips: 'Trips',
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 booking',
+            other: `${count} bookings`,
+        }),
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -7100,6 +7116,7 @@ const translations = {
             },
         },
         digits: {
+            entity: 'Entity',
             updateCurrencyTitle: 'Update workspace currency?',
             updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
             importDescription: 'Choose which Digits configurations to import.',
@@ -7678,6 +7695,7 @@ const translations = {
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -7915,9 +7933,9 @@ const translations = {
                     statementCloseDateRequired: 'Please select a statement close date.',
                 },
                 corporate: 'Restrict deleting transactions',
-                personal: 'Allow deleting transactions',
+                personal: 'Allow cardholders to delete transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others',
-                setTransactionLiabilityDescription: 'Cardholders can delete transactions. Applies to new transactions only.',
+                setTransactionLiabilityDescription: 'Applies to new transactions only. Admins can delete transactions with this setting disabled.',
                 emptyAddedFeedTitle: 'No cards in this feed',
                 emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
                 pendingFeedTitle: `We're reviewing your request...`,
@@ -8252,10 +8270,10 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            merchantRules: 'Merchant rules',
+            merchantRules: 'Expense defaults',
             merchantRulesCount: () => ({
-                one: '1 merchant rule',
-                other: (count: number) => `${count} merchant rules`,
+                one: '1 expense default',
+                other: (count: number) => `${count} expense defaults`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
@@ -8574,10 +8592,12 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
-            exactOnline: {
+            integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
                 onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
+                onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
             setup: 'Connect',
@@ -9159,6 +9179,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -9616,6 +9639,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -9867,8 +9891,8 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
-                duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
+                duplicateRuleTitle: 'Similar rule already exists',
+                duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
                 expenseDefaultsTitle: 'Expense defaults',
@@ -9876,24 +9900,8 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCategoryTax: 'Please select a tax rate',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
-                confirmErrorCondition: 'Please enter a merchant',
-                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
-                turnOnTaxesFirstTitle: 'Turn on taxes first',
-                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
-                addTaxRateFirstTitle: 'Add a tax rate first',
-                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
-                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
-                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
-            },
-            expenseDefaultType: {
-                title: 'Apply expense defaults',
-                subtitle: 'What should this rule match on?',
-                merchant: 'Merchant',
-                merchantDescription: 'Update fields on expenses from a specific merchant',
-                category: 'Category',
-                categoryDescription: 'Set a default tax rate for a specific category',
+                confirmErrorCondition: 'Please add at least one condition',
+                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
             },
             newRule: {
                 title: 'New rule',
@@ -9939,7 +9947,9 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
-                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                merchantContains: (merchant: string) => `Merchant contains "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
+                tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {
@@ -10166,7 +10176,9 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
+                tags: 'Tags',
                 merchants: 'Merchants',
+                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
@@ -11232,6 +11244,7 @@ const translations = {
             sortAscending: 'Sort ascending',
             sortDescending: 'Sort descending',
             hideColumn: 'Hide column',
+            resetColumnSizes: 'Reset column sizes',
         },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
@@ -11325,7 +11338,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;
@@ -11399,6 +11414,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stage',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11466,6 +11482,12 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Created → Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Submitted → Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approved → Paid',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -11477,6 +11499,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11636,7 +11659,53 @@ const translations = {
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `couldn't process the payment: ${returnReason}`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
-                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
+                reimbursementDelayed: `Processed the payment but it’s delayed by 1-2 more business days.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Great news, funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Funds arrived on ${arrivalDate}.`,
+                reimbursementArrivedWithoutDate: 'Funds arrived.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Payment failed: ${reason}. Funds will most likely return, though payment may still complete late. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: "the recipient's bank rejected it",
+                    wrongAccountNumber: 'incorrect account number',
+                    wrongAccountDetails: 'incorrect account number or bank code',
+                    wrongBankCode: 'incorrect bank code',
+                    wrongBranchCode: 'incorrect branch code',
+                    wrongAccountType: 'incorrect account type',
+                    wrongCardNumber: 'incorrect card number',
+                    wrongCardType: "the recipient's bank doesn't accept this card type",
+                    wrongName: "the account holder name doesn't match",
+                    wrongPhoneNumber: 'incorrect recipient phone number',
+                    wrongIdNumber: 'incorrect recipient ID number',
+                    wrongRutNumber: 'incorrect recipient tax ID',
+                    taxIdNotMatching: "the tax ID doesn't match the recipient's name",
+                    wrongCurrency: 'the recipient account is in a different currency',
+                    accountDoesNotExist: "the account doesn't exist at the recipient's bank",
+                    externalIdentifierDetailsHaveChanged: "the recipient's bank details have changed",
+                    accountClosed: 'the recipient account is closed',
+                    accountFrozen: 'the recipient account is frozen',
+                    accountBlocked: 'the recipient account is blocked',
+                    accountLimitReached: 'the recipient account has reached a limit',
+                    taxIdSuspended: "the recipient's tax ID is suspended",
+                    cannotAcceptFrom3rdParty: "the recipient's bank doesn't accept third-party payments",
+                    creditingAccountForbidden: "the recipient account can't be credited",
+                    businessPaymentsForbidden: "the recipient account doesn't accept business payments",
+                    returnRequestedByRecipient: 'the recipient asked for it to be returned',
+                    fundsNotExpectedReturned: "the recipient's bank wasn't expecting it and returned it",
+                    duplicateEntry: "the recipient's bank saw it as a duplicate payment",
+                    mandateNotFilledIn: "the recipient didn't complete their bank's form in time",
+                    requestForInformationExpired: 'a request for more information expired',
+                    wrongReference: 'the payment reference was rejected',
+                    wrongPaymentPurpose: 'the payment purpose was rejected',
+                    senderRequestedToCancel: 'the payment was cancelled',
+                    technicalIssue: 'a technical issue at our payments partner',
+                    technicalIssueRetryable: 'a technical issue at our payments partner, which will retry',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
+                reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
+                reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -11662,6 +11731,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12358,6 +12450,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',

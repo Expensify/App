@@ -1,4 +1,4 @@
-import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
+import {useMenuItemAccessibilityLabel, useMenuItemMaskedText} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
 
@@ -16,6 +16,7 @@ function BaseMenuItemSupportingText({children, numberOfLines = 2, slot, style, f
     const {shouldAllowTextSelection} = useMenuItemConfig();
 
     useMenuItemAccessibilityLabel(slot, String(children));
+    useMenuItemMaskedText(forwardedFSClass);
 
     return (
         <Text

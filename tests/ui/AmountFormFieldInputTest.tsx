@@ -8,6 +8,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import CONST from '@src/CONST';
+
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 
@@ -53,6 +55,7 @@ function ToggleSignButton() {
             role="button"
             testID="toggle-sign-button"
             onPress={toggleSign}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />
     );
 }
@@ -626,6 +629,7 @@ describe('AmountFormField.Input', () => {
                             accessibilityLabel="custom accessory"
                             role="button"
                             onPress={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                         <AmountFormField.CurrencyPickerButton
                             currency="EUR"

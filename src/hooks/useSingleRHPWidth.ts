@@ -3,7 +3,6 @@ import getSingleRHPWidthBounds from '@libs/Navigation/helpers/singleRHPWidth/get
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
@@ -24,7 +23,7 @@ function useSingleRHPWidth(): SingleRHPWidth {
 
     // Mirrors when SidePanelContextProvider shifts the RHP left by the panel's width.
     const bounds = getSingleRHPWidthBounds(windowWidth, isExtraLargeScreenWidth && !shouldHideSidePanel ? sidePanelWidth : 0);
-    const {width} = usePaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, CONST.BETAS.RESIZABLE_RHP, variables.rhpWidth, bounds);
+    const width = usePaneWidth(ONYXKEYS.SINGLE_RHP_WIDTH, variables.rhpWidth, bounds);
 
     return {width, bounds};
 }
