@@ -352,4 +352,31 @@ describe('ContextMenuActions copy message', () => {
         expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
         expect(mockSetString).not.toHaveBeenCalled();
     });
+
+    it.each([
+        [false, 'workspaceActions.setCategoryVisibility'],
+        [true, 'workspaceActions.setCategoryVisibility\nworkspaceActions.categoryVisibilityCategoriesList'],
+    ])('copies the category visibility message the row shows when isThreadReportParentAction is %s', (isThreadReportParentAction, expectedText) => {
+        // Given a category visibility change with too many categories to list inline
+        const reportAction = createMock<CopyMessagePayload['reportAction']>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture needs the change log data that getOriginalMessage reads to build the message
+            originalMessage: {
+                categoryNames: Array.from({length: CONST.POLICY.CATEGORY_VISIBILITY.MAX_LISTED_ITEMS}, (_, index) => `Category ${index + 1}`),
+                accountIDs: [],
+                hadRestriction: false,
+                reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+            },
+        });
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When the message is copied from #admins or from the top of its thread
+        copyMessageAction.onPress(false, {...createReportActionPayload(reportAction), isThreadReportParentAction});
+
+        // Then the copied text matches the row: #admins only counts the categories, while the top of the thread also lists them in full
+        expect(mockSetString).toHaveBeenCalledWith(expectedText);
+    });
 });

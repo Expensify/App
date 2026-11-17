@@ -96,6 +96,11 @@ jest.mock('@libs/actions/User', () => ({
     setNameValuePair: jest.fn(),
 }));
 
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => '/test'),

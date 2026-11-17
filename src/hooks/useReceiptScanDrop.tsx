@@ -83,7 +83,7 @@ function useReceiptScanDrop() {
                 index === 0
                     ? initialTransaction
                     : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: {...initialTransaction, category: initialTransaction.category ?? undefined},
+                          initialTransaction,
                           reportID: newReportID,
                       });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
