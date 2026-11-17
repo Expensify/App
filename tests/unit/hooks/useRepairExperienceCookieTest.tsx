@@ -162,6 +162,7 @@ describe('useRepairExperienceCookie', () => {
         ['an account outside the beta without a cookie', {betas: OUTSIDE_BETA}, undefined],
         ['a Supportal agent on a Classic account', {prefersClassic: true, session: {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}}, CONST.EXPERIENCE_COOKIE.VALUES.NEW],
         ['a Copilot on a Classic account', {prefersClassic: true, session: {authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}}, CONST.EXPERIENCE_COOKIE.VALUES.NEW],
+        ['an anonymous visitor of a public room', {betas: OUTSIDE_BETA, session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS}}, CONST.EXPERIENCE_COOKIE.VALUES.NEW],
     ])('stays in New Expensify and allows a later repair for %s', async (_, account, cookie) => {
         // Given a tab that already repaired the cookie once
         sessionStorage.setItem(REPAIR_KEY, '1');

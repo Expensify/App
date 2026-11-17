@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isDelegateSessionSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useIsSupportalSession from './useIsSupportalSession';
 import useOnyx from './useOnyx';
 import useOpenClassic from './useOpenClassic';
@@ -61,6 +62,7 @@ function useRepairExperienceCookie() {
     const [hasQueuedRequests = false] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: (requests) => !!requests?.length});
     const [hasOngoingRequest = false] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: (request) => !!request});
     const isSupportalSession = useIsSupportalSession();
+    const isAnonymousSession = useIsAnonymousUser();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const openClassic = useOpenClassic();
 
@@ -77,8 +79,8 @@ function useRepairExperienceCookie() {
             return;
         }
 
-        // The cookie of a Supportal or Copilot session belongs to the agent, and Classic doesn't redirect agents either
-        const isAgentSession = isSupportalSession || isDelegateSession;
+        // In a Supportal, Copilot or anonymous session the cookie isn't the signed-in account's, so it is left as it is
+        const isCookieFromOtherUser = isSupportalSession || isDelegateSession || isAnonymousSession;
 
         // The beta is known only once the betas and the beta configuration load, so the account must not be treated as outside the beta before that
         const isInBeta = hasBetaConfiguration ? isBetaEnabledOrUnknown(CONST.BETAS.HYBRID_WEB) : undefined;
@@ -88,7 +90,7 @@ function useRepairExperienceCookie() {
         // Only a `new` cookie keeps the user away from Classic. Without it, the user opened a New Expensify link on purpose, and Classic handles the cookie on the next visit.
         const isOutsideBeta = isInBeta === false;
         const prefersClassic = isInBeta === true && shouldUseClassic === true;
-        const shouldRepair = !isAgentSession && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
+        const shouldRepair = !isCookieFromOtherUser && cookie === CONST.EXPERIENCE_COOKIE.VALUES.NEW && (isOutsideBeta || prefersClassic);
 
         // Opening Classic leaves this page, so it waits until queued requests, such as changes made offline, are sent.
         // Most start responses apply only once the queue is empty, but some reconnects skip the queue.
@@ -111,7 +113,18 @@ function useRepairExperienceCookie() {
             clearExperienceCookie();
         }
         openClassic();
-    }, [hasFreshAppData, tryNewDot, hasBetaConfiguration, isDelegateSession, isSupportalSession, isBetaEnabledOrUnknown, openClassic, hasQueuedRequests, hasOngoingRequest]);
+    }, [
+        hasFreshAppData,
+        tryNewDot,
+        hasBetaConfiguration,
+        isDelegateSession,
+        isSupportalSession,
+        isAnonymousSession,
+        isBetaEnabledOrUnknown,
+        openClassic,
+        hasQueuedRequests,
+        hasOngoingRequest,
+    ]);
 }
 
 export default useRepairExperienceCookie;
