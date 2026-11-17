@@ -1,10 +1,8 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
-
 import {isAnonymousUser} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, AnyRequest, Credentials, IntroSelected, Onboarding, Report, Session as SessionOnyx} from '@src/types/onyx';
+import type {Account, AnyRequest, Credentials, IntroSelected, Onboarding, Policy, Report, Session as SessionOnyx} from '@src/types/onyx';
 
 import type {Connection} from 'react-native-onyx';
 
@@ -22,8 +20,9 @@ const state: {
     conciergeChat?: Report;
     onboardingPolicyID?: string;
     onboardingAdminsChatReportID?: string;
-    completeGuidedSetupQueued?: boolean;
-    completeGuidedSetupOngoing?: boolean;
+    activePolicyID?: string;
+    countryCode?: number;
+    policies?: Record<string, Policy | undefined>;
 } = {};
 
 Onyx.connectWithoutView({key: ONYXKEYS.SESSION, callback: (value) => (state.session = value)});
@@ -34,16 +33,45 @@ Onyx.connectWithoutView({key: ONYXKEYS.NVP_INTRO_SELECTED, callback: (value) => 
 Onyx.connectWithoutView({key: ONYXKEYS.IS_LOADING_APP, callback: (value) => (state.isLoadingApp = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_POLICY_ID, callback: (value) => (state.onboardingPolicyID = value)});
 Onyx.connectWithoutView({key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, callback: (value) => (state.onboardingAdminsChatReportID = value)});
-// An in-flight request moves from PERSISTED_REQUESTS to PERSISTED_ONGOING_REQUESTS, so it is pending in either key.
-function hasGuidedSetupRequest(value: AnyRequest | AnyRequest[] | null | undefined): boolean {
-    const requests = Array.isArray(value) ? value : [value];
-    return requests.some((request) => request?.command === WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
-}
-Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_REQUESTS, callback: (requests) => (state.completeGuidedSetupQueued = hasGuidedSetupRequest(requests))});
-Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS, callback: (request) => (state.completeGuidedSetupOngoing = hasGuidedSetupRequest(request))});
+Onyx.connectWithoutView({key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, callback: (value) => (state.activePolicyID = value)});
+Onyx.connectWithoutView({key: ONYXKEYS.COUNTRY_CODE, callback: (value) => (state.countryCode = value)});
+Onyx.connectWithoutView({key: ONYXKEYS.COLLECTION.POLICY, callback: (policies) => (state.policies = policies)});
 
-function isGuidedSetupPending(): boolean {
-    return !!state.completeGuidedSetupQueued || !!state.completeGuidedSetupOngoing;
+// Commands waiting to reach the server. A request is pending while it sits in either queue key: the sequential queue
+// moves its head request from PERSISTED_REQUESTS into PERSISTED_ONGOING_REQUESTS before the response lands, so a tool
+// that watched only one key would miss it and could send a second copy.
+function pendingCommandNames(value: AnyRequest | AnyRequest[] | null | undefined): Set<string> {
+    const requests = Array.isArray(value) ? value : [value];
+    const commands = new Set<string>();
+    for (const request of requests) {
+        if (request?.command) {
+            commands.add(request.command);
+        }
+    }
+    return commands;
+}
+
+const queuedCommands = new Set<string>();
+const ongoingCommands = new Set<string>();
+
+function refill(target: Set<string>, source: Set<string>): void {
+    target.clear();
+    for (const command of source) {
+        target.add(command);
+    }
+}
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSISTED_REQUESTS,
+    callback: (requests) => refill(queuedCommands, pendingCommandNames(requests)),
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSISTED_ONGOING_REQUESTS,
+    callback: (request) => refill(ongoingCommands, pendingCommandNames(request)),
+});
+
+function isRequestPending(command: string): boolean {
+    return queuedCommands.has(command) || ongoingCommands.has(command);
 }
 
 let conciergeChatConnection: Connection | undefined;
@@ -86,4 +114,8 @@ function getOnboardingCompletedFlag(): boolean | null {
     return typeof value === 'boolean' ? value : null;
 }
 
-export {state, getCurrentAccountID, getSessionLogin, isSignedIn, isGuidedSetupPending, markSignInAttemptLoading, getOnboardingCompletedFlag};
+function getPolicy(policyID: string): Policy | undefined {
+    return state.policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+}
+
+export {state, getCurrentAccountID, getSessionLogin, getPolicy, isSignedIn, isRequestPending, markSignInAttemptLoading, getOnboardingCompletedFlag};
