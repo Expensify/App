@@ -395,6 +395,9 @@ const CONST = {
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
+
+    // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
+    ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1568,6 +1571,7 @@ const CONST = {
         BUSINESS_CENTRAL: 'businessCentral',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -2275,6 +2279,7 @@ const CONST = {
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
+                COMPANY_CARD_CONSENT_EXPIRING: 'COMPANYCARDCONSENTEXPIRING',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -5662,6 +5667,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -5704,6 +5710,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
@@ -6263,6 +6270,10 @@ const CONST = {
         },
     },
     COMPANY_CARDS: {
+        CONSENT_EXPIRY_WARNING_DAYS: {
+            TWO_WEEKS: 14,
+            ONE_WEEK: 7,
+        },
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
 
         // Ignored scrape result codes that still need the user to act, so they belong in the card's status
@@ -9154,6 +9165,7 @@ const CONST = {
         CHART_METRIC: {
             AMOUNT: 'amount',
             COUNT: 'count',
+            DURATION: 'duration',
         },
         CHART_COUNT_DIMENSION: {
             EXPENSE: 'expense',
@@ -9166,6 +9178,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            VIOLATION: 'violationName',
             TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
@@ -9267,6 +9280,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            VIOLATION: 'violation',
             TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -10661,6 +10675,8 @@ const CONST = {
             CHIP_UNIT: {
                 PERCENT: 'percent',
                 AMOUNT: 'amount',
+                COUNT: 'count',
+                DURATION: 'duration',
             },
         },
     },
