@@ -190,20 +190,18 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                     shouldEnableDetailPageNavigation
                     openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
                 />
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
-                    {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
-                        <MoneyRequestHeaderActions
-                            reportID={reportID}
-                            onBackButtonPress={onBackButtonPress}
-                        />
-                    )}
-                    {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
-                        <MoneyRequestReportTransactionsNavigation
-                            currentTransactionID={carouselTransactionID}
-                            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-                        />
-                    )}
-                </View>
+                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
+                    <MoneyRequestHeaderActions
+                        reportID={reportID}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                )}
+                {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentTransactionID={carouselTransactionID}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                    />
+                )}
                 {!isReportInRHP && <SearchButton />}
                 {!isReportInRHP && <SidePanelButton />}
             </Header>

@@ -473,7 +473,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.pr2]}>
             {!shouldDisplayNarrowVersion && (
                 <MoneyRequestReportNavigationCounter
                     current={currentTransactionIndex + 1}
