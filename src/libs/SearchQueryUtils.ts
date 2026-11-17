@@ -963,7 +963,8 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
 }
 
 /**
- * Returns the column the rows are sorted by on the client.
+ * Returns the column the rows are sorted by on the client. Like the backend, it sorts by violations only for expense
+ * searches with a positive `has:*-violation` filter, since only those rows carry violation labels, and by date otherwise.
  */
 function getEffectiveSortBy(queryJSON: SearchQueryJSON | undefined): SearchSortBy | undefined {
     if (queryJSON?.sortBy !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) {
