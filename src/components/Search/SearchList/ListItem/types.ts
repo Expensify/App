@@ -580,7 +580,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         searchType?: SearchDataTypes;
         accountID?: number;
         columns?: SearchColumnType[];
-        newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
         onUndelete?: (transaction: Transaction) => void;
@@ -656,7 +655,6 @@ function isGroupChildrenContainerItem(item: SearchListItem): item is GroupChildr
 
 type GroupChildrenContentProps = {
     item: GroupChildrenContainerItemType;
-    isExpanded: boolean;
     groupBy?: SearchGroupBy;
     searchType?: SearchDataTypes;
     columns?: SearchColumnType[];
@@ -666,7 +664,6 @@ type GroupChildrenContentProps = {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
-    newTransactionID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

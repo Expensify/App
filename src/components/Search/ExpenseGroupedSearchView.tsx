@@ -5,9 +5,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {search} from '@libs/actions/Search';
 import getPlatform from '@libs/getPlatform';
-import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -15,7 +14,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
@@ -25,6 +23,7 @@ import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
 import type {SearchQueryJSON, SelectedTransactions} from './types';
 
+import useOpenGroupsRefetch, {fetchGroupFirstPage} from './hooks/useOpenGroupsRefetch';
 import {NO_OPEN_GROUPS} from './hooks/useOpenGroupsRegistry';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
@@ -71,21 +70,6 @@ function buildSplitGroupData(data: SearchListItem[], shouldSplitGroups: boolean)
         stickyHeaderIndices: stickyHeaderIndices.length > 0 ? stickyHeaderIndices : undefined,
         childrenContainerIndices,
     };
-}
-
-/** Maps each group's `keyForList` to the id of a just-created transaction inside it, for the highlight animation. */
-function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Transaction[], groupBy: SearchQueryJSON['groupBy']) {
-    const map = new Map<string, string>();
-    if (newTransactions.length === 0) {
-        return map;
-    }
-    for (const item of data) {
-        const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-        if (matchedTransactionID && item.keyForList) {
-            map.set(item.keyForList, matchedTransactionID);
-        }
-    }
-    return map;
 }
 
 /**
@@ -141,9 +125,9 @@ function ExpenseGroupedSearchView({
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set());
     // Fetch on open here rather than in the row, because the list reuses rows as it scrolls, and a reused row that lands
     // on an open group would fetch it again.
-    const onToggleGroup = (key: string, transactionsQueryJSON: SearchQueryJSON | undefined) => {
+    const toggleGroup = (key: string, transactionsQueryJSON: SearchQueryJSON | undefined) => {
         if (!expandedGroups.has(key) && transactionsQueryJSON) {
-            search({queryJSON: transactionsQueryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+            fetchGroupFirstPage(transactionsQueryJSON);
         }
         setExpandedGroups((prev) => {
             const next = new Set(prev);
@@ -219,11 +203,11 @@ function ExpenseGroupedSearchView({
             handleSelectRow({...item, keyForList: groupKey});
         }
         if (shouldToggle && groupKey) {
-            onToggleGroup(groupKey, item.transactionsQueryJSON);
+            toggleGroup(groupKey, item.transactionsQueryJSON);
         }
     };
 
-    const newTransactionIDByItemKey = buildNewTransactionIDMap(data, newTransactions, groupBy);
+    useOpenGroupsRefetch({data, expandedGroups, newTransactions, groupBy});
 
     // Selection is tracked per child transaction (plus empty groups), so flatten each group's transactions.
     const groupItems = data.filter(isTransactionGroupListItemType);
@@ -271,7 +255,7 @@ function ExpenseGroupedSearchView({
                     columns={columns}
                     canSelectMultiple={canSelectMultiple}
                     isExpanded={expandedGroups.has(originalKey)}
-                    onToggle={() => onToggleGroup(originalKey, item.transactionsQueryJSON)}
+                    onToggle={() => toggleGroup(originalKey, item.transactionsQueryJSON)}
                     onSelectRow={handleSelectRow}
                     onCheckboxPress={toggle}
                     onLongPressRow={onLongPressRow}
@@ -292,7 +276,6 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = item.groupKeyForList;
-            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}
@@ -308,14 +291,12 @@ function ExpenseGroupedSearchView({
                     onUndelete={handleUndelete}
                     isFirstItem={index - 1 === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
-                    newTransactionID={containerNewTransactionID}
                 />
             );
         }
 
         // Non-split group rows: TransactionGroupListItem renders the whole group (header + children).
         const groupKey = item.keyForList;
-        const newTransactionID = groupKey ? newTransactionIDByItemKey.get(groupKey) : undefined;
         return (
             <AnimatedExitRow
                 shouldApplyAnimation={type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < listData.length - 1}
@@ -344,9 +325,8 @@ function ExpenseGroupedSearchView({
                         if (!groupKey) {
                             return;
                         }
-                        onToggleGroup(groupKey, isTransactionGroupListItemType(item) ? item.transactionsQueryJSON : undefined);
+                        toggleGroup(groupKey, isTransactionGroupListItemType(item) ? item.transactionsQueryJSON : undefined);
                     }}
-                    newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}

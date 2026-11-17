@@ -18,11 +18,9 @@ import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
-import useGroupTransactionsFetch from './useGroupTransactionsFetch';
 
 function GroupChildrenContent({
     item,
-    isExpanded,
     groupBy,
     searchType,
     columns,
@@ -32,7 +30,6 @@ function GroupChildrenContent({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
-    newTransactionID,
 }: GroupChildrenContentProps) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
@@ -66,13 +63,6 @@ function GroupChildrenContent({
             isLoading: !!transactionsSnapshot?.search?.isLoading,
         });
     };
-
-    useGroupTransactionsFetch({
-        transactionsQueryJSON: groupItem.transactionsQueryJSON,
-        isLoading: !!transactionsSnapshot?.search?.isLoading,
-        isExpanded,
-        newTransactionID,
-    });
 
     let filteredViolations: Record<string, TransactionViolation[]>;
     if (!snapshotData) {

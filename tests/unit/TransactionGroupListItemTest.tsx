@@ -894,10 +894,12 @@ describe('Withdrawal group rows', () => {
         expect(mockOnCheckboxPress).toHaveBeenCalledTimes(1);
     });
 
-    it('does not fetch when it renders an open group, but fetches when an expense is created in it', async () => {
+    it('does not fetch when it renders an open group', async () => {
         // Given a settlement row that the list renders already open, as it does when it reuses a row while scrolling
         const item = buildWithdrawalGroup(false);
-        const renderRow = (newTransactionID: string | undefined) => (
+
+        // When it renders
+        render(
             <TransactionGroupListItem
                 item={item}
                 showTooltip={false}
@@ -906,23 +908,13 @@ describe('Withdrawal group rows', () => {
                 groupBy={CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}
                 isExpanded
                 onToggle={jest.fn()}
-                newTransactionID={newTransactionID}
-            />
+            />,
+            {wrapper: TestWrapper},
         );
-
-        // When it renders
-        const {rerender} = render(renderRow(undefined), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
 
-        // Then nothing is fetched, because the list fetched the group when it opened
+        // Then nothing is fetched, because the list fetches open groups itself
         expect(search).not.toHaveBeenCalled();
-
-        // When an expense is created in it
-        rerender(renderRow('newTransaction'));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then its expenses are fetched again so the new expense shows up
-        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('does not announce or tab to a cash back row', async () => {

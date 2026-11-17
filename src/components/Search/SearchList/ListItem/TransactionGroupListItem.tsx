@@ -73,7 +73,6 @@ import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
-import useGroupTransactionsFetch from './useGroupTransactionsFetch';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
@@ -98,7 +97,6 @@ function TransactionGroupListItemImpl({
     columns,
     groupBy,
     searchType,
-    newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
     nonPersonalAndWorkspaceCards,
@@ -213,13 +211,6 @@ function TransactionGroupListItemImpl({
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
-
-    useGroupTransactionsFetch({
-        transactionsQueryJSON: groupItem.transactionsQueryJSON,
-        isLoading: !!transactionsSnapshot?.search?.isLoading,
-        isExpanded,
-        newTransactionID,
-    });
 
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
