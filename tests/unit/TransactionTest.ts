@@ -6,6 +6,7 @@ import {selectReusableRoute} from '@libs/actions/ReusableDistanceRoutes';
 import {
     changeTransactionsReport as changeTransactionsReportAction,
     dismissDuplicateTransactionViolation,
+    getDuplicateTransactionDetails,
     markAsCash,
     removeWaypoint,
     sanitizeWaypointsForAPI,
@@ -17,6 +18,7 @@ import * as API from '@libs/API';
 import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {setForceOffline} from '@libs/NetworkState';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {isRecord} from '@libs/ObjectUtils';
@@ -3451,6 +3453,81 @@ describe('Transaction', () => {
         });
     });
 
+    describe('getDuplicateTransactionDetails', () => {
+        const TRANSACTION_ID = 'duplicateTransaction';
+        const LOADING_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${TRANSACTION_ID}` as const;
+        const TIMEOUT_MS = 10 * 1000;
+
+        afterEach(async () => {
+            jest.useRealTimers();
+            setForceOffline(false);
+            mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('sets the loading flag while the request is in flight and clears it when the request finishes', async () => {
+            // Given a request that hasn't been answered yet
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is set, so the review page can show a loader instead of a partial list
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the server answers
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the flag is cleared, so the review page renders the duplicates
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('clears the loading flag after the timeout when the request never finishes', async () => {
+            // Given a request that never gets an answer, which is what a read that throws looks like to the flag
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick', 'queueMicrotask']});
+            mockFetch.pause?.();
+
+            // When the duplicate details are requested and the timeout hasn't passed
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await jest.advanceTimersByTimeAsync(TIMEOUT_MS - 1);
+
+            // Then the flag is still set
+            expect(await getOnyxValue(LOADING_KEY)).toBe(true);
+
+            // When the timeout passes
+            await jest.advanceTimersByTimeAsync(1);
+
+            // Then the flag is cleared, so the user isn't stuck on the loader
+            expect(await getOnyxValue(LOADING_KEY)).toBe(false);
+        });
+
+        it('does not set the loading flag offline', async () => {
+            // Given the user is offline, where a read applies none of its Onyx data
+            setForceOffline(true);
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(TRANSACTION_ID);
+            await waitForBatchedUpdates();
+
+            // Then the flag is never set, so it can't be left stuck on with nothing to clear it
+            expect(await getOnyxValue(LOADING_KEY)).toBeUndefined();
+        });
+
+        it('does nothing without a transaction ID', async () => {
+            // Given no transaction to look up
+            const fetchCallCount = mockFetch.mock.calls.length;
+
+            // When the duplicate details are requested
+            getDuplicateTransactionDetails(undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent
+            expect(mockFetch.mock.calls.length).toBe(fetchCallCount);
+        });
+    });
+
     describe('dismissDuplicateTransactionViolation', () => {
         it('should optimistically remove DUPLICATED_TRANSACTION violation and add dismissed violation report action', async () => {
             const transactionID = 'dismissTxn1';
@@ -3843,6 +3920,26 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toBeNull();
+    });
+
+    it('should clean the duplicate violation of a peer whose report is not loaded', () => {
+        // Given a peer on a report that is missing from Onyx, e.g. right after clearing the cache
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+        const transactions = {
+            ...makeTransactionCollection(TXN_A),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_B}`]: createMock<Transaction>({transactionID: TXN_B, reportID: 'unloadedPeerReport'}),
+        };
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        // When transaction A is removed from the duplicate violations
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, transactions, transactionViolations);
+
+        // Then the peer's violation is still cleared, so it isn't left as a one-sided duplicate
+        expect(onyxData.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(onyxData.optimisticData?.at(0)?.value).toBeNull();
     });
 
     it('should preserve failureData for rollback with original violations', () => {

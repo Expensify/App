@@ -8,7 +8,7 @@ import type {LintMessage, LintSeverity} from '../types';
 
 // The helper is ESM (.mjs). Bun resolves it without the extension.
 // eslint-disable-next-line import/extensions
-import {oxlintCodeToESLintRuleID} from '../../../config/oxlint/ruleNames.mjs';
+import oxlintCodeToESLintRuleID from '../../../config/oxlint/ruleNames.mjs';
 import {LINT_SEVERITY} from '../types';
 
 type JSONObject = Record<string, unknown>;

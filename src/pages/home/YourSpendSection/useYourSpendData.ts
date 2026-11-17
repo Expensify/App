@@ -627,16 +627,3 @@ function useYourSpendData(): UseYourSpendDataReturn {
 }
 
 export {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE, getYourSpendApplicability, getYourSpendReportsSignature, getYourSpendRowState, useYourSpendData};
-export type {
-    FrozenSpendRow,
-    GetYourSpendRowStateParams,
-    QueuedSpendRequest,
-    UseYourSpendDataReturn,
-    YourSpendApplicability,
-    YourSpendCardKind,
-    YourSpendCardRow,
-    YourSpendPendingBuckets,
-    YourSpendReportsSignature,
-    YourSpendRowState,
-    YourSpendRowTotals,
-};

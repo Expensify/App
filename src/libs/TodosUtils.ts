@@ -7,7 +7,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from './SearchKeyUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
-import {isGroupPolicy} from './PolicyUtils';
+import {canSubmitOwnReportOnPolicy, isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
 import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, isArchivedReport, isOpenReport, isPayOptional} from './ReportUtils';
 
@@ -137,7 +137,7 @@ function reportMatchesTodoBucket(
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-            if (report.ownerAccountID !== currentUserAccountID) {
+            if (report.ownerAccountID !== currentUserAccountID || !canSubmitOwnReportOnPolicy(policy, login)) {
                 return false;
             }
 
