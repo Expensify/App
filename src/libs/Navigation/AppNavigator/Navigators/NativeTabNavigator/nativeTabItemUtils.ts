@@ -64,8 +64,8 @@ function getSearchTabSearchKey(searchTabRoute: {state?: NavigationState | Partia
 /**
  * The placeholder whose bar item shows as selected for a hidden tab route, or undefined for a route the flat nav bar
  * has no slot for, such as Account. Search takes the slot of its section, see useNativeFlatNavSearchSection. Search
- * stays mounted inside the first placeholder it had: when its section changes, that placeholder trades its place and
- * item in the bar with the placeholder named here.
+ * stays mounted inside the first placeholder it had: when its section changes, iOS shows its native view inside the
+ * placeholder named here, and Android has that placeholder trade its place and item in the bar with the first one.
  */
 function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavSectionID | undefined): NativeTabItemName | undefined {
     const slot = getFlatNavTabBarSlot({focusedTabRouteName: routeName, activeFlatNavSectionID: searchSectionID});
@@ -74,8 +74,9 @@ function getFlatNavTabHostRouteName(routeName: string, searchSectionID: FlatNavS
 
 /**
  * The hidden tab route a press on a placeholder opens: Search for Expenses and Reports. More opens a menu, so it names
- * no route. While Search is drawn inside another placeholder, the bar takes the press in JS and shows the pressed item
- * selected over Search at once, instead of natively selecting a placeholder that is empty until Search trades places.
+ * no route. While Search is drawn inside another placeholder, iOS shows its native view in the pressed one, and Android
+ * takes the press in JS and shows the pressed item selected over Search at once, instead of natively selecting a
+ * placeholder that is empty until Search trades places.
  */
 function getFlatNavTabHiddenRouteName(routeName: string): typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR | undefined {
     return routeName === SCREENS.NATIVE_TAB_ITEM.EXPENSES || routeName === SCREENS.NATIVE_TAB_ITEM.REPORTS ? NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR : undefined;

@@ -6,7 +6,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {NativeBottomTabView} from '@react-navigation/bottom-tabs/unstable';
 import {DefaultTheme, ThemeProvider} from '@react-navigation/native';
 import React, {useContext, useEffect} from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 
 type NativeBottomTabViewProps = Parameters<typeof NativeBottomTabView>[0];
 
@@ -21,6 +21,7 @@ type MockTabsHostProps = {
 
 type MockTabsScreenProps = {
     screenKey: string;
+    hostedContentSourceScreenKey?: string;
     title?: string;
     preventNativeSelection?: boolean;
     specialEffects?: {repeatedTabSelection?: {popToRoot?: boolean; scrollToTop?: boolean}};
@@ -197,6 +198,11 @@ function runPendingTabPress() {
     });
 }
 
+// Outside iOS two tabs trade their places in the bar when a hidden route names another host. iOS moves the native view.
+function useTabsThatTradePlaces() {
+    jest.replaceProperty(Platform, 'OS', 'android');
+}
+
 function isViewStyleProp(style: unknown): style is StyleProp<ViewStyle> {
     return typeof style === 'object';
 }
@@ -223,6 +229,7 @@ describe('NativeBottomTabView', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+        jest.restoreAllMocks();
     });
 
     it('keeps the native tab when the focused route gets a new key, and remounts only its content', () => {
@@ -369,6 +376,7 @@ describe('NativeBottomTabView', () => {
     });
 
     it('keeps a hidden route mounted when it names another host, and trades the places of the two tabs', () => {
+        useTabsThatTradePlaces();
         // Given Spend focused and drawn inside the Expenses placeholder
         const navigation = buildNavigation();
         const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
@@ -390,6 +398,7 @@ describe('NativeBottomTabView', () => {
         {tappedScreenKey: 'Reports', pressedRouteName: 'Expenses', expectedDispatches: [[expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Expenses'})})]]},
         {tappedScreenKey: 'Expenses', pressedRouteName: 'Reports', expectedDispatches: []},
     ])('sends a press on the traded tab $tappedScreenKey to $pressedRouteName, whose item it draws', ({tappedScreenKey, pressedRouteName, expectedDispatches}) => {
+        useTabsThatTradePlaces();
         // Given Spend focused in the Expenses tab, which traded places with Reports because Spend names Reports
         const navigation = buildNavigation();
         const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
@@ -404,7 +413,41 @@ describe('NativeBottomTabView', () => {
         expect(navigation.dispatch.mock.calls).toEqual(expectedDispatches);
     });
 
+    it('keeps a hidden route mounted on iOS when it names another host, and has that host show its view', () => {
+        // Given Spend focused and drawn inside the Expenses placeholder on iOS, where the bar animates its selection
+        // between tabs and every item has to stay a tab of its own
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When Spend names Reports as its host
+        screen.rerender(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getFlatNavOptionsWithSpendHost('Reports')));
+
+        // Then Spend is not mounted again and no tab changes its place or item
+        expect(contentMounts.filter((mount) => mount.startsWith('Spend-key'))).toEqual(['Spend-key@Expenses']);
+        expect(mockLatestHostProps?.tabBarItemOrder).toBeUndefined();
+        expect(mockLatestScreenProps.get('Reports')?.title).toBe('Reports');
+        // And native selects Reports, which shows the hosted view of Expenses while it is selected
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Reports');
+        expect(mockLatestScreenProps.get('Reports')?.hostedContentSourceScreenKey).toBe('Expenses');
+        expect(mockLatestScreenProps.get('Expenses')?.hostedContentSourceScreenKey).toBeUndefined();
+    });
+
+    it('lets native select a placeholder on iOS that shows a hidden route drawn in another tab', () => {
+        // Given Inbox focused and Spend drawn in Expenses on iOS, with Reports a placeholder whose press opens Spend too
+        const screen = renderFlatNav('Inbox');
+
+        // When the native tabs are configured
+        // Then native may select Reports, which shows the hosted view of Expenses, so the tap shows Spend at once and
+        // the bar animates its selection as for any other tab
+        expect(mockLatestScreenProps.get('Reports')?.preventNativeSelection).toBe(false);
+        expect(mockLatestScreenProps.get('Reports')?.hostedContentSourceScreenKey).toBe('Expenses');
+        // And Spend stays laid out for it, and More, which opens no hidden route, shows no other tab's view
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
+    });
+
     it('keeps native from selecting a placeholder whose hidden route is drawn in another tab', () => {
+        useTabsThatTradePlaces();
         // Given Spend drawn in the Expenses placeholder, and Reports a placeholder whose press opens Spend too
         renderFlatNav('Inbox');
 
@@ -416,6 +459,7 @@ describe('NativeBottomTabView', () => {
     });
 
     it('shows a pressed placeholder selected over its hidden route before the press starts the navigation', () => {
+        useTabsThatTradePlaces();
         // Given Inbox focused, Spend drawn in Expenses, and a Reports press that navigates, as the app listener does
         const navigation = buildNavigation();
         const pressedState = {...buildFlatNavTabState('Spend')};
@@ -438,6 +482,7 @@ describe('NativeBottomTabView', () => {
     });
 
     it('puts the bar back when the press of a placeholder starts no navigation', () => {
+        useTabsThatTradePlaces();
         // Given Inbox focused, Spend drawn in Expenses, and a Reports press no listener answers, as for an anonymous user
         const navigation = buildNavigation();
         renderFlatNav('Inbox', {navigation});
@@ -454,6 +499,7 @@ describe('NativeBottomTabView', () => {
     });
 
     it('lets a pressed placeholder expire when the navigation never names it as the host', () => {
+        useTabsThatTradePlaces();
         // Given Inbox focused, Spend drawn in Expenses, and a Reports press whose listener changes the state without
         // moving Spend under Reports
         const navigation = buildNavigation();
@@ -474,6 +520,7 @@ describe('NativeBottomTabView', () => {
     });
 
     it('leaves a tab in its place when the focused route needs it, and hides the route that named it', () => {
+        useTabsThatTradePlaces();
         // Given Workspaces focused in More while Spend, drawn in Expenses, names More too, as a saved search does
         const screen = renderFlatNav('Workspaces', {options: getFlatNavOptionsWithSpendHost('More')});
 
