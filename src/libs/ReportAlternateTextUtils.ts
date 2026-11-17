@@ -201,10 +201,13 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     isReportPreviewAction,
+    isSplitBillAction,
     isTagModificationAction,
     isTaskAction,
     isThreadParentMessage,
+    isTrackExpenseAction,
     isUnapprovedAction,
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
@@ -445,6 +448,36 @@ function resolveLastActionContext(
         movedFromReport: getReportOrDraftReport({reportID: getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}),
         movedToReport: getReportOrDraftReport({reportID: getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}),
     };
+}
+
+/**
+ * Returns the IDs of the transactions the chat preview line needs for split and track actions.
+ * Their transaction isn't part of the chat, so the caller has to pass it into getReportAlternateText.
+ * The ID comes from the last visible action, the one the preview renders. The newest action can be a different one,
+ * for example a deleted comment or one that is pending delete.
+ */
+function getSplitAndTrackTransactionIDs(
+    reportOptions: Array<{item: Report; private_isArchived?: boolean}>,
+    sortedActions: Record<string, ReportAction[]> | undefined,
+    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+): string[] {
+    const transactionIDs: string[] = [];
+    for (const {item: report, private_isArchived: isReportArchived} of reportOptions) {
+        const actions = sortedActions?.[report.reportID];
+        if (!actions?.length) {
+            continue;
+        }
+        const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+        const lastVisibleAction = actions.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID));
+        if (!isSplitBillAction(lastVisibleAction) && !isTrackExpenseAction(lastVisibleAction)) {
+            continue;
+        }
+        const transactionID = getOriginalMessage(lastVisibleAction)?.IOUTransactionID;
+        if (transactionID) {
+            transactionIDs.push(transactionID);
+        }
+    }
+    return transactionIDs;
 }
 
 function getLastActorDisplayNameFromLastVisibleActions(
@@ -1792,6 +1825,7 @@ export {
     getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
+    getSplitAndTrackTransactionIDs,
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
