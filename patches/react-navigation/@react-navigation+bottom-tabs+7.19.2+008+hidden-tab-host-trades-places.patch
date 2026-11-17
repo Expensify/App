@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 62dc1c3..a74472b 100644
+index 62dc1c3..4ac0bba 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -32,23 +32,84 @@ export function NativeBottomTabView({
@@ -36,7 +36,7 @@ index 62dc1c3..a74472b 100644
 +  // navigation it starts names that item as the host, the hidden route is treated as if it already did, so the bar
 +  // shows the pressed item selected over the hidden route in one cheap commit, ahead of the render of the navigation.
 +  const [itemPress, setItemPress] = React.useState(null);
-+  const pendingItemPress = itemPress !== null && (focusedRouteKey === itemPress.focusedRouteKey || focusedRouteKey === itemPress.hiddenRouteKey) && getNamedHostRouteKey(state.routes.find(route => route.key === itemPress.hiddenRouteKey) ?? {}) === itemPress.hostRouteKey ? itemPress : null;
++  const pendingItemPress = itemPress !== null && (focusedRouteKey === itemPress.focusedRouteKey || focusedRouteKey === itemPress.hiddenRouteKey) && state.routes.some(route => route.key === itemPress.hiddenRouteKey && getNamedHostRouteKey(route) === itemPress.hostRouteKey) ? itemPress : null;
 +  const getExplicitHostRouteKey = route => pendingItemPress !== null && route.key === pendingItemPress.hiddenRouteKey ? pendingItemPress.itemRouteKey : getNamedHostRouteKey(route);
 +  // The route native shows as selected: the focused one, or the hidden route of a pending item press.
 +  const nativeSelectedRoute = pendingItemPress !== null ? state.routes.find(route => route.key === pendingItemPress.hiddenRouteKey) : state.routes[state.index];
@@ -338,7 +338,7 @@ index 62dc1c3..a74472b 100644
        if (!isRouteHidden(route) || getHostRouteKey(route) !== hostRouteKey) {
          return null;
        }
-@@ -459,7 +596,14 @@ export function NativeBottomTabView({
+@@ -459,7 +596,15 @@ export function NativeBottomTabView({
          navigation
        } = descriptors[route.key];
        const isFocused = state.index === index;
@@ -349,12 +349,13 @@ index 62dc1c3..a74472b 100644
 +      // the tap.
 +      const namedHostRouteKey = getNamedHostRouteKey(route);
 +      const isOpenedByNamedHost = namedHostRouteKey === hostRouteKey || descriptors[namedHostRouteKey]?.options.tabBarItemHiddenRouteName === route.name;
-+      const isLaidOutForItsHost = isOpenedByNamedHost && (!tradesPlaces || getItemRoute(hostRoute).key === getExplicitHostRouteKey(route));
++      // A tab that shows the view of another tab while selected has its own routes covered, so they are not laid out.
++      const isLaidOutForItsHost = isOpenedByNamedHost && (tradesPlaces ? getItemRoute(hostRoute).key === getExplicitHostRouteKey(route) : getHostedContentSourceScreenKey(hostRoute) === undefined);
 +      const isShown = isFocused || isHostedExplicitly && route.key === shownHostedRouteKey && isLaidOutForItsHost;
        const screen = /*#__PURE__*/_jsx(ScreenWithHeader, {
          isFocused: isFocused,
          route: route,
-@@ -482,6 +626,18 @@ export function NativeBottomTabView({
+@@ -482,6 +627,18 @@ export function NativeBottomTabView({
          }) : screen
        }, route.key);
      });

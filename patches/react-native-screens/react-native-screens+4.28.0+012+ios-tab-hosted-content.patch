@@ -23,30 +23,32 @@ index bc62e29..abad36c 100644
   * Tell the controller that react provided tabs have changed (count / instances) & the child
   * view controllers need to be updated.
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 5f916b2..5f34a30 100644
+index f14c43f..91d1373 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-@@ -89,6 +89,11 @@ @implementation RNSTabBarController {
+@@ -89,6 +89,12 @@ @implementation RNSTabBarController {
    // Set when the selection is shown again together with a tab switch from JS, so it appears on the new tab.
    BOOL _isSelectionRevealDeferred;
  
 +  // The hosted content view of each screen that has one, kept here because a view shown in another screen is no longer
 +  // among the subviews of its own.
 +  NSMapTable<RNSTabsScreenComponentView *, UIView *> *_Nonnull _hostedContentViews;
++  NSHashTable<UIView *> *_Nonnull _hostedContentSnapshotViews;
 +  BOOL _hasLentHostedContentView;
 +
    // Views over the items of the tabs native must not select, which take their taps before the tab bar sees them.
    NSMutableArray<UIControl *> *_Nonnull _preventedSelectionTouchViews;
  
-@@ -101,6 +106,7 @@ - (instancetype)init
+@@ -101,6 +107,8 @@ - (instancetype)init
  {
    if (self = [super init]) {
      _preventedSelectionTouchViews = [NSMutableArray new];
 +    _hostedContentViews = [NSMapTable weakToWeakObjectsMapTable];
++    _hostedContentSnapshotViews = [NSHashTable weakObjectsHashTable];
      _tabScreenControllers = nil;
      _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
      _tabsHostComponentView = nil;
-@@ -193,6 +199,133 @@ - (void)viewDidLayoutSubviews
+@@ -193,6 +201,154 @@ - (void)viewDidLayoutSubviews
    [self updatePreventedSelectionTouchViews];
  }
  
@@ -68,6 +70,11 @@ index 5f916b2..5f34a30 100644
 +    selectedScreen = static_cast<RNSTabsScreenViewController *>(selectedViewController).tabScreenComponentView;
 +  }
 +  NSString *sourceScreenKey = selectedScreen.hostedContentSourceScreenKey;
++  // Nothing to place: no view is shown outside its own screen and the selected screen asks for none. This is every
++  // tab bar that does not use hosted content.
++  if (!_hasLentHostedContentView && sourceScreenKey == nil) {
++    return;
++  }
 +  BOOL hasLentHostedContentView = NO;
 +
 +  for (RNSTabsScreenViewController *tabScreenController in _tabScreenControllers) {
@@ -106,7 +113,8 @@ index 5f916b2..5f34a30 100644
 +      }
 +      [self moveHostedContentView:hostedContentView toScreen:parentScreen];
 +    }
-+  }  _hasLentHostedContentView = hasLentHostedContentView;
++  }
++  _hasLentHostedContentView = hasLentHostedContentView;
 +}
 +
 +- (BOOL)hasLentHostedContentView
@@ -130,6 +138,7 @@ index 5f916b2..5f34a30 100644
 +  snapshotView.frame = hostedContentView.frame;
 +  snapshotView.userInteractionEnabled = NO;
 +  [prevParentView addSubview:snapshotView];
++  [_hostedContentSnapshotViews addObject:snapshotView];
 +  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.6 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 +    [snapshotView removeFromSuperview];
 +  });
@@ -142,23 +151,37 @@ index 5f916b2..5f34a30 100644
 +{
 +  UIViewController *nextParentViewController = screen.controller;
 +  NSMutableArray<UIViewController *> *movedViewControllers = [NSMutableArray new];
-+  if ([hostedContentView.superview isKindOfClass:RNSTabsScreenComponentView.class]) {
-+    UIViewController *prevParentViewController =
-+        static_cast<RNSTabsScreenComponentView *>(hostedContentView.superview).controller;
-+    for (UIViewController *childViewController in [prevParentViewController.childViewControllers copy]) {
-+      if (childViewController.isViewLoaded && [childViewController.view isDescendantOfView:hostedContentView]) {
-+        [childViewController willMoveToParentViewController:nil];
-+        [childViewController removeFromParentViewController];
-+        [movedViewControllers addObject:childViewController];
-+      }
++  [self collectViewControllersIn:hostedContentView into:movedViewControllers];
++  for (UIViewController *childViewController in movedViewControllers) {
++    [childViewController willMoveToParentViewController:nil];
++    [childViewController removeFromParentViewController];
++  }
++  // A snapshot left in this screen would sit under the view, at the index React expects the view at.
++  for (UIView *snapshotView in _hostedContentSnapshotViews.allObjects) {
++    if (snapshotView.superview == screen) {
++      [snapshotView removeFromSuperview];
 +    }
 +  }
 +  // UIKit checks the parent against the place of the view both when the view moves and when the parent is set, so the
-+  // view moves while its view controllers have no parent.
++  // view moves while its view controllers have no parent. React mounts the view as the last child of its screen, which
++  // is where `addSubview:` puts it back.
 +  [screen addSubview:hostedContentView];
 +  for (UIViewController *childViewController in movedViewControllers) {
 +    [nextParentViewController addChildViewController:childViewController];
 +    [childViewController didMoveToParentViewController:nextParentViewController];
++  }
++}
++
++// The view controllers whose views are the nearest ones inside the view, found from the views themselves, so they are
++// found even when the screen the view is in has lost its own view controller.
++- (void)collectViewControllersIn:(nonnull UIView *)view into:(nonnull NSMutableArray<UIViewController *> *)viewControllers
++{
++  for (UIView *subview in view.subviews) {
++    if ([subview.nextResponder isKindOfClass:UIViewController.class]) {
++      [viewControllers addObject:static_cast<UIViewController *>(subview.nextResponder)];
++    } else {
++      [self collectViewControllersIn:subview into:viewControllers];
++    }
 +  }
 +}
 +
@@ -180,7 +203,7 @@ index 5f916b2..5f34a30 100644
  // The iOS 26 tab bar starts moving its selection lens to an item on touch down, before it asks whether the tab can be
  // selected, so a tap on a tab with `preventNativeSelection` pulls the lens to it and lets it spring back. A view over
  // each such item, outside the tab bar, takes the tap instead and reports it the way the prevented selection does.
-@@ -450,6 +583,7 @@ - (void)performContainerUpdate
+@@ -452,6 +608,7 @@ - (void)performContainerUpdate
    [self updateTabBarAppearanceIfNeeded];
    [self updateTabBarA11yIfNeeded];
    [self updateOrientationIfNeeded];
@@ -188,7 +211,7 @@ index 5f916b2..5f34a30 100644
    [self updatePreventedSelectionTouchViews];
  }
  
-@@ -482,6 +616,7 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
+@@ -484,6 +641,7 @@ - (BOOL)updateSelectedViewControllerTo:(nullable UIViewController *)nextSelected
      return YES;
    }
  
@@ -196,7 +219,7 @@ index 5f916b2..5f34a30 100644
    [self setSelectedViewController:nextSelectedViewController];
    return YES;
  }
-@@ -618,6 +753,7 @@ - (BOOL)tabBarController:(UITabBarController *)tabBarController
+@@ -620,6 +778,7 @@ - (BOOL)tabBarController:(UITabBarController *)tabBarController
    }
  
    _isHandlingExplicitSelectionUpdate = YES;
@@ -205,18 +228,19 @@ index 5f916b2..5f34a30 100644
  }
  
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-index fa2afb9..17c07d8 100644
+index fa2afb9..11acfa7 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -368,6 +368,13 @@ - (void)mountingTransactionWillMount:(const facebook::react::MountingTransaction
+@@ -368,6 +368,14 @@ - (void)mountingTransactionWillMount:(const facebook::react::MountingTransaction
  {
    _hasModifiedTabsScreensInCurrentTransaction = NO;
    _hasModifiedBottomAccessoryInCurrentTransation = NO;
-+  if ([_controller hasLentHostedContentView]) {
-+    for (const auto &mutation : transaction.getMutations()) {
-+      if (mutation.type == react::ShadowViewMutation::Insert || mutation.type == react::ShadowViewMutation::Remove) {
-+        [_controller returnHostedContentViewsIfLentByViewWithTag:mutation.parentTag];
-+      }
++  for (const auto &mutation : transaction.getMutations()) {
++    if (![_controller hasLentHostedContentView]) {
++      break;
++    }
++    if (mutation.type == react::ShadowViewMutation::Insert || mutation.type == react::ShadowViewMutation::Remove) {
++      [_controller returnHostedContentViewsIfLentByViewWithTag:mutation.parentTag];
 +    }
 +  }
    [_controller reactMountingTransactionWillMount];

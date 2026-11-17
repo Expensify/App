@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-index 3c2acf0..5f916b2 100644
+index 3c2acf0..f14c43f 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 @@ -89,6 +89,9 @@ @implementation RNSTabBarController {
@@ -20,7 +20,7 @@ index 3c2acf0..5f916b2 100644
      _tabScreenControllers = nil;
      _tabBarAppearanceCoordinator = [RNSTabBarAppearanceCoordinator new];
      _tabsHostComponentView = nil;
-@@ -186,6 +190,124 @@ - (void)viewDidLayoutSubviews
+@@ -186,6 +190,126 @@ - (void)viewDidLayoutSubviews
    if (_tabBarItemSelectionHidden) {
      [self updateTabBarItemSelectionIn:self.tabBar];
    }
@@ -52,6 +52,8 @@ index 3c2acf0..5f916b2 100644
 +  }
 +#endif // !TARGET_OS_TV
 +  if (isTabBarShown) {
++    // The controller lays out before the tab bar does, so the bar is laid out first to read the frames it ends on.
++    [self.tabBar layoutIfNeeded];
 +    tabButtons = [self tabButtonsIn:self.tabBar];
 +  }
 +  NSArray<UIViewController *> *viewControllers = self.viewControllers;
@@ -145,7 +147,7 @@ index 3c2acf0..5f916b2 100644
  }
  
  - (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
-@@ -328,6 +450,7 @@ - (void)performContainerUpdate
+@@ -328,6 +452,7 @@ - (void)performContainerUpdate
    [self updateTabBarAppearanceIfNeeded];
    [self updateTabBarA11yIfNeeded];
    [self updateOrientationIfNeeded];
@@ -153,7 +155,7 @@ index 3c2acf0..5f916b2 100644
  }
  
  /**
-@@ -511,6 +634,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
+@@ -511,6 +636,7 @@ - (void)tabBarController:(UITabBarController *)tabBarController
  
    [self userDidSelectViewController:viewController];
    _isHandlingExplicitSelectionUpdate = NO;

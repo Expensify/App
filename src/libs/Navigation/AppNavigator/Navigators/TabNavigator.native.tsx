@@ -7,7 +7,6 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {getFlatNavSectionIDForSearchKey} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -75,9 +74,13 @@ function NativeTabSearchItemPlaceholder() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {top} = useSafeAreaInsets();
-    const searchSectionID = useNavigationState((state) => getFlatNavSectionIDForSearchKey(getSearchTabSearchKey(findSearchTabRoute(state))));
+    const isSearchUnderMore = useNavigationState(
+        (state) =>
+            getFlatNavTabHostRouteName(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, getFlatNavSectionIDForSearchKey(getSearchTabSearchKey(findSearchTabRoute(state)))) ===
+            SCREENS.NATIVE_TAB_ITEM.MORE,
+    );
 
-    if (!searchSectionID || searchSectionID === FLAT_NAV.SECTION.EXPENSES || searchSectionID === FLAT_NAV.SECTION.REPORTS) {
+    if (!isSearchUnderMore) {
         return null;
     }
 

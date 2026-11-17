@@ -56,15 +56,15 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
             pendingSearchNavigation.current.queuedSearchKey = searchKey;
             return;
         }
+        const searchTabRoute = getCurrentSearchTabRoute();
         // Search already on this search: the tap is a repeated selection, which the native bar answers by itself.
-        if (isSearchFocused && getSearchTabSearchKey(getCurrentSearchTabRoute()) === searchKey) {
+        if (isSearchFocused && getSearchTabSearchKey(searchTabRoute) === searchKey) {
             return;
         }
         const lastSearchQuery = searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery;
-        const searchTabParams = getCurrentSearchTabRoute()?.params;
         // With the Search page on top of the Search tab the tap only changes its search, as its type tabs do. A tab not
         // mounted yet, or one with another screen on top, is opened through the search route.
-        const searchNavigatorState = getCurrentSearchTabRoute()?.state;
+        const searchNavigatorState = searchTabRoute?.state;
         const isSearchPageOnTop = searchNavigatorState?.routes.at(searchNavigatorState.index ?? -1)?.name === SCREENS.SEARCH.ROOT;
         const searchNavigatorStateKey = isSearchPageOnTop ? searchNavigatorState?.key : undefined;
         openSearchFromTabBar(
@@ -76,7 +76,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
             session,
         );
         // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
-        pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabParams};
+        pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabRoute?.params};
     };
 
     // The tab navigator reports its new state after Search has taken the params.
