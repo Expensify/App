@@ -2289,8 +2289,7 @@ function queueExportSearchItemsToCSV({
             },
         },
     ];
-    // Not passed through enhanceParameters: the queue adds the session when it sends the request, and a baked-in
-    // authToken would be resent unchanged after every reauthentication.
+    // No enhanceParameters here: a saved authToken would be resent unchanged after every reauthentication.
     const parameters: QueueExportSearchItemsToCSVParams = {
         jsonQuery,
         reportIDList,
@@ -2345,7 +2344,7 @@ function queueExportSearchWithTemplate(
           }
         : {};
 
-    // Not passed through enhanceParameters, for the same reason as queueExportSearchItemsToCSV.
+    // No enhanceParameters here, same reason as queueExportSearchItemsToCSV.
     const parameters: QueueExportSearchWithTemplateParams = {
         templateName,
         templateType,

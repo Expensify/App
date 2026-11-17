@@ -26,10 +26,7 @@ let isAuthenticating: Promise<ReauthenticationResult> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
-// A request the server rejects again right after a fresh token is broken itself (a stale authToken baked into its
-// data, or a body the browser could not build), so another reauthentication cannot fix it. Replaying it inline again
-// would loop forever, so the second rejection is handed to the caller instead. The SequentialQueue retries a rolled
-// back copy of the request, which is a new object, so every queue attempt gets one inline replay again.
+// A 407 right after a fresh token means the request itself is broken, so it gets one inline replay. A queue rollback copies the request, so each attempt gets its own.
 const requestsReplayedAfterReauth = new WeakSet<WeakKey>();
 
 function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
@@ -131,7 +128,6 @@ function handleExpiredSession<TKey extends OnyxKey>(
     if (requestsReplayedAfterReauth.has(request)) {
         Log.hmmm('[Reauthenticate] Request rejected again after a successful reauthentication, not replaying it', {command: request.command, isFromSequentialQueue});
         if (isFromSequentialQueue) {
-            // Rejecting sends the request through the SequentialQueue backoff, which gives up after MAX_REQUEST_RETRIES and lets the rest of the queue run.
             throw new Error(CONST.ERROR.REAUTH_REPLAY_REJECTED);
         }
         return Promise.resolve(data);
@@ -172,7 +168,7 @@ function handleExpiredSession<TKey extends OnyxKey>(
         })
         .catch((error: unknown) => {
             if (isFromSequentialQueue || apiRequestType) {
-                // Keep the replay rejection as is, so the SequentialQueue give-up logs say why the request was dropped.
+                // Keep this error so the queue's give-up log says why the request was dropped.
                 if (error instanceof Error && error.message === CONST.ERROR.REAUTH_REPLAY_REJECTED) {
                     throw error;
                 }
