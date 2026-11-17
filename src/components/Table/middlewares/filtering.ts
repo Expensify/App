@@ -116,17 +116,6 @@ type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends str
     isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
 
-type FilteredDataCacheEntry = {
-    filters: unknown;
-    currentFilters: unknown;
-    isItemInFilter: unknown;
-    filteredData: unknown[];
-};
-
-// Filtering builds a new array on every render, which would defeat the sort and selection caches that are keyed by the array.
-// The last result is kept per data array so those caches still hit when only the selection changed.
-const filteredDataCache = new WeakMap<WeakKey, FilteredDataCacheEntry>();
-
 // Filters table data based on the current filters.
 function filter<DataType extends TableData, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<DataType, FilterKey>): DataType[] {
     if (!filters) {
@@ -134,15 +123,9 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
         return data;
     }
 
-    const cachedEntry = filteredDataCache.get(data);
-    if (cachedEntry && cachedEntry.filters === filters && cachedEntry.currentFilters === currentFilters && cachedEntry.isItemInFilter === isItemInFilter) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its items have the same type
-        return cachedEntry.filteredData as DataType[];
-    }
-
     const filterKeys = getObjectKeys(filters);
 
-    const filteredData = data.filter((item) => {
+    return data.filter((item) => {
         return filterKeys.every((filterKey) => {
             const filterValue = currentFilters[filterKey] ?? [];
 
@@ -153,9 +136,6 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
             return isItemInFilter(item, filterValue);
         });
     });
-    filteredDataCache.set(data, {filters, currentFilters, isItemInFilter, filteredData});
-
-    return filteredData;
 }
 
 export default useFiltering;
