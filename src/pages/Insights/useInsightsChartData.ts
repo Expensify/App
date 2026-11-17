@@ -41,12 +41,8 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded, stages} = dashboardChart;
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const isStacked = isStackedChart(chart);
-    // A stacked chart's buckets hold a duration per stage rather than one of their own, and a bucket whose stages are all unavailable is still drawn
-    const rowMetric = isStacked ? undefined : chart.metric;
 
     const groupedData = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON);
-    const sortedData = keepEnabledStageGroups(groupedData, stages);
     const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
@@ -54,6 +50,10 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
         isPreviousPeriod ? normalizeInsightsSnapshot(previousPeriodSnapshot, queryJSON?.groupBy) : undefined,
         queryJSON && {...queryJSON, limit: undefined},
     );
+    const isStacked = isStackedChart(chart);
+    // A stacked chart's buckets hold a duration per stage rather than one of their own, and a bucket whose stages are all unavailable is still drawn
+    const rowMetric = isStacked ? undefined : chart.metric;
+    const sortedData = keepEnabledStageGroups(groupedData, stages);
     const comparedSortedData = keepEnabledStageGroups(comparedGroupedData, stages);
 
     const trackedFrom = getTrackedFrom(snapshot);
