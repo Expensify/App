@@ -5,7 +5,7 @@ import MoreMenuPopover from '@components/Navigation/MoreMenu/MoreMenuPopover';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FlatNavTabPressListeners from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
-import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import CONST from '@src/CONST';
@@ -22,7 +22,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@components/Navigation/MoreMenu/MoreMenuPopover', () => jest.fn(() => null));
 jest.mock('@components/Search/SearchContext', () => ({useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()})}));
-jest.mock('@libs/SearchNavigationUtils', () => ({navigateToSpendTab: jest.fn()}));
+jest.mock('@libs/SearchNavigationUtils', () => ({navigateToSpendTab: jest.fn(), showSpendTabSearchOnMountedSearchPage: jest.fn()}));
 jest.mock('@libs/interceptAnonymousUser', () => jest.fn((callback: () => void) => callback()));
 jest.mock('@libs/telemetry/startTabNavigationSpans', () => ({startNavigateToReportsTabSpans: jest.fn()}));
 jest.mock('@libs/clearSelectedText/clearSelectedText', () => jest.fn());
@@ -48,11 +48,13 @@ let liveFocusedRouteName: string = SCREENS.HOME;
 let liveSearchKey: string | undefined;
 // The params a navigation from another tab hands the Search tab route
 let liveSearchTabParams: Record<string, unknown> | undefined;
+// The key of the Search navigator's state, which it has once it is mounted
+let liveSearchNavigatorStateKey: string | undefined;
 
 function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state' | 'descriptors'> {
     const routes = ROUTE_NAMES.map((name) => ({key: `${name}-key`, name}));
     return {
-        state: createMock<NativeTabLayoutProps['state']>({routes, index: ROUTE_NAMES.indexOf(focusedRouteName)}),
+        state: createMock<NativeTabLayoutProps['state']>({key: 'tab-state-key', routes, index: ROUTE_NAMES.indexOf(focusedRouteName)}),
         descriptors: Object.fromEntries(
             routes.map((route) => [
                 route.key,
@@ -73,7 +75,7 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
                                     {
                                         name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                                         params: liveSearchTabParams,
-                                        state: {routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}}]},
+                                        state: {key: liveSearchNavigatorStateKey, routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense', searchKey: liveSearchKey}}]},
                                     },
                                 ],
                             }),
@@ -121,6 +123,7 @@ describe('FlatNavTabPressListeners', () => {
         pressListeners.clear();
         stateListeners.clear();
         liveSearchTabParams = undefined;
+        liveSearchNavigatorStateKey = undefined;
         await Onyx.set(ONYXKEYS.SEARCH_FILTERS, {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: {timestamp: '2026-11-10 12:00:00', query: LAST_REPORTS_QUERY}});
     });
 
@@ -154,6 +157,32 @@ describe('FlatNavTabPressListeners', () => {
         expect(jest.mocked(navigateToSpendTab).mock.calls).toEqual(expectedNavigations);
         expect(startNavigateToReportsTabSpans).not.toHaveBeenCalled();
     });
+
+    it.each([
+        {focusedRouteName: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, tabStateKeyToFocusSearchIn: undefined},
+        {focusedRouteName: SCREENS.HOME, tabStateKeyToFocusSearchIn: 'tab-state-key'},
+    ])(
+        'changes the search of the mounted Search page instead of opening the route when Reports is pressed from $focusedRouteName',
+        async ({focusedRouteName, tabStateKeyToFocusSearchIn}) => {
+            // Given the Search navigator mounted with the Search page on top, showing Expenses, and Search or Home focused
+            liveSearchNavigatorStateKey = 'search-state-key';
+            await renderListeners(focusedRouteName, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            // When the user presses Reports
+            press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+
+            // Then the mounted page takes the Reports search as params, as its type tabs do, and the Search tab is focused
+            // when the press came from another tab, since opening the route would mount a second Search page from scratch
+            expect(showSpendTabSearchOnMountedSearchPage).toHaveBeenCalledWith(
+                CONST.SEARCH.SEARCH_KEYS.REPORTS,
+                LAST_REPORTS_QUERY,
+                expect.any(Function),
+                'search-state-key',
+                tabStateKeyToFocusSearchIn,
+            );
+            expect(navigateToSpendTab).not.toHaveBeenCalled();
+        },
+    );
 
     it('navigates once on a quick double tap', async () => {
         // Given Home focused

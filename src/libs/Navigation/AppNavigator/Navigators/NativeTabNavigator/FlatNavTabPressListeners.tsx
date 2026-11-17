@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import openSearchFromTabBar from '@libs/Navigation/FlatNavTabBar/openSearchFromTabBar';
-import {navigateToSpendTab} from '@libs/SearchNavigationUtils';
+import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import type {SpendTabSearchKey} from '@libs/SearchNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -62,7 +62,19 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
         }
         const lastSearchQuery = searchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS ? lastReportsSearchQuery : lastExpensesSearchQuery;
         const searchTabParams = getCurrentSearchTabRoute()?.params;
-        openSearchFromTabBar(() => navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions), isSearchFocused, session);
+        // With the Search page on top of the Search tab the tap only changes its search, as its type tabs do. A tab not
+        // mounted yet, or one with another screen on top, is opened through the search route.
+        const searchNavigatorState = getCurrentSearchTabRoute()?.state;
+        const isSearchPageOnTop = searchNavigatorState?.routes.at(searchNavigatorState.index ?? -1)?.name === SCREENS.SEARCH.ROOT;
+        const searchNavigatorStateKey = isSearchPageOnTop ? searchNavigatorState?.key : undefined;
+        openSearchFromTabBar(
+            () =>
+                searchNavigatorStateKey
+                    ? showSpendTabSearchOnMountedSearchPage(searchKey, lastSearchQuery, clearSelectedTransactions, searchNavigatorStateKey, isSearchFocused ? undefined : state.key)
+                    : navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions),
+            isSearchFocused,
+            session,
+        );
         // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
         pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabParams};
     };
