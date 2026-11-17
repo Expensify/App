@@ -42,23 +42,13 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const {isLoadingInitialCards} = useLoadSearchCardData();
     const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
 
-    const individualCardsSectionData = buildCardsData(
-        workspaceCardFeeds ?? {},
-        userCardList ?? {},
-        personalDetails ?? {},
-        value,
-        illustrations,
-        companyCardFeedIcons,
-        false,
-        customCardNames,
-    );
+    const individualCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, false);
 
-    const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, true, customCardNames);
+    const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, true);
 
     const shouldShowSearchInput = individualCardsSectionData.length + closedCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
