@@ -16,6 +16,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -34,15 +35,18 @@ type IntentOptionProps = {
     description: string;
 
     onPress?: () => void;
+
+    sentryLabel: SentryLabel;
 };
 
-function IntentOption({illustration, title, description, onPress}: IntentOptionProps) {
+function IntentOption({illustration, title, description, onPress, sentryLabel}: IntentOptionProps) {
     const styles = useThemeStyles();
 
     return (
         <MenuItem.Root
             onPress={onPress}
             style={styles.purposeMenuItem}
+            sentryLabel={sentryLabel}
         >
             <MenuItem.Row>
                 <MenuItem.Leading>
@@ -112,6 +116,7 @@ function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, c
                     title={translate('reimbursementIntentStep.payViaExpensify')}
                     description={translate('reimbursementIntentStep.payViaExpensifyDescription')}
                     onPress={onSubmit}
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.REIMBURSEMENT_INTENT_PAY_VIA_EXPENSIFY}
                 />
                 <IntentOption
                     illustration={illustrations.Report}
@@ -127,6 +132,7 @@ function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, c
                             }),
                         )
                     }
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.REIMBURSEMENT_INTENT_PAY_VIA_ABA_FILE}
                 />
             </View>
         </InteractiveStepWrapper>
