@@ -17,7 +17,8 @@ type UnreadIndicatorData = {
     conciergeReportID?: string;
 };
 
-function getUnreadReportsForUnreadIndicator(
+/** The IDs of the reports that count towards the unread indicator. */
+function getUnreadReportIDsForUnreadIndicator(
     reports: OnyxCollection<Report>,
     currentReportID: string | undefined,
     draftComment: string | undefined,
@@ -25,7 +26,25 @@ function getUnreadReportsForUnreadIndicator(
 ) {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
-    return Object.values(reports ?? {}).filter((report) => {
+    const unreadReportIDs: string[] = [];
+    for (const report of Object.values(reports ?? {})) {
+        // Only the ID is returned, and a report without one never counted
+        if (!report?.reportID) {
+            continue;
+        }
+
+        // A chat read up to its newest message and mention can't be unread, and its thread-free state means nothing else can change that.
+        // Skipping it here avoids the lookups below for the large read population. Expense-like reports are excluded
+        // because their single transaction thread can carry newer times.
+        if (
+            report.type === CONST.REPORT.TYPE.CHAT &&
+            report.lastReadTime &&
+            report.lastReadTime >= (report.lastVisibleActionCreated ?? '') &&
+            report.lastReadTime >= (report.lastMentionedTime ?? '')
+        ) {
+            continue;
+        }
+
         const notificationPreference = getReportNotificationPreference(report, currentUserAccountID);
 
         /**
@@ -39,7 +58,7 @@ function getUnreadReportsForUnreadIndicator(
          * but they should not be considered in the unread indicator count.
          */
         if (isHiddenForCurrentUser(notificationPreference) || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
-            return false;
+            continue;
         }
 
         const nameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
@@ -48,15 +67,15 @@ function getUnreadReportsForUnreadIndicator(
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
         const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        const derivedIsEmptyReport = report?.reportID ? reportAttributes?.[report.reportID]?.isEmpty : undefined;
-        const requiresAttention = report?.reportID ? reportAttributes?.[report.reportID]?.requiresAttention : undefined;
+        const derivedIsEmptyReport = reportAttributes?.[report.reportID]?.isEmpty;
+        const requiresAttention = reportAttributes?.[report.reportID]?.requiresAttention;
 
         if (!isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
-            return false;
+            continue;
         }
 
         // Heaviest predicate runs last, only for unread, non-muted, non-hidden reports — a small fraction of all reports.
-        return shouldReportBeInOptionList({
+        const shouldCount = shouldReportBeInOptionList({
             report,
             chatReport,
             currentReportId: currentReportID,
@@ -75,7 +94,11 @@ function getUnreadReportsForUnreadIndicator(
             requiresAttention,
             derivedIsEmptyReport,
         });
-    });
+        if (shouldCount) {
+            unreadReportIDs.push(report.reportID);
+        }
+    }
+    return unreadReportIDs;
 }
 
-export default {getUnreadReportsForUnreadIndicator};
+export default {getUnreadReportIDsForUnreadIndicator};

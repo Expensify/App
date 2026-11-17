@@ -392,5 +392,21 @@ describe('system message presentation', () => {
             ];
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toEqual(actions);
         });
+
+        it('returns the same empty state for every empty input so rerendering chats keep a stable identity', () => {
+            // Given two calls with no actions, as chats that never collapse system messages make on every render
+            const first = getSystemMessageDisplayState([], new Set());
+            const second = getSystemMessageDisplayState([], new Set());
+
+            // When the results are compared by reference
+
+            // Then the Maps and the list are the same references, so rows do not see a new value, and they are empty
+            expect(second.runsByAnchorReportActionID).toBe(first.runsByAnchorReportActionID);
+            expect(second.reportActionIDToDisplayIndex).toBe(first.reportActionIDToDisplayIndex);
+            expect(second.displayReportActions).toBe(first.displayReportActions);
+            expect(first.displayReportActions).toHaveLength(0);
+            expect(first.runsByAnchorReportActionID.size).toBe(0);
+            expect(first.reportActionIDToDisplayIndex.size).toBe(0);
+        });
     });
 });

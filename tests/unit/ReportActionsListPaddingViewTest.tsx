@@ -2,6 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 
 import Text from '@components/Text';
 
+import useOnyx from '@hooks/useOnyx';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 
 import {isRecord} from '@libs/ObjectUtils';
@@ -17,6 +18,7 @@ import React from 'react';
 
 const PB4_PADDING_BOTTOM = 16;
 
+jest.mock('@hooks/useOnyx');
 jest.mock('@hooks/useReportRecipientLocalTime');
 jest.mock('@pages/inbox/report/useShouldShowComposerForActiveEditDraft');
 
@@ -32,6 +34,7 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
     pb4: {paddingBottom: PB4_PADDING_BOTTOM},
 }));
 
+const mockUseOnyx = jest.mocked(useOnyx);
 const mockUseReportRecipientLocalTime = jest.mocked(useReportRecipientLocalTime);
 const mockUseShouldShowComposerForActiveEditDraft = jest.mocked(useShouldShowComposerForActiveEditDraft);
 const mockCanUserPerformWriteAction = jest.mocked(canUserPerformWriteAction);
@@ -83,7 +86,7 @@ const paddingScenarios: PaddingScenario[] = [
 function renderPaddingView(isReportArchived = false) {
     return render(
         <ReportActionsListPaddingView
-            report={REPORT}
+            reportID={REPORT.reportID}
             isReportArchived={isReportArchived}
         >
             <Text>child</Text>
@@ -117,6 +120,7 @@ function getPaddingBottom(toJSON: ReturnType<typeof render>['toJSON']) {
 describe('ReportActionsListPaddingView', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseOnyx.mockReturnValue([REPORT, {status: 'loaded'}]);
         mockUseShouldShowComposerForActiveEditDraft.mockReturnValue(false);
         mockCanUserPerformWriteAction.mockReturnValue(true);
         mockUseReportRecipientLocalTime.mockReturnValue(false);

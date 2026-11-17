@@ -229,7 +229,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
-        report,
         transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
         sortedReportActions: reportActions,
