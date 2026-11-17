@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
 
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 
@@ -12,6 +12,8 @@ import type {ViewStyle} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
@@ -52,9 +54,10 @@ jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getContainerStyles: mock
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
 
 jest.mock('@components/Avatar/layouts/SingleAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -89,6 +92,8 @@ describe('PolicyAvatar (connected)', () => {
     });
 
     afterEach(async () => {
+        // Unmount before clearing so the store updates from the clear don't reach a mounted component outside act().
+        cleanup();
         await Onyx.clear();
         await waitForBatchedUpdatesWithAct();
     });
@@ -102,6 +107,8 @@ describe('PolicyAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         render(<PolicyAvatar policyID={POLICY_ID} />);
+        // useOnyx delivers its initial value asynchronously, so flush it inside act() before asserting.
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
@@ -112,13 +119,14 @@ describe('PolicyAvatar (connected)', () => {
         });
     });
 
-    it('should seed the avatar from the fallback display name when the policy is not in Onyx', () => {
+    it('should seed the avatar from the fallback display name when the policy is not in Onyx', async () => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSingleAvatarProps.avatar).toEqual({
             id: POLICY_ID,
@@ -137,15 +145,16 @@ describe('PolicyAvatar (connected)', () => {
             <PolicyAvatar
                 policyID={POLICY_ID}
                 accountID={ACCOUNT_ID}
-                subscriptAvatarBorderColor={BORDER_COLOR}
+                backdropColor={BORDER_COLOR}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSubscriptAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedSingleAvatar')).not.toBeOnTheScreen();
         expect(mockCapturedSubscriptAvatarProps.primaryAvatar).toEqual(expect.objectContaining({id: POLICY_ID, type: CONST.ICON_TYPE_WORKSPACE}));
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual(expect.objectContaining({id: ACCOUNT_ID, type: CONST.ICON_TYPE_AVATAR, name: LOGIN}));
-        expect(mockCapturedSubscriptAvatarProps.subscriptAvatarBorderColor).toBe(BORDER_COLOR);
+        expect(mockCapturedSubscriptAvatarProps.backdropColor).toBe(BORDER_COLOR);
     });
 
     it('should downgrade to a single avatar while the account icon is still nameless', async () => {
@@ -158,6 +167,7 @@ describe('PolicyAvatar (connected)', () => {
                 accountID={ACCOUNT_WITHOUT_DETAILS_ID}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedSubscriptAvatar')).not.toBeOnTheScreen();
@@ -167,13 +177,14 @@ describe('PolicyAvatar (connected)', () => {
     it.each([
         ['the default size when none is passed', undefined, CONST.AVATAR_SIZE.DEFAULT],
         ['the passed size', CONST.AVATAR_SIZE.SMALL, CONST.AVATAR_SIZE.SMALL],
-    ])('should derive the container styles from %s', (_case, size, expectedSize) => {
+    ])('should derive the container styles from %s', async (_case, size, expectedSize) => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 size={size}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockGetContainerStyles).toHaveBeenCalledWith(expectedSize);
         expect(mockCapturedSingleAvatarProps.size).toBe(expectedSize);
@@ -184,19 +195,20 @@ describe('PolicyAvatar (connected)', () => {
         ['a style object', CUSTOM_CONTAINER_STYLE],
         // An empty array is a deliberate "no container styles" request, so it must win over the size-derived default
         ['an empty style array', EMPTY_CONTAINER_STYLE],
-    ])('should replace the derived container styles when containerStyle is %s', (_case, containerStyle) => {
+    ])('should replace the derived container styles when containerStyle is %s', async (_case, containerStyle) => {
         render(
             <PolicyAvatar
                 policyID={POLICY_ID}
                 containerStyle={containerStyle}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSingleAvatarProps.containerStyles).toBe(containerStyle);
         expect(mockGetContainerStyles).not.toHaveBeenCalled();
     });
 
-    // `ReportActionAvatars` never applied the single-avatar container style to a subscript stack, and the subscript
+    // The single-avatar container style has never applied to a subscript stack, and the subscript
     // frame supplies its own size-derived container, so forwarding it here would shift every workspace+member row.
     it('should not forward the container style to the subscript layout', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: POLICY_NAME, avatarURL: POLICY_AVATAR_URL});
@@ -209,6 +221,7 @@ describe('PolicyAvatar (connected)', () => {
                 containerStyle={CUSTOM_CONTAINER_STYLE}
             />,
         );
+        await waitForBatchedUpdatesWithAct();
 
         expect(mockCapturedSubscriptAvatarProps.containerStyle).toBeUndefined();
     });

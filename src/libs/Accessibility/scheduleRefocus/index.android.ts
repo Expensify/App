@@ -1,6 +1,6 @@
 import fireFocusEvent from '@libs/Accessibility/fireFocusEvent';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only; mirrors PressableRef's cross-platform host-instance union.
 import type {Text as RNText, View} from 'react-native';
 
@@ -10,7 +10,7 @@ import type {Text as RNText, View} from 'react-native';
  */
 const REFOCUS_TIMEOUT_MS = 300;
 
-function scheduleRefocus(ref: RefObject<View | RNText | null>): {cancel: () => void} {
+function scheduleRefocus(ref: RefObject<ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>): {cancel: () => void} {
     const id = requestIdleCallback(
         () => {
             const view = ref.current;

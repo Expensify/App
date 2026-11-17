@@ -86,7 +86,8 @@ function CopyPolicySettingsUpgradePage() {
         if (!sourcePolicyID || !isDataLoaded || hasRequestedUpgrade || policiesToUpgrade.length > 0) {
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        // This step is no longer valid, so replace it instead of leaving it beneath Confirm in the navigation stack.
+        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID), {forceReplace: true});
     }, [isDataLoaded, hasRequestedUpgrade, policiesToUpgrade.length, sourcePolicyID]);
 
     const onUpgrade = () => {
@@ -103,7 +104,8 @@ function CopyPolicySettingsUpgradePage() {
         if (!sourcePolicyID) {
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
+        // Upgrade is a one-way step, so replace it to keep a refreshed stack from returning to the stale success view.
+        Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID), {forceReplace: true});
     };
 
     return (
@@ -125,6 +127,7 @@ function CopyPolicySettingsUpgradePage() {
                     <UpgradeConfirmation
                         policyName={upgradedWorkspacesName}
                         afterUpgradeAcknowledged={navigateToConfirm}
+                        confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.COPY_SETTINGS_CONFIRMATION_CONTINUE}
                         buttonText={translate('common.continue')}
                     />
                 ) : (
@@ -136,6 +139,7 @@ function CopyPolicySettingsUpgradePage() {
                             description={translate('workspace.copyPolicySettings.upgrade.description', {workspaceName: sourcePolicy?.name ?? '', features: displayedControlOnlyFeatures})}
                             buttonText={translate('common.upgrade')}
                             onUpgrade={onUpgrade}
+                            upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.COPY_SETTINGS_UPGRADE}
                             buttonDisabled={isOffline || policiesToUpgrade.length === 0}
                             loading={isUpgradePending}
                             unlockBadgeText={translate('workspace.upgrade.unlockFeatures')}

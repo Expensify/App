@@ -36,6 +36,13 @@ type ImportSpreadsheetColumnsProps = {
 
     shouldShowColumnHeader?: boolean;
     shouldShowDropdownMenu?: boolean;
+
+    /**
+     * Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+     * coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+     */
+    shouldAutoDetectColumns?: boolean;
+
     customHeaderText?: string;
 
     /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
@@ -52,6 +59,7 @@ function ImportSpreadsheetColumns({
     learnMoreLink,
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
+    shouldAutoDetectColumns = true,
     customHeaderText,
     shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
@@ -69,7 +77,11 @@ function ImportSpreadsheetColumns({
                         {customHeaderText ?? (
                             <>
                                 {translate('spreadsheet.importDescription')}
-                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
+                                <TextLink
+                                    href={learnMoreLink ?? ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.LEARN_MORE_LINK}
+                                >{` ${translate('common.learnMore')}`}</TextLink>
+                                .
                             </>
                         )}
                     </Text>
@@ -84,6 +96,7 @@ function ImportSpreadsheetColumns({
                             </Text>
                             <Switch
                                 accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH}
                                 isOn={containsHeader}
                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                                 onToggle={setContainsHeader}
@@ -99,6 +112,7 @@ function ImportSpreadsheetColumns({
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                                 shouldShowDropdownMenu={shouldShowDropdownMenu}
+                                shouldAutoDetectColumn={shouldAutoDetectColumns}
                             />
                         );
                     })}
@@ -111,6 +125,7 @@ function ImportSpreadsheetColumns({
                     errorRowStyles={styles.mv2}
                 >
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.IMPORT_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}

@@ -107,7 +107,7 @@ function getCreateDomainForm() {
         const connection = Onyx.connect({
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });
@@ -119,7 +119,7 @@ function getExistingDomain() {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${EXISTING_DOMAIN_ACCOUNT_ID}`,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
                 resolve(value);
             },
         });

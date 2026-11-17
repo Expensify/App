@@ -3,6 +3,7 @@ import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasAllManuallyEnteredScanFields} from '@libs/TransactionUtils';
 
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
@@ -13,6 +14,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -35,6 +37,14 @@ type ReceiptFileValidatorProps = {
      * the validator.
      */
     isReceiptReady: boolean;
+    /**
+     * Whether the Scan confirmation lets the user fill in the amount / merchant / date themselves (new manual expense
+     * flow). When it does, a scan the user filled in is submitted with an `open` receipt so SmartScan never overwrites
+     * those values.
+     */
+    canEnterScanFieldsManually: boolean;
+    /** Whether the expense goes to a workspace chat, the only destination where a manually entered Scan needs a merchant. */
+    isPolicyExpenseChat: boolean;
     onReceiptFilesChange: (files: Record<string, Receipt>) => void;
 };
 
@@ -55,6 +65,8 @@ function ReceiptFileValidator({
     participants,
     draftTransactionIDs,
     isReceiptReady,
+    canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -87,9 +99,9 @@ function ReceiptFileValidator({
                     return Promise.resolve();
                 }
 
-                const onSuccess = (file: File) => {
+                const onSuccess = (file: FileObject) => {
                     const receipt: Receipt = file;
-                    // Rebuilding the receipt from disk makes a fresh File without the trace id from capture, so copy it
+                    // Rebuilding the receipt from disk makes a fresh file object without the trace id from capture, so copy it
                     // back from the saved draft. This keeps the capture, submit, and enqueue logs tied to one receipt.
                     receipt.receiptTraceId = item.receipt?.receiptTraceId;
                     if (item?.receipt?.isTestReceipt) {
@@ -99,7 +111,12 @@ function ReceiptFileValidator({
                         receipt.isTestDriveReceipt = true;
                         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
                     } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                        // A scan whose amount / merchant / date the user filled in themselves is submitted the same way
+                        // as a manual expense with an attached receipt: `open` keeps SmartScan from re-reading the receipt
+                        // and overwriting what the user typed.
+                        const shouldSkipSmartScan =
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL || (canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat));
+                        receipt.state = file && shouldSkipSmartScan ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
                     }
 
                     newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
@@ -142,7 +159,21 @@ function ReceiptFileValidator({
             ignore = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, isReceiptReady, onReceiptFilesChange]);
+    }, [
+        requestType,
+        iouType,
+        initialTransactionID,
+        reportID,
+        action,
+        backToReport,
+        report,
+        transactions,
+        participants,
+        isReceiptReady,
+        canEnterScanFieldsManually,
+        isPolicyExpenseChat,
+        onReceiptFilesChange,
+    ]);
 
     return null;
 }

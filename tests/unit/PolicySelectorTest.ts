@@ -1,18 +1,26 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {
+    billingRestrictionPolicySelector,
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
     createIOURequestStartPoliciesSelector,
+    createMemberCustomFieldsSelector,
+    createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
+    homeAndOfficeCommuterExclusionPolicyNameSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
     policyNameSelector,
 } from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
+
+import {translateLocal} from 'tests/utils/TestHelper';
 
 import createMock from '../utils/createMock';
 
@@ -26,25 +34,25 @@ describe('lastWorkspaceNumberSelector', () => {
     beforeAll(() => IntlStore.load(CONST.LOCALES.DEFAULT));
 
     it('should return undefined when there are no policies', () => {
-        expect(lastWorkspaceNumberSelector({}, email, displayName)).toBeUndefined();
+        expect(lastWorkspaceNumberSelector({}, email, displayName, translateLocal)).toBeUndefined();
     });
 
     it('should return undefined when email is invalid', () => {
-        expect(lastWorkspaceNumberSelector({}, 'invalid-email', displayName)).toBeUndefined();
+        expect(lastWorkspaceNumberSelector({}, 'invalid-email', displayName, translateLocal)).toBeUndefined();
     });
 
     it('should return 0 when there is a matching workspace without a number', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(0);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName, translateLocal)).toBe(0);
     });
 
     it('should return the number when there is a matching workspace with a number', () => {
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({name: `${workspaceName} 2`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(2);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName, translateLocal)).toBe(2);
     });
 
     it('should return the maximum number when there are multiple matching workspaces', () => {
@@ -54,7 +62,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}3`]: createMock<Policy>({name: `${workspaceName} 5`}),
             [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildPolicy({name: 'Other Workspace'}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(5);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName, translateLocal)).toBe(5);
     });
 
     it('should handle SMS domain correctly', () => {
@@ -64,7 +72,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: smsDisplayName}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${smsDisplayName} 3`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, smsEmail, displayName)).toBe(3);
+        expect(lastWorkspaceNumberSelector(policies, smsEmail, displayName, translateLocal)).toBe(3);
     });
 
     it('should ignore case when matching workspace names', () => {
@@ -72,7 +80,7 @@ describe('lastWorkspaceNumberSelector', () => {
             [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPolicy({name: workspaceName.toLowerCase()}),
             [`${ONYXKEYS.COLLECTION.POLICY}2`]: createMock<Policy>({name: `${workspaceName.toUpperCase()} 4`}),
         };
-        expect(lastWorkspaceNumberSelector(policies, email, displayName)).toBe(4);
+        expect(lastWorkspaceNumberSelector(policies, email, displayName, translateLocal)).toBe(4);
     });
 });
 
@@ -135,6 +143,137 @@ describe('createAdminPoliciesSelector', () => {
         const entry = result[`${P}1`];
         expect(entry).toBeDefined();
         expect(Object.keys(entry ?? {})).toEqual(['id', 'name', 'avatarURL', 'created']);
+    });
+});
+
+describe('createPoliciesByIDsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const policy1 = buildPolicy({id: '1', name: 'Workspace 1'});
+    const policy2 = buildPolicy({id: '2', name: 'Workspace 2'});
+    const policy3 = buildPolicy({id: '3', name: 'Workspace 3'});
+    const allPolicies = {
+        [`${P}1`]: policy1,
+        [`${P}2`]: policy2,
+        [`${P}3`]: policy3,
+    };
+
+    it('returns an empty object for an empty ID list without touching the collection', () => {
+        // Given a selector built with no policy IDs to select
+        // When it runs against a populated policy collection
+        // Then it short-circuits to an empty object instead of iterating a collection it has nothing to pick from
+        expect(createPoliciesByIDsSelector([])(allPolicies)).toEqual({});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        // Given requested IDs but a policies collection that has not loaded into Onyx yet
+        // When the selector runs against that undefined collection
+        // Then it returns an empty object rather than throwing on the missing collection
+        expect(createPoliciesByIDsSelector(['1', '2'])(undefined)).toEqual({});
+    });
+
+    it('returns only the requested keys and drops policies that were not requested', () => {
+        // Given a collection with policies beyond the ones being requested
+        // When the selector is built for a subset of the IDs in that collection
+        // Then only the requested keys come back, so callers get exactly the policies they asked for and nothing more
+        const result = createPoliciesByIDsSelector(['1', '3'])(allPolicies);
+        expect(Object.keys(result).sort()).toEqual([`${P}1`, `${P}3`]);
+    });
+
+    it('omits a requested ID that has no policy in the collection', () => {
+        // Given a requested ID with no matching entry in the collection, alongside one that does exist
+        // When the selector runs
+        // Then the missing ID is left out entirely rather than appearing with an undefined/null value
+        const result = createPoliciesByIDsSelector(['1', 'missing'])(allPolicies);
+        expect(Object.keys(result)).toEqual([`${P}1`]);
+        expect(`${P}missing` in result).toBe(false);
+    });
+
+    it('returns the same object references as the input, without copying or narrowing', () => {
+        // Given policy objects already stored in the collection
+        // When the selector picks a subset of them
+        // Then it hands back the exact same references, since copying here would break callers relying on
+        // reference equality (e.g. memoized components) to skip unnecessary re-renders
+        const result = createPoliciesByIDsSelector(['1', '2'])(allPolicies);
+        expect(result[`${P}1`]).toBe(policy1);
+        expect(result[`${P}2`]).toBe(policy2);
+    });
+});
+
+describe('createMemberCustomFieldsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const allPolicies = {
+        [`${P}1`]: buildPolicy({
+            id: '1',
+            name: 'Workspace 1',
+            employeeList: {
+                'a@b.com': {
+                    email: 'a@b.com',
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeUserID: 'U1',
+                    employeePayrollID: 'P1',
+                    pendingFields: {employeeUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+                'c@d.com': {email: 'c@d.com', role: CONST.POLICY.ROLE.ADMIN},
+            },
+        }),
+        [`${P}2`]: buildPolicy({id: '2', name: 'Workspace 2', employeeList: {'e@f.com': {email: 'e@f.com', employeeUserID: 'U2'}}}),
+        [`${P}3`]: buildPolicy({id: '3', name: 'Workspace 3'}),
+    };
+
+    it('returns only the custom fields of each member of the requested policies', () => {
+        // Given a collection with more policies than requested and members carrying fields beyond the custom ones
+        // When the selector runs for a subset of the policy IDs
+        // Then only those policies come back, with only the two custom field values per member
+        expect(createMemberCustomFieldsSelector(['1'])(allPolicies)).toEqual({
+            '1': {
+                'a@b.com': {employeeUserID: 'U1', employeePayrollID: 'P1'},
+                'c@d.com': {employeeUserID: undefined, employeePayrollID: undefined},
+            },
+        });
+    });
+
+    it.each([null, undefined])('skips a %s employee without losing valid member custom fields', (missingEmployee) => {
+        // Given an employee entry missing at runtime despite the employee list's declared type
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', missingEmployee);
+        employeeList['valid@example.com'] = {employeeUserID: 'U1', employeePayrollID: 'P1'};
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields, a missing employee must not prevent later members from being selected
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then only the valid member remains, with both custom fields preserved
+        expect(result).toEqual({'1': {'valid@example.com': {employeeUserID: 'U1', employeePayrollID: 'P1'}}});
+    });
+
+    it('returns an empty member map when every employee entry is null', () => {
+        // Given a list with no valid employees, which must not produce member placeholders
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', null);
+        Reflect.set(employeeList, 'other@example.com', null);
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields for that policy
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then the policy remains present with no members rather than throwing
+        expect(result).toEqual({'1': {}});
+    });
+
+    it('omits a requested policy that is missing or has no employee list', () => {
+        // Given a requested ID with no policy in the collection and one whose policy has no employee list
+        // When the selector runs
+        // Then neither appears in the output
+        expect(createMemberCustomFieldsSelector(['3', 'missing', '2'])(allPolicies)).toEqual({'2': {'e@f.com': {employeeUserID: 'U2', employeePayrollID: undefined}}});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        // Given a collection that has not loaded yet
+        // When the selector runs
+        // Then it returns an empty object rather than throwing
+        expect(createMemberCustomFieldsSelector(['1'])(undefined)).toEqual({});
     });
 });
 
@@ -419,6 +558,97 @@ describe('createWorkspaceListPoliciesSelector', () => {
     });
 });
 
+describe('createFilteredPoliciesInfoSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const userLogin = 'user@example.com';
+
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            id: 'p1',
+            name: 'Test Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            ownerAccountID: 1,
+            pendingAction: undefined,
+            errors: undefined,
+            ...overrides,
+        });
+
+    it('reports no workspace when there are no policies', () => {
+        expect(createFilteredPoliciesInfoSelector(userLogin)({})).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('reports no workspace when nothing passes the shouldShowPolicy filter', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL}),
+        };
+        expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('projects the one policy it shows down to the billing-gate fields', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 42, employeeList: {[userLogin]: {email: userLogin}}}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(1);
+        // The projection, not the whole Policy — a fixed-size output keeps employeeList out of useOnyx's deepEqual
+        expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 42});
+    });
+
+    it('skips the Teachers Unite workspace', () => {
+        const policies = {
+            [`${P}${CONST.TEACHERS_UNITE.TEST_POLICY_ID}`]: makePolicy({id: CONST.TEACHERS_UNITE.TEST_POLICY_ID}),
+        };
+        expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('short-circuits at 2 and keeps the first match when several workspaces pass the filter', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', ownerAccountID: 2}),
+            [`${P}p3`]: makePolicy({id: 'p3', ownerAccountID: 3}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(2);
+        expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 1});
+    });
+
+    it('excludes workspaces where the member cannot create expenses', () => {
+        // Given an approve-only workspace and a regular member workspace
+        // When "Submit to my employer" counts the workspaces it can route to
+        // Then only the member workspace counts, so the shortcut never picks the approve-only one
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.APPROVE_ONLY, ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', role: CONST.POLICY.ROLE.USER, ownerAccountID: 2}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(1);
+        expect(result.firstPolicy).toStrictEqual({id: 'p2', ownerAccountID: 2});
+    });
+});
+
+describe('billingRestrictionPolicySelector', () => {
+    const userLogin = 'user@example.com';
+
+    it('returns only the fields the billing gate reads', () => {
+        const policy = createMock<Policy>({
+            id: 'p1',
+            ownerAccountID: 42,
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            employeeList: {[userLogin]: {email: userLogin}},
+        });
+        expect(billingRestrictionPolicySelector(policy)).toStrictEqual({id: 'p1', ownerAccountID: 42});
+    });
+
+    it('returns undefined when the policy has not loaded', () => {
+        expect(billingRestrictionPolicySelector(undefined)).toBeUndefined();
+    });
+});
+
 describe('createIOURequestStartPoliciesSelector', () => {
     const P = ONYXKEYS.COLLECTION.POLICY;
     const userLogin = 'user@example.com';
@@ -647,5 +877,43 @@ describe('createIOURequestStartPoliciesSelector', () => {
             [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: false}),
         });
         expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
+    });
+});
+
+describe('homeAndOfficeCommuterExclusionPolicyNameSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            name: 'Workspace',
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            ...overrides,
+        });
+
+    it('names the active workspace that measures commutes from the home address', () => {
+        // Given an archived workspace and an active one, both measuring commutes from the member's home
+        const policies = {
+            [`${P}archived`]: makePolicy({id: 'archived', name: 'Archived Workspace', archivedDate: '2026-10-28 00:00:00.000'}),
+            [`${P}active`]: makePolicy({id: 'active', name: 'Active Workspace'}),
+        };
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then the active one is named, because an archived workspace no longer takes expenses that need the address
+        expect(result).toBe('Active Workspace');
+    });
+
+    it.each([
+        ['archived', {archivedDate: '2026-10-28 00:00:00.000'}],
+        ['being deleted', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+    ])('names no workspace when the only one measuring commutes from home is %s', (_case, workspaceState) => {
+        // Given the only workspace measuring commutes from the member's home is no longer usable
+        const policies = {[`${P}p1`]: makePolicy({id: 'p1', ...workspaceState})};
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then none is named, so the profile doesn't point the member at a workspace they can't use
+        expect(result).toBeUndefined();
     });
 });

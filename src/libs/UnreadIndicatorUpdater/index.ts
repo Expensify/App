@@ -1,75 +1,32 @@
-import AppStateMonitor from '@libs/AppStateMonitor';
-import memoize from '@libs/memoize';
 import {getIsOffline} from '@libs/NetworkState';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-
-import Navigation, {navigationRef} from '@navigation/Navigation';
+import {getReportNotificationPreference, hasExpensifyGuidesEmails, isArchivedReport, isDefaultRoom, isHiddenForCurrentUser, isUnread, shouldReportBeInOptionList} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import debounce from 'lodash/debounce';
-import Onyx from 'react-native-onyx';
+type UnreadIndicatorData = {
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportActions?: OnyxCollection<ReportActions>;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
+    conciergeReportID?: string;
+};
 
-import updateUnread from './updateUnread';
-
-let allReports: OnyxCollection<Report> = {};
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-let currentUserLogin = '';
-let conciergeReportID: string | undefined;
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value: Session | undefined) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        currentUserLogin = value?.email ?? '';
-    },
-});
-
-// this utility updates the web tab's title (to display the unread message indicator)
-// which is not a react component, so therefore, there is no way to use useOnyx().
-Onyx.connectWithoutView({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => {
-        conciergeReportID = value;
-    },
-});
-
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
-// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    callback: (value) => {
-        allReportNameValuePairs = value;
-    },
-});
-
-let allReportActions: OnyxCollection<ReportActions> = {};
-// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (value) => {
-        allReportActions = value;
-    },
-});
-
-let allDraftComments: OnyxCollection<string> = {};
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    callback: (value) => {
-        allDraftComments = value;
-    },
-});
-
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
+function getUnreadReportsForUnreadIndicator(
+    reports: OnyxCollection<Report>,
+    currentReportID: string | undefined,
+    draftComment: string | undefined,
+    {reportNameValuePairs, reportActions, reportAttributes, currentUserLogin = '', currentUserAccountID = CONST.DEFAULT_NUMBER_ID, conciergeReportID}: UnreadIndicatorData = {},
+) {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
     return Object.values(reports ?? {}).filter((report) => {
-        const notificationPreference = ReportUtils.getReportNotificationPreference(report);
+        const notificationPreference = getReportNotificationPreference(report, currentUserAccountID);
 
         /**
          * Cheapest predicates first so we reject the large muted/hidden population before doing any expensive work.
@@ -81,26 +38,30 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
          * Furthermore, muted reports may or may not appear in the LHN depending on priority mode,
          * but they should not be considered in the unread indicator count.
          */
-        if (ReportUtils.isHiddenForCurrentUser(notificationPreference) || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
+        if (isHiddenForCurrentUser(notificationPreference) || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE) {
             return false;
         }
 
-        const nameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-        const isReportArchived = ReportUtils.isArchivedReport(nameValuePairs);
+        const nameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+        const isReportArchived = isArchivedReport(nameValuePairs);
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
-        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
+        const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        const derivedIsEmptyReport = report?.reportID ? reportAttributes?.[report.reportID]?.isEmpty : undefined;
+        const requiresAttention = report?.reportID ? reportAttributes?.[report.reportID]?.requiresAttention : undefined;
+
+        if (!isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
             return false;
         }
 
         // Heaviest predicate runs last, only for unread, non-muted, non-hidden reports — a small fraction of all reports.
-        return ReportUtils.shouldReportBeInOptionList({
+        return shouldReportBeInOptionList({
             report,
             chatReport,
             currentReportId: currentReportID,
-            betas: [],
+            // This list never had the beta, it used to pass an empty betas array, so it stays off on purpose
+            isDefaultRoomsBetaEnabled: false,
             doesReportHaveViolations: false,
             isInFocusMode: false,
             excludeEmptyChats: false,
@@ -108,45 +69,13 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
-            // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
-            hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
+            // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+            hasGuidesEmails: isDefaultRoom(report) ? hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
+            requiresAttention,
+            derivedIsEmptyReport,
         });
     });
 }
-
-const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
-
-/**
- * Debouncing is used here to limit the frequency of updates to the unread indicator.
- * This ensures that rapid changes in the underlying data (e.g., multiple Onyx updates in quick succession)
- * do not trigger excessive computations or updates, improving performance and avoiding unnecessary overhead.
- */
-const triggerUnreadUpdate = debounce(() => {
-    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
-    const draftComment = allDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`];
-    // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID, draftComment);
-
-    updateUnread(unreadReports.length);
-}, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
-
-// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-        triggerUnreadUpdate();
-    },
-});
-
-navigationRef?.addListener?.('state', () => {
-    triggerUnreadUpdate();
-});
-
-// Listen for app state changes to update unread count when app becomes active
-AppStateMonitor.addBecameActiveListener(() => {
-    triggerUnreadUpdate();
-});
 
 export default {getUnreadReportsForUnreadIndicator};

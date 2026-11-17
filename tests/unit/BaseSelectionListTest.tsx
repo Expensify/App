@@ -292,6 +292,38 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
     });
 
+    it('should show a clear button once the search field has text and clear the search when it is pressed', () => {
+        function SearchableListWrapper() {
+            const [searchText, setSearchText] = useState('');
+
+            const filteredItems = searchText ? mockItems.filter((item) => item.text.toLowerCase().includes(searchText.toLowerCase())) : mockItems;
+
+            return (
+                <SelectionListRenderer
+                    data={filteredItems}
+                    searchText={searchText}
+                    setSearchText={setSearchText}
+                    canSelectMultiple={false}
+                />
+            );
+        }
+
+        render(<SearchableListWrapper />);
+
+        // The clear button is only rendered once the field has text
+        expect(screen.queryByLabelText('common.clear')).toBeFalsy();
+
+        fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'Item 0');
+
+        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeFalsy();
+
+        fireEvent.press(screen.getByLabelText('common.clear'));
+
+        expect(screen.getByTestId('selection-list-text-input')).toHaveProp('value', '');
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeTruthy();
+        expect(screen.queryByLabelText('common.clear')).toBeFalsy();
+    });
+
     it('should render the selection-list testID', () => {
         render(
             <SelectionListRenderer

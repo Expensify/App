@@ -1,18 +1,22 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {canDuplicateExpenseIntoSourceReport} from '@libs/ReportUtils';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -24,6 +28,9 @@ import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForRe
 import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
+import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 
 type UseBulkDuplicateActionParams = {
     selectedTransactionsKeys: string[];
@@ -31,6 +38,11 @@ type UseBulkDuplicateActionParams = {
     allReports: OnyxCollection<Report> | undefined;
     searchData: Record<string, unknown> | undefined;
     onAfterDuplicate?: () => void;
+
+    /** The expense report the selection was made on, so the copies can stay on it when it can accept them */
+    sourceReport?: OnyxEntry<Report>;
+    sourceChatReport?: OnyxEntry<Report>;
+    sourcePolicy?: OnyxEntry<Policy>;
 };
 
 /**
@@ -38,14 +50,24 @@ type UseBulkDuplicateActionParams = {
  * Designed to be called inside a component that only mounts when the duplicate option is visible,
  * so these subscriptions don't exist for users who aren't actively duplicating.
  */
-function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allReports, searchData, onAfterDuplicate}: UseBulkDuplicateActionParams) {
+function useBulkDuplicateAction({
+    selectedTransactionsKeys,
+    allTransactions,
+    allReports,
+    searchData,
+    onAfterDuplicate,
+    sourceReport,
+    sourceChatReport,
+    sourcePolicy,
+}: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -55,13 +77,36 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`);
-    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy?.id}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const isSourceReportArchived = useReportIsArchived(sourceReport?.reportID);
+    const isSourceChatReportArchived = useReportIsArchived(sourceChatReport?.reportID);
+
+    // Duplicate target: the source report when every copy comes from it and it can accept them, otherwise the default workspace chat
+    const areAllSelectedTransactionsOnSourceReport =
+        !!sourceReport?.reportID &&
+        selectedTransactionsKeys.every((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID === sourceReport.reportID);
+    const canDuplicateIntoSourceReport =
+        areAllSelectedTransactionsOnSourceReport &&
+        canDuplicateExpenseIntoSourceReport({
+            sourceReport,
+            chatReport: sourceChatReport,
+            policy: sourcePolicy,
+            currentUserLogin: currentUserLogin ?? '',
+            isSourceReportArchived,
+            isChatReportArchived: isSourceChatReportArchived,
+            isASAPSubmitBetaEnabled,
+            rules,
+        });
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
+    const duplicateTargetPolicy = canDuplicateIntoSourceReport ? sourcePolicy : defaultExpensePolicy;
+    const duplicateTargetReport = canDuplicateIntoSourceReport ? sourceReport : activePolicyExpenseChat;
+
+    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(duplicateTargetPolicy?.id)}`);
+    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(duplicateTargetPolicy?.id)}`);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(duplicateTargetPolicy);
 
     const sourcePolicyIDMap: Record<string, string | undefined> = {};
     for (const transactionID of selectedTransactionsKeys) {
@@ -74,22 +119,26 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
         sourcePolicyIDMap[transactionID] = report?.policyID;
     }
 
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const handleDuplicate = () => {
+        if (restrictedActionPolicyID) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedActionPolicyID));
+            return;
+        }
+
         bulkDuplicateExpenses({
-            dateFnsLocale,
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},
             sourcePolicyIDMap,
-            targetPolicy: (defaultExpensePolicy ?? undefined) as OnyxEntry<Policy>,
+            targetPolicy: (duplicateTargetPolicy ?? undefined) as OnyxEntry<Policy>,
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetPolicyTags: targetPolicyTags ?? {},
-            targetReport: activePolicyExpenseChat,
+            targetReport: duplicateTargetReport,
             personalDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
@@ -97,7 +146,6 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
             transactionDrafts,
-            betas,
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,

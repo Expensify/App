@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DebugTransactionViolationCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
@@ -75,26 +75,22 @@ function DebugTransactionViolationCreatePage({
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
-    const editJSON = useCallback(
-        (updatedJSON: string) => {
-            try {
-                DebugUtils.validateTransactionViolationJSON(updatedJSON);
-                setError('');
-            } catch (e) {
-                const {cause, message} = e as SyntaxError;
-                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftTransactionViolation(updatedJSON);
-            }
-        },
-        [translate],
-    );
+    const editJSON = (updatedJSON: string) => {
+        try {
+            DebugUtils.validateTransactionViolationJSON(updatedJSON);
+            setError('');
+        } catch (e) {
+            const {cause, message} = e as SyntaxError;
+            setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+        }
+        setDraftTransactionViolation(updatedJSON);
+    };
 
-    const createTransactionViolation = useCallback(() => {
+    const createTransactionViolation = () => {
         const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
         Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
-    }, [draftTransactionViolation, transactionID, transactionViolations]);
+    };
 
     if (!transactionID) {
         return <NotFoundPage />;
@@ -130,6 +126,7 @@ function DebugTransactionViolationCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.DEBUG.TRANSACTION_VIOLATION_CREATE_SAVE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={createTransactionViolation}

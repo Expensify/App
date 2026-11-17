@@ -1,4 +1,5 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FSClassView from '@components/FSClassView';
 import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 
@@ -12,7 +13,7 @@ import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import type PopoverWithoutOverlayProps from './types';
@@ -32,6 +33,7 @@ function PopoverWithoutOverlay({
     children,
     shouldDisplayBelowModals = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -81,27 +83,14 @@ function PopoverWithoutOverlay({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    const modalPaddingStyles = useMemo(
-        () =>
-            StyleUtils.getModalPaddingStyles({
-                shouldAddBottomSafeAreaMargin,
-                shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
-                shouldAddTopSafeAreaPadding,
-                modalContainerStyle,
-                insets,
-            }),
-        [
-            StyleUtils,
-            enableEdgeToEdgeBottomSafeAreaPadding,
-            insets,
-            modalContainerStyle,
-            shouldAddBottomSafeAreaMargin,
-            shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaMargin,
-            shouldAddTopSafeAreaPadding,
-        ],
-    );
+    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
 
     if (!isVisible) {
         return null;
@@ -116,15 +105,16 @@ function PopoverWithoutOverlay({
                 onClick={(e) => e.stopPropagation()}
                 dataSet={{dragArea: false}}
             >
-                <View
+                <FSClassView
                     style={{
                         ...styles.defaultModalContainer,
                         ...modalContainerStyle,
                         ...modalPaddingStyles,
                     }}
+                    forwardedFSClass={forwardedFSClass}
                 >
                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                </View>
+                </FSClassView>
             </View>
         </ScreenWrapperOfflineIndicatorContext.Provider>
     );

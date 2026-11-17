@@ -4,17 +4,19 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
+import requireNavigationContainer from '../utils/requireNavigationContainer';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -26,15 +28,17 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 /**
- * Looks the Workspace navigator up by name rather than by a hardcoded index, so adding a tab to TAB_SCREENS
- * doesn't silently shift the index and make these assertions read `undefined`.
+ * Looks the Tab and Workspace navigators up by name rather than by hardcoded indexes, so adding or reordering routes
+ * doesn't silently shift an index and make these assertions read `undefined`.
  */
 function getWorkspaceNavigatorState() {
-    return navigationRef.current
-        ?.getRootState()
-        .routes.at(0)
-        ?.state?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+    const tabNavigatorState = navigationRef.current?.getRootState().routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
+    return tabNavigatorState?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
 }
 
 describe('Navigate', () => {
@@ -283,6 +287,7 @@ describe('Navigate', () => {
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -410,7 +415,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the different split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level
@@ -421,7 +426,8 @@ describe('Navigate', () => {
             expect(lastRootRoute?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
         });
 
-        it('shows Subscription behind the payment-card RHP when navigating from Reports', () => {
+        it('shows Profile behind the display name RHP when navigating from Reports', () => {
+            // Given a report open in the Reports tab and Profile last seen in Settings
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -458,10 +464,12 @@ describe('Navigate', () => {
                 />,
             );
 
+            // When a static settings RHP is opened, which still uses its relation to pick the page under it
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME);
             });
 
+            // Then the settings split opens behind the RHP with Profile, the page the display name belongs to
             const rootState = navigationRef.current?.getRootState();
             const lastRootRoute = rootState?.routes.at(-1);
             expect(lastRootRoute?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -470,7 +478,57 @@ describe('Navigate', () => {
             const tabState = rootState?.routes.at(0)?.state;
             const activeTab = tabState?.routes.at(tabState.index ?? 0);
             expect(activeTab?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+        });
+
+        it.each([
+            ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
+            ['add US bank account', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute())],
+            ['personal card details', () => createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.getRoute('123'))],
+            ['enter signer info', () => createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute('1', '2', false))],
+            ['app download links', () => createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)],
+        ])('keeps Reports behind the %s RHP when opened in-app', (_label, getRoute) => {
+            // Given a report open in the Reports tab
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1'}}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            // When the RHP is opened from it
+            act(() => {
+                Navigation.navigate(getRoute());
+            });
+
+            // Then the RHP opens on top and Reports stays the active tab under it
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            const tabState = rootState?.routes.at(0)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         });
 
         it('preserves report navigation history when opening a workspace from an RHP', () => {
@@ -571,7 +629,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level
@@ -698,6 +756,103 @@ describe('Navigate', () => {
             // Then side panel should close on narrow screen
             expect(closeSidePanelSpy).toHaveBeenCalledWith(true);
             expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
+        });
+
+        describe('to a route of another workspace', () => {
+            const policyA = 'policy-a';
+            const policyB = 'policy-b';
+
+            function renderWorkspaceSplit(policyID: string) {
+                render(
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.TAB_NAVIGATOR,
+                                    state: {
+                                        index: 4,
+                                        routes: [
+                                            {name: SCREENS.HOME},
+                                            {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                            {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                            {
+                                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                                state: {
+                                                    index: 0,
+                                                    routes: [
+                                                        {
+                                                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                            state: {
+                                                                index: 1,
+                                                                routes: [
+                                                                    {name: SCREENS.WORKSPACE.INITIAL, params: {policyID}},
+                                                                    {name: SCREENS.WORKSPACE.MEMBERS, params: {policyID}},
+                                                                ],
+                                                            },
+                                                        },
+                                                    ],
+                                                },
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}
+                    />,
+                );
+            }
+
+            function getWorkspaceState() {
+                return navigationRef.current
+                    ?.getRootState()
+                    .routes.at(0)
+                    ?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            }
+
+            it('pushes a sibling split instead of reusing the focused one', () => {
+                // Given a workspace split navigator of policy A focused
+                renderWorkspaceSplit(policyA);
+                const splitBeforeNavigate = getWorkspaceState()?.routes.at(0);
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+                // When navigating to a route of policy B
+                act(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyB));
+                });
+
+                // Then the action is pushed so that policy A keeps its own split, sidebar and history
+                expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+                const workspaceState = getWorkspaceState();
+                expect(workspaceState?.routes).toHaveLength(2);
+                expect(workspaceState?.routes.at(0)?.key).toBe(splitBeforeNavigate?.key);
+                expect(workspaceState?.routes.at(0)?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+                expect(workspaceState?.routes.at(-1)?.state?.routes.at(-1)).toMatchObject({
+                    name: SCREENS.WORKSPACE.MORE_FEATURES,
+                    params: {policyID: policyB},
+                });
+            });
+
+            it('keeps a forced replace a replace', () => {
+                // Given a workspace split navigator of policy A focused
+                renderWorkspaceSplit(policyA);
+                const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+                // When navigating to a route of policy B with forceReplace
+                act(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyB), {forceReplace: true});
+                });
+
+                // Then the focused split is replaced rather than a sibling being pushed
+                expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+                const workspaceState = getWorkspaceState();
+                expect(workspaceState?.routes).toHaveLength(1);
+                expect(workspaceState?.routes.at(0)?.state?.routes.at(-1)).toMatchObject({
+                    name: SCREENS.WORKSPACE.MORE_FEATURES,
+                    params: {policyID: policyB},
+                });
+            });
         });
     });
 

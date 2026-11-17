@@ -17,9 +17,10 @@ import {isValidValidateCode} from '@libs/ValidationUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ValidateCodeModalProps = {
@@ -35,7 +36,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const illustrations = useMemoizedLazyIllustrations(['ValidateCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
+    const signInHere = () => signInWithValidateCode(accountID, code, preferredLocale, session);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isValidCode = isValidValidateCode(code);
@@ -68,7 +69,13 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                             {translate('validateCodeModal.description')}
                             {!session?.authToken && (
                                 <>
-                                    {translate('validateCodeModal.or')} <TextLink onPress={signInHere}>{translate('validateCodeModal.signInHere')}</TextLink>
+                                    {translate('validateCodeModal.or')}{' '}
+                                    <TextLink
+                                        onPress={signInHere}
+                                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE_MODAL.SIGN_IN_HERE_LINK}
+                                    >
+                                        {translate('validateCodeModal.signInHere')}
+                                    </TextLink>
                                 </>
                             )}
                             .

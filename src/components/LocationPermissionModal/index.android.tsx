@@ -16,7 +16,7 @@ import type LocationPermissionModalProps from './types';
 
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const isModalActiveRef = useRef(false);
     const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
@@ -25,7 +25,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
+    const {asset: ReceiptLocationMarker, isLoading: isLoadingIllustration} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     // Keep refs up to date
@@ -36,7 +36,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [onGrant, onDeny, resetPermissionFlow]);
 
     useEffect(() => {
-        if (!startPermissionFlow) {
+        if (!startPermissionFlow || isLoadingIllustration) {
             return;
         }
 
@@ -63,9 +63,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 iconHeight: 120,
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
+                shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
+                    // Prevent cleanup from calling closeModal() immediately, allowing the exit animation to play out
+                    isModalActiveRef.current = false;
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
                     resetPermissionFlowRef.current();
                 },
                 isConfirmLoading: false,
@@ -121,8 +123,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
-            onInitialGetLocationCompleted?.();
-
             if (isPermissionGranted(status)) {
                 onGrantRef.current();
             } else {
@@ -134,14 +134,16 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         return () => {
             ignore = true;
+            // A backdrop dismissal of a previous flow can end via cleanup before its promise resolves, leaving the flag set.
+            dismissedViaBackdropRef.current = false;
             if (!isModalActiveRef.current) {
                 return;
             }
             isModalActiveRef.current = false;
             closeModal();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes, or once the prompt illustration settles
+    }, [startPermissionFlow, isLoadingIllustration]);
 
     return null;
 }

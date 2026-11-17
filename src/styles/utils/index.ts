@@ -4,6 +4,7 @@ import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/letterAvatarPalette';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
+import {toDimensionValue, toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
@@ -15,7 +16,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -42,16 +43,19 @@ import type {
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
+import flex from './flex';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getFloatingTabBarHeight from './getFloatingTabBarHeight';
 import getHiddenChatContentStyle from './getHiddenChatContentStyle';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
+import getSearchNarrowHeaderHeight from './getSearchNarrowHeaderHeight';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -59,14 +63,24 @@ import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import splitPercentageInputStyles from './splitPercentageInputStyles';
 
+/** Where a Search table column places its content. */
+type SearchColumnAlignment = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_ALIGNMENT>;
+
+type ReportTableColumnLayout = {
+    width: ViewStyle;
+    alignment: SearchColumnAlignment;
+};
+
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
     isAmountColumnWide?: boolean;
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
     isApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
+    isPaidColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
     isWithdrawnColumnWide?: boolean;
     isActionColumnWide?: boolean;
@@ -130,6 +144,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
@@ -144,6 +159,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarSizeMidSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
@@ -160,6 +176,7 @@ const avatarFontSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
@@ -174,6 +191,7 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarBorderWidthDefault,
@@ -181,6 +199,10 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
 } satisfies Record<AvatarSizeName, number>;
+
+const selectedAvatarRingBorderWidth = 2;
+const selectedAvatarRingPadding = 1;
+const selectedAvatarRingOffset = selectedAvatarRingBorderWidth + selectedAvatarRingPadding;
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
@@ -371,7 +393,6 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
     if (!transactionID) {
         return CONST.ERECEIPT_COLORS.YELLOW;
@@ -467,49 +488,49 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
     if (isZoomed) {
         // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale >= 1) {
-            return {
+            return toViewStyle({
                 height: `${imageSize.height * zoomScale}px`,
                 width: `${imageSize.width * zoomScale}px`,
-            };
+            });
         }
 
         // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
-        return {
+        return toViewStyle({
             height: `${imageSize.height}px`,
             width: `${imageSize.width}px`,
             top,
             left,
-        };
+        });
     }
 
     // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
-        return {
+        return toViewStyle({
             height: `${imageSize.height}px`,
             width: `${imageSize.width}px`,
             top,
             left,
-        };
+        });
     }
 
     // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
     // top, left offset should be different when displaying long or wide image.
     const scaledTop = `${Math.max((containerSize.height - imageSize.height * zoomScale) / 2, 0)}px`;
     const scaledLeft = `${Math.max((containerSize.width - imageSize.width * zoomScale) / 2, 0)}px`;
-    return {
+    return toViewStyle({
         height: `${imageSize.height * zoomScale}px`,
         width: `${imageSize.width * zoomScale}px`,
         top: scaledTop,
         left: scaledLeft,
-    };
+    });
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns a style with width set to the specified number, or on web to a CSS expression like `calc()`
  */
-function getWidthStyle(width: number): ViewStyle & ImageStyle {
+function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        width,
+        width: toDimensionValue(width),
     };
 }
 
@@ -541,20 +562,26 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+/**
+ * Sizes the camera viewfinder.
+ *
+ * When `shouldFillPortraitViewport` is true (the default), a portrait viewfinder with a known aspect ratio overflows the
+ * container so the preview fills the screen and is cropped. Pass false to keep the preview fully visible instead.
+ */
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean, shouldFillPortraitViewport = true): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
     }
-    if (aspectRatio) {
+    if (aspectRatio && shouldFillPortraitViewport) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
-    return {flex: 1};
+    return {flex: 1, alignSelf: 'stretch'};
 }
 
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextColorStyle {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -854,6 +881,24 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
+ */
+function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
+    const flatStyle = StyleSheet.flatten(textInputContainerStyles);
+
+    // Safely extract values only if they are numbers
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    const borderWidth = getNumericValue(flatStyle?.borderWidth);
+    const borderTopWidth = getNumericValue(flatStyle?.borderTopWidth ?? borderWidth);
+    const borderBottomWidth = getNumericValue(flatStyle?.borderBottomWidth ?? borderWidth);
+    const paddingTop = getNumericValue(flatStyle?.paddingTop ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+    const paddingBottom = getNumericValue(flatStyle?.paddingBottom ?? flatStyle?.paddingVertical ?? flatStyle?.padding);
+
+    return borderTopWidth + borderBottomWidth + paddingTop + paddingBottom + (hasMultilineLabelPadding ? variables.inputPaddingTop : 0);
+}
+
+/**
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
@@ -880,11 +925,11 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
- * Get minimum width as style
+ * Get minimum width as style, or on web a CSS expression like `calc()`
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        minWidth,
+        minWidth: toDimensionValue(minWidth),
     };
 }
 
@@ -1074,9 +1119,20 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
     };
 }
 
-function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
+function getTransformScaleStyle(scaleValue: number): ViewStyle {
     return {
         transform: [{scale: scaleValue}],
+    };
+}
+
+/**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle & {transformOrigin?: string} {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
     };
 }
 
@@ -1087,7 +1143,7 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};
@@ -1185,7 +1241,7 @@ function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
 /**
  * Returns color style
  */
-function getColorStyle(color: string): TextColorStyle {
+function getColorStyle(color: ColorValue): TextColorStyle {
     return {color};
 }
 
@@ -1414,6 +1470,7 @@ const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
     combineStyles,
+    getSearchNarrowHeaderHeight,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
@@ -1436,6 +1493,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1461,6 +1519,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -1477,6 +1536,7 @@ const staticStyleUtils = {
     getTransparentColor,
     getWidthAndHeightStyle,
     getPDFViewStyle,
+    getSearchColumnAlignmentStyle,
     getWidthStyle,
     getWrappingStyle,
     getZoomSizingStyle,
@@ -1505,7 +1565,213 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getFloatingTabBarHeight,
 };
+
+/**
+ * Returns a Search table column's width and alignment, which its cells and its heading share
+ */
+function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, options: GetReportTableColumnStylesParams = {}): ReportTableColumnLayout {
+    const {
+        isSubmittedColumnWide,
+        isApprovedColumnWide,
+        isPostedColumnWide,
+        isExportedColumnWide,
+        isPaidColumnWide,
+        isDateColumnWide,
+        isDateColumnCreated,
+        isTaxAmountColumnWide,
+        isAmountColumnWide,
+        shouldRemoveTotalColumnFlex,
+        isWithdrawnColumnWide,
+        isActionColumnWide,
+    } = options;
+
+    let columnWidth;
+    let alignment: SearchColumnAlignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START;
+    switch (columnName) {
+        case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
+            columnWidth = {...getWidthStyle(variables.w36)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+            columnWidth = {...getWidthStyle(variables.w28)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+            columnWidth = {...getWidthStyle(variables.w28)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+            columnWidth = {...getWidthStyle(variables.w80)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
+            columnWidth = {...getWidthStyle(variables.w130)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
+            columnWidth = {...getWidthStyle(variables.w130)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+            columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+            columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.PAID:
+            columnWidth = {...getWidthStyle(isPaidColumnWide ? variables.w102 : variables.w62)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
+            // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
+            columnWidth = {...getWidthStyle(variables.w102)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+            columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w102 : variables.w62)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+            columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.DATE: {
+            const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
+            columnWidth = {
+                ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),
+            };
+            break;
+        }
+        case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+        case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+            columnWidth = {...getWidthStyle(variables.w102)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+            columnWidth = {
+                ...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72),
+            };
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
+            columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+            // Wider than category/tag so short violation labels are less likely to truncate.
+            columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+            columnWidth = {...getWidthStyle(variables.w130)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
+            // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
+            columnWidth = {...getWidthStyle(variables.w130)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+        case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            columnWidth = {
+                ...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96),
+                ...(!shouldRemoveTotalColumnFlex && styles.flex1),
+            };
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+            columnWidth = {...getWidthStyle(variables.w16)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+        case CONST.SEARCH.TABLE_COLUMNS.HELD:
+        case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+            columnWidth = {...getWidthStyle(variables.w80)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.MCC:
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+            columnWidth = {...getWidthStyle(variables.w92)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+        case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
+            columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+            columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+            columnWidth = {...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+            columnWidth = {...getWidthStyle(variables.w72)};
+            alignment = CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER;
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+            columnWidth = {...getWidthStyle(variables.w72)};
+            break;
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
+        case CONST.SEARCH.TABLE_COLUMNS.FEED:
+        case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+        case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+        case CONST.SEARCH.TABLE_COLUMNS.CARD:
+        case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+        case CONST.SEARCH.TABLE_COLUMNS.FROM:
+        case CONST.SEARCH.TABLE_COLUMNS.TO:
+        case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+        case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+        case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+        case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+        case CONST.SEARCH.TABLE_COLUMNS.IN:
+        case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
+        default:
+            columnWidth = styles.flex1;
+    }
+
+    return {width: columnWidth, alignment};
+}
+
+/**
+ * Returns the `alignItems` style that places a Search table column's content by the column's alignment
+ */
+function getSearchColumnAlignmentStyle(alignment: SearchColumnAlignment): ViewStyle | undefined {
+    switch (alignment) {
+        case CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER:
+            return flex.alignItemsCenter;
+        case CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END:
+            return flex.alignItemsEnd;
+        default:
+            return undefined;
+    }
+}
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,
@@ -1546,8 +1812,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns auto grow height text input style
      */
-    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number): ViewStyle => {
-        if (textInputHeight > maxHeight) {
+    getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
+        // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
+        // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
+        if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,
@@ -1557,9 +1825,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {
             ...styles.pr0,
             ...styles.overflowHidden,
-            // maxHeight is not of the input only but the of the whole input container
-            // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+            // maxHeight is not of the input only but of the whole input container, so the inset has to be subtracted.
+            // It must match the height the input gets once it flips to overflow: auto, otherwise the box resizes at the
+            // flip and the scroll offset the browser picked while growing stops short of the end of the content.
+            height: maxHeight - verticalInset,
         };
     },
 
@@ -1598,6 +1867,23 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             marginTop: -(verticalPaddingDiff / 2),
             height: '100%',
             justifyContent: 'center',
+        };
+    },
+
+    /**
+     * Ring drawn around an avatar while its navigation entry is selected
+     */
+    getSelectedAvatarRingStyle: (size: AvatarSizeName): ViewStyle => {
+        const ringSize = getAvatarSize(size) + selectedAvatarRingOffset * 2;
+        return {
+            height: ringSize,
+            width: ringSize,
+            borderRadius: ringSize / 2,
+            padding: selectedAvatarRingPadding,
+            borderWidth: selectedAvatarRingBorderWidth,
+            borderColor: theme.success,
+            right: -selectedAvatarRingOffset,
+            top: -selectedAvatarRingOffset,
         };
     },
 
@@ -1647,6 +1933,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return theme.badgeDangerText;
         }
         return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
+        }
+        return {};
     },
 
     /**
@@ -1822,6 +2121,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
+    /** Returns the color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
@@ -1915,195 +2217,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
-    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
+    getSearchRowBackgroundStyle: (isSelected?: boolean): ViewStyle => ({
+        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+    }),
 
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
-        const {
-            isSubmittedColumnWide,
-            isApprovedColumnWide,
-            isPostedColumnWide,
-            isExportedColumnWide,
-            isDateColumnWide,
-            isTaxAmountColumnWide,
-            isAmountColumnWide,
-            shouldRemoveTotalColumnFlex,
-            isWithdrawnColumnWide,
-            isActionColumnWide,
-        } = options;
-
-        let columnWidth;
-        switch (columnName) {
-            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
-                columnWidth = {
-                    ...getWidthStyle(variables.w36),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
-                columnWidth = {
-                    ...getWidthStyle(variables.w28),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
-                columnWidth = {
-                    ...getWidthStyle(variables.w28),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
-                columnWidth = {
-                    ...getWidthStyle(variables.w80),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS:
-                columnWidth = {...getWidthStyle(variables.w130)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
-                columnWidth = {
-                    ...getWidthStyle(variables.w130),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
-                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w102 : variables.w62)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
-                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
-                // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
-                columnWidth = {...getWidthStyle(variables.w102)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
-                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w102 : variables.w62)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
-                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
-                columnWidth = {
-                    ...getWidthStyle(isWithdrawnColumnWide ? variables.w92 : variables.w72),
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
-            case CONST.SEARCH.TABLE_COLUMNS.TAG:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
-                // Wider than category/tag so short violation labels are less likely to truncate.
-                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-                columnWidth = {
-                    ...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96),
-                    ...styles.alignItemsEnd,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
-                columnWidth = {...getWidthStyle(variables.w130)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED:
-            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
-            case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
-                // Fixed width: wide enough for the long headers these columns carry, so no amount-based widening is needed.
-                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsEnd};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
-            case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
-            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
-                columnWidth = {
-                    ...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96),
-                    ...(!shouldRemoveTotalColumnFlex && styles.flex1),
-                    ...styles.alignItemsEnd,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {
-                    ...getWidthStyle(variables.w16),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                columnWidth = {...getWidthStyle(variables.w80)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.MCC:
-            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
-                columnWidth = {...getWidthStyle(variables.w92)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
-            case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
-                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-                columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {
-                    ...getWidthStyle(isActionColumnWide ? variables.w80 : variables.w68),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
-                columnWidth = {
-                    ...getWidthStyle(variables.w72),
-                    ...styles.alignItemsCenter,
-                };
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
-                columnWidth = {...getWidthStyle(variables.w72)};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
-            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
-            case CONST.SEARCH.TABLE_COLUMNS.FEED:
-            case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
-            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
-            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
-            case CONST.SEARCH.TABLE_COLUMNS.CARD:
-            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
-            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            case CONST.SEARCH.TABLE_COLUMNS.FROM:
-            case CONST.SEARCH.TABLE_COLUMNS.TO:
-            case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
-            case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
-            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
-            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
-            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            case CONST.SEARCH.TABLE_COLUMNS.IN:
-            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
-            default:
-                columnWidth = styles.flex1;
-        }
-
-        return columnWidth;
+        const {width, alignment} = getReportTableColumnLayout(styles, columnName, options);
+        return {...width, ...getSearchColumnAlignmentStyle(alignment)};
     },
+
+    getReportTableColumnAlignment: (columnName: string): SearchColumnAlignment => getReportTableColumnLayout(styles, columnName).alignment,
 
     getTextOverflowStyle: (overflow: string): TextStyle => ({
         textOverflow: overflow,
@@ -2253,9 +2376,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
         return {
             style: isMobileChrome()
-                ? {
+                ? toViewStyle({
                       maxHeight: '100dvh',
-                  }
+                  })
                 : {},
             containerStyle: {paddingBottom},
         };
@@ -2450,21 +2573,21 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
-    getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+    getTabBarNarrowStyle: (safeAreaPaddingBottom: number, isInLandscapeMode: boolean): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(getFloatingTabBarHeight(isInLandscapeMode) + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
-    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
-        ...style,
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-    }),
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle =>
+        toViewStyle({
+            ...style,
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+        }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarShape, GetReportTableColumnStylesParams, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, GetReportTableColumnStylesParams, AvatarSizeName, SearchColumnAlignment};

@@ -12,6 +12,7 @@ import type {Route} from './ROUTES';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import UnreadIndicatorUpdater from './components/UnreadIndicatorUpdater';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
@@ -23,6 +24,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import useSaveMarketingAttribution from './hooks/useSaveMarketingAttribution';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -37,6 +39,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
+import reportFullyDrawn from './libs/telemetry/reportFullyDrawn';
 import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
@@ -67,6 +70,7 @@ function Expensify() {
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     useDebugShortcut();
+    useSaveMarketingAttribution();
 
     useEffect(() => {
         initializeTelemetryTrackers();
@@ -77,7 +81,7 @@ function Expensify() {
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
+    const [initialUrl, setInitialUrl] = useState<string | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -207,6 +211,7 @@ function Expensify() {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        reportFullyDrawn();
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
         scheduleInitialDatabaseSizeMeasurement();
@@ -303,6 +308,7 @@ function Expensify() {
             <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
+            {splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN && <UnreadIndicatorUpdater />}
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
                 is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
                 bridge), so we skip this guard to avoid blocking the app. */}

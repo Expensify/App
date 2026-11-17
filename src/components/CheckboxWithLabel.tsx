@@ -2,7 +2,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {ComponentType, ForwardedRef} from 'react';
+import CONST from '@src/CONST';
+
+import type {ComponentRef, ComponentType, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -48,6 +50,9 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
 
     defaultValue?: boolean;
 
+    /** Whether the checkbox can't be toggled */
+    disabled?: boolean;
+
     /** The ID used to uniquely identify the input in a Form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     inputID?: string;
@@ -57,7 +62,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     shouldSaveDraft?: boolean;
 
     accessibilityLabel?: string;
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function CheckboxWithLabel({
@@ -70,6 +75,7 @@ function CheckboxWithLabel({
     accessibilityLabel,
     style,
     value,
+    disabled = false,
     ref,
 }: CheckboxWithLabelProps) {
     const styles = useThemeStyles();
@@ -92,17 +98,21 @@ function CheckboxWithLabel({
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.userSelectNone]}>
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.CHECKBOX_WITH_LABEL.CHECKBOX}
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
                     hasError={!!errorText}
+                    disabled={disabled}
                     ref={ref}
                     accessibilityLabel={accessibilityLabel ?? label ?? ''}
                 />
                 <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.CHECKBOX_WITH_LABEL.CHECKBOX}
                     tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}
+                    disabled={disabled}
                     pressDimmingValue={variables.checkboxLabelActiveOpacity}
                     // We want to disable hover dimming
                     hoverDimmingValue={variables.checkboxLabelHoverOpacity}

@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -32,13 +34,12 @@ function SuccessStep() {
                     onBackButtonPress={exitFlow}
                 />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('personalCard.personalCardAdded')}
                         description={translate('personalCard.personalCardAddedDescription')}
-                        shouldShowButton
                         buttonText={translate('common.continue')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.PERSONAL_CARD_ADDED_CONTINUE}
                         onButtonPress={exitFlow}
-                        containerStyle={styles.h100}
                     />
                 </ScrollView>
             </FullPageNotFoundView>

@@ -2,7 +2,8 @@ import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -67,6 +68,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         <View style={[styles.ph5]}>
                             <Text style={[styles.textAlignCenter]}>
                                 <TextLink
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                     style={styles.link}
                                     onPress={() => {
                                         openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
@@ -84,6 +86,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     <View style={[styles.ph5]}>
                         <Text style={[styles.textAlignLeft]}>
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS_INSTRUCTIONS_LINK}
                                 style={styles.link}
                                 onPress={() => {
                                     openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
@@ -100,17 +103,16 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 key={userDimension.dimension}
                                 pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
-                                <MenuItemWithTopDescription
-                                    title={userDimension.dimension}
-                                    description={translate('workspace.intacct.userDefinedDimension')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSION_ROW}
+                                    name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={
-                                        areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields)
-                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                            : undefined
-                                    }
-                                />
+                                    value={userDimension.dimension}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                </MenuItemField>
                             </OfflineWithFeedback>
                         ))}
                     </ScrollView>
@@ -121,6 +123,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.ADD_USER_DIMENSION}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={addUserDefinedDimension}
                     size={CONST.BUTTON_SIZE.LARGE}

@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesMaxExpenseAgeForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type RulesMaxExpenseAgePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE>;
@@ -45,12 +45,12 @@ function RulesMaxExpenseAgePage({
 
     const [maxExpenseAgeValue, setMaxExpenseAgeValue] = useState(maxExpenseAgeDefaultValue);
 
-    const onChangeMaxExpenseAge = useCallback((newValue: string) => {
+    const onChangeMaxExpenseAge = (newValue: string) => {
         // replace all characters that are not spaces or digits
         let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
-    }, []);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -63,10 +63,7 @@ function RulesMaxExpenseAgePage({
                 shouldEnableMaxHeight
                 testID="RulesMaxExpenseAgePage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.generalTab.expensesOlderThan')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesOlderThan')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}

@@ -1,3 +1,4 @@
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -6,13 +7,13 @@ import variables from '@styles/variables';
 function useReceiptPreviewsSizes(isInLandscapeMode: boolean) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {contentHeaderHeight} = useContentHeaderHeight();
 
     if (isInLandscapeMode) {
         const previewItemSize = styles.receiptPlaceholderLandscape.height + styles.receiptPlaceholderLandscape.marginBottom;
 
         const submitButtonHeight = styles.singleAvatarXLarge.height;
         const tabSelectorButtonHeight = variables.tabSelectorButtonHeight + styles.pb4.paddingBottom;
-        const contentHeaderHeight = variables.contentHeaderHeight;
         const initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize;
 
         return {

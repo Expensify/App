@@ -4,11 +4,11 @@ import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-type PickerRefElement = RefObject<TextInput | View | null>;
+type PickerRefElement = RefObject<ComponentRef<typeof TextInput> | ComponentRef<typeof View> | null>;
 
 type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 

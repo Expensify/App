@@ -10,7 +10,7 @@ on:
 jobs:
   validate:
     if: ${{ github.event_name == 'pull_request_target' }}
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     outputs:
       IS_AUTHORIZED: ${{ steps.gate.outputs.IS_AUTHORIZED }}
     steps:
@@ -32,5 +32,6 @@ jobs:
     if: |
       always()
       && (github.event_name == 'issue_comment' || needs.validate.outputs.IS_AUTHORIZED == 'true')
+    cache-mode: read
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
     secrets: inherit

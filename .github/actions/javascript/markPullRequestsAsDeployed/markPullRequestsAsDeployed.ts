@@ -5,18 +5,13 @@ import GithubUtils from '@github/libs/GithubUtils';
 
 import PromisePool from '@scripts/utils/PromisePool';
 
-import type {RequestError} from '@octokit/types';
-
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import memoize from 'lodash/memoize';
-
-type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
  */
-function getDeployTableMessage(platformResult: PlatformResult): string {
+function getDeployTableMessage(platformResult: string): string {
     switch (platformResult) {
         case 'success':
             return `${platformResult} ✅`;
@@ -28,6 +23,14 @@ function getDeployTableMessage(platformResult: PlatformResult): string {
         default:
             return `${platformResult} ❌`;
     }
+}
+
+function parseDeployList(input: unknown): number[] {
+    if (!Array.isArray(input) || input.some((item) => typeof item !== 'string' && typeof item !== 'number')) {
+        throw new TypeError('Deploy pull request list must be an array of strings or numbers');
+    }
+
+    return input.map((item) => Number.parseInt(String(item), 10));
 }
 
 async function commentPR(PR: number, message: string, repo: string = context.repo.repo) {
@@ -44,17 +47,30 @@ async function commentPR(PR: number, message: string, repo: string = context.rep
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-const getCommit = memoize(GithubUtils.octokit.git.getCommit);
-
 /**
  * Process deploy checklist comments for a list of PRs
  */
 async function commentOnDeployChecklistPRs(
     prList: number[],
     repoName: string,
-    recentTags: Awaited<ReturnType<typeof GithubUtils.octokit.repos.listTags>>['data'],
+    commits: Awaited<ReturnType<typeof GithubUtils.getCommitHistoryBetweenTags>>,
     getDeployMessage: (deployer: string, deployVerb: string, prTitle?: string) => string,
 ) {
+    if (prList.length === 0) {
+        return;
+    }
+
+    // Conflict-resolution merges and submodule updates can leave HEAD unmarked. Only scan this
+    // deployment's range, since CP labels and older releases can refer to previous cherry-picks.
+    const cherryPicks = new Map<number, string | undefined>();
+    for (const {subject} of commits) {
+        const cherryPickedPR = subject.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/)?.at(1);
+        if (!cherryPickedPR) {
+            continue;
+        }
+        const cpActor = subject.match(/.*\(cherry-picked to staging by (.*)\)/)?.at(1);
+        cherryPicks.set(Number.parseInt(cherryPickedPR, 10), cpActor);
+    }
     const pool = new PromisePool<void>(8);
     const commentPromises = prList.map((prNumber) =>
         pool.add(async () => {
@@ -65,32 +81,22 @@ async function commentOnDeployChecklistPRs(
                     pull_number: prNumber,
                 });
 
-                // Find the deployer: either the merger, or for CPs, the tag creator
-                const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
+                const isCP = cherryPicks.has(prNumber);
+                const cpActor = cherryPicks.get(prNumber);
                 let deployer = pr.merged_by?.login;
-                if (isCP) {
-                    for (const tag of recentTags) {
-                        const {data: commit} = await getCommit({
-                            owner: CONST.GITHUB_OWNER,
-                            repo: repoName,
-                            commit_sha: tag.commit.sha,
-                        });
-                        const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
-                        if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-                            const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
-                            if (cpActor) {
-                                deployer = cpActor;
-                            }
-                            break;
-                        }
-                    }
+                if (isCP && cpActor) {
+                    deployer = cpActor;
                 }
 
                 const title = pr.title;
                 const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
                 await commentPR(prNumber, deployMessage, repoName);
             } catch (error) {
-                if ((error as RequestError).status === 404) {
+                // Preserve the former direct `.status` access ordering for nullish rejections.
+                if (error === null || error === undefined) {
+                    throw new TypeError(`Cannot read properties of ${String(error)} (reading 'status')`);
+                }
+                if ((typeof error === 'object' || typeof error === 'function') && 'status' in error && error.status === 404) {
                     console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
                 } else if (repoName === CONST.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
                     console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
@@ -105,17 +111,17 @@ async function commentOnDeployChecklistPRs(
 }
 
 async function run() {
-    const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
+    const prList = parseDeployList(ActionUtils.getJSONInput('PR_LIST', {required: true}));
     const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
-    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
-    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
+    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? parseDeployList(mobileExpensifyPRListInput) : [];
+    const isProd = !!ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {
         required: true,
-    }) as boolean;
+    });
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
-    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}) as PlatformResult);
-    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}) as PlatformResult);
-    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}) as PlatformResult);
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
+    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
@@ -180,37 +186,29 @@ async function run() {
         return;
     }
 
-    const {data: appRecentTags} = await GithubUtils.octokit.repos.listTags({
-        owner: CONST.GITHUB_OWNER,
-        repo: CONST.APP_REPO,
-        per_page: 100,
-    });
+    const previousTag = core.getInput('PREVIOUS_TAG', {required: true});
+    const stagingTag = `${version}-staging`;
+    const appCommits = prList.length > 0 ? await GithubUtils.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST.APP_REPO) : [];
 
-    // Only fetch Mobile-Expensify tags if there are Mobile-Expensify PRs
-    let mobileExpensifyRecentTags: typeof appRecentTags = [];
+    let mobileExpensifyCommits: typeof appCommits = [];
     if (mobileExpensifyPRList.length > 0) {
         try {
-            const response = await GithubUtils.octokit.repos.listTags({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.MOBILE_EXPENSIFY_REPO,
-                per_page: 100,
-            });
-            mobileExpensifyRecentTags = response.data;
+            mobileExpensifyCommits = await GithubUtils.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST.MOBILE_EXPENSIFY_REPO);
         } catch (error) {
             if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
-                console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
+                console.warn('Unable to fetch Mobile-Expensify deployment commits from forked repository. This is expected.');
             } else {
-                console.error('Failed to fetch Mobile-Expensify tags:', error);
+                console.error('Failed to fetch Mobile-Expensify deployment commits:', error);
             }
         }
     }
 
     // Comment on the PRs
-    await commentOnDeployChecklistPRs(prList, CONST.APP_REPO, appRecentTags, getDeployMessage);
+    await commentOnDeployChecklistPRs(prList, CONST.APP_REPO, appCommits, getDeployMessage);
     console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
 
     if (mobileExpensifyPRList.length > 0) {
-        await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyCommits, getDeployMessage);
         console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
     }
 }

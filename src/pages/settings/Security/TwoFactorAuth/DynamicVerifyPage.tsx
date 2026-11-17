@@ -27,10 +27,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
@@ -81,12 +82,12 @@ function DynamicVerifyPage() {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
-    const scrollViewRef = useRef<RNScrollView>(null);
-    const handleInputFocus = useCallback(() => {
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const handleInputFocus = () => {
         requestAnimationFrame(() => {
             scrollViewRef.current?.scrollToEnd({animated: true});
         });
-    }, []);
+    };
 
     return (
         <TwoFactorAuthWrapper
@@ -108,7 +109,14 @@ function DynamicVerifyPage() {
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
-                        <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.VERIFY_AUTHENTICATOR_APP_LINK}
+                            href={TROUBLESHOOTING_LINK}
+                        >
+                            {' '}
+                            {translate('twoFactorAuth.authenticatorApp')}
+                        </TextLink>
+                        .
                     </Text>
                     <View
                         style={[styles.alignItemsCenter, styles.mt5]}
@@ -150,6 +158,7 @@ function DynamicVerifyPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.VERIFY_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}

@@ -25,7 +25,11 @@ type CameraProps = {
 
     /** Called when the user taps the multi-scan submit button on the preview ribbon. Used by native and mobile web. */
     onMultiScanSubmit?: () => void;
+
+    /** Whether the shutter may take a full-resolution photo to upgrade the fast snapshot. Defaults to true; off for replace-receipt and multi-scan. */
+    canUpgradeReceiptQuality?: boolean;
 };
 
-export default CameraProps;
+// Consumers import the named type, so a default export would only be dead code that knip reports.
+// eslint-disable-next-line import/prefer-default-export
 export type {CameraProps};

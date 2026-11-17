@@ -13,7 +13,7 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
@@ -110,6 +110,15 @@ const createQBOPolicy = (role: Policy['role'], autoSyncEnabled: boolean, exporte
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/permissions'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/workflows'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -117,7 +126,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
-    isGroupPolicy: jest.fn().mockReturnValue(true),
+    // Answer from the policy type so tests can opt out with a personal policy, even when getTransactionDetails also reaches this mock
+    isGroupPolicy: jest.fn((policy?: Policy) => policy?.type !== 'personal'),
 }));
 
 describe('getSecondaryAction', () => {
@@ -146,6 +156,7 @@ describe('getSecondaryAction', () => {
         const result = [
             CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.SHARE,
             CONST.REPORT.SECONDARY_ACTIONS.PRINT,
             CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
         ];
@@ -162,6 +173,7 @@ describe('getSecondaryAction', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             }),
         ).toEqual(result);
     });
@@ -186,6 +198,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
@@ -207,6 +220,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -228,6 +242,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -279,6 +294,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
@@ -336,6 +352,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -396,6 +413,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -449,6 +467,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -503,9 +522,139 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    describe('CANCEL_PAYMENT for a non-payer admin on a workspace with a connected bank account', () => {
+        const DESIGNATED_PAYER_EMAIL = 'payer@vba-test.com';
+        const WORKSPACE_BANK_ACCOUNT_ID = 1111;
+        const ADMIN_OWN_BANK_ACCOUNT_ID = 2222;
+        const PAY_ACTION_ID = 'pay_action_id';
+
+        // Reimbursement is configured (reimburseYes) and someone else is the reimburser, so `isPayer` is false for
+        // ADMIN_EMAIL and Cancel can only come from the non-payer admin path.
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: DESIGNATED_PAYER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            reimburser: DESIGNATED_PAYER_EMAIL,
+            outputCurrency: CONST.CURRENCY.USD,
+            achAccount: {reimburser: DESIGNATED_PAYER_EMAIL, bankAccountID: WORKSPACE_BANK_ACCOUNT_ID},
+            employeeList: {
+                [ADMIN_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [DESIGNATED_PAYER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        });
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -10000,
+            isWaitingOnBankAccount: false,
+            // Auth reports whether this viewer can cancel the bank reimbursement.
+            canCancelReimbursement: true,
+        });
+        const transaction = createMock<Transaction>({reportID: REPORT_ID, amount: 10000});
+
+        function buildPayAction(paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, bankAccountID?: number): ReportAction {
+            return createMock<ReportAction>({
+                reportActionID: PAY_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: ADMIN_ACCOUNT_ID,
+                message: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, paymentType, bankAccountID, accountNumber: 'XXXX1234'},
+                created: '2020-01-01 00:00:00.000',
+            });
+        }
+
+        async function getActionsForAdmin(payAction: ReportAction, bankAccountList: BankAccountList, reportOverrides: Partial<Report> = {}) {
+            const viewerReport = {...report, ...reportOverrides};
+            // beforeEach's Onyx.clear isn't awaited; explicit clear guarantees a clean policy collection for this seed.
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, viewerReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[PAY_ACTION_ID]: payAction});
+            await waitForBatchedUpdates();
+
+            return getSecondaryReportActions({
+                currentUserLogin: ADMIN_EMAIL,
+                currentUserAccountID: ADMIN_ACCOUNT_ID,
+                submitterLogin: EMPLOYEE_EMAIL,
+                report: viewerReport,
+                chatReport,
+                reportTransactions: [transaction],
+                originalTransaction: createMock<Transaction>({}),
+                violations: {},
+                bankAccountList,
+                policy,
+                reportActions: [payAction],
+                rules: undefined,
+                cardList: undefined,
+            });
+        }
+
+        it('includes CANCEL_PAYMENT for a paid-elsewhere payment without server cancellation permission', async () => {
+            // Given a non-payer admin whose report was marked as paid elsewhere.
+            // When Auth does not mark a bank reimbursement as cancellable.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE), {}, {canCancelReimbursement: false});
+
+            // Then the admin can still undo the manual payment.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with a matching bank account ID', async () => {
+            // Given a non-payer admin with the bank account recorded on an optimistic pay action.
+            // When Auth permits cancellation for this viewer.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
+                [ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            });
+
+            // Then cancellation remains available before the pay action is reloaded.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT when Auth permits cancellation with different shared bank account IDs', async () => {
+            // Given a payment whose funding account ID differs from the viewer's shared account ID.
+            // When Auth permits cancellation for this viewer.
+            const result = await getActionsForAdmin(buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID), {
+                [WORKSPACE_BANK_ACCOUNT_ID]: {methodID: WORKSPACE_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            });
+
+            // Then the per-viewer account IDs do not hide cancellation.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it('includes CANCEL_PAYMENT after reloading a pay action without a bank account ID', async () => {
+            // Given a persisted pay action with accountNumber but no bankAccountID and no loaded bank accounts.
+            const payAction = buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+            // When Auth permits cancellation for this viewer after a cold load.
+            const result = await getActionsForAdmin(payAction, {});
+
+            // Then cancellation does not depend on optimistic payment metadata or locally loaded accounts.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        });
+
+        it.each([false, undefined])('excludes CANCEL_PAYMENT when server cancellation permission is %s despite a matching bank account', async (canCancelReimbursement) => {
+            // Given a non-payer admin with the funding account in their bank account list.
+            // When Auth does not grant cancellation permission for this viewer.
+            const result = await getActionsForAdmin(
+                buildPayAction(CONST.IOU.PAYMENT_TYPE.VBBA, ADMIN_OWN_BANK_ACCOUNT_ID),
+                {[ADMIN_OWN_BANK_ACCOUNT_ID]: {methodID: ADMIN_OWN_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US}},
+                {canCancelReimbursement},
+            );
+
+            // Then local access cannot enable cancellation of a bank reimbursement.
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+        });
     });
 
     it('does not include CANCEL_PAYMENT past the NACHA cutoff after a paid-elsewhere payment was cancelled and re-paid via bank', async () => {
@@ -566,6 +715,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -593,11 +743,71 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
 
-        // DOWNLOAD_PDF is unaffected — only PRINT is gated on the OPEN state
+        // The report owner can still export their own draft, so DOWNLOAD_PDF stays
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
+    });
+
+    it('does not include DOWNLOAD_PDF option when the report is in OPEN state and the current user is not the owner', () => {
+        // A report rejected back to the submitter returns to the OPEN state and is owned by the submitter again, so the
+        // approver who rejected it (or their vacation delegate) can no longer export it on the backend.
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(false);
+    });
+
+    it('includes DOWNLOAD_PDF option when the report is not in OPEN state and the current user is not the owner', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: APPROVER_EMAIL,
+            currentUserAccountID: APPROVER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF)).toBe(true);
     });
 
@@ -623,6 +833,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(true);
@@ -642,6 +853,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -662,6 +874,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
@@ -676,6 +889,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -696,7 +910,88 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is excluded
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('includes SUBMIT option for an admin when the report owner has the approve-only role', async () => {
+        // Given an open expense report owned by an approve-only member, viewed by the current admin
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is included
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
@@ -731,6 +1026,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -745,6 +1041,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -770,6 +1067,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -784,6 +1082,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -813,6 +1112,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -858,6 +1158,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -901,6 +1202,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -954,6 +1256,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -968,6 +1271,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -994,6 +1298,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1011,6 +1316,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1031,6 +1337,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1048,6 +1355,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1068,6 +1376,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1102,6 +1411,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1116,6 +1426,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1143,6 +1454,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1157,6 +1469,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1191,6 +1504,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1224,6 +1538,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1273,6 +1588,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1309,6 +1625,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1350,6 +1667,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1397,6 +1715,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1439,6 +1758,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1480,8 +1800,66 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
+    });
+
+    it.each([false, true])('only includes APPROVE for a scan-failed duplicate report when it also has a complete expense: %s', async (hasCompleteExpense) => {
+        // Given a duplicate expense whose failed scan has no amount, optionally alongside a complete expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            approver: EMPLOYEE_EMAIL,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'SCAN_FAILED_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const completeTransaction = createMock<Transaction>({
+            transactionID: 'COMPLETE_TRANSACTION_ID',
+            reportID: REPORT_ID,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const reportTransactions = hasCompleteExpense ? [transaction, completeTransaction] : [transaction];
+        const violation = createMock<TransactionViolation>({
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Promise.all(reportTransactions.map((reportTransaction) => Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${reportTransaction.transactionID}`, reportTransaction)));
+
+        // When the approver opens the report's secondary actions
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: createMock<Transaction>({}),
+            violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then a duplicate cannot bypass the missing-amount check, but a complete expense still allows approval
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(hasCompleteExpense);
     });
 
     it('does not include APPROVE option for approver and report with only pending transactions', async () => {
@@ -1520,6 +1898,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1564,6 +1943,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -1611,6 +1991,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then APPROVE should not be included because DEW is already processing an approval
@@ -1656,12 +2037,14 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
 
     it('includes APPROVE option when a different user is the manager on a Submit workspace with duplicate violations', async () => {
+        // Given a different approver and a posted duplicate expense, not a randomly pending card charge
         const TRANSACTION_ID = 'TRANSACTION_ID_SUBMIT_WORKSPACE_APPROVER';
         const report = {
             ...createExpenseReport(Number(REPORT_ID)),
@@ -1679,6 +2062,7 @@ describe('getSecondaryAction', () => {
         const transaction = {
             ...createRandomTransaction(1),
             transactionID: TRANSACTION_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
         };
         const violation: TransactionViolation = {
             name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
@@ -1688,6 +2072,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the assigned approver opens the secondary actions
         const result = getSecondaryReportActions({
             currentUserLogin: APPROVER_EMAIL,
             currentUserAccountID: APPROVER_ACCOUNT_ID,
@@ -1700,8 +2085,10 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
+        // Then the duplicate shortcut still allows another user to approve the report
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
 
@@ -1743,6 +2130,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1785,6 +2173,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1824,6 +2213,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1863,6 +2253,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1899,6 +2290,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1926,6 +2318,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1956,6 +2349,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1985,6 +2379,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -2014,6 +2409,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2044,6 +2440,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2074,6 +2471,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2105,7 +2503,44 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
+    });
+
+    it('does not include UNAPPROVE option while the cancelled payment is processing', () => {
+        // Given an approved expense report whose cancelled payment is still being sent back to the payer
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            isWaitingForCancelledReimbursement: true,
+        });
+        const policy = createMock<Policy>({
+            approver: EMPLOYEE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+
+        // When the secondary actions are calculated for the manager
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then UNAPPROVE is not offered because the backend rejects unapproving until that money posts
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
 
@@ -2137,6 +2572,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -2172,6 +2608,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
@@ -2205,6 +2642,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2216,7 +2654,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
@@ -2278,6 +2721,7 @@ describe('getSecondaryAction', () => {
             ...baseArgs,
             policy: createMock<Policy>(policyData),
             rules: undefined,
+            cardList: undefined,
         });
         expect(resultWithoutArchive.includes(action)).toBe(true);
 
@@ -2285,6 +2729,7 @@ describe('getSecondaryAction', () => {
             ...baseArgs,
             policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'}),
             rules: undefined,
+            cardList: undefined,
         });
         expect(resultWithArchive.includes(action)).toBe(false);
     });
@@ -2293,7 +2738,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
@@ -2330,11 +2780,12 @@ describe('getSecondaryAction', () => {
             },
             isChatReportArchived: true,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(action)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for report before nacha cutoff', async () => {
+    it('includes CANCEL_PAYMENT option for a queued payment the backend reports as cancellable', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2342,6 +2793,7 @@ describe('getSecondaryAction', () => {
             stateNum: CONST.REPORT.STATE_NUM.BILLING,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             isWaitingOnBankAccount: true,
+            canCancelReimbursement: true,
             managerID: EMPLOYEE_ACCOUNT_ID,
         });
         const policy = createMock<Policy>({
@@ -2383,12 +2835,14 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
     it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
         const report = createMock<Report>({
+            canCancelReimbursement: true,
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2436,11 +2890,12 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
+    it('does not include CANCEL_PAYMENT option for a bank payment the backend has not marked cancellable', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2489,11 +2944,12 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
-    it('includes CANCEL_PAYMENT option for auto-reimbursed payment', async () => {
+    it('does not include CANCEL_PAYMENT option for an auto-reimbursed payment', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2542,8 +2998,212 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('does not include CANCEL_PAYMENT option for bank payment when the cancellable status is not loaded', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
+    });
+
+    it('includes CANCEL_PAYMENT option for report waiting on the payer bank account', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
+            canCancelReimbursement: true,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Tomorrow's date, so the 23:45 UTC cutoff has not passed
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            },
+            created: `${tomorrow.toISOString().slice(0, 10)} 12:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment the backend reports as cancellable', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: true,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // Tomorrow in the DB datetime format (UTC, no timezone suffix), so the cutoff is always still ahead
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: `${tomorrow.toISOString().slice(0, 10)} 12:00:00.000`,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('does not include CANCEL_PAYMENT option for bank payment the backend reports as not cancellable', async () => {
+        const report = createMock<Report>({
+            canCancelReimbursement: false,
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        });
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = createMock<ReportAction>({
+            reportActionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: '2026-01-01 12:00:00.000',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [
+                createMock<Transaction>({
+                    transactionID: TRANSACTION_ID,
+                }),
+            ],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
     it('includes CANCEL_PAYMENT option for the sender of a P2P wallet payment waiting on the receiver wallet', async () => {
@@ -2581,6 +3241,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2620,6 +3281,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2659,6 +3321,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2698,6 +3361,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: undefined,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2729,6 +3393,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2760,6 +3425,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2791,6 +3457,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2823,6 +3490,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2861,6 +3529,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [reportAction],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2897,6 +3566,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2935,6 +3605,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [reportAction],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2967,6 +3638,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2999,6 +3671,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3032,6 +3705,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3068,6 +3742,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3100,6 +3775,46 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
             rules: undefined,
+            cardList: undefined,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
+    it('does not include RECEIVED_PAYMENT when report has only non-reimbursable expenses and policy prevents paying non reimbursable reports ', () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: -100,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: 'TRANSACTION_ID_932',
+            comment: {},
+            reimbursable: false,
+        });
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            preventPayoutNonReimbursableReports: true,
+        });
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+            rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3135,6 +3850,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -3169,6 +3885,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3206,6 +3923,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [actionR14932],
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3251,6 +3969,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -3297,6 +4016,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3358,6 +4078,7 @@ describe('getSecondaryAction', () => {
             policy: oldPolicy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3419,6 +4140,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3480,6 +4202,7 @@ describe('getSecondaryAction', () => {
             policy,
             policies,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3507,6 +4230,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3569,9 +4293,77 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it("keeps SPLIT and DELETE separate when an admin can delete another submitter's draft report", async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+        const originalTransaction = createMock<Transaction>({
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: ADMIN_EMAIL,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
@@ -3595,12 +4387,14 @@ describe('getSecondaryAction', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3648,6 +4442,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3695,6 +4490,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3757,6 +4553,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3803,6 +4600,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3855,6 +4653,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3898,6 +4697,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3937,6 +4737,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3992,6 +4793,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -4036,6 +4838,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4068,6 +4871,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4104,6 +4908,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4151,6 +4956,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
@@ -4183,6 +4989,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4245,6 +5052,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4287,6 +5095,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4334,6 +5143,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4373,6 +5183,7 @@ describe('getSecondaryAction', () => {
             reportActions,
             moveExpenseReportNameValuePairs,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -4412,8 +5223,47 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
+
+    it('passes the report actions it was given to canEditFieldOfMoneyRequest when checking MOVE_EXPENSE', () => {
+        // Given a single-expense report whose IOU action is found in the passed report actions
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: originalMessageR14932.IOUTransactionID,
+        });
+        const reportActions = [actionR14932];
+        const canEditFieldOfMoneyRequestSpy = jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        // When building the secondary actions for the report
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            reportActions,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the same report actions reach canEditFieldOfMoneyRequest, so the forwarded-since-last-submit check inside
+        // canEditMoneyRequest reads this report's own history instead of the module-level Onyx cache
+        expect(canEditFieldOfMoneyRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportAction: actionR14932, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, reportActions}));
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
 });
 
@@ -4839,12 +5689,46 @@ describe('getReportAccountingExportActions', () => {
             bankAccountList: {},
             policy,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 });
 
 describe('getSecondaryTransactionThreadActions', () => {
+    it('passes the parent report actions it was given to the delete check', () => {
+        // Given a transaction thread whose parent report's actions are handed to the function
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const parentReportActions = {[actionR14932.reportActionID]: actionR14932};
+        const canDeleteMoneyRequestReportSpy = jest.spyOn(ReportUtils, 'canDeleteMoneyRequestReport').mockReturnValue(true);
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportActions,
+            reportTransaction: createMock<Transaction>({transactionID: originalMessageR14932.IOUTransactionID}),
+            reportAction: actionR14932,
+            originalTransaction: createMock<Transaction>({}),
+            policy: createMock<Policy>({}),
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the delete check receives the parent's full action list, so the check for a forward since the last submit inside
+        // isAwaitingFirstLevelApproval reads the parent report's own history rather than the module-level Onyx cache
+        expect(canDeleteMoneyRequestReportSpy.mock.calls.at(0)?.[2]).toEqual([actionR14932]);
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+        canDeleteMoneyRequestReportSpy.mockRestore();
+    });
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -4869,12 +5753,14 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: report,
+                parentReportActions: undefined,
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: undefined,
                 originalTransaction: createMock<Transaction>({}),
                 policy,
                 isChatReportArchived: false,
                 rules: undefined,
+                cardList: undefined,
             }),
         ).toEqual(result);
     });
@@ -4900,12 +5786,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -4927,6 +5815,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -4934,6 +5823,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionThreadReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -4943,6 +5833,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -4950,6 +5841,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             transactionThreadReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4971,12 +5863,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -5031,16 +5925,104 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction,
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('keeps SPLIT for a per diem split expense once the parent report was forwarded, so the menu still offers Edit splits', async () => {
+        // Given a per diem split expense on a processing report owned by an admin who submits to the manager, whose parent actions
+        // show the report was forwarded after that submit. Delete is hidden for a forwarded report, so Split must stay to reach Edit splits
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+        const originalTransaction = createMock<Transaction>({
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: MANAGER_EMAIL},
+            },
+        });
+        const iouAction = createMock<ReportAction>({
+            reportActionID: 'iou',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+            created: '2026-04-21 16:00:00',
+            originalMessage: {IOUTransactionID: SPLIT_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 10, currency: CONST.CURRENCY.USD},
+        });
+        const submittedAction = createMock<ReportAction>({reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'});
+        const forwardedAction = createMock<ReportAction>({reportActionID: 'forwarded', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL}});
+        await waitForBatchedUpdates();
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportOwnerLogin: EMPLOYEE_EMAIL,
+            parentReportActions: {
+                [iouAction.reportActionID]: iouAction,
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAction.reportActionID]: forwardedAction,
+            },
+            reportTransaction: transaction,
+            reportAction: iouAction,
+            originalTransaction,
+            policy,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the split and delete checks agree on the forward: Delete is hidden and Split is offered instead of neither
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
     it('should not include CHANGE_WORKSPACE option for exported report', async () => {
@@ -5091,6 +6073,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policies,
             reportActions,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -5131,12 +6114,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5193,12 +6178,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: survivingSplit,
             reportAction: actionR14932,
             originalTransaction,
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
 
         // Then the SPLIT option is available
@@ -5240,17 +6227,20 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
     it('does not include the SPLIT option for a personal policy', async () => {
+        // Given a submitted expense report on a personal policy, where splitting is not allowed even for an admin
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -5278,22 +6268,26 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions for the transaction thread are computed
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
+
+        // Then SPLIT is not offered, because only group policies support splitting expenses
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
@@ -5337,12 +6331,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5367,12 +6363,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: selfDMReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5398,6 +6396,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: createMock<Report>({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+                parentReportActions: {[actionR14932.reportActionID]: actionR14932},
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: actionR14932,
                 originalTransaction: createMock<Transaction>({}),
@@ -5405,6 +6404,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 isChatReportArchived,
                 hasWorkspaceToSubmitTo,
                 rules: undefined,
+                cardList: undefined,
             });
         }
 
@@ -5467,6 +6467,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: transactionThreadReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5474,6 +6475,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             grandParentReport: selfDMReport,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5498,12 +6500,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: nonExpenseReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5530,6 +6534,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5537,6 +6542,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             reportNameValuePairs,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -5567,12 +6573,14 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
             rules: undefined,
+            cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -5633,6 +6641,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -5689,6 +6698,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 bankAccountList: {},
                 policy,
                 rules: undefined,
+                cardList: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -5709,7 +6719,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -5723,7 +6733,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -5737,7 +6747,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
             ]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -5749,10 +6759,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return true for single transaction when report is eligible for merge', () => {
@@ -5762,10 +6772,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return true for two eligible transactions', () => {
@@ -5788,7 +6798,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
         });
@@ -5813,7 +6823,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
         });
@@ -5823,7 +6833,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             // Should return true because when policy is not found, function doesn't prevent merging
             // (since we have 1 transaction, it will return true after the policy check)
@@ -5837,10 +6847,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined, undefined);
         });
 
         it('should return false for non-admin user with ineligible reports', () => {
@@ -5850,10 +6860,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined, undefined);
         });
 
         it('should return false when one of multiple reports is not eligible', () => {
@@ -5871,12 +6881,12 @@ describe('getSecondaryTransactionThreadActions', () => {
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined, undefined);
         });
 
         describe('preventing merge for transactions belonging to different users', () => {
@@ -5899,7 +6909,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports: Report[] = [];
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined);
 
                 expect(result).toBe(true);
             });
@@ -5922,7 +6932,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -5945,7 +6955,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -5965,7 +6975,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -5985,7 +6995,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -6005,7 +7015,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1'}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -6025,7 +7035,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });

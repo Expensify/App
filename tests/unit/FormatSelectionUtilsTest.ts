@@ -1,5 +1,7 @@
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 
+import CONST from '@src/CONST';
+
 jest.unmock('@expensify/react-native-live-markdown');
 
 describe('FormatSelectionUtils', () => {
@@ -77,6 +79,17 @@ describe('FormatSelectionUtils', () => {
     it('remove italic formatting from bold-italic word and asterisks', () => {
         expect(toggleSelectionFormat('_*aaa*_', 1, 6, 'formatItalic')).toEqual({updatedText: '*aaa*', cursorOffset: -1});
         expect(toggleSelectionFormat('_aaa_ _*bbb*_ _ccc_', 7, 12, 'formatItalic')).toEqual({updatedText: '_aaa_ *bbb* _ccc_', cursorOffset: -1});
+    });
+
+    it('remove formatting from a long Markdown range', () => {
+        // Given a bold Markdown range at the App markup limit, because selection formatting must still find ranges in long messages.
+        const text = `*${'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2)}*`;
+
+        // When bold formatting is toggled for the selected content.
+        const result = toggleSelectionFormat(text, 1, text.length - 1, 'formatBold');
+
+        // Then the Markdown markers should be removed and the selection cursor offset should be adjusted.
+        expect(result).toEqual({updatedText: 'a'.repeat(CONST.MAX_MARKUP_LENGTH - 2), cursorOffset: -1});
     });
 
     it('do nothing for unsupported command', () => {

@@ -19,15 +19,15 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({FoodTruck: () => null}),
 }));
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
+jest.mock('@components/MenuItem/presets/MenuItemField', () => {
     const reactNative = jest.requireActual<ReactNative>('react-native');
     const RNPressable = reactNative.Pressable;
     const RNView = reactNative.View;
     return {
         __esModule: true,
-        default: ({pressableTestID, title}: {pressableTestID?: string; title?: string}) => (
-            <RNPressable testID={pressableTestID}>
-                <RNView testID={`${pressableTestID}-title`}>{title}</RNView>
+        default: ({testID, value}: {testID?: string; value?: string}) => (
+            <RNPressable testID={testID}>
+                <RNView testID={`${testID}-title`}>{value}</RNView>
             </RNPressable>
         ),
     };

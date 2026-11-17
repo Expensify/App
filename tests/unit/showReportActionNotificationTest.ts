@@ -5,17 +5,17 @@ import type {LocalNotificationModule, LocalNotificationModifiedExpenseParams} fr
 import CONST from '@src/CONST';
 import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
-import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     isReady: jest.fn(() => Promise.resolve()),
     init: jest.fn(),
+    getLogTab: jest.fn(),
 }));
 
 const mockShowModifiedExpenseNotification = jest.fn<void, [LocalNotificationModifiedExpenseParams]>();
@@ -29,7 +29,6 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
         showCommentNotification: (...args: Parameters<LocalNotificationModule['showCommentNotification']>) => {
             mockShowCommentNotification(...args);
         },
-        showUpdateAvailableNotification: jest.fn(),
         clearReportNotifications: jest.fn(),
     },
 }));
@@ -54,7 +53,9 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@user.com';
 const REPORT_ID = '100';
 const OTHER_USER_ACCOUNT_ID = 2;
-const REPORT_ATTRIBUTES = createMock<ReportAttributesDerivedValue['reports']>({someReportKey: {reportName: 'Test Report'}});
+const DERIVED_REPORT_NAME = 'Test Report';
+const MENTIONED_ROOM_ID = '200';
+const OTHER_ROOM_ID = '300';
 
 describe('showReportActionNotification', () => {
     beforeAll(() => {
@@ -102,20 +103,19 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES,
+            formatPhoneNumber,
+            undefined,
+            DERIVED_REPORT_NAME,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
         const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
-        if (!callArgs) {
-            throw new Error('Modified expense notification arguments are missing');
-        }
-        expect(callArgs.reportAttributes).toBe(REPORT_ATTRIBUTES);
+        expect(callArgs?.derivedMovedFromReportName).toBe(DERIVED_REPORT_NAME);
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
-    it('passes undefined reportAttributes to showModifiedExpenseNotification when not provided', async () => {
+    it('passes undefined derivedMovedFromReportName to showModifiedExpenseNotification when not provided', async () => {
         await setupReport();
 
         const reportAction = {
@@ -133,16 +133,15 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
+            undefined,
             undefined,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowModifiedExpenseNotification).toHaveBeenCalledTimes(1);
         const callArgs = mockShowModifiedExpenseNotification.mock.calls.at(0)?.at(0);
-        if (!callArgs) {
-            throw new Error('Modified expense notification arguments are missing');
-        }
-        expect(callArgs.reportAttributes).toBeUndefined();
+        expect(callArgs?.derivedMovedFromReportName).toBeUndefined();
         expect(mockShowCommentNotification).not.toHaveBeenCalled();
     });
 
@@ -164,11 +163,40 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
-            REPORT_ATTRIBUTES,
+            formatPhoneNumber,
+            DERIVED_REPORT_NAME,
+            undefined,
         );
         await waitForBatchedUpdates();
 
         expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
         expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
+    });
+
+    it('passes the names of the rooms the comment mentions to showCommentNotification', async () => {
+        // Given a comment that mentions one room by reportID, and another room the comment doesn't mention.
+        // The mentioned room is cached from a partial update with only its name, so the map must be keyed by the mentioned reportID
+        await setupReport();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MENTIONED_ROOM_ID}`, {reportName: '#admins'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_ROOM_ID}`, {reportID: OTHER_ROOM_ID, reportName: '#announce'});
+        await waitForBatchedUpdates();
+        const html = `hello <mention-report reportID="${MENTIONED_ROOM_ID}"></mention-report>`;
+        const reportAction = {
+            reportActionID: 'action4',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: OTHER_USER_ACCOUNT_ID,
+            created: '2026-01-01 00:00:00.000',
+            message: [{type: 'COMMENT', html, text: html}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
+        };
+
+        // When the notification is shown
+        Report.showReportActionNotification(REPORT_ID, reportAction, undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, formatPhoneNumber, DERIVED_REPORT_NAME, undefined);
+        await waitForBatchedUpdates();
+
+        // Then only the mentioned room's name is passed, so the body shows it instead of #Hidden
+        expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
+        const reportIDToName = mockShowCommentNotification.mock.calls.at(0)?.at(5);
+        expect(reportIDToName).toEqual({[MENTIONED_ROOM_ID]: '#admins'});
     });
 });

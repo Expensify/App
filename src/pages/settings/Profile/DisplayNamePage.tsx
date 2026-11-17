@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,9 +14,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {doesContainReservedWord, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
+import {getDisplayNameErrors} from '@libs/ValidationUtils';
 
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 
@@ -49,32 +48,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
-
-        // First we validate the first name field
-        if (!isValidDisplayName(values.firstName)) {
-            addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
-        } else if (!isRequiredFulfilled(values.firstName)) {
-            addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
-        }
-        if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
-        }
-
-        // Then we validate the last name field
-        if (!isValidDisplayName(values.lastName)) {
-            addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
-        }
-        if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
-        }
-        return errors;
-    };
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => getDisplayNameErrors(values.firstName, values.lastName, translate);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom

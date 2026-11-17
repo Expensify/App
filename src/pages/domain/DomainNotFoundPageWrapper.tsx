@@ -1,5 +1,4 @@
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +9,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React, {useEffect} from 'react';
@@ -27,27 +25,22 @@ type DomainNotFoundPageWrapperProps = {
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNotFoundViewProps, ...props}: DomainNotFoundPageWrapperProps) {
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
 
     useEffect(() => {
-        if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
+        if (domain && isAdmin) {
             return;
         }
 
         Navigation.dismissModal();
-    }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
-
-    if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
-    }
+    }, [domain, isAdmin]);
 
     if (shouldShowNotFoundPage) {
         return (

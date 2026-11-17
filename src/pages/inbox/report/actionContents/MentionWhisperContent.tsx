@@ -5,6 +5,7 @@ import ActionableItemButtons from '@components/ReportActionItem/ActionableItemBu
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -16,7 +17,6 @@ import {resolveActionableMentionWhisper} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -48,7 +48,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
 
     // Subscribe to the full report here — the resolve action needs heartbeat fields for its failure-revert payload.
     const [actionOwnerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportStable?.reportID}`);
-    const [targetAccountDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(getOriginalMessage(action)?.inviteeAccountIDs)});
+    const [targetAccountDetails] = usePersonalDetailsByIDs(getOriginalMessage(action)?.inviteeAccountIDs);
 
     const isReportInPolicy = !!policyID && policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== policyID;
     const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login));
@@ -62,6 +62,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
             <ActionableItemButtons layout="vertical">
                 {canInviteToSubmitExpense && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MENTION_WHISPER_INVITE_TO_SUBMIT_BUTTON}
                         onPress={() =>
                             resolveActionableMentionWhisper(
                                 actionOwnerReport,
@@ -76,6 +77,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                     </Button>
                 )}
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MENTION_WHISPER_INVITE_TO_CHAT_BUTTON}
                     onPress={() =>
                         resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived, parentReport)
                     }
@@ -83,6 +85,7 @@ function MentionWhisperContent({action, actionOwnerReportStable, parentReport, o
                     <Button.Text>{translate('actionableMentionWhisperOptions.inviteToChat')}</Button.Text>
                 </Button>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MENTION_WHISPER_NOTHING_BUTTON}
                     onPress={() =>
                         resolveActionableMentionWhisper(actionOwnerReport, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived, parentReport)
                     }

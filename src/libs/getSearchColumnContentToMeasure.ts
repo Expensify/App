@@ -17,11 +17,14 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
-import {getTagGLCode} from './PolicyUtils';
+import measureTextWidth from './measureTextWidth';
+import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
-import {getReportStatusTranslation} from './ReportUtils';
+import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
 import {
+    getTransactionPolicyID,
     isTransactionCategoryGroupListItemType,
+    isTransactionDayGroupListItemType,
     isTransactionListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
@@ -48,12 +51,10 @@ type SearchColumnMeasurementContext = {
 
     /** Every policy's tag lists, so a transaction's tag GL code can be looked up by its policy. */
     policyTags?: OnyxCollection<PolicyTagLists>;
-};
 
-/** The policy a transaction belongs to, which is where its category and tag GL codes are defined. */
-function getTransactionPolicyID(item: TransactionListItemType): string | undefined {
-    return [item.policyID, item.report?.policyID, item.policy?.id].find((policyID): policyID is string => !!policyID);
-}
+    /** The policy unreported expenses fall back to, since they have no report policy of their own. */
+    fallbackPolicyID?: string;
+};
 
 /** A run of text rendered in a Search table cell, described well enough to measure how wide it renders. */
 type SearchColumnContent = {
@@ -72,7 +73,9 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
     CONST.SEARCH.TABLE_COLUMNS.APPROVED,
@@ -90,6 +93,7 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.STATUS,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
@@ -106,6 +110,7 @@ const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
     CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -131,6 +136,7 @@ const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLU
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: 'common.vendor',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'common.category',
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'common.tag',
@@ -147,6 +153,7 @@ const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, Tr
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: 'common.category',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]: 'common.tag',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY]: 'search.filters.groupBy.day',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]: 'common.month',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'common.week',
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]: 'common.year',
@@ -181,10 +188,12 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
     const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? variables.editableCellChromeWidth : 0;
 
     switch (column) {
+        // The workspace cell draws the same avatar ahead of its text as the user cells do, so it reserves the same room.
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
         case CONST.SEARCH.TABLE_COLUMNS.TO:
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
         case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+        case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return editableCellWidth + USER_INFO_CELL_AVATAR_WIDTH;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return editableCellWidth + variables.statusBadgeChromeWidth;
@@ -216,6 +225,8 @@ function getTransactionColumnContentToMeasure(
             ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return [{text: getVendorDisplayName(item.policy, item.comment?.vendor)}];
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return [{text: getDescription(item)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -241,15 +252,19 @@ function getTransactionColumnContentToMeasure(
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.report?.orderDealNumbers}];
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
-            return [{text: item.policy?.name}];
+            // Resolved the way the cell resolves it, so a report whose workspace is unavailable is measured at the
+            // width of the fallback it actually shows rather than at nothing.
+            return [{text: getPolicyName({report: item.report, unavailableTranslation: translate('workspace.common.unavailable')})}];
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
+            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(translate, item.policy, item) ?? item.taxValue ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return [{text: getExchangeRate(item, item.report?.currency ?? item.policy?.outputCurrency, true)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
-            return [{text: getCategoryGLCode(context.policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getTransactionPolicyID(item)}`], item.category)}];
+            return [
+                {text: getCategoryGLCode(context.policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getTransactionPolicyID(item, context.fallbackPolicyID)}`], item.category)},
+            ];
         case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
-            return [{text: getTagGLCode(context.policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getTransactionPolicyID(item)}`], item.tag)}];
+            return [{text: getTagGLCode(context.policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getTransactionPolicyID(item, context.fallbackPolicyID)}`], item.tag)}];
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
             return [{text: getCompanyCardDescription(translate, item.cardName, item.cardID, context.nonPersonalAndWorkspaceCards, item.feedCountry)}];
         default:
@@ -288,6 +303,8 @@ function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: 
             return [{text: item.submitterPayrollID}];
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.orderDealNumbers}];
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return [{text: item.withdrawalIDs}];
         default:
             return [];
     }
@@ -332,6 +349,10 @@ function getGroupNameColumnContentToMeasure(column: SearchColumnType, item: Sear
         return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT ? [{text: item.formattedMerchant ?? item.merchant}] : [];
     }
 
+    if (isTransactionDayGroupListItemType(item)) {
+        return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY ? [{text: item.formattedDay}] : [];
+    }
+
     if (isTransactionMonthGroupListItemType(item)) {
         return column === CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH ? [{text: item.formattedMonth}] : [];
     }
@@ -373,6 +394,24 @@ function getSearchColumnContentToMeasure(column: SearchColumnType, item: SearchL
     return getGroupNameColumnContentToMeasure(column, item, translate) ?? [];
 }
 
+/**
+ * How wide a heading's label renders, or `null` when the platform can't measure text. `labelGap` is the gap between the
+ * label's text and its sort arrow.
+ *
+ * Uses the bold weight and reserves the sort arrow even when unsorted, so sorting a column never changes the result.
+ */
+function measureSearchHeaderLabelWidth(text: string, labelGap: number): number | null {
+    const textWidth = measureTextWidth(text, {fontSize: textVariants.microStrong.fontSize, fontWeight: '700'});
+    return textWidth === null ? null : textWidth + labelGap + variables.iconSizeExtraSmall;
+}
+
 export default getSearchColumnContentToMeasure;
-export {DYNAMICALLY_SIZED_SEARCH_COLUMNS, HUGGED_SEARCH_COLUMNS, SEARCH_COLUMN_HEADER_TRANSLATION_KEYS, getSearchColumnEditButtonReserve, getSearchColumnExtraWidth};
+export {
+    DYNAMICALLY_SIZED_SEARCH_COLUMNS,
+    HUGGED_SEARCH_COLUMNS,
+    SEARCH_COLUMN_HEADER_TRANSLATION_KEYS,
+    getSearchColumnEditButtonReserve,
+    getSearchColumnExtraWidth,
+    measureSearchHeaderLabelWidth,
+};
 export type {SearchColumnMeasurementContext};

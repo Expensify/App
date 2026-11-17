@@ -59,8 +59,8 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
             onReset={onReset}
             onApply={onApply}
             onBackButtonPress={onBackButtonPress}
-            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
+            resetSentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_RESET.SORT_BY}
+            applySentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_APPLY.SORT_BY}
         >
             <ListFilterWrapper
                 itemCount={columns.length}
@@ -69,6 +69,7 @@ function TableDisplaySettingsSortByPopup({columns, pendingSorting, setPendingSor
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.TABLE.SORT_ORDER_FIELD}
                     name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
                     value={translate(`search.filters.sortOrder.${pendingSorting.order}`)}
@@ -93,13 +94,14 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
         columns,
         activeSorting,
         initialSortColumn,
+        initialSortOrder,
         tableMethods: {updateSorting},
     } = useTableContext();
     const [selectedSetting, setSelectedSetting] = useState<'sortBy' | 'sortOrder' | null>(null);
 
     const defaultSorting: ActiveSorting<string> = {
         columnKey: initialSortColumn,
-        order: CONST.SEARCH.SORT_ORDER.ASC,
+        order: initialSortOrder,
     };
     const [pendingSorting, setPendingSorting] = useState<ActiveSorting<string>>(defaultSorting);
 
@@ -168,7 +170,7 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                 ]}
                 value={selectedOrder}
                 label={translate('search.display.sortOrder')}
-                defaultValue={CONST.SEARCH.SORT_ORDER.ASC}
+                defaultValue={defaultSorting.order}
                 onBackButtonPress={() => setSelectedSetting('sortBy')}
                 closeOverlay={closeSettingsOverlay}
                 onChange={(item) => {
@@ -177,6 +179,8 @@ export default function TableDisplaySettingsPopoverComponent({closeOverlay}: Tab
                     // Only commit the order — a column picked in the Sort by list but never applied must stay pending
                     updateSorting({columnKey: activeSorting.columnKey ?? defaultSorting.columnKey, order});
                 }}
+                applySentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_APPLY.SORT_ORDER}
+                resetSentryLabel={CONST.SENTRY_LABEL.TABLE.DISPLAY_SETTINGS_POPUP_RESET.SORT_ORDER}
             />
         );
     }

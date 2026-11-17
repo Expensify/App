@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -82,10 +83,11 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
             onMouseLeave={onMouseLeave}
         >
             <MenuItemWithTopDescription
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.SPEND_CARD_ROW}
                 description={cardRow.lastFour}
                 title={cardTotal}
                 titleStyle={styles.textBold}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: cardRow.query}))}
+                onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: cardRow.query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}))}
                 shouldShowRightComponent
                 rightComponent={
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap3]}>

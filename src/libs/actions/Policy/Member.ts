@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
@@ -8,6 +8,7 @@ import type {
     OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
     RequestWorkspaceOwnerChangeParams,
+    UpdatePolicyMemberDisplayNameParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -18,17 +19,38 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, hasDynamicExternalWorkflow, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {buildApproverChainFromRules, getApproverChainKey, getApproversFromImportedApprovers} from '@libs/WorkflowUtils';
 
 import * as FormActions from '@userActions/FormActions';
+import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
+import {buildOptimisticDisplayNameDetails} from '@userActions/PersonalDetails';
+import {getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
+import {importApprovalWorkflowRules} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+    Rule,
+} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -36,7 +58,7 @@ import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -48,6 +70,20 @@ import {createPolicyExpenseChats} from './Policy';
 type WorkspaceMembersRoleData = {
     email: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+};
+
+type AddMembersToWorkspaceOptions = {
+    /** Who the invited members submit to, instead of the workspace's default approver */
+    approverEmail?: string;
+
+    /** The notification preference of the invited members' workspace chats */
+    policyExpenseChatNotificationPreference?: NotificationPreference;
+
+    /** Whether the invited members work from the office, for commuter exclusions */
+    hasOfficeWorkArrangement?: boolean;
+
+    /** The workspace's categories, so the invited members can use every category until the backend sends visibleTo */
+    policyCategories?: OnyxEntry<PolicyCategories>;
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -642,6 +678,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
         },
     ];
 
+    // Roles that cannot create expenses show a dedicated modal on refusal, so skip inline row errors.
+    const canCreateExpenses = canRoleCreateExpenses(newRole);
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -652,8 +690,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                            pendingAction: canCreateExpenses ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
+                            ...(canCreateExpenses && {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage')}),
                         };
                         return member;
                     }, {}),
@@ -717,8 +755,7 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     if (!policy?.id) {
         return;
     }
-    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
-    // This guard prevents any future code path from bypassing the UI-level blocks.
+    // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
     if (isSubmitPolicy(policy)) {
         return;
     }
@@ -788,6 +825,7 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
                 isChangeOwnerFailed: false,
                 owner: currentUserAccountLogin,
                 ownerAccountID: currentUserAccountID,
+                ...getOwnerChangePayerSuccessData(policy, currentUserAccountLogin),
             },
         },
     ];
@@ -826,6 +864,40 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
     });
 }
 
+/**
+ * A new member has no category restriction, so they can use every category. Add them to each category limited to some
+ * members, so their category visibility is right before the backend sends visibleTo, and offline.
+ * An invitee without personal details gets a temporary accountID that the backend replaces with the real one, so that
+ * temporary ID is removed again once the invite succeeds.
+ */
+function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyCategories: OnyxEntry<PolicyCategories>, accountIDs: number[], temporaryAccountIDs: Set<number>) {
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
+        const visibleTo = category.visibleTo;
+        if (!visibleTo) {
+            continue;
+        }
+        const hiddenAccountIDs = accountIDs.filter((accountID) => !visibleTo[accountID]);
+        if (hiddenAccountIDs.length === 0) {
+            continue;
+        }
+        optimisticCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, true]))};
+        failureCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, null]))};
+
+        const hiddenTemporaryAccountIDs = hiddenAccountIDs.filter((accountID) => temporaryAccountIDs.has(accountID));
+        if (hiddenTemporaryAccountIDs.length > 0) {
+            successCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenTemporaryAccountIDs.map((accountID) => [accountID, null]))};
+        }
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}` as const;
+    const buildUpdates = (categories: Record<string, NullishDeep<PolicyCategory>>): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES>> =>
+        isEmptyObject(categories) ? [] : [{onyxMethod: Onyx.METHOD.MERGE, key, value: categories}];
+    return {optimisticData: buildUpdates(optimisticCategories), successData: buildUpdates(successCategories), failureData: buildUpdates(failureCategories)};
+}
+
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
@@ -834,8 +906,7 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
-    approverEmail?: string,
-    policyExpenseChatNotificationPreference?: NotificationPreference,
+    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories}: AddMembersToWorkspaceOptions = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -866,16 +937,19 @@ function buildAddMembersToWorkspaceOnyxData(
     for (const accountID of accountIDs) {
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
+    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs, newPersonalDetailAccountIDs);
 
-    // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({
-        policyID,
-        invitedEmailsToAccountIDs,
-        currentUser,
-        reportActionsList,
-        notificationPreference: policyExpenseChatNotificationPreference,
-        doesPersonalDetailExistByAccountID,
-    });
+    // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
+    const membersChats = canRoleCreateExpenses(effectiveRole)
+        ? createPolicyExpenseChats({
+              policyID,
+              invitedEmailsToAccountIDs,
+              currentUser,
+              reportActionsList,
+              notificationPreference: policyExpenseChatNotificationPreference,
+              doesPersonalDetailExistByAccountID,
+          })
+        : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -886,6 +960,7 @@ function buildAddMembersToWorkspaceOnyxData(
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
+            ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -895,15 +970,16 @@ function buildAddMembersToWorkspaceOnyxData(
     }
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -921,16 +997,18 @@ function buildAddMembersToWorkspaceOnyxData(
         ...announceRoomChat.onyxOptimisticData,
         ...(announceRoomMembers.optimisticData ?? []),
         ...(adminRoomMembers.optimisticData ?? []),
+        ...categoryVisibilityOnyxData.optimisticData,
     );
 
     const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -946,18 +1024,20 @@ function buildAddMembersToWorkspaceOnyxData(
         ...announceRoomChat.onyxSuccessData,
         ...(announceRoomMembers.successData ?? []),
         ...(adminRoomMembers.successData ?? []),
+        ...categoryVisibilityOnyxData.successData,
     );
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.COLLECTION.REPORT
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -970,7 +1050,13 @@ function buildAddMembersToWorkspaceOnyxData(
             },
         },
     ];
-    failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []));
+    failureData.push(
+        ...membersChats.onyxFailureData,
+        ...announceRoomChat.onyxFailureData,
+        ...(announceRoomMembers.failureData ?? []),
+        ...(adminRoomMembers.failureData ?? []),
+        ...categoryVisibilityOnyxData.failureData,
+    );
 
     return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins, effectiveRole};
 }
@@ -988,7 +1074,7 @@ function addMembersToWorkspace(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
-    approverEmail?: string,
+    {approverEmail, hasOfficeWorkArrangement, policyCategories}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1004,7 +1090,7 @@ function addMembersToWorkspace(
         role,
         currentUser,
         reportActionsList,
-        approverEmail,
+        {approverEmail, hasOfficeWorkArrangement, policyCategories},
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1015,6 +1101,7 @@ function addMembersToWorkspace(
             shouldEscapeText: false,
         }),
         policyID: policy.id,
+        ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
@@ -1031,13 +1118,36 @@ type PolicyMember = {
     customField2?: string;
     approvalLimit?: string;
     overLimitForwardsTo?: string;
+
+    /** The approvers of this member's workflow, in order, which replace the ones they have */
+    approvers?: ImportedSpreadsheetApprover[];
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
+async function importPolicyMembers(
+    policy: OnyxEntry<Policy>,
+    members: PolicyMember[],
+    shouldShowMemberRolePermissionWarning = false,
+    rules?: OnyxCollection<Rule>,
+): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
     }
+    const approvalWorkflowRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
+    const hasApproversChange = (member: PolicyMember) => {
+        if (!member.approvers) {
+            return false;
+        }
+
+        // A repeated approver ends the chain, the way imported approvers are read
+        const currentApprovers = buildApproverChainFromRules({
+            submitter: member.email,
+            rules: approvalWorkflowRules,
+            employees: policy.employeeList ?? {},
+            personalDetailsByEmail: {},
+        }).filter((approver) => !approver.isCircularReference);
+        return getApproverChainKey(currentApprovers) !== getApproverChainKey(getApproversFromImportedApprovers(member.approvers));
+    };
     const {added, updated} = members.reduce(
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
@@ -1046,12 +1156,13 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
                 const existingCustomField2 = employee.employeePayrollID;
                 if (
                     curr.role !== employee.role ||
-                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
-                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.submitsTo !== undefined && curr.submitsTo !== (employee.submitsTo ?? '')) ||
+                    (curr.forwardsTo !== undefined && curr.forwardsTo !== (employee.forwardsTo ?? '')) ||
                     (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
                     (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
                     (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
-                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? '')) ||
+                    hasApproversChange(curr)
                 ) {
                     acc.updated++;
                 }
@@ -1064,7 +1175,11 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     );
     const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
-    const shouldUpdateApprovalMode = members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) && isControlPolicy(policy);
+    // Dynamic External Workflow policies are skipped because the backend keeps them on DYNAMIC_EXTERNAL, and successData would override that with ADVANCED
+    const shouldUpdateApprovalMode =
+        members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) &&
+        isControlPolicy(policy) &&
+        !hasDynamicExternalWorkflow(policy);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     if (shouldUpdateApprovalMode) {
@@ -1098,7 +1213,20 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, {successData});
-        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return getImportFailedFinalModal();
+        }
+
+        // The backend puts the members it adds in the default workflow, so they can only be moved to their own workflows once they're in.
+        // Members whose approvers are unchanged are left out: rewriting them would take them out of their workflow's rules first, which
+        // deletes those rules once every member is out, the default workflow's included.
+        importApprovalWorkflowRules({
+            policy,
+            rules,
+            members: members.flatMap((member) => (member.approvers && hasApproversChange(member) ? [{email: member.email, approvers: member.approvers}] : [])),
+            addedMemberEmails: members.filter((member) => !policy.employeeList?.[member.email]).map((member) => member.email),
+        });
+        return importFinalModal;
     } catch {
         return getImportFailedFinalModal();
     }
@@ -1146,7 +1274,15 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
  * NotFoundPage flash in `WorkspaceInitialPage` / `AccessOrNotFoundWrapper`
  * until the backend response hydrates the policy with its actual shape.
  */
-function joinAccessiblePolicy(policyID: string) {
+function joinAccessiblePolicy(
+    policyID: string,
+    joinWorkspaceTaskReport?: OnyxEntry<Report>,
+    joinWorkspaceTaskParentReport?: OnyxEntry<Report>,
+    isJoinWorkspaceTaskParentReportArchived?: boolean,
+    joinWorkspaceTaskHasOutstandingChildTask?: boolean,
+    joinWorkspaceTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
@@ -1163,7 +1299,7 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -1184,7 +1320,24 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, successData, failureData});
+    // Auth auto-completes the join workspace task as part of JoinAccessiblePolicy via a forwarded CompleteTask, but
+    // ticking it here too avoids waiting on that command's Pusher update to reach the client. The tick rides the
+    // command's successData so a failed join leaves the task open - see getOnboardingTaskCompletionOnSuccessData.
+    let completedTaskReportActionID: string | undefined;
+    if (joinWorkspaceTaskReport && currentUserAccountID) {
+        const joinWorkspaceTaskCompletion = getOnboardingTaskCompletionOnSuccessData(
+            joinWorkspaceTaskReport,
+            joinWorkspaceTaskParentReport,
+            isJoinWorkspaceTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            joinWorkspaceTaskHasOutstandingChildTask ?? false,
+            joinWorkspaceTaskParentReportAction,
+        );
+        successData.push(...joinWorkspaceTaskCompletion.successData);
+        completedTaskReportActionID = joinWorkspaceTaskCompletion.completedTaskReportActionID;
+    }
+
+    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID, completedTaskReportActionID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1235,9 +1388,7 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
             [login]: null,
         },
     });
-    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-        [accountID]: null,
-    });
+    Onyx.update([buildPersonalDetailsUpdate({[accountID]: null})]);
 }
 
 /**
@@ -1252,6 +1403,10 @@ function clearUpdateMemberRoleError(policyID: string, login: string) {
             },
         },
     });
+}
+
+function clearBlockedRoleChange() {
+    Onyx.set(ONYXKEYS.BLOCKED_ROLE_CHANGE, null);
 }
 
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
@@ -1279,6 +1434,29 @@ function openPolicyMemberProfilePage(policyID: string, accountID: number) {
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
+    // A changed invitee selection starts a new invite draft. Do not carry a previous invite's
+    // arrangement choice into this one, including when the new flow is open in another tab.
+    clearWorkspaceInviteWorkArrangementDraft(policyID);
+}
+
+function setMembersSelectedForRoleChange(policyID: string, memberLogins: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID, logins: memberLogins});
+}
+
+/**
+ * Empties the selection in place, which is how the members table learns the change was saved and drops the rows it
+ * still has selected.
+ */
+function clearMembersSelectedForRoleChange(policyID: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, {policyID, logins: []});
+}
+
+/**
+ * Drops the selection entirely, for leaving the role screen without saving. The members table keeps its rows selected,
+ * since an empty selection is reserved for a saved change.
+ */
+function discardMembersSelectedForRoleChange() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE, null);
 }
 
 function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONST.POLICY.ROLE>) {
@@ -1287,6 +1465,14 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
 
 function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
+}
+
+function setWorkspaceInviteWorkArrangementDraft(policyID: string, hasOfficeWorkArrangement: boolean) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, hasOfficeWorkArrangement);
+}
+
+function clearWorkspaceInviteWorkArrangementDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, null);
 }
 
 function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
@@ -1425,9 +1611,14 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
-function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+/**
+ * @param shouldIncludeApprovers - Whether each row lists the member's approvers in order, each with their approval limit, instead of the member's own
+ * submitsTo, approvesTo and approval limit
+ */
+function downloadMembersCSV(policyID: string, shouldIncludeApprovers: boolean, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {
         policyID,
+        shouldIncludeApprovers,
     });
 
     const fileName = 'Members.csv';
@@ -1455,9 +1646,63 @@ function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, role);
 }
 
+/**
+ * Set the display name of a workspace member who doesn't have one. The name is stored on their account,
+ * so it applies on every workspace they belong to.
+ */
+function updatePolicyMemberDisplayName(
+    policyID: string,
+    firstName: string,
+    lastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    memberPersonalDetails: DisplayNamePersonalDetails,
+) {
+    if (!memberPersonalDetails.accountID || !memberPersonalDetails.email) {
+        return;
+    }
+
+    const optimisticDetails = buildOptimisticDisplayNameDetails(firstName, lastName, formatPhoneNumber, memberPersonalDetails);
+    const parameters: UpdatePolicyMemberDisplayNameParams = {policyID, email: memberPersonalDetails.email, firstName, lastName};
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME, parameters, {
+        optimisticData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    ...optimisticDetails,
+                    pendingFields: {displayName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+            }),
+        ],
+        successData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {pendingFields: {displayName: null}},
+            }),
+        ],
+        failureData: [
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    firstName: memberPersonalDetails.firstName ?? null,
+                    lastName: memberPersonalDetails.lastName ?? null,
+                    displayName: memberPersonalDetails.displayName ?? null,
+                    ...(optimisticDetails.avatar && {avatar: memberPersonalDetails.avatar}),
+                    pendingFields: {displayName: null},
+                },
+            }),
+        ],
+    });
+}
+
 function clearImportedSpreadsheetMemberData() {
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, null);
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, null);
+}
+
+function setWorkspaceMembersSelectedForBulkEdit(policyID: string, accountIDs: number[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {policyID, accountIDs});
+}
+
+function clearWorkspaceMembersSelectedForBulkEdit() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, null);
 }
 
 export {
@@ -1471,6 +1716,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
+    clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
@@ -1484,10 +1730,18 @@ export {
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
+    setMembersSelectedForRoleChange,
+    clearMembersSelectedForRoleChange,
+    discardMembersSelectedForRoleChange,
     clearWorkspaceInviteRoleDraft,
+    setWorkspaceInviteWorkArrangementDraft,
+    clearWorkspaceInviteWorkArrangementDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
     setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,
+    setWorkspaceMembersSelectedForBulkEdit,
+    clearWorkspaceMembersSelectedForBulkEdit,
+    updatePolicyMemberDisplayName,
 };

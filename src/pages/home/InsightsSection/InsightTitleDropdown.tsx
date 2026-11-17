@@ -11,7 +11,7 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -19,12 +19,16 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {HomeInsightConfig} from './useHomeInsightConfigs';
+
 type InsightTitleDropdownProps = {
     /** The insight options to list in the dropdown, in display order */
-    configs: SearchTypeMenuItem[];
+    configs: HomeInsightConfig[];
 
     selectedKey: SearchKey;
 
@@ -44,7 +48,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'CalendarSolid', 'User', 'Folder', 'Basket']) as Partial<Record<ExpensifyIconName, IconAsset>>;
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const triggerRef = useRef<View>(null);
+    const triggerRef = useRef<ComponentRef<typeof View>>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
 
@@ -67,6 +71,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
         icon: icons[config.icon],
         isSelected: config.key === selectedKey,
         onSelected: () => onSelect(config.key),
+        sentryLabel: config.sentryLabel,
     }));
 
     return (
@@ -76,7 +81,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
                 onPress={openMenu}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
-                sentryLabel="InsightTitleDropdown"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.INSIGHT_TITLE_DROPDOWN}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
             >
                 <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>

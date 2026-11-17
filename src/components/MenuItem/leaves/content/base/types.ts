@@ -1,10 +1,12 @@
 import type {MenuItemLabelSlot} from '@components/MenuItem/MenuItemAccessibilityContext';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type {ReactElement} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
 /** Props of the full-contrast leaves */
-type MenuItemPrimaryTextProps =
+type MenuItemPrimaryTextProps = (
     | {
           /** Plain text to render as the primary content */
           children: string | number;
@@ -17,14 +19,22 @@ type MenuItemPrimaryTextProps =
 
           /** Required here because the row builds its label from strings and can't read one out of an element */
           accessibilityLabel: string;
-      };
+      }
+) &
+    ForwardedFSClassProps & {
+        /** Defaults to 1. Anything else lets the text wrap, and `0` lets it grow unbounded */
+        numberOfLines?: number;
+
+        /** Whether this text can start native browser text selection inside an interactive row */
+        isSelectable?: boolean;
+    };
 
 /** Props of the muted leaves */
-type MenuItemSupportingTextProps = {
+type MenuItemSupportingTextProps = ForwardedFSClassProps & {
     /** Text to render */
     children: string | number;
 
-    /** Defaults to 2. Supporting text wraps, unlike primary text, which is always one line */
+    /** Defaults to 2. Supporting text wraps, unlike primary text, which is single line by default */
     numberOfLines?: number;
 };
 

@@ -4,13 +4,13 @@ import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext'
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
-
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid as canIOUBePaidAction, getNextApproverAccountID, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, isReportOwner} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,9 +22,11 @@ import useConfirmApproval from './useConfirmApproval';
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Approve button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProps) {
+function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrimaryActionProps) {
     const {isPaidAnimationRunning, startApprovedAnimation} = usePaymentAnimationsContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -35,14 +37,16 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const personalDetailsByLogins = usePersonalDetailsByLogin();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, undefined, undefined, personalDetailsByLogins);
     const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
 
@@ -58,18 +62,30 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
         currentUserAccountID,
         undefined,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(iouReport, chatReport, activePolicy, bankAccountList, currentUserDetails.login ?? '', currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            iouReport,
+            chatReport,
+            activePolicy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserAccountID,
+            undefined,
+            true,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation);
 
     return (
         <ExpenseHeaderApprovalButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.APPROVE}
             isAnyTransactionOnHold={isAnyTransactionOnHold}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             onApprove={onApprove}
@@ -80,7 +96,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             moneyRequestReport={iouReport}
             transactions={transactions}
             shouldShowPayButton={shouldShowPayButton}
-            isDisabled={isBlockSubmitDueToPreventSelfApproval}
+            isDisabled={!!isBlockSubmitDueToPreventSelfApproval || isDisabled}
         />
     );
 }

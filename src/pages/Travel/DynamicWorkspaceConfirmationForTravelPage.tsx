@@ -4,6 +4,7 @@ import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/Worksp
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
@@ -21,13 +22,13 @@ import React from 'react';
 
 function DynamicWorkspaceConfirmationForTravelPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path);
@@ -57,9 +58,9 @@ function DynamicWorkspaceConfirmationForTravelPage() {
             conciergeChat,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-            betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
+            delegateAccountID,
             hasOwnedPaidPolicy,
         });
         goBack();

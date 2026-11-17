@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {SafeString, Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import BeneficialOwnerDetailsFormPages from './BeneficialOwnerDetailsFormPages';
 import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
@@ -80,22 +80,16 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         Navigation.setParams({subPage} as Record<string, unknown>);
     }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length, isUserUBO, hasCompletedBeneficialOwnersStep]);
 
-    const navigateToSubPage = useCallback(
-        (subPage: string) => {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const navigateToSubPage = (subPage: string) => {
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
+    };
 
-    const navigateBackToSubPage = useCallback(
-        (subPage: string) => {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const navigateBackToSubPage = (subPage: string) => {
+        Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.BENEFICIAL_OWNERS, subPage, backTo}));
+    };
 
     const submit = () => {
-        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssn', 'street', 'city', 'state', 'zipCode'];
+        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwnersData = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => {

@@ -7,7 +7,7 @@ Task articles explain how to complete a specific workflow in Expensify.
 Task articles answer questions such as:
 
 * How do I submit an expense?
-* How do I change my Workspace plan?
+* How do I change my workspace plan?
 * How do I connect NetSuite?
 * Why can't I complete a specific action?
 
@@ -22,7 +22,7 @@ Every task article must:
 * Solve one primary workflow only
 * Match a specific customer goal
 * Use exact UI terminology
-* Follow the official naming conventions
+* Follow the official naming conventions in docs/HELPSITE_NAMING_CONVENTIONS.md
 * Be optimized for semantic retrieval
 * Be concise, actionable, and easy to scan
 
@@ -89,7 +89,7 @@ Every task article must include:
 
 ```yaml
 ---
-title: Clear task-based title using the feature name
+title: Clear Task-Based Title Using the Feature Name (title case)
 description: Short summary of the workflow and outcome
 keywords: [primary task phrase, feature name, related search terms]
 internalScope: Audience is [target role]. Covers [workflow]. Does not cover [excluded workflows].
@@ -110,6 +110,7 @@ Task article headings must:
 * Be searchable
 * Be explicit
 * Describe what the reader will do or learn
+* Use title case for the article title and sentence case for every `##` heading
 
 Use headings that begin with:
 
@@ -122,7 +123,7 @@ Use headings that begin with:
 
 Examples:
 
-* How to change your Workspace plan
+* How to change your workspace plan
 * Where to find billing receipts
 * Why you can't submit an expense report
 * What happens after you approve an expense
@@ -146,6 +147,9 @@ Procedural sections must:
 * Follow the actual UI flow
 * Use exact UI labels
 * Present actions in sequence
+* Use **select** for UI interactions and **choose** only for decisions between options
+* Start navigation in the navigation tabs and use a bolded navigation path, such as **Workspaces > [workspace name] > Members**
+* Combine web and mobile instructions when navigation is the same, and use separate "On web:" and "On mobile:" instructions when it differs
 
 Instructions should:
 
@@ -262,6 +266,8 @@ Before publishing, confirm:
 * One primary workflow is covered
 * Headings are task-based
 * UI terminology matches the product
+* The article title uses title case and every `##` heading uses sentence case
+* UI references, navigation, and capitalization follow docs/HELPSITE_NAMING_CONVENTIONS.md
 * Navigation instructions are accurate
 * Steps follow the actual workflow
 * Metadata reflects search intent

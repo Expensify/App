@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -46,6 +47,7 @@ function ExpenseRulesPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
@@ -156,6 +158,7 @@ function ExpenseRulesPage() {
                       icon: icons.Pencil,
                       text: translate('expenseRulesPage.editRule.title'),
                       value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_EDIT,
                       onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
                   },
               ]
@@ -164,6 +167,7 @@ function ExpenseRulesPage() {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_DELETE,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
@@ -173,6 +177,7 @@ function ExpenseRulesPage() {
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}
@@ -229,7 +234,7 @@ function ExpenseRulesPage() {
             >
                 {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={pageGutter}>{headerButton}</View>}
 
             {!hasRules && expenseRulesSubtitle}
 

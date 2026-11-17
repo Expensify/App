@@ -11,6 +11,8 @@ import getPlatform from '@libs/getPlatform';
 
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
 import CONST from '@src/CONST';
 
 import {useEffect, useRef, useState} from 'react';
@@ -21,17 +23,18 @@ import type LocationPermissionModalProps from './types';
 
 const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const [showModal, setShowModal] = useState(false);
     const isGrantedExternallyRef = useRef(false);
     const isModalActiveRef = useRef(false);
     const dismissedViaBackdropRef = useRef(false);
     const onGrantRef = useRef(onGrant);
     const onDenyRef = useRef(onDeny);
+    const resetPermissionFlowRef = useRef(resetPermissionFlow);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
+    const {asset: ReceiptLocationMarker, isLoading: isLoadingIllustration} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
@@ -40,16 +43,21 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     useEffect(() => {
         onGrantRef.current = onGrant;
         onDenyRef.current = onDeny;
-    }, [onGrant, onDeny]);
+        resetPermissionFlowRef.current = resetPermissionFlow;
+    }, [onGrant, onDeny, resetPermissionFlow]);
 
     const grantPermission = () => {
         isGrantedExternallyRef.current = true;
+        setShowModal(false);
         onGrantRef.current();
     };
 
     const checkPermission = async () => {
+        if (!isModalActiveRef.current) {
+            return;
+        }
         const status = await getLocationPermission();
-        if (!isPermissionGranted(status) || isGrantedExternallyRef.current) {
+        if (!isModalActiveRef.current || !isPermissionGranted(status) || isGrantedExternallyRef.current) {
             return;
         }
         grantPermission();
@@ -58,16 +66,20 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     usePolling(checkPermission, CONST.TIMING.LOCATION_UPDATE_INTERVAL, showModal, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
 
     useEffect(() => {
-        if (!startPermissionFlow) {
+        if (!startPermissionFlow || isLoadingIllustration) {
             return;
         }
 
         let ignore = false;
 
-        const resetFlowState = () => {
+        const closePrompt = () => {
             isModalActiveRef.current = false;
             setShowModal(false);
-            resetPermissionFlow();
+        };
+
+        const abortPermissionFlow = () => {
+            closePrompt();
+            resetPermissionFlowRef.current();
         };
 
         const handlePermissionFlow = async () => {
@@ -76,7 +88,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
-            onInitialGetLocationCompleted?.();
             if (isPermissionGranted(status)) {
                 grantPermission();
                 return;
@@ -105,10 +116,15 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 shouldCenterIcon: true,
                 shouldReverseStackedButtons: true,
                 prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+                shouldHideOnBackdropPress: true,
                 onBackdropPress: () => {
                     dismissedViaBackdropRef.current = true;
-                    closeModal();
-                    resetFlowState();
+                    // A grant picked up by the polling already reported the outcome, so the dismissal only closes the prompt.
+                    if (isGrantedExternallyRef.current) {
+                        closePrompt();
+                        return;
+                    }
+                    abortPermissionFlow();
                 },
                 isConfirmLoading: false,
             });
@@ -116,15 +132,24 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 return;
             }
 
+            if (hasError) {
+                updateLastLocationPermissionPrompt();
+            }
+
             // Already handled by the visibility listener
             if (isGrantedExternallyRef.current) {
-                resetFlowState();
+                if (action === ModalActions.CONFIRM) {
+                    closeModal();
+                }
+                closePrompt();
+                dismissedViaBackdropRef.current = false;
                 return;
             }
 
             if (action !== ModalActions.CONFIRM) {
-                resetFlowState();
+                closePrompt();
                 // A backdrop tap just dismisses the prompt - it's not an explicit denial, unlike tapping "Not now".
+                // The backdrop handler already aborted the flow, so there is nothing more to report.
                 if (!dismissedViaBackdropRef.current) {
                     onDenyRef.current(true);
                 }
@@ -137,7 +162,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             if (hasError && Linking.openSettings) {
                 Linking.openSettings();
                 closeModal();
-                resetFlowState();
+                abortPermissionFlow();
                 return;
             }
 
@@ -149,7 +174,11 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             }
 
             closeModal();
-            resetFlowState();
+            closePrompt();
+            // Polling may have picked up the grant while the OS prompt was open, so the outcome is already reported.
+            if (isGrantedExternallyRef.current) {
+                return;
+            }
             if (isPermissionGranted(result)) {
                 grantPermission();
             } else {
@@ -161,14 +190,17 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
         return () => {
             ignore = true;
+            // A backdrop dismissal of a previous flow can end via cleanup before its promise resolves, leaving the flag set.
+            dismissedViaBackdropRef.current = false;
+            setShowModal(false);
             if (!isModalActiveRef.current) {
                 return;
             }
             isModalActiveRef.current = false;
             closeModal();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes, or once the prompt illustration settles
+    }, [startPermissionFlow, isLoadingIllustration]);
 
     return null;
 }

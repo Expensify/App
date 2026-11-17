@@ -1,0 +1,40 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -85,9 +85,13 @@
+     if (!this.grContext && !this.canUseSoftware) {
+       return;
+     }
+-    this.pd = window.devicePixelRatio;
+-    canvas.width = canvas.clientWidth * this.pd;
+-    canvas.height = canvas.clientHeight * this.pd;
++    // A canvas can be painted through a CSS transform on an ancestor, which clientWidth does not
++    // report. Sizing the backing store from the layout size alone leaves the browser resampling the
++    // rendered surface, so fold the painted/layout ratio into the pixel density instead.
++    const paintedWidth = canvas.getBoundingClientRect().width;
++    this.pd = window.devicePixelRatio * (canvas.clientWidth > 0 && paintedWidth > 0 ? paintedWidth / canvas.clientWidth : 1);
++    canvas.width = Math.round(canvas.clientWidth * this.pd);
++    canvas.height = Math.round(canvas.clientHeight * this.pd);
+     (_this$surface = this.surface) === null || _this$surface === void 0 || _this$surface.ref.delete();
+     this.surface = null;
+     if (canvas.width === 0 || canvas.height === 0) {
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -79,9 +79,13 @@
+     if (!this.grContext && !this.canUseSoftware) {
+       return;
+     }
+-    this.pd = window.devicePixelRatio;
+-    canvas.width = canvas.clientWidth * this.pd;
+-    canvas.height = canvas.clientHeight * this.pd;
++    // A canvas can be painted through a CSS transform on an ancestor, which clientWidth does not
++    // report. Sizing the backing store from the layout size alone leaves the browser resampling the
++    // rendered surface, so fold the painted/layout ratio into the pixel density instead.
++    const paintedWidth = canvas.getBoundingClientRect().width;
++    this.pd = window.devicePixelRatio * (canvas.clientWidth > 0 && paintedWidth > 0 ? paintedWidth / canvas.clientWidth : 1);
++    canvas.width = Math.round(canvas.clientWidth * this.pd);
++    canvas.height = Math.round(canvas.clientHeight * this.pd);
+     (_this$surface = this.surface) === null || _this$surface === void 0 || _this$surface.ref.delete();
+     this.surface = null;
+     if (canvas.width === 0 || canvas.height === 0) {

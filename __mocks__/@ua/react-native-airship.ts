@@ -1,4 +1,16 @@
-import type {AirshipContact, AirshipLiveActivityManager, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot, AirshipRootIOS} from '@ua/react-native-airship';
+import type {
+    AirshipContact,
+    AirshipLiveActivityManager,
+    AirshipPush,
+    AirshipPushAndroid,
+    AirshipPushIOS,
+    AirshipRoot,
+    AirshipRootIOS,
+    LiveActivity,
+    PushNotificationStatus,
+} from '@ua/react-native-airship';
+
+import createMock from 'tests/utils/createMock';
 
 // eslint-disable-next-line no-restricted-syntax
 enum EventType {
@@ -43,43 +55,51 @@ namespace iOS {
     }
 }
 
-const pushIOS = jest.fn().mockImplementation(() => ({
+const pushIOS = createMock<AirshipPushIOS>({
     setBadgeNumber: jest.fn(),
     setForegroundPresentationOptions: jest.fn(),
     setForegroundPresentationOptionsCallback: jest.fn(),
-}))() as AirshipPushIOS;
+});
 
-const pushAndroid = jest.fn().mockImplementation(() => ({
+const pushAndroid = createMock<AirshipPushAndroid>({
     setForegroundDisplayPredicate: jest.fn(),
-}))() as AirshipPushAndroid;
+});
 
-const push = jest.fn().mockImplementation(() => ({
+const notificationStatus: PushNotificationStatus = {
+    isUserNotificationsEnabled: false,
+    areNotificationsAllowed: false,
+    isPushPrivacyFeatureEnabled: false,
+    isPushTokenRegistered: false,
+    isOptedIn: false,
+    isUserOptedIn: false,
+    notificationPermissionStatus: PermissionStatus.Denied,
+};
+const push = createMock<AirshipPush>({
     iOS: pushIOS,
     android: pushAndroid,
     enableUserNotifications: () => Promise.resolve(false),
     clearNotifications: jest.fn(),
-    getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false, airshipEnabled: false}),
+    getNotificationStatus: () => Promise.resolve(notificationStatus),
     getActiveNotifications: () => Promise.resolve([]),
-}))() as AirshipPush;
+});
 
-const contact = jest.fn().mockImplementation(() => ({
+const contact = createMock<AirshipContact>({
     identify: jest.fn(),
     getNamedUserId: () => Promise.resolve(undefined),
     reset: jest.fn(),
-    module: jest.fn(),
-}))() as AirshipContact;
+});
 
-const liveActivityManager = jest.fn().mockImplementation(() => ({
+const liveActivityManager = createMock<AirshipLiveActivityManager>({
     list: jest.fn(() => Promise.resolve([])),
     listAll: jest.fn(() => Promise.resolve([])),
-    start: jest.fn(() => Promise.resolve({id: 'mock-activity-id'})),
+    start: jest.fn(() => Promise.resolve(createMock<LiveActivity>({id: 'mock-activity-id'}))),
     update: jest.fn(() => Promise.resolve()),
     end: jest.fn(() => Promise.resolve()),
-}))() as AirshipLiveActivityManager;
+});
 
-const airshipIOS = jest.fn().mockImplementation(() => ({
+const airshipIOS = createMock<AirshipRootIOS>({
     liveActivityManager,
-}))() as AirshipRootIOS;
+});
 
 const Airship: Partial<AirshipRoot> = {
     addListener: jest.fn(),

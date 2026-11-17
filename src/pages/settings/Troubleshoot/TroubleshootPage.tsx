@@ -18,16 +18,19 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSwitchToClassic from '@hooks/useSwitchToClassic';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
-import ExportOnyxState from '@libs/ExportOnyxState';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -35,27 +38,29 @@ import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import colors from '@styles/theme/colors';
 
 import {clearOnyxAndResetApp} from '@userActions/App';
+import {resetAllChecks} from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
-type BaseMenuItem = WithSentryLabel & {
+type BaseMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     action: () => void | Promise<void>;
+    disabled?: boolean;
 };
 
 function TroubleshootPage() {
@@ -74,6 +79,8 @@ function TroubleshootPage() {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchQueryActions();
+    const {isOffline} = useNetwork();
+    const {switchToClassic, isSwitchingToClassic} = useSwitchToClassic();
     const showResetAndRefreshModal = async () => {
         const result = await showConfirmModal({
             title: translate('common.areYouSure'),
@@ -86,14 +93,25 @@ function TroubleshootPage() {
             return;
         }
         setShouldResetSearchQuery(true);
+        // The cleared state has no Concierge reportID, so opening Concierge must wait for OpenApp instead of creating a duplicate chat
+        resetAllChecks(true);
         clearOnyxAndResetApp();
     };
-    const exportOnyxState = useCallback(() => {
-        ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
-            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
-        });
-    }, [shouldMaskOnyxState]);
+    const exportOnyxState = async () => {
+        try {
+            const value = await readOnyxState();
+            const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
+            await saveOnyxStateFile(JSON.stringify(dataToShare));
+        } catch (error) {
+            Log.warn('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
+            await showConfirmModal({
+                title: translate('genericErrorPage.title'),
+                prompt: translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
+        }
+    };
 
     const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
@@ -135,10 +153,11 @@ function TroubleshootPage() {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
+                      // If the exit survey was completed recently, Classic opens only after the server saves the switch, which can't happen offline
+                      disabled: isSwitchingToClassic || (isOffline && surveyCompletedWithinLastMonth),
                       action() {
                           if (surveyCompletedWithinLastMonth) {
-                              switchToOldDot('');
-                              openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                              switchToClassic('');
                               return;
                           }
 
@@ -181,6 +200,7 @@ function TroubleshootPage() {
                 onPress: item.action,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 sentryLabel: item.sentryLabel,
+                disabled: item.disabled,
             }))
             .reverse();
     };
@@ -223,6 +243,7 @@ function TroubleshootPage() {
                                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                         <Switch
                                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_TROUBLESHOOT.MASK_EXPORT_ONYX_DATA_SWITCH}
                                             isOn={shouldMaskOnyxState}
                                             onToggle={setShouldMaskOnyxState}
                                         />
@@ -234,7 +255,7 @@ function TroubleshootPage() {
                                     shouldUseSingleExecution
                                 />
                                 <View style={[styles.mt6]}>
-                                    <TestToolMenu />
+                                    <TestToolMenu serverPageRoute={ROUTES.SETTINGS_TROUBLESHOOT_SERVER} />
                                 </View>
                                 {isDevelopment && (
                                     <View style={[styles.mt6]}>

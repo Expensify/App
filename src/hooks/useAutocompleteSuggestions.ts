@@ -1,31 +1,31 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
-import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, getViolationDisplayName, isFilterSupported, VIOLATION_FILTER_VALUES, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
+import {getDatePresets, getHasOptionAvailability, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -33,6 +33,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -41,7 +42,7 @@ import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useLoadSearchCategoryData from './useLoadSearchCategoryData';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
@@ -57,12 +58,17 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
+    /** Trip searches return trip rooms with the TravelApproval beta, which have their own statuses and no group-by */
+    isTravelApprovalBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -74,10 +80,14 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
+const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
+    .filter(isGroupBySupportedBySearch)
+    .map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -88,6 +98,7 @@ const EXPENSE_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.EXPENSE);
 const EXPENSE_REPORT_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT);
 const INVOICE_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.INVOICE);
 const TRIP_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.TRIP);
+const TRIP_ROOM_STATUS_VALUES = CONST.SEARCH.TRIP_FILTER_STATUSES;
 const TASK_STATUS_VALUES = Object.values(CONST.SEARCH.STATUS.TASK);
 const DEFAULT_STATUS_VALUES = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
@@ -107,12 +118,15 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
+    isTravelApprovalBetaEnabled,
     countryCode,
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -120,9 +134,10 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
-    const {localeCompare, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -130,20 +145,24 @@ function useAutocompleteSuggestions({
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
+    const {policyFilter: typedPolicyFilter, selectedPolicyIDs} = getAutocompletePolicyData(autocompleteQueryValue, ranges, policies, autocompleteSubstitutions);
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter);
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
 
     if (!autocomplete && ranges.length > 0) {
         const lastRange = ranges.at(ranges.length - 1);
-        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
+        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.some((key) => key === lastRange.key)) {
             const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
             const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -170,7 +189,8 @@ function useAutocompleteSuggestions({
             .map((range) => range.value.toLowerCase()),
     );
 
-    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeFilter = parsedQuery?.ranges?.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     switch (autocompleteKey) {
@@ -241,6 +261,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
@@ -251,9 +272,10 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -269,11 +291,19 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -285,6 +315,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+            // `in:` only works for types that support it (chat, task). A bare `in:` with no explicit type resolves to `type:chat`, so keep suggesting in that case.
+            if (typeFilter && !isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, currentType)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
             // If autocompleteValue is empty or just whitespace and we have already completed keys,
             // return empty array to hide suggestion list (consistent with group-by behavior)
             if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
@@ -294,9 +329,10 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 dateFnsLocale,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -312,10 +348,18 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
                 translate,
+                getReportByID,
                 rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
@@ -348,8 +392,9 @@ function useAutocompleteSuggestions({
                 switch (currentType) {
                     case CONST.SEARCH.DATA_TYPES.EXPENSE:
                     case CONST.SEARCH.DATA_TYPES.INVOICE:
-                    case CONST.SEARCH.DATA_TYPES.TRIP:
                         return GROUP_BY_FRIENDLY_VALUES;
+                    case CONST.SEARCH.DATA_TYPES.TRIP:
+                        return isTravelApprovalBetaEnabled ? [] : GROUP_BY_FRIENDLY_VALUES;
                     default:
                         return [];
                 }
@@ -379,7 +424,7 @@ function useAutocompleteSuggestions({
                         suggestedStatuses = INVOICE_STATUS_VALUES;
                         break;
                     case CONST.SEARCH.DATA_TYPES.TRIP:
-                        suggestedStatuses = TRIP_STATUS_VALUES;
+                        suggestedStatuses = isTravelApprovalBetaEnabled ? TRIP_ROOM_STATUS_VALUES : TRIP_STATUS_VALUES;
                         break;
                     case CONST.SEARCH.DATA_TYPES.TASK:
                         suggestedStatuses = TASK_STATUS_VALUES;
@@ -414,6 +459,38 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
+            if (!getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
+            const searchValue = autocompleteValue.toLowerCase();
+            const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
+                .filter(
+                    ({violationName, displayName}) =>
+                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) &&
+                        !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
+                        !alreadyAutocompletedKeys.has(violationName.toLowerCase()),
+                )
+                .sort((first, second) => localeCompare(first.displayName, second.displayName));
+
+            return filteredViolations.map(({violationName, displayName}) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                text: displayName,
+                autocompleteID: violationName,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
@@ -509,7 +586,9 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD: {
             const filteredValues = BOOLEAN_VALUES.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
             return filteredValues.map((value) => ({
@@ -527,21 +606,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
-            const keyValueCount = new Map<string, number>();
-            const alreadySelectedPolicyIds =
-                autocompleteSubstitutions &&
-                new Set(
-                    policyIdRanges
-                        .map((range) => {
-                            const baseKey = getSubstitutionMapKey(range.key, range.value);
-                            const index = keyValueCount.get(baseKey) ?? 0;
-                            keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
-                        })
-                        .filter(Boolean),
-                );
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(selectedPolicyIDs);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {
@@ -575,7 +640,7 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyCategories: allPolicyCategories,
+                policyIDsWithCategoryRules,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
@@ -615,6 +680,7 @@ function useAutocompleteSuggestions({
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
@@ -626,7 +692,7 @@ function useAutocompleteSuggestions({
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
                 .sort()
                 .slice(0, 10);
-            return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
+            return filteredDatePresets.map((datePreset) => ({filterKey: getUserFriendlyKey(autocompleteKey), text: datePreset}));
         }
         default: {
             return [];

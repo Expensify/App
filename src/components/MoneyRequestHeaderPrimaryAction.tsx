@@ -1,14 +1,17 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {markRejectViolationAsResolved} from '@libs/actions/IOU/RejectMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -17,7 +20,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 
@@ -30,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -67,7 +69,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [parentOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [parentOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -76,11 +78,21 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         : CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDFromAction}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [parentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportAction?.childReportID)}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [rawTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
+    const duplicateTransactionIDs = rawTransactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+    const loadedDuplicateTransactions = Object.values(duplicateTransactions ?? {}).filter(
+        (duplicate): duplicate is NonNullable<typeof duplicate> => !!duplicate && duplicate.transactionID !== transaction?.transactionID,
+    );
+    // The violation can list this expense or the same ID twice, while the loaded duplicates are keyed and exclude this expense.
+    const expectedDuplicateIDs = new Set(duplicateTransactionIDs.filter((id) => id !== transaction?.transactionID));
+    const {hasUnloadedReport: hasUnloadedDuplicateReport, hasSettledOrApprovedReport: hasSettledOrApprovedDuplicate} = useDuplicateReportsStatus(loadedDuplicateTransactions);
+    // Same rule as Keep selected on the review page: a duplicate that is missing, approved or paid is left out of the merge and Confirm fails.
+    const canKeepThisOne = !hasUnloadedDuplicateReport && !hasSettledOrApprovedDuplicate && loadedDuplicateTransactions.length >= expectedDuplicateIDs.size;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -93,23 +105,27 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REMOVE_HOLD}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
                         }
-                        changeMoneyRequestHoldStatus(
-                            parentReportAction,
-                            transaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: parentReportAction,
+                            iouTransaction: transaction,
+                            iouTransactionReport: transactionReport,
+                            reportActionChildReport: parentReportActionChildReport,
+                            policy,
                             isOffline,
-                            currentUserLogin ?? '',
-                            accountID,
-                            rawTransactionViolations,
+                            currentUserLogin: currentUserLogin ?? '',
+                            currentUserAccountID: accountID,
+                            transactionViolations: rawTransactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }}
                 >
                     <Button.Text>{translate('iou.unhold')}</Button.Text>
@@ -120,12 +136,13 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_RESOLVED}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!transaction?.transactionID) {
                             return;
                         }
-                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID);
+                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID, parentReportActions);
                     }}
                 >
                     <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>
@@ -136,6 +153,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.REVIEW_DUPLICATES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -150,8 +168,12 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         }
 
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE) {
+            if (!canKeepThisOne) {
+                return null;
+            }
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.KEEP_THIS_ONE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         if (!reportID) {
@@ -167,9 +189,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                                 route.params.backTo ?? Navigation.getActiveRoute(),
                                 reportID,
                                 transaction,
-                                removeSettledAndApprovedTransactions(
-                                    Object.values(duplicateTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && t.transactionID !== transaction?.transactionID),
-                                ),
+                                removeSettledAndApprovedTransactions(loadedDuplicateTransactions),
                                 policy,
                                 policyCategories,
                                 policyTags ?? {},
@@ -186,6 +206,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
         if (primaryAction === CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH) {
             return (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_HEADER_PRIMARY_ACTION.MARK_AS_CASH}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => {
                         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);

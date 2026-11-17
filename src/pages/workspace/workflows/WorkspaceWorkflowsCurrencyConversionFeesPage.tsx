@@ -6,7 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,7 +40,7 @@ type CurrencyConversionFeesItem = {
 function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: WorkspaceWorkflowsCurrencyConversionFeesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
@@ -86,6 +86,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
         <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>
             {translate('workflowsCurrencyConversionFeesPage.subtitle')}{' '}
             <TextLink
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES_LEARN_MORE_LINK}
                 style={[styles.textLabel, styles.link]}
                 href={CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}
             >
@@ -101,7 +102,7 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isGlobalReimbursementFXEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES}
+            shouldBeBlocked={!canConfigureCurrencyConversionFees}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

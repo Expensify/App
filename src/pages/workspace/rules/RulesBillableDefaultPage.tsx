@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -105,16 +105,14 @@ function RulesBillableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesBillableDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.generalTab.billableExpenses')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.billableExpenses')} />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb3]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>
                 </Text>
                 <ToggleSettingOptionRow
                     title={translate('workspace.tags.trackBillable')}
                     switchAccessibilityLabel={translate('workspace.tags.trackBillable')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.TRACK_BILLABLE_SWITCH}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mh5, styles.mv4]}
                     isActive={isBillableTrackingEnabled}

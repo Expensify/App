@@ -12,7 +12,7 @@ import {getAllPolicyValues, sortOptionsWithEmptyValue} from '@libs/SearchQueryUt
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -32,6 +32,7 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
     const theme = useTheme();
     const styles = useThemeStyles();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const selectedCategoriesItems = value.map((category) => {
         if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
@@ -55,7 +56,7 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>(
-        getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
+        getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories, policies).flatMap((policyCategories) =>
             Object.values(policyCategories ?? {}).map((category) => category.name),
         ),
     );

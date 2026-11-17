@@ -6,8 +6,9 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type * as SearchContext from '@components/Search/SearchContext';
 import type {SearchQueryContextValue} from '@components/Search/types';
 
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTypeMenu';
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';

@@ -1,9 +1,9 @@
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -84,7 +84,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Plane',
         'PlaneCircleSlash',
@@ -111,6 +111,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.UPCOMING_TRAVEL_ITEM}
             description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
             titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
@@ -127,10 +128,8 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
                     />
                 </View>
             }
-            wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-            hasSubMenuItems
+            wrapperStyle={[styles.alignItemsCenter, cardPaddingHorizontal]}
             viewMode={CONST.OPTION_MODE.COMPACT}
-            rightIconWrapperStyle={styles.pl2}
             shouldCheckActionAllowedOnPress={false}
         />
     );

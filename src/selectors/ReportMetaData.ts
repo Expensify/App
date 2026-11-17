@@ -1,8 +1,12 @@
 import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {deepEqual} from 'fast-equals';
 
 const isActionLoadingSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isActionLoading ?? false;
 
@@ -27,10 +31,64 @@ const reportActionsListLoadingStateSelector = (
 
 const isLoadingInitialReportActionsSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingInitialReportActions;
 
+const isLoadingReportStatusSelector = (loadingState: OnyxEntry<ReportLoadingState>) => loadingState?.isLoadingReportStatus;
+
 const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
     reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
 
 const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
+
+// Returned whenever nothing is pending, so every subscriber in that state gets the same reference.
+const NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS: Readonly<Record<string, string[]>> = Object.freeze({});
+
+// Single-entry cache keyed on the collection reference, so every subscriber gets the same result while the collection
+// is unchanged. Onyx hands every collection subscriber the same snapshot and rebuilds it only when a member changes
+// (OnyxCache.getCollectionData in react-native-onyx). A new snapshot with the same pending removals keeps the previous
+// result, because the option list cache downstream compares its inputs by reference.
+let cachedReportMetadataCollection: OnyxCollection<ReportMetadata>;
+let cachedPendingDeleteMemberAccountIDsByReportID: Readonly<Record<string, string[]>> = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+
+registerSessionCleanupCallback(() => {
+    cachedReportMetadataCollection = undefined;
+    cachedPendingDeleteMemberAccountIDsByReportID = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+});
+
+const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCollection<ReportMetadata>): Readonly<Record<string, string[]>> => {
+    if (reportMetadata === cachedReportMetadataCollection) {
+        return cachedPendingDeleteMemberAccountIDsByReportID;
+    }
+
+    const result: Record<string, string[]> = {};
+
+    for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
+        // Reports with no pending members at all are the overwhelming majority, so skip them before doing any work.
+        if (!metadata?.pendingChatMembers?.length) {
+            continue;
+        }
+
+        const pendingDeleteMemberAccountIDs = getPendingDeleteMemberAccountIDs(metadata.pendingChatMembers);
+        if (pendingDeleteMemberAccountIDs.length === 0) {
+            continue;
+        }
+
+        result[key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')] = pendingDeleteMemberAccountIDs;
+    }
+
+    cachedReportMetadataCollection = reportMetadata;
+    if (Object.keys(result).length === 0) {
+        cachedPendingDeleteMemberAccountIDsByReportID = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+    } else if (!deepEqual(result, cachedPendingDeleteMemberAccountIDsByReportID)) {
+        cachedPendingDeleteMemberAccountIDsByReportID = result;
+    }
+    return cachedPendingDeleteMemberAccountIDsByReportID;
+};
+
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
+
+/** The metadata fields an LHN row's option data reads: members pending removal and a pending DEW submit or approve. */
+const optionRowReportMetadataSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers, pendingExpenseAction: reportMetadata.pendingExpenseAction} : undefined;
 
 const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
 
@@ -42,8 +100,12 @@ export {
     reportActionsLoadingStateSelector,
     reportActionsListLoadingStateSelector,
     isLoadingInitialReportActionsSelector,
+    isLoadingReportStatusSelector,
     isOptimisticReportSelector,
     pendingNewTransactionIDsSelector,
     pendingChatMembersSelector,
+    pendingExpenseActionSelector,
+    optionRowReportMetadataSelector,
     pendingDeleteMemberAccountIDsSelector,
+    pendingDeleteMemberAccountIDsByReportIDSelector,
 };

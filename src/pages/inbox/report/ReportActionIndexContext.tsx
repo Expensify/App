@@ -1,13 +1,54 @@
-import {createContext} from 'react';
+import type {Dispatch, PropsWithChildren, SetStateAction} from 'react';
+
+import {useRecyclingState} from '@legendapp/list/react-native';
+import {createContext, useContext, useState} from 'react';
+
+type ReportActionPosition = {
+    index: number;
+    isNewest: boolean;
+    isRecycling?: boolean;
+};
 
 /**
- * Carries an action item's position index from the list renderer down to the rare consumers that
- * actually need it (e.g. `ReportActionItemMessageEdit` for scroll-to-index during edit mode).
+ * Carries an action item's position from the list renderer down to the rare consumers that
+ * actually need it (e.g. `ReportActionItemMessageEdit` for scrolling during edit mode).
  *
- * Using context keeps `index` out of the prop signatures of every intermediate component, so a
- * position shift caused by a new message arriving doesn't cascade re-renders through items that
- * never read it. Only components that `useContext(ReportActionIndexContext)` re-render on change.
+ * Using context keeps position data out of the prop signatures of every intermediate component, so
+ * a shift caused by a new message arriving doesn't cascade re-renders through items that never read
+ * it. Only components that `useContext(ReportActionIndexContext)` re-render on change.
  */
-const ReportActionIndexContext = createContext<number>(0);
+const ReportActionIndexContext = createContext<ReportActionPosition>({index: 0, isNewest: true});
 
+/**
+ * Kept apart from the position so rows that only need the recycling flag, like every `ReportActionItem`,
+ * don't re-render when a new message shifts the index of every row.
+ */
+const ReportActionRecyclingContext = createContext(false);
+
+/** Lets shared list implementations provide their own reliable way to reach the newest action. */
+const ReportActionScrollToNewestContext = createContext<(() => void) | undefined>(undefined);
+
+/**
+ * Each list passes the index from its row renderer and marks the last action as newest. The
+ * LegendList caller also sets isRecycling because it can reuse a mounted row for another action.
+ * Descendants use that flag to reset transient state (such as open menus or PDF load errors)
+ * with useRecyclingState instead of carrying it over to the next action in that row.
+ */
+function ReportActionPositionContextProvider({children, index, isNewest, isRecycling = false}: PropsWithChildren<ReportActionPosition>) {
+    return (
+        <ReportActionRecyclingContext.Provider value={isRecycling}>
+            <ReportActionIndexContext.Provider value={{index, isNewest, isRecycling}}>{children}</ReportActionIndexContext.Provider>
+        </ReportActionRecyclingContext.Provider>
+    );
+}
+
+/** Uses LegendList's recycling-aware state in the main report list and useState in shared, non-recycled lists. */
+function useReportActionItemState<State>(initialState: State | (() => State)): [State, Dispatch<SetStateAction<State>>] {
+    const isRecycling = useContext(ReportActionRecyclingContext);
+    const state = useState(initialState);
+    const recyclingState = useRecyclingState(initialState);
+    return isRecycling ? [...recyclingState] : state;
+}
+
+export {ReportActionPositionContextProvider, ReportActionScrollToNewestContext, useReportActionItemState};
 export default ReportActionIndexContext;

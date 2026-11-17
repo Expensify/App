@@ -35,7 +35,6 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -50,6 +49,7 @@ import type {
     Rule,
     Transaction,
     TransactionViolation,
+    ReusableDistanceRoute,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -96,7 +96,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
-    betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
@@ -118,6 +117,11 @@ type MoneyRequestStepDistanceNavigationParams = {
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
+    moneyRequestReportTransactions: Transaction[];
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: ReusableDistanceRoute[];
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -201,7 +205,6 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     previousOdometerDraft,
-    betas,
     recentWaypoints,
     unit,
     personalOutputCurrency,
@@ -224,6 +227,9 @@ function handleMoneyRequestStepDistanceNavigation({
     participantsPolicyTags,
     isOffline = false,
     rules,
+    isVendorMatchingBetaEnabled,
+    moneyRequestReportTransactions,
+    reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -298,7 +304,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     isFromGlobalCreate: transactionIsFromGlobalCreate,
                     isLookingAroundUser,
                     isSelfDMDestination,
-                    // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
                             report,
@@ -348,7 +353,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
-                            betas,
                             isSelfTourViewed,
                             previousOdometerDraft,
                             optimisticTransactionID,
@@ -358,6 +362,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             reportActionsList: undefined,
                             getCurrencyDecimals,
                             rules,
+                            reusableDistanceRoutes,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -392,7 +397,9 @@ function handleMoneyRequestStepDistanceNavigation({
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                        isVendorMatchingBetaEnabled,
                         report,
+                        moneyRequestReportTransactions,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
@@ -434,7 +441,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         personalDetails,
                         recentWaypoints,
-                        betas,
                         previousOdometerDraft,
                         policyParams: {
                             policyTagList,
@@ -445,6 +451,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         getCurrencyDecimals,
                         participantsPolicyTags,
                         rules,
+                        reusableDistanceRoutes,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

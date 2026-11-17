@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +21,7 @@ import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {formatCancelledDescription, getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 
 import {openTravelDotLink} from '@userActions/Link';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -31,6 +33,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CarTripDetails from './CarTripDetails';
@@ -46,7 +49,6 @@ type DynamicTripDetailsPageProps = StackScreenProps<TravelNavigatorParamList, ty
 
 function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons([
-        'NewWindow',
         'Plane',
         'PlaneCircleSlash',
         'Bed',
@@ -74,6 +76,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
     const {transactionID, sequenceIndex, pnr, reportID} = route.params;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`);
@@ -85,9 +88,7 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
 
     const {reservation, prevReservation, reservationType, reservationIcon, isCancelled} = getReservationDetailsFromSequence(icons, tripReservations, Number(sequenceIndex));
     const travelerEmail = reservation?.travelerPersonalInfo?.email;
-    const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail),
-    });
+    const [travelerPersonalDetails] = useAllPersonalDetails((personalDetails: OnyxEntry<PersonalDetailsList>) => pickTravelerPersonalDetails(personalDetails, travelerEmail));
 
     return (
         <ScreenWrapper
@@ -101,20 +102,26 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                 shouldForceFullScreen
                 shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
-                <HeaderWithBackButton
-                    title={formatCancelledDescription(
-                        translate('iou.canceled'),
-                        reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
-                        isCancelled,
-                    )}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                    icon={reservationIcon}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                    iconFill={theme.icon}
-                />
+                <Header>
+                    <Header.BackButton
+                        onPress={() => Navigation.goBack(backPath)}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Icon
+                        src={reservationIcon}
+                        width={20}
+                        height={20}
+                        style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Title
+                        title={formatCancelledDescription(
+                            translate('iou.canceled'),
+                            reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
+                            isCancelled,
+                        )}
+                    />
+                </Header>
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
@@ -141,35 +148,47 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                             personalDetails={travelerPersonalDetails}
                         />
                     )}
-                    <MenuItem
-                        title={translate('travel.modifyTrip')}
-                        icon={icons.Pencil}
-                        iconRight={icons.NewWindow}
-                        shouldShowRightIcon
-                        onPress={() => {
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_MODIFY_TRIP}
+                        onPress={callIfAuthenticated(() => {
                             setIsModifyTripLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
                                 setIsModifyTripLoading(false);
                             });
-                        }}
-                        wrapperStyle={styles.mt3}
-                        shouldShowLoadingSpinnerIcon={isModifyTripLoading}
-                        disabled={isModifyTripLoading || isOffline}
-                    />
-                    <MenuItem
-                        title={translate('travel.tripSupport')}
-                        icon={icons.Phone}
-                        iconRight={icons.NewWindow}
-                        shouldShowRightIcon
-                        onPress={() => {
+                        }, session)}
+                        style={styles.mt3}
+                        isDisabled={isModifyTripLoading || isOffline}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>{isModifyTripLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Pencil} />}</MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('travel.modifyTrip')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.NewWindowIcon />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.TRAVEL.TRIP_DETAILS_TRIP_SUPPORT}
+                        onPress={callIfAuthenticated(() => {
                             setIsTripSupportLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {
                                 setIsTripSupportLoading(false);
                             });
-                        }}
-                        shouldShowLoadingSpinnerIcon={isTripSupportLoading}
-                        disabled={isTripSupportLoading || isOffline}
-                    />
+                        }, session)}
+                        isDisabled={isTripSupportLoading || isOffline}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>{isTripSupportLoading ? <MenuItem.Spinner /> : <MenuItem.Icon src={icons.Phone} />}</MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('travel.tripSupport')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.NewWindowIcon />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

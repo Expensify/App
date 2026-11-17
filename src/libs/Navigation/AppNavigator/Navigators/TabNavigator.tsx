@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import NavigatorTabBarVisibilityProvider from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -7,6 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
+
+import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -18,13 +21,13 @@ import SCREENS from '@src/SCREENS';
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect} from 'react';
 import {View} from 'react-native';
 
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
+import TabRootGestureController from './TabRootGestureController';
 
 const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
@@ -66,7 +69,16 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
     return SuspenseWrapper;
 }
 
-const HomePageScreen = withSuspense(LazyHomePage);
+const HomePageWithSuspense = withSuspense(LazyHomePage);
+
+// Outside the Suspense so the lazy chunk load still shows LazyFallback instead of suspending into Freeze.
+function HomePageScreen() {
+    return (
+        <FreezeWrapper>
+            <HomePageWithSuspense />
+        </FreezeWrapper>
+    );
+}
 const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
@@ -75,13 +87,6 @@ const InsightsPageScreen = withSuspense(LazyInsightsPage);
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
-
-/**
- * Root-level tab screens where the swipe-back gesture should be disabled.
- * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
- * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
- */
-const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
 const TAB_SCREEN_OPTIONS_BASE = {
     headerShown: false,
@@ -93,16 +98,6 @@ const TAB_SCREEN_OPTIONS_BASE = {
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const navigation = useNavigation();
-    const parentNavigation = navigation.getParent();
-    const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
-            return;
-        }
-        const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
-        parentNavigation.setOptions({gestureEnabled: !isRootScreen});
-    }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
@@ -111,37 +106,40 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-            screenLayout={bottomTabScreenLayoutWrapper}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <NavigatorTabBarVisibilityProvider>
+            <TabRootGestureController />
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                tabBar={renderTabBar}
+                screenOptions={screenOptions}
+                screenLayout={bottomTabScreenLayoutWrapper}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigatorScreen}
+                />
+            </Tab.Navigator>
+        </NavigatorTabBarVisibilityProvider>
     );
 }
 

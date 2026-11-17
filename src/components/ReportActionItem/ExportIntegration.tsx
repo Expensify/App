@@ -12,7 +12,7 @@ import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, ge
 
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -38,7 +38,8 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const integrationName = getOriginalMessage(action)?.label;
 
     if (hasReasoning(action)) {
-        const message = getExportIntegrationMessageHTML(translate, action, integrationName);
+        // Omit the period inside the expense link because AskToExplain supplies it.
+        const message = getExportIntegrationMessageHTML(translate, action, integrationName, true);
         return (
             <ReportActionItemMessageWithExplain
                 message={message}
@@ -69,6 +70,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
                     <TextLink
                         key={index}
                         href={fragment.url}
+                        sentryLabel={CONST.SENTRY_LABEL.EXPORT_INTEGRATION.MESSAGE_LINK}
                     >
                         {fragment.text}{' '}
                     </TextLink>

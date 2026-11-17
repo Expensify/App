@@ -3,11 +3,12 @@ import type {ComposerRef, TextSelection} from '@components/Composer/types';
 
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 
+import type {TextInputScrollEvent} from '@src/types/utils/ReactNativeCompat';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
 
 import type {RefObject} from 'react';
-import type {MeasureInWindowOnSuccessCallback, TextInputScrollEvent} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
 import {useEffect, useRef} from 'react';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -47,7 +48,8 @@ function useComposerSuggestions({composerRef, selection, measureParentContainer,
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(composerRef.current) ?? -1);
+        const input = composerRef.current;
+        tag.set(findNodeHandle(input && 'measure' in input ? input : null) ?? -1);
     }, [tag, composerRef]);
 
     useFocusedInputHandler(

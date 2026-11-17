@@ -12,6 +12,7 @@ type OnboardingWorkEmailForm = Form<
     InputID,
     {
         [INPUT_IDS.ONBOARDING_WORK_EMAIL]: string;
+        completedTaskReportActionID?: string;
     }
 >;
 

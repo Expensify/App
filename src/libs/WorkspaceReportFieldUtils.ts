@@ -11,7 +11,7 @@ import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Pol
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import type {FormulaPart} from './Formula';
+import type {FORMULA_PART_TYPES as FormulaPartTypes, FormulaPart} from './Formula';
 
 import {addErrorMessage} from './ErrorUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
@@ -106,22 +106,33 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     // Dynamically require to avoid circular dependency with ReportActionsUtils
     const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
         parse: (formula?: string) => FormulaPart[];
-        FORMULA_PART_TYPES: {FREETEXT: string};
+        FORMULA_PART_TYPES: typeof FormulaPartTypes;
     };
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
 /**
- * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ * Finds an existing report field with the specified name in the policy's field list (case-insensitive).
  */
-function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
-    return Object.values(fieldList ?? {}).some((reportField) => {
+function getExistingReportFieldByName(
+    fieldList: Record<string, PolicyReportField> | undefined,
+    fieldName: string,
+    expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>,
+): PolicyReportField | undefined {
+    return Object.values(fieldList ?? {}).find((reportField) => {
         if (!isReportFieldTargetValid(reportField, expectedTarget)) {
             return false;
         }
 
         return reportField.name.toLowerCase() === fieldName.toLowerCase();
     });
+}
+
+/**
+ * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ */
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    return !!getExistingReportFieldByName(fieldList, fieldName, expectedTarget);
 }
 
 /**
@@ -180,7 +191,7 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
     // Dynamically require to avoid circular dependency with ReportActionsUtils
     const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
         parse: (formula?: string) => FormulaPart[];
-        FORMULA_PART_TYPES: {REPORT: string};
+        FORMULA_PART_TYPES: typeof FormulaPartTypes;
     };
 
     // cspell:ignore oldid
@@ -276,6 +287,7 @@ export {
     getUnsupportedReportFieldFormulaParts,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    getExistingReportFieldByName,
     isReportFieldTargetValid,
     getReportFieldsForTarget,
     isReportFieldImportedFromIntegration,

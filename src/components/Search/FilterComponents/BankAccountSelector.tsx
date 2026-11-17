@@ -11,6 +11,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,6 +48,7 @@ type BankAccountFilterItem = {
 
 function BankAccountSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: BankAccountSelectorProps) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -177,6 +179,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                 <SelectionListWithSections<BankAccountFilterItem>
                     sections={sections}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelection}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowSearchInput}
@@ -188,6 +191,7 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                     shouldPreventAutoScrollOnSelect
                     style={selectionListStyle}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             )}
         </ListFilterView>

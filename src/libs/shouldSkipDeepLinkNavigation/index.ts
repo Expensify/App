@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {isTestToolsRoute} from './common';
+
 export default function shouldSkipDeepLinkNavigation(route: string) {
-    // no-op for all other platforms
-    return false;
+    return isTestToolsRoute(route);
 }

@@ -10,10 +10,13 @@ import type {Route} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ValueOf} from 'type-fest';
+
+import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
 
 import {
     removePolicyCategoryItemizedReceiptsRequired,
@@ -27,6 +30,8 @@ import {
 import {setDraftRequireFieldsRule} from './actions/User';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {isPendingDeleteOrUpdate} from './PolicyRulesUtils';
+
+const REQUIRE_FIELDS_SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
 type RequireFieldsRuleType = DeepValueOf<typeof CONST.REQUIRE_FIELDS_RULE_TYPES>;
 type FieldRequirementsDirection = DeepValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
@@ -308,8 +313,10 @@ function applyRequireFieldsReceiptSettings(
     category: PolicyCategory | undefined,
     effectiveForm: RequireFieldsRuleForm,
     initialForm: Partial<RequireFieldsRuleForm>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const receiptSetting = effectiveForm[INPUT_IDS.RECEIPT_SETTING];
     const itemizedReceiptSetting = effectiveForm[INPUT_IDS.ITEMIZED_RECEIPT_SETTING];
@@ -334,24 +341,30 @@ function applyRequireFieldsReceiptSettings(
     }
 
     if (isReceiptOverrideValue(receiptTarget) && isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget);
+        setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, receiptTarget, itemizedTarget, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
         return;
     }
 
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger two API.write calls below.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
+
     if (isReceiptOverrideValue(receiptTarget)) {
-        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget);
+        setPolicyCategoryReceiptsRequired(policyData, categoryName, receiptTarget, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isReceiptOverrideValue(itemizedTarget)) {
-        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget);
+        setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, itemizedTarget, isVendorMatchingBetaEnabled, remainingTaskData);
     }
 }
 
 function saveRequireFieldsRule(
     policyData: PolicyData,
     form: RequireFieldsRuleForm,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     touchedFields?: Set<RequireFieldsRuleSettingFieldKey>,
     clearedFields?: Set<RequireFieldsRuleSettingFieldKey>,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const categoryName = form[INPUT_IDS.CATEGORY];
     if (!categoryName || !policyData.policy?.id) {
@@ -362,38 +375,58 @@ function saveRequireFieldsRule(
     const category = policyCategories?.[categoryName];
     const initialForm = getRequireFieldsFormFromCategory(category);
     const effectiveForm = getEffectiveRequireFieldsRuleForm(category, form);
+    // Drained to {} after the first write so this save's optimistic task tick fires exactly once, even though it can trigger up to five API.write calls below.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.DESCRIPTION_SETTING, clearedFields)) {
-        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, false, policyCategories);
+        setPolicyCategoryDescriptionRequired(policyData.policy.id, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     } else if (!clearedFields?.has(INPUT_IDS.DESCRIPTION_SETTING) && effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] !== initialForm[INPUT_IDS.DESCRIPTION_SETTING]) {
         setPolicyCategoryDescriptionRequired(
             policyData.policy.id,
             categoryName,
             effectiveForm[INPUT_IDS.DESCRIPTION_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
             policyCategories,
+            remainingTaskData,
         );
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ATTENDEES_SETTING, clearedFields)) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, false, policyCategories);
+        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     } else if (!clearedFields?.has(INPUT_IDS.ATTENDEES_SETTING) && effectiveForm[INPUT_IDS.ATTENDEES_SETTING] !== initialForm[INPUT_IDS.ATTENDEES_SETTING]) {
-        setPolicyCategoryAttendeesRequired(policyData.policy.id, categoryName, effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE, policyCategories);
+        setPolicyCategoryAttendeesRequired(
+            policyData.policy.id,
+            categoryName,
+            effectiveForm[INPUT_IDS.ATTENDEES_SETTING] === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE,
+            policyCategories,
+            remainingTaskData,
+        );
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (hasClearedRequireFieldsSetting(category, INPUT_IDS.ITEMIZED_RECEIPT_SETTING, clearedFields)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (hasReceiptSettingsChanged(category, effectiveForm, initialForm, touchedFields, clearedFields)) {
-        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, touchedFields, clearedFields);
+        applyRequireFieldsReceiptSettings(policyData, categoryName, category, effectiveForm, initialForm, isVendorMatchingBetaEnabled, touchedFields, clearedFields, remainingTaskData);
     }
 }
 
-function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
+function deleteRequireFieldsRule(
+    policyData: PolicyData,
+    ruleKey: string,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const {categoryName} = parseRequireFieldsRuleKey(ruleKey);
     if (!categoryName || !policyData.policy?.id) {
         return;
@@ -407,20 +440,26 @@ function deleteRequireFieldsRule(policyData: PolicyData, ruleKey: string) {
         return;
     }
 
+    // Drained to {} after the first write so this delete's optimistic task tick fires exactly once, even though it can trigger up to four API.write calls below.
+    let remainingTaskData = reviewWorkspaceSettingsTaskData;
+
     if (isDescriptionRequiredForCategory(category)) {
-        setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories);
+        setPolicyCategoryDescriptionRequired(policyID, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isAttendeesRequiredForCategory(category)) {
-        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories);
+        setPolicyCategoryAttendeesRequired(policyID, categoryName, false, policyCategories, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isReceiptRequireOverrideForCategory(category) || isReceiptWaivedForCategory(category)) {
-        removePolicyCategoryReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
+        remainingTaskData = {};
     }
 
     if (isItemizedReceiptRequireOverrideForCategory(category) || isItemizedReceiptWaivedForCategory(category)) {
-        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+        removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled, remainingTaskData);
     }
 }
 
@@ -795,6 +834,24 @@ function getRequireFieldsFieldSettingUpdate(
     };
 }
 
+/** Returns the require fields draft for generated values, and the setting fields that the generated settings change */
+function getRequireFieldsDraftFromGeneratedValues(values: GeneratedRuleValues): {draft: GeneratedRuleValues; touchedFieldKeys: Set<RequireFieldsRuleSettingFieldKey>} {
+    let draft = values;
+    const touchedFieldKeys = new Set<RequireFieldsRuleSettingFieldKey>();
+    for (const fieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
+        const setting = values[fieldKey];
+        if (setting === undefined) {
+            continue;
+        }
+        const update = getRequireFieldsFieldSettingUpdate(fieldKey, setting);
+        draft = {...draft, ...update.formUpdate};
+        for (const touchedFieldKey of update.touchedFieldKeys) {
+            touchedFieldKeys.add(touchedFieldKey);
+        }
+    }
+    return {draft, touchedFieldKeys};
+}
+
 /**
  * Direction currently applied on the category for this field, or undefined when there is no override.
  * Unlike getRequireFieldsFormFromCategory, unset fields stay undefined instead of defaulting to Don't require.
@@ -971,6 +1028,7 @@ function getRequireFieldsFieldCouplingTooltipKey(
 }
 
 export {
+    REQUIRE_FIELDS_SETTING_FIELD_KEYS,
     canClearRequireFieldsField,
     categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
@@ -981,6 +1039,7 @@ export {
     getRequireFieldsDisplayedSetting,
     getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldCouplingTooltipKey,
+    getRequireFieldsDraftFromGeneratedValues,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
     getRequireFieldsPendingActionForCategory,

@@ -129,13 +129,13 @@ describe('actions/IOU/createExpenseByType', () => {
             draftTransactionIDs: [],
             isSelfTourViewed: false,
             conciergeChat: undefined,
-            betas: undefined,
             personalDetails: {},
             delegateAccountID: undefined,
             isTrackIntentUser: undefined,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         };
 
         return {transaction, transactionDetails, params};
@@ -145,7 +145,6 @@ describe('actions/IOU/createExpenseByType', () => {
         overrides: Partial<Parameters<typeof createExpenseByType>[0]> & Pick<Parameters<typeof createExpenseByType>[0], 'transactionType' | 'params' | 'transaction' | 'transactionDetails'>,
     ) {
         return createExpenseByType({
-            dateFnsLocale: undefined,
             waypoints: undefined,
             participants: [],
             policyRecentlyUsedCurrencies: [],

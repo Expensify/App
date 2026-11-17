@@ -193,28 +193,103 @@ describe('initSplitExpenseItemData stale tax handling', () => {
         expect(splitExpense.taxAmount).toBe(909);
     });
 
-    it('keeps the parent stored tax trio when only a disabled rate resolves', () => {
-        // The stored code is disabled and it is also the default, so no selectable rate resolves. Keep the parent's
-        // internally-consistent stored trio.
+    it('clears the tax trio when only a disabled rate resolves', () => {
+        // Given the stored code is disabled and it is also the default, so no selectable rate resolves
+        // When the split is seeded
         const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             policy: buildPolicyWithOnlyDisabledRate('20%'),
             getCurrencyDecimals: () => 2,
         });
 
-        expect(splitExpense.taxCode).toBe(TAX_CODE);
-        expect(splitExpense.taxValue).toBe('5%');
-        expect(splitExpense.taxAmount).toBe(476);
+        // Then all three tax fields are cleared, because the backend rejects a split that carries the disabled code
+        expect(splitExpense.taxCode).toBe('');
+        expect(splitExpense.taxValue).toBe('');
+        expect(splitExpense.taxAmount).toBe(0);
     });
 
-    it('keeps the parent stored tax trio when no live rate can be resolved', () => {
-        // The rate was deleted and there is no default to fall back to. Rather than emitting an undefined code/value
-        // (which the save path would overwrite with the parent's deleted values while keeping a recomputed amount),
-        // leave the parent's internally-consistent stored trio in place.
+    it('clears the tax trio when no live rate can be resolved', () => {
+        // Given the rate was deleted and there is no default to fall back to
+        // When the split is seeded
         const splitExpense = initSplitExpenseItemData(transaction, transactionReport, {policy: buildPolicyWithoutRates(), getCurrencyDecimals: () => 2});
 
-        expect(splitExpense.taxCode).toBe(TAX_CODE);
-        expect(splitExpense.taxValue).toBe('5%');
-        expect(splitExpense.taxAmount).toBe(476);
+        // Then all three tax fields are cleared to empty values (not undefined), so the save path doesn't fall back
+        // to the parent's deleted values
+        expect(splitExpense.taxCode).toBe('');
+        expect(splitExpense.taxValue).toBe('');
+        expect(splitExpense.taxAmount).toBe(0);
+    });
+
+    describe('distance expenses', () => {
+        const RATE_ID = 'rate_1';
+
+        // A distance rate with tax reclaimable on, pointing at TAX_CODE. The custom unit has tax enabled, so the policy
+        // default is the fallback when the rate's tax can't be used.
+        const withDistanceRate = (policy: Policy, taxClaimablePercentage = 1): Policy =>
+            ({
+                ...policy,
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true},
+                        rates: {
+                            [RATE_ID]: {customUnitRateID: RATE_ID, name: 'Custom rate', rate: 100, enabled: true, attributes: {taxRateExternalID: TAX_CODE, taxClaimablePercentage}},
+                        },
+                    },
+                },
+            }) as Policy;
+
+        const distanceTransaction: Transaction = {
+            ...transaction,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID, quantity: 10}},
+        };
+
+        it("falls back to the policy default when the distance rate's tax rate was disabled", () => {
+            // Given a distance expense whose rate still points at a tax rate that has since been disabled, and an
+            // enabled 10% policy default
+            // When the split is seeded
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
+                policy: withDistanceRate(buildPolicyWithDisabledRate('5%', '10%')),
+                getCurrencyDecimals: () => 2,
+            });
+
+            // Then the split uses the enabled default (100 * 10 / 110 = 9.09) instead of the disabled rate from the
+            // distance rate, which the backend would reject
+            expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
+            expect(splitExpense.taxValue).toBe('10%');
+            expect(splitExpense.taxAmount).toBe(909);
+        });
+
+        it("applies the distance rate's claimable percentage to the fallback tax", () => {
+            // Given a distance expense whose rate's tax was disabled, an enabled 10% policy default, and a rate whose tax
+            // is only reclaimable on 50% of the mileage amount
+            // When the split is seeded
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
+                policy: withDistanceRate(buildPolicyWithDisabledRate('5%', '10%'), 0.5),
+                getCurrencyDecimals: () => 2,
+            });
+
+            // Then the tax is computed on the claimable half only (50 * 10 / 110 = 4.55), matching the create and edit
+            // distance flows, instead of on the whole split amount
+            expect(splitExpense.taxCode).toBe(NEW_TAX_CODE);
+            expect(splitExpense.taxValue).toBe('10%');
+            expect(splitExpense.taxAmount).toBe(455);
+        });
+
+        it("clears the tax trio when the distance rate's tax and the policy default are both disabled", () => {
+            // Given a distance expense whose rate points at a disabled tax rate that is also the policy default
+            // When the split is seeded
+            const splitExpense = initSplitExpenseItemData(distanceTransaction, transactionReport, {
+                policy: withDistanceRate(buildPolicyWithOnlyDisabledRate('5%')),
+                getCurrencyDecimals: () => 2,
+            });
+
+            // Then no disabled tax code is sent with the split
+            expect(splitExpense.taxCode).toBe('');
+            expect(splitExpense.taxValue).toBe('');
+            expect(splitExpense.taxAmount).toBe(0);
+        });
     });
 
     it('keeps the stored tax fields when the stored value still matches the policy rate', () => {
@@ -239,9 +314,9 @@ describe('initSplitExpenseItemData stale tax handling', () => {
  * Tests for `getSplitReimbursable`, which resolves the `reimbursable` value a split is seeded with.
  *
  * The parent expense's stored value is only inherited while the policy leaves the reimbursable field editable.
- * A locked field (one of the two "Always …" cash-expense modes) must win over a stale stored value, and
- * managed-card transactions must stay non-reimbursable regardless, because their toggle is hidden in the split
- * editor and the user would have no way to correct it.
+ * A locked field (one of the two "Always …" cash-expense modes) must win over a stale stored value. Managed-card
+ * transactions always inherit the parent value, because their reimbursable value comes from the card feed, not the
+ * workspace cash-expense rules.
  */
 describe('getSplitReimbursable', () => {
     const buildReimbursablePolicy = (
@@ -335,26 +410,49 @@ describe('getSplitReimbursable', () => {
     });
 
     describe('managed-card transactions', () => {
-        it('stays false under a locked "Always reimbursable" policy — the split editor hides the toggle, so the user could not correct it', () => {
+        it('keeps a non-reimbursable card expense false under a locked "Always reimbursable" policy', () => {
+            // Given a workspace that forces cash expenses to be reimbursable
             const policy = buildReimbursablePolicy({
                 reimbursableLocked: true,
                 defaultReimbursable: true,
             });
 
-            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+            // When a non-reimbursable card expense is split
+            // Then the split keeps the card expense's value, because the workspace rule only applies to cash expenses
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
         });
 
-        it('stays false when the field is unlocked and the parent expense is reimbursable', () => {
+        it('keeps a reimbursable card expense true under a locked "Always non-reimbursable" policy', () => {
+            // Given a workspace that forces cash expenses to be non-reimbursable
             const policy = buildReimbursablePolicy({
-                reimbursableLocked: false,
-                defaultReimbursable: true,
+                reimbursableLocked: true,
+                defaultReimbursable: false,
             });
 
-            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+            // When a reimbursable card expense is split
+            // Then the split keeps the card expense's value, because the card feed set it
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
         });
 
-        it('stays false with no policy', () => {
-            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        it('inherits the parent value when the field is unlocked', () => {
+            // Given a workspace that leaves the reimbursable field editable
+            const policy = buildReimbursablePolicy({
+                reimbursableLocked: false,
+                defaultReimbursable: false,
+            });
+
+            // When a card expense is split
+            // Then the split keeps the card expense's reimbursable value instead of forcing it to false
+            expect(getSplitReimbursable(policy, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
+            expect(getSplitReimbursable(policy, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
+        });
+
+        it('inherits the parent value with no policy', () => {
+            // Given a card expense split with no workspace (selfDM)
+            // When the split is seeded
+            // Then it keeps the card expense's reimbursable value
+            expect(getSplitReimbursable(undefined, true, buildReimbursableTransaction({managedCard: true}))).toBe(true);
+            expect(getSplitReimbursable(undefined, false, buildReimbursableTransaction({managedCard: true}))).toBe(false);
         });
     });
 

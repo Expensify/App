@@ -9,7 +9,7 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type UsePreviewMessageAnimationParams = {
@@ -97,68 +97,49 @@ function usePreviewMessageAnimation({
         opacity: previewMessageOpacity.get(),
     }));
 
-    const previewMessage = useMemo(() => {
-        if (isScanning) {
-            return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
-        }
-        if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
-            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-        }
-        if (shouldShowRTERViolationMessage) {
-            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
-        }
-
+    let previewMessage;
+    if (isScanning) {
+        previewMessage = totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
+    } else if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
+        previewMessage = `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+    } else if (shouldShowRTERViolationMessage) {
+        previewMessage = `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
+    } else {
         let payerOrApproverName;
         if (isPolicyExpenseChat || isTripRoom) {
-            payerOrApproverName = getPolicyName({report: chatReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
-        } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
+            payerOrApproverName = getPolicyName({
+                report: chatReport,
+                policy,
+                unavailableTranslation: translate('workspace.common.unavailable'),
+            });
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({
-                accountID: managerID,
-                shouldUseShortForm: true,
-                formatPhoneNumber,
-                translate,
-            });
+            payerOrApproverName = isInvoiceRoom
+                ? getInvoicePayerName(chatReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy)
+                : getDisplayNameForParticipant({
+                      accountID: managerID,
+                      shouldUseShortForm: true,
+                      formatPhoneNumber,
+                      hiddenTranslation: translate('common.hidden'),
+                  });
         }
-
         if (isApproved) {
-            return translate('iou.managerApproved', payerOrApproverName);
+            previewMessage = translate('iou.managerApproved', payerOrApproverName);
+        } else {
+            let paymentVerb: TranslationPaths = 'iou.payerOwes';
+            if (iouSettled || iouReport?.isWaitingOnBankAccount) {
+                paymentVerb = 'iou.payerPaid';
+            } else if (hasNonReimbursableTransactions) {
+                paymentVerb = 'iou.payerSpent';
+                payerOrApproverName = getDisplayNameForParticipant({
+                    accountID: chatReport?.ownerAccountID,
+                    shouldUseShortForm: true,
+                    formatPhoneNumber,
+                    hiddenTranslation: translate('common.hidden'),
+                });
+            }
+            previewMessage = translate(paymentVerb, payerOrApproverName);
         }
-        let paymentVerb: TranslationPaths = 'iou.payerOwes';
-        if (iouSettled || iouReport?.isWaitingOnBankAccount) {
-            paymentVerb = 'iou.payerPaid';
-        } else if (hasNonReimbursableTransactions) {
-            paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({
-                accountID: chatReport?.ownerAccountID,
-                shouldUseShortForm: true,
-                formatPhoneNumber,
-                translate,
-            });
-        }
-        return translate(paymentVerb, payerOrApproverName);
-    }, [
-        isScanning,
-        numberOfPendingRequests,
-        numberOfRequests,
-        shouldShowRTERViolationMessage,
-        isPolicyExpenseChat,
-        isTripRoom,
-        isInvoiceRoom,
-        isApproved,
-        iouSettled,
-        iouReport?.isWaitingOnBankAccount,
-        hasNonReimbursableTransactions,
-        translate,
-        totalDisplaySpend,
-        chatReport,
-        policy,
-        invoiceReceiverPolicy,
-        invoiceReceiverPersonalDetail,
-        managerID,
-        formatPhoneNumber,
-    ]);
+    }
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning || isSubmittingAnimationRunning) {

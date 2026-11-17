@@ -68,6 +68,15 @@ A Workspace admin can view **Outstanding, Approved, and Paid** expenses if they 
 
 Admins can edit **tags** and **categories**, but can only modify the amount, date, or merchant name if the report is **Outstanding**. Reports can be rejected back to the last approver to put them back in an outstanding state. For company card reconciliation, refer to [this article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/company-cards/Reconciliation).
 
-## Can I search for expenses in the mobile app?
+## Can I search or filter expenses in the mobile app?
 
-No, the Expensify Classic mobile app does not have a search bar or filters in the **Expenses** tab. You must scroll through your expenses manually, which are listed in chronological order with the most recent at the top. For advanced filtering and search options, use the web version of Expensify on your desktop. New Expensify does offer some filtering which you can learn about [here](https://help.expensify.com/articles/new-expensify/getting-started/Using-Reports-in-New-Expensify).
+No, you cannot search or filter expenses in the Expensify Classic mobile app. 
+
+You can search and filter expenses in the New Expensify mobile app. [Learn how to filter expenses and reports in New Expensify](/articles/new-expensify/getting-started/Using-Reports-in-New-Expensify).
+
+## Can I bulk download receipts without opening each receipt individually? 
+
+
+In Expensify Classic, you can’t bulk download the actual receipt images. Receipts must be downloaded individually. In New Expensify, you can bulk download receipt images. 
+
+To bulk download receipt images, [switch to New Expensify](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#how-to-switch-from-expensify-classic-to-new-expensify) and follow the steps to [download receipts on selected expenses](/articles/new-expensify/reports-and-expenses/How-to-Export-Expenses#how-to-download-the-receipts-on-selected-expenses). 

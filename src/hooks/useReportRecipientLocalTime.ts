@@ -1,4 +1,5 @@
-import ONYXKEYS from '@src/ONYXKEYS';
+import {isTransactionThread} from '@libs/ReportActionsUtils';
+
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -6,7 +7,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {canShowReportRecipientLocalTimeSelector} from '@selectors/Report';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useOnyx from './useOnyx';
+import useParentReportAction from './useParentReportAction';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseReportRecipientLocalTimeParams = {
     /** The report currently being looked at */
@@ -16,9 +18,11 @@ type UseReportRecipientLocalTimeParams = {
 function useReportRecipientLocalTime({report}: UseReportRecipientLocalTimeParams): boolean {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [canShowRecipientLocalTime = false] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: canShowReportRecipientLocalTimeSelector(report, currentUserAccountID)});
+    const [canShowRecipientLocalTime = false] = useAllPersonalDetails(canShowReportRecipientLocalTimeSelector(report, currentUserAccountID));
 
-    return canShowRecipientLocalTime;
+    const parentReportAction = useParentReportAction(report);
+
+    return canShowRecipientLocalTime && !isTransactionThread(parentReportAction);
 }
 
 export default useReportRecipientLocalTime;

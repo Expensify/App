@@ -1,3 +1,6 @@
+import isHTMLElement from '@libs/isHTMLElement';
+
+import type {ComponentRef} from 'react';
 import type React from 'react';
 import type {View} from 'react-native';
 
@@ -6,13 +9,7 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
 
-type FocusableContainer = {
-    addEventListener: HTMLElement['addEventListener'];
-    removeEventListener: HTMLElement['removeEventListener'];
-    contains: HTMLElement['contains'];
-};
-
-type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
+type UseListKeyboardNavConfig<T extends ComponentRef<typeof View> | HTMLElement> = {
     isActive: boolean;
     itemKeys: string[];
     disabledIndexes: readonly number[];
@@ -25,7 +22,7 @@ type UseListKeyboardNavConfig<T extends View | HTMLElement> = {
  * items, so the browser handles Enter natively and SortableItem forwards it to the
  * inner pressable. Space is reserved for dnd-kit drag initiation.
  */
-function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef}: UseListKeyboardNavConfig<T>) {
+function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({isActive, itemKeys, disabledIndexes, containerRef}: UseListKeyboardNavConfig<T>) {
     const isFocused = useIsFocused();
     const [hasFocus, setHasFocus] = useState(false);
     const [hasBeenFocused, setHasBeenFocused] = useState(false);
@@ -49,15 +46,15 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         if (!isActive) {
             return;
         }
-        const container = containerRef.current as FocusableContainer | null;
-        if (!container?.addEventListener) {
+        const container = containerRef.current;
+        if (!isHTMLElement(container)) {
             return;
         }
         const handleFocusIn = (event: FocusEvent) => {
             setHasBeenFocused(true);
             setHasFocus(true);
-            const target = event.target as HTMLElement | null;
-            if (target?.id) {
+            const target = event.target;
+            if (isHTMLElement(target) && target.id) {
                 const index = itemKeysRef.current.indexOf(target.id);
                 if (index >= 0) {
                     setFocusedIndex(index);

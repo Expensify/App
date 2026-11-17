@@ -1,10 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {GroupedTransactions} from '@src/types/onyx';
-import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {getDecodedTagName, isTagMissing} from './TagUtils';
@@ -57,12 +54,7 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
 /**
  * Groups transactions by category
  */
-function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
-    if (!report) {
-        return [];
-    }
-
-    const reportCurrency = report.currency ?? '';
+function groupTransactionsByCategory(transactions: Transaction[], reportCurrency: string, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     const groups = new Map<string, Transaction[]>();
 
     for (const transaction of transactions) {
@@ -92,12 +84,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 /**
  * Groups transactions by tag
  */
-function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
-    if (!report) {
-        return [];
-    }
-
-    const reportCurrency = report.currency ?? '';
+function groupTransactionsByTag(transactions: Transaction[], reportCurrency: string, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     const groups = new Map<string, Transaction[]>();
 
     for (const transaction of transactions) {

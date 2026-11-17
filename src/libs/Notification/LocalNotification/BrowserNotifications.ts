@@ -1,23 +1,25 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import * as AppUpdate from '@libs/actions/AppUpdate';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
+import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
-import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -142,13 +144,16 @@ export default {
      * Create a report comment notification
      *
      * @param usesIcon true if notification uses right circular icon
+     * @param reportIDToName names for the rooms the comment mentions by reportID, so they aren't shown as #Hidden
      */
     pushReportCommentNotification(
         report: Report,
         reportAction: ReportAction,
         onClick: LocalNotificationClickHandler,
+        derivedReportName: string | undefined,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         usesIcon = false,
-        reportAttributes?: ReportAttributesDerivedValue['reports'],
+        reportIDToName?: Record<string, string>,
     ) {
         let title;
         let body;
@@ -157,18 +162,33 @@ export default {
         const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
+        const plainTextPerson = person?.map((f) => (Str.isSMSLogin(f.text ?? '') ? formatPhoneNumber(f.text ?? '') : (f.text ?? ''))).join() ?? '';
 
-        // Specifically target the comment part of the message
+        // Specifically target the comment part of the message, falling back to the action's full text
+        // for system actions (e.g. MARKEDREIMBURSED) that have no COMMENT-type message fragment.
         let plainTextMessage = '';
         if (Array.isArray(message)) {
-            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html);
+            plainTextMessage = getTextFromHtml(message?.find((f) => f?.type === 'COMMENT')?.html, undefined, reportIDToName);
         } else {
-            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
+            plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html, undefined, reportIDToName) : '';
+        }
+        if (!plainTextMessage) {
+            if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+                const originalMessage = getOriginalMessage(reportAction);
+                plainTextMessage = translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', undefined, originalMessage?.message?.trim());
+            } else {
+                const rawMessage = reportAction.message;
+                const messages: Message[] = Array.isArray(rawMessage) ? rawMessage.filter((m): m is Message => m !== undefined) : [];
+                plainTextMessage = messages
+                    .map((m) => m.text ?? '')
+                    .join(' ')
+                    .trim();
+            }
         }
 
-        if (isRoomOrGroupChat) {
-            const roomName = deprecatedGetReportName(report, reportAttributes);
+        const isExpenseReport = ReportUtils.isExpenseReport(report);
+        if (isRoomOrGroupChat || isExpenseReport) {
+            const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -194,7 +214,8 @@ export default {
         policy,
         currentUserAccountID,
         currentUserLogin,
-        reportAttributes,
+        derivedMovedFromReportName,
+        formatPhoneNumber,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -207,7 +228,8 @@ export default {
             policyTags,
             currentUserAccountID,
             currentUserLogin,
-            reportAttributes,
+            movedFromReportName: derivedMovedFromReportName,
+            formatPhoneNumber,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
@@ -216,23 +238,6 @@ export default {
             reportID: report.reportID,
         };
         push(title, body, icon, data, onClick);
-    },
-
-    /**
-     * Create a notification to indicate that an update is available.
-     */
-    pushUpdateAvailableNotification() {
-        push(
-            'Update available',
-            'A new version of this app is available!',
-            '',
-            {},
-            () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
-            false,
-            'UpdateAvailable',
-        );
     },
 
     /**

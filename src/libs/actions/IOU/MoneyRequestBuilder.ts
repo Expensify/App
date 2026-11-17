@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import type {WriteReadyBarrier} from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -10,8 +11,10 @@ import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getReimbursementChoice, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -25,6 +28,7 @@ import {
     computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
+    getNewestOutstandingReportForUser,
     getOutstandingChildRequest,
     getReimbursableTotal,
     getReportTransactions,
@@ -80,7 +84,7 @@ import type {ReplaceReceiptRetryParams} from './Receipt';
 import type {StartSplitBilActionParams} from './Split';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
-import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
+import type {CreateTrackExpenseParams, TrackExpenseRetryParams} from './types/CreateTrackExpenseParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
 
@@ -104,7 +108,8 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-    | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES;
 
 type MoneyRequestInformation = {
     payerAccountID: number;
@@ -129,6 +134,11 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     receipt?: Receipt;
+    /**
+     * Overrides the state carried on `receipt` when the caller derives it at submit time. The Scan confirmation does,
+     * because a receipt validated before the user finished typing carries a state that is a field behind.
+     */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     waypoints?: WaypointCollection;
     comment?: string;
     originalTransactionID?: string;
@@ -182,9 +192,15 @@ type RequestMoneyInformation = {
     draftTransactionIDs?: string[];
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
+    isTransactionAlreadyOnReport?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -196,14 +212,16 @@ type RequestMoneyInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type MoneyRequestInformationParams = {
@@ -211,7 +229,6 @@ type MoneyRequestInformationParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
@@ -222,9 +239,13 @@ type MoneyRequestInformationParams = {
     newReimbursableTotal?: number;
     newNonReimbursableTotal?: number;
     newUnheldReimbursableTotal?: number;
+
+    /** The change in the report total belongs to held expenses, so the unheld totals stay the same. */
+    isReportTotalChangeOnHold?: boolean;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
+    optimisticIOUCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
@@ -232,6 +253,12 @@ type MoneyRequestInformationParams = {
     isReverseSplitOperation?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+
+    /** Reuses this thread so a retry lands on the records the first attempt created. */
+    existingTransactionThreadReportID?: string;
+
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
+    isTransactionAlreadyOnReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -244,6 +271,11 @@ type MoneyRequestInformationParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
+    /** Report actions of `parentChatReport` */
+    parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+    /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
+    participantChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -301,6 +333,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -309,6 +342,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
     testDriveCommentReportActionID?: string;
     currentUserAccountIDParam: number;
+    delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -355,7 +389,7 @@ function getReceiptError(
     isScanRequest = true,
     errorKey?: number,
     action?: IOUActionParams,
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | TrackExpenseRetryParams,
 ): Errors | ErrorFields {
     const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
 
@@ -390,17 +424,15 @@ function buildOnyxDataForTestDriveIOU(
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
-        // delegateAccountIDParam: will be threaded in PR 14; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
-        delegateAccountIDParam: undefined,
+        delegateAccountIDParam: testDriveIOUParams.delegateAccountID,
         getCurrencyDecimals: testDriveIOUParams.getCurrencyDecimals,
     });
     const text = translateLocal('testDrive.employeeInviteMessage', getAllPersonalDetails()?.[testDriveIOUParams.currentUserAccountIDParam]?.firstName ?? '');
-    // delegateAccountIDParam: will be threaded in PR 15; buildOptimisticAddCommentReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
     const textComment = buildOptimisticAddCommentReportAction({
         text,
         actorAccountID: testDriveIOUParams.currentUserAccountIDParam,
         reportActionID: testDriveIOUParams.testDriveCommentReportActionID,
-        delegateAccountIDParam: undefined,
+        delegateAccountIDParam: testDriveIOUParams.delegateAccountID,
     });
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
@@ -439,7 +471,9 @@ function buildOnyxDataForTestDriveIOU(
 
 function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Transaction, isScanRequest: boolean): OnyxTypes.Transaction {
     if (isScanRequest && isLocalFile(transaction.receipt?.source)) {
-        return {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}};
+        const localSource = String(transaction.receipt?.source);
+        ReceiptStorage.retain(localSource);
+        return {...transaction, receipt: {...transaction.receipt, localSource}};
     }
     return transaction;
 }
@@ -466,8 +500,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         selfDMReportID,
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
+        delegateAccountID,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -660,6 +696,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 value: {
                     ...transactionThreadReport,
                     pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    errorFields: {createChat: null},
                 },
             },
             {
@@ -774,6 +811,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
             currentUserAccountIDParam,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         onyxData.optimisticData?.push(...testDriveOptimisticData);
@@ -795,16 +833,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             redundantParticipants[accountID] = null;
         }
 
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailListAction,
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: successPersonalDetailListAction,
-        });
+        onyxData.optimisticData?.push(buildPersonalDetailsUpdate(personalDetailListAction));
+        onyxData.successData?.push(buildPersonalDetailsUpdate(successPersonalDetailListAction));
     }
 
     if (!isEmptyObject(nextStep)) {
@@ -1061,7 +1091,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                                   errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                               },
                               [iou.action.reportActionID]: {
-                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                                  // `errorKey + 1` so this doesn't overwrite the transaction's `ReceiptError` when the receipt view merges them.
+                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey + 1),
                               },
                           }
                         : {
@@ -1150,6 +1181,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasDependentTags: hasDependentTags(policy, policyTagList ?? {}),
         isInvoiceTransaction: false,
         ownerLogin: undefined,
+        isVendorMatchingBetaEnabled,
     });
 
     if (violationsOnyxData) {
@@ -1284,9 +1316,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         newReimbursableTotal,
         newNonReimbursableTotal,
         newUnheldReimbursableTotal,
+        isReportTotalChangeOnHold = false,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
+        optimisticIOUCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
@@ -1294,6 +1328,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isReverseSplitOperation,
         action,
         currentReportActionID,
+        existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport = false,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -1301,12 +1337,14 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         quickAction,
         policyRecentlyUsedCurrencies,
         personalDetails,
-        betas,
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
+        parentChatReportActions,
+        participantChatReportActions,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1323,6 +1361,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         created,
         merchant,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode,
@@ -1404,13 +1443,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+
+        if (!iouReport && isPolicyExpenseChat) {
+            iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports);
+        }
     }
 
     const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense
         ? false
-        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules, action, !!moneyRequestReportID);
+        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
@@ -1436,11 +1479,14 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   nonReimbursableTotal,
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
-                  betas,
+                  isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
+    } else if (isTransactionAlreadyOnReport) {
+        // The report already counts this transaction, so skip the totals. Still clone it, because code below mutates `iouReport`.
+        iouReport = {...iouReport};
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
@@ -1453,6 +1499,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // precisely why an expense in another currency otherwise never reaches the total.
         // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
         const hasReportTotalOverride = newReportTotal !== undefined;
+        // The override is the full report total, which also counts held expenses, so the unheld totals only move by the change in total
+        const reportTotalChange = hasReportTotalOverride ? newReportTotal - (iouReport.total ?? 0) : -reportAmount;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
@@ -1471,7 +1519,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal + reportTotalChange;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
@@ -1484,15 +1532,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
                 didUpdateOptimisticTotal = true;
             }
-            if (typeof iouReport.unheldTotal === 'number') {
-                // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
-                if (hasReportTotalOverride) {
-                    iouReport.unheldTotal = newReportTotal;
-                } else {
-                    iouReport.unheldTotal -= reportAmount;
-                }
+            if (typeof iouReport.unheldTotal === 'number' && !isReportTotalChangeOnHold) {
+                iouReport.unheldTotal += reportTotalChange;
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + reportTotalChange;
                 }
             }
         }
@@ -1525,6 +1568,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             created,
             merchant,
             receipt,
+            receiptState,
             category,
             tag,
             taxCode,
@@ -1548,7 +1592,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });
 
-    iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    if (!isTransactionAlreadyOnReport) {
+        // A retry must not bump this, because `isOneTransactionReport` checks `transactionCount === 1`.
+        iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    }
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
@@ -1652,8 +1699,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
-            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
+            optimisticIOUCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             isPersonalTrackingExpense: isSelfDMSplit,
             ...(shouldGenerateTransactionThreadReport !== undefined ? {shouldGenerateTransactionThreadReport} : {}),
@@ -1662,7 +1710,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             delegateAccountIDParam: delegateAccountID,
         });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
+    // An existing chat report is either the parent chat report or the participant's chat. A new optimistic chat report has no actions yet.
+    let chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    if (!isNewChatReport) {
+        chatReportActions = chatReport.reportID === parentChatReport?.reportID ? parentChatReportActions : participantChatReportActions;
+    }
+
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
 
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
@@ -1671,11 +1725,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             chatReport,
             iouReport,
             getCurrencyDecimals,
+            delegateAccountID,
             comment,
             optimisticTransaction,
             undefined,
             optimisticReportPreviewActionID,
-            delegateAccountID,
         );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
@@ -1707,7 +1761,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : {};
 
     const predictedNextStatus =
-        iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
+        iouReport.statusNum ?? (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
@@ -1774,6 +1828,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isVendorMatchingBetaEnabled,
     });
 
     return {
@@ -1914,9 +1969,9 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
+function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: OnyxEntry<string[]>) {
     let mergedCurrencies: string[];
-    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
+    const currenciesArray = Array.isArray(policyRecentlyUsedCurrencies) ? policyRecentlyUsedCurrencies : [];
     if (currency) {
         const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));

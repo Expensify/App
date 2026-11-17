@@ -1,19 +1,16 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrYou, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -36,18 +33,19 @@ type ReactionTooltipContentProps = {
     currentUserAccountID: number;
 };
 
-function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate) {
-    return (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-        multiPersonalDetailsSelector(accountIDs)(personalDetails)
-            ?.map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
+function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    return (personalDetails: PersonalDetailsList) =>
+        getPersonalDetailsByIDs(accountIDs, personalDetails)
+            .map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
+            .map((name) => (Str.isSMSLogin(name) ? formatPhoneNumber(name) : name))
             .filter((name) => name)
-            .join(', ') ?? '';
+            .join(', ');
 }
 
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
-    const [namesString] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userNamesStringSelector(accountIDs, currentUserAccountID, translate)});
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
+    const [namesString] = usePersonalDetailsByIDs(accountIDs, userNamesStringSelector(accountIDs, currentUserAccountID, translate, formatPhoneNumber));
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (
@@ -72,4 +70,4 @@ function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserA
 
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
 
-export default React.memo(ReactionTooltipContent);
+export default ReactionTooltipContent;

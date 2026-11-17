@@ -22,8 +22,10 @@ import useOnyx from './useOnyx';
  * a single boolean. Groups can be scoped, so a caller only sees the requests it cares about (e.g. the
  * OpenReport request for one specific report, keyed by `reportID`).
  *
- * The public API is one dedicated hook per group. The generic that powers them stays internal so call
- * sites cannot pass the wrong scope key for a group.
+ * Each group is reached through a dedicated public hook. The generic that powers them stays internal so
+ * call sites cannot pass the wrong scope key for a group.
+ *
+ * See contributingGuides/LOADING_STATE.md for the group contract and the rules for using these hooks.
  */
 
 type PendingRequestGroupConfig = {
@@ -33,7 +35,7 @@ type PendingRequestGroupConfig = {
     /**
      * Extracts the scope key from a request for scoped groups (e.g. `reportID` for report loading).
      * Omitted for unscoped groups, which match on command alone. Returns `undefined` when the request
-     * carries no usable scope key, which never matches a caller's scope key.
+     * carries no usable scope key, which can only equal an undefined caller scope key.
      */
     getScopeKey?: (request: AnyRequest) => string | number | undefined;
 
@@ -45,34 +47,42 @@ type PendingRequestGroupConfig = {
     ignoreOfflineInitiatedPersisted?: boolean;
 };
 
-// Only WRITE commands are pushed to the SequentialQueue (see `processRequest` in src/libs/API/index.ts);
-// READ and side-effect commands are processed straight through the middleware and never land in
-// PERSISTED_REQUESTS / PERSISTED_ONGOING_REQUESTS. Groups may therefore only contain WRITE_COMMANDS —
-// a read/side-effect command here would make its hook permanently return false. Typing each command list
-// as `WriteCommand[]` makes the type system enforce that invariant rather than relying on the comment.
-// OpenApp only, deliberately not ReconnectApp: this group replaces the `IS_LOADING_APP` flag, which is set
-// true only for OpenApp (see getOnyxDataForOpenOrReconnect in src/libs/actions/App.ts). Including ReconnectApp
-// would make full-page loaders show during background reconnects (coming back online, update-gap sync), where
-// the old flag stayed false. The top LoadingBar, which does show during reconnects, uses LOADING_BAR_COMMANDS.
-const APP_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP];
-const REPORT_LOAD_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_REPORT];
-const LOADING_BAR_COMMANDS: WriteCommand[] = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION];
+const APP_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP] satisfies WriteCommand[]);
+const REPORT_LOAD_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT] satisfies WriteCommand[]);
+const LOADING_BAR_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION] satisfies WriteCommand[]);
 
 const PENDING_REQUEST_GROUPS = {
-    appLoad: {
-        commands: new Set<string>(APP_LOAD_COMMANDS),
-    },
     reportLoad: {
-        commands: new Set<string>(REPORT_LOAD_COMMANDS),
+        commands: REPORT_LOAD_COMMANDS,
         getScopeKey: (request) => (typeof request.data?.reportID === 'string' ? request.data.reportID : undefined),
     },
     loadingBar: {
-        commands: new Set<string>(LOADING_BAR_COMMANDS),
+        commands: LOADING_BAR_COMMANDS,
         ignoreOfflineInitiatedPersisted: true,
     },
 } satisfies Record<string, PendingRequestGroupConfig>;
 
 type PendingRequestGroup = keyof typeof PENDING_REQUEST_GROUPS;
+
+type AppLoadVariant = 'appLoad' | 'appLoadOnline';
+
+type AppLoadQueueState = {
+    isPending: boolean;
+
+    // Reports whether this application load ever reached the network, rather than whether it is moving now.
+    isOnlinePending: boolean;
+};
+
+type AppLoadPendingState = {
+    isAppLoadPending: boolean;
+    isOnlineAppLoadPending: boolean;
+    isLoadingApp: boolean;
+};
+
+type AppLoadSkeletonStateInput = Pick<AppLoadPendingState, 'isAppLoadPending' | 'isLoadingApp'> & {
+    hasLoadedApp: boolean;
+    isLoadingHasLoadedApp: boolean;
+};
 
 type PendingRequestSelectors = {
     /** Selector over the persisted request queue. */
@@ -106,62 +116,118 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
 
 // Process-session memory: an OpenApp was seen in the queue this session and its deferred updates (whose
 // finallyData clears IS_LOADING_APP) have not flushed yet. The sequential queue drops the request from
-// PERSISTED_(ONGOING_)REQUESTS before it flushes those held updates, so `hasPendingOpenApp` alone goes
+// PERSISTED_(ONGOING_)REQUESTS before it flushes those held updates, so `hasQueuedOpenApp` alone goes
 // false too early and the migrated screens would render cleared/stale data during that window. This latch
 // keeps the gate pending across it. It is NOT a stored flag: a stranded IS_LOADING_APP read from disk on
 // a fresh reload never sets it, because that reload runs ReconnectApp, not OpenApp. Keying on an observed
 // OpenApp rather than HAS_LOADED_APP is what also covers an account switch, where HAS_LOADED_APP is
 // already true but a real OpenApp still fires (see Delegate's atomic reset).
 //
-// This is deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
+// These are deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
 // still in progress (an account switch remounts screens), and a different consumer that mounts during the
 // window must still see the latch. Reading a mutable module value during render is safe here because the
-// only value the render combines it with is the reactive isLoadingApp, and the latch only changes inside
-// the effect below, whose deps are exactly [hasPendingOpenApp, isLoadingApp]: any latch change is therefore
-// accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
-let hasObservedOpenAppFlushPending = false;
+// only value the render combines it with is the reactive isLoadingApp, and a latch only changes inside the
+// effect below: any latch change is therefore accompanied by a dep change that re-renders every consumer,
+// so no consumer can strand a stale read.
+const appLoadVariantsWithPendingFlush = new Set<AppLoadVariant>();
 
 // Keep this outside the hook so a new consumer can see a report whose deferred updates are still pending.
 const reportIDsWithPendingOpenReportFlush = new Set<string>();
 
-/** Whether an OpenApp request or its deferred Onyx updates are pending. */
-function useIsAppLoadPending(): boolean {
-    const hasPendingOpenApp = useIsPendingInternal('appLoad');
+function selectAppLoadQueueState(requests: OnyxEntry<AnyRequest[]>): AppLoadQueueState {
+    let isPending = false;
+    let isOnlinePending = false;
+
+    for (const request of requests ?? []) {
+        if (!APP_LOAD_COMMANDS.has(request.command)) {
+            continue;
+        }
+
+        isPending = true;
+
+        if (!request.initiatedOffline) {
+            isOnlinePending = true;
+            break;
+        }
+    }
+
+    return {isPending, isOnlinePending};
+}
+
+function selectIsAppLoadOngoing(request: OnyxEntry<AnyRequest>): boolean {
+    return !!request && APP_LOAD_COMMANDS.has(request.command);
+}
+
+function useAppLoadPendingState(): AppLoadPendingState {
+    const [queueState] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: selectAppLoadQueueState});
+    const [hasOngoingOpenApp] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: selectIsAppLoadOngoing});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
+    const hasQueuedOpenApp = !!queueState?.isPending || !!hasOngoingOpenApp;
+
+    // The ongoing request counts towards the online answer whatever its `initiatedOffline` stamp says:
+    // reaching that key means the request is being sent, so the stamp is stale by then.
+    const hasQueuedOnlineOpenApp = !!queueState?.isOnlinePending || !!hasOngoingOpenApp;
+
+    // One entry per variant, not one shared entry: an offline-initiated OpenApp latches `appLoad` alone, so
+    // the online answer cannot read pending across a flush window that will never resolve while offline.
     useEffect(() => {
-        if (hasPendingOpenApp) {
-            hasObservedOpenAppFlushPending = true;
+        if (hasQueuedOpenApp) {
+            appLoadVariantsWithPendingFlush.add('appLoad');
         } else if (isLoadingApp !== true) {
             // The flag cleared, so the deferred OpenApp updates flushed: stop covering the window.
-            hasObservedOpenAppFlushPending = false;
+            appLoadVariantsWithPendingFlush.delete('appLoad');
         }
-    }, [hasPendingOpenApp, isLoadingApp]);
 
-    return hasPendingOpenApp || (hasObservedOpenAppFlushPending && isLoadingApp === true);
+        if (hasQueuedOnlineOpenApp) {
+            appLoadVariantsWithPendingFlush.add('appLoadOnline');
+        } else if (isLoadingApp !== true) {
+            appLoadVariantsWithPendingFlush.delete('appLoadOnline');
+        }
+    }, [hasQueuedOpenApp, hasQueuedOnlineOpenApp, isLoadingApp]);
+
+    return {
+        isAppLoadPending: hasQueuedOpenApp || (appLoadVariantsWithPendingFlush.has('appLoad') && isLoadingApp === true),
+        isOnlineAppLoadPending: hasQueuedOnlineOpenApp || (appLoadVariantsWithPendingFlush.has('appLoadOnline') && isLoadingApp === true),
+        isLoadingApp: isLoadingApp ?? false,
+    };
+}
+
+function computeAppLoadSkeletonState({isAppLoadPending, isLoadingApp, hasLoadedApp, isLoadingHasLoadedApp}: AppLoadSkeletonStateInput): boolean {
+    const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
+
+    return (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp)) || isColdRestartRecoveryFallback;
+}
+
+/** Whether an OpenApp request or its deferred Onyx updates are pending. */
+function useIsAppLoadPending(): boolean {
+    return useAppLoadPendingState().isAppLoadPending;
 }
 
 /**
- * Whether the initial app skeleton should be visible and why.
- *
- * HAS_LOADED_APP prevents the skeleton from returning after the first OpenApp completes. The legacy
- * IS_LOADING_APP flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
+ * Whether the initial app skeleton should be visible, ignoring whether the load can still resolve.
+ * Use `useAppLoadSkeletonVisibility` unless the caller shows a skeleton while offline.
  */
-function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}) {
-    const isAppLoadPending = useIsAppLoadPending();
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+function useAppLoadSkeletonState(): boolean {
+    const {isAppLoadPending, isLoadingApp} = useAppLoadPendingState();
     const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const isLoadingHasLoadedApp = isLoadingOnyxValue(hasLoadedAppMetadata);
-    const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
-    const shouldShowSkeleton = (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp || isLoadingReportData)) || isColdRestartRecoveryFallback;
 
-    return {
-        shouldShowSkeleton,
-        isAppLoadPending,
-        hasLoadedApp,
-        isLoadingHasLoadedApp,
-        isColdRestartRecoveryFallback,
-    };
+    return computeAppLoadSkeletonState({isAppLoadPending, isLoadingApp, hasLoadedApp, isLoadingHasLoadedApp: isLoadingOnyxValue(hasLoadedAppMetadata)});
+}
+
+/**
+ * Whether the initial app skeleton should be visible: the app load gate is open and that load can still resolve.
+ */
+function useAppLoadSkeletonVisibility(): boolean {
+    const {isAppLoadPending, isOnlineAppLoadPending, isLoadingApp} = useAppLoadPendingState();
+    const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const {isOffline} = useNetwork();
+
+    const shouldShowSkeleton = computeAppLoadSkeletonState({isAppLoadPending, isLoadingApp, hasLoadedApp, isLoadingHasLoadedApp: isLoadingOnyxValue(hasLoadedAppMetadata)});
+
+    const canAppLoadResolve = !isOffline || isOnlineAppLoadPending;
+
+    return shouldShowSkeleton && canAppLoadResolve;
 }
 
 /**
@@ -211,4 +277,4 @@ function useLoadingBarVisibility(): boolean {
     return !isOffline && hasPendingLoadingBarRequest;
 }
 
-export {useIsAppLoadPending, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
+export {useIsAppLoadPending, useAppLoadSkeletonState, useAppLoadSkeletonVisibility, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};

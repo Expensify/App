@@ -1,0 +1,66 @@
+diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+index cbd08b2..1f09775 100644
+--- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
+@@ -125,7 +125,7 @@ class WebGLRenderer {
+     }
+   }
+   dispose() {
+-    var _this$surface2, _this$canvas;
++    var _this$surface2;
+     (_this$surface2 = this.surface) === null || _this$surface2 === void 0 || _this$surface2.ref.delete();
+     this.surface = null;
+     if (this.grContext) {
+@@ -133,7 +133,18 @@ class WebGLRenderer {
+       this.grContext.delete();
+       this.grContext = null;
+     }
+-    (_this$canvas = this.canvas) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getContext("webgl2")) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getExtension("WEBGL_lose_context")) === null || _this$canvas === void 0 || _this$canvas.loseContext();
++    // A lost context is permanent for the element, and an effect cleanup is not always an
++    // unmount: an <Activity> hide or a StrictMode re-run keeps the <canvas>, and losing its
++    // context would leave every later renderer on that element without a surface. dispose()
++    // runs from a layout effect cleanup, which React flushes before it detaches the node, so
++    // the check has to wait for the end of the commit (upstream
++    // Shopify/react-native-skia#4002).
++    const canvas = this.canvas;
++    queueMicrotask(() => {
++      if (!canvas.isConnected) {
++        canvas.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
++      }
++    });
+     if (this.contextHandle) {
+       // Unregister the context from CanvasKit's internal registry, otherwise
+       // it retains the canvas element (and its detached DOM tree) forever.
+diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+index c24ab14..32b807e 100644
+--- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
++++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
+@@ -119,7 +119,7 @@ class WebGLRenderer {
+     }
+   }
+   dispose() {
+-    var _this$surface2, _this$canvas;
++    var _this$surface2;
+     (_this$surface2 = this.surface) === null || _this$surface2 === void 0 || _this$surface2.ref.delete();
+     this.surface = null;
+     if (this.grContext) {
+@@ -127,7 +127,18 @@ class WebGLRenderer {
+       this.grContext.delete();
+       this.grContext = null;
+     }
+-    (_this$canvas = this.canvas) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getContext("webgl2")) === null || _this$canvas === void 0 || (_this$canvas = _this$canvas.getExtension("WEBGL_lose_context")) === null || _this$canvas === void 0 || _this$canvas.loseContext();
++    // A lost context is permanent for the element, and an effect cleanup is not always an
++    // unmount: an <Activity> hide or a StrictMode re-run keeps the <canvas>, and losing its
++    // context would leave every later renderer on that element without a surface. dispose()
++    // runs from a layout effect cleanup, which React flushes before it detaches the node, so
++    // the check has to wait for the end of the commit (upstream
++    // Shopify/react-native-skia#4002).
++    const canvas = this.canvas;
++    queueMicrotask(() => {
++      if (!canvas.isConnected) {
++        canvas.getContext("webgl2")?.getExtension("WEBGL_lose_context")?.loseContext();
++      }
++    });
+     if (this.contextHandle) {
+       // Unregister the context from CanvasKit's internal registry, otherwise
+       // it retains the canvas element (and its detached DOM tree) forever.

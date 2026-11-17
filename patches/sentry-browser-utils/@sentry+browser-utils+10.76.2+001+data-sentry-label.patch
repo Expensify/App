@@ -1,0 +1,118 @@
+diff --git a/node_modules/@sentry/browser-utils/build/cjs/htmlTreeAsString.js b/node_modules/@sentry/browser-utils/build/cjs/htmlTreeAsString.js
+index e230278..e0435a4 100644
+--- a/node_modules/@sentry/browser-utils/build/cjs/htmlTreeAsString.js
++++ b/node_modules/@sentry/browser-utils/build/cjs/htmlTreeAsString.js
+@@ -54,7 +54,43 @@ function htmlTreeAsString(elem, options = {}) {
+       len += nextStr.length;
+       currentElem = _safeRead(currentElem, "parentNode");
+     }
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let isExactLabel = false;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      if (typeof HTMLElement !== "undefined" && current instanceof HTMLElement) {
++        const dataset = _safeRead(current, "dataset");
++        if (dataset) {
++          if (_safeRead(current, "getAttribute", "aria-disabled") === "true") {
++            current = _safeRead(current, "parentNode");
++            continue;
++          }
++          if (!dataLabel && dataset["sentryLabel"]) {
++            dataLabel = dataset["sentryLabel"];
++            labelElem = current;
++            isExactLabel = dataset["sentryLabelExact"] === "true";
++          }
++          if (!pressableElem && dataset["tag"] === "pressable") {
++            pressableElem = current;
++          }
++          if (dataLabel && (pressableElem || isExactLabel)) break;
++        }
++      }
++      current = _safeRead(current, "parentNode");
++    }
++    if (!dataLabel) {
++      return cssSelector;
++    }
++    if (isExactLabel || (pressableElem && labelElem === pressableElem)) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return "<unknown>";
+   }
+@@ -69,6 +105,9 @@ function _htmlElementAsString(el, keyAttrs) {
+     if (el instanceof HTMLElement) {
+       const dataset = _safeRead(el, "dataset");
+       if (dataset) {
++        if (dataset["sentryLabel"]) {
++          return `[data-sentry-label="${dataset["sentryLabel"]}"]`;
++        }
+         if (dataset["sentryComponent"]) {
+           return dataset["sentryComponent"];
+         }
+diff --git a/node_modules/@sentry/browser-utils/build/esm/htmlTreeAsString.js b/node_modules/@sentry/browser-utils/build/esm/htmlTreeAsString.js
+index 6f8e53a..0757b51 100644
+--- a/node_modules/@sentry/browser-utils/build/esm/htmlTreeAsString.js
++++ b/node_modules/@sentry/browser-utils/build/esm/htmlTreeAsString.js
+@@ -52,7 +52,43 @@ function htmlTreeAsString(elem, options = {}) {
+       len += nextStr.length;
+       currentElem = _safeRead(currentElem, "parentNode");
+     }
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let isExactLabel = false;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      if (typeof HTMLElement !== "undefined" && current instanceof HTMLElement) {
++        const dataset = _safeRead(current, "dataset");
++        if (dataset) {
++          if (_safeRead(current, "getAttribute", "aria-disabled") === "true") {
++            current = _safeRead(current, "parentNode");
++            continue;
++          }
++          if (!dataLabel && dataset["sentryLabel"]) {
++            dataLabel = dataset["sentryLabel"];
++            labelElem = current;
++            isExactLabel = dataset["sentryLabelExact"] === "true";
++          }
++          if (!pressableElem && dataset["tag"] === "pressable") {
++            pressableElem = current;
++          }
++          if (dataLabel && (pressableElem || isExactLabel)) break;
++        }
++      }
++      current = _safeRead(current, "parentNode");
++    }
++    if (!dataLabel) {
++      return cssSelector;
++    }
++    if (isExactLabel || (pressableElem && labelElem === pressableElem)) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return "<unknown>";
+   }
+@@ -67,6 +103,9 @@ function _htmlElementAsString(el, keyAttrs) {
+     if (el instanceof HTMLElement) {
+       const dataset = _safeRead(el, "dataset");
+       if (dataset) {
++        if (dataset["sentryLabel"]) {
++          return `[data-sentry-label="${dataset["sentryLabel"]}"]`;
++        }
+         if (dataset["sentryComponent"]) {
+           return dataset["sentryComponent"];
+         }

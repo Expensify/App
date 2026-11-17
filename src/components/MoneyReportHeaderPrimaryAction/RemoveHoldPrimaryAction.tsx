@@ -5,15 +5,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus, getLinkedIOUTransaction} from '@libs/ReportUtils';
+import {getLinkedIOUTransaction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -22,7 +25,7 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -32,15 +35,19 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportOwnerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
 
     return (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.REMOVE_HOLD}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -48,23 +55,26 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 }
 
                 const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
-                const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy, currentUserAccountID, rules);
+                const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy, currentUserAccountID, rules, reportOwnerLogin);
 
                 if (IOUActions.length) {
                     for (const action of IOUActions) {
                         const linkedTransaction = getLinkedIOUTransaction(action, transactions);
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                        changeMoneyRequestHoldStatus(
-                            action,
-                            linkedTransaction,
+                        changeMoneyRequestHoldStatus({
+                            reportAction: action,
+                            iouTransaction: linkedTransaction,
+                            iouTransactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction?.reportID}`],
+                            reportActionChildReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`],
+                            policy,
                             isOffline,
-                            currentUserLogin ?? '',
+                            currentUserLogin: currentUserLogin ?? '',
                             currentUserAccountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     return;
                 }
@@ -76,17 +86,20 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 const linkedTransaction = getLinkedIOUTransaction(moneyRequestAction, transactions);
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransaction?.transactionID}`];
-                changeMoneyRequestHoldStatus(
-                    moneyRequestAction,
-                    linkedTransaction,
+                changeMoneyRequestHoldStatus({
+                    reportAction: moneyRequestAction,
+                    iouTransaction: linkedTransaction,
+                    iouTransactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTransaction?.reportID}`],
+                    reportActionChildReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestAction?.childReportID}`],
+                    policy,
                     isOffline,
-                    currentUserLogin ?? '',
+                    currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
                     rules,
-                );
+                });
             }}
         >
             <Button.Text>{translate('iou.unhold')}</Button.Text>

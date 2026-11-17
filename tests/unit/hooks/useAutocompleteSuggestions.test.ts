@@ -1,11 +1,13 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useNetwork from '@hooks/useNetwork';
 
 import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import type * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +25,11 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
+}));
 jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
 
 const mockConvertToDisplayString = jest.fn(() => '$0.00');
@@ -42,6 +49,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
     parseForAutocomplete: jest.fn(),
+    getAutocompletePolicyData: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').getAutocompletePolicyData,
     getAutocompleteTags: jest.fn(() => ['Engineering', 'Marketing', 'Sales', 'Design']),
     getAutocompleteRecentTags: jest.fn(() => ['Engineering', 'Marketing']),
     getAutocompleteCategories: jest.fn(() => ['Travel', 'Office Supplies', 'Meals', 'Software']),
@@ -93,24 +101,31 @@ jest.mock('@libs/CategoryUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
+    isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
+    resolvePolicyIDFromName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').resolvePolicyIDFromName,
+    getViolationDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getViolationDisplayName,
+    VIOLATION_FILTER_VALUES: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').VIOLATION_FILTER_VALUES,
+    isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
     getDatePresets: jest.fn(() => ['today', 'yesterday', 'lastWeek', 'lastMonth']),
     getHasOptions: jest.fn(() => [{value: 'attachment'}, {value: 'note'}]),
+    getHasOptionAvailability: jest.fn(() => ({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true})),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
-    default: () => ({
+    default: jest.fn(() => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
-    }),
+    })),
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
+const {getUserFriendlyKey} = jest.requireMock<{getUserFriendlyKey: jest.Mock}>('@libs/SearchQueryUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
+const {getHasOptionAvailability} = jest.requireMock<{getHasOptionAvailability: jest.Mock}>('@libs/SearchUIUtils');
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
 const mockedGetSearchOptions = jest.mocked(getSearchOptions);
@@ -122,8 +137,10 @@ const defaultParams: Params = {
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
-    betas: [],
+    isDefaultRoomsBetaEnabled: false,
+    isTravelApprovalBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},
@@ -150,6 +167,41 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it.each([
+        ['workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:usd exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" exported-to:', undefined, ['cad'], true],
+        ['workspace:"USD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, ['usd'], false],
+        ['-workspace:"CAD Workspace" workspace:"USD Workspace" exported-to:', undefined, ['usd'], false],
+        ['workspace:"CAD Workspace" -workspace:"USD Workspace" exported-to:', undefined, ['cad'], false],
+        ['-workspace:"USD Workspace" workspace:"CAD Workspace" exported-to:', undefined, ['cad'], false],
+        ['workspace:"CAD Workspace" -workspace:"CAD Workspace" exported-to:', undefined, [], false],
+        ['workspace:usd workspace:cad exported-to:', undefined, [], false],
+        ['-workspace:usd -workspace:cad exported-to:', undefined, ['usd', 'cad'], true],
+        ['workspace:"USD Workspace","CAD Workspace" exported-to:', undefined, ['usd', 'cad'], false],
+        [
+            'workspace:"Same name","Same name" exported-to:',
+            {[`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name`]: 'usd', [`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:Same name:1`]: 'cad'},
+            ['usd', 'cad'],
+            false,
+        ],
+        ['exported-to:', undefined, undefined, false],
+    ] as const)('scopes exported-to options to the typed query %s', (query, substitutions, expectedPolicyIDs, isNegated) => {
+        // Given both USD and CAD workspaces and the real autocomplete parser
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}usd`]: createMock<Policy>({id: 'usd', name: 'USD Workspace', outputCurrency: CONST.CURRENCY.USD}),
+            [`${ONYXKEYS.COLLECTION.POLICY}cad`]: createMock<Policy>({id: 'cad', name: 'CAD Workspace', outputCurrency: CONST.CURRENCY.CAD}),
+        };
+
+        // When a workspace is typed or selected without submitting the search
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query, policies, autocompleteSubstitutions: substitutions}));
+
+        // Then the export options receive the typed scope, including an explicit all-workspaces override
+        expect(useExportedToFilterOptions).toHaveBeenLastCalledWith({value: expectedPolicyIDs, isNegated});
     });
 
     it('returns empty array when parseForAutocomplete returns undefined', () => {
@@ -413,6 +465,54 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS);
     });
 
+    it('suggests the trip room statuses for a trip search with the TravelApproval beta', () => {
+        // Given a trip search typing a status, with and without the TravelApproval beta
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.TRIP, start: 0, length: 9}],
+        });
+
+        // When the suggestions are built
+        const {result: withBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, isTravelApprovalBetaEnabled: true, autocompleteQueryValue: 'type:trip status:'}));
+        const {result: withoutBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:trip status:'}));
+
+        // Then trip rooms suggest upcoming, done and canceled, and the expense search keeps current and past
+        expect(withBeta.current.map((suggestion) => suggestion.text)).toEqual(['canceled', 'done', 'upcoming']);
+        expect(withoutBeta.current.map((suggestion) => suggestion.text)).toEqual(['current', 'past']);
+    });
+
+    it('suggests no group-by for a trip search with the TravelApproval beta', () => {
+        // Given a trip search typing a group-by, since trip rooms can't be grouped
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.TRIP, start: 0, length: 9}],
+        });
+
+        // When the suggestions are built with and without the beta
+        const {result: withBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, isTravelApprovalBetaEnabled: true, autocompleteQueryValue: 'type:trip group-by:'}));
+        const {result: withoutBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:trip group-by:'}));
+
+        // Then trip rooms get none, and the expense search keeps its group-by options
+        expect(withBeta.current).toHaveLength(0);
+        expect(withoutBeta.current.length).toBeGreaterThan(0);
+    });
+
+    it('leaves workflow stage out of the group-by suggestions', () => {
+        // Given an expense search typing a group-by, since Search can't group expenses by workflow stage
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [],
+        });
+
+        // When the suggestions are built
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'group-by:'}));
+
+        // Then the Search group-bys are suggested, without workflow stage
+        const suggestions = result.current.map((suggestion) => suggestion.text);
+        expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(suggestions).not.toContain(CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE);
+    });
+
     it('returns empty array for date key (presets filter)', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, value: 'to'},
@@ -425,6 +525,23 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     });
 
+    it('suggests date presets after anyApproval:', () => {
+        // Given the user has typed the anyApproval filter key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, value: ''},
+            ranges: [],
+        });
+
+        // When the autocomplete suggestions are computed for that query
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'anyApproval:'}));
+
+        // Then the date presets are suggested for the anyApproval key, since it is a date filter like the other date keys
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+        expect(result.current.map((item) => item.text)).toEqual(['today', 'yesterday', 'lastWeek', 'lastMonth'].sort());
+        expect(getUserFriendlyKey).toHaveBeenCalledWith(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+    });
+
     it('returns boolean suggestions for reimbursable key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE, value: ''},
@@ -435,6 +552,36 @@ describe('useAutocompleteSuggestions', () => {
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE);
+    });
+
+    it('returns yes and no suggestions for declined key', () => {
+        // Given the user has typed the declined key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'declined:'}));
+
+        // Then both boolean values are suggested for the declined key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED);
+    });
+
+    it('returns yes and no suggestions for held key', () => {
+        // Given the user has typed the held key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'held:'}));
+
+        // Then both boolean values are suggested for the held key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD);
     });
 
     it('returns in: suggestions for chat reports', () => {
@@ -461,6 +608,72 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([]);
     });
 
+    it('returns no in: suggestions when the query has an explicit type that does not support in:', () => {
+        // Given a query with type:expense, which does not support the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense in:'}));
+
+        // Then no chat suggestions are shown, because selecting one would build a query that can never match any expense
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
+    it('returns in: suggestions when the query has an explicit type that supports in:', () => {
+        // Given a query with type:chat, which supports the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat in:'}));
+
+        // Then chat suggestions are still shown
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
+    });
+
+    it('uses the last type filter to decide whether to show in: suggestions', () => {
+        // Given a query with type:expense followed by type:chat, where the search parser uses the last type (chat)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 13, length: 9},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense type:chat in:'}));
+
+        // Then chat suggestions are shown, because the query that runs is a chat search
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
+    });
+
+    it('hides in: suggestions when the last type filter does not support in:', () => {
+        // Given a query with type:chat followed by type:expense, where the search parser uses the last type (expense)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 10, length: 12},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat type:expense in:'}));
+
+        // Then no chat suggestions are shown, because the query that runs is an expense search
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
     it('returns empty array for unknown autocomplete key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: 'unknownKey', value: 'test'},
@@ -470,6 +683,45 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'unknownKey:test'}));
 
         expect(result.current).toEqual([]);
+    });
+
+    test.each(['createdBy:alice', 'ReportID:123', 'TAXRATE:20', 'report-field-Custom:value'])('consumes real non-canonical parser keys in %s', (query) => {
+        // Given the generated parser rather than the existing scenario stub.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        // When the production hook consumes a key without a suggestion branch.
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}));
+        // Then it returns no suggestions without narrowing the parser to canonical keys.
+        expect(result.current).toEqual([]);
+        expect(parseForAutocomplete).toHaveBeenCalledWith(query);
+    });
+
+    it.each([
+        'workspace:"Test Workspace","Test Workspace",',
+        'workspace:"Test Workspace" -workspace:"Test Workspace" workspace:',
+        'workspace:"Test Workspace" workspace:"Test Workspace" workspace:',
+    ])('excludes every selected duplicate-name workspace in %s', (query) => {
+        // Given two selected workspaces whose display names collide but whose IDs differ.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies: NonNullable<OnyxCollection<Policy>> = {
+            first: createMock<Policy>({id: 'A', name: 'Test Workspace'}),
+            second: createMock<Policy>({id: 'B', name: 'Test Workspace'}),
+            third: createMock<Policy>({id: 'C', name: 'Test Workspace'}),
+        };
+        // When the production branch resolves occurrences by the existing indexed substitution keys.
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: query,
+                policies,
+                autocompleteSubstitutions: Object.fromEntries([
+                    ['policyID:Test Workspace', 'A'],
+                    ['policyID:Test Workspace:1', 'B'],
+                ]),
+            }),
+        );
+        // Then only the unselected policy remains despite the repeated display value.
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({autocompleteID: 'C', text: 'Test Workspace'});
     });
 
     it('excludes already selected workspaces by policy ID when names are duplicated', () => {
@@ -611,6 +863,100 @@ describe('useAutocompleteSuggestions', () => {
 
             const values = result.current.map((item) => item.text).sort();
             expect(values).toEqual(['cleared', 'failed', 'never']);
+        });
+    });
+
+    describe('violation autocomplete', () => {
+        // Stand-in translations whose words never appear in the raw violation names, so a match proves the label was searched
+        const violationLabels = new Map<string, string>([
+            ['violations.shortName.missingCategory', 'Category absent'],
+            ['violations.shortName.missingTag', 'Tag absent'],
+            ['violations.shortName.overLimit', 'Spending ceiling passed'],
+        ]);
+        const translate: Params['translate'] = (key, ...parameters) => violationLabels.get(key) ?? String([key, ...parameters].at(0));
+
+        it('suggests translated names and keeps the raw violation name as the value sent to the backend', () => {
+            // Given the user types a word that only appears in the translated labels, not in the raw violation names
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:absent'}));
+
+            // Then the suggestions match and show the translated label, while the substitution map gets the raw name Auth matches on
+            expect(result.current).toEqual([
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Category absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Tag absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_TAG,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+            ]);
+        });
+
+        it('still matches the raw violation name so people who know the backend names can type them', () => {
+            // Given the user types the start of the raw name rather than the translated label
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'missingCat'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCat'}));
+
+            // Then the matching violation is still offered under its translated label
+            expect(result.current.map((item) => item.text)).toEqual(['Category absent']);
+        });
+
+        it('excludes a violation that is already in the query', () => {
+            // Given "Category absent" is already selected and the user starts the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: 'Category absent'}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:"Category absent",absent'}));
+
+            // Then only the violation that is not selected yet is offered
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
+        it('excludes a violation that was typed by its raw name', () => {
+            // Given the user typed the raw name missingCategory instead of picking the translated label, then started the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: CONST.VIOLATIONS.MISSING_CATEGORY}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCategory,absent'}));
+
+            // Then the same violation is not offered again under its label, which would put it in the query twice
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
+        it('suggests nothing when no workspace has Rules enabled', () => {
+            // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
+            getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: ''},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:'}));
+
+            // Then no violation names are suggested
+            expect(result.current).toEqual([]);
         });
     });
 });

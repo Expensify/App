@@ -8,13 +8,14 @@ import {startOrStopChronosTimer} from '@libs/actions/Chronos';
 import Navigation from '@libs/Navigation/Navigation';
 import {canWriteInReport} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -29,6 +30,7 @@ type ChronosTimerHeaderButtonProps = {
 type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -56,13 +58,15 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'timer' as const,
             text: timerStartTime ? translate('chronos.stopTimer', formatElapsedTime(timerStartTime)) : translate('chronos.startTimer'),
+            sentryLabel: timerStartTime ? CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_STOP_TIMER : CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_START_TIMER,
             onSelected: () => {
-                callFunctionIfActionIsAllowed(toggleChronosTimer)();
+                callIfAuthenticated(toggleChronosTimer, session)();
             },
         },
         {
             value: 'scheduleOOO' as const,
             text: translate('chronos.scheduleOOO'),
+            sentryLabel: CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_MENU_SCHEDULE_OOO,
             onSelected: () => {
                 Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
             },
@@ -79,7 +83,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <ButtonWithDropdownMenu<ChronosAction>
                 variant={!timerStartTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 onPress={() => {
-                    callFunctionIfActionIsAllowed(toggleChronosTimer)();
+                    callIfAuthenticated(toggleChronosTimer, session)();
                 }}
                 options={options}
                 wrapperStyle={styles.flex1}

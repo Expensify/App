@@ -5,25 +5,29 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft, clearWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAssignableOfficeLocations, getMemberOfficeLocation} from '@libs/OfficeLocationUtils';
 import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalDetailsOnyxDataForOptimisticUsers, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     canMemberAssignElevatedRole,
@@ -31,8 +35,10 @@ import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
+    hasDynamicExternalWorkflow,
     isControlPolicy,
     isSubmitPolicy,
+    shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
@@ -50,13 +56,12 @@ import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 type WorkspaceInviteMessageComponentProps = {
@@ -83,7 +88,8 @@ function WorkspaceInviteMessageComponent({
     goToNextStep,
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
@@ -91,17 +97,19 @@ function WorkspaceInviteMessageComponent({
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
     const subtitle = isWorkflowApprovalExpensesFromRoute ? undefined : policyName;
 
-    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Only used when this page finishes a "+N more" workflow edit, which has no edit page behind it to save the workflow.
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
-
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
-    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
+    const [workspaceInviteMessageDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
+    const [workspaceInviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraftFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
     const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const canManageUserRole = canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.USER);
@@ -114,11 +122,25 @@ function WorkspaceInviteMessageComponent({
     const workspaceInviteRoleDraft = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : draftInviteRole;
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // `approvalMode` can drift from the actual workflow structure because it is updated optimistically.
+    // Dynamic external workflows that hide people also have no selectable approver.
+    const {isAdvanceApproval, rulesCollection, shouldUseApprovalWorkflowRules} = useApprovalWorkflows(policy);
+
+    // Dynamic External Workflow also routes by each member's approver, even when the derived workflows look basic.
+    const isDynamicExternalApproval = hasDynamicExternalWorkflow(policy) && isControlPolicy(policy);
+    const shouldShowApproverRow = (isAdvanceApproval || isDynamicExternalApproval) && !!policy?.areWorkflowsEnabled && !shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldShowWorkArrangement =
+        isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const selectedHasOfficeWorkArrangement = workspaceInviteWorkArrangementDraft ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? true;
+    const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
+    const selectedWorkArrangementLabel = translate(selectedHasOfficeWorkArrangement ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
+    // Invitees have no office of their own yet, so office-based ones commute to the primary office
+    const defaultOfficeLabel = selectedHasOfficeWorkArrangement && officeLocations.length > 1 ? getMemberOfficeLocation(officeLocations, undefined)?.name : undefined;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -127,7 +149,9 @@ function WorkspaceInviteMessageComponent({
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.getRoute(policyID, Navigation.getActiveRoute()));
     };
 
-    const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
+    const navigateToWorkArrangementPage = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path));
+    };
 
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -146,19 +170,13 @@ function WorkspaceInviteMessageComponent({
         })
         .join(', ');
 
-    const welcomeNoteSubject = useMemo(
-        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
-        [policy?.name, currentUserPersonalDetails?.displayName],
-    );
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
-    const getDefaultWelcomeNote = useCallback(() => {
+    const getDefaultWelcomeNote = () => {
         return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
-    }, [workspaceInviteMessageDraft, translate, formData]);
+    };
 
     useEffect(() => {
-        if (isOnyxLoading) {
-            return;
-        }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
             return;
@@ -174,16 +192,15 @@ function WorkspaceInviteMessageComponent({
 
         Navigation.goBack(backTo);
 
-        // We only want to run this useEffect when the onyx values have loaded
-        // We navigate back to the main members screen when the invitation has been sent
-        // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOnyxLoading]);
+        // Sending the invitation clears `invitedEmailsToAccountIDsDraft`, so opening this page with an empty draft means
+        // the invitation was already sent and we navigate back to the members screen
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- the drafts are only read once, when the page opens
+    }, []);
 
     const sendInvitation = () => {
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -201,9 +218,14 @@ function WorkspaceInviteMessageComponent({
                 avatar: currentUserPersonalDetails?.avatar,
             },
             filteredReportActions,
-            shouldShowApproverRow ? validatedApprover : undefined,
+            {
+                approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
+                hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+                policyCategories,
+            },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
+        clearWorkspaceInviteWorkArrangementDraft(policyID);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 
         if (goToNextStep) {
@@ -215,6 +237,22 @@ function WorkspaceInviteMessageComponent({
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
+            } else if (approvalWorkflow?.isFastEdit) {
+                const invitedEmails = new Set(Object.keys(invitedEmailsToAccountIDsDraft ?? {}));
+                const shouldExcludeInvitedMembers = shouldShowApproverRow && !!approverDraft && !!validatedApprover && validatedApprover !== approvalWorkflow.approvers.at(0)?.email;
+                // An explicit approver choice owns the invited members. Saving them with the edited workflow would overwrite that choice.
+                const approvalWorkflowToSave = shouldExcludeInvitedMembers
+                    ? {...approvalWorkflow, members: approvalWorkflow.members.filter((member) => !invitedEmails.has(member.email))}
+                    : approvalWorkflow;
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID), {
+                    afterTransition: () =>
+                        saveFastEditApprovalWorkflow({
+                            approvalWorkflow: approvalWorkflowToSave,
+                            policy,
+                            rules: rulesCollection,
+                            shouldUseApprovalWorkflowRules,
+                        }),
+                });
             } else {
                 // forceReplace so the invite page is removed from the stack. Otherwise it stays
                 // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
@@ -241,7 +279,7 @@ function WorkspaceInviteMessageComponent({
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft) && !isOnyxLoading) {
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
@@ -249,8 +287,13 @@ function WorkspaceInviteMessageComponent({
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
-    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
-    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail;
+    // formatPhoneNumber replaces spaces with a non-breaking space unconditionally, even for strings it otherwise
+    // returns unchanged, so an ordinary multi-word display name would get its spaces silently swapped. Only format
+    // when the display name is actually an SMS login.
+    const invitingMemberName = Str.isSMSLogin(invitingMemberDetails?.displayName ?? '')
+        ? formatPhoneNumber(invitingMemberDetails?.displayName ?? '')
+        : (invitingMemberDetails?.displayName ?? '');
+    const invitingMemberTitle = invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : formatPhoneNumber(invitingMemberEmail);
     const approverName = temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: approverDetails,
         defaultValue: workspaceInviteApproverDraft,
@@ -263,6 +306,7 @@ function WorkspaceInviteMessageComponent({
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
             clearWorkspaceInviteApproverDraft(policyID);
+            clearWorkspaceInviteWorkArrangementDraft(policyID);
         };
     }, [policyID]);
 
@@ -321,17 +365,18 @@ function WorkspaceInviteMessageComponent({
                                 />
                             )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
-                                <MenuItemWithTopDescription
-                                    title={memberNames}
-                                    description={translate('common.members')}
-                                    numberOfLinesTitle={2}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_MEMBERS}
+                                    name={translate('common.members')}
+                                    value={memberNames}
+                                    numberOfLinesValue={2}
                                     onPress={() => {
                                         Navigation.goBack(backTo);
                                     }}
                                 />
                             )}
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_ROLE}
                                 name={translate('common.role')}
                                 onPress={
                                     canChangeInviteRole
@@ -347,9 +392,18 @@ function WorkspaceInviteMessageComponent({
                             />
                             {!!shouldShowApproverRow && (
                                 <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_APPROVER}
                                     name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                     value={approverName}
+                                />
+                            )}
+                            {shouldShowWorkArrangement && (
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_WORK_ARRANGEMENT}
+                                    name={translate('workspace.people.workArrangement')}
+                                    onPress={navigateToWorkArrangementPage}
+                                    value={defaultOfficeLabel ? `${selectedWorkArrangementLabel}, ${defaultOfficeLabel}` : selectedWorkArrangementLabel}
                                 />
                             )}
                         </View>

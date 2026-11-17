@@ -1,5 +1,3 @@
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
 import {setMoneyRequestCategory, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTag} from '@libs/TransactionUtils';
@@ -12,15 +10,34 @@ import type {ValueOf} from 'type-fest';
 import {useEffect} from 'react';
 
 type FieldAutoSelectorProps = {
+    /** ID of the transaction being confirmed */
     transactionID: string | undefined;
+
+    /** Transaction being confirmed */
     transaction: OnyxEntry<Transaction>;
+
+    /** Categories of the resolved policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Tag lists of the resolved policy */
     policyTagLists: Array<ValueOf<PolicyTagLists>>;
+
+    /** Tags of the resolved policy */
     policyTags: OnyxEntry<PolicyTagLists>;
+
+    /** The resolved policy */
     policy: OnyxEntry<Policy>;
+
+    /** Whether the category field is shown for this expense */
     shouldShowCategories: boolean;
+
+    /** Whether the policy requires a category */
     isCategoryRequired: boolean;
-    iouCategory: string | undefined;
+
+    /** Category currently set on the transaction */
+    iouCategory: string;
+
+    /** Whether the expense is being moved off a track expense */
     isMovingTransactionFromTrackExpense: boolean;
 };
 
@@ -40,17 +57,17 @@ function FieldAutoSelector({
     iouCategory,
     isMovingTransactionFromTrackExpense,
 }: FieldAutoSelectorProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
         const enabledCategories = Object.values(policyCategories ?? {}).filter((category) => category.enabled);
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
-        // Keep 'transaction' out to ensure that we auto select the option only once
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
+        // Keep 'transaction' out to ensure that we auto select the option only once. The share flow mounts this before
+        // its draft exists or is re-initialized as a scan, so retry once the draft's ID or request type lands.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id, getCurrencyDecimals]);
+    }, [transactionID, transaction?.iouRequestType, shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -73,9 +90,10 @@ function FieldAutoSelector({
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
         }
-        // Keep 'transaction' out to ensure that we auto select the option only once
+        // Keep 'transaction' out to ensure that we auto select the option only once. The share flow re-initializes a
+        // stale draft as a scan under the same ID, which drops its tag, so retry once the draft's request type changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionID, policyTagLists, policyTags]);
+    }, [transactionID, transaction?.iouRequestType, policyTagLists, policyTags]);
 
     return null;
 }
@@ -83,3 +101,4 @@ function FieldAutoSelector({
 FieldAutoSelector.displayName = 'FieldAutoSelector';
 
 export default FieldAutoSelector;
+export type {FieldAutoSelectorProps};

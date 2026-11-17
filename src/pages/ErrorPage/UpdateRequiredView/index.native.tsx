@@ -17,7 +17,7 @@ import Accessibility from '@libs/Accessibility';
 
 import variables from '@styles/variables';
 
-import {updateApp} from '@userActions/AppUpdate';
+import updateApp from '@userActions/AppUpdate/updateApp';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -76,6 +76,7 @@ function UpdateRequiredView() {
                     </View>
                 </View>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.UPDATE_REQUIRED.UPDATE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => updateApp(isProduction)}

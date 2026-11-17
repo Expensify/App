@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 
@@ -6,42 +5,34 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 
 const COMPANY_PHONE_NUMBER_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE;
 const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 
 function PhoneNumberBusiness({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultCompanyPhoneNumber = reimbursementAccount?.achData?.companyPhone ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values.companyPhone && !isValidUSPhone(values.companyPhone, true)) {
-                errors.companyPhone = translate('bankAccount.error.phoneNumber');
-            }
+        if (values.companyPhone && !isValidUSPhone(values.companyPhone, true)) {
+            errors.companyPhone = translate('bankAccount.error.phoneNumber');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -49,14 +40,6 @@ function PhoneNumberBusiness({onNext, onMove, isEditing}: SubPageProps) {
         // During draft saving, the phone number is sanitized (i.e. leading and trailing whitespace is removed)
         shouldSaveDraft: true,
     });
-
-    if (isLoadingReimbursementAccount) {
-        return (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

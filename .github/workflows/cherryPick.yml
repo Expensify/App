@@ -5,6 +5,7 @@ on:
     inputs:
       PULL_REQUEST_URL:
         description: The full URL of the E/App or E/Mobile-Expensify pull request to cherry-pick
+        type: string
         required: true
       TARGET:
         description: CP to staging or production?
@@ -35,7 +36,7 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Validate pull request URL
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
@@ -74,7 +75,7 @@ jobs:
 
   cherryPick:
     needs: createNewVersion
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Check for in-progress deploy on target branch
         id: checkInProgressDeploy

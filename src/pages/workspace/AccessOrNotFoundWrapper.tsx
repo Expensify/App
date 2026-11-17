@@ -17,6 +17,7 @@ import {
     canEditWorkspaceSettings,
     canMemberRead,
     canMemberWrite,
+    isConnectionFeature,
     isControlPolicy,
     isGroupPolicy,
     isPolicyAccessible,
@@ -32,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, Report, Rule} from '@src/types/onyx';
+import type {Report, Rule} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -53,7 +54,6 @@ const ACCESS_VARIANTS = {
         login: string,
         report: OnyxEntry<Report>,
         canSendInvoice: boolean,
-        betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isReportArchived?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
@@ -63,7 +63,7 @@ const ACCESS_VARIANTS = {
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, rules, isRestrictedToPreferredPolicy)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, rules, isRestrictedToPreferredPolicy)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
 } as const satisfies Record<
     string,
@@ -72,7 +72,6 @@ const ACCESS_VARIANTS = {
         login: string,
         report: Report,
         canSendInvoice: boolean,
-        betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isArchivedReport?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
@@ -174,7 +173,6 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
@@ -183,6 +181,7 @@ function AccessOrNotFoundWrapper({
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -207,12 +206,12 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy, rules);
+            return acc && accessFunction(policy, login, report, !!canSendInvoice, iouType, isReportArchived, isRestrictedToPreferredPolicy, rules);
         }
         if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
             return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
         }
-        return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived);
+        return acc && accessFunction(policy, login, report, !!canSendInvoice, iouType, isReportArchived);
     }, true);
     let hasAccessToPolicyFeature = true;
     if (policyFeature) {
@@ -237,9 +236,11 @@ function AccessOrNotFoundWrapper({
             return;
         }
 
-        // When a workspace feature linked to the current page is disabled we will navigate to the More Features page.
+        // When a workspace feature linked to the current page is disabled we will navigate to where it can be turned on.
+        // Connecting an integration turns its feature on, so those features have no toggle on More features.
+        const featureSettingsRoute = featureName && isConnectionFeature(featureName) ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID) : ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+            Navigation.goBack(featureSettingsRoute);
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -253,12 +254,12 @@ function AccessOrNotFoundWrapper({
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
     // The feature linked to this page is disabled, so the redirect effect above will navigate to the More Features page.
     // Render a loader instead of the page's children so the disabled page is never shown for a frame (avoids a visible flash).
     if (shouldRedirectToMoreFeatures) {
-        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
     if (shouldShowNotFoundPage) {
         return (

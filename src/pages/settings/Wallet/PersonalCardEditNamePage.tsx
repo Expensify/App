@@ -7,14 +7,15 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDefaultCardName} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {getCardNameError, getCardNameErrorMessage, getDefaultCardName} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -23,7 +24,7 @@ import {updateAssignedCardName} from '@userActions/Card';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditPersonalCardNameForm';
 import type {CardList} from '@src/types/onyx';
@@ -32,17 +33,17 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {cardByIdSelector} from '@selectors/Card';
-import React, {useCallback} from 'react';
+import React from 'react';
 
-type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
+type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME>;
 
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path);
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const [cardholder] = usePersonalDetail(card?.accountID);
     const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));
     const defaultValue =
         customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
@@ -52,18 +53,18 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const styles = useThemeStyles();
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>) => {
-        updateAssignedCardName(cardID, values[INPUT_IDS.NAME], defaultValue);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        updateAssignedCardName(cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), defaultValue);
+        Navigation.goBack(backPath);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
-        if (values.name) {
-            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM> = {};
+        const error = getCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
+
         return errors;
     };
 
@@ -79,7 +80,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.cardName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
             <FormProvider

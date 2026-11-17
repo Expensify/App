@@ -13,6 +13,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 
@@ -31,18 +33,19 @@ let customWindow: Window | null = null;
 
 type BankConnectionContentProps = {
     hasImportError: boolean;
+    errorMessage?: string;
     isPlaid?: boolean;
     onOpenBankConnectionFlow: () => void;
     bankName?: string | null;
     plaidConnectedFeedName?: string;
 };
 
-function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
+function BankConnectionContent({hasImportError, errorMessage, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (hasImportError) {
-        return <PersonalCardsErrorConfirmation />;
+        return <PersonalCardsErrorConfirmation errorMessage={errorMessage} />;
     }
     if (!isPlaid) {
         return (
@@ -54,7 +57,13 @@ function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlo
                 CustomSubtitle={
                     <Text style={[styles.textAlignCenter, styles.textSupporting]}>
                         {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, plaidConnectedFeedName ?? bankName)}
-                        <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.PERSONAL_CARD.PENDING_BANK_LINK}
+                            onPress={onOpenBankConnectionFlow}
+                        >
+                            {translate('workspace.moreFeatures.companyCards.pendingBankLink')}
+                        </TextLink>
+                        .
                     </Text>
                 }
                 onLinkPress={onOpenBankConnectionFlow}
@@ -82,6 +91,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const hasImportError = !isEmptyObject(addNewCard?.errors);
+    const errorMessage = getLatestErrorMessage(addNewCard) || undefined;
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {
@@ -131,6 +141,7 @@ function BankConnection() {
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <BankConnectionContent
                     bankName={bankName}
+                    errorMessage={errorMessage}
                     hasImportError={hasImportError}
                     onOpenBankConnectionFlow={onOpenBankConnectionFlow}
                     plaidConnectedFeedName={addNewCard?.data?.plaidConnectedFeedName}

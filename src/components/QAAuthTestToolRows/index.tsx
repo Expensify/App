@@ -5,13 +5,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCapturedCloudflareAuthCallback} from '@libs/CloudflareAccess/captureAuthCallbackURL';
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
-import {getCloudflareSignInOutcome} from '@libs/CloudflareAccess/finishSignInFromURL';
 import DateUtils from '@libs/DateUtils';
 
 import type {CloudflareAuthProbeResult, CloudflareAuthProbeStatus} from '@userActions/CloudflareProbe';
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
-import {clearCloudflareSession, getCloudflareSession} from '@userActions/CloudflareSession';
+import {clearCloudflareSession, getCloudflareCodeExchangeError, getCloudflareSession} from '@userActions/CloudflareSession';
 
 import CONST from '@src/CONST';
 
@@ -31,8 +31,12 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
     if (getCloudflareSession()) {
         return null;
     }
-    const {outcome, errorMessage} = getCloudflareSignInOutcome();
-    if (outcome === 'not-a-callback' || outcome === 'exchanging') {
+    const exchangeError = getCloudflareCodeExchangeError();
+    if (exchangeError !== undefined) {
+        return {status: 'signInFailed', detail: exchangeError};
+    }
+    const {outcome, errorMessage} = getCapturedCloudflareAuthCallback();
+    if (outcome === 'not-a-callback' || outcome === 'code-captured') {
         return null;
     }
     return {status: 'signInFailed', detail: errorMessage};
@@ -40,14 +44,13 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
 
 /**
  * Test-tool rows for the QA server auth flow, rendered only when the QA credentials are configured. With no
- * session, Run navigates the whole tab to Cloudflare, so a round trip's result only shows on the next press.
+ * session, Run may navigate the whole tab to Cloudflare, so a successful round trip's result only shows on the next press.
  */
 function QAAuthTestToolRows() {
     const styles = useThemeStyles();
     const {translate, datetimeToCalendarTime} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome. An in-flight exchange's failure surfaces when Run joins it
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<string | null>(null);
@@ -60,14 +63,21 @@ function QAAuthTestToolRows() {
         <>
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.qaAuth')}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.QA_AUTH}
                     size={CONST.BUTTON_SIZE.SMALL}
                     isDisabled={isOperationRunning}
                     isLoading={isOperationRunning}
                     onPress={() => {
                         setIsOperationRunning(true);
                         // Never rejects. Failures come back as semantic results
-                        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
+                        runCloudflareAuthProbe({
+                            shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired',
+                            shouldRedirectOnSignInFailed: probeResult?.status === 'signInFailed',
+                        })
                             .then((result) => {
+                                if (!result) {
+                                    return;
+                                }
                                 setProbeResult(result);
                                 setProbeCompletedAt(DateUtils.getDBTime());
                             })
@@ -79,6 +89,7 @@ function QAAuthTestToolRows() {
             </TestToolRow>
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.qaAuthSession')}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.CLEAR_QA_AUTH_SESSION}
                     size={CONST.BUTTON_SIZE.SMALL}
                     isDisabled={isOperationRunning}
                     onPress={() => {

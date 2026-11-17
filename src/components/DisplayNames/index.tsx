@@ -3,7 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type DisplayNamesProps from './types';
 
@@ -22,12 +22,11 @@ function DisplayNames({
     forwardedFSClass,
     shouldParseFullTitle = true,
     accessibilityLabel,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = useMemo(() => {
-        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
-        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
-    }, [fullTitle, shouldParseFullTitle, translate]);
+    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+    const title = StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
 
     if (!tooltipEnabled) {
         return (
@@ -38,6 +37,7 @@ function DisplayNames({
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
                 accessibilityLabel={accessibilityLabel}
+                isSelectable={isSelectable}
             />
         );
     }
@@ -52,6 +52,7 @@ function DisplayNames({
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
                 accessibilityLabel={accessibilityLabel}
+                isSelectable={isSelectable}
             />
         );
     }
@@ -66,6 +67,7 @@ function DisplayNames({
             renderAdditionalText={renderAdditionalText}
             forwardedFSClass={forwardedFSClass}
             accessibilityLabel={accessibilityLabel}
+            isSelectable={isSelectable}
         />
     );
 }

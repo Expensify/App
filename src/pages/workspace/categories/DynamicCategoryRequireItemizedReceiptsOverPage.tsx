@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,6 +49,8 @@ function DynamicCategoryRequireItemizedReceiptsOverPage({
     const styles = useThemeStyles();
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path);
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString} = useCurrencyListActions();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
@@ -90,15 +93,15 @@ function DynamicCategoryRequireItemizedReceiptsOverPage({
 
     const saveAndGoBack = () => {
         if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT) {
-            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName, isVendorMatchingBetaEnabled);
         } else if (selectedOptionKey === CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS) {
             if (policyCategories?.[categoryName]?.maxAmountNoReceipt !== 0) {
-                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0, isVendorMatchingBetaEnabled);
             } else {
-                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0);
+                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, 0, isVendorMatchingBetaEnabled);
             }
         } else {
-            setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE);
+            setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, isVendorMatchingBetaEnabled);
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
     };

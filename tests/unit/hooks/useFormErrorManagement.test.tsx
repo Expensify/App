@@ -39,6 +39,7 @@ const baseParams: Params = {
     isEditingSplitBill: false,
     isPolicyExpenseChat: false,
     isScanRequest: false,
+    canEnterScanFieldsManually: false,
     shouldShowMerchant: true,
     hasSmartScanFailed: false,
     didConfirmSplit: false,
@@ -229,6 +230,32 @@ describe('useFormErrorManagement', () => {
         expect(result.current.isMerchantFieldValid).toBe(false);
     });
 
+    it('leaves the merchant optional on a scan the user has started filling in, since a blank field is still scanned', () => {
+        const scanParams: Partial<Params> = {
+            isScanRequest: true,
+            isPolicyExpenseChat: false,
+            iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        };
+        const scanDraft = {
+            transactionID: 'txn1',
+            amount: 0,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            comment: {},
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        };
+
+        const {result: untouched} = renderHook(() => useFormErrorManagement({...baseParams, ...scanParams, transaction: createMock<OnyxTypes.Transaction>(scanDraft)}), {
+            wrapper: Wrapper,
+        });
+        const {result: amountEntered} = renderHook(
+            () => useFormErrorManagement({...baseParams, ...scanParams, transaction: createMock<OnyxTypes.Transaction>({...scanDraft, amount: 1000, isAmountSet: true})}),
+            {wrapper: Wrapper},
+        );
+
+        expect(untouched.current.isMerchantRequired).toBe(false);
+        expect(amountEntered.current.isMerchantRequired).toBe(false);
+    });
+
     it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {
         // Given an untouched manual draft (still carrying the placeholder merchant) headed for a workspace chat
         const {result, rerender} = renderHook(
@@ -289,6 +316,50 @@ describe('useFormErrorManagement', () => {
         act(() => result.current.setFormError('common.error.fieldRequired'));
 
         rerender(manualRequiredParams({isAmountSet: true, created: '', isReadOnly: true}));
+        expect(result.current.formError).toBe('');
+    });
+
+    it('keeps the required error alive while another receipt of a multi-scan is still partially filled', () => {
+        // Given a confirmation showing a complete receipt while a sibling one is partially filled. Confirming switches to
+        // the sibling, and the error has to survive the render where the complete receipt is still the one on screen.
+        const completeReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
+            ...baseParams,
+            canEnterScanFieldsManually: true,
+            partiallyManuallyFilledScanID,
+            transaction: createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: true,
+                isMerchantSet: true,
+                isCreatedSet: true,
+                comment: {},
+            }),
+        });
+
+        const partiallyFilledReceiptParams = (partiallyManuallyFilledScanID?: string): Params => ({
+            ...completeReceiptParams(partiallyManuallyFilledScanID),
+            transaction: createMock<OnyxTypes.Transaction>({
+                transactionID: 'txn1',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                isAmountSet: false,
+                isMerchantSet: true,
+                isCreatedSet: true,
+                comment: {},
+            }),
+        });
+
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: partiallyFilledReceiptParams('txn1'),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+
+        // Moving to a receipt that has nothing missing would clear the error, but a sibling is still partially filled
+        rerender(completeReceiptParams('txn2'));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // Once no receipt is partially filled any more the error clears, so confirmation is no longer blocked
+        rerender(completeReceiptParams(undefined));
         expect(result.current.formError).toBe('');
     });
 

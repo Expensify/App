@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -16,7 +16,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -30,13 +30,12 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
     const config = policy?.connections?.intacct?.config;
     const travelPayableAccount = policy?.connections?.intacct?.data?.creditCards?.find((account) => account.name === config?.export?.travelInvoicingPayableAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path);
-    const travelBillingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION.path}`;
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctTravelInvoicingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
-            title="workspace.sageIntacct.travelInvoicingDescription"
+            displayName="SageIntacctTravelBillingConfigurationPage"
+            headerTitle="workspace.common.travelBilling"
+            title="workspace.sageIntacct.travelBillingDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -53,17 +52,20 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.sageIntacct.creditCardAccount')}
-                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath))}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.TRAVEL_BILLING_CREDIT_CARD_ACCOUNT}
+                    name={translate('workspace.sageIntacct.creditCardAccount')}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path))}
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccountSetting, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             <TravelBillingContinuousReconciliationSection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_SWITCH.SAGE_INTACCT}
+                reconciliationAccountSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.TRAVEL_BILLING_RECONCILIATION_ACCOUNT.SAGE_INTACCT}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
                 isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />

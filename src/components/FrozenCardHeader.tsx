@@ -2,6 +2,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -42,11 +43,11 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [frozenByPersonalDetails] = usePersonalDetail(frozenByAccountID);
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
-    const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[frozenByAccountID], translate, formatPhoneNumber}) : '';
+    const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: frozenByPersonalDetails, translate, formatPhoneNumber}) : '';
     const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale) : '';
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
@@ -71,6 +72,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                     {adminFrozenTextPrefix}
                     <TextLink
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                        sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                         style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
@@ -86,6 +88,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(Number(frozenByAccountID))))}
+                    sentryLabel={CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.FROZEN_BY_PROFILE_LINK}
                     style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
@@ -104,6 +107,7 @@ function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskT
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
                 <View style={equalButtonWrapperStyles}>
                     <Button
+                        sentryLabel={canUnfreezeCard ? CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.UNFREEZE : CONST.SENTRY_LABEL.FROZEN_CARD_HEADER.ASK_TO_UNFREEZE}
                         onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                         isDisabled={canUnfreezeCard && isOffline}
                         innerStyles={equalButtonInnerStyles}

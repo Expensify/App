@@ -1,0 +1,309 @@
+import {ALL_POLICY_IDS_KEY, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import {useEffect, useRef, useState} from 'react';
+
+import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
+
+/**
+ * Hook for managing paginated tag filter search.
+ */
+type UseSearchTagFiltersResult = {
+    /** The paginated tag search results from Onyx */
+    searchResults: OnyxTypes.SearchTagFilterItem[] | null | undefined;
+
+    /** Whether a new search request is in flight */
+    isSearching: boolean;
+
+    /** Whether the next page of results is loading */
+    isLoadingMore: boolean;
+
+    /** Whether there are more pages to load */
+    hasMore: boolean;
+
+    /** Load the next page of results */
+    loadMore: () => void;
+
+    /** Start a new tag search with the given query */
+    searchTags: (query: string) => void;
+
+    /** Whether the first fetch is still in flight with no results to show yet */
+    isInitialLoading: boolean;
+
+    /** The search query of the currently displayed results */
+    searchQuery: string;
+};
+
+/**
+ * Hook for managing paginated tag filter search.
+ * Handles API calls, pagination state, and Onyx data subscription.
+ * Pagination state is persisted in Onyx (RAM-only) to survive component remounts.
+ * Accepts a comma-separated list of policy IDs to scope results to specific workspaces.
+ */
+function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
+    const {isOffline} = useNetwork();
+    const policyIDsKey = policyIDs || ALL_POLICY_IDS_KEY;
+    const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS}${policyIDsKey}`);
+    const [paginationState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION}${policyIDsKey}`);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    const baseResults = paginationState?.baseResults;
+    const baseHasMore = paginationState?.baseHasMore;
+    const baseCursor = paginationState?.baseCursor ?? '';
+    const searchQuery = paginationState?.searchQuery ?? '';
+
+    // Show base tags when empty or offline so results include all cached tags instead of partial search matches
+    const effectiveBaseResults = baseResults ?? searchResults;
+    let scopedSearchResults: OnyxTypes.SearchTagFilterItem[] | undefined;
+
+    if (searchQuery === '') {
+        scopedSearchResults = effectiveBaseResults;
+    } else if (isOffline) {
+        scopedSearchResults = effectiveBaseResults;
+    } else {
+        scopedSearchResults = searchResults;
+    }
+
+    const hasMore = searchQuery === '' ? (baseHasMore ?? paginationState?.hasMore ?? false) : (paginationState?.hasMore ?? false);
+    const nextCursor = searchQuery === '' ? baseCursor || (paginationState?.nextCursor ?? '') : (paginationState?.nextCursor ?? '');
+
+    // Track if we have cached data to avoid showing loading state on remount
+    const hasCachedData = !!effectiveBaseResults && effectiveBaseResults.length > 0;
+    const [prevPolicyIDs, setPrevPolicyIDs] = useState(policyIDs);
+    const [isFilteringLocally, setIsFilteringLocally] = useState(false);
+
+    if (prevPolicyIDs !== policyIDs) {
+        setPrevPolicyIDs(policyIDs);
+        setIsFilteringLocally(false);
+    }
+
+    // Only treat the cache as complete when the empty-query dataset is fully loaded.
+    const effectiveBaseHasMore = baseHasMore ?? hasMore;
+    const hasCompleteEmptyQueryCache = hasCachedData && !effectiveBaseHasMore && (searchQuery === '' || isFilteringLocally);
+
+    // Keep ref updated with latest values for use in stable callbacks
+    const stateRef = useRef({
+        hasMore,
+        nextCursor,
+        searchQuery,
+        searchResults: scopedSearchResults,
+        hasCachedData,
+        hasCompleteEmptyQueryCache,
+        isSearching,
+        isLoadingMore,
+        policyIDs,
+        baseResults: effectiveBaseResults,
+        baseHasMore: effectiveBaseHasMore,
+        baseCursor,
+    });
+    useEffect(() => {
+        stateRef.current = {
+            hasMore,
+            nextCursor,
+            searchQuery,
+            searchResults: scopedSearchResults,
+            hasCachedData,
+            hasCompleteEmptyQueryCache,
+            isSearching,
+            isLoadingMore,
+            policyIDs,
+            baseResults: effectiveBaseResults,
+            baseHasMore: effectiveBaseHasMore,
+            baseCursor,
+        };
+    }, [
+        hasMore,
+        nextCursor,
+        searchQuery,
+        scopedSearchResults,
+        hasCachedData,
+        hasCompleteEmptyQueryCache,
+        isSearching,
+        isLoadingMore,
+        policyIDs,
+        effectiveBaseResults,
+        effectiveBaseHasMore,
+        baseCursor,
+    ]);
+
+    // Incremented on every new search so a cancelled request doesn't clear the loading state of its successor
+    const requestSeqRef = useRef(0);
+
+    // Gates the full-list spinner to the initial load. Once any search settles, the list stays mounted
+    // so the search input keeps focus while the user types, even when the latest results are empty.
+    const [hasCompletedSearch, setHasCompletedSearch] = useState(hasCachedData);
+
+    const prevWasOfflineRef = useRef(isOffline);
+
+    const updatePagination = (
+        newHasMore: boolean,
+        newNextCursor: string,
+        newSearchQuery: string,
+        newBaseResults?: OnyxTypes.SearchTagFilterItem[],
+        newBaseHasMore?: boolean,
+        newBaseCursor?: string,
+    ) => {
+        const resolvedBaseResults = newBaseResults ?? stateRef.current.baseResults;
+        const resolvedBaseHasMore = newBaseHasMore ?? stateRef.current.baseHasMore;
+        const resolvedBaseCursor = newBaseCursor ?? stateRef.current.baseCursor;
+
+        stateRef.current.hasMore = newHasMore;
+        stateRef.current.nextCursor = newNextCursor;
+        stateRef.current.searchQuery = newSearchQuery;
+        stateRef.current.policyIDs = policyIDs;
+        stateRef.current.baseResults = resolvedBaseResults;
+        stateRef.current.baseHasMore = resolvedBaseHasMore;
+        stateRef.current.baseCursor = resolvedBaseCursor;
+        setSearchTagFiltersPagination(newHasMore, newNextCursor, newSearchQuery, policyIDs, resolvedBaseResults, resolvedBaseHasMore, resolvedBaseCursor);
+    };
+
+    const loadMore = () => {
+        const {
+            hasMore: currentHasMore,
+            nextCursor: currentCursor,
+            searchQuery: currentQuery,
+            searchResults: currentResults,
+            isSearching: currentIsSearching,
+            isLoadingMore: currentIsLoadingMore,
+            baseResults: currentBaseResults,
+        } = stateRef.current;
+        if (currentIsSearching || currentIsLoadingMore || !currentHasMore || isOffline) {
+            return;
+        }
+        const requestSeq = requestSeqRef.current;
+        setIsLoadingMore(true);
+        openSearchTagFiltersPage({searchQuery: currentQuery, cursor: currentCursor, limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, false, currentResults ?? [])
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags}) => {
+                if (currentQuery === '') {
+                    const updatedBaseResults = [...(currentBaseResults ?? currentResults ?? []), ...(tags ?? [])];
+                    updatePagination(newHasMore, newCursor, currentQuery, updatedBaseResults, newHasMore, newCursor);
+                } else {
+                    updatePagination(newHasMore, newCursor, currentQuery);
+                }
+            })
+            // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
+            .catch(() => {})
+            .finally(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                setIsLoadingMore(false);
+            });
+    };
+
+    const fetchFirstPage = (query = '') => {
+        if (isOffline) {
+            return;
+        }
+
+        setIsFilteringLocally(false);
+        const requestSeq = ++requestSeqRef.current;
+
+        // Reset pagination state immediately so loadMore doesn't fire with stale query/cursor
+        updatePagination(false, '', query);
+
+        // A new search cancels any in-flight request, so it owns the loading state from here on.
+        // The cancelled loadMore skips its own reset when it sees the bumped sequence, so clear its spinner here.
+        setIsLoadingMore(false);
+        // The collection is cleared by openSearchTagFiltersPage, so there is no cached data to show silently.
+        setIsSearching(true);
+
+        openSearchTagFiltersPage({searchQuery: query, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE, policyIDs}, true)
+            .then(({hasMore: newHasMore, nextCursor: newCursor, tags}) => {
+                if (query === '') {
+                    const updatedBaseResults = tags ?? stateRef.current.baseResults;
+                    updatePagination(newHasMore, newCursor, query, updatedBaseResults, newHasMore, newCursor);
+                } else {
+                    updatePagination(newHasMore, newCursor, query);
+                }
+            })
+            // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
+            .catch(() => {})
+            .finally(() => {
+                if (requestSeq !== requestSeqRef.current) {
+                    return;
+                }
+                setHasCompletedSearch(true);
+                setIsSearching(false);
+            });
+    };
+
+    const searchTags = (query: string) => {
+        if (isOffline) {
+            // When offline, update the search query so TagSelector can filter cached results locally
+            updatePagination(
+                query === '' ? (stateRef.current.baseHasMore ?? stateRef.current.hasMore) : stateRef.current.hasMore,
+                query === '' ? stateRef.current.baseCursor || stateRef.current.nextCursor : stateRef.current.nextCursor,
+                query,
+            );
+            return;
+        }
+
+        const {hasCompleteEmptyQueryCache: currentHasCompleteEmptyQueryCache} = stateRef.current;
+
+        // When the full empty-query dataset is already cached, filter locally instead of hitting the server on every keystroke.
+        if (currentHasCompleteEmptyQueryCache) {
+            setIsFilteringLocally(true);
+            updatePagination(false, '', query);
+            setHasCompletedSearch(true);
+            return;
+        }
+
+        fetchFirstPage(query);
+    };
+
+    // Reset active search query on unmount or workspace change so reopening starts with an empty search.
+    // Restores base pagination and preserves the cached base tag list.
+    useEffect(() => {
+        return () => {
+            const {searchQuery: currentQuery, baseResults: currentBaseResults, baseHasMore: currentBaseHasMore, baseCursor: currentBaseCursor} = stateRef.current;
+            if (currentQuery !== '') {
+                setSearchTagFiltersPagination(currentBaseHasMore ?? false, currentBaseCursor ?? '', '', policyIDs, currentBaseResults, currentBaseHasMore, currentBaseCursor);
+            }
+        };
+    }, [policyIDs]);
+
+    // Fetch the first page on mount, when the workspace scope changes, and on reconnect.
+    // Skips the fetch while offline and re-fetches on reconnect, matching useLoadSearchCategoryData.
+    // Reconnect uses the active search query so results stay in sync with the search input.
+    useEffect(() => {
+        let isCancelled = false;
+
+        if (isOffline) {
+            prevWasOfflineRef.current = true;
+            return;
+        }
+
+        const wasOffline = prevWasOfflineRef.current;
+        prevWasOfflineRef.current = false;
+
+        Promise.resolve().then(() => {
+            if (isCancelled) {
+                return;
+            }
+
+            if (wasOffline) {
+                fetchFirstPage(stateRef.current.searchQuery);
+                return;
+            }
+
+            fetchFirstPage('');
+        });
+
+        return () => {
+            isCancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyIDs, isOffline]);
+
+    const isInitialLoading = isSearching && !hasCompletedSearch;
+
+    return {searchResults: scopedSearchResults, isSearching, isLoadingMore, hasMore, loadMore, searchTags, isInitialLoading, searchQuery};
+}
+
+export default useSearchTagFilters;

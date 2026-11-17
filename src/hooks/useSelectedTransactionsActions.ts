@@ -11,24 +11,25 @@ import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
+    canDeleteMoneyRequestReport,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -38,6 +39,7 @@ import type {Route} from '@src/ROUTES';
 import type {ExportTemplate, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
@@ -54,8 +56,10 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useReportTransactions from './useReportTransactions';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
@@ -95,6 +99,7 @@ function useSelectedTransactionsActions({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
@@ -126,11 +131,12 @@ function useSelectedTransactionsActions({
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const reportTransactions = useReportTransactions(report?.reportID);
     const {isBetaEnabled} = usePermissions();
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -159,7 +165,7 @@ function useSelectedTransactionsActions({
             continue;
         }
 
-        const parentReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+        const parentReport = getReportOrDraftReport({reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]});
         const ownerAccountID = parentReport?.ownerAccountID;
 
         if (typeof ownerAccountID === 'number') {
@@ -170,6 +176,25 @@ function useSelectedTransactionsActions({
     }
 
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
+
+    // The `reportActions` prop is the paginated chain, so it can miss IOU actions that are already in Onyx. Also search the full collection.
+    // Build each report's combined list once per render, because this is called inside several loops over the selected transactions.
+    const combinedReportActionsByReportID = new Map<string | undefined, ReportAction[]>();
+    const getCombinedReportActions = (reportID: string | undefined) => {
+        let combinedReportActions = combinedReportActionsByReportID.get(reportID);
+        if (!combinedReportActions) {
+            const onyxReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+            // Search both sources together, so a live action in either one wins over a deleted action in the collection
+            combinedReportActions = [...onyxReportActions, ...reportActions];
+            combinedReportActionsByReportID.set(reportID, combinedReportActions);
+        }
+        return combinedReportActions;
+    };
+    const getTransactionIOUAction = (transaction: Transaction | undefined, transactionID: string) => {
+        // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
+        const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
+        return getIOUActionForTransactionID(getCombinedReportActions(transactionReportID), transactionID, true);
+    };
 
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -184,7 +209,8 @@ function useSelectedTransactionsActions({
         return map;
     }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const activePolicyExpenseChatSelector = useMemo(() => policyExpenseChatSelector(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const isDuplicateOptionVisible = useMemo(
         () =>
@@ -294,6 +320,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.editMultiple'),
                 icon: expensifyIcons.Pencil,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_EDIT_MULTIPLE,
                 onSelected: () => {
                     initBulkEditDraftTransaction(selectedTransactionIDs);
                     Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
@@ -316,9 +343,18 @@ function useSelectedTransactionsActions({
                 canUnholdTransactions = false;
                 continue;
             }
-            const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
+            const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                report,
+                iouReportAction,
+                holdReportAction,
+                selectedTransaction,
+                policy,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            );
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -329,6 +365,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.hold'),
                 icon: expensifyIcons.Stopwatch,
                 value: HOLD,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_HOLD,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -348,6 +385,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.unhold'),
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_UNHOLD,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -355,23 +393,27 @@ function useSelectedTransactionsActions({
                     }
 
                     for (const transactionID of selectedTransactionIDs) {
-                        const action = getIOUActionForTransactionID(reportActions, transactionID);
+                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                        const action = getTransactionIOUAction(transaction, transactionID);
                         if (!action?.childReportID) {
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        unholdRequest(
+                        unholdRequest({
                             transactionID,
-                            action.childReportID,
+                            transaction,
+                            reportID: action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
-                            login ?? '',
+                            currentUserLogin: login ?? '',
                             currentUserAccountID,
                             transactionViolations,
                             isTrackIntentUser,
                             delegateAccountID,
                             rules,
-                        );
+                        });
                     }
                     clearSelectedTransactions(true);
                 },
@@ -386,6 +428,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.reject'),
                 icon: expensifyIcons.ThumbsDown,
                 value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_REJECT,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -422,6 +465,7 @@ function useSelectedTransactionsActions({
                     text: template.name,
                     icon: isDefaultTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_EXPORT_TEMPLATE,
                     onSelected: isBasicExport
                         ? () => {
                               if (!report) {
@@ -437,10 +481,12 @@ function useSelectedTransactionsActions({
                                       onExportFailed?.();
                                   },
                                   translate,
+                                  reportTransactions,
                               );
                               clearSelectedTransactions(true);
                           }
                         : () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.name, template.policyID),
+                    shouldCallAfterModalHide: true,
                     addSeparatorBefore,
                 };
             };
@@ -458,6 +504,7 @@ function useSelectedTransactionsActions({
 
         options.push({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_EXPORT,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
             icon: expensifyIcons.Export,
@@ -469,20 +516,25 @@ function useSelectedTransactionsActions({
             if (!transaction) {
                 return false;
             }
-            const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-
+            const iouReportAction = getTransactionIOUAction(transaction, transaction.transactionID);
+            const moneyRequestReportID =
+                iouReportAction?.reportID ?? (isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction)?.IOUReportID : undefined) ?? transaction.reportID;
             const canMoveExpense = canEditFieldOfMoneyRequest({
                 reportAction: iouReportAction,
+                reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReportID}`],
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 outstandingReportsByPolicyID,
                 transaction,
+                report,
+                policy,
                 reportNameValuePairs: allReportNameValuePairs,
                 rules,
             });
             return canMoveExpense;
         });
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules);
+        const canMergeTransaction =
+            selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], rules, personalDetails);
         if (canMergeTransaction) {
             const transactionID = selectedTransactionsList.at(0)?.transactionID;
             if (transactionID) {
@@ -490,18 +542,18 @@ function useSelectedTransactionsActions({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_MERGE,
                     onSelected: () =>
                         setupMergeTransactionDataAndNavigate(
                             transactionID,
                             selectedTransactionsList,
                             localeCompare,
+                            translate,
                             getCurrencyDecimals,
                             [],
                             false,
                             isOnSearch,
                             selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                            currentUserAccountID,
-                            personalDetails,
                         ),
                 });
             }
@@ -513,6 +565,7 @@ function useSelectedTransactionsActions({
                 text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: MOVE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_MOVE_EXPENSES,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
                     const route = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, report?.reportID, shouldTurnOffSelectionMode));
@@ -531,13 +584,24 @@ function useSelectedTransactionsActions({
             selectedTransactionsList.length === 1 &&
             report &&
             !(isExpenseSplit && hasMultipleSplits) &&
-            isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, rules, policy, parentReport);
+            isSplitAction(
+                report,
+                [firstTransaction],
+                originalTransaction,
+                login ?? '',
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                policy,
+                parentReport,
+            );
 
         if (canSplitTransaction) {
             options.push({
                 text: translate('iou.split'),
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_SPLIT,
                 onSelected: () => {
                     initSplitExpense(
                         firstTransaction,
@@ -560,6 +624,7 @@ function useSelectedTransactionsActions({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_DUPLICATE,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
                     if (exceedsBulkDuplicateLimit) {
@@ -577,12 +642,38 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            const isActionDeleted = isDeletedAction(action);
-            const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
+            const action = getTransactionIOUAction(transaction, transaction.transactionID);
 
-            return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
+            // Some reported expenses have no IOU action, and the API still deletes them by transactionID, so the report-level delete rules decide.
+            // The paginated `reportActions` prop can miss the latest workflow actions, so the check gets the report's combined history instead:
+            // ownership still fails closed on unreported and IOU reports while expense reports check the submitter, and a forward since the
+            // last submit is not missed.
+            if (!action) {
+                return (
+                    !!report &&
+                    typeof session?.accountID === 'number' &&
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        getCombinedReportActions(report.reportID),
+                        session.accountID,
+                        rules,
+                        getLoginByAccountID(report?.ownerAccountID, personalDetails),
+                        policy,
+                        cardList,
+                    )
+                );
+            }
+
+            if (isDeletedAction(action)) {
+                return false;
+            }
+
+            if (isManagedCardTransaction(transaction)) {
+                return canDeleteCardTransaction(transaction, policy, cardList);
+            }
+
+            return typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
         });
 
         const canRemoveReportTransaction = canDeleteTransaction(report, rules, isReportArchived);
@@ -594,6 +685,7 @@ function useSelectedTransactionsActions({
                 text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
                 icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                sentryLabel: shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_SPLIT : CONST.SENTRY_LABEL.REPORT.SELECTED_EXPENSES_MENU_DELETE,
                 shouldSkipDeleteModal: shouldShowEditSplitOnDeleteAction,
                 onSelected: () => {
                     if (shouldShowEditSplitOnDeleteAction) {

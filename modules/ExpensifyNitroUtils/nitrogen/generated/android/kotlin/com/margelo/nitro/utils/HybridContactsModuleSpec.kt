@@ -10,6 +10,7 @@ package com.margelo.nitro.utils
 import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
+import dalvik.annotation.optimization.FastNative
 import com.margelo.nitro.core.Promise
 import com.margelo.nitro.core.HybridObject
 
@@ -32,6 +33,10 @@ abstract class HybridContactsModuleSpec: HybridObject() {
   @DoNotStrip
   @Keep
   abstract fun getAll(keys: Array<ContactFields>): Promise<Array<Contact>>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun pick(keys: Array<ContactFields>): Promise<Array<Contact>>
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {
@@ -43,6 +48,7 @@ abstract class HybridContactsModuleSpec: HybridObject() {
   @Keep
   protected open class CxxPart(javaPart: HybridContactsModuleSpec): HybridObject.CxxPart(javaPart) {
     // C++ JHybridContactsModuleSpec::CxxPart::initHybrid(...)
+    @FastNative
     external override fun initHybrid(): HybridData
   }
   override fun createCxxPart(): CxxPart {

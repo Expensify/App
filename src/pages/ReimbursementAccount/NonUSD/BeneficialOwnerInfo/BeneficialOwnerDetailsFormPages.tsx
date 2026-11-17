@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
@@ -90,29 +90,24 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         }),
     );
 
-    const skipPages = useMemo(() => {
-        const pagesToSkip: string[] = [];
-        if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
-            pagesToSkip.push(SUB_PAGE_NAMES.SSN);
-        }
-        const documentsStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerAddressCountry);
-        if (!documentsStatus.isProofOfOwnershipNeeded && !documentsStatus.isCopyOfIDNeeded && !documentsStatus.isProofOfAddressNeeded && !documentsStatus.isCodiceFiscaleNeeded) {
-            pagesToSkip.push(SUB_PAGE_NAMES.DOCUMENTS);
-        }
-        return pagesToSkip;
-    }, [beneficialOwnerNationality, beneficialOwnerAddressCountry, countryStepCountryValue, currency]);
+    const pagesToSkip: string[] = [];
+    if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
+        pagesToSkip.push(SUB_PAGE_NAMES.SSN);
+    }
+    const documentsStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerAddressCountry);
+    if (!documentsStatus.isProofOfOwnershipNeeded && !documentsStatus.isCopyOfIDNeeded && !documentsStatus.isProofOfAddressNeeded && !documentsStatus.isCodiceFiscaleNeeded) {
+        pagesToSkip.push(SUB_PAGE_NAMES.DOCUMENTS);
+    }
+    const skipPages = pagesToSkip;
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') =>
-            ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
-                policyID,
-                page: PAGE_NAME.BENEFICIAL_OWNER_INFO,
-                subPage: pageName,
-                action,
-                backTo,
-            }),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') =>
+        ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+            policyID,
+            page: PAGE_NAME.BENEFICIAL_OWNER_INFO,
+            subPage: pageName,
+            action,
+            backTo,
+        });
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<BeneficialOwnerSubPageProps>({
         pages,
@@ -122,7 +117,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         skipPages,
     });
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
@@ -146,7 +141,7 @@ function BeneficialOwnerDetailsFormPages({stepNames, policyID, onFinished, backT
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, isEditingCreatedOwner, pageIndex, prevPage, skipPages]);
+    };
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;

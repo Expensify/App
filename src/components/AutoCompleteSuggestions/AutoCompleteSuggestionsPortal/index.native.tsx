@@ -6,6 +6,10 @@ import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimen
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+
 import {Portal} from '@gorhom/portal';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -28,7 +32,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     const StyleUtils = useStyleUtils();
     const {height: windowHeight} = useWindowDimensionsForAutoCompleteSuggestions();
     const {keyboardHeight} = useKeyboardState();
-    const hostFrameRef = useRef<View>(null);
+    const hostFrameRef = useRef<ComponentRef<typeof View>>(null);
 
     const [hostBottomInset, setHostBottomInset] = useState<number | null>(null);
 
@@ -55,6 +59,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                 <>
                     <TransparentOverlay
                         onPress={resetSuggestions}
+                        sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.OVERLAY}
                         style={zIndexStyle}
                     />
                     <View

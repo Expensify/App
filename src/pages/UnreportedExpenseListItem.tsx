@@ -5,9 +5,9 @@ import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -15,12 +15,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -28,6 +27,7 @@ import React, {useRef} from 'react';
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     readOnly?: boolean;
     violations?: Record<string, TransactionViolation[]>;
+    policyID: string;
 };
 
 function UnreportedExpenseListItem<TItem extends ListItem>({
@@ -40,6 +40,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onSelectRow,
     violations,
+    policyID,
 }: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
@@ -48,18 +49,13 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false});
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     const transactionReportID = getNonEmptyStringOnyxID(transactionItem.reportID);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
-    const transactionPolicy = usePolicy(transactionReport?.policyID ?? transactionItem.policyID);
+    const transactionPolicy = usePolicy(policyID);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -102,6 +98,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                         }}
                         isDisabled={isItemDisabled}
                         shouldShowCheckbox={!readOnly}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM_CHECKBOX}
                         style={styles.p3}
                         isHover={hovered}
                     />

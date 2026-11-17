@@ -57,11 +57,12 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(translate, start)} - ${DateUtils.formatToLocalTime(translate, end)}`,
+                                          `${DateUtils.formatToLocalTime(start, dateFnsLocale)} - ${DateUtils.formatToLocalTime(end, dateFnsLocale)}`,
                                           DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
                                       )}
                             </Text>
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.CHRONOS_OOO_REMOVE_EVENT_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 style={styles.pl2}
                                 // Restores the 12px horizontal padding from the legacy implementation.

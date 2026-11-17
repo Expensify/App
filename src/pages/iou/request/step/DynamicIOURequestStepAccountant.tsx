@@ -4,6 +4,7 @@ import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 
 import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -35,11 +36,12 @@ function DynamicIOURequestStepAccountant({
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
-    const {accountID, email = '', localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {accountID, email = '', displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path);
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
 
     const setAccountant = (accountant: Accountant) => {
         setMoneyRequestAccountant(transactionID, accountant, true);
@@ -48,11 +50,16 @@ function DynamicIOURequestStepAccountant({
     const navigateToNextStep = () => {
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         if (!hasActiveAdminPolicies) {
+            if (isRestrictedPolicyCreation) {
+                showRestrictedPolicyCreationModal();
+                return;
+            }
+
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
                 action,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
                 accountID,
                 email,
                 localCurrencyCode ?? CONST.CURRENCY.USD,

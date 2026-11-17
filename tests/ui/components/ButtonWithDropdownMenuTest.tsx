@@ -19,6 +19,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
         text: 'Test Option',
         icon: icons.current.Checkbox,
         onSelected: mockOnSelected,
+        sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
     };
 
     afterEach(() => {
@@ -33,6 +34,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onOptionSelected={mockOnOptionSelected}
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         expect(screen.getByText('Test Option')).toBeTruthy();
@@ -46,6 +48,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onOptionSelected={mockOnOptionSelected}
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         fireEvent.press(screen.getByText('Test Option'));
@@ -64,6 +67,7 @@ describe('ButtonWithDropdownMenu (single option)', () => {
                 onSubItemSelected={mockOnSubItemSelected}
                 shouldUseOptionIcon
                 testID={CONST.ICON_TEST_ID}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
         const iconNodes = screen.getAllByTestId(CONST.ICON_TEST_ID);
@@ -76,8 +80,8 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
     const mockOnPress = jest.fn();
     const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Checkbox']));
     const options = [
-        {value: 'one', text: 'Option One', icon: icons.current.Checkbox},
-        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox},
+        {value: 'one', text: 'Option One', icon: icons.current.Checkbox, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
+        {value: 'two', text: 'Option Two', icon: icons.current.Checkbox, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
     ];
 
     afterEach(() => {
@@ -90,18 +94,19 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
                 options={options}
                 onPress={mockOnPress}
                 isSplitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
         const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
-        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).not.toHaveStyle({transform: [{rotate: '180deg'}]});
 
         const buttons = screen.getAllByRole('button');
         const buttonToPress = buttons?.at(1);
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).toHaveStyle({transform: [{rotate: '180deg'}]});
     });
 
     it('reverts the arrow icon when the dropdown menu is closed', () => {
@@ -110,6 +115,7 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
                 options={options}
                 onPress={mockOnPress}
                 isSplitButton
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 
@@ -119,11 +125,11 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).toHaveStyle({transform: [{rotate: '180deg'}]});
 
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).not.toHaveStyle({transform: [{rotate: '180deg'}]});
     });
 });

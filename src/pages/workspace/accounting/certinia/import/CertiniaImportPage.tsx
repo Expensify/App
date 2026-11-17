@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +21,13 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+const DIMENSION_ROW_SENTRY_LABELS = {
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION1]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_1,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION2]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_2,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION3]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_3,
+    [CONST.CERTINIA_CONFIG.CODING_DIMENSION4]: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.IMPORT_DIMENSION_ROW.CODING_DIMENSION_4,
+};
+
 function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -31,6 +39,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="CertiniaImportPage"
             headerTitle="workspace.accounting.import"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -50,23 +59,25 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.expenseTypeGlaMappings')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPENSE_TYPE_GLA_MAPPINGS_SWITCH}
                         onToggle={() => {}}
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.certinia.import.tagsMappedTo')}
-                            title={getParentTagMappingLabel(coding?.parentTagMapping, translate)}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAGS_MAPPED_TO}
+                            name={translate('workspace.certinia.import.tagsMappedTo')}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING.getRoute(policyID));
                             }}
-                            brickRoadIndicator={
-                                areSettingsInErrorFields([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                            }
-                        />
+                            value={getParentTagMappingLabel(coding?.parentTagMapping, translate)}
+                        >
+                            {areSettingsInErrorFields([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     <ToggleSettingOptionRow
                         wrapperStyle={[styles.mv3, styles.ph5]}
@@ -75,6 +86,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldPlaceSubtitleBelowSwitch
                         isActive={!!coding?.syncMilestones}
                         switchAccessibilityLabel={translate('workspace.certinia.import.milestones')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.MILESTONES_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;
@@ -96,6 +108,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         isActive
                         disabled
                         switchAccessibilityLabel={translate('workspace.certinia.import.chartOfAccounts')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.CHART_OF_ACCOUNTS_SWITCH}
                         onToggle={() => {}}
                     />
                     {CERTINIA_DIMENSION_PARAMS.map((dimension) => (
@@ -103,18 +116,19 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                             key={dimension}
                             pendingAction={settingsPendingAction([dimension], config?.pendingFields)}
                         >
-                            <MenuItemWithTopDescription
-                                description={getDimensionLabel(dimension, translate)}
-                                title={getDisplayTypeLabel(coding?.[dimension], translate)}
-                                shouldShowRightIcon
+                            <MenuItemField
+                                sentryLabel={DIMENSION_ROW_SENTRY_LABELS[dimension]}
+                                name={getDimensionLabel(dimension, translate)}
                                 onPress={() => {
                                     if (!policyID) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING.getRoute(policyID, dimension));
                                 }}
-                                brickRoadIndicator={areSettingsInErrorFields([dimension], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                                value={getDisplayTypeLabel(coding?.[dimension], translate)}
+                            >
+                                {areSettingsInErrorFields([dimension], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     ))}
                     <ToggleSettingOptionRow
@@ -122,6 +136,7 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         title={translate('common.tax')}
                         isActive={!!coding?.syncTax}
                         switchAccessibilityLabel={translate('common.tax')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.TAX_SWITCH}
                         onToggle={(isEnabled: boolean) => {
                             if (!policyID) {
                                 return;

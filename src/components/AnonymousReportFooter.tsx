@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
@@ -31,7 +32,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.inboxSideBarWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
 
     return (
         <View style={[styles.anonymousRoomFooter, styles.anonymousRoomFooterFlexDirection(isSmallSizeLayout)]}>
@@ -51,9 +52,10 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
                 </View>
                 <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.ANONYMOUS_REPORT_FOOTER.SIGN_IN_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => {
-                            signOutAndRedirectToSignIn();
+                        onPress={async () => {
+                            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION));
                         }}
                     >
                         <Button.Text>{translate('common.signIn')}</Button.Text>

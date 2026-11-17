@@ -39,6 +39,11 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
     }
 }
 
+function omitOnyxData<TKey extends OnyxKey>(response: Response<TKey>) {
+    const {onyxData, paginationOnyxData, ...rest} = response;
+    return rest;
+}
+
 function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response<TKey> | void) {
     // Don't log about log or else we'd cause an infinite loop.
     if (request.command === 'Log') {
@@ -75,7 +80,9 @@ function logRequestDetails<TKey extends OnyxKey>(message: string, request: Reque
             ...request,
             data: serializeLoggingData(request.data),
         });
-        extraData.response = sanitizeLogParams(response);
+        // onyxData and paginationOnyxData can hold thousands of reports and actions, and sanitizing them copies every nested object
+        // on the main thread just for a debug log entry.
+        extraData.response = sanitizeLogParams(response ? omitOnyxData(response) : response);
     }
 
     Log.info(message, false, logParams, false, extraData);
@@ -150,6 +157,9 @@ const Logging: Middleware = (response, request) => {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.SERVICE_UNAVAILABLE) {
+                // The server is shedding writes during instability and asked us to retry, so this is expected and handled.
+                Log.hmmm('[Network] API request error: Expensify API is temporarily unavailable', logParams);
             } else if (error.message === CONST.ERROR.THROTTLED) {
                 Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
             } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {

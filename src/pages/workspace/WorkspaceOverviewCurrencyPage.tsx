@@ -1,31 +1,26 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useApplyWorkspaceCurrencyChange from '@hooks/useApplyWorkspaceCurrencyChange';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getGovernmentRateCountryForCurrency, getGovernmentRateCountryPhraseTranslationKey, isSharedGovernmentRateCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
-import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
-
-import {clearCorpayBankAccountFields} from '@userActions/BankAccounts';
-import {clearDraftValues} from '@userActions/FormActions';
-import {isCurrencySupportedForGlobalReimbursement, updateGeneralSettings} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {TupleToUnion} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -36,40 +31,74 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CURRENCY | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY>>();
     const {translate} = useLocalize();
     const isForcedToChangeCurrency = !!route.params?.isForcedToChangeCurrency;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const shouldStartExpensifyCardEnrollment = !!route.params?.shouldStartExpensifyCardEnrollment;
+
+    // Pages other than Overview open this on top of themselves, so it has to go back to them, also after a reload
+    const isDynamicRoute = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.path, isDynamicRoute);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {showConfirmModal} = useConfirmModal();
+    const applyWorkspaceCurrencyChange = useApplyWorkspaceCurrencyChange(policy);
+
+    const goBack = () => {
+        if (isDynamicRoute) {
+            Navigation.goBack(backPath);
+            return;
+        }
+        Navigation.goBack();
+    };
+
+    const applyCurrencySelection = (currencyCode: string) => {
+        applyWorkspaceCurrencyChange(currencyCode, {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment, backTo: isDynamicRoute ? backPath : undefined});
+    };
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
         }
-        clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        updateGeneralSettings(policy, policy?.name ?? '', item.currencyCode, getReviewWorkspaceSettingsTaskCompletion());
-        clearCorpayBankAccountFields();
 
-        if (isForcedToChangeCurrency) {
-            if (isCurrencySupportedForGlobalReimbursement(item.currencyCode as CurrencyType)) {
-                const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, item.currencyCode, true).length > 0;
-                if (hasValidExistingAccounts) {
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id)));
+        const isAutoUpdateOn = !!policy.shouldAutoUpdateGovernmentDistanceRates;
+        const isCurrencyChange = item.currencyCode !== policy.outputCurrency;
+
+        // Several supported countries share EUR, so moving to EUR with auto-update on needs the country choice first
+        if (isAutoUpdateOn && isCurrencyChange && isSharedGovernmentRateCurrency(item.currencyCode)) {
+            // On a dynamic route, the flags this page was opened with stay in the URL the country page is built on
+            Navigation.navigate(
+                isDynamicRoute
+                    ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY.getRoute(item.currencyCode))
+                    : ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.getRoute(policy.id, item.currencyCode, {
+                          isForcedToChangeCurrency,
+                          shouldStartExpensifyCardEnrollment,
+                      }),
+            );
+            return;
+        }
+
+        // Moving to another supported currency with auto-update on swaps which government's rates get copied
+        const governmentRateCountry = getGovernmentRateCountryForCurrency(item.currencyCode);
+        if (isAutoUpdateOn && isCurrencyChange && governmentRateCountry) {
+            const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(governmentRateCountry) ?? 'workspace.distanceRates.governmentRateCountryGeneric';
+            showConfirmModal({
+                title: translate('workspace.distanceRates.autoUpdateGovernmentRate'),
+                prompt: translate('workspace.distanceRates.currencyChangeGovernmentRateWarning', item.currencyCode, translate(countryPhraseTranslationKey)),
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                navigateToBankAccountRoute({
-                    policyID: policy.id,
-                    backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id),
-                    navigationOptions: {forceReplace: true},
-                });
-                return;
-            }
+                applyCurrencySelection(item.currencyCode);
+            });
+            return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+
+        applyCurrencySelection(item.currencyCode);
     };
 
     return (
@@ -78,7 +107,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             shouldBeBlocked={shouldBlockCurrencyChange}
             fullPageNotFoundViewProps={{
-                onLinkPress: shouldBlockCurrencyChange ? () => Navigation.goBack() : goBackFromInvalidPolicy,
+                onLinkPress: shouldBlockCurrencyChange ? goBack : goBackFromInvalidPolicy,
                 subtitleKey: shouldBlockCurrencyChange || isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
             }}
         >
@@ -89,7 +118,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={goBack}
                 />
 
                 <CurrencySelectionList
@@ -103,4 +132,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     );
 }
 
+export {WorkspaceOverviewCurrencyPage};
+export type {WorkspaceOverviewCurrencyPageProps};
 export default withPolicyAndFullscreenLoading(WorkspaceOverviewCurrencyPage);

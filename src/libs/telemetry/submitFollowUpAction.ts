@@ -87,7 +87,7 @@ function isSameFlowUpdate(pending: NonNullable<PendingSubmitFollowUpAction>, fol
         return true;
     }
     // The fast path (pre-insert) sets NAVIGATE_TO_SEARCH before createTransaction runs.
-    // handleNavigateAfterExpenseCreate may later call with DISMISS_MODAL_ONLY because it
+    // navigateAfterExpenseCreate may later call with DISMISS_MODAL_ONLY because it
     // sees the Search page as already on top. Treat this as same-flow - keep the original.
     return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY;
 }
@@ -105,7 +105,7 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
     if (pending !== null && span && isSameFlowUpdate(pending, followUpAction, reportID)) {
         // Same flow: only update when the new action is a genuine refinement (e.g.
         // DISMISS_MODAL_ONLY -> DISMISS_MODAL_AND_OPEN_REPORT). When the fast path set
-        // NAVIGATE_TO_SEARCH and handleNavigateAfterExpenseCreate later calls with
+        // NAVIGATE_TO_SEARCH and navigateAfterExpenseCreate later calls with
         // DISMISS_MODAL_ONLY (because Search is already on top), preserve the original
         // action so telemetry correctly reflects the pre-insert path.
         const isRefinement =

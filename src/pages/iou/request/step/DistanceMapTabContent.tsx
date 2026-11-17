@@ -13,6 +13,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -41,7 +42,7 @@ type DistanceMapTabContentProps = {
     waypoints: WaypointCollection;
     extractKey: (key: string) => string;
     updateWaypoints: (data: {data: string[]}) => void;
-    scrollViewRef: React.RefObject<RNScrollView | null>;
+    scrollViewRef: React.RefObject<ComponentRef<typeof RNScrollView> | null>;
     renderItem: (params: RenderItemParams<string>) => React.JSX.Element;
     navigateToWaypointEditPage: (index: number) => void;
     transaction: OnyxEntry<Transaction>;
@@ -53,6 +54,9 @@ type DistanceMapTabContentProps = {
 
     /** The state of the transaction being rendered, used to persist route selection to the correct Onyx key */
     transactionState: TransactionStateType;
+
+    /** Navigates to the "reuse prior route" page. The "Reuse route" button is hidden when omitted. */
+    navigateToReuseRoutePage?: () => void;
 };
 
 function DistanceMapTabContent({
@@ -70,6 +74,7 @@ function DistanceMapTabContent({
     errorState,
     loadingState,
     transactionState,
+    navigateToReuseRoutePage,
 }: DistanceMapTabContentProps) {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -89,6 +94,7 @@ function DistanceMapTabContent({
                         policy={policy}
                         mapContainerStyle={{minHeight: undefined}}
                         transactionState={transactionState}
+                        navigateToReuseRoutePage={navigateToReuseRoutePage}
                     />
                 </View>
             )}
@@ -107,6 +113,7 @@ function DistanceMapTabContent({
                                 transaction={transaction}
                                 policy={policy}
                                 transactionState={transactionState}
+                                navigateToReuseRoutePage={navigateToReuseRoutePage}
                             />
                         ) : undefined
                     }

@@ -2,6 +2,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -25,11 +26,12 @@ import useGettingStartedItems from './hooks/useGettingStartedItems';
 function GettingStartedSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const styles = useThemeStyles();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [guideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
-    const hasGuide = !!guideDetails?.email;
+    const hasAccountExecutive = !!guideDetails?.email && guideDetails.email.toLowerCase() !== CONST.EMAIL.CONCIERGE;
     const {shouldShowSection, items} = useGettingStartedItems();
 
     const openAdminsRoom = () => {
@@ -48,7 +50,7 @@ function GettingStartedSection() {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: adminsRoomReportID, backTo: ROUTES.HOME}));
     };
 
-    const helpLinkText = translate(hasGuide ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge');
+    const helpLinkText = translate(hasAccountExecutive ? 'homePage.gettingStartedSection.talkToAccountExecutive' : 'homePage.gettingStartedSection.talkToConcierge');
     const footerHelpText = `${translate('homePage.gettingStartedSection.needHelp')} ${helpLinkText} ${translate('homePage.gettingStartedSection.forGuidedSetup')}`;
 
     if (!shouldShowSection) {
@@ -57,7 +59,7 @@ function GettingStartedSection() {
 
     return (
         <WidgetContainer title={translate('homePage.gettingStartedSection.title')}>
-            <View style={[styles.getForYouSectionContainerStyle(shouldUseNarrowLayout), styles.mb2]}>
+            <View style={[styles.getWidgetRowGroupStyle(shouldUseNarrowLayout), styles.mb2]}>
                 {items.map((item) => (
                     <GettingStartedRow
                         key={item.key}
@@ -65,7 +67,7 @@ function GettingStartedSection() {
                     />
                 ))}
             </View>
-            <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
+            <View style={[cardPaddingHorizontal, cardPaddingBottom]}>
                 <PressableWithoutFeedback
                     onPress={openAdminsRoom}
                     accessibilityLabel={footerHelpText}

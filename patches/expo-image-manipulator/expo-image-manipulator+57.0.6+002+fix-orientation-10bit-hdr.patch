@@ -1,0 +1,86 @@
+diff --git a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+index c3e3b66..c9cf2a1 100644
+--- a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
++++ b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
+@@ -9,67 +9,20 @@ internal struct ImageFixOrientationTransformer: ImageTransformer {
+     guard let cgImage = image.cgImage else {
+       throw ImageNotFoundException()
+     }
+-    guard var colorSpace = cgImage.colorSpace else {
+-      // That should never happen as `colorSpace` is empty only when the image is a mask.
+-      throw ImageColorSpaceNotFoundException()
++    // A PQ or HLG transfer function cannot be carried into the formats `saveAsync` writes: the profile survives
++    // into the file and decoders without ITU-R BT.2100 support render it black. Redrawing tone-maps the image down
++    // to the renderer's standard-range output, so it is worth doing even when the orientation needs no fixing.
++    let usesHDRTransferFunction = cgImage.colorSpace.map(CGColorSpaceUsesITUR_2100TF) ?? false
++    // The pixel data already matches the displayed orientation and its profile survives encoding, so there is
++    // nothing to fix.
++    if image.imageOrientation == .up && !usesHDRTransferFunction {
++      return image
++    }
++    // `UIImage.draw(in:)` applies the orientation on its own.
++    // Unlike a raw bitmap context, the renderer accepts any source pixel format,
++    // including the 10-bit HDR images that `CGBitmapContextCreate` rejects.
++    return drawInNewContext(size: image.size) { _ in
++      image.draw(in: CGRect(origin: .zero, size: image.size))
+     }
+-    if !colorSpace.supportsOutput {
+-      colorSpace = CGColorSpaceCreateDeviceRGB()
+-    }
+-
+-    var transform = CGAffineTransform.identity
+-
+-    switch image.imageOrientation {
+-    case .down, .downMirrored:
+-      transform = transform.translatedBy(x: image.size.width, y: image.size.height)
+-      transform = transform.rotated(by: Double.pi)
+-    case .left, .leftMirrored:
+-      transform = transform.translatedBy(x: image.size.width, y: 0)
+-      transform = transform.rotated(by: Double.pi / 2)
+-    case .right, .rightMirrored:
+-      transform = transform.translatedBy(x: 0, y: image.size.height)
+-      transform = transform.rotated(by: -Double.pi / 2)
+-    default:
+-      break
+-    }
+-
+-    switch image.imageOrientation {
+-    case .upMirrored, .downMirrored:
+-      transform = transform.translatedBy(x: image.size.width, y: 0)
+-      transform = transform.scaledBy(x: -1, y: 1)
+-    case .leftMirrored, .rightMirrored:
+-      transform = transform.translatedBy(x: image.size.height, y: 0)
+-      transform = transform.scaledBy(x: -1, y: 1)
+-    default:
+-      break
+-    }
+-
+-    let context = CGContext(
+-      data: nil,
+-      width: Int(image.size.width),
+-      height: Int(image.size.height),
+-      bitsPerComponent: cgImage.bitsPerComponent,
+-      bytesPerRow: 0,
+-      space: colorSpace,
+-      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+-    )
+-
+-    guard let context = context else {
+-      throw ImageContextLostException()
+-    }
+-
+-    context.concatenate(transform)
+-
+-    switch image.imageOrientation {
+-    case .left, .leftMirrored, .right, .rightMirrored:
+-      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width))
+-    default:
+-      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
+-    }
+-
+-    guard let newCGImage = context.makeImage() else {
+-      throw ImageDrawingFailedException()
+-    }
+-    return UIImage(cgImage: newCGImage)
+   }
+ }

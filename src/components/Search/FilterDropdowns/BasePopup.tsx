@@ -4,6 +4,8 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -15,15 +17,28 @@ type BasePopupProps = React.PropsWithChildren & {
     label?: string;
     showLabel?: boolean;
     shouldShowActionButtons?: boolean;
-    applySentryLabel: string;
-    resetSentryLabel?: string;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel?: SentryLabel;
     style?: StyleProp<ViewStyle>;
+    shouldSubmitOnEnter?: boolean;
     onApply: () => void;
     onReset?: () => void;
     onBackButtonPress?: () => void;
 };
 
-function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLabel, shouldShowActionButtons = true, style, onApply, onReset, onBackButtonPress}: BasePopupProps) {
+function BasePopup({
+    children,
+    label,
+    applySentryLabel,
+    resetSentryLabel,
+    showLabel,
+    shouldShowActionButtons = true,
+    shouldSubmitOnEnter,
+    style,
+    onApply,
+    onReset,
+    onBackButtonPress,
+}: BasePopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -50,6 +65,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLab
                     onApply={onApply}
                     applySentryLabel={applySentryLabel}
                     resetSentryLabel={resetSentryLabel}
+                    shouldSubmitOnEnter={shouldSubmitOnEnter}
                 />
             )}
         </View>

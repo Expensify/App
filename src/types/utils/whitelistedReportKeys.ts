@@ -15,6 +15,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
         lastReadTime: unknown;
+        manuallyMarkedUnreadReportActionID: unknown;
         lastReadSequenceNumber: unknown;
         lastMentionedTime: unknown;
         policyAvatar: unknown;
@@ -34,6 +35,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         created: unknown;
         submitted: unknown;
         approved: unknown;
+        paid: unknown;
         submitterUserID: unknown;
         submitterPayrollID: unknown;
         orderDealNumbers: unknown;
@@ -41,16 +43,21 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         debitedCurrency: unknown;
         creditedAmount: unknown;
         creditedCurrency: unknown;
+        withdrawalIDs: unknown;
+        wiseQuote: unknown;
+        wiseQuoteRequest: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;
+        supportTicketCalendarLink: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
         lastActionType: unknown;
         ownerAccountID: unknown;
+        billSenderAccountID: unknown;
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;
@@ -61,6 +68,8 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         errorFields: unknown;
         errors: unknown;
         isWaitingOnBankAccount: unknown;
+        canCancelReimbursement: unknown;
+        isWaitingForCancelledReimbursement: unknown;
         isCancelledIOU: unknown;
         hasReportBeenRetracted: unknown;
         hasReportBeenReopened: unknown;
@@ -87,6 +96,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             eta: {
                 etaKey: unknown;
                 dateTime: unknown;
+                autoReportingFrequency: unknown;
+                autoReportingOffset: unknown;
+                autoReportingOffsetSecondSemiMonthly: unknown;
+                timeZone: unknown;
             };
         };
         transactionCount: unknown;

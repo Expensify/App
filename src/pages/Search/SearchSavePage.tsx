@@ -11,7 +11,7 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
-import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -20,12 +20,22 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {
+    getCustomColumnDefault,
+    getFiltersFormWithTripRoomStatuses,
+    getFooterCountItems,
+    getFooterTotalItems,
+    getSearchColumnTranslationKey,
+    getValidGroupBy,
+    mapFiltersFormToLabelValueList,
+} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -81,6 +91,7 @@ function FilterBankAccountValue({value}: FilterValueProps) {
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
@@ -116,9 +127,14 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     return value;
 }
 
-function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
+function getAppliedDisplays(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+    shouldReturnTripRooms: boolean,
+) {
     const appliedDisplays = [];
-    const groupBy = searchAdvancedFiltersForm.groupBy;
+    const groupBy = getValidGroupBy(searchAdvancedFiltersForm.groupBy);
     if (groupBy) {
         appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
@@ -135,8 +151,24 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
         appliedDisplays.push({label: translate('search.view.label'), value: translate(`search.view.${searchAdvancedFiltersForm.view}`)});
     }
 
+    // The Spend footer's choices summarize the results rather than narrow them, so they sit with the display settings.
+    // The query leaves defaults out, so only a choice the user made shows here.
+    if (searchAdvancedFiltersForm.footerCount) {
+        const footerCount = searchAdvancedFiltersForm.footerCount;
+        appliedDisplays.push({label: translate('common.count'), value: getFooterCountItems(translate).find((item) => item.value === footerCount)?.text ?? footerCount});
+    }
+
+    if (searchAdvancedFiltersForm.footerTotal) {
+        const footerTotal = searchAdvancedFiltersForm.footerTotal;
+        appliedDisplays.push({label: translate('common.total'), value: getFooterTotalItems(translate).find((item) => item.value === footerTotal)?.text ?? footerTotal});
+    }
+
+    if (searchAdvancedFiltersForm.footerCurrency) {
+        appliedDisplays.push({label: translate('common.currency'), value: searchAdvancedFiltersForm.footerCurrency});
+    }
+
     if (queryJSON?.sortBy) {
-        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy))});
+        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy, queryJSON.type, shouldReturnTripRooms))});
     }
 
     if (queryJSON?.sortOrder) {
@@ -150,7 +182,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
         const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
         if (!isDefaultState) {
-            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column, queryType))).join(', ')});
         }
     }
 
@@ -164,7 +196,7 @@ function SearchSavePage() {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
-    const {setCurrentSearchKey} = useSearchQueryActions();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
@@ -173,16 +205,17 @@ function SearchSavePage() {
         }
 
         const id = rand64();
-        setCurrentSearchKey(savedSearchIDToSearchKey(id));
         saveSearch({id, queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
-        Navigation.goBack();
+        // The query doesn't change, only the search key it now belongs to, so the param is set on the search
+        // screen once this RHP is gone and it's the focused route again.
+        Navigation.dismissModal({afterTransition: () => Navigation.setParams({searchKey: savedSearchIDToSearchKey(id)})});
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
         getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     const appliedFilters = mapFiltersFormToLabelValueList(
-        searchAdvancedFiltersForm,
+        shouldReturnTripRooms ? getFiltersFormWithTripRoomStatuses(searchAdvancedFiltersForm) : searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         undefined,
         translate,
@@ -190,7 +223,7 @@ function SearchSavePage() {
         localeCompare,
         convertToDisplayStringWithoutCurrency,
     );
-    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
+    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate, shouldReturnTripRooms);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -223,7 +256,7 @@ function SearchSavePage() {
                     appliedFilters.map((filter) => (
                         <View
                             style={[styles.flexRow]}
-                            key={filter.key}
+                            key={filter.id}
                         >
                             <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
                             <Text style={[styles.label]}>

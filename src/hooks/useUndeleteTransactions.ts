@@ -1,4 +1,4 @@
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {undeleteTransactions} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
@@ -17,7 +17,8 @@ function useUndeleteTransactions() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
@@ -28,21 +29,25 @@ function useUndeleteTransactions() {
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
 
-        changeTransactionsReport({
+        undeleteTransactions({
+            isVendorMatchingBetaEnabled,
             transactionIDs,
             isASAPSubmitBetaEnabled,
             accountID: currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: currentUserPersonalDetails.email ?? '',
+            currentUserPersonalDetails,
             policy,
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,
             reports,
             rules,
+            cardList,
             selfDMReportActions,
             isTrackIntentUser,
             personalPolicyOutputCurrency: policy?.outputCurrency,

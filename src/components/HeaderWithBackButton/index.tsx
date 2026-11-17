@@ -4,6 +4,7 @@ import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -11,7 +12,9 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+import useHeaderAvatarSize from '@hooks/useHeaderAvatarSize';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -32,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './types';
@@ -84,6 +87,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
+    shouldDisplayAccountButton = false,
     shouldDisplaySearchRouter = false,
     style,
     subTitleLink = '',
@@ -101,110 +105,84 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const reportAvatarSize = useHeaderAvatarSize();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
-    const middleContent = useMemo(() => {
-        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
-        if (shouldShowReportAvatarWithDisplay) {
-            return (
-                <AvatarWithDisplayName
-                    report={report}
-                    shouldDisplayStatus={shouldDisplayStatus}
-                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
-                />
-            );
-        }
-
+    let middleContent;
+    const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
+    if (shouldShowReportAvatarWithDisplay) {
+        middleContent = (
+            <AvatarWithDisplayName
+                report={report}
+                size={reportAvatarSize}
+                shouldDisplayStatus={shouldDisplayStatus}
+                shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                openParentReportInCurrentTab={openParentReportInCurrentTab}
+            />
+        );
+    } else {
         const resolvedSubtitle = stepCounterTranslation ?? subtitle;
-
-        return (
+        middleContent = (
             <HeaderTitle
                 dialogLabel={title}
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             >
-                <HeaderTitle.Text
-                    numberOfLines={numberOfTitleLines}
-                    style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-                >
-                    {title}
-                </HeaderTitle.Text>
+                {!!title && (
+                    <HeaderTitle.Text
+                        numberOfLines={numberOfTitleLines}
+                        style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    >
+                        {title}
+                    </HeaderTitle.Text>
+                )}
                 {!!resolvedSubtitle && <HeaderTitle.Subtitle>{resolvedSubtitle}</HeaderTitle.Subtitle>}
                 {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
             </HeaderTitle>
         );
-    }, [
-        StyleUtils,
-        subTitleLink,
-        shouldUseHeadlineHeader,
-        report,
-        shouldEnableDetailPageNavigation,
-        shouldShowReportAvatarWithDisplay,
-        stepCounter,
-        styles.textHeadlineH2,
-        subtitle,
-        title,
-        titleColor,
-        titleStyles,
-        numberOfTitleLines,
-        translate,
-        openParentReportInCurrentTab,
-        shouldDisplayStatus,
-        shouldSkipFocusAfterTransition,
-    ]);
-    const ThreeDotMenuButton = useMemo(() => {
-        if (shouldShowThreeDotsButton) {
-            return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
-                <Tooltip text={threeDotsMenuItems.at(0)?.text}>
-                    <PressableWithoutFeedback
-                        onPress={threeDotsMenuItems.at(0)?.onSelected}
-                        style={[styles.touchableButtonImage]}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
-                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
-                    >
-                        <Icon
-                            src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
-                            fill={theme.icon}
-                        />
-                    </PressableWithoutFeedback>
-                </Tooltip>
-            ) : (
-                <ThreeDotsMenu
-                    shouldSelfPosition
-                    icon={threeDotsMenuIcon}
-                    iconFill={threeDotsMenuIconFill}
-                    disabled={shouldDisableThreeDotsButton}
-                    menuItems={threeDotsMenuItems}
-                    onIconPress={onThreeDotsButtonPress}
-                    shouldOverlay={shouldOverlayDots}
-                    anchorAlignment={threeDotsAnchorAlignment}
-                    shouldSetModalVisibility={shouldSetModalVisibility}
-                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
-                />
-            );
-        }
-        return null;
-    }, [
-        shouldShowThreeDotsButton,
-        threeDotsMenuItems,
-        shouldMinimizeMenuButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
-        shouldDisableThreeDotsButton,
-        onThreeDotsButtonPress,
-        shouldOverlayDots,
-        threeDotsAnchorAlignment,
-        shouldSetModalVisibility,
-    ]);
+    }
+    let ThreeDotMenuButton;
+    if (shouldShowThreeDotsButton) {
+        // A single item is shown as its own button. Only a pressable item can be, and PopoverMenuItem requires a label on those.
+        const singleMenuItem = threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? threeDotsMenuItems.at(0) : undefined;
+        ThreeDotMenuButton = singleMenuItem?.sentryLabel ? (
+            <Tooltip text={singleMenuItem.text}>
+                <PressableWithoutFeedback
+                    onPress={singleMenuItem.onSelected}
+                    style={[styles.touchableButtonImage]}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={singleMenuItem.text}
+                    sentryLabel={singleMenuItem.sentryLabel}
+                >
+                    <Icon
+                        src={singleMenuItem.icon as React.FC<SvgProps>}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
+            </Tooltip>
+        ) : (
+            <ThreeDotsMenu
+                shouldSelfPosition
+                icon={threeDotsMenuIcon}
+                iconFill={threeDotsMenuIconFill}
+                disabled={shouldDisableThreeDotsButton}
+                menuItems={threeDotsMenuItems}
+                onIconPress={onThreeDotsButtonPress}
+                shouldOverlay={shouldOverlayDots}
+                anchorAlignment={threeDotsAnchorAlignment}
+                shouldSetModalVisibility={shouldSetModalVisibility}
+                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
+            />
+        );
+    } else {
+        ThreeDotMenuButton = null;
+    }
 
     return (
         <View
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
+                contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
@@ -342,6 +320,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayAccountButton && <AccountAvatarButton />}
             </View>
         </View>
     );

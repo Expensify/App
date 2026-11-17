@@ -2,6 +2,7 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -36,6 +37,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     isWorkspacesOnly?: boolean;
 
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
@@ -53,16 +57,17 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 
     ref?: Ref<InputFocusRef>;
 };
@@ -81,13 +86,14 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    shouldExcludeWorkspaces = false,
     isTransactionFromCreditCardImport = false,
     shouldExcludeP2P = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const isFocused = useIsFocused();
@@ -97,9 +103,11 @@ function MoneyRequestParticipantsSelector({
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
+
     useImperativeHandle(ref, () => ({
         focus: () => {
-            if (!textInputAutoFocus) {
+            if (!textInputAutoFocus || shouldDeferTextInputAutoFocus) {
                 return;
             }
             selectionListRef.current?.focusTextInput?.();
@@ -114,6 +122,7 @@ function MoneyRequestParticipantsSelector({
                     action={action}
                     participants={participants}
                     isWorkspacesOnly={isWorkspacesOnly}
+                    shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                     isPerDiemRequest={isPerDiemRequest}
                     isTimeRequest={isTimeRequest}
                     isNative={isNative}
@@ -126,9 +135,9 @@ function MoneyRequestParticipantsSelector({
                     onFinish={onFinish}
                     initiallySelectedReportID={initiallySelectedReportID}
                     shouldMoveSelectedToTop={shouldMoveSelectedToTop}
-                    onRestrictedParticipantSelected={onRestrictedParticipantSelected}
-                    onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
+                    shouldShowContactImportPrompt={shouldShowContactImportPrompt}
+                    shouldDeferTextInputAutoFocus={shouldDeferTextInputAutoFocus}
                 />
             </AlwaysPaintedView>
         </Activity>

@@ -2,8 +2,8 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
-import {openSearch, search} from '@libs/actions/Search';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -12,13 +12,20 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
 
+import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 // Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
 let lastSavedSearchHash: number | undefined;
+
+// A response that lands while the user is away can be old by the time they return, so the mount must refresh then.
+function dropPageRequestOnBlur() {
+    return clearPageRequestedSearch;
+}
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -34,11 +41,15 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const isInPreloadedTab = useIsInPreloadedTab();
+    // Set while the tab is preloaded and kept until its first-open request goes out, which can take more than one render.
+    const isFirstOpenOfPreloadedTabRef = useRef(false);
 
     const hash = queryJSON?.hash;
     // Without this, a plain page-level fetch during active select-all clears totals on arrival
     // (shouldClearTotals in getOnyxLoadingData), wiping a total the Search-internal effect already fetched.
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON?.type);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
@@ -73,10 +84,29 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // and cases where route params change without a navigation event (e.g. sorting).
     useEffect(clearOnHashChange, [hash, clearSelectedTransactions]);
 
+    useEffect(() => {
+        if (!isInPreloadedTab) {
+            return;
+        }
+        isFirstOpenOfPreloadedTabRef.current = true;
+    }, [isInPreloadedTab]);
+
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     useEffect(() => {
-        if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline) {
+        // A preloaded tab builds from cached results only. The request, saved params and recent search wait until it is opened.
+        if (!queryJSON || hash === undefined || isOffline || isInPreloadedTab) {
+            return;
+        }
+
+        const isFirstOpenOfPreloadedTab = isFirstOpenOfPreloadedTabRef.current;
+
+        if (shouldUseLiveData) {
+            // Search requests live (to-do) results on mount, which a hidden preloaded tab skips, so its first open requests them here.
+            if (isFirstOpenOfPreloadedTab) {
+                isFirstOpenOfPreloadedTabRef.current = false;
+                search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false});
+            }
             return;
         }
 
@@ -89,14 +119,51 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
         // A pending initial request may be stale after reload and can be restarted through request deduplication.
         // Pagination must not restart page one.
-        if (isSnapshotDataLoaded && !isInitialSearchPending) {
+        // First open of a preloaded tab refreshes its cached results and saves the recent search, with no loading state over them.
+        if (isSnapshotDataLoaded && !isInitialSearchPending && !isFirstOpenOfPreloadedTab) {
             return;
         }
 
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        isFirstOpenOfPreloadedTabRef.current = false;
+
+        const shouldSkipWaitForWrites = hasPendingSearchWrite();
+
+        // While a submit's write is pending, the first open keeps the cached results instead of refreshing them.
+        if (isFirstOpenOfPreloadedTab && isSnapshotDataLoaded && shouldSkipWaitForWrites) {
+            return;
+        }
         requestedHashesRef.current.add(hash);
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
+        // Claim this query's first page so Search does not request it again when it mounts behind the skeleton.
+        // With data loaded Search is already mounted, so a token set here would never be read and would skip the next revisit.
+        if (!isSnapshotDataLoaded) {
+            markPageRequestedSearch(hash, shouldCalculateTotals);
+        }
+        search({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: 0,
+            shouldCalculateTotals,
+            isLoading: false,
+            skipWaitForWrites: shouldSkipWaitForWrites,
+            shouldSaveRecentSearch: true,
+            shouldReturnTripRooms,
+            shouldShowLoading: !(isFirstOpenOfPreloadedTab && isSnapshotDataLoaded),
+        });
+    }, [
+        hash,
+        isOffline,
+        shouldUseLiveData,
+        queryJSON,
+        isSnapshotDataLoaded,
+        isSnapshotSearchLoading,
+        isInitialSearchPending,
+        currentSearchKey,
+        shouldCalculateTotals,
+        shouldReturnTripRooms,
+        isInPreloadedTab,
+    ]);
+
+    useFocusEffect(dropPageRequestOnBlur);
 
     // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(

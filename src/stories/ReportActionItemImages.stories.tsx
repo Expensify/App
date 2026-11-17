@@ -2,6 +2,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import type {ReportActionItemImagesProps} from '@components/ReportActionItem/ReportActionItemImages';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 
+import CONST from '@src/CONST';
+
 import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
@@ -23,6 +25,7 @@ function Template(props: ReportActionItemImagesProps) {
         <PressableWithoutFeedback
             accessibilityLabel="ReportActionItemImages Story"
             style={{flex: 1}}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         >
             {({hovered}) => (
                 <ReportActionItemImages

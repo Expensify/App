@@ -41,7 +41,8 @@ function useChangeTransactionsReportReports(transactions: Transaction[], newRepo
         if (!source) {
             continue;
         }
-        const iouAction = getIOUActionForReportID(source, transaction.transactionID);
+        // Must match the IOU action getChangeTransactionsReportOnyxData resolves, or the live thread isn't re-parented
+        const iouAction = getIOUActionForReportID(source, transaction.transactionID, true);
         if (iouAction?.childReportID) {
             ids.add(iouAction.childReportID);
         }

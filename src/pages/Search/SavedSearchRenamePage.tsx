@@ -16,6 +16,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchSavedSearchParamList} from '@libs/Navigation/types';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -48,6 +49,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: q,
                     name: newName,
+                    searchKey: savedSearchIDToSearchKey(id),
                 }),
             );
         });

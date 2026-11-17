@@ -1,0 +1,110 @@
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import type {Errors} from './OnyxCommon';
+
+/** Identifies a dashboard, paired with the query hash in the key an entry is stored under */
+type InsightsDashboardID = ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
+
+/** Identifies a dashboard to the backend, and keys the filters stored for it */
+type InsightsSearchKey = ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
+
+/** Key identifying a graph within a dashboard response */
+type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
+
+/** Reference to graph data stored in a search snapshot */
+type InsightsGraph = {
+    /** Hash of the graph's search snapshot */
+    snapshotHash?: number;
+
+    /** Hash of the snapshot holding the data for the "Previous period" compare mode */
+    previousPeriodSnapshotHash?: number;
+
+    /** Hash of the snapshot holding the data for the "Average" compare mode */
+    averageSnapshotHash?: number;
+
+    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
+    averageAmount?: number;
+
+    /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
+    averageCount?: number;
+};
+
+/** Kind of signal an AI insight was detected from */
+type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
+
+/** A chip's value, either a whole-number percentage or an amount */
+type AIInsightChipValue =
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT;
+
+          /** Amount in cents */
+          value: number;
+          currency: string;
+      };
+
+/** Chip showing how much an item changed */
+type AIInsightChangeChip = AIInsightChipValue & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
+    direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
+};
+
+/** Chip showing an observed statistic rather than a change */
+type AIInsightNeutralChip = (
+    | AIInsightChipValue
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
+
+          /** Average processing duration in seconds */
+          value: number;
+      }
+) & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
+};
+
+/** An AI insight's statistic: a change or an observed value */
+type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
+
+/** AI-written insight about the dashboard's data */
+type AIInsight = {
+    id: string;
+    signal: AIInsightSignal;
+    title: string;
+    chip: AIInsightChip;
+    summary: string;
+
+    /** Message sent to Concierge when the user asks it to explain the card */
+    explainPrompt: string;
+};
+
+/** What the backend returns for one dashboard and set of filters */
+type InsightsDashboard = {
+    /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
+    graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
+
+    /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
+    hasResults?: boolean;
+
+    /** Cards drawn above the headline chart. Missing until they're written, and empty when there are none. */
+    aiInsights?: AIInsight[];
+
+    /** Query the stored graphs answer */
+    inputQuery?: string;
+
+    errors?: Errors;
+
+    /** JSON code of the failed GetInsights request stored with errors */
+    responseJsonCode?: number;
+};
+
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export default InsightsDashboard;

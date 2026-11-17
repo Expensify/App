@@ -11,7 +11,7 @@ import type {PolicyReportField} from '@src/types/onyx';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: ReportFieldFilterContentWrapperProps) {
+function ReportFieldFilterContentPageWrapper({values: initialValues, onChange, buttonText}: ReportFieldFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
@@ -23,11 +23,13 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
                 values={values}
                 selectedField={selectedField}
                 size={CONST.BUTTON_SIZE.LARGE}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_PAGE_APPLY_VALUE.REPORT_FIELD}
                 onFieldSelected={setSelectedField}
                 onChange={(newValues) => setValues((prevValues) => ({...prevValues, ...newValues}))}
             />
             {!selectedField && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
                     style={[styles.ph5, styles.pb5, styles.pt3, styles.mtAuto]}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
@@ -40,7 +42,7 @@ function ReportFieldFilterContentPageWrapper({values: initialValues, onChange}: 
                     }}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                    <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
                 </Button>
             )}
         </View>

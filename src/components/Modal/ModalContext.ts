@@ -6,6 +6,9 @@ type ModalContextType = {
     // The type of the currently displayed modal, or undefined if there is no currently displayed modal.
     // Note that React Native can only display one modal at a time.
     activeModalType?: ModalType;
+
+    // Whether the modal already wraps its children in a vertical ScrollView, so children must not nest another vertical scroller.
+    isContentWrappedInScrollView?: boolean;
     default: boolean;
 };
 

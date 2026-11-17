@@ -1,7 +1,7 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
+import ExpenseFormFooterLayout from '@components/MoneyRequestConfirmationListFooter/ExpenseFormFooterLayout';
 import DistanceDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/DistanceDetailsFields';
-import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {DistanceOdometerFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,12 +28,11 @@ function DistanceOdometerFooter({
     const styles = useThemeStyles();
 
     return (
-        <View>
-            <ReceiptSection
-                policy={policy}
-                {...receiptOptions}
-            />
-
+        <ExpenseFormFooterLayout
+            policy={policy}
+            receiptOptions={receiptOptions}
+            hasParticipantSection={visibilityFlags.hasParticipantSection}
+        >
             {!!receiptStitchError && (
                 <View style={styles.mh5}>
                     <FormHelpMessage message={receiptStitchError} />
@@ -55,10 +54,11 @@ function DistanceOdometerFooter({
                     amountDisplay={amountDisplay}
                     distanceData={distanceData}
                     isDescriptionRequired={requiredFlags.isDescriptionRequired}
+                    descriptionHint={requiredFlags.descriptionHint}
                     errorState={errorState}
                 />
             </ConfirmationFieldList>
-        </View>
+        </ExpenseFormFooterLayout>
     );
 }
 

@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -87,7 +87,6 @@ function DynamicIOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: DynamicIOURequestStepDestinationProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -102,6 +101,7 @@ function DynamicIOURequestStepDestination({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -156,7 +156,7 @@ function DynamicIOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -218,11 +218,11 @@ function DynamicIOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
-    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+    const keyboardVerticalOffset = openedFromStartPage ? contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
         <ScreenWrapper
@@ -251,8 +251,10 @@ function DynamicIOURequestStepDestination({
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.requestEmptyList.title')}
-                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                            subtitle={
+                                isPolicyAdmin(policy) ? translate('workspace.perDiem.requestEmptyList.adminSubtitle') : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
+                            }
+                            containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                         />
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>

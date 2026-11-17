@@ -92,7 +92,7 @@ describe('useReceiptPreviewsSizes', () => {
             // initialReceiptsAmount = (windowHeight - submitButtonHeight - tabSelectorButtonHeight - contentHeaderHeight) / previewItemSize
             // submitButtonHeight = singleAvatarXLarge.height = 52
             // tabSelectorButtonHeight = tabSelectorButtonHeight (40) + pb4.paddingBottom (16) = 56
-            // contentHeaderHeight = 100 (variables.contentHeaderHeight capped at maxValue in test environment)
+            // contentHeaderHeight = 100 (useContentHeaderHeight's value capped at maxValue in test environment)
             // = (800 - 52 - 56 - 100) / 60 = 592 / 60
             expect(result.current.initialReceiptsAmount).toBe(592 / 60);
         });

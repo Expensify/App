@@ -5,10 +5,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 
+import type * as InputFocus from '@libs/actions/InputFocus/index.web';
 import {editReportComment} from '@libs/actions/Report';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
@@ -26,6 +28,8 @@ import * as TestHelper from '../utils/TestHelper';
 
 const mockEditReportComment = jest.mocked(editReportComment);
 const mockShowDeleteModal = jest.mocked(ReportActionContextMenu.showDeleteModal);
+
+jest.mock('@libs/actions/InputFocus', () => jest.requireActual<typeof InputFocus>('@libs/actions/InputFocus/index.web'));
 
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -86,13 +90,20 @@ function ReportScreenProviders({children}: PropsWithChildren) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForReport]}>{children}</ComposeProviders>;
 }
 
-const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessageEditProps>) => {
+const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessageEditProps>, listContext?: {index: number; isNewest: boolean; scrollToNewestAction?: () => void}) => {
     return render(
         <ReportScreenProviders>
-            <ReportActionItemMessageEdit
-                {...defaultProps}
-                {...props}
-            />
+            <ReportActionScrollToNewestContext.Provider value={listContext?.scrollToNewestAction}>
+                <ReportActionPositionContextProvider
+                    index={listContext?.index ?? 0}
+                    isNewest={listContext?.isNewest ?? true}
+                >
+                    <ReportActionItemMessageEdit
+                        {...defaultProps}
+                        {...props}
+                    />
+                </ReportActionPositionContextProvider>
+            </ReportActionScrollToNewestContext.Provider>
         </ReportScreenProviders>,
     );
 };
@@ -111,6 +122,23 @@ describe('ReportActionCompose Integration Tests', () => {
         });
         draftMessageVideoAttributeCache.clear();
         jest.clearAllMocks();
+    });
+
+    it('should clear web edit focus when the edit composer unmounts', async () => {
+        // Given an edit composer that owns the web input focus flag
+        const {unmount} = renderReportActionItemMessageEdit();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.INPUT_FOCUSED, true);
+        });
+        expect(await Onyx.get(ONYXKEYS.INPUT_FOCUSED)).toBe(true);
+
+        // When editing ends and the edit composer unmounts
+        await act(async () => {
+            unmount();
+        });
+
+        // Then stale edit focus cannot block the main composer after the next modal closes
+        expect(await Onyx.get(ONYXKEYS.INPUT_FOCUSED)).toBe(false);
     });
 
     describe('Message validation', () => {
@@ -202,13 +230,33 @@ describe('ReportActionCompose Integration Tests', () => {
             expect(mockEditReportComment).toHaveBeenCalledTimes(1);
 
             const editReportCommentArgs = mockEditReportComment.mock.calls.at(0);
-            const videoAttributeCache = editReportCommentArgs?.[6];
+            const videoAttributeCache = editReportCommentArgs?.[7];
 
             expect(videoAttributeCache).toEqual(expect.any(Object));
             expect(videoAttributeCache?.[videoSource]).toEqual(expect.any(String));
             expect(videoAttributeCache?.[videoSource]).toContain('data-name');
             expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-height');
             expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-width');
+        });
+
+        it('should use the list-specific scroll after saving the newest message', () => {
+            const scrollToNewestAction = jest.fn();
+            renderReportActionItemMessageEdit(undefined, {index: 9, isNewest: true, scrollToNewestAction});
+
+            fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
+            fireEvent.press(screen.getByLabelText('common.saveChanges'));
+
+            expect(scrollToNewestAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not scroll after saving a non-newest message at index zero', () => {
+            const scrollToNewestAction = jest.fn();
+            renderReportActionItemMessageEdit(undefined, {index: 0, isNewest: false, scrollToNewestAction});
+
+            fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
+            fireEvent.press(screen.getByLabelText('common.saveChanges'));
+
+            expect(scrollToNewestAction).not.toHaveBeenCalled();
         });
     });
 });

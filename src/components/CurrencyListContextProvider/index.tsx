@@ -1,15 +1,15 @@
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import {format, formatToParts} from '@libs/NumberFormatUtils';
+import {convertToDisplayStringWithoutCurrencyForLocale, convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {format} from '@libs/NumberFormatUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {createContext, useCallback, useMemo} from 'react';
+import React, {createContext} from 'react';
 
 import type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
 
@@ -22,79 +22,44 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const {preferredLocale} = useLocalize();
 
-    const getCurrencySymbol = useCallback(
-        (currencyCode: string): string | undefined => {
-            return currencyList[currencyCode]?.symbol;
-        },
-        [currencyList],
-    );
+    const getCurrencySymbol = (currencyCode: string): string | undefined => {
+        return currencyList[currencyCode]?.symbol;
+    };
 
-    const getCurrencyDecimals = useCallback(
-        (currencyCode: string | undefined): number => {
-            const decimals = currencyList[currencyCode ?? '']?.decimals;
-            return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
-        },
-        [currencyList],
-    );
+    const getCurrencyDecimals = (currencyCode: string | undefined): number => {
+        const decimals = currencyList[currencyCode ?? '']?.decimals;
+        return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+    };
 
-    const convertToDisplayString = useCallback(
-        (amountInCents: number | undefined, currencyCode: string | undefined): string => {
-            const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
-            const decimals = getCurrencyDecimals(sanitizedCurrency);
-            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
-            return format(preferredLocale, convertedAmount, {
-                style: 'currency',
-                currency: sanitizedCurrency,
+    const convertToDisplayString = (amountInCents: number | undefined, currencyCode: string | undefined): string => {
+        const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+        const decimals = getCurrencyDecimals(sanitizedCurrency);
+        const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+        return format(preferredLocale, convertedAmount, {
+            style: 'currency',
+            currency: sanitizedCurrency,
 
-                // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-                // See: https://github.com/Expensify/PHP-Libs/pull/834
-                minimumFractionDigits: decimals,
-                // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-                maximumFractionDigits: 2,
-            });
-        },
-        [getCurrencyDecimals, preferredLocale],
-    );
+            // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+            // See: https://github.com/Expensify/PHP-Libs/pull/834
+            minimumFractionDigits: decimals,
+            // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+            maximumFractionDigits: 2,
+        });
+    };
 
-    const convertToDisplayStringWithoutCurrency = useCallback(
-        (amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string => {
-            const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
-            const decimals = getCurrencyDecimals(sanitizedCurrency);
-            const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-            return formatToParts(preferredLocale, convertedAmount, {
-                style: 'currency',
-                currency: sanitizedCurrency,
+    const convertToDisplayStringWithoutCurrency = (amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string =>
+        convertToDisplayStringWithoutCurrencyForLocale(preferredLocale, amountInCents, currencyCode, getCurrencyDecimals);
 
-                // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-                // See: https://github.com/Expensify/PHP-Libs/pull/834
-                minimumFractionDigits: decimals,
-                // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-                maximumFractionDigits: 2,
-            })
-                .filter((x) => x.type !== 'currency')
-                .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
-                .map((x) => x.value)
-                .join('');
-        },
-        [getCurrencyDecimals, preferredLocale],
-    );
+    const stateValue: CurrencyListStateContextType = {
+        currencyList,
+    };
 
-    const stateValue = useMemo<CurrencyListStateContextType>(
-        () => ({
-            currencyList,
-        }),
-        [currencyList],
-    );
-
-    const actionsValue = useMemo<CurrencyListActionsContextType>(
-        () => ({
-            getCurrencySymbol,
-            getCurrencyDecimals,
-            convertToDisplayString,
-            convertToDisplayStringWithoutCurrency,
-        }),
-        [getCurrencySymbol, getCurrencyDecimals, convertToDisplayString, convertToDisplayStringWithoutCurrency],
-    );
+    const actionsValue: CurrencyListActionsContextType = {
+        getCurrencySymbol,
+        getCurrencyDecimals,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+    };
 
     return (
         <CurrencyListStateContext.Provider value={stateValue}>

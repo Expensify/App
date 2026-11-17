@@ -7,6 +7,7 @@ import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -14,6 +15,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Log');
@@ -35,7 +37,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -64,6 +65,12 @@ jest.mock('@react-navigation/native', () => {
         }),
     };
 });
+
+const mockUseShouldReturnTripRooms = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: (type: string | undefined) => mockUseShouldReturnTripRooms(type),
+}));
 
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(LocaleContextProvider, null, children);
@@ -100,12 +107,73 @@ describe('useAdvancedSearchFilters', () => {
         await waitForBatchedUpdates();
     });
 
+    describe('violation filter visibility', () => {
+        it('hides the violation filter when no workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned off, so Auth has no rule-based violations to match for this user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: false}));
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out so the user is not offered a filter that can only return nothing
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+
+        it('shows the violation filter when a workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: true}));
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+
+        it('shows the violation filter for a migrated Control workspace whose Rules come from Classic category rules', async () => {
+            // Given a Control workspace that never set areRulesEnabled but has a category rule from Expensify Classic,
+            // which is how migrated workspaces report that Rules are on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered, using the same Rules check as the has: violation options
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+
+        it("hides the violation filter when only another workspace's categories have rules", async () => {
+            // Given a migrated Control workspace with no category rules, and a workspace with Rules turned off
+            // that still has leftover category rules, since turning Rules off doesn't clear them
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {areRulesEnabled: false}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out, because each workspace is checked against its own categories
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+    });
+
     describe('category filter visibility', () => {
         it('shows category filter when no categories are configured', async () => {
             const policy = buildPolicy(1, {areCategoriesEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -119,7 +187,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {areTagsEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -132,7 +200,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -140,48 +208,27 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
-        it('hides tag filter when tags are enabled but no tags exist', async () => {
+        it('shows tag filter when tags are enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            // Tag filter is hidden because the tag list contains no actual tags
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
-        it('hides tag filter when a selected policy has tags enabled but no tags exist', async () => {
+        it('shows tag filter when a selected policy has tags enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const emptyTagList: PolicyTagLists = {
-                Department: {
-                    name: 'Department',
-                    orderWeight: 0,
-                    required: false,
-                    tags: {},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
@@ -190,11 +237,48 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, {value: ['1'], isNegated: false}), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+    });
+
+    describe('vendor filter visibility', () => {
+        it('hides the vendor filter when no workspace has the vendor feature', async () => {
+            // Given a workspace with no accounting connection
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {connections: undefined}));
+
+            // When the advanced filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
+
+            // Then the vendor filter is hidden because no workspace has vendors to pick from, while other filters still show
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR);
+            });
+        });
+
+        it('shows the vendor filter when a workspace exports QBO card expenses as credit card transactions', async () => {
+            // Given a workspace that exports QBO card expenses as credit card transactions, which is when expenses get a vendor
+            const connections = createMock<Connections>({
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {connections}));
+
+            // When the advanced filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
+
+            // Then the vendor filter is shown so those expenses can be filtered by vendor
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR);
             });
         });
     });
@@ -204,7 +288,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {tax: {trackingEnabled: false}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -227,7 +311,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -248,7 +332,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -262,7 +346,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -276,7 +360,7 @@ describe('useAdvancedSearchFilters', () => {
             delete (policy as Record<string, unknown>).isAttendeeTrackingEnabled;
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -288,7 +372,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -302,7 +386,7 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {fieldList: {}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -332,7 +416,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -362,7 +446,7 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -373,7 +457,7 @@ describe('useAdvancedSearchFilters', () => {
 
     describe('bank account filter visibility', () => {
         it('hides bank account filter when no bank accounts exist', async () => {
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -395,7 +479,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -417,7 +501,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -439,7 +523,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -461,7 +545,7 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -483,13 +567,105 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.CHAT, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.CHAT), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
             });
         });
+    });
+
+    describe('bank account filter placement (#99090)', () => {
+        const filterableBankAccountID = 42;
+        const filterableBankAccountList = {
+            [filterableBankAccountID]: {
+                accountData: {
+                    bankAccountID: filterableBankAccountID,
+                    accountNumber: '123456789012',
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                },
+            },
+        };
+
+        function getWithdrawalSection(sections: string[][]) {
+            return sections.find((section) => section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID));
+        }
+
+        it('lists the bank account filter in the expense withdrawal section so it sits with the Bank Reconciliation filters', async () => {
+            // Given a user with a filterable business bank account (a VBA that could have paid reimbursements)
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+            // When the advanced filters are built for the expense type, which Bank Reconciliation uses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the bank account filter is in the withdrawal section, next to Withdrawal ID / type / status,
+            // and it is listed exactly once so the filter list never renders two Bank account rows
+            await waitFor(() => {
+                expect(getWithdrawalSection(result.current)).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
+                ]);
+                const occurrences = result.current.flat().filter((key) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+                expect(occurrences).toHaveLength(1);
+            });
+        });
+
+        it('no longer lists the bank account filter among the expense attributes', async () => {
+            // Given a user with a filterable business bank account
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+            // When the advanced filters are built for the expense type
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then no section other than the withdrawal one carries the bank account row anymore
+            await waitFor(() => {
+                const otherSections = result.current.filter((section) => !section.includes(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID));
+                expect(otherSections.length).toBeGreaterThan(0);
+                expect(otherSections.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('keeps the other withdrawal filters when there is no filterable bank account', async () => {
+            // Given a user without any filterable business bank account (Onyx is cleared before each test)
+
+            // When the advanced filters are built for the expense type
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the withdrawal section still offers Withdrawal ID / type / status / withdrawn, without a dead Bank account row
+            await waitFor(() => {
+                expect(getWithdrawalSection(result.current)).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
+                ]);
+            });
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP])(
+            'does not add the bank account filter to the %s withdrawal section, which Search does not accept bankAccount for',
+            async (type) => {
+                // Given a user with a filterable business bank account
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, filterableBankAccountList);
+
+                // When the advanced filters are built for a type other than expense
+                const {result} = renderHook(() => useAdvancedSearchFilters(type), {wrapper});
+
+                // Then its withdrawal section is left as it was and the bank account filter is offered nowhere in the list
+                await waitFor(() => {
+                    expect(getWithdrawalSection(result.current)).toBeDefined();
+                    expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+                });
+            },
+        );
     });
 
     describe('cross-feature interaction', () => {
@@ -512,7 +688,7 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
@@ -520,6 +696,103 @@ describe('useAdvancedSearchFilters', () => {
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE);
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE);
+            });
+        });
+    });
+
+    describe('approver filter visibility', () => {
+        it('offers Approver on expenses but not on reports', async () => {
+            // Given the backend only translates the approver filter for expense searches, so a report search with it fails
+            // When the expense and report filters are listed
+            const {result: expenseResult} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            const {result: reportResult} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT), {wrapper});
+
+            // Then only the expense filters offer Approver
+            await waitFor(() => {
+                expect(expenseResult.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER);
+                expect(reportResult.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER);
+            });
+        });
+    });
+
+    describe('section order', () => {
+        it('groups expense filters into sections and keeps Keyword with the core filters', async () => {
+            // Given no cards, so the card transactions section has nothing to show
+            // When the expense filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then Keyword closes the core section, the empty card section is dropped instead of leaving a stray divider, and report actions keep their order
+            await waitFor(() => {
+                expect(result.current.at(0)?.at(-1)).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+                expect(result.current).toHaveLength(6);
+                expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED);
+                expect(result.current.at(3)).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+                ]);
+            });
+        });
+
+        it('leads the invoice details with the amounts and gives report ID its own section', async () => {
+            // Given no cards, so the invoice card transactions section has nothing to show
+            // When the invoice filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.INVOICE), {wrapper});
+
+            // Then Total and Amount lead the details section, and Report ID sits alone right after it
+            await waitFor(() => {
+                expect(result.current.at(1)?.slice(0, 2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]);
+                expect(result.current.at(2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]);
+            });
+        });
+    });
+
+    describe('trip filters', () => {
+        beforeEach(async () => {
+            // Two workspaces so the Workspace filter shows
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {role: CONST.POLICY.ROLE.ADMIN}));
+        });
+
+        afterEach(() => {
+            mockUseShouldReturnTripRooms.mockReset();
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+        });
+
+        it('only offers Status, Date, Workspace and From for trip rooms', async () => {
+            // Given a trip search with the TravelApproval beta, which returns trip rooms
+            mockUseShouldReturnTripRooms.mockReturnValue(true);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then only the filters a trip row has are offered, next to the type
+            await waitFor(() => {
+                expect(result.current.flat()).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ]);
+            });
+        });
+
+        it('keeps the expense filters for a trip search without the beta', async () => {
+            // Given a trip search without the TravelApproval beta, which is still an expense search
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then the expense filters like Merchant stay
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
             });
         });
     });

@@ -14,25 +14,37 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {clearCompanyCardErrorField, resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
+import {renameCompanyCardInline} from '@libs/actions/Policy/InlineEdit';
+import {formatMaskedCardName, getCardLastUpdated, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import DateUtils from '@libs/DateUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
+import WorkspaceCompanyCardsBalanceLabels from '@pages/workspace/companyCards/WorkspaceCompanyCardsBalanceLabels';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -42,7 +54,7 @@ import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableCont
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'lastUpdated' | 'actions';
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -91,7 +103,7 @@ function WorkspaceCompanyCardsTable({
 }: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -115,12 +127,14 @@ function WorkspaceCompanyCardsTable({
     // again rather than being suppressed forever.
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
+    const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
     const clearCardSelection = () => setSelectedCardKeys([]);
     useImperativeHandle(ref, () => ({clearSelection: clearCardSelection}));
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails, personalDetailsMetadata] = useAllPersonalDetails();
     const [sharedCardCustomNames] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`, {selector: companyCardCustomNamesSelector});
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
@@ -182,22 +196,83 @@ function WorkspaceCompanyCardsTable({
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const isSelectionModeActive = selectedCardKeys.length > 0 || isSelectionModeEnabled;
 
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+    // Drives the actions column's dynamic sizing below. Mirrors the row's own Assign button condition rather than
+    // isAssigningCardDisabled, since a disabled Assign button still renders and needs the same space as an enabled one.
+    const canAnyCardBeAssigned = canWriteCompanyCards && (companyCardEntries ?? []).some((entry) => !entry.isAssigned);
+
+    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same rules.
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
+    const cardExportSettings = getPolicyCardExportSettings(connectedIntegration, policyID, translate, policy);
+    const shouldShowExportAccountColumn = !!cardExportSettings?.shouldShowMenuItem;
+
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey, WorkspaceCompanyCardTableItemData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            styling: {
+                // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full string instead of
+                // its share and the row overflows the table.
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                // Whichever of the cardholder's name (or the unassigned label) or their login renders wider decides the column's width.
+                getContentToMeasure: (item) => {
+                    const cardholderDisplayName = item.cardholder?.displayName ?? '';
+                    const formattedCardholderDisplayName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
+                    return [
+                        {
+                            text: item.isAssigned ? formattedCardholderDisplayName : translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                            fontSize: fontScale.text,
+                        },
+                        {text: item.isAssigned ? formatPhoneNumber(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
+                    ];
+                },
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
+                shouldFitContent: true,
+                maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
+            },
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded card name cell so the label and value share an edge.
+                containerStyles: [styles.mnw0, styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
+                extraWidth: variables.editableCellChromeWidth,
+            },
+        },
+        ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
+        {
+            key: 'lastUpdated',
+            label: translate('workspace.moreFeatures.companyCards.lastUpdated'),
+            sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.lastUpdatedText ? [{text: item.lastUpdatedText, fontSize: fontScale.text}] : []),
+                shouldFitContent: true,
+            },
         },
         {
             key: 'actions',
@@ -206,28 +281,81 @@ function WorkspaceCompanyCardsTable({
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
+            // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
+            // content while at least one row can render the button.
+            ...(canAnyCardBeAssigned
+                ? {
+                      dynamicSizing: {
+                          getContentToMeasure: (item) => (!item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : []),
+                          shouldFitContent: true,
+                          extraWidth: styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight,
+                      },
+                  }
+                : {width: variables.tableCaretColumnWidth}),
         },
     ];
 
+    const currentLocalYear = getLocalDateFromDatetime().getFullYear();
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingOnyxCardList
         ? []
         : (companyCardEntries ?? [])
               .map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
                   const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
+                  const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                  const cardID = assignedCard?.cardID;
+                  // The cell shows a placeholder when the card was never renamed. Rollback uses the stored name so a failed rename does not persist that placeholder.
+                  const storedCardName = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
+                  const customCardName = storedCardName ?? getDefaultCardName(cardholder?.displayName ?? '');
+                  const canEditName = canWriteCompanyCards && !!bankName && isAssigned && cardID !== undefined && !isCardDeleted && !isSelectionModeActive;
+                  const transactionStartDateErrors = getLatestErrorField(assignedCard ?? {}, 'scrapeMinDate');
+                  const hasTransactionStartDateErrors = !isEmptyObject(transactionStartDateErrors);
+                  // The feed-level prompt owns connection errors, but a failed start-date edit is a separate user action
+                  // and must remain visible and dismissible on the affected row.
+                  const cardErrors = isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors;
+                  const hasVisibleCardErrors = !isEmptyObject(cardErrors ?? {});
+                  const rowErrors = hasTransactionStartDateErrors ? {...cardErrors, ...transactionStartDateErrors} : cardErrors;
+
+                  // Unassigned cards have no sync history, so their cell stays empty.
+                  let lastUpdatedText: string | undefined;
+                  let lastUpdatedTooltip: string | undefined;
+                  if (assignedCard) {
+                      const {text, localDate} = getCardLastUpdated(assignedCard, translate, getLocalDateFromDatetime);
+                      // A sync time shows the Spend date abbreviation, with the details page timestamp in the tooltip.
+                      lastUpdatedText = localDate ? DateUtils.formatLocalDateToMonthDayWithOptionalYear(localDate, currentLocalYear, dateFnsLocale) : text;
+                      lastUpdatedTooltip = localDate ? text : undefined;
+                  }
 
                   return {
                       cardName,
-                      keyForList: `${cardName}_${assignedCard?.cardID ?? 'unassigned'}_${encryptedCardNumber}`,
+                      keyForList: `${cardName}_${cardID ?? 'unassigned'}_${encryptedCardNumber}`,
                       encryptedCardNumber,
-                      customCardName: getCompanyCardCustomName(assignedCard?.cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName ?? ''),
-                      isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                      disabled: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      customCardName,
+                      isCardDeleted,
+                      disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
                       cardholder,
-                      errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
-                      pendingAction: assignedCard?.pendingAction,
-                      onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
+                      // Unassigned cards have no details page and so no Accounting section to match, hence no title.
+                      exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
+                      lastUpdatedText,
+                      lastUpdatedTooltip,
+                      errors: rowErrors,
+                      pendingAction: assignedCard?.pendingAction ?? assignedCard?.pendingFields?.scrapeMinDate,
+                      canEditName,
+                      onRenameName: (newName: string) => {
+                          if (!bankName || cardID === undefined) {
+                              return;
+                          }
+                          showInlineEditError(renameCompanyCardInline(translate, domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName, storedCardName));
+                      },
+                      onDismissError: () => {
+                          if (hasTransactionStartDateErrors && bankName && cardID !== undefined) {
+                              clearCompanyCardErrorField(domainOrWorkspaceAccountID, String(cardID), bankName, 'scrapeMinDate', true);
+                          }
+                          if (hasVisibleCardErrors) {
+                              resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID);
+                          }
+                      },
                   };
               })
               .filter((item) => isOffline || item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -263,7 +391,8 @@ function WorkspaceCompanyCardsTable({
             return -1 * orderMultiplier;
         }
 
-        const cardNameSortingResult = localeCompare(a.cardName, b.cardName) * orderMultiplier;
+        const cardNameComparison = localeCompare(a.cardName, b.cardName);
+        const cardNameSortingResult = cardNameComparison * orderMultiplier;
 
         if (!a.isAssigned && !b.isAssigned) {
             return cardNameSortingResult;
@@ -284,6 +413,20 @@ function WorkspaceCompanyCardsTable({
             return localeCompare(a.customCardName ?? '', b.customCardName ?? '') * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'exportAccount') {
+            const exportAccountComparison = localeCompare(a.exportAccountTitle ?? '', b.exportAccountTitle ?? '');
+
+            // Most cards share the default export account, so ties fall back to the card name for a stable order.
+            return (exportAccountComparison !== 0 ? exportAccountComparison : cardNameComparison) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'lastUpdated') {
+            // lastScrape is a UTC "yyyy-MM-dd HH:mm:ss" string, so string order is time order. Never synced cards sort as oldest.
+            const lastScrapeComparison = localeCompare(a.assignedCard?.lastScrape ?? '', b.assignedCard?.lastScrape ?? '');
+
+            return (lastScrapeComparison !== 0 ? lastScrapeComparison : cardNameComparison) * orderMultiplier;
+        }
+
         return 0;
     };
 
@@ -297,7 +440,13 @@ function WorkspaceCompanyCardsTable({
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
+        const cardholderLogin = item.cardholder?.login ?? '';
+        const searchTokens = [
+            item.cardName,
+            item.customCardName ?? '',
+            item.cardholder?.displayName ?? '',
+            ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
+        ];
 
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
         return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
@@ -360,6 +509,7 @@ function WorkspaceCompanyCardsTable({
             isAssigningCardDisabled={isAssigningCardDisabled}
             canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
 
@@ -374,7 +524,9 @@ function WorkspaceCompanyCardsTable({
                     isLoading={isLoading}
                     policyID={policyID}
                     feedName={feedName}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    shouldShowViewTransactions={showCards}
                     CardFeedIcon={cardFeedIcon}
                 />
             </View>
@@ -384,9 +536,16 @@ function WorkspaceCompanyCardsTable({
             policyID={policyID}
             domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             bankName={bankName}
+            feedName={feedName}
             canWriteCompanyCards={canWriteCompanyCards}
             clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
+        />
+    ) : undefined;
+    const balanceLabelsComponent = showCards ? (
+        <WorkspaceCompanyCardsBalanceLabels
+            selectedFeed={selectedFeed}
+            feedName={feedName}
         />
     ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;
@@ -402,6 +561,8 @@ function WorkspaceCompanyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
@@ -409,7 +570,7 @@ function WorkspaceCompanyCardsTable({
             title={translate('workspace.common.companyCards')}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
-            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, balanceLabelsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}
@@ -449,7 +610,10 @@ function WorkspaceCompanyCardsTable({
                             titleStyles={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
-                        <ButtonDisabledWhenOffline onPress={feedErrorReloadAction}>
+                        <ButtonDisabledWhenOffline
+                            onPress={feedErrorReloadAction}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_ERROR_TRY_AGAIN}
+                        >
                             <Button.Text>{translate('common.tryAgain')}</Button.Text>
                         </ButtonDisabledWhenOffline>
                     </View>

@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function WorkspaceOwnerRestrictedAction() {
@@ -26,11 +26,18 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
-    const goToSubscription = useCallback(() => {
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
-    }, [activeRoute]);
+    const goToSubscription = () => {
+        // Read the active route at press time rather than snapshotting it at mount. This screen stays
+        // mounted underneath the Subscription page, so a mount-time snapshot can be taken while
+        // Subscription is the focused route, which would make `backTo` point at Subscription itself.
+        // `linkTo` then drops the navigation as a no-op and the button stops working after a swipe back.
+        // A press can only happen while this screen is on top, so reading it here always resolves to
+        // the restricted-action route.
+        //
+        // Don't close the RHP here either. Doing so pops this screen off the root stack, so the native
+        // swipe-back gesture lands on whatever was underneath instead of returning here.
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
+    };
 
     return (
         <ScreenWrapper
@@ -59,6 +66,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RESTRICTED_ACTION.OWNER_GO_TO_SUBSCRIPTION}
                         onPress={goToSubscription}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}

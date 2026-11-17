@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,13 +51,12 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     const styles = useThemeStyles();
     const theme = useTheme();
     const subtitle = item.alternateText;
-    const shouldShowBrickRoadIndicator = !item.isSelected || !!item.canShowSeveralIndicators;
     const titleStyle = [styles.justifyContentCenter, !!subtitle && styles.mb1];
 
     return (
         <ListItemComposed
             item={item}
-            pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
+            pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
@@ -83,7 +83,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                     {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
                 </View>
                 {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
-                {!!item.brickRoadIndicator && shouldShowBrickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
+                {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
             </View>
         </ListItemComposed>
     );
@@ -91,4 +91,4 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
 
 export default SearchQueryListItem;
 export {isSearchQueryItem};
-export type {SearchQueryItem, SearchQueryListItemProps};
+export type {SearchQueryItem};

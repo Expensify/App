@@ -39,14 +39,17 @@ type ReportActionMessageContentProps = {
 
     /** Optional IOU display message passed into each fragment */
     iouMessage?: string;
+
+    /** Whether this action belongs to a support ticket */
+    isSupportTicketReport?: boolean;
 };
 
-function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage}: ReportActionMessageContentProps) {
+function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage, isSupportTicketReport = false}: ReportActionMessageContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isApprovedOrSubmittedReportAction = isApprovedOrSubmittedReportActionUtils(action);
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
-    const fragments = getReportActionMessageFragments(translate, action);
+    const fragments = getReportActionMessageFragments(translate, action, isSupportTicketReport);
 
     const renderReportActionItemFragments = (shouldWrapInText: boolean): ReactElement | ReactElement[] => {
         const reportActionItemFragments = fragments.map((fragment, index) => (

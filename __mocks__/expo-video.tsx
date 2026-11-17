@@ -1,4 +1,4 @@
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {ViewProps} from 'react-native';
 
 /* eslint-disable no-underscore-dangle */
@@ -98,7 +98,7 @@ function useVideoPlayer(..._args: unknown[]): VideoPlayer {
  */
 type VideoViewProps = ViewProps & {player?: VideoPlayer};
 
-const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<View>) => (
+const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<ComponentRef<typeof View>>) => (
     <View
         ref={ref}
         accessibilityLabel="MockVideoView"

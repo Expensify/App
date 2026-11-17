@@ -1,7 +1,9 @@
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
+
 import variables from '@styles/variables';
 
-const singleRHPWidth = variables.sideBarWidth;
-const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
+const rightPaneWidth = variables.wideRHPRightPaneWidth;
+const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + rightPaneWidth;
 
 /**
  * Calculates the optimal width for the receipt pane RHP based on window width.
@@ -11,9 +13,11 @@ const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + singleRHPWidth;
  * @returns Calculated RHP width with constraints applied
  */
 function calculateReceiptPaneRHPWidth(windowWidth: number) {
-    const calculatedWidth = windowWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - windowWidth) : variables.receiptPaneRHPMaxWidth;
+    // Both the shrinking width and the floor give up the inset, or the card's left edge slides off-screen on narrow wide layouts.
+    const availableWidth = windowWidth - RHP_FLOATING_CARD_INSET;
+    const calculatedWidth = availableWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - availableWidth) : variables.receiptPaneRHPMaxWidth;
 
-    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - singleRHPWidth);
+    return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - RHP_FLOATING_CARD_INSET - rightPaneWidth);
 }
 
 export default calculateReceiptPaneRHPWidth;

@@ -1,4 +1,4 @@
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop, {shouldMoveInitialSelectionToTop} from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -36,6 +36,23 @@ describe('SelectionListOrderUtils', () => {
             const reorderedItems = moveInitialSelectionToTop(items, ['item-3']);
 
             expect(valuesOf(reorderedItems).at(0)).toBe('item-3');
+        });
+
+        it('reorders a short list when a lower pin threshold is passed (boundary is inclusive)', () => {
+            // Given a list below the global threshold with a caller-provided threshold it reaches
+            const items = buildItems(2);
+
+            // When the pin is requested from the first item
+            const reorderedItems = moveInitialSelectionToTop(items, ['item-1'], 1);
+
+            // Then the selection still moves to the top
+            expect(valuesOf(reorderedItems)).toEqual(['item-1', 'item-0']);
+        });
+
+        it('keeps a short list untouched when a passed lower threshold is not reached', () => {
+            const items = buildItems(2);
+
+            expect(moveInitialSelectionToTop(items, ['item-1'], 3)).toEqual(items);
         });
 
         it('moves the initially selected values to the top while preserving source order', () => {
@@ -84,6 +101,17 @@ describe('SelectionListOrderUtils', () => {
             const items = buildItems(CONST.STANDARD_LIST_ITEM_LIMIT);
 
             expect(valuesOf(moveInitialSelectionToTop(items, valuesOf(items)))).toEqual(valuesOf(items));
+        });
+    });
+
+    describe('shouldMoveInitialSelectionToTop', () => {
+        it('applies the pin only once the list reaches the global threshold (boundary is inclusive)', () => {
+            // Given item counts just below, at, and above the threshold
+            // When checking whether the pin applies to each
+            // Then only the counts at or above the threshold pin, matching moveInitialSelectionToTop's early return
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT - 1)).toBe(false);
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT)).toBe(true);
+            expect(shouldMoveInitialSelectionToTop(CONST.STANDARD_LIST_ITEM_LIMIT + 1)).toBe(true);
         });
     });
 });

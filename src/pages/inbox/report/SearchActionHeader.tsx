@@ -6,6 +6,7 @@ import TextLink from '@components/TextLink';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,6 +15,7 @@ import {getChatListItemReportName, isChatThread, isInvoiceReport} from '@libs/Re
 
 import {fontScale} from '@styles/typography';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
@@ -36,7 +38,7 @@ type SearchActionHeaderProps = {
 
 function SearchActionHeaderContent({action, report, isWhisper, onPress, children}: SearchActionHeaderProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const personalDetailsList = usePersonalDetails();
@@ -51,7 +53,18 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
     const reportTransactionsCollection = useReportTransactionsCollection(reportForHeaderReportID);
     const linkedTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 
-    const reportName = getChatListItemReportName(action, report, parentReport, conciergeReportID, linkedTransactions, translate, convertToDisplayString, personalDetailsList);
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
+    const reportName = getChatListItemReportName(
+        action,
+        report,
+        parentReport,
+        conciergeReportID,
+        linkedTransactions,
+        {translate, formatPhoneNumber},
+        convertToDisplayString,
+        personalDetailsList,
+        derivedReportName,
+    );
 
     return (
         <View style={[styles.p4]}>
@@ -60,6 +73,7 @@ function SearchActionHeaderContent({action, report, isWhisper, onPress, children
                     <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                     <TextLink
                         fontSize={fontScale.micro}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH_ACTION_HEADER.REPORT_NAME_LINK}
                         onPress={() => {
                             onPress?.();
                         }}

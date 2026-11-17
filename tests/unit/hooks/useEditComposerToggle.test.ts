@@ -227,10 +227,40 @@ describe('useEditComposerToggle', () => {
         expect(onValueChange).not.toHaveBeenCalled();
     });
 
+    it('in the RHP on a wide screen, when editing starts, leaves composer value unchanged (inline editor handles edit)', () => {
+        // Given a report opened in the RHP on a wide screen, where shouldUseNarrowLayout is true but the screen is not small
+        mockUseResponsiveLayout.mockReturnValue({...wideLayoutResult(), shouldUseNarrowLayout: true, isInNarrowPaneModal: true});
+
+        const onValueChange = jest.fn();
+        const onFocus = jest.fn();
+        const composerRef = makeComposerRef();
+
+        const {rerender} = renderHook(() =>
+            useEditComposerToggle({
+                selection: {start: 0, end: 0},
+                composerRef,
+                onValueChange,
+                onFocus,
+            }),
+        );
+
+        // When editing starts
+        composerEditStateRef.current = defaultComposerEditState({
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
+            editingMessage: 'from RHP',
+        });
+        rerender({});
+
+        // Then the edited message is not copied into the main composer, because desktop edits inline even in the RHP
+        expect(onValueChange).not.toHaveBeenCalled();
+        expect(onFocus).not.toHaveBeenCalled();
+    });
+
     it('on narrow, when edit ends, restores prior draft and selection', () => {
         const onValueChange = jest.fn();
         const onSelectionChange = jest.fn();
-        const composerRef = makeComposerRef();
+        const blur = jest.fn<ReturnType<ComposerRef['blur']>, Parameters<ComposerRef['blur']>>();
+        const composerRef = makeComposerRef({blur});
         const priorSelection: TextSelection = {start: 2, end: 5};
 
         // Start with edit off so wasEditingRef is false; then turn editing on to capture previousDraftSelectionRef.
@@ -260,7 +290,7 @@ describe('useEditComposerToggle', () => {
 
         expect(onValueChange).toHaveBeenCalledWith('restored');
         expect(onSelectionChange).toHaveBeenCalledWith(priorSelection);
-        expect(composerRef.current?.blur).not.toHaveBeenCalled();
+        expect(blur).not.toHaveBeenCalled();
     });
 
     it('resets the manual composer height after a submitted narrow composer edit ends', () => {

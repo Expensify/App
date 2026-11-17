@@ -12,12 +12,12 @@ import {isMobile} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import type {ReactElement, ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactElement, ReactNode, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
 import lodashDefer from 'lodash/defer';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 
@@ -61,7 +61,7 @@ function BasePickerImpl({
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
-    const root = useRef<View>(null);
+    const root = useRef<ComponentRef<typeof View>>(null);
 
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
@@ -104,19 +104,23 @@ function BasePickerImpl({
         setIsHighlighted(false);
     };
 
-    const iconToRender = useMemo((): IconToRender => {
-        if (icon) {
-            return () => icon(size);
-        }
-
-        return () => (
+    let iconToRender: IconToRender;
+    if (icon) {
+        iconToRender = () => icon(size);
+    } else {
+        iconToRender = () => (
             <Icon
                 fill={theme.icon}
                 src={icons.DownArrow}
-                {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
+                {...(size === 'small'
+                    ? {
+                          width: styles.pickerSmall().icon.width,
+                          height: styles.pickerSmall().icon.height,
+                      }
+                    : {})}
             />
         );
-    }, [icon, size, styles, theme.icon, icons.DownArrow]);
+    }
 
     useImperativeHandle(ref, () => ({
         /**
@@ -169,15 +173,14 @@ function BasePickerImpl({
     const selectedItem = items.find((item) => item.value === value);
     const selectedLabel = selectedItem?.label ?? '';
     const defaultAccessibilityLabel = accessibilityLabel ?? label ?? selectedLabel;
-    const enhancedAccessibilityLabel = useMemo(() => {
-        if (!defaultAccessibilityLabel) {
-            return selectedLabel || '';
-        }
-        if (selectedLabel) {
-            return `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
-        }
-        return defaultAccessibilityLabel;
-    }, [defaultAccessibilityLabel, selectedLabel, shouldAnnounceSelectedLabel, translate, isHighlighted]);
+    let enhancedAccessibilityLabel;
+    if (!defaultAccessibilityLabel) {
+        enhancedAccessibilityLabel = selectedLabel || '';
+    } else {
+        enhancedAccessibilityLabel = selectedLabel
+            ? `${defaultAccessibilityLabel}${shouldAnnounceSelectedLabel ? `, ${selectedLabel}` : ''}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`
+            : defaultAccessibilityLabel;
+    }
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
@@ -256,7 +259,7 @@ function BasePickerImpl({
                             disableHighlight();
                         }),
                     }}
-                    scrollViewRef={context?.scrollViewRef as RefObject<ScrollView>}
+                    scrollViewRef={context?.scrollViewRef as RefObject<ComponentRef<typeof ScrollView>>}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
             </View>

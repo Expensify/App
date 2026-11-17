@@ -1,7 +1,9 @@
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,6 +21,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -29,6 +32,7 @@ import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     getCardFeedIcon,
     getCardFeedTextColor,
+    getCardLastUpdated,
     getCompanyCardCustomName,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -61,7 +65,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
 import {format, parseISO} from 'date-fns';
@@ -97,6 +100,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'ZohoBooksSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
     const {isOffline} = useNetwork();
@@ -107,9 +112,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allBankCards] = useCardsList(feedName);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const [isUnassigning, setIsUnassigning] = useState(false);
@@ -127,7 +131,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
-    const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+    const [cardholder] = usePersonalDetail(card?.accountID);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate, formatPhoneNumber});
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card);
 
@@ -141,9 +145,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
-    const lastScrape = card?.lastScrape
-        ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
-        : translate('workspace.moreFeatures.companyCards.neverUpdated');
+    const lastUpdatedText = card ? getCardLastUpdated(card, translate, getLocalDateFromDatetime).text : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const errorRowStyles = [styles.ph5, styles.mb3];
 
@@ -153,6 +155,32 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+    };
+
+    const confirmUnassignCard = () => {
+        if (!card) {
+            return;
+        }
+
+        showConfirmModal({
+            shouldSetModalVisibility: false,
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={[card.cardID]}
+                    descriptionKey="workspace.moreFeatures.companyCards.unassignCardDescription"
+                />
+            ),
+            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            unassignCard();
+        });
     };
 
     const updateCard = () => {
@@ -165,8 +193,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // Don't show NotFoundPage if the card is being unassigned or data is still loading.
-    if ((!card && !isUnassigning && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigning)) {
+    // Don't show NotFoundPage while this page is unassigning the card.
+    if (!isUnassigning && (!card || isCardBeingUnassigned)) {
         return <NotFoundPage />;
     }
 
@@ -209,7 +237,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         </Text>
                     </View>
                     <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mb3]}>
-                        {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}`}
+                        {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${lastUpdatedText}`}
                     </Text>
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.lastScrape}
@@ -220,6 +248,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         <CardDetailsActionButtons>
                             {canWriteCompanyCards && (
                                 <CardDetailsActionButton
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UPDATE_CARD}
                                     onPress={updateCard}
                                     isDisabled={isOffline || card?.isLoadingLastUpdated}
                                     isLoading={card?.isLoadingLastUpdated}
@@ -230,6 +259,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 </CardDetailsActionButton>
                             )}
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.VIEW_TRANSACTIONS}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
                             >
@@ -244,22 +274,19 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle')}
                     >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.moreFeatures.companyCards.cardName')}
-                            title={getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName)}
-                            shouldShowRightIcon={canWriteCompanyCards}
-                            brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
-                            interactive={canWriteCompanyCards}
+                        <MenuItemField
+                            name={translate('workspace.moreFeatures.companyCards.cardName')}
+                            onPress={canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName)) : undefined}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.CARD_NAME}
-                        />
+                            value={getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames) ?? getDefaultCardName(cardholder?.displayName)}
+                        >
+                            {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        </MenuItemField>
                     </OfflineWithFeedback>
-                    <MenuItemWithTopDescription
-                        numberOfLinesTitle={3}
-                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
-                        interactive={false}
-                        titleStyle={styles.walletCardNumber}
+                    <MenuItemField
+                        name={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        value={maskCardNumber(card?.cardName ?? '', bank, true)}
+                        numberOfLinesValue={3}
                     />
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.scrapeMinDate}
@@ -267,18 +294,20 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
                         onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
                     >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                            shouldShowRightIcon={canWriteCompanyCards}
-                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
-                            interactive={canWriteCompanyCards}
+                        <MenuItemField
+                            name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            onPress={
+                                canWriteCompanyCards ? () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName)) : undefined
+                            }
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE}
-                        />
+                            value={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                        >
+                            {!!card?.errorFields?.scrapeMinDate && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BREAK_CONNECTION}
                             icon={expensifyIcons.Trashcan}
                             isDisabled={isOffline || card?.isLoadingLastUpdated}
                             title="Break connection (Testing)"
@@ -286,28 +315,14 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         />
                     )}
                     {canWriteCompanyCards && (
-                        <MenuItem
-                            icon={expensifyIcons.RemoveMembers}
-                            title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                            style={styles.mb1}
-                            onPress={() => {
-                                showConfirmModal({
-                                    shouldSetModalVisibility: false,
-                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
-                                    prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
-                                    confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-
-                                    unassignCard();
-                                });
-                            }}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
-                        />
+                        <View style={styles.mb1}>
+                            <MenuItemAction
+                                icon={expensifyIcons.RemoveMembers}
+                                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                                onPress={confirmUnassignCard}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UNASSIGN_CARD}
+                            />
+                        </View>
                     )}
                     {exportMenuItem?.shouldShowMenuItem ? (
                         <>

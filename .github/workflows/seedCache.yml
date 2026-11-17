@@ -11,8 +11,18 @@ concurrency:
 
 jobs:
   seedStandalone:
-    name: Seed standalone node_modules
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    name: Seed standalone node_modules (${{ matrix.workspaces }}) on ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner:
+          - blacksmith-2vcpu-ubuntu-2404
+          - blacksmith-2vcpu-ubuntu-2404-arm
+        workspaces:
+          - '[]'
+          - '["web/cloudflare-worker"]'
+          - '["server/victory-chart-renderer"]'
+          - '["server/victory-chart-renderer", "web/cloudflare-worker"]'
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -21,10 +31,16 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           SEED_STICKY_DISKS: 'true'
+          WORKSPACES: ${{ matrix.workspaces }}
 
   seedHybrid:
-    name: Seed hybrid node_modules
-    runs-on: blacksmith-2vcpu-ubuntu-2404
+    name: Seed hybrid node_modules (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner:
+          - blacksmith-2vcpu-ubuntu-2404
+          - blacksmith-2vcpu-ubuntu-2404-arm
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -37,7 +53,3 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
           SEED_STICKY_DISKS: 'true'
-
-  seedJestPerfCache:
-    name: Seed Jest perf cache
-    uses: ./.github/workflows/seedJestPerfCache.yml

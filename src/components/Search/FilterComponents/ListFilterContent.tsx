@@ -1,12 +1,16 @@
 import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, getViolationFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,6 +19,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import React from 'react';
 
 import BankAccountSelector from './BankAccountSelector';
@@ -31,6 +36,7 @@ import TagSelector from './TagSelector';
 import TaxRateSelector from './TaxRateSelector';
 import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
+import VendorSelector from './VendorSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
@@ -43,7 +49,13 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     onNegationChange: (isNegated: boolean) => void;
 };
 
-type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
+type SingleSelectFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
 type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     baseFilterKey: SingleSelectFilterKeys;
 };
@@ -53,6 +65,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.IS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
@@ -61,19 +74,32 @@ type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedF
     type: SearchDataTypes | undefined;
 };
 
+/** Matches `styles.mv3` applied to the hint below. */
+const HINT_VERTICAL_MARGIN = 12;
+
 type HasMultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
     type: SearchDataTypes | undefined;
 };
 
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
+
+    // Pending and posted are only ever set on card transactions, so let's make it explicit with hint text since it is non-obvious from the filter name alone.
+    const hasHint = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
+    const header = hasHint ? <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>{translate('search.filters.transactionStatus.hint')}</Text> : undefined;
+
+    // The hint renders inside the popover's fixed-height list, so its height has to be added back or it eats a row's worth of space.
+    const headerHeight = hasHint ? variables.lineHeightNormal + HINT_VERTICAL_MARGIN * 2 : undefined;
 
     return (
         <SingleSelect
             items={items}
             value={items.find((option) => option.value === value)}
             selectionListStyle={selectionListStyle}
+            header={header}
+            headerHeight={headerHeight}
             footer={footer}
             allowDeselect
             onChange={(item) => onChange(item?.value)}
@@ -89,13 +115,13 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const selectedValues = value as string[];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
-        policyCategories,
+        policyIDsWithCategoryRules,
         selectedValues,
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
@@ -115,7 +141,8 @@ function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_T
 }
 
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         return (
@@ -129,8 +156,12 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
         );
     }
 
-    const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
-    const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
+    const items =
+        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
+            ? getViolationFilterOptions(translate, localeCompare)
+            : getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
+    const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
+    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
     return (
         <MultiSelect
@@ -138,6 +169,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
             value={multiSelectValues}
             selectionListStyle={selectionListStyle}
             isNegatable={isFilterNegatable(baseFilterKey)}
+            isSearchable={items.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             footer={footer}
             onChange={(selectedItems) => {
                 onChange(selectedItems.map((item) => item.value));
@@ -174,6 +206,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
             const Component = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedSelector,
@@ -183,6 +216,7 @@ function ListFilterContent({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: ExportedToSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: TagSelector,
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: VendorSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: CategorySelector,
             }[baseFilterKey];
             content = (
@@ -230,6 +264,9 @@ function ListFilterContent({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
                 return typeof v === 'string';
@@ -251,6 +288,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
@@ -271,6 +309,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
             content = (
                 <UserSelector

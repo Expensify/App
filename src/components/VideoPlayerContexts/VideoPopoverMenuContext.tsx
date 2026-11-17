@@ -23,6 +23,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {translate} = useLocalize();
     const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
+    const [sourceFileName, setSourceFileName] = useState<string | undefined>(undefined);
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const isLocalFile = !!source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
@@ -55,18 +56,25 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         videoPopoverMenuPlayerRef.current = videoPlayer;
     };
 
+    const updateSource = (newSource: string, newFileName?: string) => {
+        setSource(newSource);
+        setSourceFileName(newFileName);
+    };
+
     const downloadAttachment = () => {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken));
+        // Without the original file name the download falls back to the last segment of the URL, which is the
+        // raw storage key and carries no extension, so the saved file opens as a generic document.
+        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken), sourceFileName);
     };
 
     const stateValue = {currentPlaybackSpeed, isLocalFile};
     const actionsValue = {
         updateVideoPopoverMenuPlayerRef,
         updatePlaybackSpeed,
-        updateSource: setSource,
+        updateSource,
         downloadAttachment,
     };
 

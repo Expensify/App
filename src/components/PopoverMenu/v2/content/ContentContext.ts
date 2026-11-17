@@ -1,10 +1,10 @@
 import createContextNamespace from '@hooks/createContextNamespace';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 type FocusableItem = {
-    ref: RefObject<View | null>;
+    ref: RefObject<ComponentRef<typeof View> | null>;
     isDisabled: boolean;
     onActivate: () => void;
     text?: string;

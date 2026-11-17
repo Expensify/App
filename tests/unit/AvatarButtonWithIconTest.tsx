@@ -8,6 +8,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
+
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 
@@ -21,7 +23,7 @@ function MockIcon() {
 
 const defaultProps = {
     text: 'Edit Avatar',
-    anchorRef: createRef<View>(),
+    anchorRef: createRef<ComponentRef<typeof View>>(),
     avatarStyle: {width: 80, height: 80},
     onPress: jest.fn(),
     avatar: null,
@@ -38,7 +40,12 @@ describe('AvatarButtonWithIcon', () => {
 
     describe('rendering', () => {
         it('should render no avatar when the avatar slot is empty', () => {
-            renderWithProvider(<AvatarButtonWithIcon {...defaultProps} />);
+            renderWithProvider(
+                <AvatarButtonWithIcon
+                    {...defaultProps}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                />,
+            );
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
             expect(screen.queryByTestId(AVATAR_ID)).toBeNull();
         });
@@ -53,13 +60,19 @@ describe('AvatarButtonWithIcon', () => {
                             accountID={1}
                         />
                     }
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />,
             );
             expect(screen.getByTestId(AVATAR_ID)).toBeTruthy();
         });
 
         it('should render edit icon when not disabled', () => {
-            renderWithProvider(<AvatarButtonWithIcon {...defaultProps} />);
+            renderWithProvider(
+                <AvatarButtonWithIcon
+                    {...defaultProps}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                />,
+            );
             expect(screen.getByTestId(ICON_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
@@ -68,6 +81,7 @@ describe('AvatarButtonWithIcon', () => {
                 <AvatarButtonWithIcon
                     {...defaultProps}
                     disabled
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />,
             );
 
@@ -81,6 +95,7 @@ describe('AvatarButtonWithIcon', () => {
                 <AvatarButtonWithIcon
                     {...defaultProps}
                     editIcon={MockIcon}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />,
             );
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
@@ -94,6 +109,7 @@ describe('AvatarButtonWithIcon', () => {
                     <AvatarButtonWithIcon
                         {...defaultProps}
                         pendingAction={action}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />,
                 );
                 expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
@@ -102,7 +118,7 @@ describe('AvatarButtonWithIcon', () => {
 
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
-            const anchorRef = createRef<View>();
+            const anchorRef = createRef<ComponentRef<typeof View>>();
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'Camera']));
 
             renderWithProvider(
@@ -123,6 +139,7 @@ describe('AvatarButtonWithIcon', () => {
                     pendingAction="update"
                     disabled={false}
                     editIcon={icons.current.Camera}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />,
             );
 
@@ -133,7 +150,12 @@ describe('AvatarButtonWithIcon', () => {
         });
 
         it('should have correct accessibility role and label', () => {
-            renderWithProvider(<AvatarButtonWithIcon {...defaultProps} />);
+            renderWithProvider(
+                <AvatarButtonWithIcon
+                    {...defaultProps}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                />,
+            );
             expect(screen.getByRole('button')).toBeTruthy();
             expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
         });

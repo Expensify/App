@@ -5,10 +5,10 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {updateTravelBillingSettlementFrequency} from '@libs/actions/TravelBilling';
 import {getCardSettings} from '@libs/CardUtils';
@@ -36,8 +36,8 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
     const currentFrequency = getTravelSettlementFrequency(travelSettings);
@@ -68,7 +68,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
+            updateTravelBillingSettlementFrequency(travelBillingFundID, selectedFrequency, monthlySettlementDate);
         }
         Navigation.goBack();
     };
@@ -87,7 +87,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
             testID="WorkspaceTravelBillingSettlementFrequencyPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyLabel')}
+                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList<FrequencyItem>
@@ -98,9 +98,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
                 ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
-                    <Text style={[styles.mh5, styles.mv3]}>
-                        {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.settlementFrequencyDescription')}
-                    </Text>
+                    <Text style={[styles.mh5, styles.mv3]}>{translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyDescription')}</Text>
                 }
             />
         </ScreenWrapper>

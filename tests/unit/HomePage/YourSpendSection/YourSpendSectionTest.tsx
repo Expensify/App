@@ -7,6 +7,7 @@ import YourSpendSection from '@pages/home/YourSpendSection';
 import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
@@ -42,18 +43,6 @@ jest.mock('@hooks/useTheme', () =>
         border: '#DDDDDD',
         icon: '#888888',
     })),
-);
-
-jest.mock('@hooks/useThemeStyles', () =>
-    jest.fn(
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: () => jest.fn(() => ({})),
-                },
-            ),
-    ),
 );
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -210,17 +199,18 @@ describe('YourSpendSection', () => {
     });
 
     it('navigates to SEARCH_ROOT when the approval row is tapped', () => {
+        // Given a ready approval row with its search query.
         const approvalQuery = 'type:expense status:outstanding from:12345 reimbursable:yes';
         mockHook({
             approvalRowState: YOUR_SPEND_ROW_STATE.READY,
             awaitingApprovalQuery: approvalQuery,
         });
         render(<YourSpendSection />);
-        // Press the row description (translation key surfaces as the text in tests because
-        // useLocalize is mocked to (key) => key).
+        // When the composed row is pressed with a native event.
         const description = screen.getByText('homePage.yourSpend.awaitingApproval');
-        fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery}));
+        fireEvent.press(description, {nativeEvent: {}});
+        // Then it navigates to the approval search without an authentication gate.
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders a card row for each entry in cardRows', () => {
@@ -312,7 +302,7 @@ describe('YourSpendSection — third-party rows', () => {
         // requires a Pressable target, so we press the description text (the card's last four) inside the row.
         const description = within(row).getByText('9876');
         fireEvent.press(description);
-        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY}));
+        expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('renders no skeleton inside the third-party card row (R-6)', () => {

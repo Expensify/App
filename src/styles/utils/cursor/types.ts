@@ -8,11 +8,13 @@ type CursorStylesKeys =
     | 'cursorUnset'
     | 'cursorAuto'
     | 'cursorZoomIn'
+    | 'cursorGrab'
     | 'cursorGrabbing'
     | 'cursorZoomOut'
     | 'cursorInitial'
     | 'cursorText'
     | 'cursorEwResize'
+    | 'cursorColResize'
     | 'cursorNsResize'
     | 'cursorNeswResize'
     | 'cursorNwseResize';

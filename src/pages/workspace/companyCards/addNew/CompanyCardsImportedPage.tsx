@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
-import {applyCompanyCardSavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
+import {applyCompanyCardColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {getCSVFeedType} from '@libs/CardUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,9 +30,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
@@ -61,7 +60,7 @@ function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translat
 
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -74,10 +73,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const generatedLayoutType = useMemo(
-        () => prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards),
-        [prefilledLayoutType, workspaceCardFeeds?.settings?.companyCards],
-    );
+    const generatedLayoutType = prefilledLayoutType ?? getCSVFeedType(workspaceCardFeeds?.settings?.companyCards);
     const layoutType = prefilledLayoutType ?? generatedLayoutType;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -85,25 +81,30 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const columnRoles: ColumnRole[] = getCompanyCardImportColumnRoles(translate);
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
-    const hasAppliedSavedMappings = useRef(false);
+    const hasAppliedColumnMappings = useRef(false);
     const lastProcessedDataRef = useRef(spreadsheet?.data);
+    const lastAppliedMappingsRef = useRef(savedColumnMappings);
 
     useEffect(() => {
-        if (spreadsheet?.data !== lastProcessedDataRef.current) {
-            hasAppliedSavedMappings.current = false;
+        if (spreadsheet?.data !== lastProcessedDataRef.current || savedColumnMappings !== lastAppliedMappingsRef.current) {
+            hasAppliedColumnMappings.current = false;
             lastProcessedDataRef.current = spreadsheet?.data;
+            lastAppliedMappingsRef.current = savedColumnMappings;
         }
 
-        if (hasAppliedSavedMappings.current) {
+        if (hasAppliedColumnMappings.current) {
             return;
         }
 
-        if (!spreadsheet?.data || isEmptyObject(savedColumnMappings)) {
+        if (!spreadsheet?.data) {
             return;
         }
 
-        hasAppliedSavedMappings.current = true;
-        applyCompanyCardSavedColumnMappings(
+        // Compute the whole mapping here (and disable each column's own header auto-detect) so a property is never
+        // pre-selected on more than one column. This runs even without a saved layout so a brand-new feed still gets
+        // header-based auto-detection.
+        hasAppliedColumnMappings.current = true;
+        applyCompanyCardColumnMappings(
             spreadsheet.data,
             savedColumnMappings,
             columnRoles.map((role) => role.value),
@@ -218,10 +219,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         closeImportPageAndModal();
     };
 
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
-
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
@@ -252,6 +249,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                     isButtonLoading={isImportingTransactions}
+                    shouldAutoDetectColumns={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

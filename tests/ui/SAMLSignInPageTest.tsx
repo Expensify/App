@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {postSAMLLogin} from '@libs/LoginUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -14,18 +15,22 @@ import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage/index.native';
 
-import {clearSignInData, signInWithShortLivedAuthToken} from '@userActions/Session';
+import {clearSignInData, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import type {AppStateStatus} from 'react-native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {openAuthSessionAsync} from 'expo-web-browser';
+import {dismissAuthSession, openAuthSessionAsync, WebBrowserResultType} from 'expo-web-browser';
 import React from 'react';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('expo-web-browser', () => ({
@@ -94,10 +99,87 @@ describe('SAMLSignInPage', () => {
             await Onyx.clear();
             await Onyx.multiSet({
                 [ONYXKEYS.CREDENTIALS]: {login: 'user@saml.example.com'},
+                [ONYXKEYS.ACCOUNT]: {isLoading: false},
                 [ONYXKEYS.LAST_VISITED_PATH]: '/search?q=status:outstanding',
             });
         });
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it('closes an in-app browser that never came back when the user goes back', async () => {
+        // Given an in-app browser on iOS that opened and never returned a result
+        mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockedOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+
+        // When the user presses back
+        fireEvent.press(screen.getByLabelText(translateLocal('common.back')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the browser is closed and the user leaves the page once
+        expect(dismissAuthSession).toHaveBeenCalledTimes(1);
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes an in-app browser that never came back when the page unmounts', async () => {
+        // Given an in-app browser on iOS that opened and never returned a result
+        mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
+        const {unmount} = renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the page unmounts
+        unmount();
+
+        // Then the browser is closed and the next SAML attempt is no longer blocked
+        expect(dismissAuthSession).toHaveBeenCalledTimes(1);
+        expect(setIsAuthenticatingWithShortLivedToken).toHaveBeenLastCalledWith(false);
+    });
+
+    it('leaves once when the user cancels the in-app browser', async () => {
+        // Given an in-app browser the user cancels
+        mockedOpenAuthSessionAsync.mockResolvedValue({type: WebBrowserResultType.CANCEL});
+
+        // When the page opens it
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there is nothing left to close and the user leaves the page once
+        expect(dismissAuthSession).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs why the in-app browser closed without signing in', async () => {
+        // Given an in-app browser that iOS closes with its reason
+        const logSpy = jest.spyOn(Log, 'hmmm');
+        const cancelledResult = {type: WebBrowserResultType.CANCEL, error: 'The operation couldn’t be completed. (com.apple.AuthenticationServices.WebAuthenticationSession error 1.)'};
+        mockedOpenAuthSessionAsync.mockResolvedValue(cancelledResult);
+
+        // When the page opens it
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the log keeps the reason, so a person cancelling can be told apart from iOS closing the sheet
+        expect(logSpy).toHaveBeenCalledWith(
+            'SAMLSignInPage - Auth session closed without a successful result',
+            expect.objectContaining({type: WebBrowserResultType.CANCEL, error: cancelledResult.error}),
+        );
+    });
+
+    it('does not try to close the in-app browser on Android', async () => {
+        // Given an in-app browser on Android that opened and never returned a result
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
+        mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses back
+        fireEvent.press(screen.getByLabelText(translateLocal('common.back')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the page is left, since Android cannot close the browser
+        expect(dismissAuthSession).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalledTimes(1);
     });
 
     it('signs in with the token while the account is still marked loading by a forced re-auth', async () => {
@@ -108,7 +190,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
         expect(clearSignInData).not.toHaveBeenCalled();
     });
 
@@ -120,6 +202,36 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+    });
+    it('waits until the app is active to sign in with a token that came back while it was in the background', async () => {
+        // Given the token comes back from an authenticator app before iOS marks the app active again
+        const appStateListeners: Array<(state: AppStateStatus) => void> = [];
+        const currentStateSpy = jest.spyOn(AppState, 'currentState', 'get').mockReturnValue(CONST.APP_STATE.BACKGROUND);
+        const addEventListenerSpy = jest.spyOn(AppState, 'addEventListener').mockImplementation((type, listener) => {
+            appStateListeners.push(listener);
+            return {remove: jest.fn()};
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is sent yet, since iOS cancels a request sent before the app is active
+        expect(signInWithShortLivedAuthToken).not.toHaveBeenCalled();
+
+        // When the app becomes active
+        currentStateSpy.mockReturnValue(CONST.APP_STATE.ACTIVE);
+        act(() => {
+            for (const listener of appStateListeners) {
+                listener(CONST.APP_STATE.ACTIVE);
+            }
+        });
+
+        // Then it signs in once with the token it kept
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledTimes(1);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+
+        currentStateSpy.mockRestore();
+        addEventListenerSpy.mockRestore();
     });
 });

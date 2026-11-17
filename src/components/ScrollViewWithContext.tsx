@@ -1,10 +1,10 @@
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
-import React, {createContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useRef, useState} from 'react';
 
 import type {ScrollViewProps} from './ScrollView';
 
@@ -12,7 +12,7 @@ import ScrollView from './ScrollView';
 
 type ScrollContextValue = {
     contentOffsetY: number;
-    scrollViewRef?: ForwardedRef<RNScrollView>;
+    scrollViewRef?: ForwardedRef<ComponentRef<typeof RNScrollView>>;
 };
 
 const ScrollContext = createContext<ScrollContextValue>({
@@ -35,7 +35,7 @@ type ScrollViewWithContextProps = Partial<ScrollViewProps> & {
  */
 function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ...restProps}: ScrollViewWithContextProps) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
-    const defaultScrollViewRef = useRef<RNScrollView>(null);
+    const defaultScrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;
 
     const setContextScrollPosition = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -45,13 +45,10 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
         setContentOffsetY(event.nativeEvent.contentOffset.y);
     };
 
-    const contextValue = useMemo(
-        () => ({
-            scrollViewRef,
-            contentOffsetY,
-        }),
-        [scrollViewRef, contentOffsetY],
-    );
+    const contextValue = {
+        scrollViewRef,
+        contentOffsetY,
+    };
 
     return (
         <ScrollView
@@ -59,7 +56,6 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}
             // It's possible for scrollEventThrottle to be 0, so we must use "||" to fallback to MIN_SMOOTH_SCROLL_EVENT_THROTTLE.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             scrollEventThrottle={scrollEventThrottle || CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>

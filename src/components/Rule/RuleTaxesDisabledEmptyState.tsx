@@ -7,6 +7,8 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -30,8 +33,11 @@ type RuleTaxesDisabledEmptyStateProps = {
 function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations(['Coins']);
     const policyData = usePolicyData(policyID);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const {showConfirmModal} = useConfirmModal();
     const isConnectedToAccounting = hasAccountingConnections(policyData.policy);
 
@@ -47,11 +53,11 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING));
             return;
         }
 
-        enablePolicyTaxes(policyID, true, policyData.policy?.taxRates, policyData);
+        enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy: policyData.policy, governmentMileageRates, policyData});
     };
 
     return (
@@ -66,6 +72,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             </ScrollView>
             <FixedFooter style={[styles.pt5]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ENABLE_TAXES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}

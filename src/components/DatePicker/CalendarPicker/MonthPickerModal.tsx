@@ -11,14 +11,23 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
+
+import type CalendarPickerListItem from './types';
 
 type MonthPickerModalProps = {
     isVisible: boolean;
 
-    /** Currently selected month (0-indexed) */
-    currentMonth?: number;
+    /** The month (0-indexed) the calendar shows, which the list marks as selected */
+    currentMonth: number;
+
+    /** The first month (0-indexed) of the shown year that can be picked. Earlier months are greyed out. */
+    minMonth: number;
+
+    /** The last month (0-indexed) of the shown year that can be picked. Later months are greyed out. */
+    maxMonth: number;
 
     onMonthChange?: (month: number) => void;
 
@@ -29,21 +38,22 @@ type MonthPickerModalProps = {
     shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const monthNames = DateUtils.getMonthNames(dateFnsLocale);
+    // The rows are built here from numbers, so the compiler can cache them across the calendar's re-renders.
+    const months: CalendarPickerListItem[] = DateUtils.getMonthNames(dateFnsLocale).map((month, index) => ({
+        text: Str.UCFirst(month),
+        value: index,
+        keyForList: index.toString(),
+        isSelected: index === currentMonth,
+        isDisabled: index < minMonth || index > maxMonth,
+    }));
 
-    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
-
-    const {data, headerMessage} = useMemo(() => {
-        const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
-        return {
-            headerMessage: !filteredMonths.length ? translate('common.noResultsFound') : '',
-            data: filteredMonths,
-        };
-    }, [allMonths, searchText, translate]);
+    const filteredMonths = searchText === '' ? months : months.filter((month) => month.text?.toLowerCase().includes(searchText.toLowerCase()));
+    const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
+    const data = filteredMonths;
 
     useEffect(() => {
         if (isVisible) {
@@ -52,15 +62,12 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
         setSearchText('');
     }, [isVisible]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('monthPickerPage.selectMonth'),
-            value: searchText,
-            onChangeText: setSearchText,
-            headerMessage,
-        }),
-        [headerMessage, searchText, translate],
-    );
+    const textInputOptions = {
+        label: translate('monthPickerPage.selectMonth'),
+        value: searchText,
+        onChangeText: setSearchText,
+        headerMessage,
+    };
 
     return (
         <Modal
