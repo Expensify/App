@@ -1,6 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import DynamicFormFormattedTextInput from '@components/DynamicForm/components/DynamicFormFormattedTextInput';
 import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
@@ -64,12 +65,26 @@ function renderTextInput(
         maxAutoGrowHeight: isMultiline ? variables.textInputAutoGrowMaxHeight : undefined,
         ...(isMultiline ? {} : getTextInputAutocorrectProps()),
     };
+    if (hasProvidedAnswer(field, values)) {
+        return {isMenuRow: false, showsDescription: true, input: <DynamicFormOnFileTextInput {...textInputProps} />};
+    }
+    if (field.type === 'text' && field.displayFormat) {
+        return {
+            isMenuRow: false,
+            showsDescription: true,
+            input: (
+                <InputWrapper
+                    InputComponent={DynamicFormFormattedTextInput}
+                    field={field}
+                    {...textInputProps}
+                />
+            ),
+        };
+    }
     return {
         isMenuRow: false,
         showsDescription: true,
-        input: hasProvidedAnswer(field, values) ? (
-            <DynamicFormOnFileTextInput {...textInputProps} />
-        ) : (
+        input: (
             <InputWrapper
                 InputComponent={TextInput}
                 {...textInputProps}

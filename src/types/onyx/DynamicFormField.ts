@@ -124,6 +124,9 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     /** Sample value, shown as a hint and in the format error */
     example?: string;
 
+    /** Layout of the answer, such as `**-**-**`. Each `*` stands for one character and anything else is a separator. The answer is laid out this way once the user leaves the input. */
+    displayFormat?: string;
+
     /** Keyboard the input opens. Without it, `rule: 'phone'` opens the phone keyboard and a digits-only `regex` the numeric one. */
     keyboard?: Extract<InputModeOptions, 'email' | 'tel' | 'url' | 'numeric'>;
 
