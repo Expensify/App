@@ -379,7 +379,11 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
             previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-            average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
+            average: {
+                [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
+                [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
+                [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
+            },
             isDashboardLoaded: hasDashboardResponse(dashboard),
         };
     });
