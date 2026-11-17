@@ -1481,7 +1481,15 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(reports, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, formatPhoneNumber},
+                {
+                    lastActions: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    isSearching: true,
+                    formatPhoneNumber,
+                },
                 undefined,
             );
 
@@ -1495,6 +1503,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    lastActions: undefined,
                     getReportByID: getReportByIDFromOnyx,
                     dateFnsLocale: undefined,
                     convertToDisplayString,
