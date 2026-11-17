@@ -214,6 +214,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         openReimbursementAccountPage({bankAccountID, shouldPreserveDraft: true});
     }, [shouldReadRequirements, bankAccountID]);
+    const [hasRequirementsReadStarted, setHasRequirementsReadStarted] = useState(false);
+    if (shouldReadRequirements && businessAccount?.isLoading && !hasRequirementsReadStarted) {
+        setHasRequirementsReadStarted(true);
+    }
+    const isReadingRequirements = shouldReadRequirements && (!hasRequirementsReadStarted || !!businessAccount?.isLoading);
 
     const draftValues = toDynamicFormValues(draft);
     const form = getWiseOnboardingForm(kycRequirements, draftValues);
@@ -272,10 +277,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         Navigation.navigate(buildRoute(unansweredRequirementPageKey), {forceReplace: true});
     }, [unansweredRequirementPageKey, buildRoute]);
 
-    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page
+    // The business page's save can add or remove requirement pages, so every page after it shows a spinner until the save returns and until the user is moved to a new page.
+    // The confirmation page also waits for the read of the requirements, so Confirm cannot skip a requirement page that has not appeared yet.
     const subPage = route.params.subPage;
     const isAfterBusinessPage = !!subPage && subPage !== CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE && subPage !== CONST.WISE.ONBOARDING_STEP.BUSINESS;
-    const isWaitingForRequirements = isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey);
+    const isConfirmationPageReadingRequirements = subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY && isReadingRequirements;
+    const isWaitingForRequirements =
+        isAfterBusinessPage && ((isSaving && unsavedPageKeys.includes(CONST.WISE.ONBOARDING_STEP.BUSINESS)) || !!unansweredRequirementPageKey || isConfirmationPageReadingRequirements);
 
     // A save records its step, and the flow names its pages by their URL-safe key
     const unsavedRoutePageKeys = unsavedPageKeys.map((step) => getRoutePageKey(form, step) ?? step);

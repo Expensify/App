@@ -754,6 +754,26 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
     });
 
+    it('shows a spinner in place of the confirmation page while it reads the requirements of this bank account', async () => {
+        // Given a device that holds another bank account's details, so a reload on the confirmation page reads this one's requirements
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+
+        // When the confirmation page opens and the read is still running
+        await renderPage({reimbursementAccount: otherAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY, shouldLeaveReadRunning: true});
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isLoading: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a spinner stands in for it, so Confirm cannot skip a requirement page the read has yet to return
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(true);
+
+        // When the read returns this bank account with no requirements
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the confirmation page shows
+        expect(mockFlowProps.mock.lastCall?.[0].isLoading).toBe(false);
+    });
+
     it('takes the user from the confirmation page to the source of funds page when the requirements arrive', async () => {
         // Given the user moved on from the business page to the confirmation page before its save answered
         await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
