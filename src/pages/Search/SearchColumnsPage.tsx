@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
+import {getPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {
     getCustomColumnDefault,
@@ -118,6 +119,9 @@ function SearchColumnsPage() {
         saveColumns({columns: [], leftPinnedColumns: [], rightPinnedColumns: []});
     };
 
+    const pinnedColumns = getPinnedColumns(currentSearchQueryJSON ?? {});
+    const hasCustomizedColumns = !!currentSearchQueryJSON?.columns?.length || pinnedColumns.left.length > 0 || pinnedColumns.right.length > 0;
+
     if (isSeedPending) {
         return <FullScreenLoadingIndicator />;
     }
@@ -133,7 +137,7 @@ function SearchColumnsPage() {
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
             onReset={resetColumns}
-            shouldShowResetColumns={!!currentSearchQueryJSON?.columns?.length}
+            shouldShowResetColumns={hasCustomizedColumns}
             type={queryType}
         />
     );
