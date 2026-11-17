@@ -3,14 +3,13 @@
  */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportActionPersonalDetails from '@hooks/useReportActionPersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -134,17 +133,13 @@ type UseActionAvatarParams = {
 
 /**
  * Resolves a report action's avatar and the details its header shows, once, for both.
- * IOU and invoice report previews come from their report's avatar hooks. Every other action follows the rules of `useReportActionAvatars`,
+ * IOU and invoice report previews come from their report's avatar hooks. Every other action is resolved here,
  * subscribing only to what its kind of action reads.
  */
 function useActionAvatar({action: passedAction, report, shouldUseRealActor}: UseActionAvatarParams): ActionAvatarData {
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber, translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const livePersonalDetails = usePersonalDetails();
-    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
-    // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? livePersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
     const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
@@ -176,8 +171,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     });
     const reportPreviewSenderID = isIOUReportPreview ? iouReportIcons.senderAccountID : senderAccountIDFromLookup;
 
-    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
-    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const [isInvoiceLinkedToBill = false] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(isOtherAction && isInvoiceReport(iouReport) ? iouReport?.reportID : undefined)}`,
         {selector: isLinkedToBillSelector},
@@ -186,6 +179,9 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillPayHistory ? iouReport?.reportID : undefined)}`, {
         selector: getBillProcessorAccountIDSelector,
     });
+    const [personalDetails] = useReportActionPersonalDetails({action, chatReport, iouReport, reportChatReport, billProcessorAccountID, reportPreviewSenderID});
+    const delegateAccountIDFromAction = getDelegateAccountIDFromReportAction(action);
+    const delegatePersonalDetails = delegateAccountIDFromAction ? personalDetails?.[delegateAccountIDFromAction] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
         isInvoiceLinkedToBill,
         processorAccountID: billProcessorAccountID,
@@ -283,8 +279,6 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         };
     }
 
-    // Every other action follows `useReportActionAvatars` with an action passed in. That hook still renders other surfaces until
-    // https://github.com/Expensify/App/issues/94591 deletes it, so a fix to these rules belongs in both places until then.
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
     // Actions inside an invoice report picture their actor, named by display name.

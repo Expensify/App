@@ -123,6 +123,7 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
                         buttonAction: navigateToNewRulePage,
                         icon: icons.Plus,
                         buttonText: translate('expenseRulesPage.newRule'),
+                        sentryLabel: CONST.SENTRY_LABEL.EXPENSE_RULES.EMPTY_STATE_NEW_RULE,
                     },
                 ]}
             />
@@ -133,4 +134,4 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
     );
 }
 
-export type {PersonalExpenseRuleRowData, PersonalExpenseRulesTableColumnKey};
+export type {PersonalExpenseRuleRowData};

@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {accountIDSelector} from '@selectors/Session';
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -87,7 +86,7 @@ function AccountSwitcher({isScreenFocused, shouldShowSwitchButton = true}: Accou
                         numberOfLines={1}
                         style={[styles.colorMuted, styles.fontSizeLabel, shouldStackHeader && styles.textAlignCenter]}
                     >
-                        {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
+                        {formatPhoneNumber(currentUserPersonalDetails.login ?? '')}
                     </Text>
                     {!!isDebugModeEnabled && (
                         <Text
