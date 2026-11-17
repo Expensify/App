@@ -1,6 +1,7 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
+import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
@@ -3379,18 +3380,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (
+    const reportActionsFromOtherUsers = Object.values(reportActions ?? {}).filter(
+        (current) =>
             !ReportActionsUtils.isDeletedAction(current) &&
             current.actorAccountID !== currentUserAccountID &&
-            (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
-        ) {
-            return current;
-        }
-        return latest;
-    }, null);
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER),
+    );
+    const eligibleReportActions = reportAction?.created
+        ? reportActionsFromOtherUsers
+        : reportActionsFromOtherUsers.filter((action) => ReportActionsUtils.canReportActionTriggerUnreadMarker(action, currentUserAccountID));
+    const unreadCandidates = eligibleReportActions.length > 0 ? eligibleReportActions : reportActionsFromOtherUsers;
+    const latestReportActionFromOtherUsers = unreadCandidates.reduce((latest: ReportAction | null, current) => (!latest || current.created > latest.created ? current : latest), null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -3847,7 +3848,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName, accountIDToName} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
@@ -3861,6 +3862,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
+            accountIDToName,
         ),
     );
     return true;
@@ -3877,6 +3879,7 @@ function editReportComment(
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
+    accountIDToName?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -3889,7 +3892,7 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/9090
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
-    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
+    const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName, accountIDToName}).trim();
     const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(textForNewComment, originalCommentHTML);
     const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID, attachmentIDByLocalSource);
 
@@ -3906,7 +3909,7 @@ function editReportComment(
         originalReportAction.reportActionID,
     );
 
-    const reportComment = Parser.htmlToText(htmlForNewComment);
+    const reportComment = Parser.htmlToText(htmlForNewComment, {accountIDToName});
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -3929,7 +3932,7 @@ function editReportComment(
     const renamedAttachmentLabels = getUploadingAttachmentLabelsRenamedInDraft(textForNewComment, originalCommentHTML);
     const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentIDs, renamedAttachmentLabels);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
-    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
+    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml, {accountIDToName}) : reportComment;
 
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
@@ -4038,6 +4041,7 @@ function editReportComment(
             isOriginalReportArchived,
             videoAttributeCache,
             reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;

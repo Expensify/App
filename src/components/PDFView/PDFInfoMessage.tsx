@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {KeyboardEvent} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
@@ -38,7 +40,10 @@ function PDFInfoMessage({onShowForm}: PDFInfoMessageProps) {
             <Text>{translate('attachmentView.pdfPasswordForm.infoText')}</Text>
             <Text>
                 {translate('attachmentView.pdfPasswordForm.beforeLinkText')}
-                <TextLink onPress={onShowForm}>{` ${translate('attachmentView.pdfPasswordForm.linkText')} `}</TextLink>
+                <TextLink
+                    onPress={onShowForm}
+                    sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.ENTER_PASSWORD_LINK}
+                >{` ${translate('attachmentView.pdfPasswordForm.linkText')} `}</TextLink>
                 {translate('attachmentView.pdfPasswordForm.afterLinkText')}
             </Text>
         </View>

@@ -80,7 +80,7 @@ function getReportOrNotFoundDecision({
 type ReportOrNotFoundGuardProps = {
     reportID: string | undefined;
     shouldRequireReportID?: boolean;
-    children: ReactElement;
+    children: ReactElement | null;
 };
 
 function ReportOrNotFoundGuard({reportID, shouldRequireReportID = true, children}: ReportOrNotFoundGuardProps) {

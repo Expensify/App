@@ -576,7 +576,7 @@ function updateAssignedCardTransactionStartDate(cardID: string, newStartDate: st
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    scrapeMinDate: oldStartDate,
+                    scrapeMinDate: oldStartDate ?? null,
                     pendingFields: {
                         scrapeMinDate: null,
                     },

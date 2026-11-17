@@ -5,6 +5,7 @@ import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
+import useFilterPanesKeyboardNavigation from '@components/Search/hooks/useFilterPanesKeyboardNavigation';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
@@ -91,6 +92,9 @@ const filterComponents = {
 /** The filter the popover opens on. */
 const INITIAL_FILTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
 
+/** Stands for the Describe your search row among the filter rows the arrow keys move through. */
+const DESCRIBE_SEARCH_ROW = 'describeSearch' as const;
+
 /** The filters whose contents are derived from the whole contact list, the one derivation heavy enough to be felt. */
 const DEFERRED_CONTENT_FILTERS = new Set<SearchFilter['key']>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
@@ -144,6 +148,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     const [isDescribeMode, setIsDescribeMode] = useState(canUseNLFilters);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
+    const filterListContainerRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
     const illustrations = useMemoizedLazyIllustrations(['Filters']);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
@@ -290,10 +295,27 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
         Navigation.navigate(route);
     };
 
+    const listedRows: Array<SearchFilter['key'] | typeof DESCRIBE_SEARCH_ROW> = [...(isDescribeSearchListed ? [DESCRIBE_SEARCH_ROW] : []), ...filters.flat()];
+
+    const getRowLabel = (row: SearchFilter['key'] | typeof DESCRIBE_SEARCH_ROW) => (row === DESCRIBE_SEARCH_ROW ? translate('search.filters.describeSearch.title') : row);
+
+    useFilterPanesKeyboardNavigation({
+        listContainerRef: filterListContainerRef,
+        contentContainerRef: filterContentRef,
+        rows: listedRows,
+        selectedRow: isDescribeMode ? DESCRIBE_SEARCH_ROW : activeFilter,
+        getRowLabel,
+        onSelectRow: (row) => (row === DESCRIBE_SEARCH_ROW ? setIsDescribeMode(true) : focusFilter(row)),
+        isRowSelectionPending: !!filterSearchValue.trim() && filterSearchValue !== debouncedFilterSearchValue,
+    });
+
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
-                <View style={[styles.typeFiltersPopupContainer, StyleUtils.getWidthStyle(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH)]}>
+                <View
+                    ref={filterListContainerRef}
+                    style={[styles.typeFiltersPopupContainer, StyleUtils.getWidthStyle(CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH)]}
+                >
                     <FilterList
                         style={[styles.flex1, styles.pt2]}
                         type={searchAdvancedFiltersForm?.type}

@@ -1,8 +1,10 @@
 import * as Reconnect from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
-import Reauthentication from '@libs/Middleware/Reauthentication';
+import Reauthentication, {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
+import RequestThrottle from '@libs/RequestThrottle';
+import trackAuthenticationError from '@libs/telemetry/trackAuthenticationError';
 
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
@@ -24,7 +26,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/Reauthentication');
-jest.mock('@libs/actions/SignInRedirect');
+jest.mock('@libs/telemetry/trackAuthenticationError', () => jest.fn());
+jest.mock('@libs/actions/SignInRedirect', () => jest.fn(() => Promise.resolve()));
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -248,6 +251,31 @@ describe('Reauthentication middleware', () => {
                 title: '',
             });
         });
+    });
+
+    test('should report one exception when reauthentication runs out of retries and signs the user out', () => {
+        // Given every Authenticate attempt fails on the network and the retry throttle has no retries left
+        const networkError = new Error('Unable to retry Authenticate request');
+        jest.mocked(reauthenticate).mockRejectedValueOnce(networkError);
+        const sleepSpy = jest.spyOn(RequestThrottle.prototype, 'sleep').mockRejectedValueOnce(undefined);
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'OpenReport',
+            commandName: 'OpenReport',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+        };
+
+        // When an expired session triggers reauthentication
+        return Reauthentication(Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}), request, false)
+            .then(() => {
+                // Then the sign-out is reported once as an actionable exception, since the per-attempt network_retry reports only go to Sentry logs
+                expect(trackAuthenticationError).toHaveBeenCalledTimes(1);
+                expect(trackAuthenticationError).toHaveBeenCalledWith(networkError, expect.objectContaining({errorType: 'retries_exhausted', functionName: 'reauthenticate'}));
+            })
+            .finally(() => {
+                sleepSpy.mockRestore();
+                resetReauthentication();
+            });
     });
 
     test('does not reauthenticate HTTP 407 while offline', () => {

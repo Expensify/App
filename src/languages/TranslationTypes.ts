@@ -74,8 +74,11 @@ type PersonalRulesModifiedFields = PolicyRulesModifiedFields & {
     reportName?: string;
 };
 
-// Exact Online and Sage Accounting only have a waitlist until their connectors are released.
-type ConnectionName = Exclude<ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>, typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING>;
+// Exact Online, Odoo and Sage Accounting only have a waitlist until their connectors are released.
+type ConnectionName = Exclude<
+    ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>,
+    typeof CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE | typeof CONST.POLICY.CONNECTIONS.NAME.ODOO | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING
+>;
 type AllConnectionName = ConnectionName;
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
