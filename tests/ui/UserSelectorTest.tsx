@@ -304,7 +304,7 @@ describe('UserSelector', () => {
         render(
             <UserSelector
                 value={[]}
-                policyID={{value: ['policy-1']}}
+                policyID={{value: ['policy-1'], isNegated: false}}
                 onChange={jest.fn()}
             />,
         );
