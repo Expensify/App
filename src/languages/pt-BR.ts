@@ -11179,6 +11179,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             updateExisting: 'Atualizar existente',
         },
         chartValueUnavailable: 'Indisponível',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

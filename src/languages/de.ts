@@ -11251,6 +11251,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             updateExisting: 'Vorhandene aktualisieren',
         },
         chartValueUnavailable: 'Nicht verfügbar',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

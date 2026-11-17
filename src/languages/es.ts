@@ -11136,6 +11136,7 @@ ${reportName}`,
             updateExisting: 'Actualizar existente',
         },
         chartValueUnavailable: 'No disponible',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',

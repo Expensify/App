@@ -11284,6 +11284,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             updateExisting: 'Mettre à jour l’existant',
         },
         chartValueUnavailable: 'Indisponible',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',
