@@ -339,7 +339,7 @@ function getOtherConditionText(
         if (!isEqualityMatch) {
             return '';
         }
-        return translate('workspace.rules.expenseDefaultsTable.taxRateIs', values.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', '));
+        return translate('workspace.rules.expenseDefaultsTable.taxRateIs', values.map((externalID) => getTaxRateDisplayName(policy, externalID)).join(', '));
     }
 
     if (field === CONDITION.SUBMITTER) {
