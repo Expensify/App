@@ -189,6 +189,25 @@ describe('focusFirstShownControl', () => {
         expect(document.activeElement).toBe(button);
     });
 
+    it('focuses the first row before a back button above it', () => {
+        // Given a report field showing its values under a back button, with no search
+        const container = document.createElement('div');
+        const backButton = document.createElement('button');
+        const valueRow = document.createElement('div');
+        valueRow.tabIndex = 0;
+        valueRow.setAttribute('role', CONST.ROLE.OPTION);
+        container.append(backButton, valueRow);
+        document.body.appendChild(container);
+        setShown(backButton, true);
+        setShown(valueRow, true);
+
+        // When the focus is moved into the content
+        focusFirstShownControl(container);
+
+        // Then the value row takes the focus, so the arrow keys go on through the values
+        expect(document.activeElement).toBe(valueRow);
+    });
+
     it('leaves the focus where it is when no control is shown', () => {
         // Given content with no control laid out, such as the empty state
         const container = document.createElement('div');

@@ -38,12 +38,17 @@ const findShown = (container: HTMLElement, selector: string) => Array.from(conta
 const isOutsideNegationToggle = (element: HTMLElement) => !element.closest(`[data-${CONST.ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT}]`);
 
 /**
- * Focuses the text of the shown content, or else its first control past the "Is" and "Is not" buttons. Hidden filter
- * contents stay in the DOM, so only a laid out element counts.
+ * Focuses the text of the shown content, or else its first row, or else its first control past the "Is" and "Is not"
+ * buttons. A row comes before a header's back button, so the arrow keys can go on from it. Hidden filter contents stay in
+ * the DOM, so only a laid out element counts.
  */
 function focusFirstShownControl(container: HTMLElement): boolean {
     const shownControls = findShown(container, FOCUSABLE_SELECTOR);
-    const firstControl = findShown(container, FILTER_TEXT_SELECTOR).at(0) ?? shownControls.find(isOutsideNegationToggle) ?? shownControls.at(0);
+    const firstControl =
+        findShown(container, FILTER_TEXT_SELECTOR).at(0) ??
+        findShown(container, `${FILTER_ROW_SELECTOR}, ${BUTTON_ROW_SELECTOR}`).at(0) ??
+        shownControls.find(isOutsideNegationToggle) ??
+        shownControls.at(0);
     if (!firstControl) {
         return false;
     }
