@@ -28,11 +28,15 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);
+    const hasStartedRef = useRef(false);
 
     useEffect(() => {
-        if (isUnmounted.current) {
+        if (hasStartedRef.current) {
             return;
         }
+
+        hasStartedRef.current = true;
+
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack();
