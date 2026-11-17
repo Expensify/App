@@ -12,15 +12,16 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
 
 import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
+import {openConciergePage} from '@userActions/ConciergeThreads';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -42,6 +43,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
+    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
 
     if (shouldHideHelpButton) {
         return null;
@@ -56,7 +58,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     if (isBetaEnabled(CONST.BETAS.FLAT_NAV)) {
-                        Navigation.navigate(ROUTES.CONCIERGE);
+                        openConciergePage(getUnreadConciergeConversationReportID());
                         return;
                     }
 

@@ -10,11 +10,11 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
 
-import Navigation from '@libs/Navigation/Navigation';
+import {openConciergePage} from '@userActions/ConciergeThreads';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -30,6 +30,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldOpenConciergePage = shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.FLAT_NAV);
+    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
 
     if (shouldHideHelpButton) {
         return null;
@@ -42,7 +43,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 accessibilityLabel={translate('common.help')}
                 role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={shouldOpenConciergePage ? () => Navigation.navigate(ROUTES.CONCIERGE) : openSidePanel}
+                onPress={shouldOpenConciergePage ? () => openConciergePage(getUnreadConciergeConversationReportID()) : openSidePanel}
             >
                 <Icon
                     src={Concierge}

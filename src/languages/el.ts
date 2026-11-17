@@ -12810,6 +12810,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
         connectionsMoved: 'Όλες οι συνδέσεις σας σε ένα σημείο',
+        conciergeHistory: 'Βρείτε εδώ τις προηγούμενες συνομιλίες σας με τον Concierge',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',

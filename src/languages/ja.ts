@@ -12360,6 +12360,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
         connectionsMoved: 'すべての連携をひとまとめに',
+        conciergeHistory: '過去のConciergeとのチャットはこちら',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

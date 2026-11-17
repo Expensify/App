@@ -12574,6 +12574,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Uzyskaj dostęp do swojego konta i ustawień osobistych.</tooltip>',
         connectionsMoved: 'Wszystkie twoje połączenia w jednym miejscu',
+        conciergeHistory: 'Tutaj znajdziesz swoje wcześniejsze czaty z Concierge',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

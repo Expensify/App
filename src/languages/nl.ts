@@ -12532,6 +12532,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
         connectionsMoved: 'Al je connecties op één plek',
+        conciergeHistory: 'Vind hier je eerdere Concierge-chats',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',

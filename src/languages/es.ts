@@ -12877,6 +12877,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>Mantén pulsado para <strong>marcar todo como leído</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Accede a tu cuenta y a tu configuración personal.</tooltip>',
         connectionsMoved: 'Todas tus conexiones en un solo lugar',
+        conciergeHistory: 'Encuentra aquí tus chats anteriores con Concierge',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

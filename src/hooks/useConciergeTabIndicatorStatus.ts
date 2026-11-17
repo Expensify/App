@@ -1,6 +1,5 @@
-import {isConciergeMessageWithoutThread} from '@libs/ConciergeConversationUtils';
+import {isUnreadConciergeMessage, isUnreadConciergeThread} from '@libs/ConciergeConversationUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isUnread} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
@@ -20,12 +19,12 @@ function useConciergeTabIndicatorStatus(): string | undefined {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const hasUnreadThreadSelector = (reports: OnyxCollection<Report>) =>
-        !!conciergeReportID && Object.values(reports ?? {}).some((report) => report?.parentReportID === conciergeReportID && isUnread(report, undefined, false, undefined));
+        !!conciergeReportID && Object.values(reports ?? {}).some((report) => isUnreadConciergeThread(report, conciergeReportID));
     const [hasUnreadThread = false] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasUnreadThreadSelector});
 
     const [conciergeLastReadTime] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: (report) => report?.lastReadTime});
     const hasUnreadMessageSelector = (reportActions: OnyxEntry<ReportActions>) =>
-        Object.values(reportActions ?? {}).some((reportAction) => isConciergeMessageWithoutThread(reportAction) && reportAction.created > (conciergeLastReadTime ?? ''));
+        Object.values(reportActions ?? {}).some((reportAction) => isUnreadConciergeMessage(reportAction, conciergeLastReadTime));
     const [hasUnreadMessage = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(conciergeReportID)}`, {selector: hasUnreadMessageSelector});
 
     return hasUnreadThread || hasUnreadMessage ? theme.iconSuccessFill : undefined;

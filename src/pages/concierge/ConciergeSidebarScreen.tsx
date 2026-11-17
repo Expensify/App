@@ -153,7 +153,7 @@ function ConciergeSidebarScreen() {
             <View style={styles.flex1}>
                 <FlashList
                     data={conversations}
-                    contentContainerStyle={[styles.ph3, styles.pt1]}
+                    contentContainerStyle={styles.pt1}
                     keyExtractor={(conversation) => conversation.key}
                     extraData={selectedConversationReportID}
                     renderItem={({item}) => (

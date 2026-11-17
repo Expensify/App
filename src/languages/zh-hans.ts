@@ -12046,6 +12046,7 @@ ${reportName}`,
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
         connectionsMoved: '所有连接尽在一处',
+        conciergeHistory: '在这里查看你以前与 Concierge 的聊天',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

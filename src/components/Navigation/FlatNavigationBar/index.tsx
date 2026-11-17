@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUnreadConciergeConversation from '@hooks/useUnreadConciergeConversation';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
@@ -64,7 +65,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isHomeSelected = selectedTab === NAVIGATION_TABS.HOME;
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
 
-    const navigateToConcierge = useConciergeTabNavigation(selectedTab === NAVIGATION_TABS.CONCIERGE);
+    const navigateToConciergeConversation = useConciergeTabNavigation(selectedTab === NAVIGATION_TABS.CONCIERGE);
+    const getUnreadConciergeConversationReportID = useUnreadConciergeConversation();
+    const navigateToConcierge = () => navigateToConciergeConversation(getUnreadConciergeConversationReportID());
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);

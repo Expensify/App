@@ -12,6 +12,7 @@ const {
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
     CONNECTIONS_MOVED,
+    CONCIERGE_HISTORY,
     REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
     REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
@@ -116,6 +117,11 @@ type DismissedProductTraining = {
      * When user dismisses the tooltip pointing at the Connections item in the workspace menu, we store the timestamp here.
      */
     [CONNECTIONS_MOVED]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the tooltip pointing at the Concierge history icon, we store the timestamp here.
+     */
+    [CONCIERGE_HISTORY]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the require fields rule tooltip explaining why Receipt is locked while

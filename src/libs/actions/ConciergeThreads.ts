@@ -34,6 +34,11 @@ function loadConciergeThreads(cursor?: string) {
     read(READ_COMMANDS.GET_CONCIERGE_THREADS, {cursor}, {optimisticData, finallyData});
 }
 
+/** Opens the Concierge page on the given conversation, or on its new conversation screen */
+function openConciergePage(conversationReportID?: string) {
+    Navigation.navigate(conversationReportID ? ROUTES.CONCIERGE_CONVERSATION.getRoute(conversationReportID) : ROUTES.CONCIERGE);
+}
+
 /** Opens a Concierge conversation on the Concierge page */
 function openConciergeConversation(reportID: string) {
     Navigation.navigate(ROUTES.CONCIERGE_CONVERSATION.getRoute(reportID));
@@ -52,8 +57,16 @@ type OpenConciergeMessageParams = {
     delegateAccountID: number | undefined;
 };
 
-/** Opens a thread on a Concierge message, so the message becomes its own conversation, even while offline */
-function openConciergeMessage({message, conciergeReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, delegateAccountID}: OpenConciergeMessageParams) {
+/** Creates a thread on a Concierge message, so the message becomes its own conversation, even while offline. Returns the thread's reportID. */
+function createConciergeMessageThread({
+    message,
+    conciergeReport,
+    currentUserAccountID,
+    introSelected,
+    isSelfTourViewed,
+    participantsPersonalDetails,
+    delegateAccountID,
+}: OpenConciergeMessageParams): string {
     const thread = createChildReport(
         undefined,
         message,
@@ -65,7 +78,12 @@ function openConciergeMessage({message, conciergeReport, currentUserAccountID, i
         conciergeReport,
         delegateAccountID,
     );
-    openConciergeConversation(thread.reportID);
+    return thread.reportID;
+}
+
+/** Opens a Concierge message as its own conversation */
+function openConciergeMessage(params: OpenConciergeMessageParams) {
+    openConciergeConversation(createConciergeMessageThread(params));
 }
 
 /** On narrow layouts Concierge opens on top of the screen the user was on, so closing it returns there */
@@ -78,4 +96,4 @@ function closeConciergePage(fallbackRoute: Route) {
     Navigation.goBack(fallbackRoute);
 }
 
-export {closeConciergePage, loadConciergeThreads, openConciergeConversation, openConciergeMessage};
+export {closeConciergePage, createConciergeMessageThread, loadConciergeThreads, openConciergeConversation, openConciergeMessage, openConciergePage};

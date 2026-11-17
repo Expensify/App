@@ -123,6 +123,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+import {isConciergePageThread} from './isInConciergeConversation';
 import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -2710,7 +2711,7 @@ function findLastAccessedReport(
             return false;
         }
 
-        if (excludedConciergeReportID && (report?.reportID === excludedConciergeReportID || report?.parentReportID === excludedConciergeReportID)) {
+        if (excludedConciergeReportID && (report?.reportID === excludedConciergeReportID || isConciergePageThread(report, excludedConciergeReportID))) {
             return false;
         }
 

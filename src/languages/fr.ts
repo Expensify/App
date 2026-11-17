@@ -12653,6 +12653,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         markAllAsReadTouchScreen: '<tooltip>Faites un appui long pour <strong>tout marquer comme lu</strong>.</tooltip>',
         accountMovedToTopBar: '<tooltip>Accédez à votre compte et à vos paramètres personnels.</tooltip>',
         connectionsMoved: 'Toutes vos connexions au même endroit',
+        conciergeHistory: 'Retrouvez ici vos anciennes discussions avec Concierge',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

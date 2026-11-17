@@ -118,7 +118,7 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
-import ConciergeHistoryIcon from './ConciergeHistoryIcon';
+import ConciergeHistoryButton from './ConciergeHistoryButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -605,17 +605,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldShowConciergeHistoryButton && (
-                                    <Tooltip text={translate('common.concierge.viewChatHistory')}>
-                                        <PressableWithoutFeedback
-                                            onPress={isInConciergeSidePanel ? openConciergePageFromSidePanel : openConciergeHistory}
-                                            style={[styles.touchableButtonImage]}
-                                            role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={translate('common.concierge.viewChatHistory')}
-                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CONCIERGE_HISTORY_BUTTON}
-                                        >
-                                            <ConciergeHistoryIcon />
-                                        </PressableWithoutFeedback>
-                                    </Tooltip>
+                                    <ConciergeHistoryButton
+                                        onPress={isInConciergeSidePanel ? openConciergePageFromSidePanel : openConciergeHistory}
+                                        shouldShowProductTrainingTooltip={isInNarrowConciergePage}
+                                    />
                                 )}
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
