@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -48,6 +48,56 @@ describe('actions/PersonalDetails', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe('updatePrivatePersonalDetailsForWallet', () => {
+        const values = {
+            legalFirstName: ' Jane ',
+            legalLastName: ' Doe ',
+            country: CONST.COUNTRY.GB,
+            zipPostCode: ' sw1a 1aa ',
+            state: 'London',
+            dob: '1990-01-01',
+            addressLine1: '10 Downing Street',
+            addressLine2: '',
+            city: 'London',
+            phoneNumber: '+447700900123',
+        };
+
+        it('uses the save-only command and requires its successful response', async () => {
+            // Given a verified personal-details form.
+            mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+            // When wallet setup saves it.
+            await expect(PersonalDetailsActions.updatePrivatePersonalDetailsForWallet(values, '123456', 44)).resolves.toBeUndefined();
+
+            // Then it uses the existing payload formatting without queueing, shipping, or revealing a card.
+            expect(mockAPI.write).not.toHaveBeenCalled();
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS,
+                expect.objectContaining({legalFirstName: 'Jane', legalLastName: 'Doe', addressCountry: 'GB', addressZip: 'SW1A 1AA', validateCode: '123456'}),
+                expect.any(Object),
+            );
+        });
+
+        it.each([CONST.JSON_CODE.INCORRECT_VALIDATE_CODE, CONST.JSON_CODE.TOO_MANY_REQUESTS, CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR, 409, undefined])(
+            'does not authorize wallet setup for response %s',
+            async (jsonCode) => {
+                // Given an unsuccessful or missing server confirmation, including AlreadyCreated.
+                mockAPI.makeRequestWithSideEffects.mockResolvedValue(jsonCode === undefined ? undefined : {jsonCode});
+
+                // When the save completes, then its caller must not resume enrollment.
+                await expect(PersonalDetailsActions.updatePrivatePersonalDetailsForWallet(values, '123456', 44)).rejects.toThrow();
+            },
+        );
+
+        it('does not authorize enrollment when the connection drops', async () => {
+            // Given a save interrupted by a network error.
+            mockAPI.makeRequestWithSideEffects.mockRejectedValue(new Error('Connection lost'));
+
+            // When the request fails, then the failure reaches the collection page instead of authorizing enrollment.
+            await expect(PersonalDetailsActions.updatePrivatePersonalDetailsForWallet(values, '123456', 44)).rejects.toThrow('Connection lost');
+        });
     });
 
     describe('setPersonalDetailsAndRevealExpensifyCard', () => {
