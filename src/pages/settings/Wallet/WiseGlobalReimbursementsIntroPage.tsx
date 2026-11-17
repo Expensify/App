@@ -8,12 +8,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenReimbursementAccountPageForWiseIntro from '@hooks/useOpenReimbursementAccountPageForWiseIntro';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isBankAccountEligibleForGlobalReimbursements, isWiseOnboardingPendingSubmit, isWiseOnboardingSubmitted} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
@@ -30,6 +31,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
 type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
@@ -52,6 +54,12 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
 
     const goBackToEntryPoint = () => Navigation.goBack(backPath);
 
+    const {isOffline} = useNetwork();
+    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
+    // The intro stays mounted under the form on a direct link to the form, which reads for itself
+    const isFocused = useIsFocused();
+    useOpenReimbursementAccountPageForWiseIntro(bankAccountID, isFocused && isEligible && !isOffline && !isOnboardingSubmitted && !!isWiseReimbursementsBetaEnabled);
+
     // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
@@ -70,7 +78,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     return (
         <ScreenWrapper testID="WiseGlobalReimbursementsIntroPage">
             <FullPageNotFoundView
-                shouldShow={!isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)}
+                shouldShow={!isEligible}
                 onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
@@ -102,9 +110,6 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             }
                             text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
-                                // Starting onboarding for any account retires both banners for good
-                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
-                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
                                 // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
                                 Navigation.navigate(
                                     createDynamicRoute(isOnboardingSubmitted ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()),

@@ -1,16 +1,21 @@
+import {act, renderHook} from '@testing-library/react-native';
+
 import type {setAuthenticationData} from '@libs/FraudProtection/GroupIBSdkBridge';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {SplashScreenStateContextProvider, useSplashScreenActions} from '@src/SplashScreenStateContext';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const mockInit = jest.fn<Promise<void>, []>(() => Promise.resolve());
 const mockSetAuthenticationData = jest.fn<void, Parameters<typeof setAuthenticationData>>();
 const mockSetAttribute = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
-    init: jest.fn(),
+    init: mockInit,
     sendEvent: jest.fn(),
     setAttribute: mockSetAttribute,
     setAuthenticationData: mockSetAuthenticationData,
@@ -203,5 +208,21 @@ describe('FraudProtection', () => {
         // authMethod='google', the freshly-loaded module overrides it with infiniteSession because no
         // signed-out state was observed during this lifetime.
         expect(initialSweepSetAttributeCalls).toContainEqual(['authentication', 'infiniteSession', false, true]);
+    });
+
+    it('should start the GroupIB SDK only after the splash screen hides', async () => {
+        // Given the app is still showing the splash screen
+        const {result} = renderHook(() => useSplashScreenActions(), {wrapper: SplashScreenStateContextProvider});
+        await waitForBatchedUpdates();
+
+        // Then the SDK hasn't started, because its setup runs on the main thread and would hold up the first screen
+        expect(mockInit).not.toHaveBeenCalled();
+
+        // When the splash screen hides
+        act(() => result.current.setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN));
+        await waitForBatchedUpdates();
+
+        // Then the SDK starts once
+        expect(mockInit).toHaveBeenCalledTimes(1);
     });
 });
