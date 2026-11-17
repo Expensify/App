@@ -208,6 +208,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         {
             text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_SELECTION_MENU.REMOVE,
             icon: icons.RemoveMembers,
             shouldSkipFocusRestore: true,
             onSelected: showRemoveMembersModal,
@@ -218,6 +219,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         bulkActionsButtonOptions.push({
             text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_SELECTION_MENU.MAKE_MEMBER,
             icon: icons.User,
             onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
         });
@@ -227,6 +229,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
         bulkActionsButtonOptions.push({
             text: translate('workspace.people.makeGroupAdmin', {count: selectedMembers.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.PARTICIPANTS_SELECTION_MENU.MAKE_ADMIN,
             icon: icons.MakeAdmin,
             onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
         });

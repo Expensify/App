@@ -5,6 +5,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {StyleProp, TextStyle} from 'react-native';
@@ -47,6 +48,7 @@ function SubtitleWithBelowLink({
                 {!!linkTranslationKey && (
                     <TextLink
                         onPress={onLinkPress}
+                        sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.BELOW_SUBTITLE_LINK}
                         style={[styles.link, styles.mt2, styles.textAlignCenter]}
                     >
                         {` ${translate(linkTranslationKey)}`}
