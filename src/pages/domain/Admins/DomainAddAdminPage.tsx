@@ -157,7 +157,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage: headerMessage(),

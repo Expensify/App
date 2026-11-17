@@ -417,7 +417,6 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
         value: searchTerm,
         onChangeText: setSearchTerm,

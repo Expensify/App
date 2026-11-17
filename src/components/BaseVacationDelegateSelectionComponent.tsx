@@ -190,7 +190,6 @@ function BaseVacationDelegateSelectionComponent({
         value: searchTerm,
         onChangeText: setSearchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         headerMessage,
     };
 

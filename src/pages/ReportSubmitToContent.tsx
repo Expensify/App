@@ -252,7 +252,6 @@ function ReportSubmitToContent({
     const textInputOptions = {
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         onChangeText: setSearchTerm,
         headerMessage: noMatchingMembers ? translate('common.noResultsFound') : undefined,
     };

@@ -108,7 +108,6 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         value: searchTerm,
         headerMessage: searchTerm && !filteredApprovers.length ? translate('common.noResultsFound') : '',
         onChangeText: setSearchTerm,

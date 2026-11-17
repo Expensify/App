@@ -167,7 +167,6 @@ function ShareTab() {
     const textInputOptions = {
         value: textInputValue,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         hint: offlineMessage,
         onChangeText: setTextInputValue,
         headerMessage: header,

@@ -150,7 +150,6 @@ function AddDelegatePage() {
                             onChangeText: setSearchTerm,
                             headerMessage,
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
-                            shouldIgnorePasswordManager: true,
                         }}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForUsers}

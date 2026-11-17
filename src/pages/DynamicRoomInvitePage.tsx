@@ -207,7 +207,6 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const textInputOptions = {
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         onChangeText: setSearchTerm,
         headerMessage: getHeaderMessageText(),
     };

@@ -234,7 +234,6 @@ function DynamicWorkspaceInvitePage({route}: WorkspaceInvitePageProps) {
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage,

@@ -561,7 +561,6 @@ function ParticipantSearchResults({
     const textInputOptions = {
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         hint: offlineMessage,
         onChangeText: setSearchTerm,
         disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,

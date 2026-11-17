@@ -128,7 +128,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const textInputOptions = {
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
-        shouldIgnorePasswordManager: true,
         onChangeText: setSearchTerm,
         headerMessage: getHeaderMessageText(),
         hint: offlineMessage,
