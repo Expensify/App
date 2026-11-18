@@ -37,6 +37,9 @@ type MultiChoiceDropdownAdapterProps = ForwardedFSClassProps & {
 
     /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
     ref?: Ref<ComponentRef<typeof View>>;
+
+    /** Called when the list closes, so FormProvider validates a field closed without an answer */
+    onBlur?: () => void;
 };
 
 function haveSameValues(first: string[], second: string[]) {
@@ -48,7 +51,7 @@ function haveSameValues(first: string[], second: string[]) {
  * button, as the attendees row applies its selection. A field that asks the server for new requirements therefore asks
  * once per Apply rather than once per checked option.
  */
-function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref}: MultiChoiceDropdownAdapterProps) {
+function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: MultiChoiceDropdownAdapterProps) {
     const selectedValues = Array.isArray(value) ? value : [];
     const displayValue = items
         .filter((item) => selectedValues.includes(item.value))
@@ -72,6 +75,7 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
             errorText={errorText}
             disabled={disabled}
             rowRef={ref}
+            onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
             renderDropdown={(dropdownProps) => (
                 <MultiValuePickerPopover

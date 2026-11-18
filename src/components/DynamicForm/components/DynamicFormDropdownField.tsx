@@ -48,6 +48,9 @@ type DynamicFormDropdownFieldProps = ForwardedFSClassProps & {
     /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
     rowRef?: Ref<ComponentRef<typeof View>>;
 
+    /** Called each time the list closes, so FormProvider marks the field touched and shows a required error for a list closed without an answer */
+    onBlur?: () => void;
+
     /** The field's list in the container anchored to the row. Only called once the row is first pressed. The container renders outside the row, so the list masks itself with `forwardedFSClass` */
     renderDropdown: (props: DropdownFieldRenderProps) => ReactNode;
 
@@ -72,11 +75,15 @@ function DynamicFormDropdownField({
     forwardedFSClass,
     renderDropdown,
     renderFullPageList,
+    onBlur,
 }: DynamicFormDropdownFieldProps) {
     const styles = useThemeStyles();
     const isInsideModal = useContext(DynamicFormModalContext);
     const [isFullPageListVisible, setIsFullPageListVisible] = useState(false);
-    const closeFullPageList = () => setIsFullPageListVisible(false);
+    const closeFullPageList = () => {
+        setIsFullPageListVisible(false);
+        onBlur?.();
+    };
 
     return (
         <>
@@ -92,7 +99,15 @@ function DynamicFormDropdownField({
                 shouldOpenInDropdown={!isInsideModal}
                 onPress={() => setIsFullPageListVisible(true)}
                 listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={renderDropdown}
+                renderDropdown={(dropdownProps) =>
+                    renderDropdown({
+                        ...dropdownProps,
+                        onClose: () => {
+                            dropdownProps.onClose();
+                            onBlur?.();
+                        },
+                    })
+                }
                 sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
             />
             <DynamicFormFullPageList

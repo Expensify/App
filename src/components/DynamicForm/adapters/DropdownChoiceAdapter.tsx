@@ -37,6 +37,9 @@ type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
 
     /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
     ref?: Ref<ComponentRef<typeof View>>;
+
+    /** Called when the list closes, so FormProvider validates a field closed without an answer */
+    onBlur?: () => void;
 };
 
 /**
@@ -44,7 +47,7 @@ type DropdownChoiceAdapterProps = ForwardedFSClassProps & {
  * Only FormProvider's value, change, error and ref props reach the row. FormProvider's `onPress` marks the field
  * touched, which a list the user dismisses without a pick must not do, so it is left out.
  */
-function DropdownChoiceAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref}: DropdownChoiceAdapterProps) {
+function DropdownChoiceAdapter({items, label, title, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: DropdownChoiceAdapterProps) {
     const selectedItem = items.find((item) => item.value === value);
 
     const selectValue = (pickedValue: string | undefined) => {
@@ -62,6 +65,7 @@ function DropdownChoiceAdapter({items, label, title, value, onInputChange, error
             errorText={errorText}
             disabled={disabled}
             rowRef={ref}
+            onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
             renderDropdown={(dropdownProps) => (
                 <ValuePickerPopover

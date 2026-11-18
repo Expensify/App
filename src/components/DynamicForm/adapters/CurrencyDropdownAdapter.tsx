@@ -39,10 +39,13 @@ type CurrencyDropdownAdapterProps = ForwardedFSClassProps & {
 
     /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
     ref?: Ref<ComponentRef<typeof View>>;
+
+    /** Called when the list closes, so FormProvider validates a field closed without an answer */
+    onBlur?: () => void;
 };
 
 /** A currency field whose searchable currency list opens in a container anchored to its row */
-function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref}: CurrencyDropdownAdapterProps) {
+function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInputChange, errorText = '', disabled = false, forwardedFSClass, ref, onBlur}: CurrencyDropdownAdapterProps) {
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const currencyCode = value === '' ? undefined : value;
@@ -64,6 +67,7 @@ function CurrencyDropdownAdapter({label, title, accessibilityLabel, value, onInp
             errorText={errorText}
             disabled={disabled}
             rowRef={ref}
+            onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
             renderDropdown={(dropdownProps) => (
                 <CurrencyPickerPopover

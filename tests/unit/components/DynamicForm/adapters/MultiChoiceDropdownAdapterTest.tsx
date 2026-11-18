@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {MultiChoiceDropdownAdapterProps} from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
@@ -62,6 +62,21 @@ describe('MultiChoiceDropdownAdapter', () => {
         // When it renders
         // Then the row names both, in the order the list offers them
         expect(screen.getByText('Retail, Services')).toBeOnTheScreen();
+    });
+
+    it('blurs the field when its list closes without an answer', () => {
+        // Given an unanswered field whose list is open
+        const onBlur = jest.fn();
+        renderAdapter({onBlur});
+        openList();
+
+        // When the user dismisses the list without picking anything
+        act(() => {
+            lastPopoverProps()?.onClose();
+        });
+
+        // Then the field blurs, so the form marks it touched and shows a required error right away
+        expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     it('commits the applied options once', () => {
