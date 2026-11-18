@@ -40,6 +40,8 @@ const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMAN
 // API.read() waits for pending WRITEs before sending, but a READ already in flight when the user makes a WRITE can return data from before that WRITE
 // and overwrite its optimistic data. For these READs, a response is dropped when a WRITE was prepared after the READ was sent, and the READ is sent again
 // once the queue is idle so its data includes the WRITE. Add a command here only when it is known to bring back stale data this way.
+// A dropped response skips successData, finallyData and the lastUpdateID handling, so only add a command that has no client-side Onyx data,
+// such as a loading flag in finallyData, which would stay stuck if the resend fails.
 const readsToResendWhenOlderThanLatestWrite = new Set<string>([READ_COMMANDS.SEARCH_FOR_TODOS]);
 
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>

@@ -78,12 +78,14 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
         pusherSocketID: isWriteRequest ? pusherSocketID : undefined,
     };
 
+    const currentRequestIndex = requestIndex++;
+
     // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
     const request: SetRequired<OnyxRequest<TKey>, 'data'> = {
         command,
         data,
         initiatedOffline: getIsOffline(),
-        requestIndex: requestIndex++,
+        requestIndex: currentRequestIndex,
         ...onyxDataWithoutOptimisticData,
         successData,
         failureData,
@@ -91,7 +93,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     };
 
     if (isWriteRequest) {
-        latestWriteRequestIndex = request.requestIndex ?? latestWriteRequestIndex;
+        latestWriteRequestIndex = currentRequestIndex;
         // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
         request.data.shouldRetry ??= true;
         request.data.canCancel = true;
