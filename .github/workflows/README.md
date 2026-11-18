@@ -66,9 +66,10 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 On pull requests, Jest (`test.yml`) and Reassure (`reassurePerformanceTests.yml`) run only the tests that import a changed file, directly or through other files. Pushes to `main` and deploys run every test.
 
 - Jest picks the tests itself with `--changedSince=HEAD^1`. On a PR, `HEAD` is the merge commit and `HEAD^1` is the base it merges into, so the checkout uses `fetch-depth: 2`.
-- Jest can't see files that tests depend on without importing them, such as dependencies, Jest and Babel config, setup files and mocks. A `dorny/paths-filter` step lists those, and a change to any of them runs every test.
+- Jest can't see files that tests depend on without importing them, such as dependencies, Jest and Babel config, setup files, mocks, and files a test reads from disk. A `dorny/paths-filter` step lists those, and a change to any of them runs every test.
+- Tests that scan whole source folders, like `actionLayerNavigationGuardTest`, can't be selected that way either, so `test.yml` always runs them on PRs in a separate step on the first shard.
 
-If you add a file that tests depend on without importing it (a setup file, a mock, a config Jest or Babel reads), add it to the `Check for changes that need a full run` list in both workflows. Otherwise PRs that change it won't run the tests it affects.
+If you add a file that tests depend on without importing it (a setup file, a mock, a config Jest or Babel reads, a file a test reads from disk), add it to the `Check for changes that need a full run` list in `test.yml`, and in `reassurePerformanceTests.yml` too if perf tests depend on it. If you add a test that scans a source folder, add it to the always-run step in `test.yml`. Otherwise PRs that change those files won't run the tests they affect.
 
 ## Which checkout action to use
 

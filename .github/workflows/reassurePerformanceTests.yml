@@ -207,6 +207,7 @@ jobs:
               - '.github/workflows/test.yml'
               - '.github/workflows/reassurePerformanceTests.yml'
               - '.github/actions/composite/setupNode/**'
+              - 'src/polyfills/**'
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
