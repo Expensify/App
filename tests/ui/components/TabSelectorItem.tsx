@@ -31,6 +31,7 @@ describe('TabSelectorItem Component', () => {
         // Given an inactive tab with a hidden label
         render(
             <TabSelectorItem
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive={false}
@@ -52,6 +53,7 @@ describe('TabSelectorItem Component', () => {
         // Given an active tab
         render(
             <TabSelectorItem
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 title={title}
                 shouldShowLabelWhenInactive={false}
                 isActive
@@ -74,6 +76,7 @@ describe('TabSelectorItem Component', () => {
         // Given an inactive tab with visible label
         render(
             <TabSelectorItem
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 title={title}
                 shouldShowLabelWhenInactive
                 isActive={false}
@@ -99,6 +102,7 @@ describe('TabSelectorItem Component', () => {
         // When it renders with the question
         render(
             <TabSelectorItem
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 title="Person"
                 tabKey={tabKey}
                 groupAccessibilityLabel="Recipient type"
@@ -116,6 +120,7 @@ describe('TabSelectorItem Component', () => {
         // When it renders with the question
         render(
             <TabSelectorItem
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 title="Person"
                 tabKey={tabKey}
                 groupAccessibilityLabel="Recipient type"

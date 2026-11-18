@@ -395,6 +395,9 @@ const CONST = {
     ADVANCED_FILTERS_POPOVER_HEIGHT: 520,
     ADVANCED_FILTERS_POPOVER_WIDTH: 582,
     ADVANCED_FILTERS_CONTENT_WIDTH: 331,
+
+    // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
+    ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1317,6 +1320,47 @@ const CONST = {
             'RESIDENTS_PROPERTY_MANAGEMENT',
             'DIPLOMATIC_BODIES',
         ],
+
+        /**
+         * Maps Wise's payout `failure_reason_code` values to the translation key of the reason we show on a failed deposit.
+         * Codes not listed here, including `REASON_NOT_SPECIFIED` and ones Wise adds later, show the generic reason.
+         * https://docs.wise.com/guides/product/send-money/tracking/payout-failures#failure-reason-codes
+         */
+        PAYOUT_FAILURE_REASON: {
+            WRONG_ACCOUNT_NUMBER: 'wrongAccountNumber',
+            WRONG_ACCOUNT_DETAILS: 'wrongAccountDetails',
+            WRONG_BANK_CODE: 'wrongBankCode',
+            WRONG_BRANCH_CODE: 'wrongBranchCode',
+            WRONG_ACCOUNT_TYPE: 'wrongAccountType',
+            WRONG_CARD_NUMBER: 'wrongCardNumber',
+            WRONG_CARD_TYPE: 'wrongCardType',
+            WRONG_NAME: 'wrongName',
+            WRONG_PHONE_NUMBER: 'wrongPhoneNumber',
+            WRONG_ID_NUMBER: 'wrongIdNumber',
+            WRONG_RUT_NUMBER: 'wrongRutNumber',
+            TAX_ID_NOT_MATCHING: 'taxIdNotMatching',
+            WRONG_CURRENCY: 'wrongCurrency',
+            ACCOUNT_DOES_NOT_EXIST: 'accountDoesNotExist',
+            EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED: 'externalIdentifierDetailsHaveChanged',
+            ACCOUNT_CLOSED: 'accountClosed',
+            ACCOUNT_FROZEN: 'accountFrozen',
+            ACCOUNT_BLOCKED: 'accountBlocked',
+            ACCOUNT_LIMIT_REACHED: 'accountLimitReached',
+            TAX_ID_SUSPENDED: 'taxIdSuspended',
+            CANNOT_ACCEPT_FROM_3RD_PARTY: 'cannotAcceptFrom3rdParty',
+            CREDITING_ACCOUNT_FORBIDDEN: 'creditingAccountForbidden',
+            BUSINESS_PAYMENTS_FORBIDDEN: 'businessPaymentsForbidden',
+            RETURN_REQUESTED_BY_RECIPIENT: 'returnRequestedByRecipient',
+            FUNDS_NOT_EXPECTED_RETURNED: 'fundsNotExpectedReturned',
+            DUPLICATE_ENTRY: 'duplicateEntry',
+            MANDATE_NOT_FILLED_IN: 'mandateNotFilledIn',
+            REQUEST_FOR_INFORMATION_EXPIRED: 'requestForInformationExpired',
+            WRONG_REFERENCE: 'wrongReference',
+            WRONG_PAYMENT_PURPOSE: 'wrongPaymentPurpose',
+            SENDER_REQUESTED_TO_CANCEL: 'senderRequestedToCancel',
+            TECHNICAL_ISSUE: 'technicalIssue',
+            TECHNICAL_ISSUE_RETRYABLE: 'technicalIssueRetryable',
+        },
     },
     NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
@@ -1518,6 +1562,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
+        PAY_VIA_ABA: 'payViaABA',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
@@ -1526,6 +1571,7 @@ const CONST = {
         BUSINESS_CENTRAL: 'businessCentral',
         DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
+        ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
@@ -1548,7 +1594,6 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
-        SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
@@ -1566,6 +1611,7 @@ const CONST = {
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
+        BR: 'BR',
         CA: 'CA',
         FI: 'FI',
         FR: 'FR',
@@ -2241,6 +2287,7 @@ const CONST = {
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
                 COMPANY_CARD_CONNECTION_BROKEN_30_DAYS: 'COMPANYCARDCONNECTIONBROKEN30DAYS',
+                COMPANY_CARD_CONSENT_EXPIRING: 'COMPANYCARDCONSENTEXPIRING',
                 COMMUTER_EXCLUSION: 'COMMUTEREXCLUSION',
                 PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
@@ -2266,6 +2313,11 @@ const CONST = {
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                // OldDot sends these four actions when a Wise reimbursement fails, is held, is refunded, or is released
+                REIMBURSEMENT_DEPOSIT_FAILED: 'REIMBURSEMENTDEPOSITFAILED',
+                REIMBURSEMENT_HELD: 'REIMBURSEMENTHELD',
+                REIMBURSEMENT_REFUNDED: 'REIMBURSEMENTREFUNDED',
+                REIMBURSEMENT_RELEASED: 'REIMBURSEMENTRELEASED',
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
@@ -3362,6 +3414,9 @@ const CONST = {
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
+
+        // Sent when an employee being paid via ABA has no Australian bank account to pay into
+        MISSING_ABA_DEPOSIT_ACCOUNT: 'Missing AU deposit account',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
@@ -5019,6 +5074,7 @@ const CONST = {
         DEBIT_CARD: 'debitCard',
         PERSONAL_BANK_ACCOUNT: 'bankAccount',
         BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
+        ABA: 'ABA',
     },
 
     PAYMENT_SELECTED: {
@@ -5618,6 +5674,7 @@ const CONST = {
                 ZOHO_BOOKS: 'zohoBooks',
                 BUSINESS_CENTRAL: 'businessCentral',
                 EXACT_ONLINE: 'exactOnline',
+                ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
@@ -5660,6 +5717,7 @@ const CONST = {
                 zohoBooks: 'Zoho Books',
                 businessCentral: 'Dynamics 365 Business Central',
                 exactOnline: 'Exact Online',
+                odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
@@ -6219,6 +6277,10 @@ const CONST = {
         },
     },
     COMPANY_CARDS: {
+        CONSENT_EXPIRY_WARNING_DAYS: {
+            TWO_WEEKS: 14,
+            ONE_WEEK: 7,
+        },
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
 
         // Ignored scrape result codes that still need the user to act, so they belong in the card's status
@@ -6634,7 +6696,6 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_AND_LATIN_CHARS: /^[\p{Script=Latin} ]*$/u,
         // Matches complete tags like <script> or <123a>; lone < or > are allowed.
         NAME_ON_CARD_INVALID_CHARS: /<[^>]*>/,
         NON_ALPHABETIC_AND_NON_LATIN_CHARS: /[^\p{Script=Latin}]/gu,
@@ -9081,6 +9142,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9110,6 +9173,7 @@ const CONST = {
         CHART_METRIC: {
             AMOUNT: 'amount',
             COUNT: 'count',
+            DURATION: 'duration',
         },
         CHART_COUNT_DIMENSION: {
             EXPENSE: 'expense',
@@ -9122,6 +9186,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            VIOLATION: 'violationName',
             TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
@@ -9196,6 +9261,7 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_GROUP_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         VENDOR_EMPTY_VALUE: 'none',
@@ -9223,6 +9289,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            VIOLATION: 'violation',
             TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -9404,6 +9471,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -10573,6 +10641,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',
@@ -10583,12 +10652,14 @@ const CONST = {
             EFFICIENCY: 'insightsEfficiency',
             COMPLIANCE: 'insightsCompliance',
         },
+        NO_CHANGE_PLACEHOLDER: '—',
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
@@ -10617,6 +10688,8 @@ const CONST = {
             CHIP_UNIT: {
                 PERCENT: 'percent',
                 AMOUNT: 'amount',
+                COUNT: 'count',
+                DURATION: 'duration',
             },
         },
     },
@@ -10659,9 +10732,13 @@ const CONST = {
         EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
+        INTEGRATIONS: 53,
         NEWDOT: 83,
         OAUTH: 86,
     },
+
+    /** Start of the partnerUserID Auth gives a login it issues to an Integration Server OAuth partner */
+    INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX: 'is-oauth-',
 } as const;
 
 const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {
