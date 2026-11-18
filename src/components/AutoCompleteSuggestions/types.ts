@@ -1,4 +1,4 @@
-import type {Bounds} from '@src/types/utils/Layout';
+import type {Bounds, Dimensions} from '@src/types/utils/Layout';
 
 import type {ReactElement} from 'react';
 
@@ -35,6 +35,12 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Measures the parent container's position and dimensions. Also add a cursor coordinates */
     measureParentContainerAndReportCursor?: (props: MeasureParentContainerAndCursorCallback) => void;
+
+    /**
+     * Size of the parent container. The menu is measured again when it changes, because the container can be resized after
+     * the window itself, e.g. when the safe area insets are applied after a rotation.
+     */
+    parentContainerSize?: Dimensions;
 
     /** Reset the emoji suggestions */
     resetSuggestions?: () => void;

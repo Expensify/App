@@ -51,6 +51,7 @@ function SuggestionEmoji({
     isAutoSuggestionPickerLarge,
     resetKeyboardInput,
     measureParentContainerAndReportCursor,
+    parentContainerSize,
     isComposerFocused,
     ref,
 }: SuggestionEmojiProps) {
@@ -272,6 +273,7 @@ function SuggestionEmoji({
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            parentContainerSize={parentContainerSize}
             resetSuggestions={resetSuggestions}
         />
     );

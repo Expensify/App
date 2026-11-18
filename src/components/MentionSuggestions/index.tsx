@@ -1,6 +1,8 @@
 import AutoCompleteSuggestions from '@components/AutoCompleteSuggestions';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import React from 'react';
 
 import type Mention from './types';
@@ -26,6 +28,9 @@ type MentionSuggestionsProps = {
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 
+    /** Size of the parent container, the menu is measured again when it changes */
+    parentContainerSize?: Dimensions;
+
     /** Reset the emoji suggestions */
     resetSuggestions: () => void;
 };
@@ -42,6 +47,7 @@ function MentionSuggestions({
     onSelect,
     isMentionPickerLarge,
     measureParentContainerAndReportCursor = () => {},
+    parentContainerSize,
     resetSuggestions,
 }: MentionSuggestionsProps) {
     return (
@@ -59,6 +65,7 @@ function MentionSuggestions({
             isSuggestionPickerLarge={isMentionPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            parentContainerSize={parentContainerSize}
             resetSuggestions={resetSuggestions}
         />
     );

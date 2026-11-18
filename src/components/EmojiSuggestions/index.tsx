@@ -3,6 +3,8 @@ import type {Emoji} from '@assets/emojis/types';
 import AutoCompleteSuggestions from '@components/AutoCompleteSuggestions';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 
+import type {Dimensions} from '@src/types/utils/Layout';
+
 import React from 'react';
 
 import EmojiSuggestionItem from './EmojiSuggestionItem';
@@ -30,6 +32,9 @@ type EmojiSuggestionsProps = {
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 
+    /** Size of the parent container, the menu is measured again when it changes */
+    parentContainerSize?: Dimensions;
+
     resetSuggestions: () => void;
 };
 
@@ -46,6 +51,7 @@ function EmojiSuggestions({
     preferredSkinToneIndex,
     highlightedEmojiIndex = 0,
     measureParentContainerAndReportCursor = () => {},
+    parentContainerSize,
     resetSuggestions,
 }: EmojiSuggestionsProps) {
     return (
@@ -64,6 +70,7 @@ function EmojiSuggestions({
             isSuggestionPickerLarge={isEmojiPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            parentContainerSize={parentContainerSize}
             resetSuggestions={resetSuggestions}
         />
     );
