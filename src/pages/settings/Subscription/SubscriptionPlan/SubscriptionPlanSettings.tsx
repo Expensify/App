@@ -450,7 +450,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </View>
                     <View
-                        style={[settingsRowHorizontalPadding, styles.pv3]}
+                        style={[settingsRowHorizontalPadding, styles.pt3]}
                         testID="SubscriptionPlanSettings-autoIncrease"
                     >
                         <ToggleSettingOptionRow
@@ -467,8 +467,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     </View>
                 </>
             )}
-            {/* Figma leaves 20px around this line, so a hovered row does not sit on it. */}
-            <View style={[styles.sectionDividerLine, styles.mv5, styles.mh5]} />
+            {/* The ad row already has 12px padding, so margin below the line would stack. Margin above keeps the hover off the line. */}
+            <View style={[styles.sectionDividerLine, styles.mt3, styles.mh5]} />
             <SaveWithExpensifyRow />
         </View>
     );
