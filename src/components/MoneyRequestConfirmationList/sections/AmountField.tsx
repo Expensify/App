@@ -292,9 +292,13 @@ function AmountField({
         // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
         if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
-            setMoneyRequestDraftHasUserEdits(transactionID);
         } else {
             persistMainDraftTotal(updatedAmount, value);
+        }
+
+        // The currency has no flag of its own, and the amount flag goes away if the user clears the amount later, so mark the draft here
+        if (!isEditingSplitBill) {
+            setMoneyRequestDraftHasUserEdits(transactionID);
         }
 
         if (isMovingTransactionFromTrackExpense(action)) {

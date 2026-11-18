@@ -331,6 +331,8 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+        // And the draft is marked as edited by the user, so the picked currency still counts if the user clears the amount later
+        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith('1');
     });
 });
 
