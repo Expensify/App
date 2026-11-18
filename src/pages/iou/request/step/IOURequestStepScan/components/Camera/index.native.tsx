@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
+import useAppState from '@hooks/useAppState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
@@ -26,13 +27,13 @@ import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/compo
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 import isCameraClosedError from '@pages/iou/request/step/IOURequestStepScan/isCameraClosedError';
-import shouldLightFlashWithTorch, {getTorchFallbackReason} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
+import shouldLightFlashWithTorch, {getTorchFallbackReason, shouldKeepTorchLit} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
 import startReceiptPrepareSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startReceiptPrepareSpan';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -55,6 +56,8 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
     const navigation = useNavigation();
+    const isScanScreenFocused = useIsFocused();
+    const {isForeground: isAppInForeground} = useAppState();
 
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
@@ -93,18 +96,28 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         isMultiScanEnabled,
         canUpgradeReceiptQuality,
     });
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
+    const isTorchLit = shouldKeepTorchLit({isTorchRequested, isAppInForeground, isScreenFocused: isScanScreenFocused, hasPendingPhotoCapture});
     const torchRequestedAt = useRef(0);
     useEffect(() => {
-        if (!isTorchRequested) {
+        if (!isTorchLit) {
             return;
         }
         torchRequestedAt.current = Date.now();
-    }, [isTorchRequested]);
+    }, [isTorchLit]);
 
-    // CameraX turns the torch off whenever the session stops, and VisionCamera only re-applies `torchMode` when the prop
-    // changes, so a restarted session would stay dark with flash still on.
-    const relightTorchAfterRestart = () => {
-        if (!isTorchRequested) {
+    // CameraX turns the torch off whenever the session stops, and VisionCamera only applies `torchMode` when the prop
+    // changes, so a restarted session would stay dark with flash still on. A new session also never applies its initial
+    // 'off', so a torch another camera screen left lit is turned off here.
+    const syncTorchAfterStart = () => {
+        const controller = camera.current?.controller;
+        if (!isTorchLit) {
+            if (!device?.hasTorch || controller?.torchMode !== 'on') {
+                return;
+            }
+            controller.setTorchMode('off').catch((error: unknown) => {
+                Log.info('[Camera] could not turn off a torch left on when the camera started', false, {error: getErrorMessage(error)});
+            });
             return;
         }
         torchRequestedAt.current = Date.now();
@@ -146,8 +159,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         });
     };
 
-    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
-
     const maybeCancelShutterSpan = () => {
         if (isMultiScanEnabled) {
             return;
@@ -159,10 +170,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const capturePhoto = () => {
-        const torchFallbackReason = isTorchRequested
+        const torchFallbackReason = isTorchLit
             ? getTorchFallbackReason({torchMode: camera.current?.controller?.torchMode, msSinceTorchRequested: Date.now() - torchRequestedAt.current})
             : undefined;
-        const isTorchOn = isTorchRequested && !torchFallbackReason;
+        const isTorchOn = isTorchLit && !torchFallbackReason;
         const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn});
         const captureAttributes = {
             [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
@@ -325,14 +336,14 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                             didCapturePhoto={didCapturePhoto}
                             hasPendingPhotoCapture={hasPendingPhotoCapture}
                             onConfigured={finishCameraSetup}
-                            onStarted={relightTorchAfterRestart}
+                            onStarted={syncTorchAfterStart}
                             onSessionConfigSelected={handleSessionConfigSelected}
                             shouldShowFlashButton={canUseMultiScan}
                             cameraPermissionStatus={cameraPermissionStatus}
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
-                            isTorchOn={isTorchRequested}
+                            isTorchOn={isTorchLit}
                         />
                     )}
                 </View>
