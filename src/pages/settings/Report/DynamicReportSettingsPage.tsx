@@ -47,7 +47,6 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS.path);
     const isReportArchived = useReportIsArchived(reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = report?.policyID && policy?.id === report?.policyID ? policy : undefined;
@@ -60,7 +59,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const shouldAllowWriteCapabilityEditing = canEditWriteCapability(report, linkedWorkspace, isReportArchived);
     const shouldAllowChangeVisibility = canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant && !isHiddenForCurrentUser(notificationPreferenceValue);
+    const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 

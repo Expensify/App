@@ -95,9 +95,9 @@ describe('DynamicReportSettingsPage notification visibility', () => {
         expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
     });
 
-    it('does not show notifications for a non-participant', () => {
+    it.each([CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS])('does not show notifications for a non-participant in %s', (chatType) => {
         // Given a room without the current user in its participants
-        const report = {...buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY), participants: {}};
+        const report = {...buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, chatType), participants: {}};
 
         // When its settings are rendered
         render(page(report));
