@@ -1,8 +1,8 @@
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
-import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchGroupBy, SearchQueryJSON, SearchSortBy} from '@components/Search/types';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import type {SearchGroupBy, SearchQueryJSON, SearchSortBy, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, getDisplayDefaultQueryJSON, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSortByOptions} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -51,6 +51,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {accountID} = useCurrentUserPersonalDetails();
     const {shouldUseLiveData} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentDefaultSearchQueryJSON} = useSearchQueryContext();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
@@ -81,9 +82,9 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
         isSelected: item.value === selectedItem,
     }));
 
-    const onSortChange = (column: SearchSortBy) => {
+    const onSortChange = (column: SearchSortBy, newSortOrder: SortOrder) => {
         clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column});
+        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: newSortOrder});
         onSort();
         // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         close(() => {
@@ -96,16 +97,18 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     };
 
     const applyChanges = () => {
-        onSortChange(selectedItem);
+        onSortChange(selectedItem, sortOrder);
         closeOverlay();
     };
 
     const resetChanges = () => {
-        const defaultSortBy = sortableColumns.at(0)?.value;
+        const defaultQueryJSON = getDisplayDefaultQueryJSON(queryJSON, currentDefaultSearchQueryJSON);
+        const defaultSortBy = defaultQueryJSON?.sortBy ?? sortableColumns.at(0)?.value;
         if (!defaultSortBy) {
             return;
         }
-        onSortChange(defaultSortBy);
+        const defaultSortOrder = defaultQueryJSON?.sortOrder ?? sortOrder;
+        onSortChange(defaultSortBy, defaultSortOrder);
         closeOverlay();
     };
 
