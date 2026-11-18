@@ -50,6 +50,7 @@ on:
       - '!.github/**'
       - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
+      - '.github/reassureFullRunPaths.yml'
       - '.github/actions/javascript/validateReassureOutput/**'
       - '.github/actions/composite/setupNode/**'
       - '!**.md'
@@ -111,6 +112,15 @@ jobs:
             echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the PR targets a branch other than main (seedJestPerfCache.yml only seeds main), or when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
           fi
 
+      # On a miss, measure only the perf tests branch-perf-tests measures. Usually a miss: the base is
+      # main's newest commit, and its seed run is still measuring it.
+      - name: Check for changes that need a full run
+        id: fullRun
+        if: steps.restoreBaseline.outputs.cache-hit != 'true'
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          filters: .github/reassureFullRunPaths.yml
+
       - name: Check out the baseline commit
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
@@ -122,6 +132,9 @@ jobs:
           # different trees is the noise this comparison exists to detect. Only its source tree is
           # needed, and a reachable SHA can be fetched bare.
           git fetch origin "$BASELINE_SHA" --no-tags --depth=1
+          # What the PR changes, for measuring only the perf tests branch-perf-tests selects. Comparing two
+          # trees needs no history, so the depth-1 checkout is enough.
+          git diff --name-only FETCH_HEAD HEAD > "$RUNNER_TEMP/changedFiles.txt"
           git checkout --force --detach FETCH_HEAD --no-recurse-submodules
 
       - name: Setup NodeJS
@@ -149,10 +162,24 @@ jobs:
         if: steps.restoreBaseline.outputs.cache-hit != 'true' && steps.restoreJestCache.outputs.cache-hit != 'true'
         run: echo "::warning::Jest perf transform cache miss - this job re-transforms the whole source tree. Expected only when the toolchain key rotated (lockfile, patches, Babel or Jest config, Node version); otherwise seedJestPerfCache.yml has stopped writing the entry."
 
+      # Only the perf tests that import a changed file, as branch-perf-tests picks them. Run on the base
+      # tree, the changed files still reach every test the merge commit's imports do; the PR's new files
+      # don't exist here and are skipped. Reassure hands these paths to Jest through a shell without
+      # escaping them, so a path with any other character measures everything instead. So does an empty
+      # list, which --findRelatedTests rejects.
       - name: Run baseline performance tests
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+        env:
+          FULL_RUN: ${{ steps.fullRun.outputs.any }}
+        run: |
+          CHANGED_FILES_PATH="$RUNNER_TEMP/changedFiles.txt"
+          if [[ "$FULL_RUN" == "true" || ! -s "$CHANGED_FILES_PATH" ]] || grep -qv '^[A-Za-z0-9_./@+-]*$' "$CHANGED_FILES_PATH"; then
+            NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          else
+            mapfile -t CHANGED_FILES < "$CHANGED_FILES_PATH"
+            NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline -- --passWithNoTests --findRelatedTests "${CHANGED_FILES[@]}"
+          fi
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -183,31 +210,11 @@ jobs:
           # On a PR, HEAD is the merge commit and HEAD^1 the base it merges into, which --changedSince diffs against.
           fetch-depth: 2
 
-      # Files tests depend on without importing them. Jest's --changedSince can't see these, so a change
-      # to any of them runs every test. See .github/workflows/README.md#selective-test-runs.
       - name: Check for changes that need a full run
         id: fullRun
         uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         with:
-          filters: |
-            any:
-              - 'package.json'
-              - 'package-lock.json'
-              - 'patches/**'
-              - 'modules/**'
-              - 'jest.config.js'
-              - 'jest/**'
-              - '**/__mocks__/**'
-              - 'tests/utils/**'
-              - 'tests/perf-test/setupAfterEnv.ts'
-              - 'babel.config.js'
-              - 'config/babel/**'
-              - 'tsconfig.json'
-              - '.nvmrc'
-              - '.github/workflows/test.yml'
-              - '.github/workflows/reassurePerformanceTests.yml'
-              - '.github/actions/composite/setupNode/**'
-              - 'src/polyfills/**'
+          filters: .github/reassureFullRunPaths.yml
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode

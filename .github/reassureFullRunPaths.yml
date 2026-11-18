@@ -1,0 +1,22 @@
+# Files perf tests depend on without importing them. Jest's --changedSince and --findRelatedTests can't see
+# these, so a change to any of them measures every perf test, on both sides of the comparison. Read by
+# both jobs in reassurePerformanceTests.yml. See .github/workflows/README.md#selective-test-runs.
+any:
+  - 'package.json'
+  - 'package-lock.json'
+  - 'patches/**'
+  - 'modules/**'
+  - 'jest.config.js'
+  - 'jest/**'
+  - '**/__mocks__/**'
+  - 'tests/utils/**'
+  - 'tests/perf-test/setupAfterEnv.ts'
+  - 'babel.config.js'
+  - 'config/babel/**'
+  - 'tsconfig.json'
+  - '.nvmrc'
+  - '.github/workflows/test.yml'
+  - '.github/workflows/reassurePerformanceTests.yml'
+  - '.github/actions/composite/setupNode/**'
+  - 'src/polyfills/**'
+  - '.github/reassureFullRunPaths.yml'
