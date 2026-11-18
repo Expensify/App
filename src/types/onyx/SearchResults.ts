@@ -268,6 +268,12 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
 };
 
 /** Average time a time bucket's reports spent in each workflow stage, in seconds. Only Insights returns them, and each is null when no report completed that stage. */

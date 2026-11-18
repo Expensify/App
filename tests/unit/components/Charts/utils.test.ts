@@ -283,6 +283,37 @@ describe('findSliceAtPosition', () => {
 });
 
 describe('processDataIntoSlices', () => {
+    it('keeps meaningful slices when reported shares round to zero and removes actual slivers', () => {
+        // Given two visible tag groups dwarfed by spend outside the chart, plus a genuinely thin slice
+        const data: ChartDataPoint[] = [
+            {
+                label: 'Small',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 10000},
+                percentOfTotal: 0,
+            },
+            {
+                label: 'Large',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 30000},
+                percentOfTotal: 0,
+            },
+            {label: 'Sliver', values: {[CHART_SERIES_KEY.PRIMARY]: 1}},
+        ];
+
+        // When visible slices are sized from the values actually plotted
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {
+            centerX: 0,
+            centerY: 0,
+            radius: 100,
+            innerRadius: 50,
+        });
+
+        // Then original indices survive sorting and the two surviving slices cover the donut
+        expect(slices.map((slice) => slice.label)).toEqual(['Large', 'Small']);
+        expect(slices.map((slice) => slice.originalIndex)).toEqual([1, 0]);
+        expect(slices.map((slice) => slice.percentage)).toEqual([75, 25]);
+        expect(slices.at(-1)?.endAngle).toBeCloseTo(VictoryTheme.pie.startAngle + 360);
+    });
+
     it('returns empty array for empty data', () => {
         expect(processDataIntoSlices([], CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });

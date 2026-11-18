@@ -12,8 +12,6 @@ import VictoryTheme, {
     X_AXIS_LABEL_MIN_GAP,
 } from '@components/Charts/VictoryTheme';
 
-import {isShareWorthDrawing} from '@libs/PercentageUtils';
-
 import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
@@ -21,6 +19,7 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getDrawablePieData from './getDrawablePieData';
 import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
@@ -239,9 +238,8 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  * Process raw data into pie chart slices sorted by absolute value descending.
  * Slices are sized by the primary series only.
  *
- * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
- * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
- * the visible slices cover only the significant share of the spend rather than all of it.
+ * Points too small relative to the plotted groups are left out so every remaining slice can be hovered or tapped.
+ * Their reported share of all spend is kept separately for tooltips and tables.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
@@ -249,16 +247,7 @@ function processDataIntoSlices(
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const visibleSlices = data
-        .map((point, index) => ({
-            label: point.label,
-            color: point.color,
-            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
-            originalIndex: index,
-            percentOfTotal: point.percentOfTotal,
-        }))
-        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
-        .sort((a, b) => b.absTotal - a.absTotal);
+    const visibleSlices = getDrawablePieData(data, primarySeriesKey);
 
     // Angles span only the surviving slices, matching how the canvas normalizes its values.
     const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);

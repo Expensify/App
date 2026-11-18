@@ -23,6 +23,8 @@ function getReportIDToNameMapForRoomsInMarkdown(reportIDToName: ReportIDToNameMa
     return map;
 }
 
+const EMPTY_REPORT_ID_TO_NAME_MAP: ReportIDToNameMap = {};
+
 // Same reportID capture and flags as ExpensiMark's reportMentions rule, which accepts the ID with or without quotes and in any case
 const MENTION_REPORT_ID_REGEX = /<mention-report reportID="?(\d+)"?/gi;
 
@@ -78,5 +80,15 @@ function useReportIDToNameMap(): ReportIDToNameMap {
     return buildReportIDToNameMap(reports);
 }
 
+/**
+ * Same as useReportIDToNameMap, but only maps the reports mentioned in the given HTML string.
+ * The selector re-renders the caller only when the names of those reports change.
+ */
+function useMentionedReportIDToNameMap(htmlString: string | undefined): ReportIDToNameMap {
+    const mentionedReportIDs = getMentionedReportIDs(htmlString);
+    const [reportIDToName = EMPTY_REPORT_ID_TO_NAME_MAP] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => buildReportIDToNameMap(reports, mentionedReportIDs)});
+    return reportIDToName;
+}
+
 export default useReportIDToNameMap;
-export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown};
+export {buildMentionedRoomPlaceholderMap, buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown, useMentionedReportIDToNameMap};

@@ -17,4 +17,25 @@ import Avatar16 from '@assets/images/avatars/group/default-avatar_16.svg';
 import Avatar17 from '@assets/images/avatars/group/default-avatar_17.svg';
 import Avatar18 from '@assets/images/avatars/group/default-avatar_18.svg';
 
-export {Avatar1, Avatar2, Avatar3, Avatar4, Avatar5, Avatar6, Avatar7, Avatar8, Avatar9, Avatar10, Avatar11, Avatar12, Avatar13, Avatar14, Avatar15, Avatar16, Avatar17, Avatar18};
+const groupDefaultAvatars = {
+    Avatar1,
+    Avatar2,
+    Avatar3,
+    Avatar4,
+    Avatar5,
+    Avatar6,
+    Avatar7,
+    Avatar8,
+    Avatar9,
+    Avatar10,
+    Avatar11,
+    Avatar12,
+    Avatar13,
+    Avatar14,
+    Avatar15,
+    Avatar16,
+    Avatar17,
+    Avatar18,
+};
+
+export default groupDefaultAvatars;
