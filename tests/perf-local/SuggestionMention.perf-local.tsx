@@ -199,6 +199,8 @@ describe('SuggestionMention @mention lookup in a workspace room', () => {
                 }
             },
             {
+                // The numbers are written to stdout below, so this also runs under plain Jest, which has no .reassure output folder
+                writeFile: false,
                 beforeEach: () => {
                     act(() => {
                         rerender(renderComposer(''));
