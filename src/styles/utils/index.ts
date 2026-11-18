@@ -881,6 +881,20 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
 }
 
 /**
+ * Get the padding and border a style puts on each side of its content horizontally
+ */
+function getHorizontalInsetsFromStyle(style: StyleProp<ViewStyle>): {left: number; right: number} {
+    const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
+        StyleSheet.flatten(style) ?? {};
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    return {
+        left: getNumericValue(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) + getNumericValue(borderLeftWidth ?? borderStartWidth ?? borderWidth),
+        right: getNumericValue(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) + getNumericValue(borderRightWidth ?? borderEndWidth ?? borderWidth),
+    };
+}
+
+/**
  * Get the vertical space the auto grow height input's ancestors take up inside the input container (borders, padding and the multiline label padding)
  */
 function getAutoGrowHeightInputVerticalInset(textInputContainerStyles: StyleProp<ViewStyle>, hasMultilineLabelPadding: boolean): number {
@@ -1493,6 +1507,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getHorizontalInsetsFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,

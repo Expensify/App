@@ -21,7 +21,7 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
 type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     /** The column's name, which names the trigger for assistive tech even when the heading shows only an icon. */
@@ -40,17 +40,6 @@ type ColumnHeaderMenuTriggerProps = WithRequiredSentryLabel & {
     children: React.ReactNode;
 };
 
-/** The padding and border a style puts on each side of the label row's content. */
-function getHorizontalInsets(style: StyleProp<ViewStyle>): {left: number; right: number} {
-    const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
-        StyleSheet.flatten(style) ?? {};
-    const toNumber = (value: unknown) => (typeof value === 'number' ? value : 0);
-    return {
-        left: toNumber(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) + toNumber(borderLeftWidth ?? borderStartWidth ?? borderWidth),
-        right: toNumber(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) + toNumber(borderRightWidth ?? borderEndWidth ?? borderWidth),
-    };
-}
-
 function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, labelRowStyle, sentryLabel, children}: ColumnHeaderMenuTriggerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,7 +54,7 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
     const isEndAligned = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
     // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
     const labelWidth = isEndAligned ? measureSearchHeaderLabelWidth(columnLabel, styles.gap1.gap) : null;
-    const labelRowInsets = getHorizontalInsets(labelRowStyle);
+    const labelRowInsets = StyleUtils.getHorizontalInsetsFromStyle(labelRowStyle);
     const updateHeadingWidth = labelWidth === null ? undefined : (event: LayoutChangeEvent) => setHeadingWidth(event.nativeEvent.layout.width);
     const labelRowContentWidth = headingWidth === null ? null : headingWidth - labelRowInsets.left - labelRowInsets.right;
     const caretBeforeLabelWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
