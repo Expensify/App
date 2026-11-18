@@ -271,8 +271,8 @@
 "../../src/components/PopoverMenu/v2/sub/SubBackButton.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverMenu/v2/sub/SubTrigger.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverProvider/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/GenericPressable/implementation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/PressableWithDelayToggle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Pressable/PressResponder/useResponderRef.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
