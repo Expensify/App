@@ -22,8 +22,12 @@ namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridDocumentDetectorModuleSpec; }
+// Forward declaration of `HybridVerticalBarModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridVerticalBarModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
+// Forward declaration of `VerticalBarEdge` to properly resolve imports.
+namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 // Forward declaration of `YuvFrame` to properly resolve imports.
 namespace margelo::nitro::utils { struct YuvFrame; }
 
@@ -35,12 +39,15 @@ namespace margelo::nitro::utils { struct YuvFrame; }
 #include "HybridAppStartTimeModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridDocumentDetectorModuleSpec.hpp"
+#include "HybridVerticalBarModuleSpec.hpp"
 #include "StringHolder.hpp"
+#include "VerticalBarEdge.hpp"
 #include "YuvFrame.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -63,6 +70,8 @@ namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridDocumentDetectorModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridDocumentDetectorModuleSpec_cxx; }
+// Forward declaration of `HybridVerticalBarModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridVerticalBarModuleSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")

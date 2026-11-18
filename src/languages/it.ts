@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'giorni',
         rename: 'Rinomina',
         address: 'Indirizzo',
+        dayAbbreviation: 'g',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Esporta in',
         shareReport: 'Condividi report',
         reportShared: 'Report condiviso',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} giorno`,
+            other: (count: number) => `${formattedCount ?? count} giorni`,
+        }),
         amount: 'Importo',
     },
     socials: {
@@ -646,6 +651,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Questa immagine è troppo grande per essere visualizzata in anteprima prima del caricamento.',
         imageDimensionsTooLarge: "Le dimensioni dell'immagine sono troppo grandi per essere elaborate. Utilizza un'immagine più piccola.",
         tooManyFiles: (fileLimit: number) => `Puoi caricare al massimo ${fileLimit} file alla volta.`,
+        fileAlreadyAdded: 'È già stato aggiunto un file con lo stesso nome.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `I file superano ${maxUploadSizeInMB} MB. Riprova.`,
         someFilesCantBeUploaded: 'Impossibile caricare alcuni file',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `I file devono essere inferiori a ${maxUploadSizeInMB} MB. I file più grandi non verranno caricati.`,
@@ -1200,6 +1206,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Configura regole specifiche per i viaggi',
             addFirstReceipt: 'Aggiungi la tua prima ricevuta',
             addFirstReceiptSubText: 'Scansiona o inserisci manualmente una ricevuta',
+            addName: 'Aggiungi il tuo nome',
+            addNameSubText: 'Aiuta i tuoi colleghi a riconoscerti in Expensify.',
+            downloadApp: 'Scarica l’app',
+            downloadAppSubText: 'Scansiona ricevute, invia note spese e approva report ovunque ti trovi.',
         },
         yourSpend: {
             title: 'Le tue spese',
@@ -1223,6 +1233,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Livello tag ${level}`,
+        tagLevelLabel: 'Livello tag',
+        parent: 'Genitore',
+        shareOfTotal: 'Quota del totale (%)',
         viewOnSpend: 'Visualizza in Spese',
         emptyState: {title: 'Niente da mostrare', subtitle: 'Prova a modificare i criteri qui sopra'},
         noExpensesState: {title: 'Scopri dove va il tuo denaro', subtitle: 'Una volta che avrai delle spese, troverai tendenze di spesa, principali esercenti e altro ancora.'},
@@ -1245,10 +1259,16 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Media per tuttə lə spender',
             allMerchantAverage: 'Media tutti gli esercenti',
             allCategoryAverage: 'Media di tutte le categorie',
+            tagAverage: 'Media tag',
             averageValue: (amount: string) => `${amount} in media`,
+            allViolationAverage: 'Media di tutte le violazioni',
+            noChange: 'Nessuna modifica',
+            percentChange: '% variazione',
         },
         compliance: 'Conformità',
         runningTotal: 'Totale progressivo',
+        futureExpensesNotShown: (amount: string) => `Non mostrato: ${amount} in spese future.`,
+        violationsTrackedFrom: (date: string) => `Le violazioni vengono tracciate a partire dal ${date}.`,
         upsellState: {
             title: 'Passa a Control per maggiori informazioni',
             subtitle: 'Tieni traccia delle tendenze di conformità alla policy spese e segnala i recidivi.',
@@ -1270,6 +1290,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Più lungo per l’invio',
         slowestToApprove: 'I più lenti ad approvare',
         mostTimeToPay: 'Tempo massimo per pagare',
+        share: 'Quota%',
+        averageDays: 'Giorni medi',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1841,6 +1863,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Tutte le spese sono state messe in sospeso. Controlla i commenti per conoscere i prossimi passaggi.',
         expenseDuplicate: 'Questa spesa ha dettagli simili a un’altra. Controlla i duplicati per continuare.',
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
+        someDuplicatesAreUnavailable: 'Non è stato possibile caricare alcuni di questi duplicati, quindi puoi solo conservarli tutti.',
         reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
         keepSelected: 'Mantieni selezionati',
@@ -2077,6 +2100,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} report`,
             };
         },
+        payViaABA: 'Paga tramite ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} non ha un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.`,
+        submittersMissingABADepositAccount: 'Uno o più mittenti non hanno un conto bancario in AUD. Chiedi loro di aggiungerne uno e riprova.',
     },
     transactionMerge: {
         listPage: {
@@ -2403,6 +2429,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nuovo metodo di contatto',
         goBackContactMethods: 'Torna ai metodi di contatto',
+        integrationServerLogin: {
+            title: 'Integrazioni',
+            description: "Viene usato per l'API di Integration Server.",
+            removeDescription: "Rimuovendo questo accesso, verrà revocato l'accesso dell'API di Integration Server.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Viene usato per l'integrazione con ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Rimuovendo questo accesso, verrà revocato l'accesso dell'integrazione con ${partnerName}.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Questo è il tuo metodo di contatto predefinito attuale. La tua azienda ne ha limitato la rimozione o la modifica.',
     },
     pronouns: {
@@ -2673,6 +2706,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Gestisci tutti i dispositivi su cui hai effettuato l\'accesso con il tuo account Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Scopri di più</a>.',
         revoke: 'Revoca',
         unknownDevice: 'Dispositivo Sconosciuto',
+        signOutAllDevices: 'Esci da tutti i dispositivi',
+        signOutAllDevicesConfirmation: 'Uscirai da tutti i dispositivi, incluso questo. Dovrai accedere di nuovo per usare Expensify.',
+        signOutAllDevicesError: 'Non è stato possibile disconnetterti da tutti i dispositivi. Riprova.',
+        signOutAllDevicesSuccess: 'Hai effettuato la disconnessione da tutti i dispositivi.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -3134,6 +3171,90 @@ const translations: TranslationDeepObject<typeof en> = {
                 },
                 description: "Descrizione dell'azienda",
                 descriptionHint: 'Descrivi brevemente di cosa si occupa la tua azienda.',
+            },
+            sourceOfWealth: {
+                label: 'Da dove provengono i fondi della tua azienda?',
+                description: 'Il nostro partner di pagamento deve verificare tutte le origini del patrimonio. Seleziona tutte le opzioni pertinenti.',
+                options: {
+                    REVENUE: 'Ricavi aziendali',
+                    PERSONAL_FUNDING: 'Finanziamento personale',
+                    BUSINESS_LOAN: 'Prestito aziendale',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Finanziamenti e investimenti dei soci',
+                    INVESTMENT_INCOME: 'Redditi da investimenti',
+                    DONATIONS: 'Donazioni',
+                    GRANTS: 'Sovvenzioni',
+                    LEGAL: 'Accordo legale',
+                },
+            },
+            sourceOfFunds: {
+                label: 'Quali fonti finanziano le tue attività quotidiane?',
+                description: 'Il nostro partner di pagamento deve sapere quali fonti finanziano le tue attività. Seleziona tutte le opzioni pertinenti.',
+            },
+            sourceOfWealthProof: {
+                title: 'Documenti sull’origine del patrimonio',
+                description: 'Carica i documenti richiesti per ciascuna origine indicata di seguito.',
+                hints: {
+                    REVENUE: 'Carica una dichiarazione dei redditi, un bilancio certificato o gli estratti conto aziendali.',
+                    PERSONAL_FUNDING: 'Carica una dichiarazione dei redditi personale, estratti di risparmio o bancari, o buste paga.',
+                    BUSINESS_LOAN: 'Carica un contratto di finanziamento e un estratto conto.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Carica un accordo di partecipazione, un accordo di sottoscrizione o un certificato di vendita di azioni, più un estratto conto.',
+                    INVESTMENT_INCOME: 'Carica un estratto degli investimenti personali, un certificato di vendita di azioni o un contratto di vendita di beni, più un estratto conto.',
+                    DONATIONS: 'Carica una ricevuta di donazione, una conferma scritta o un contratto, più un estratto conto.',
+                    GRANTS: 'Carica una lettera di concessione del contributo, una conferma scritta o un contratto, più un estratto conto.',
+                    LEGAL: 'Carica un contratto, una conferma scritta o un contratto di vendita di beni.',
+                },
+                bankStatementHints: {
+                    REVENUE: 'Deve mostrare i ricavi ricevuti.',
+                    PERSONAL_FUNDING: 'Deve mostrare i fondi che hai versato.',
+                    BUSINESS_LOAN: 'Deve mostrare i fondi del finanziamento ricevuti.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Deve mostrare i fondi dell’investimento ricevuti.',
+                    INVESTMENT_INCOME: 'Deve mostrare i redditi da investimento ricevuti.',
+                    DONATIONS: 'Deve mostrare la donazione ricevuta.',
+                    GRANTS: 'Deve mostrare i fondi del contributo ricevuti.',
+                    LEGAL: 'Deve mostrare i fondi della transazione ricevuti.',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: 'Carica dichiarazione dei redditi',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Carica bilancio certificato',
+                    BANK_STATEMENT: 'Carica estratto conto',
+                    E_COMMERCE_STATEMENTS: 'Carica estratti e-commerce',
+                    INVOICES: 'Carica fatture',
+                    CONTRACTS: 'Carica contratti',
+                    PERSONAL_TAX_DECLARATION: 'Carica dichiarazione dei redditi personale',
+                    SAVINGS_STATEMENT: 'Carica estratto del conto di risparmio',
+                    PAYSLIP: 'Carica busta paga',
+                    PERSONAL_LOAN_AGREEMENT: 'Carica contratto di prestito personale',
+                    PERSONAL_INVESTMENT: 'Carica estratto degli investimenti personali',
+                    ASSET_SALE_AGREEMENT: 'Carica contratto di vendita di beni',
+                    LOAN_AGREEMENT: 'Carica contratto di finanziamento',
+                    EQUITY_AGREEMENT: 'Carica accordo di partecipazione',
+                    SUBSCRIPTION_AGREEMENT: 'Carica accordo di sottoscrizione',
+                    SHARE_SALE_CERTIFICATE: 'Carica certificato di vendita di azioni',
+                    DONATION_RECEIPTS: 'Carica ricevute di donazione',
+                    WRITTEN_CONFIRMATION: 'Carica conferma scritta',
+                    GRANT_APPROVAL_LETTER: 'Carica lettera di concessione del contributo',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: 'Dichiarazione dei redditi',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Bilancio certificato',
+                    BANK_STATEMENT: 'Estratto conto bancario',
+                    E_COMMERCE_STATEMENTS: 'Estratti conto e-commerce',
+                    INVOICES: 'Fatture',
+                    CONTRACTS: 'Contratti',
+                    PERSONAL_TAX_DECLARATION: 'Dichiarazione dei redditi personale',
+                    SAVINGS_STATEMENT: 'Estratto conto di risparmio',
+                    PAYSLIP: 'Busta paga',
+                    PERSONAL_LOAN_AGREEMENT: 'Contratto di prestito personale',
+                    PERSONAL_INVESTMENT: 'Estratto degli investimenti personali',
+                    ASSET_SALE_AGREEMENT: 'Contratto di vendita di beni',
+                    LOAN_AGREEMENT: 'Contratto di prestito',
+                    EQUITY_AGREEMENT: 'Accordo di partecipazione',
+                    SUBSCRIPTION_AGREEMENT: 'Accordo di sottoscrizione',
+                    SHARE_SALE_CERTIFICATE: 'Certificato di vendita di azioni',
+                    DONATION_RECEIPTS: 'Ricevute delle donazioni',
+                    WRITTEN_CONFIRMATION: 'Conferma scritta',
+                    GRANT_APPROVAL_LETTER: 'Lettera di approvazione della sovvenzione',
+                },
             },
             terms: {
                 title: 'Accetta i termini',
@@ -4251,7 +4372,6 @@ ${amount} per ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La data deve essere successiva a ${dateString}`,
-            hasInvalidCharacter: 'Il nome può includere solo caratteri latini',
             cannotIncludeCommaOrSemicolon: 'Il nome non può contenere una virgola o un punto e virgola',
             incorrectZipFormat: (zipFormat?: string) => `Formato del codice postale non valido${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Assicurati che il numero di telefono sia valido (ad es. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4441,7 +4561,6 @@ ${amount} per ${merchant} - ${date}`,
             lastName: 'Inserisci un cognome valido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Aggiungi un conto di deposito predefinito o una carta di debito',
             validationAmounts: 'Gli importi di verifica inseriti non sono corretti. Controlla nuovamente il tuo estratto conto bancario e riprova.',
-            fullName: 'Inserisci un nome completo valido',
             ownershipPercentage: 'Inserisci una percentuale valida',
             deletePaymentBankAccount:
                 'Questo conto bancario non può essere eliminato perché viene utilizzato per i pagamenti con Carta Expensify. Se desideri comunque eliminare questo conto, contatta Concierge.',
@@ -4469,6 +4588,8 @@ ${amount} per ${merchant} - ${date}`,
             tooManyItems: ({max}: {max: number}) => `Aggiungi al massimo ${max}`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
+        uploadFile: 'Carica file',
+        selectDocumentToUpload: 'Seleziona il documento da caricare',
         addItem: ({item}: {item: string}) => `Aggiungi ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Rimuovere ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Vuoi davvero rimuovere ${name}?`,
@@ -7055,6 +7176,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
             autoCategorizeNewExpenses: 'Categorizza automaticamente le nuove spese',
+            enableAtLeastOneCategory: 'Abilita almeno una categoria.',
             showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
@@ -7264,6 +7386,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 allCards: 'Tutte le carte',
                 assignedCards: 'Assegnato',
                 unassignedCards: 'Non assegnato',
+                matchesLastFourDigitsOnly: 'Corrisponde solo alle ultime 4 cifre',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Scegli il conto ${integration} in cui esportare le transazioni.${exportPageLink ? ` Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.` : ''}`,
@@ -7940,16 +8063,11 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Si è verificato un errore con una connessione configurata in Expensify Classic. [Vai a Expensify Classic per risolvere questo problema.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Vai a Expensify Classic per gestire le tue impostazioni.',
-            exactOnline: {
-                comingSoon: 'Presto in arrivo',
-                joinWaitlist: 'Unisciti alla lista d’attesa',
-                onWaitlist: 'Sei in lista d’attesa',
-                waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Presto in arrivo',
                 joinWaitlist: 'Unisciti alla lista d’attesa',
                 onWaitlist: 'Sei in lista d’attesa',
+                onWaitlistButton: 'In lista d’attesa',
                 onTheList: 'Sei in lista!',
                 waitlistDescription: 'Concierge ti invierà un messaggio per farti sapere quando questa integrazione sarà pronta e come collegarla.',
             },
@@ -8753,6 +8871,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     selectWorkspace: 'seleziona uno spazio di lavoro e cambia il tipo di piano in',
                 },
                 upgradeWorkspaceWarning: `Impossibile eseguire l'upgrade dello spazio di lavoro`,
+                createWorkspaceWarning: `Impossibile creare lo spazio di lavoro`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione degli spazi di lavoro. Contatta un amministratore per assistenza.',
             },
             hr: {
@@ -11098,6 +11217,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
+        violation: 'Violazione',
         receiptTypeValues: {
             ereceipt: 'eRicevuta',
             itemized: 'Dettagliata',
@@ -11165,6 +11285,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             insights: 'Analisi',
             topSpenders: 'Maggiori spendaccioni',
             topCategories: 'Categorie principali',
+            topTags: 'Tag principali',
             topMerchants: 'Principali esercenti',
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
             travel: 'Viaggi',
@@ -11316,6 +11437,29 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `La connessione ${feedName} è interrotta da 30 giorni. <a href='${workspaceCompanyCardRoute}'>Accedi alla tua banca</a> per risolvere il problema oppure <a href='${workspaceCompanyCardSettingsRoute}'>rimuovi la connessione</a> se non è più utilizzata. Non perderai nessuna spesa inviata se la rimuovi.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'presto';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'tra due settimane';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'tra una settimana';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Riconnetti la carta prima della scadenza del consenso</a>.`
+                        : 'Riconnetti la carta prima della scadenza del consenso.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, la connessione della tua carta ` : 'La connessione della tua carta ';
+                    return `${intro}<strong>${feedName}</strong> dovrà rinnovare il consenso ${warningTime}. Le transazioni vengono ancora sincronizzate, ma potrebbero smettere di essere importate se il consenso non viene rinnovato. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12009,6 +12153,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             tagOutOfPolicy: 'Tag non più valido',
             overLimitAttendee: 'Oltre il limite di persone',
             customRules: 'Violazione regola personalizzata',
+            ruleViolation: 'Violazione regola',
             taxAmountChanged: 'Importo imposta modificato',
             taxOutOfPolicy: 'Aliquota fiscale non più valida',
             taxRateChanged: 'Aliquota fiscale modificata',

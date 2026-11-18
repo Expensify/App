@@ -18,6 +18,9 @@
 #include "JHybridAppStartTimeModuleSpec.hpp"
 #include "JHybridContactsModuleSpec.hpp"
 #include "JHybridDocumentDetectorModuleSpec.hpp"
+#include "JHybridVerticalBarModuleSpec.hpp"
+#include "JFunc_void.hpp"
+#include "JFunc_void_VerticalBarEdge.hpp"
 #include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::utils {
@@ -52,6 +55,14 @@ struct JHybridDocumentDetectorModuleSpecImpl: public jni::JavaClass<JHybridDocum
     return javaPart->getJHybridDocumentDetectorModuleSpec();
   }
 };
+struct JHybridVerticalBarModuleSpecImpl: public jni::JavaClass<JHybridVerticalBarModuleSpecImpl, JHybridVerticalBarModuleSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridVerticalBarModule;";
+  static std::shared_ptr<JHybridVerticalBarModuleSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridVerticalBarModuleSpecImpl::javaobject()>();
+    jni::local_ref<JHybridVerticalBarModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridVerticalBarModuleSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
@@ -61,6 +72,9 @@ void registerAllNatives() {
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridDocumentDetectorModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridVerticalBarModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JFunc_void_cxx::registerNatives();
+  margelo::nitro::utils::JFunc_void_VerticalBarEdge_cxx::registerNatives();
 
   // Register Nitro Hybrid Objects
   HybridObjectRegistry::registerHybridObjectConstructor(
@@ -79,6 +93,12 @@ void registerAllNatives() {
     "DocumentDetectorModule",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridDocumentDetectorModuleSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "VerticalBarModule",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridVerticalBarModuleSpecImpl::create();
     }
   );
 }

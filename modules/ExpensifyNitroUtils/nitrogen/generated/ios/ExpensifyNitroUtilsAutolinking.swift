@@ -47,4 +47,16 @@ public final class ExpensifyNitroUtilsAutolinking {
   public static func isDocumentDetectorModuleRecyclable() -> Bool {
     return HybridDocumentDetectorModule.self is any RecyclableView.Type
   }
+  
+  public static func createVerticalBarModule() -> bridge.std__shared_ptr_HybridVerticalBarModuleSpec_ {
+    let hybridObject = HybridVerticalBarModule()
+    return { () -> bridge.std__shared_ptr_HybridVerticalBarModuleSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isVerticalBarModuleRecyclable() -> Bool {
+    return HybridVerticalBarModule.self is any RecyclableView.Type
+  }
 }

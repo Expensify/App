@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: '日数',
         rename: '名前を変更',
         address: '住所',
+        dayAbbreviation: '日',
         hourAbbreviation: 'ｈ',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -575,6 +576,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'エクスポート先',
         shareReport: 'レポートを共有',
         reportShared: 'レポートを共有しました',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} 日`,
+            other: (count: number) => `${formattedCount ?? count} 日`,
+        }),
         amount: '金額',
     },
     socials: {
@@ -648,6 +653,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'この画像は大きすぎるため、アップロード前にプレビューできません。',
         imageDimensionsTooLarge: '画像のサイズが大きすぎて処理できません。小さい画像を使用してください。',
         tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは最大${fileLimit}件までです。`,
+        fileAlreadyAdded: '同じ名前のファイルがすでに追加されています。',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルをアップロードできません',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `ファイルサイズは${maxUploadSizeInMB}MB以下である必要があります。これより大きいファイルはアップロードされません。`,
@@ -1185,6 +1191,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: '出張用のルールを設定する',
             addFirstReceipt: '最初のレシートを追加する',
             addFirstReceiptSubText: 'レシートをスキャンするか手入力します',
+            addName: '氏名を追加してください',
+            addNameSubText: 'Expensify でチームメイトにあなたを認識してもらいましょう。',
+            downloadApp: 'アプリをダウンロード',
+            downloadAppSubText: '領収書をスキャンして経費を提出し、外出先でもレポートを承認できます。',
         },
         yourSpend: {
             title: 'あなたの支出',
@@ -1208,6 +1218,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `タグレベル ${level}`,
+        tagLevelLabel: 'タグレベル',
+        parent: '親',
+        shareOfTotal: '全体に占める割合（％）',
         viewOnSpend: '支出で表示',
         emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
         noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
@@ -1230,10 +1244,16 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: '全利用者の平均',
             allMerchantAverage: '全加盟店の平均',
             allCategoryAverage: '全カテゴリ平均',
+            tagAverage: 'タグ平均',
             averageValue: (amount: string) => `平均 ${amount}`,
+            allViolationAverage: 'すべての違反の平均',
+            noChange: '変更なし',
+            percentChange: '％ 変化',
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
+        futureExpensesNotShown: (amount: string) => `非表示：将来の経費に${amount}あります。`,
+        violationsTrackedFrom: (date: string) => `違反は${date}から追跡されます。`,
         upsellState: {
             title: 'より多くのインサイトを得るには Control にアップグレードしてください',
             subtitle: '経費ポリシー順守の傾向を追跡し、違反を繰り返すユーザーにフラグを付けます。',
@@ -1255,6 +1275,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: '提出まで最も長い順',
         slowestToApprove: '承認が最も遅い',
         mostTimeToPay: '支払いまで最も時間がかかる',
+        share: 'シェア割合',
+        averageDays: '平均日数',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1821,6 +1843,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
         someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
+        someDuplicatesAreUnavailable: 'これらの重複の一部を読み込めなかったため、すべてを保持することしかできません。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
         keepSelected: '選択したものを保持',
@@ -2056,6 +2079,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} レポート`,
             };
         },
+        payViaABA: 'ABA で支払う',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} はAUDの銀行口座をお持ちではありません。口座を追加してもらい、もう一度お試しください。`,
+        submittersMissingABADepositAccount: '1 人以上の申請者が AUD 銀行口座を登録していません。口座を追加するよう依頼してから、もう一度お試しください。',
     },
     transactionMerge: {
         listPage: {
@@ -2382,6 +2408,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新しい連絡方法',
         goBackContactMethods: '連絡方法に戻る',
+        integrationServerLogin: {
+            title: '連携',
+            description: 'Integration Server API に使用されます。',
+            removeDescription: 'このログインを削除すると、Integration Server API のアクセスが取り消されます。',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `${partnerName} 連携に使用されます。`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `このログインを削除すると、${partnerName} 連携のアクセスが取り消されます。`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'これは現在のデフォルトの連絡方法です。会社により、これを削除または変更することは制限されています。',
     },
     pronouns: {
@@ -2655,6 +2688,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
+        signOutAllDevices: 'すべてのデバイスからログアウト',
+        signOutAllDevicesConfirmation: 'このデバイスを含むすべてのデバイスからログアウトします。Expensifyを使用するには、再度ログインする必要があります。',
+        signOutAllDevicesError: 'すべてのデバイスからログアウトできませんでした。もう一度お試しください。',
+        signOutAllDevicesSuccess: 'すべてのデバイスからログアウトしました。',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',
@@ -3111,6 +3148,90 @@ const translations: TranslationDeepObject<typeof en> = {
                 },
                 description: '事業内容',
                 descriptionHint: '会社の事業内容を簡単に説明してください。',
+            },
+            sourceOfWealth: {
+                label: '会社の資金はどこから来ていますか？',
+                description: '決済パートナーがすべての資産の出所を確認する必要があります。該当するものをすべて選択してください。',
+                options: {
+                    REVENUE: '事業収益',
+                    PERSONAL_FUNDING: '個人資金',
+                    BUSINESS_LOAN: '事業融資',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '資金調達・株主からの投資',
+                    INVESTMENT_INCOME: '投資収益',
+                    DONATIONS: '寄付',
+                    GRANTS: '助成金',
+                    LEGAL: '法的和解',
+                },
+            },
+            sourceOfFunds: {
+                label: '日々の事業運営の資金源はどれですか？',
+                description: '決済パートナーは、事業運営の資金源を把握する必要があります。該当するものをすべて選択してください。',
+            },
+            sourceOfWealthProof: {
+                title: '資産の出所に関する書類',
+                description: '以下の各資金源について、必要な書類をアップロードしてください。',
+                hints: {
+                    REVENUE: '税務申告書、監査済み財務諸表、または事業用口座の銀行取引明細書をアップロードしてください。',
+                    PERSONAL_FUNDING: '個人の確定申告書、預金明細書または銀行取引明細書、あるいは給与明細をアップロードしてください。',
+                    BUSINESS_LOAN: 'ローン契約書と銀行取引明細書をアップロードしてください。',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '出資契約書、株式引受契約書、または株式売却証明書に加えて、銀行取引明細書をアップロードしてください。',
+                    INVESTMENT_INCOME: '個人投資の明細書、株式売却証明書、または資産売却契約書に加えて、銀行取引明細書をアップロードしてください。',
+                    DONATIONS: '寄付の領収書、書面による確認書、または契約書に加えて、銀行取引明細書をアップロードしてください。',
+                    GRANTS: '助成金の交付決定通知書、書面による確認書、または契約書に加えて、銀行取引明細書をアップロードしてください。',
+                    LEGAL: '契約書、書面による確認書、または資産売却契約書をアップロードしてください。',
+                },
+                bankStatementHints: {
+                    REVENUE: '収益の受領がわかるものが必要です。',
+                    PERSONAL_FUNDING: '拠出した資金がわかるものが必要です。',
+                    BUSINESS_LOAN: 'ローン資金の受領がわかるものが必要です。',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '投資資金の受領がわかるものが必要です。',
+                    INVESTMENT_INCOME: '投資収益の受領がわかるものが必要です。',
+                    DONATIONS: '寄付の受領がわかるものが必要です。',
+                    GRANTS: '助成金の受領がわかるものが必要です。',
+                    LEGAL: '和解金の受領がわかるものが必要です。',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: '税務申告書をアップロード',
+                    AUDITED_FINANCIAL_STATEMENTS: '監査済み財務諸表をアップロード',
+                    BANK_STATEMENT: '銀行取引明細書をアップロード',
+                    E_COMMERCE_STATEMENTS: 'Eコマースの明細書をアップロード',
+                    INVOICES: '請求書をアップロード',
+                    CONTRACTS: '契約書をアップロード',
+                    PERSONAL_TAX_DECLARATION: '個人の確定申告書をアップロード',
+                    SAVINGS_STATEMENT: '預金明細書をアップロード',
+                    PAYSLIP: '給与明細をアップロード',
+                    PERSONAL_LOAN_AGREEMENT: '個人ローン契約書をアップロード',
+                    PERSONAL_INVESTMENT: '個人投資の明細書をアップロード',
+                    ASSET_SALE_AGREEMENT: '資産売却契約書をアップロード',
+                    LOAN_AGREEMENT: 'ローン契約書をアップロード',
+                    EQUITY_AGREEMENT: '出資契約書をアップロード',
+                    SUBSCRIPTION_AGREEMENT: '株式引受契約書をアップロード',
+                    SHARE_SALE_CERTIFICATE: '株式売却証明書をアップロード',
+                    DONATION_RECEIPTS: '寄付の領収書をアップロード',
+                    WRITTEN_CONFIRMATION: '書面による確認書をアップロード',
+                    GRANT_APPROVAL_LETTER: '助成金の交付決定通知書をアップロード',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: '税務申告書',
+                    AUDITED_FINANCIAL_STATEMENTS: '監査済み財務諸表',
+                    BANK_STATEMENT: '銀行取引明細書',
+                    E_COMMERCE_STATEMENTS: 'Eコマースの明細書',
+                    INVOICES: '請求書',
+                    CONTRACTS: '契約書',
+                    PERSONAL_TAX_DECLARATION: '個人の確定申告書',
+                    SAVINGS_STATEMENT: '預金明細書',
+                    PAYSLIP: '給与明細',
+                    PERSONAL_LOAN_AGREEMENT: '個人ローン契約書',
+                    PERSONAL_INVESTMENT: '個人投資の明細書',
+                    ASSET_SALE_AGREEMENT: '資産売却契約書',
+                    LOAN_AGREEMENT: 'ローン契約書',
+                    EQUITY_AGREEMENT: '出資契約書',
+                    SUBSCRIPTION_AGREEMENT: '株式引受契約書',
+                    SHARE_SALE_CERTIFICATE: '株式売却証明書',
+                    DONATION_RECEIPTS: '寄付の領収書',
+                    WRITTEN_CONFIRMATION: '書面による確認書',
+                    GRANT_APPROVAL_LETTER: '助成金の交付決定通知書',
+                },
             },
             terms: {
                 title: '規約に同意',
@@ -4209,7 +4330,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         error: {
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前である必要があります`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後の日付にしてください`,
-            hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
             cannotIncludeCommaOrSemicolon: '名前にコンマまたはセミコロンを含めることはできません',
             incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `使用可能な形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
@@ -4397,7 +4517,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             lastName: '有効な姓を入力してください',
             noDefaultDepositAccountOrDebitCardAvailable: 'デフォルトの入金口座またはデビットカードを追加してください',
             validationAmounts: '入力した検証用金額が正しくありません。銀行明細書をもう一度確認してから、再度お試しください。',
-            fullName: '有効な氏名を入力してください',
             ownershipPercentage: '有効なパーセント数値を入力してください',
             deletePaymentBankAccount: 'この銀行口座は Expensify カードの支払いに使用されているため、削除できません。この口座を削除したい場合は、Concierge までご連絡ください。',
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
@@ -4424,6 +4543,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             tooManyItems: ({max}: {max: number}) => `${max}件以内で追加してください`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}、${field}：${error}`,
         },
+        uploadFile: 'ファイルをアップロード',
+        selectDocumentToUpload: 'アップロードする書類を選択',
         addItem: ({item}: {item: string}) => `${item}を追加`,
         removeItemTitle: ({item}: {item: string}) => `${item}を削除しますか？`,
         removeItemPrompt: ({name}: {name: string}) => `本当に${name}を削除しますか？`,
@@ -6959,6 +7080,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
             autoCategorizeNewExpenses: '新しい経費を自動分類する',
+            enableAtLeastOneCategory: '少なくとも1つのカテゴリを有効にしてください。',
             showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
@@ -7152,6 +7274,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 allCards: 'すべてのカード',
                 assignedCards: '割り当て済み',
                 unassignedCards: '未割り当て',
+                matchesLastFourDigitsOnly: '下4桁のみ一致',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
@@ -7827,16 +7950,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定されている接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
-            exactOnline: {
-                comingSoon: '近日公開予定',
-                joinWaitlist: 'ウェイトリストに参加',
-                onWaitlist: '順番待ちリストに登録されています',
-                waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
-            },
             integrationWaitlist: {
                 comingSoon: '近日公開予定',
                 joinWaitlist: 'ウェイトリストに参加',
                 onWaitlist: '順番待ちリストに登録されています',
+                onWaitlistButton: 'ウェイトリスト登録済み',
                 onTheList: 'リストに登録されています！',
                 waitlistDescription: 'この連携の準備が整い、接続方法が決まりましたら、Concierge からメッセージでお知らせします。',
             },
@@ -8631,6 +8749,7 @@ ${reportName}`,
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を次に変更してください:',
                 },
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
+                createWorkspaceWarning: `ワークスペースを作成できません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
             hr: {
@@ -10915,6 +11034,7 @@ ${reportName}`,
         noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
+        violation: '違反',
         receiptTypeValues: {
             ereceipt: '電子領収書',
             itemized: '明細',
@@ -10978,6 +11098,7 @@ ${reportName}`,
             insights: 'インサイト',
             topSpenders: '上位の支出者',
             topCategories: '上位カテゴリ',
+            topTags: '人気のタグ',
             topMerchants: '上位加盟店',
             violationsBySubmitter: '申請者による違反',
             travel: '出張',
@@ -11129,6 +11250,29 @@ ${reportName}`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'まもなく';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = '2週間後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = '1週間後';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>同意の有効期限が切れる前にカード接続を再接続してください</a>。`
+                        : '同意の有効期限が切れる前にカード接続を再接続してください。';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/> さん、` : '';
+                    return `${intro}<strong>${feedName}</strong>カード接続は${warningTime}に同意の更新が必要になります。取引は現在も同期されていますが、同意を更新しない場合はインポートが停止する可能性があります。${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11813,6 +11957,7 @@ ${reportName}`,
             tagOutOfPolicy: 'タグは無効です',
             overLimitAttendee: '人数上限超過',
             customRules: 'カスタムルール違反',
+            ruleViolation: 'ルール違反',
             taxAmountChanged: '税額が変更されました',
             taxOutOfPolicy: '税率が無効になりました',
             taxRateChanged: '税率を変更しました',

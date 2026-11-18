@@ -126,7 +126,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         flash,
         hasFlash,
         hasTorch: !!device?.hasTorch,
-        isBetaEnabled: isBetaEnabled(CONST.BETAS.SCAN_FLASH_TORCH),
         isMultiScanEnabled,
         canUpgradeReceiptQuality,
     });

@@ -1,11 +1,12 @@
 import type {AUTHENTICATION_COMMAND} from '@libs/API/types';
+import HttpsError from '@libs/Errors/HttpsError';
 
 import CONST from '@src/CONST';
 
 import * as Sentry from '@sentry/react-native';
 
 type AuthenticationFunction = typeof AUTHENTICATION_COMMAND | 'reauthenticate';
-type AuthenticationErrorType = 'missing_params' | 'network_retry' | 'auth_failure' | 'unexpected_error';
+type AuthenticationErrorType = 'missing_params' | 'network_retry' | 'auth_failure' | 'unexpected_error' | 'retries_exhausted';
 
 type AuthenticationErrorContext = {
     errorType: AuthenticationErrorType;
@@ -23,6 +24,20 @@ type AuthenticationErrorContext = {
  * spotty connection, the user is deliberately kept signed in, and the retry mechanism handles it from there.
  */
 const NON_ACTIONABLE_ERROR_TYPES = new Set<AuthenticationErrorType>(['network_retry']);
+
+/**
+ * Authenticate response codes that sign the user out on purpose, so an `auth_failure` carrying one of them is
+ * expected and goes to Sentry logs: 401, 404 and 418 reject the stored credentials, 426 means the app is outdated.
+ * Only response codes count: the same status at the HTTP level (an `HttpsError`) points to an infrastructure problem.
+ */
+const EXPECTED_AUTH_FAILURE_JSON_CODES = new Set<number>([401, 404, 418, CONST.JSON_CODE.UPDATE_REQUIRED]);
+
+function isNonActionableError(error: Error, errorType: AuthenticationErrorType, jsonCode: number | string | undefined): boolean {
+    if (NON_ACTIONABLE_ERROR_TYPES.has(errorType)) {
+        return true;
+    }
+    return errorType === 'auth_failure' && !(error instanceof HttpsError) && EXPECTED_AUTH_FAILURE_JSON_CODES.has(Number(jsonCode));
+}
 
 /**
  * Track authentication errors in Sentry with extra context.
@@ -49,7 +64,7 @@ function trackAuthenticationError(error: Error, context: AuthenticationErrorCont
         ...(providedParameters && {providedParameters}),
     };
 
-    if (NON_ACTIONABLE_ERROR_TYPES.has(errorType)) {
+    if (isNonActionableError(error, errorType, jsonCode)) {
         Sentry.logger.warn(`[Authentication] ${errorType}`, {...tags, ...extra, errorMessage: errorMessage ?? error.message});
         return;
     }

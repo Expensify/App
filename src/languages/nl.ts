@@ -429,6 +429,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'dagen',
         rename: 'Naam wijzigen',
         address: 'Adres',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -576,6 +577,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exporteert naar',
         shareReport: 'Rapport delen',
         reportShared: 'Rapport gedeeld',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} dag`,
+            other: (count: number) => `${formattedCount ?? count} dagen`,
+        }),
         amount: 'Bedrag',
     },
     socials: {
@@ -646,6 +651,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Deze afbeelding is te groot om een voorbeeld te tonen vóór het uploaden.',
         imageDimensionsTooLarge: 'De afmetingen van de afbeelding zijn te groot om te verwerken. Gebruik een kleinere afbeelding.',
         tooManyFiles: (fileLimit: number) => `Je kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
+        fileAlreadyAdded: 'Er is al een bestand met dezelfde naam toegevoegd.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Bestanden zijn groter dan ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
         someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Bestanden moeten kleiner zijn dan ${maxUploadSizeInMB} MB. Grotere bestanden worden niet geüpload.`,
@@ -1196,6 +1202,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Reisspecifieke regels instellen',
             addFirstReceipt: 'Voeg je eerste bon toe',
             addFirstReceiptSubText: 'Scan of voer handmatig een bon in',
+            addName: 'Voeg je naam toe',
+            addNameSubText: 'Help je teamgenoten je in Expensify te herkennen.',
+            downloadApp: 'Download de app',
+            downloadAppSubText: 'Scan bonnetjes, dien uitgaven in en keur rapporten goed, waar je ook bent.',
         },
         yourSpend: {
             title: 'Je uitgaven',
@@ -1219,6 +1229,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tagniveau ${level}`,
+        tagLevelLabel: 'Tagniveau',
+        parent: 'Ouder',
+        shareOfTotal: 'Aandeel van totaal (%)',
         viewOnSpend: 'Bekijken in Uitgaven',
         emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
         noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
@@ -1241,10 +1255,16 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Gemiddelde per uitgave',
             allMerchantAverage: 'Gemiddelde voor alle handelaren',
             allCategoryAverage: 'Gemiddelde voor alle categorieën',
+            tagAverage: 'Labelgemiddelde',
             averageValue: (amount: string) => `${amount} gem.`,
+            allViolationAverage: 'Gemiddelde over alle overtredingen',
+            noChange: 'Geen wijziging',
+            percentChange: '% wijziging',
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        futureExpensesNotShown: (amount: string) => `Niet weergegeven: ${amount} aan toekomstige uitgaven.`,
+        violationsTrackedFrom: (date: string) => `Overtredingen worden bijgehouden vanaf ${date}.`,
         upsellState: {
             title: 'Upgrade naar Control voor meer inzichten',
             subtitle: 'Volg trends in naleving van onkostenbeleid en markeer herhaalde overtreders.',
@@ -1266,6 +1286,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Langste om in te dienen',
         slowestToApprove: 'Traagst om goed te keuren',
         mostTimeToPay: 'Meeste tijd om te betalen',
+        share: 'Aandeel',
+        averageDays: 'Gemiddeld aantal dagen',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1837,6 +1859,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle declaraties zijn gepauzeerd. Bekijk de opmerkingen voor de volgende stappen.',
         expenseDuplicate: 'Deze uitgave heeft vergelijkbare details als een andere. Controleer de doublures om door te gaan.',
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
+        someDuplicatesAreUnavailable: 'Sommige van deze duplicaten konden niet worden geladen, dus je kunt ze alleen allemaal behouden.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
         keepSelected: 'Selectie behouden',
@@ -2072,6 +2095,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} rapporten`,
             };
         },
+        payViaABA: 'Betalen via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} heeft geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.`,
+        submittersMissingABADepositAccount: 'Een of meer indieners hebben geen AUD-bankrekening. Vraag hen om er een toe te voegen en probeer het opnieuw.',
     },
     transactionMerge: {
         listPage: {
@@ -2398,6 +2424,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nieuwe contactmethode',
         goBackContactMethods: 'Ga terug naar contactmethoden',
+        integrationServerLogin: {
+            title: 'Integraties',
+            description: 'Dit wordt gebruikt voor de Integration Server-API.',
+            removeDescription: 'Als je deze login verwijdert, wordt de toegang van de Integration Server-API ingetrokken.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Dit wordt gebruikt voor de ${partnerName}-integratie.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Als je deze login verwijdert, wordt de toegang van de ${partnerName}-integratie ingetrokken.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Dit is je huidige standaardcontactmethode. Je bedrijf heeft beperkt dat je deze kunt verwijderen of wijzigen.',
     },
     pronouns: {
@@ -2671,6 +2704,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
+        signOutAllDevices: 'Uitloggen op alle apparaten',
+        signOutAllDevicesConfirmation: 'Je wordt uitgelogd op alle apparaten, inclusief dit apparaat. Je moet opnieuw inloggen om Expensify te gebruiken.',
+        signOutAllDevicesError: 'We konden je niet op alle apparaten uitloggen. Probeer het opnieuw.',
+        signOutAllDevicesSuccess: 'Je bent uitgelogd op alle apparaten.',
     },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',
@@ -3134,6 +3171,90 @@ const translations: TranslationDeepObject<typeof en> = {
                 },
                 description: 'Bedrijfsomschrijving',
                 descriptionHint: 'Beschrijf kort wat je bedrijf doet.',
+            },
+            sourceOfWealth: {
+                label: 'Waar komt het geld van je bedrijf vandaan?',
+                description: 'Onze betaalpartner moet alle herkomst van het vermogen controleren. Selecteer alles wat van toepassing is.',
+                options: {
+                    REVENUE: 'Bedrijfsomzet',
+                    PERSONAL_FUNDING: 'Eigen financiering',
+                    BUSINESS_LOAN: 'Zakelijke lening',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Financiering en investeringen van aandeelhouders',
+                    INVESTMENT_INCOME: 'Beleggingsinkomsten',
+                    DONATIONS: 'Donaties',
+                    GRANTS: 'Subsidies',
+                    LEGAL: 'Juridische schikking',
+                },
+            },
+            sourceOfFunds: {
+                label: 'Welke bronnen financieren je dagelijkse bedrijfsvoering?',
+                description: 'Onze betaalpartner moet weten welke bronnen je bedrijfsvoering financieren. Selecteer alles wat van toepassing is.',
+            },
+            sourceOfWealthProof: {
+                title: 'Documenten over de herkomst van het vermogen',
+                description: 'Upload de vereiste documenten voor elke herkomst die hieronder staat.',
+                hints: {
+                    REVENUE: 'Upload een belastingaangifte, een gecontroleerde jaarrekening of zakelijke bankafschriften.',
+                    PERSONAL_FUNDING: 'Upload een persoonlijke belastingaangifte, spaar- of bankafschriften, of loonstroken.',
+                    BUSINESS_LOAN: 'Upload een leningsovereenkomst en een bankafschrift.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Upload een participatieovereenkomst, inschrijvingsovereenkomst of bewijs van aandelenverkoop, plus een bankafschrift.',
+                    INVESTMENT_INCOME: 'Upload een overzicht van persoonlijke beleggingen, een bewijs van aandelenverkoop of een koopovereenkomst voor activa, plus een bankafschrift.',
+                    DONATIONS: 'Upload een donatiebewijs, schriftelijke bevestiging of overeenkomst, plus een bankafschrift.',
+                    GRANTS: 'Upload een toekenningsbrief voor de subsidie, schriftelijke bevestiging of overeenkomst, plus een bankafschrift.',
+                    LEGAL: 'Upload een overeenkomst, schriftelijke bevestiging of koopovereenkomst voor activa.',
+                },
+                bankStatementHints: {
+                    REVENUE: 'Moet de ontvangen omzet tonen.',
+                    PERSONAL_FUNDING: 'Moet het geld tonen dat je hebt ingebracht.',
+                    BUSINESS_LOAN: 'Moet het ontvangen geleende geld tonen.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Moet het ontvangen investeringsgeld tonen.',
+                    INVESTMENT_INCOME: 'Moet de ontvangen beleggingsinkomsten tonen.',
+                    DONATIONS: 'Moet de ontvangen donatie tonen.',
+                    GRANTS: 'Moet het ontvangen subsidiegeld tonen.',
+                    LEGAL: 'Moet het ontvangen schikkingsbedrag tonen.',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: 'Belastingaangifte uploaden',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Gecontroleerde jaarrekening uploaden',
+                    BANK_STATEMENT: 'Bankafschrift uploaden',
+                    E_COMMERCE_STATEMENTS: 'E-commerceoverzichten uploaden',
+                    INVOICES: 'Facturen uploaden',
+                    CONTRACTS: 'Contracten uploaden',
+                    PERSONAL_TAX_DECLARATION: 'Persoonlijke belastingaangifte uploaden',
+                    SAVINGS_STATEMENT: 'Spaarafschrift uploaden',
+                    PAYSLIP: 'Loonstrook uploaden',
+                    PERSONAL_LOAN_AGREEMENT: 'Persoonlijke leningsovereenkomst uploaden',
+                    PERSONAL_INVESTMENT: 'Overzicht van persoonlijke beleggingen uploaden',
+                    ASSET_SALE_AGREEMENT: 'Koopovereenkomst voor activa uploaden',
+                    LOAN_AGREEMENT: 'Leningsovereenkomst uploaden',
+                    EQUITY_AGREEMENT: 'Participatieovereenkomst uploaden',
+                    SUBSCRIPTION_AGREEMENT: 'Inschrijvingsovereenkomst uploaden',
+                    SHARE_SALE_CERTIFICATE: 'Bewijs van aandelenverkoop uploaden',
+                    DONATION_RECEIPTS: 'Donatiebewijzen uploaden',
+                    WRITTEN_CONFIRMATION: 'Schriftelijke bevestiging uploaden',
+                    GRANT_APPROVAL_LETTER: 'Toekenningsbrief voor subsidie uploaden',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: 'Belastingaangifte',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Gecontroleerde jaarrekening',
+                    BANK_STATEMENT: 'Bankafschrift',
+                    E_COMMERCE_STATEMENTS: 'E-commerce-overzichten',
+                    INVOICES: 'Facturen',
+                    CONTRACTS: 'Contracten',
+                    PERSONAL_TAX_DECLARATION: 'Persoonlijke belastingaangifte',
+                    SAVINGS_STATEMENT: 'Spaarafschrift',
+                    PAYSLIP: 'Loonstrook',
+                    PERSONAL_LOAN_AGREEMENT: 'Persoonlijke leningsovereenkomst',
+                    PERSONAL_INVESTMENT: 'Persoonlijk beleggingsoverzicht',
+                    ASSET_SALE_AGREEMENT: 'Overeenkomst voor verkoop van activa',
+                    LOAN_AGREEMENT: 'Leningsovereenkomst',
+                    EQUITY_AGREEMENT: 'Aandelenovereenkomst',
+                    SUBSCRIPTION_AGREEMENT: 'Inschrijvingsovereenkomst',
+                    SHARE_SALE_CERTIFICATE: 'Certificaat van aandelenverkoop',
+                    DONATION_RECEIPTS: 'Donatiebewijzen',
+                    WRITTEN_CONFIRMATION: 'Schriftelijke bevestiging',
+                    GRANT_APPROVAL_LETTER: 'Subsidiebeschikking',
+                },
             },
             terms: {
                 title: 'Voorwaarden accepteren',
@@ -4250,7 +4371,6 @@ ${amount} voor ${merchant} - ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: (dateString: string) => `Datum moet na ${dateString} liggen`,
-            hasInvalidCharacter: 'Naam mag alleen Latijnse letters bevatten',
             cannotIncludeCommaOrSemicolon: 'Naam mag geen komma of puntkomma bevatten',
             incorrectZipFormat: (zipFormat?: string) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4439,7 +4559,6 @@ ${amount} voor ${merchant} - ${date}`,
             lastName: 'Voer een geldige achternaam in',
             noDefaultDepositAccountOrDebitCardAvailable: 'Voeg een standaardstortingsrekening of betaalpas toe',
             validationAmounts: 'De verificatiebedragen die je hebt ingevoerd, zijn onjuist. Controleer je bankafschrift en probeer het opnieuw.',
-            fullName: 'Voer een geldige volledige naam in',
             ownershipPercentage: 'Voer een geldig percentage in',
             deletePaymentBankAccount:
                 'Deze bankrekening kan niet worden verwijderd omdat hij wordt gebruikt voor betalingen met de Expensify Kaart. Als je deze rekening toch wilt verwijderen, neem dan contact op met Concierge.',
@@ -4467,6 +4586,8 @@ ${amount} voor ${merchant} - ${date}`,
             tooManyItems: ({max}: {max: number}) => `Voeg er maximaal ${max} toe`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
+        uploadFile: 'Bestand uploaden',
+        selectDocumentToUpload: 'Selecteer het document om te uploaden',
         addItem: ({item}: {item: string}) => `${item} toevoegen`,
         removeItemTitle: ({item}: {item: string}) => `${item} verwijderen?`,
         removeItemPrompt: ({name}: {name: string}) => `Weet je zeker dat je ${name} wilt verwijderen?`,
@@ -7048,6 +7169,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             categoryName: 'Categorienaam',
             requiresCategory: 'Leden moeten alle uitgaven categoriseren',
             autoCategorizeNewExpenses: 'Nieuwe uitgaven automatisch categoriseren',
+            enableAtLeastOneCategory: 'Schakel minstens één categorie in.',
             showCategoryGLCodes: 'Toon GL-codes bij het categoriseren van uitgaven',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle onkosten moeten worden gecategoriseerd om te kunnen exporteren naar ${connectionName}.`,
             subtitle: 'Krijg beter inzicht in waar geld wordt uitgegeven. Gebruik onze standaardcategorieën of voeg je eigen categorieën toe.',
@@ -7250,6 +7372,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 allCards: 'Alle kaarten',
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
+                matchesLastFourDigitsOnly: 'Komt alleen overeen met de laatste 4 cijfers',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
@@ -7922,16 +8045,11 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Er is een fout opgetreden met een verbinding die is ingesteld in Expensify Classic. [Ga naar Expensify Classic om dit probleem op te lossen.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Ga naar Expensify Classic om je instellingen te beheren.',
-            exactOnline: {
-                comingSoon: 'Binnenkort beschikbaar',
-                joinWaitlist: 'Aanmelden voor wachtlijst',
-                onWaitlist: 'Je staat op de wachtlijst',
-                waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Binnenkort beschikbaar',
                 joinWaitlist: 'Aanmelden voor wachtlijst',
                 onWaitlist: 'Je staat op de wachtlijst',
+                onWaitlistButton: 'Op de wachtlijst',
                 onTheList: 'Je staat op de lijst!',
                 waitlistDescription: 'Concierge stuurt je een bericht om je te laten weten wanneer deze integratie klaar is en hoe je verbinding kunt maken.',
             },
@@ -8732,6 +8850,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     selectWorkspace: 'selecteer een werkruimte en wijzig het type abonnement in',
                 },
                 upgradeWorkspaceWarning: `Kan werkruimte niet upgraden`,
+                createWorkspaceWarning: `Kan werkruimte niet aanmaken`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Je bedrijf heeft het aanmaken van werkruimtes beperkt. Neem contact op met een admin voor hulp.',
             },
             hr: {
@@ -11047,6 +11166,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
+        violation: 'Overtreding',
         receiptTypeValues: {
             ereceipt: 'eBon',
             itemized: 'Gespecificeerd',
@@ -11136,6 +11256,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             insights: 'Inzichten',
             topSpenders: 'Grootste uitgaven doeners',
             topCategories: 'Topcategorieën',
+            topTags: 'Toplabels',
             topMerchants: 'Topverkopers',
             violationsBySubmitter: 'Overtredingen door indiener',
             travel: 'Reizen',
@@ -11289,6 +11410,29 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `De ${feedName}-verbinding is al 30 dagen verbroken. <a href='${workspaceCompanyCardRoute}'>Log in bij je bank</a> om dit op te lossen of <a href='${workspaceCompanyCardSettingsRoute}'>verwijder de verbinding</a> als deze niet meer wordt gebruikt. Je verliest geen ingediende uitgaven als je de verbinding verwijdert.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'binnenkort';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'over twee weken';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'over een week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Verbind de kaart opnieuw voordat de toestemming verloopt</a>.`
+                        : 'Verbind de kaart opnieuw voordat de toestemming verloopt.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, voor je ` : 'Voor je ';
+                    return `${intro}<strong>${feedName}</strong>-kaartverbinding is ${warningTime} opnieuw toestemming nodig. Transacties worden nog gesynchroniseerd, maar worden mogelijk niet meer geïmporteerd als de toestemming niet wordt vernieuwd. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11979,6 +12123,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             tagOutOfPolicy: 'Tag niet meer geldig',
             overLimitAttendee: 'Limiet aantal personen overschreden',
             customRules: 'Schending van aangepaste regel',
+            ruleViolation: 'Schending van regel',
             taxAmountChanged: 'Belastingbedrag gewijzigd',
             taxOutOfPolicy: 'Belastingtarief niet meer geldig',
             taxRateChanged: 'Belastingtarief gewijzigd',

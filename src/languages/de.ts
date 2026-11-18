@@ -430,6 +430,7 @@ const translations: TranslationDeepObject<typeof en> = {
         days: 'Tage',
         rename: 'Umbenennen',
         address: 'Adresse',
+        dayAbbreviation: 'T',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -577,6 +578,10 @@ const translations: TranslationDeepObject<typeof en> = {
         exportsTo: 'Exportiert nach',
         shareReport: 'Bericht teilen',
         reportShared: 'Bericht geteilt',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} Tag`,
+            other: (count: number) => `${formattedCount ?? count} Tage`,
+        }),
         amount: 'Betrag',
     },
     socials: {
@@ -647,6 +652,7 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Dieses Bild ist zu groß, um vor dem Hochladen eine Vorschau anzuzeigen.',
         imageDimensionsTooLarge: 'Die Bildabmessungen sind zu groß zum Verarbeiten. Bitte verwenden Sie ein kleineres Bild.',
         tooManyFiles: (fileLimit: number) => `Sie können jeweils nur bis zu ${fileLimit} Dateien hochladen.`,
+        fileAlreadyAdded: 'Eine Datei mit demselben Namen wurde bereits hinzugefügt.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Dateien überschreiten ${maxUploadSizeInMB} MB. Bitte versuche es erneut.`,
         someFilesCantBeUploaded: 'Einige Dateien können nicht hochgeladen werden',
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Dateien dürfen nicht größer als ${maxUploadSizeInMB} MB sein. Größere Dateien werden nicht hochgeladen.`,
@@ -1181,6 +1187,10 @@ const translations: TranslationDeepObject<typeof en> = {
             setupTravelSubText: 'Reisespezifische Regeln konfigurieren',
             addFirstReceipt: 'Fügen Sie Ihren ersten Beleg hinzu',
             addFirstReceiptSubText: 'Beleg scannen oder manuell eingeben',
+            addName: 'Fügen Sie Ihren Namen hinzu',
+            addNameSubText: 'Helfen Sie Ihrem Team, Sie in Expensify zu erkennen.',
+            downloadApp: 'Laden Sie die App herunter',
+            downloadAppSubText: 'Belege scannen, Ausgaben einreichen und Berichte unterwegs genehmigen.',
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -1220,6 +1230,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag-Stufe ${level}`,
+        tagLevelLabel: 'Tag-Ebene',
+        parent: 'Übergeordnet',
+        shareOfTotal: 'Anteil am Gesamtwert (%)',
         viewOnSpend: 'In Ausgaben anzeigen',
         emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
         noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
@@ -1242,10 +1256,16 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Durchschnitt aller Zahlenden',
             allMerchantAverage: 'Durchschnitt über alle Händler',
             allCategoryAverage: 'Durchschnitt aller Kategorien',
+            tagAverage: 'Tagesdurchschnitt',
             averageValue: (amount: string) => `${amount} durchschnittl.`,
+            allViolationAverage: 'Durchschnitt aller Verstöße',
+            noChange: 'Keine Änderung',
+            percentChange: '% Änderung',
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
+        futureExpensesNotShown: (amount: string) => `Nicht angezeigt: ${amount} in zukünftigen Ausgaben.`,
+        violationsTrackedFrom: (date: string) => `Verstöße werden ab dem ${date} erfasst.`,
         upsellState: {
             title: 'Upgrade auf Control für mehr Einblicke',
             subtitle: 'Verfolgen Sie Trends bei der Einhaltung der Spesenrichtlinie und markieren Sie Wiederholungstäter.',
@@ -1267,6 +1287,8 @@ const translations: TranslationDeepObject<typeof en> = {
         longestToSubmit: 'Am längsten bis zur Einreichung',
         slowestToApprove: 'Am langsamsten bei der Genehmigung',
         mostTimeToPay: 'Längste Zahlungsfrist',
+        share: 'Anteil',
+        averageDays: 'Durchschnittliche Tage',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1844,6 +1866,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Alle Ausgaben wurden angehalten. Bitte prüfen Sie die Kommentare für die nächsten Schritte.',
         expenseDuplicate: 'Diese Ausgabe hat ähnliche Details wie eine andere. Bitte überprüfe die Duplikate, um fortzufahren.',
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
+        someDuplicatesAreUnavailable: 'Einige dieser Duplikate konnten nicht geladen werden, daher kannst du nur alle behalten.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
         keepSelected: 'Auswahl behalten',
@@ -2082,6 +2105,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (count: number) => `${formattedCount ?? count} Berichte`,
             };
         },
+        payViaABA: 'Per ABA bezahlen',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} hat kein AUD-Bankkonto. Bitte bitten Sie die Person, eines hinzuzufügen, und versuchen Sie es erneut.`,
+        submittersMissingABADepositAccount: 'Eine oder mehrere einreichende Personen haben kein AUD-Bankkonto. Bitte bitten Sie sie, eines hinzuzufügen, und versuchen Sie es erneut.',
     },
     transactionMerge: {
         listPage: {
@@ -2409,6 +2435,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Neue Kontaktmethode',
         goBackContactMethods: 'Zurück zu den Kontaktmethoden',
+        integrationServerLogin: {
+            title: 'Integrationen',
+            description: 'Dies wird für die Integration Server API verwendet.',
+            removeDescription: 'Wenn Sie diese Anmeldung entfernen, wird der Zugriff der Integration Server API widerrufen.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Dies wird für die ${partnerName}-Integration verwendet.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Wenn Sie diese Anmeldung entfernen, wird der Zugriff der ${partnerName}-Integration widerrufen.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Dies ist Ihre derzeitige standardmäßige Kontaktmethode. Ihr Unternehmen hat das Entfernen oder Ändern eingeschränkt.',
     },
     pronouns: {
@@ -2682,6 +2715,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Verwalten Sie alle Geräte, bei denen Sie sich mit Ihrem Expensify Konto angemeldet haben. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Erfahren Sie mehr</a>.',
         revoke: 'Widerrufen',
         unknownDevice: 'Unbekanntes Gerät',
+        signOutAllDevices: 'Auf allen Geräten abmelden',
+        signOutAllDevicesConfirmation: 'Sie werden auf allen Geräten abgemeldet, einschließlich diesem. Sie müssen sich erneut anmelden, um Expensify zu nutzen.',
+        signOutAllDevicesError: 'Wir konnten Sie nicht auf allen Geräten abmelden. Bitte versuchen Sie es erneut.',
+        signOutAllDevicesSuccess: 'Sie wurden auf allen Geräten abgemeldet.',
     },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
@@ -3144,6 +3181,92 @@ const translations: TranslationDeepObject<typeof en> = {
                 },
                 description: 'Unternehmensbeschreibung',
                 descriptionHint: 'Beschreiben Sie kurz, was Ihr Unternehmen macht.',
+            },
+            sourceOfWealth: {
+                label: 'Woher stammt das Geld Ihres Unternehmens?',
+                description: 'Unser Zahlungspartner muss alle Herkunftsquellen des Vermögens überprüfen. Wählen Sie alle zutreffenden Optionen aus.',
+                options: {
+                    REVENUE: 'Geschäftsumsatz',
+                    PERSONAL_FUNDING: 'Eigenfinanzierung',
+                    BUSINESS_LOAN: 'Geschäftskredit',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Finanzierung und Investitionen von Anteilseignern',
+                    INVESTMENT_INCOME: 'Kapitalerträge',
+                    DONATIONS: 'Spenden',
+                    GRANTS: 'Fördermittel',
+                    LEGAL: 'Rechtlicher Vergleich',
+                },
+            },
+            sourceOfFunds: {
+                label: 'Welche Quellen finanzieren Ihr Tagesgeschäft?',
+                description: 'Unser Zahlungspartner muss wissen, welche Quellen Ihren Geschäftsbetrieb finanzieren. Wählen Sie alle zutreffenden Optionen aus.',
+            },
+            sourceOfWealthProof: {
+                title: 'Nachweise der Vermögensherkunft',
+                description: 'Laden Sie die erforderlichen Dokumente für jede unten aufgeführte Mittelherkunft hoch.',
+                hints: {
+                    REVENUE: 'Laden Sie eine Steuererklärung, einen geprüften Jahresabschluss oder Geschäftskontoauszüge hoch.',
+                    PERSONAL_FUNDING: 'Laden Sie eine persönliche Steuererklärung, Spar- oder Kontoauszüge oder Gehaltsabrechnungen hoch.',
+                    BUSINESS_LOAN: 'Laden Sie einen Darlehensvertrag und einen Kontoauszug hoch.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS:
+                        'Laden Sie einen Beteiligungsvertrag, einen Zeichnungsvertrag oder eine Bescheinigung über den Anteilsverkauf hoch, dazu einen Kontoauszug.',
+                    INVESTMENT_INCOME:
+                        'Laden Sie eine Aufstellung privater Kapitalanlagen, eine Bescheinigung über den Anteilsverkauf oder einen Kaufvertrag über Vermögenswerte hoch, dazu einen Kontoauszug.',
+                    DONATIONS: 'Laden Sie eine Spendenquittung, eine schriftliche Bestätigung oder einen Vertrag hoch, dazu einen Kontoauszug.',
+                    GRANTS: 'Laden Sie einen Förderbescheid, eine schriftliche Bestätigung oder einen Vertrag hoch, dazu einen Kontoauszug.',
+                    LEGAL: 'Laden Sie einen Vertrag, eine schriftliche Bestätigung oder einen Kaufvertrag über Vermögenswerte hoch.',
+                },
+                bankStatementHints: {
+                    REVENUE: 'Muss den Eingang der Umsätze zeigen.',
+                    PERSONAL_FUNDING: 'Muss die von Ihnen eingebrachten Mittel zeigen.',
+                    BUSINESS_LOAN: 'Muss den Eingang der Darlehensmittel zeigen.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Muss den Eingang der Investitionsmittel zeigen.',
+                    INVESTMENT_INCOME: 'Muss den Eingang der Kapitalerträge zeigen.',
+                    DONATIONS: 'Muss den Eingang der Spende zeigen.',
+                    GRANTS: 'Muss den Eingang der Fördermittel zeigen.',
+                    LEGAL: 'Muss den Eingang der Vergleichszahlung zeigen.',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: 'Steuererklärung hochladen',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Geprüften Jahresabschluss hochladen',
+                    BANK_STATEMENT: 'Kontoauszug hochladen',
+                    E_COMMERCE_STATEMENTS: 'E-Commerce-Abrechnungen hochladen',
+                    INVOICES: 'Rechnungen hochladen',
+                    CONTRACTS: 'Verträge hochladen',
+                    PERSONAL_TAX_DECLARATION: 'Persönliche Steuererklärung hochladen',
+                    SAVINGS_STATEMENT: 'Sparkontoauszug hochladen',
+                    PAYSLIP: 'Gehaltsabrechnung hochladen',
+                    PERSONAL_LOAN_AGREEMENT: 'Privaten Darlehensvertrag hochladen',
+                    PERSONAL_INVESTMENT: 'Aufstellung privater Kapitalanlagen hochladen',
+                    ASSET_SALE_AGREEMENT: 'Kaufvertrag über Vermögenswerte hochladen',
+                    LOAN_AGREEMENT: 'Darlehensvertrag hochladen',
+                    EQUITY_AGREEMENT: 'Beteiligungsvertrag hochladen',
+                    SUBSCRIPTION_AGREEMENT: 'Zeichnungsvertrag hochladen',
+                    SHARE_SALE_CERTIFICATE: 'Bescheinigung über den Anteilsverkauf hochladen',
+                    DONATION_RECEIPTS: 'Spendenquittungen hochladen',
+                    WRITTEN_CONFIRMATION: 'Schriftliche Bestätigung hochladen',
+                    GRANT_APPROVAL_LETTER: 'Förderbescheid hochladen',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: 'Steuererklärung',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Geprüfter Jahresabschluss',
+                    BANK_STATEMENT: 'Kontoauszug',
+                    E_COMMERCE_STATEMENTS: 'E-Commerce-Abrechnungen',
+                    INVOICES: 'Rechnungen',
+                    CONTRACTS: 'Verträge',
+                    PERSONAL_TAX_DECLARATION: 'Persönliche Steuererklärung',
+                    SAVINGS_STATEMENT: 'Sparkontoauszug',
+                    PAYSLIP: 'Gehaltsabrechnung',
+                    PERSONAL_LOAN_AGREEMENT: 'Privatdarlehensvertrag',
+                    PERSONAL_INVESTMENT: 'Persönlicher Anlageauszug',
+                    ASSET_SALE_AGREEMENT: 'Kaufvertrag über Vermögenswerte',
+                    LOAN_AGREEMENT: 'Darlehensvertrag',
+                    EQUITY_AGREEMENT: 'Beteiligungsvertrag',
+                    SUBSCRIPTION_AGREEMENT: 'Zeichnungsvertrag',
+                    SHARE_SALE_CERTIFICATE: 'Bescheinigung über den Anteilsverkauf',
+                    DONATION_RECEIPTS: 'Spendenquittungen',
+                    WRITTEN_CONFIRMATION: 'Schriftliche Bestätigung',
+                    GRANT_APPROVAL_LETTER: 'Förderbescheid',
+                },
             },
             terms: {
                 title: 'Bedingungen akzeptieren',
@@ -4267,7 +4390,6 @@ ${amount} für ${merchant} – ${date}`,
         error: {
             dateShouldBeBefore: (dateString: string) => `Datum muss vor dem ${dateString} liegen`,
             dateShouldBeAfter: (dateString: string) => `Datum muss nach ${dateString} liegen`,
-            hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
             cannotIncludeCommaOrSemicolon: 'Name darf kein Komma oder Semikolon enthalten',
             incorrectZipFormat: (zipFormat?: string) => `Ungültiges Postleitzahlenformat${zipFormat ? `Zulässiges Format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4462,7 +4584,6 @@ ${amount} für ${merchant} – ${date}`,
             lastName: 'Bitte gib einen gültigen Nachnamen ein',
             noDefaultDepositAccountOrDebitCardAvailable: 'Bitte fügen Sie ein Standard-Einzahlungskonto oder eine Debitkarte hinzu',
             validationAmounts: 'Die von Ihnen eingegebenen Validierungsbeträge sind falsch. Bitte prüfen Sie Ihren Kontoauszug noch einmal und versuchen Sie es erneut.',
-            fullName: 'Bitte gib einen gültigen vollständigen Namen ein',
             ownershipPercentage: 'Bitte gib eine gültige Prozentzahl ein',
             deletePaymentBankAccount:
                 'Dieses Bankkonto kann nicht gelöscht werden, da es für Zahlungen mit der Expensify Karte verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an Concierge.',
@@ -4490,6 +4611,8 @@ ${amount} für ${merchant} – ${date}`,
             tooManyItems: ({max}: {max: number}) => `Füge höchstens ${max} hinzu`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
+        uploadFile: 'Datei hochladen',
+        selectDocumentToUpload: 'Dokument zum Hochladen auswählen',
         addItem: ({item}: {item: string}) => `${item} hinzufügen`,
         removeItemTitle: ({item}: {item: string}) => `${item} entfernen?`,
         removeItemPrompt: ({name}: {name: string}) => `Möchtest du ${name} wirklich entfernen?`,
@@ -7105,6 +7228,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
             autoCategorizeNewExpenses: 'Neue Ausgaben automatisch kategorisieren',
+            enableAtLeastOneCategory: 'Bitte aktiviere mindestens eine Kategorie.',
             showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
@@ -7304,6 +7428,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 allCards: 'Alle Karten',
                 assignedCards: 'Zugewiesen',
                 unassignedCards: 'Nicht zugewiesen',
+                matchesLastFourDigitsOnly: 'Stimmt nur mit den letzten 4 Ziffern überein',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-Export` : `${integration}-Export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.${exportPageLink ? ` Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.` : ''}`,
@@ -7986,16 +8111,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Bei einer in Expensify Classic eingerichteten Verbindung ist ein Fehler aufgetreten. [Wechsle zu Expensify Classic, um dieses Problem zu beheben.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Wechsle zu Expensify Classic, um deine Einstellungen zu verwalten.',
-            exactOnline: {
-                comingSoon: 'Demnächst verfügbar',
-                joinWaitlist: 'Warteliste beitreten',
-                onWaitlist: 'Sie stehen auf der Warteliste',
-                waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Demnächst verfügbar',
                 joinWaitlist: 'Warteliste beitreten',
                 onWaitlist: 'Sie stehen auf der Warteliste',
+                onWaitlistButton: 'Auf der Warteliste',
                 onTheList: 'Sie stehen auf der Liste!',
                 waitlistDescription: 'Concierge sendet Ihnen eine Nachricht, sobald diese Integration bereit ist, und erklärt Ihnen, wie Sie die Verbindung herstellen.',
             },
@@ -8805,6 +8925,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     selectWorkspace: 'wähle einen Workspace aus und ändere den Plantyp in',
                 },
                 upgradeWorkspaceWarning: `Arbeitsbereich kann nicht aktualisiert werden`,
+                createWorkspaceWarning: `Arbeitsbereich kann nicht erstellt werden`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Ihr Unternehmen hat das Erstellen von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an eine*n Admin, um Hilfe zu erhalten.',
             },
@@ -11147,6 +11268,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         noVendor: 'Kein Lieferant',
         expenseType: 'Ausgabenart',
         receiptType: 'Belegart',
+        violation: 'Verstoß',
         receiptTypeValues: {
             ereceipt: 'eBeleg',
             itemized: 'Aufgeschlüsselt',
@@ -11214,6 +11336,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             insights: 'Einblicke',
             topSpenders: 'Höchste Ausgaben',
             topCategories: 'Topkategorien',
+            topTags: 'Top-Tags',
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
             travel: 'Reisen',
@@ -11367,6 +11490,29 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'bald';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in zwei Wochen';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in einer Woche';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft</a>.`
+                        : 'Stellen Sie die Kartenverbindung wieder her, bevor die Zustimmung abläuft.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, für Ihre ` : 'Für Ihre ';
+                    return `${intro}<strong>${feedName}</strong>-Kartenverbindung ist ${warningTime} eine erneute Zustimmung erforderlich. Transaktionen werden derzeit noch synchronisiert, könnten aber nicht mehr importiert werden, wenn die Zustimmung nicht erneuert wird. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12060,6 +12206,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             tagOutOfPolicy: 'Tag nicht mehr gültig',
             overLimitAttendee: 'Über Personenlimit',
             customRules: 'Verstoß gegen benutzerdefinierte Regel',
+            ruleViolation: 'Regelverstoß',
             taxAmountChanged: 'Steuerbetrag geändert',
             taxOutOfPolicy: 'Steuersatz nicht mehr gültig',
             taxRateChanged: 'Steuersatz geändert',
