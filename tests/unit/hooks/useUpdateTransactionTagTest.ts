@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useUpdateTransactionTag from '@hooks/useUpdateTransactionTag';
 
-import {setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestDraftHasUserEdits, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 
@@ -15,7 +15,7 @@ import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The three writes are the assertions: each branch must reach exactly one of them.
-jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestTag: jest.fn()}));
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestDraftHasUserEdits: jest.fn(), setMoneyRequestTag: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
 jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestTag: jest.fn()}));
 
@@ -79,6 +79,8 @@ describe('useUpdateTransactionTag', () => {
         expect(setMoneyRequestTag).toHaveBeenCalledWith(TRANSACTION_ID, 'Engineering:Beta');
         expect(updateMoneyRequestTag).not.toHaveBeenCalled();
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
+        // And the draft is marked as edited by the user, so leaving the create flow asks before discarding the pick
+        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('clears the list when its current tag is picked again', () => {
