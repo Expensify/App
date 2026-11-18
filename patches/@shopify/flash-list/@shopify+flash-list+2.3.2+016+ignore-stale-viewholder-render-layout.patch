@@ -28,7 +28,7 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollec
 index e66d406..3d3e4b0 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-@@ -290,6 +290,13 @@ export const ViewHolderCollection = (props) => {
+@@ -351,6 +351,13 @@ export const ViewHolderCollection = (props) => {
      return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
          hasData &&
          renderEntriesRef.current.map(([reactKey, { index }]) => {
@@ -42,7 +42,7 @@ index e66d406..3d3e4b0 100644
              const item = data[index];
              // Suppress separators for items in the last row to prevent
              // height mismatch. The last data item has no separator (no
-@@ -298,7 +305,7 @@ export const ViewHolderCollection = (props) => {
+@@ -359,7 +366,7 @@ export const ViewHolderCollection = (props) => {
                  ? data[index + 1]
                  : undefined;
              return (React.createElement(ViewHolder, { key: reactKey, index: index, item: item, trailingItem: trailingItem, layout: {
