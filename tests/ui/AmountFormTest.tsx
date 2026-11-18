@@ -183,22 +183,28 @@ describe('AmountForm', () => {
 
     describe('default variant without displayAsTextInput (KeypadAmountEditor path)', () => {
         it('renders the number pad and the currency symbol as separate text', async () => {
-            // Given a keypad AmountForm for USD
-            renderForm({value: '10', currency: 'USD'});
+            // Given a USD value, the default variant used by the full-screen amount pages
+            const props = {value: '10', currency: 'USD'};
+
+            // When a keypad AmountForm renders it
+            renderForm(props);
             await waitForBatchedUpdatesWithAct();
 
-            // Then the value, the number pad and the symbol render
+            // Then the value, the number pad and the symbol render, so the migrated path keeps the legacy layout
             expect(screen.getByDisplayValue('10')).toBeOnTheScreen();
             expect(screen.getByTestId('button_1')).toBeOnTheScreen();
             expect(screen.getByText('$')).toBeOnTheScreen();
         });
 
         it('hides the currency symbol with hideCurrencySymbol', async () => {
-            // Given a keypad AmountForm that hides the symbol
-            renderForm({value: '10', currency: 'USD', hideCurrencySymbol: true});
+            // Given props that hide the symbol, as pages that show the currency elsewhere do
+            const props = {value: '10', currency: 'USD', hideCurrencySymbol: true};
+
+            // When a keypad AmountForm renders them
+            renderForm(props);
             await waitForBatchedUpdatesWithAct();
 
-            // Then no symbol renders
+            // Then no symbol renders, so the currency is not shown twice
             expect(screen.queryByText('$')).toBeNull();
         });
 
@@ -278,12 +284,14 @@ describe('AmountForm', () => {
         });
 
         it('forwards the ref to the text input so FormProvider can focus it', async () => {
-            // Given a keypad AmountForm with an object ref
+            // Given an object ref, which FormProvider passes to every input it manages
             const ref = React.createRef<BaseTextInputRef>();
+
+            // When a keypad AmountForm mounts with it
             renderForm({value: '10', ref});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the ref exposes the input methods FormProvider relies on
+            // Then the ref exposes focus and measureLayout, which FormProvider needs to focus and scroll to the field on errors
             expect(typeof ref.current?.focus).toBe('function');
             expect(typeof ref.current?.measureLayout).toBe('function');
         });
@@ -292,10 +300,12 @@ describe('AmountForm', () => {
             // Given a keypad AmountForm with an error and focus callbacks
             const onBlur = jest.fn();
             const onFocus = jest.fn();
+
+            // When it renders with an error
             renderForm({value: '10', errorText: 'Invalid amount', onBlur, onFocus});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the error text is displayed
+            // Then the error text is displayed, so the user knows why the form cannot be submitted
             expect(screen.getByText('Invalid amount')).toBeOnTheScreen();
 
             // When the input receives and loses focus
@@ -345,20 +355,26 @@ describe('AmountForm', () => {
         });
 
         it('uses the amount accessibility label unless a label is passed', async () => {
-            // Given a keypad AmountForm without a label
-            const {unmount} = renderForm({value: '10'});
+            // Given no label, as most amount pages pass none
+            const propsWithoutLabel = {value: '10'};
+
+            // When a keypad AmountForm renders
+            const {unmount} = renderForm(propsWithoutLabel);
             await waitForBatchedUpdatesWithAct();
 
-            // Then the input falls back to the default amount label
+            // Then the input falls back to the default amount label, so screen readers still announce it
             expect(screen.getByLabelText('Amount')).toBeOnTheScreen();
 
             unmount();
 
-            // Given a keypad AmountForm with a label
-            renderForm({value: '10', label: 'Rate'});
+            // Given a label, as pages editing a value other than an amount (e.g. a rate) pass
+            const propsWithLabel = {value: '10', label: 'Rate'};
+
+            // When a keypad AmountForm renders
+            renderForm(propsWithLabel);
             await waitForBatchedUpdatesWithAct();
 
-            // Then the label is used as the accessibility label
+            // Then the label is used as the accessibility label, so the field is announced by its purpose
             expect(screen.getByLabelText('Rate')).toBeOnTheScreen();
         });
     });
