@@ -11,6 +11,7 @@ import type {PayViaABADownloadModalProps} from '@components/PayViaABADownloadMod
 import usePayViaABA from '@hooks/usePayViaABA';
 
 import HttpsError from '@libs/Errors/HttpsError';
+import Log from '@libs/Log';
 import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
@@ -157,6 +158,27 @@ describe('usePayViaABA', () => {
 
         // Then the file isn't saved a second time
         expect(saveTextFile).not.toHaveBeenCalled();
+    });
+
+    it('logs instead of saving when the payment fails after the download modal was closed', async () => {
+        // Given a payment via ABA that fails after the user closed its download modal
+        const logWarnSpy = jest.spyOn(Log, 'warn');
+        jest.mocked(payViaABA).mockImplementationOnce(() => Promise.reject(new Error('Failed to download the ABA file')));
+        mockShowModal.mockImplementationOnce(({props}) => {
+            // The real modal handles the request's failure as soon as it opens
+            props?.abaFileRequest?.catch(() => {});
+            return Promise.resolve({action: 'CLOSE'});
+        });
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there's no file to save, and the failure is logged since the modal that would show it is gone
+        expect(saveTextFile).not.toHaveBeenCalled();
+        expect(logWarnSpy).toHaveBeenCalled();
     });
 
     it('tells the user when the ABA file fails to download', async () => {
