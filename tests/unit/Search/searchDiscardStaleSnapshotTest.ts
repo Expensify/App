@@ -19,8 +19,8 @@ const mockedRequest = jest.mocked(makeRequestWithSideEffects);
 const mockedWait = jest.mocked(waitForWrites);
 const mockedOffline = jest.mocked(getIsOffline);
 
-function getQueryJSON() {
-    const query = buildSearchQueryJSON('type:expense');
+function getQueryJSON(inputQuery = 'type:expense') {
+    const query = buildSearchQueryJSON(inputQuery);
     if (!query) {
         throw new Error('Expected a search query');
     }
@@ -58,8 +58,8 @@ describe('explicit Search snapshot invalidation', () => {
         await waitForBatchedUpdates();
 
         // When two inline edits invalidate it before its old snapshot arrives
-        markInFlightSearchRequestsStale();
-        markInFlightSearchRequestsStale();
+        markInFlightSearchRequestsStale(queryJSON.hash);
+        markInFlightSearchRequestsStale(queryJSON.hash);
         const writes = defer<void>();
         mockedWait.mockReturnValueOnce(writes.promise);
         response.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: [{onyxMethod: 'merge', key: snapshotKey, value: {data: {}}}]});
@@ -92,12 +92,49 @@ describe('explicit Search snapshot invalidation', () => {
         const pending = search({queryJSON, searchKey: undefined, isLoading: false});
 
         // When another inline edit happens before dispatch
-        markInFlightSearchRequestsStale();
+        markInFlightSearchRequestsStale(queryJSON.hash);
         writes.resolve();
         await pending;
 
         // Then the response already includes it, so no replacement request is needed
         expect(mockedRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([true, false])('invalidates only pages of the edited snapshot (edit has a hash: %s)', async (hasHash) => {
+        // Given two sent pages of the edited query and an unrelated search loading its first results
+        const queryJSON = getQueryJSON();
+        const otherQueryJSON = getQueryJSON('type:expense status:paid');
+        expect(otherQueryJSON.hash).not.toBe(queryJSON.hash);
+        const response = defer<void>();
+        const snapshotsKept: boolean[] = [];
+        const pending = [
+            {queryJSON, offset: 0},
+            {queryJSON, offset: 50},
+            {queryJSON: otherQueryJSON, offset: 0},
+        ].map(({queryJSON: query, offset}) => {
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${query.hash}` as const;
+            mockedRequest.mockImplementationOnce(async (command, data) => {
+                await response.promise;
+                const result = await discardStaleSearchSnapshot(
+                    Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: [{onyxMethod: 'merge', key: snapshotKey, value: {data: {}}}]}),
+                    {command, data: data ?? undefined},
+                    false,
+                );
+                snapshotsKept.push(result?.onyxData?.some((update) => update.key === snapshotKey) ?? false);
+                return result;
+            });
+            return Promise.resolve(search({queryJSON: query, searchKey: undefined, offset, isLoading: false, skipWaitForWrites: true}));
+        });
+
+        // When a Search inline edit supplies its hash, or an Expense Report edit supplies no hash
+        markInFlightSearchRequestsStale(hasHash ? queryJSON.hash : undefined);
+        response.resolve();
+        await Promise.all(pending);
+
+        // Then only matching pages are dropped and fetched again; unrelated first results always survive
+        expect(snapshotsKept).toEqual(hasHash ? [false, false, true] : [true, true, true]);
+        expect(mockedRequest).toHaveBeenCalledTimes(hasHash ? 5 : 3);
+        expect(mockedWait).toHaveBeenCalledTimes(hasHash ? 2 : 0);
     });
 
     it('waits for edits before a pending totals upgrade even if both calls skipped writes', async () => {
@@ -110,7 +147,7 @@ describe('explicit Search snapshot invalidation', () => {
         search({queryJSON, searchKey: undefined, isLoading: false, skipWaitForWrites: true, shouldCalculateTotals: true});
 
         // When an edit invalidates the first response
-        markInFlightSearchRequestsStale();
+        markInFlightSearchRequestsStale(queryJSON.hash);
         const writes = defer<void>();
         mockedWait.mockReturnValueOnce(writes.promise);
         response.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: [{onyxMethod: 'merge', key: snapshotKey, value: {data: {}}}]});
@@ -135,7 +172,7 @@ describe('explicit Search snapshot invalidation', () => {
         );
         const queryJSON = getQueryJSON();
         const pending = search({queryJSON, searchKey: undefined, isLoading: false, skipWaitForWrites: true});
-        markInFlightSearchRequestsStale();
+        markInFlightSearchRequestsStale(queryJSON.hash);
 
         // When it fails and the same query is retried
         response.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
@@ -157,7 +194,7 @@ describe('explicit Search snapshot invalidation', () => {
         const response = defer<Response<OnyxKey>>();
         mockedRequest.mockImplementationOnce((command, data) => discardStaleSearchSnapshot(response.promise, {command, data: data ?? undefined}, false));
         const pending = search({queryJSON, searchKey: undefined, isLoading: false, skipWaitForWrites: true});
-        markInFlightSearchRequestsStale();
+        markInFlightSearchRequestsStale(queryJSON.hash);
 
         // When the app goes offline before the stale response finishes
         mockedOffline.mockReturnValue(true);

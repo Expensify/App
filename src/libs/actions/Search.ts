@@ -1293,6 +1293,7 @@ type InFlightSearchRequest = {
     pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
+    hash: number;
     jsonQuery: string;
     /** False while the request waits for writes. */
     isSent: boolean;
@@ -1309,13 +1310,14 @@ const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 /**
  * Invalidates sent Search snapshots before an inline edit applies its optimistic update. Requests waiting for writes
  * already include the edit when they are sent. Call synchronously before the edit's write so a Search cannot slip between them.
+ * Only the edited snapshot is invalidated, so unrelated searches can still show their first results.
  */
-function markInFlightSearchRequestsStale() {
-    for (const {jsonQuery, isSent} of inFlightSearchRequests.values()) {
-        if (!isSent) {
+function markInFlightSearchRequestsStale(hash: number | undefined) {
+    for (const request of inFlightSearchRequests.values()) {
+        if (!request.isSent || request.hash !== hash) {
             continue;
         }
-        markSearchSnapshotStale(jsonQuery);
+        markSearchSnapshotStale(request.jsonQuery);
     }
 }
 
@@ -1546,6 +1548,7 @@ function search({
         shouldSaveRecentSearch: shouldSaveSearchToAccount,
         footerTotal,
         shouldReturnTripRooms: isTripRoomsSearch,
+        hash: queryJSON.hash,
         jsonQuery,
         isSent: false,
     };
