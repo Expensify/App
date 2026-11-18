@@ -11289,7 +11289,7 @@ function shouldBlockSubmitDueToStrictPolicyRules(
 }
 
 /**
- * @param ownerPersonalDetailsByLogin - Only the report owner's entry is needed, because the next approver's account ID is only
+ * @param reportOwnerPersonalDetailsByLogin - Only the report owner's entry is needed, because the next approver's account ID is only
  * compared against the owner's. Approvers missing from the map get a generated account ID, which never equals the owner's.
  */
 function shouldBlockSubmitDueToPreventSelfApproval(
