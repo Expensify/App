@@ -17,6 +17,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
+import {accountingConnectionIconNames} from '@libs/accountingIntegrationIconNames';
 import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -89,21 +90,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons([
-        'IntacctSquare',
-        'IntuitSquare',
-        'QBOSquare',
-        'XeroSquare',
-        'NetSuiteSquare',
-        'QBDSquare',
-        'CertiniaSquare',
-        'RilletSquare',
-        'DualEntrySquare',
-        'CampfireSquare',
-        'DigitsSquare',
-        'BusinessCentralSquare',
-        'ZohoBooksSquare',
-    ]);
+    const accountingIcons = useMemoizedLazyExpensifyIcons(accountingConnectionIconNames);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const {canWrite: canWriteAccounting, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
