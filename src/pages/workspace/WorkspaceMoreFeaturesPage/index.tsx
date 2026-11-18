@@ -112,6 +112,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -356,10 +357,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policy?.taxRates, policyData);
+                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, undefined, policyData);
+                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
                             }}
                             onPress={() => {
                                 if (!policyID) {

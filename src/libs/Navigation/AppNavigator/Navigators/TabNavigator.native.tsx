@@ -1,3 +1,5 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import useOnyx from '@hooks/useOnyx';
 
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -18,13 +20,16 @@ import React from 'react';
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
+import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import SettingsSplitNavigator from './SettingsSplitNavigator';
+import TabRootGestureController from './TabRootGestureController';
 import WorkspaceNavigator from './WorkspaceNavigator';
 
 /**
@@ -40,8 +45,10 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const isTabBarVertical = useIsTabBarVertical();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
+
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
         route.name === tabWithoutBarItem
@@ -52,43 +59,48 @@ function TabNavigator() {
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
               };
 
-    return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            layout={renderNativeTabLayout}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            screenOptions={getScreenOptions}
-            UNSTABLE_router={tabRouterOverride}
-            screenListeners={(props) => tabScreenListeners({...props, session})}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPage}
-                // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
-                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
-            />
-        </Tab.Navigator>
+    const tabNavigator = (
+        <>
+            <TabRootGestureController />
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                layout={renderNativeTabLayout}
+                screenLayout={bottomTabScreenLayoutWrapper}
+                screenOptions={getScreenOptions}
+                UNSTABLE_router={tabRouterOverride}
+                screenListeners={(props) => tabScreenListeners({...props, session})}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePage}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPage}
+                    // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
+                    initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigator}
+                />
+            </Tab.Navigator>
+        </>
     );
+
+    return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;
 }
 
 export default TabNavigator;

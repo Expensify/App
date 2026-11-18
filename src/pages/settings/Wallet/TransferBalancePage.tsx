@@ -133,6 +133,7 @@ function TransferBalancePage() {
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
                     buttonText={translate('common.done')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_SUCCESS_DONE}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
                     containerStyle={styles.flex1}
                 />

@@ -41,8 +41,6 @@ jest.mock('@hooks/useNativeCamera', () => ({
     }),
 }));
 
-jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: () => ({isBetaEnabled: () => true})}));
-
 // Jest resolves the camera platform config to the iOS file, which has no torch path.
 jest.mock('@libs/cameraCapture/platformConfig', () => ({
     __esModule: true,
