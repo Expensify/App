@@ -1,11 +1,15 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import useRequestStepWorkspaceList from '@hooks/useRequestStepWorkspaceList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
@@ -30,13 +34,14 @@ import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
-import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
+import RequestStepWorkspaceListHeader from './RequestStepWorkspaceListHeader';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
 type IOURequestStepPerDiemWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOURequestStepPerDiemWorkspaceProps) {
+function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerDiemWorkspaceProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {
         params: {action, iouType, transactionID},
     } = route;
@@ -47,6 +52,9 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+    // Picking a row only marks it and the footer button moves on, so a workspace that starts out selected can be kept
+    // without having to tap it again.
+    const [markedPolicyID, setMarkedPolicyID] = useState<string>();
 
     const selectWorkspace = (policy: OnyxEntry<Policy>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
@@ -95,6 +103,21 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
     };
 
+    const {
+        initiallyFocusedKey,
+        selectedPolicyID,
+        workspaceOptions,
+        filteredWorkspaceOptions,
+        inputValue,
+        setInputValue,
+        selectWorkspace: confirmWorkspace,
+    } = useRequestStepWorkspaceList({
+        transaction,
+        getPolicies: getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+        onSelectWorkspace: selectWorkspace,
+        markedPolicyID,
+    });
+
     useEffect(() => {
         if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
             return;
@@ -116,12 +139,27 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     }
 
     return (
-        <BaseRequestStepWorkspace
-            route={route}
-            navigation={navigation}
-            getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
-            onSelectWorkspace={selectWorkspace}
-        />
+        <>
+            <RequestStepWorkspaceListHeader
+                workspaceCount={workspaceOptions.length}
+                filteredWorkspaceCount={filteredWorkspaceOptions.length}
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+            />
+            <SelectionList
+                key={initiallyFocusedKey}
+                data={filteredWorkspaceOptions}
+                onSelectRow={(item) => setMarkedPolicyID(item.policyID)}
+                confirmButtonOptions={{
+                    showButton: true,
+                    text: translate('common.next'),
+                    onConfirm: () => confirmWorkspace(selectedPolicyID),
+                    isDisabled: !selectedPolicyID,
+                }}
+                ListItem={UserListItem}
+                initiallyFocusedItemKey={initiallyFocusedKey}
+            />
+        </>
     );
 }
 

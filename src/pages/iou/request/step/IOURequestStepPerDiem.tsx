@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
+import {getInitialPerDiemTargetReport, getSelectedWorkspacePolicyID} from '@libs/IOUUtils';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -56,7 +56,9 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
         selector: (policies) => (!explicitPolicyID && reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined),
     });
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    const policyID = explicitPolicyID ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicyID : reportPolicyID);
+    // The workspace picked in the form's "To" row wins, so the rates gate and the per diem unit follow it there. The route
+    // report stays on the workspace the flow started from.
+    const policyID = getSelectedWorkspacePolicyID(transaction, action) ?? explicitPolicyID ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicyID : reportPolicyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const perDiemUnit = getPerDiemCustomUnit(policy);
 

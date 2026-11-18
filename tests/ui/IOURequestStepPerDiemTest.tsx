@@ -6,10 +6,12 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type * as TextModule from '@components/Text';
 
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import {IOURequestStepPerDiemContent as IOURequestStepPerDiem} from '@pages/iou/request/step/IOURequestStepPerDiem';
+import PerDiemRatesGate from '@pages/iou/request/step/PerDiemRatesGate';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -34,13 +36,14 @@ type MockConfirmationProps = {
     route: {params: {iouType: string}};
 };
 
-// The rates are covered by PerDiemRatesGateTest, so this test only looks at what the page does around them.
-jest.mock(
-    '@pages/iou/request/step/PerDiemRatesGate',
-    () =>
-        ({children}: {children: ReactNode}) =>
-            children,
-);
+// The rates are covered by PerDiemRatesGateTest, so most tests here only look at what the page does around them. The
+// mock is a jest.fn so a test can put the real gate back when it checks which workspace's rates get fetched.
+jest.mock('@pages/iou/request/step/PerDiemRatesGate', () => jest.fn(({children}: {children: ReactNode}) => children));
+
+jest.mock('@libs/actions/Policy/PerDiem', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Policy/PerDiem'),
+    fetchPerDiemRates: jest.fn(),
+}));
 
 // The expense form is heavy and has its own tests. The stub shows which iouType it was handed.
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
@@ -67,13 +70,14 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const TRANSACTION_ID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
 const REPORT_ID = 'report-1';
 const POLICY_ID = 'policy-1';
+const OTHER_POLICY_ID = 'policy-2';
 const CUSTOM_UNIT_ID = 'per-diem-unit';
 const DEFAULT_CATEGORY = 'Travel';
 
-function createPerDiemPolicy(): Policy {
+function createPerDiemPolicy(id = POLICY_ID): Policy {
     return {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Per diem policy'),
-        id: POLICY_ID,
+        id,
         customUnits: {
             [CUSTOM_UNIT_ID]: {
                 customUnitID: CUSTOM_UNIT_ID,
@@ -104,8 +108,10 @@ type PerDiemScreenProps = PlatformStackScreenProps<MoneyRequestNavigatorParamLis
 const mockSetParams = jest.fn();
 const navigation = createMock<PerDiemScreenProps['navigation']>({setParams: mockSetParams});
 
-function renderPage({transaction, report, explicitPolicyID, iouType = CONST.IOU.TYPE.CREATE}: {transaction: Transaction; report?: Report; explicitPolicyID?: string; iouType?: IOUType}) {
-    return render(
+type PageProps = {transaction: Transaction; report?: Report; explicitPolicyID?: string; iouType?: IOUType};
+
+function buildPage({transaction, report, explicitPolicyID, iouType = CONST.IOU.TYPE.CREATE}: PageProps) {
+    return (
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
                 <LocaleContextProvider>
@@ -125,8 +131,12 @@ function renderPage({transaction, report, explicitPolicyID, iouType = CONST.IOU.
                     </CurrencyListContextProvider>
                 </LocaleContextProvider>
             </CurrentUserPersonalDetailsProvider>
-        </OnyxListItemProvider>,
+        </OnyxListItemProvider>
     );
+}
+
+function renderPage(props: PageProps) {
+    return render(buildPage(props));
 }
 
 describe('IOURequestStepPerDiem', () => {
@@ -136,6 +146,7 @@ describe('IOURequestStepPerDiem', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(PerDiemRatesGate).mockImplementation(({children}) => children);
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createPerDiemPolicy());
@@ -158,7 +169,7 @@ describe('IOURequestStepPerDiem', () => {
 
         // Then the draft gets that workspace's custom unit, default category, report and participants
         expect(setCustomUnitID).toHaveBeenCalledWith(TRANSACTION_ID, CUSTOM_UNIT_ID);
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, DEFAULT_CATEGORY, undefined, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, DEFAULT_CATEGORY, undefined);
         expect(setTransactionReport).toHaveBeenCalledTimes(1);
         expect(setMoneyRequestParticipantsFromReport).toHaveBeenCalledTimes(1);
 
@@ -208,5 +219,28 @@ describe('IOURequestStepPerDiem', () => {
         // Then the form tracks the expense, while the create route keeps its iouType for the manual and scan tabs
         expect(screen.getByText(`confirmation:${CONST.IOU.TYPE.TRACK}`)).toBeTruthy();
         expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it('fetches the rates of the workspace picked in the "To" row instead of the one the flow started from', async () => {
+        // Given the real rates gate, and a second per diem workspace with no rates in Onyx
+        jest.mocked(PerDiemRatesGate).mockImplementation(jest.requireActual<{default: typeof PerDiemRatesGate}>('@pages/iou/request/step/PerDiemRatesGate').default);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, createPerDiemPolicy(OTHER_POLICY_ID));
+        });
+        const report = {reportID: REPORT_ID, policyID: POLICY_ID} as Report;
+        const customUnit = {customUnitID: CUSTOM_UNIT_ID, name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL};
+        const transaction = createDraft({comment: {customUnit}, participants: [{policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}]});
+        const {rerender} = renderPage({transaction, report, iouType: CONST.IOU.TYPE.SUBMIT});
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(fetchPerDiemRates).mockClear();
+
+        // When the user moves the expense to the second workspace in the "To" row, while the route report stays on the first
+        const movedTransaction = createDraft({comment: {customUnit}, participants: [{policyID: OTHER_POLICY_ID, isPolicyExpenseChat: true, selected: true}]});
+        rerender(buildPage({transaction: movedTransaction, report, iouType: CONST.IOU.TYPE.SUBMIT}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the gate fetches the second workspace's rates, so the form doesn't keep checking the first one's
+        expect(fetchPerDiemRates).toHaveBeenCalledWith(OTHER_POLICY_ID);
+        expect(fetchPerDiemRates).not.toHaveBeenCalledWith(POLICY_ID);
     });
 });
