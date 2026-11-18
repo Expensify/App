@@ -1,6 +1,6 @@
-# Files perf tests depend on without importing them. Jest's --changedSince and --findRelatedTests can't see
-# these, so a change to any of them measures every perf test, on both sides of the comparison. Read by
-# both jobs in reassurePerformanceTests.yml. See .github/workflows/README.md#selective-test-runs.
+# Files perf tests depend on without importing them, so Jest can't tell which tests they affect. A PR that
+# changes any of them runs every perf test, on both main's side and the PR's. Used by both jobs in
+# reassurePerformanceTests.yml. See .github/workflows/README.md#selective-test-runs.
 any:
   - 'package.json'
   - 'package-lock.json'

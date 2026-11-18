@@ -112,8 +112,9 @@ jobs:
             echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the PR targets a branch other than main (seedJestPerfCache.yml only seeds main), or when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
           fi
 
-      # On a miss, measure only the perf tests branch-perf-tests measures. Usually a miss: the base is
-      # main's newest commit, and its seed run is still measuring it.
+      # This job runs main's side of the comparison, at the same time as branch-perf-tests runs the PR's.
+      # When main's results aren't cached (usually: the seed run for main's newest commit is still going),
+      # it runs only the perf tests branch-perf-tests runs, so both sides measure the same tests.
       - name: Check for changes that need a full run
         id: fullRun
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
@@ -132,8 +133,7 @@ jobs:
           # different trees is the noise this comparison exists to detect. Only its source tree is
           # needed, and a reachable SHA can be fetched bare.
           git fetch origin "$BASELINE_SHA" --no-tags --depth=1
-          # What the PR changes, for measuring only the perf tests branch-perf-tests selects. Comparing two
-          # trees needs no history, so the depth-1 checkout is enough.
+          # The files the PR changes, used below to pick the same perf tests as branch-perf-tests.
           git diff --name-only FETCH_HEAD HEAD > "$RUNNER_TEMP/changedFiles.txt"
           git checkout --force --detach FETCH_HEAD --no-recurse-submodules
 
@@ -162,11 +162,9 @@ jobs:
         if: steps.restoreBaseline.outputs.cache-hit != 'true' && steps.restoreJestCache.outputs.cache-hit != 'true'
         run: echo "::warning::Jest perf transform cache miss - this job re-transforms the whole source tree. Expected only when the toolchain key rotated (lockfile, patches, Babel or Jest config, Node version); otherwise seedJestPerfCache.yml has stopped writing the entry."
 
-      # Only the perf tests that import a changed file, as branch-perf-tests picks them. Run on the base
-      # tree, the changed files still reach every test the merge commit's imports do; the PR's new files
-      # don't exist here and are skipped. Reassure hands these paths to Jest through a shell without
-      # escaping them, so a path with any other character measures everything instead. So does an empty
-      # list, which --findRelatedTests rejects.
+      # Runs only the perf tests that use a file the PR changed, the same ones branch-perf-tests runs.
+      # Runs all of them instead when the list is empty, or when a path has characters a shell could
+      # misread: Reassure passes these paths to Jest through a shell without escaping them.
       - name: Run baseline performance tests
         if: steps.restoreBaseline.outputs.cache-hit != 'true'
         shell: bash
