@@ -1,11 +1,12 @@
 /** Declares the charts each Insights dashboard renders and how they map to backend graph slots and search views. */
 
-import type {ChartView, SearchChartCountDimension, SearchChartMetric, SearchGroupBy} from '@components/Search/types';
+import type {SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchView} from '@components/Search/types';
 
+import {arePaymentsEnabled} from '@libs/PolicyUtils/payments';
 import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
 import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {areApprovalsEnabled} from '@libs/PolicyUtils/workflows';
-import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders, isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -25,7 +26,10 @@ type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
     graphKey: InsightsGraphKey;
     titleKey: TranslationPaths;
-    view: ChartView;
+    view: SearchView;
+
+    /** Whether the chart spans the dashboard's whole width instead of sharing the two-column grid */
+    isFullWidth?: boolean;
 
     /** What the chart plots for each group, left out by charts plotting the money each group totals */
     metric?: SearchChartMetric;
@@ -122,6 +126,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
             },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                titleKey: 'search.tabs.topTags',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopTags,
+            },
         ],
     },
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
@@ -140,12 +154,21 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         },
         supportingCharts: [
             {
+                graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
+                titleKey: 'insightsPage.averageProcessingTime',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            },
+            {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,
                 titleKey: 'insightsPage.longestToSubmit',
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -156,7 +179,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 isPolicyEligible: areApprovalsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
@@ -168,7 +191,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 workflowStage: CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID,
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.PAID_BY,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                isPolicyEligible: arePaymentsEnabled,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
@@ -190,17 +214,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
         },
         supportingCharts: [
-            {
-                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
-                titleKey: 'insightsPage.topViolations',
-                has: VIOLATION_HAS_VALUES,
-                view: CONST.SEARCH.VIEW.PIE,
-                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
-                metric: CONST.SEARCH.CHART_METRIC.COUNT,
-                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-            },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
                 titleKey: 'insightsPage.violationsBySubmitter',
@@ -226,6 +239,18 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: (policy) => hasMultipleMembers(policy) && areApprovalsEnabled(policy),
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+                titleKey: 'insightsPage.topViolations',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.TABLE,
+                isFullWidth: true,
+                groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
+                metric: CONST.SEARCH.CHART_METRIC.COUNT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: 15,
             },
         ],
     },
@@ -273,12 +298,15 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
         .map((policy) => policy.id);
 }
 
-/** Returns the dashboards the user can open, ignoring the workspace filter. */
+/**
+ * Returns the dashboards the user can open, ignoring the workspace filter.
+ * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
+ */
 function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
-    const allPolicies = Object.values(policies ?? {});
+    const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
         const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || allPolicies.some((policy) => !!policy && isPolicyEligible(policy, login)));
+        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
     });
 }
 

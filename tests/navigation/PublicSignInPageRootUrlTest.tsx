@@ -33,7 +33,7 @@ jest.mock('@pages/ValidateLoginPage', () => () => null);
 jest.mock('@libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator', () => () => null);
 jest.mock('@libs/Navigation/AppNavigator/useRootNavigatorScreenOptions', () => () => ({basicModalNavigator: {}}));
 jest.mock('@hooks/useTheme', () => () => ({overlay: '#000000'}));
-jest.mock('@hooks/useStyleUtils', () => () => ({getBackgroundColorWithOpacityStyle: () => ({})}));
+jest.mock('@hooks/useStyleUtils', () => () => ({getBackgroundColorWithOpacityStyle: () => ({}), getSafeAreaInsets: (insets: unknown) => insets}));
 
 describe('Logged-out sign-in page URL', () => {
     it('returns to sign-in without an unhandled reset when session cleanup settles after public navigation mounts', async () => {

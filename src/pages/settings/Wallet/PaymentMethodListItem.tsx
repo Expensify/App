@@ -277,6 +277,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     ) : undefined;
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
+        sentryLabel: CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.ROW,
         title: item.title,
         titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
         // The globe sits inside the row's button, so screen readers only hear it through the row's label
@@ -337,6 +338,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         actionText={connectionStatus.actionText}
                                         actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
+                                        actionSentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.CONNECTION_STATUS_ACTION}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
                                         onLinkPress={connectionStatus.onLinkPress}
