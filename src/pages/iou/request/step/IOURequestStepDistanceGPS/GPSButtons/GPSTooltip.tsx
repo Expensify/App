@@ -14,6 +14,7 @@ import React from 'react';
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
 type GPSTooltipProps = React.PropsWithChildren<{
+    /** Max tooltip width in px. Defaults to the window width minus horizontal padding. Used to cap the tooltip to the button's width so it stays on screen in landscape. */
     maxWidth?: number;
 }>;
 
