@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 
 import pkg from '../../package.json';
 import CONFIG from '../../src/CONFIG';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '../../src/libs/API/types';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -59,8 +60,8 @@ test('Enhance parameters adds correct parameters for a command that requires aut
 });
 
 test('Enhance parameters keeps the authToken a caller passes instead of the session one', () => {
-    // Given a session token, and a caller that sends a different token, as LogOut and the 2FA flows do
-    const command = 'Report_AddComment';
+    // Given a session token, and LogOut sending a different token, as the 2FA flows also do
+    const command = SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT;
     const callerAuthToken = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIyIn0.Y2FsbGVy';
     Onyx.merge(ONYXKEYS.SESSION, {email: 'test-user@test.com', authToken: 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxIn0.c2Vzc2lvbg'});
     return waitForBatchedUpdates().then(() => {
