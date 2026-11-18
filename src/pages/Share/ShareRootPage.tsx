@@ -26,8 +26,8 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
@@ -76,7 +76,6 @@ function ShareRootPage() {
             });
     };
 
-    const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
@@ -154,12 +153,13 @@ function ShareRootPage() {
     };
 
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                handleProcessFiles();
+        // Re-read only on a new share. Foreground events also fire after permission dialogs, when the file may already be moved.
+        const subscription = Linking.addEventListener('url', ({url}) => {
+            if (!url.includes(ROUTES.SHARE_ROOT)) {
+                return;
             }
 
-            appState.current = nextAppState;
+            handleProcessFiles();
         });
 
         return () => {

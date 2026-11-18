@@ -707,7 +707,10 @@ function removeApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}
         return;
     }
 
-    const approvers = currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex);
+    const approvers = lodashDropRightWhile(
+        currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex),
+        (approver) => !approver,
+    );
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
         // An approver after the removed one may only have repeated them
         approvers: approvers.map(

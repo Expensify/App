@@ -2584,16 +2584,6 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimis
 }
 
 /**
- * Returns true if this report has only one participant and it's an Expensify account.
- */
-function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean {
-    const otherParticipants = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-    return otherParticipants.length === 1 && otherParticipants.some((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
-}
-
-/**
  * Returns whether a given report can have tasks created in it.
  * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
  *
@@ -16172,7 +16162,6 @@ export {
     isExpenseReport,
     isExpenseRequest,
     isFinancialReportsForBusinesses,
-    isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
