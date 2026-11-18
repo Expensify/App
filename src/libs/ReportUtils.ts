@@ -185,6 +185,7 @@ import {
     isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isWorkflowApprover,
     resolveCurrentTaxCode,
     shouldShowPolicy,
 } from './PolicyUtils';
@@ -6071,14 +6072,11 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isWorkflowApproverEditing =
-        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
-        !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserEmail === getManagerAccountEmail(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
     if (isWorkflowApproverEditing) {
         return true;
     }
@@ -6266,14 +6264,11 @@ function canCurrentUserEditExpense(
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isApprover =
-        !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
         isOpenReport(moneyRequestReport) &&
-        !isSubmitAndClose(reportPolicy) &&
-        deprecatedCurrentUserEmail === getManagerAccountEmail(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0);
+        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
 
     return isAdmin || isManager || isRequestor || isApprover;
 }

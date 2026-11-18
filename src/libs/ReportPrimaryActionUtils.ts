@@ -12,7 +12,6 @@ import {
     canAdminPayReport,
     canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getManagerAccountEmail,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -23,9 +22,9 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
-    isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isWorkflowApprover,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -170,10 +169,8 @@ function isSubmitAction(
         return false;
     }
 
-    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const isWorkflowApprover =
-        !isReportSubmitter && !!currentUserEmail && !!ownerLogin && !isSubmitAndClose(policy) && currentUserEmail === getManagerAccountEmail(policy, ownerLogin, rules, report.total ?? 0);
-    const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
+    const isCurrentUserWorkflowApprover = !isReportSubmitter && isWorkflowApprover(policy, ownerLogin, rules, report.total ?? 0, currentUserEmail);
+    const canBeSubmitter = isReportSubmitter || isCurrentUserWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
