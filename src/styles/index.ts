@@ -175,6 +175,12 @@ const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight:
 // silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
 const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
+// A subnav row's label lines up with the label of the row above: the row's padding, the icon and the icon-label gap.
+const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + variables.iconSizeNormal + variables.flatNavigationBarItemGap;
+
+// The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
+const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -968,7 +974,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             gap: variables.spacing2,
             height: variables.flatNavigationBarSubnavItemHeight,
-            paddingLeft: variables.flatNavigationBarSubnavIndent,
+            paddingLeft: flatNavigationBarSubnavIndent,
             paddingRight: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -980,7 +986,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.flatNavigationBarSubnavHeaderHeight,
             justifyContent: 'flex-end',
             paddingBottom: 4,
-            paddingLeft: variables.flatNavigationBarSubnavIndent,
+            paddingLeft: flatNavigationBarSubnavIndent,
             paddingRight: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
         },
@@ -990,7 +996,7 @@ const staticStyles = (theme: ThemeColors) =>
             position: 'absolute',
             top: 0,
             bottom: 0,
-            left: variables.flatNavigationBarSubnavRuleLeft,
+            left: flatNavigationBarSubnavRuleLeft,
             width: 1,
             backgroundColor: theme.border,
         },
@@ -998,7 +1004,7 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarSubnavMarker: {
             position: 'absolute',
             top: 0,
-            left: variables.flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            left: flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
             width: variables.flatNavigationBarSubnavMarkerWidth,
             height: variables.flatNavigationBarSubnavMarkerHeight,
             borderRadius: variables.componentBorderRadiusRounded,
