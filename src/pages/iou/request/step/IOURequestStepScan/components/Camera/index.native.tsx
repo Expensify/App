@@ -88,6 +88,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
     } = useNativeCamera({onFocusStart, onFocusCleanup});
+    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
 
     const isTorchRequested = shouldLightFlashWithTorch({
         flash,
@@ -96,7 +97,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         isMultiScanEnabled,
         canUpgradeReceiptQuality,
     });
-    const {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto} = usePhotoUpgrade();
     const isTorchLit = shouldKeepTorchLit({isTorchRequested, isAppInForeground, isScreenFocused: isScanScreenFocused, hasPendingPhotoCapture});
     const torchRequestedAt = useRef(0);
     useEffect(() => {
