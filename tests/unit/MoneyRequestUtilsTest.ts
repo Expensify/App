@@ -6,14 +6,12 @@ import {
     handleNegativeAmountFlipping,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
-    isValidMerchant,
     isValidMoneyRequestAmount,
     validateAmount,
     validatePercentage,
 } from '@libs/MoneyRequestUtils';
 
 import CONST from '@src/CONST';
-import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -264,71 +262,6 @@ describe('ReportActionsUtils', () => {
                 expect(isValidMoneyRequestAmount(0, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
                 expect(isValidMoneyRequestAmount(100, CONST.IOU.TYPE.REQUEST, allowNegative, isP2P)).toBe(true);
             });
-        });
-    });
-
-    describe('isValidMerchant', () => {
-        const iouReport = {
-            reportID: '1',
-            type: CONST.REPORT.TYPE.IOU,
-        } as Report;
-
-        const expenseReport = {
-            reportID: '123',
-            type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-
-        const unreportedTransaction = createMock<Transaction>({
-            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-            amount: 0,
-        });
-
-        const reportedTransaction = createMock<Transaction>({
-            reportID: '123',
-            amount: 0,
-        });
-
-        describe('empty merchants', () => {
-            it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {
-                expect(isValidMerchant('', unreportedTransaction)).toBe(true);
-                expect(isValidMerchant('   ', unreportedTransaction)).toBe(true);
-                expect(isValidMerchant(undefined, unreportedTransaction)).toBe(true);
-
-                expect(isValidMerchant('', reportedTransaction, iouReport)).toBe(true);
-                expect(isValidMerchant('   ', reportedTransaction, iouReport)).toBe(true);
-                expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
-            });
-
-            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(true);
-                expect(isValidMerchant('')).toBe(true);
-            });
-
-            it('should return false for empty/undefined merchant on an expense report', () => {
-                expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-            });
-        });
-
-        describe('invalid merchant constants', () => {
-            it('should return false for invalid merchant constants regardless of transaction', () => {
-                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)).toBe(false);
-                expect(isValidMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)).toBe(false);
-                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, unreportedTransaction)).toBe(false);
-            });
-        });
-
-        describe('byte length validation', () => {
-            it('should respect the 255 byte limit', () => {
-                expect(isValidMerchant('Valid Merchant Name')).toBe(true);
-                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES))).toBe(true);
-                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1))).toBe(false);
-            });
-        });
-
-        it('should trim whitespace before validation', () => {
-            expect(isValidMerchant('  Valid Merchant  ')).toBe(true);
         });
     });
 });

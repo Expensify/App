@@ -154,7 +154,6 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     isSidePanelResizable: false,
 };
 
-jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 jest.mock('@hooks/useLoadReportActions', () =>
     jest.fn(() => ({
