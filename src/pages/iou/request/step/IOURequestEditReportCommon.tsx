@@ -166,6 +166,8 @@ function IOURequestEditReportCommon({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [hasMoreOutstandingReports] = useOnyx(ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS);
+    const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
 
     const outstandingReportsPolicyID = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport) ? undefined : selectedPolicyID;
     const outstandingReportsOffset = useRef(0);
@@ -185,20 +187,12 @@ function IOURequestEditReportCommon({
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
 
-    const loadMoreOutstandingReports = async () => {
-        if (isOffline) {
-            return;
-        }
-        const [hasMoreOutstandingReports, isLoadingOutstandingReports] = await Onyx.multiGet([ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS, ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS]);
-        if (!hasMoreOutstandingReports || isLoadingOutstandingReports) {
+    const loadMoreOutstandingReports = () => {
+        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
             return;
         }
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
-    };
-
-    const requestMoreOutstandingReports = () => {
-        loadMoreOutstandingReports();
     };
 
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
@@ -513,7 +507,7 @@ function IOURequestEditReportCommon({
                 ) : undefined
             }
             listEmptyContent={listHeaderContent}
-            onEndReached={requestMoreOutstandingReports}
+            onEndReached={loadMoreOutstandingReports}
             onEndReachedThreshold={0.75}
         />
     );
