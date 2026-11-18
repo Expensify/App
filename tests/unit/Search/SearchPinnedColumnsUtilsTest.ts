@@ -121,6 +121,18 @@ describe('getPinsOnSavedColumns', () => {
         expect(kept).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: []});
     });
 
+    it('keeps pins on the columns the table adds without the query saving them', () => {
+        // Given Violations pinned left and Total pinned right, on a query whose saved columns leave both out,
+        // as a typed `has:violations columns:date,merchant,total-amount` expense search or a Reports search does
+        const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS], right: [CONST.SEARCH.TABLE_COLUMNS.TOTAL]};
+
+        // When the pins are matched to the saved columns
+        const kept = getPinsOnSavedColumns(pinnedColumns, [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+
+        // Then both pins stay, because the table shows those columns anyway and pinning them must move them
+        expect(kept).toEqual(pinnedColumns);
+    });
+
     it('keeps every pin when the query saves no columns, since the table then shows its defaults', () => {
         // Given pins on a query that leaves the columns to the table
         const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]};

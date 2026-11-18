@@ -14,6 +14,9 @@ type QueryPins = Pick<SearchQueryJSON, 'leftPinnedColumns' | 'rightPinnedColumns
 
 const NO_PINNED_COLUMNS: PinnedColumns = {left: [], right: []};
 
+/** Columns a table adds even when its query's saved columns leave them out: Type on expenses, Total on reports, and Violations under a violation filter. */
+const COLUMNS_SHOWN_WITHOUT_SAVING = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]);
+
 /** Reads the query's pins. A query can name a column twice, so the left list wins, and within a list its first mention does. */
 function getPinnedColumns({leftPinnedColumns, rightPinnedColumns}: QueryPins): PinnedColumns {
     const left = [...new Set<SearchColumnType>([leftPinnedColumns ?? []].flat())];
@@ -47,14 +50,16 @@ function setColumnPin(pinnedColumns: PinnedColumns, column: SearchColumnType, si
 
 /**
  * Drops the pins on columns a query no longer saves, so a column taken off the table doesn't come back pinned when it's added again.
- * With no saved columns the table shows its default ones, which can't be told apart here, so every pin is kept.
+ * With no saved columns the table shows its default ones, which can't be told apart here, so every pin is kept. Pins on the columns
+ * a table adds by itself are kept too, since those can't be taken off the table.
  */
 function getPinsOnSavedColumns(pinnedColumns: PinnedColumns, savedColumns: SearchColumnType | SearchColumnType[] | undefined): PinnedColumns {
     const saved = new Set([savedColumns ?? []].flat());
     if (saved.size === 0) {
         return pinnedColumns;
     }
-    return {left: pinnedColumns.left.filter((column) => saved.has(column)), right: pinnedColumns.right.filter((column) => saved.has(column))};
+    const isKept = (column: SearchColumnType) => saved.has(column) || COLUMNS_SHOWN_WITHOUT_SAVING.has(column);
+    return {left: pinnedColumns.left.filter(isKept), right: pinnedColumns.right.filter(isKept)};
 }
 
 /** The query with its pins replaced, keeping only pins on the columns it saves. An edge with no pins is left out of the query rather than written empty. */
