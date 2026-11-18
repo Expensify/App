@@ -646,45 +646,45 @@ describe('PaymentUtils', () => {
     });
 
     describe('getWalletTransferBankAccounts', () => {
-        const createBankAccount = (bankAccountID: number, type: string, overrides: Partial<BankAccount> = {}): BankAccount => ({
+        type BankAccountOptions = {
+            type: string;
+            state?: string;
+            country?: string;
+            pendingAction?: BankAccount['pendingAction'];
+        };
+
+        const createBankAccount = (bankAccountID: number, {type, state = CONST.BANK_ACCOUNT.STATE.OPEN, country = CONST.COUNTRY.US, pendingAction}: BankAccountOptions): BankAccount => ({
             accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            bankCurrency: CONST.CURRENCY.USD,
             methodID: bankAccountID,
-            accountData: {
-                bankAccountID,
-                type,
-                state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                additionalData: {country: CONST.COUNTRY.US},
-            },
-            ...overrides,
+            pendingAction,
+            accountData: {bankAccountID, type, state, additionalData: {country}},
         });
 
+        const toBankAccountList = (bankAccounts: BankAccount[]): Record<string, BankAccount> =>
+            Object.fromEntries(bankAccounts.map((bankAccount) => [String(bankAccount.methodID), bankAccount]));
+
         it('keeps only open personal US accounts', () => {
-            // Given a personal account next to a business account, the wallet pseudo-account, a closed personal account and a non-US personal account
-            const personal = createBankAccount(1, CONST.BANK_ACCOUNT.TYPE.PERSONAL);
-            const bankAccountList: Record<string, BankAccount> = {
-                1: personal,
-                2: createBankAccount(2, CONST.BANK_ACCOUNT.TYPE.BUSINESS),
-                3: createBankAccount(3, CONST.BANK_ACCOUNT_TYPES.WALLET),
-                4: createBankAccount(4, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {
-                    accountData: {bankAccountID: 4, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.PENDING},
-                }),
-                5: createBankAccount(5, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {
-                    accountData: {bankAccountID: 5, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {country: 'GB'}},
-                }),
-            };
+            // Given a personal account next to a business account, the wallet pseudo-account, a pending personal account and a non-US personal account
+            const personal = createBankAccount(1, {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL});
+            const bankAccountList = toBankAccountList([
+                personal,
+                createBankAccount(2, {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}),
+                createBankAccount(3, {type: CONST.BANK_ACCOUNT_TYPES.WALLET}),
+                createBankAccount(4, {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.PENDING}),
+                createBankAccount(5, {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, country: 'GB'}),
+            ]);
 
             // When the wallet transfer destinations are picked, since Auth rejects a transfer to anything but an open personal US account
             const result = getWalletTransferBankAccounts(bankAccountList);
 
             // Then only the personal account remains, so the business one can't be offered or auto-selected
-            expect(result).toEqual({1: personal});
+            expect(result).toEqual(toBankAccountList([personal]));
         });
 
         it('drops a personal account pending deletion', () => {
             // Given a personal account the user just deleted offline
-            const bankAccountList: Record<string, BankAccount> = {
-                1: createBankAccount(1, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
-            };
+            const bankAccountList = toBankAccountList([createBankAccount(1, {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
 
             // When the wallet transfer destinations are picked
             const result = getWalletTransferBankAccounts(bankAccountList);
