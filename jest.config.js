@@ -35,7 +35,7 @@ module.exports = {
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
-        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list|@entrust\.corporation).*/)',
+        '<rootDir>/node_modules/(?!.*(react-native|expo|react-navigation|uuid|@shopify\/flash-list).*/)',
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
@@ -70,6 +70,7 @@ module.exports = {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^@lottiefiles/dotlottie-react$': '<rootDir>/__mocks__/@lottiefiles/dotlottie-react.tsx',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
+        '^@entrust\\.corporation/idvsdk-reactnative(/.*)?$': '<rootDir>/__mocks__/@entrust.corporation/idvsdk-reactnative.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },
 };
