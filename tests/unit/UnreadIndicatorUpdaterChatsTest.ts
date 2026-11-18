@@ -18,7 +18,7 @@ describe('UnreadIndicatorUpdater chats read up to their newest message and menti
         participants: {[TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
         ...fields,
     });
-    const getUnreadIDs = (reports: Record<string, ReturnType<typeof chat>>) =>
+    const getUnreadIDs = (reports: Parameters<typeof UnreadIndicatorUpdater.getUnreadReportIDsForUnreadIndicator>[0]) =>
         UnreadIndicatorUpdater.getUnreadReportIDsForUnreadIndicator(reports, undefined, undefined, {currentUserAccountID: TEST_USER_ACCOUNT_ID, currentUserLogin: TEST_USER_LOGIN});
 
     beforeAll(async () => {
@@ -82,6 +82,28 @@ describe('UnreadIndicatorUpdater chats read up to their newest message and menti
 
         // Then it is unread, since a missing last read time must not be treated as read
         expect(unreadReportIDs).toEqual(['1']);
+    });
+
+    it('ignores a report without a report ID', () => {
+        // Given an otherwise unread chat whose report ID is empty
+        const reports = {1: {...chat('1', {lastReadTime: '2023-08-07 07:15:44.030', lastVisibleActionCreated: '2023-08-08 07:15:44.030'}), reportID: ''}};
+
+        // When the unread report IDs are collected
+        const unreadReportIDs = getUnreadIDs(reports);
+
+        // Then it is skipped, since only an ID can be returned
+        expect(unreadReportIDs).toEqual([]);
+    });
+
+    it('does not count a read non-chat report that bypasses the early skip', () => {
+        // Given an expense report read after its newest message, which the chat-only early skip does not cover
+        const reports = {1: {...chat('1', {lastReadTime: '2023-08-09 07:15:44.030', lastVisibleActionCreated: '2023-08-08 07:15:44.030'}), type: CONST.REPORT.TYPE.EXPENSE}};
+
+        // When the unread report IDs are collected
+        const unreadReportIDs = getUnreadIDs(reports);
+
+        // Then the full unread check still runs and finds nothing unread
+        expect(unreadReportIDs).toEqual([]);
     });
 
     it('returns only the IDs of the unread chats', () => {
