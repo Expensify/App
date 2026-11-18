@@ -22,11 +22,6 @@ function createReactNativeFormData(parts: ReactNativeFormDataPart[]): FormData {
     return {append: jest.fn(), getParts: () => parts} as unknown as FormData;
 }
 
-function getRegisteredTokenRefreshMappings() {
-    const [config] = jest.mocked(registerTokenRefresh).mock.calls.at(0) ?? [];
-    return config?.mappings;
-}
-
 function getSavedPrefetchBody(): RequestInit['body'] {
     const [, fetchParams] = jest.mocked(prefetchOnAppStart).mock.calls.at(0) ?? [];
     return fetchParams?.body;
@@ -69,29 +64,38 @@ describe('registerPrefetchOnAppStart', () => {
         expect(getSavedPrefetchBody()).toBe(body);
     });
 
-    it('maps the refreshed token into the Authorization header when the saved request carries a JWT', () => {
-        // Given a ReconnectApp sent with a JWT authToken, so it also carries the Authorization header
-        const body = createReactNativeFormData([{fieldName: 'authToken', string: JWT_AUTH_TOKEN}]);
+    it('puts a JWT sent in the header back into the saved body', () => {
+        // Given a ReconnectApp that sent its JWT in the Authorization header, so its body has no authToken
+        const body = createReactNativeFormData([{fieldName: 'clientUpdateID', string: '123'}]);
         const headers = {[CONST.HTTP_HEADER_NAMES.AUTHORIZATION]: `Bearer ${JWT_AUTH_TOKEN}`, prefetchKey: PREFETCH_KEY};
 
         // When the request is registered for the next app start
-        registerPrefetchOnAppStart({prefetchKey: PREFETCH_KEY, command: 'ReconnectApp', url: URL, fetchParams: {method: 'POST', body, headers}});
+        registerPrefetchOnAppStart({prefetchKey: PREFETCH_KEY, command: 'ReconnectApp', url: URL, fetchParams: {method: 'POST', body, headers}, headerAuthToken: JWT_AUTH_TOKEN});
 
-        // Then the token refresh writes the new token into the header too, so the prefetch never sends a header that disagrees with its authToken
-        expect(getRegisteredTokenRefreshMappings()).toEqual([{jsonPath: 'authToken', header: 'Authorization', valueTemplate: 'Bearer {{value}}'}]);
+        // Then the saved request carries the token in both places, so it still authenticates if Auth refreshes it to a hex token on the next launch
+        const savedBody = getSavedPrefetchBody();
+        if (!(savedBody instanceof FormData)) {
+            throw new Error('Expected the saved prefetch body to be FormData');
+        }
+        expect(savedBody.get('authToken')).toBe(JWT_AUTH_TOKEN);
+        expect(savedBody.get('clientUpdateID')).toBe('123');
         const [, fetchParams] = jest.mocked(prefetchOnAppStart).mock.calls.at(0) ?? [];
         expect(fetchParams?.headers).toEqual(headers);
     });
 
-    it('does not map the refreshed token into the Authorization header when the saved request carries a hex token', () => {
-        // Given a ReconnectApp sent with a legacy hex authToken, which has no Authorization header
-        const body = createReactNativeFormData([{fieldName: 'authToken', string: HEX_AUTH_TOKEN}]);
+    it.each([
+        ['a JWT', JWT_AUTH_TOKEN],
+        ['a hex token', HEX_AUTH_TOKEN],
+    ])('maps the refreshed token into both the body and the Authorization header for %s', (_description, authToken) => {
+        // Given a ReconnectApp body, whose token Auth can switch between hex and JWT on the next launch when the beta flips
+        const body = createReactNativeFormData([{fieldName: 'authToken', string: authToken}]);
 
         // When the request is registered for the next app start
         registerPrefetchOnAppStart({prefetchKey: PREFETCH_KEY, command: 'ReconnectApp', url: URL, fetchParams: {method: 'POST', body}});
 
-        // Then only the authToken parameter is refreshed, because a hex token must never be sent as a Bearer header
-        expect(jest.mocked(registerTokenRefresh)).toHaveBeenCalledTimes(1);
-        expect(getRegisteredTokenRefreshMappings()).toBeUndefined();
+        // Then both mappings are registered, because the server prefers the body parameter and ignores a Bearer header that isn't a JWT
+        const [config] = jest.mocked(registerTokenRefresh).mock.calls.at(0) ?? [];
+        expect(config?.mappings).toEqual([{jsonPath: 'authToken', header: 'Authorization', valueTemplate: 'Bearer {{value}}'}]);
+        expect(config?.formDataMappings).toEqual([{jsonPath: 'authToken', field: 'authToken'}]);
     });
 });

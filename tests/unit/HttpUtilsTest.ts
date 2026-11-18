@@ -1,4 +1,4 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 
 import CONST from '@src/CONST';
@@ -10,6 +10,8 @@ import HttpUtils from '../../src/libs/HttpUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockAlertUser = jest.fn<void, []>();
+const mockGetQAAccessToken = jest.fn<string | null, [string]>(() => null);
+let mockPrepareRequestPayloadModule = '@libs/prepareRequestPayload/index.native.ts';
 const mockPreparePrefetchRequest = jest.fn(() => ({prefetchKey: undefined as string | undefined, prefetchHeaders: undefined as Record<string, string> | undefined}));
 
 jest.mock('@libs/actions/UpdateRequired', () => ({
@@ -18,6 +20,15 @@ jest.mock('@libs/actions/UpdateRequired', () => ({
 jest.mock('@libs/Prefetch/preparePrefetchRequest', () => ({
     __esModule: true,
     default: () => mockPreparePrefetchRequest(),
+}));
+jest.mock('@libs/CloudflareAccess/fetchWithQAAuth', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/CloudflareAccess/fetchWithQAAuth'),
+    getQAAccessToken: (url: string) => mockGetQAAccessToken(url),
+}));
+// Jest resolves the native files, so this switches to the web payload to cover both platforms
+jest.mock('@libs/prepareRequestPayload', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => jest.requireActual<{default: (...payloadArgs: unknown[]) => Promise<FormData>}>(mockPrepareRequestPayloadModule).default(...args),
 }));
 
 const RECONNECT_APP_PREFETCH_KEY = `${WRITE_COMMANDS.RECONNECT_APP}:1`;
@@ -40,6 +51,11 @@ function getSentAuthToken(body: BodyInit | null | undefined) {
     }
     return body.get('authToken');
 }
+
+const PLATFORM_PAYLOAD_MODULES = [
+    ['web', '@libs/prepareRequestPayload/index.ts'],
+    ['native', '@libs/prepareRequestPayload/index.native.ts'],
+];
 
 function mockUpdateRequiredResponse(isPrefetched: boolean) {
     return {
@@ -69,6 +85,8 @@ afterEach(() => {
     jest.restoreAllMocks();
     mockAlertUser.mockClear();
     mockPreparePrefetchRequest.mockClear();
+    mockGetQAAccessToken.mockClear();
+    mockPrepareRequestPayloadModule = '@libs/prepareRequestPayload/index.native.ts';
 });
 
 describe('HttpUtils', () => {
@@ -148,45 +166,66 @@ describe('HttpUtils', () => {
         expect(mockAlertUser).toHaveBeenCalledTimes(1);
     });
 
-    it('sends a JWT authToken in the Authorization header as well as the authToken parameter', async () => {
-        // Given an account on Auth's JWT beta
-        const sentRequests: SentRequest[] = [];
-        mockSuccessfulFetch(sentRequests);
+    describe.each(PLATFORM_PAYLOAD_MODULES)('on %s', (_platform, payloadModule) => {
+        beforeEach(() => {
+            mockPrepareRequestPayloadModule = payloadModule;
+        });
 
-        // When a request is sent with its JWT
-        await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: JWT_AUTH_TOKEN});
+        it('sends a JWT authToken in the Authorization header and leaves it out of the body', async () => {
+            // Given an account on Auth's JWT beta
+            const sentRequests: SentRequest[] = [];
+            mockSuccessfulFetch(sentRequests);
 
-        // Then Cloudflare can read the token from the header, and the server still gets the parameter until it reads the header
-        expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${JWT_AUTH_TOKEN}`});
-        expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(JWT_AUTH_TOKEN);
-    });
+            // When a request is sent with its JWT
+            await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: JWT_AUTH_TOKEN});
 
-    it('does not send an Authorization header for a hex authToken', async () => {
-        // Given an account that is not on Auth's JWT beta
-        const sentRequests: SentRequest[] = [];
-        mockSuccessfulFetch(sentRequests);
+            // Then Cloudflare can validate the token from the header, and the server reads it from there too
+            expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${JWT_AUTH_TOKEN}`});
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBeNull();
+        });
 
-        // When a request is sent with its hex token
-        await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: HEX_AUTH_TOKEN});
+        it('keeps a hex authToken in the body and sends no Authorization header', async () => {
+            // Given an account that is not on Auth's JWT beta
+            const sentRequests: SentRequest[] = [];
+            mockSuccessfulFetch(sentRequests);
 
-        // Then only the parameter carries it, because Cloudflare would reject a hex token as a Bearer token
-        expect(sentRequests.at(0)?.headers).toBeUndefined();
-        expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(HEX_AUTH_TOKEN);
-    });
+            // When a request is sent with its hex token
+            await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: HEX_AUTH_TOKEN});
 
-    it('sends the authToken a caller passes in the header instead of the session one', async () => {
-        // Given a session JWT, and a caller that sends a different token, as LogOut and the 2FA flows do
-        await Onyx.merge(ONYXKEYS.SESSION, {authToken: JWT_AUTH_TOKEN});
-        await waitForBatchedUpdates();
-        const sentRequests: SentRequest[] = [];
-        mockSuccessfulFetch(sentRequests);
+            // Then the body carries it as before, because only a JWT can be validated as a Bearer token
+            expect(sentRequests.at(0)?.headers).toBeUndefined();
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(HEX_AUTH_TOKEN);
+        });
 
-        // When the request goes through the same parameter enhancement as Request.ts
-        await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, enhanceParameters(WRITE_COMMANDS.ADD_COMMENT, {authToken: OVERRIDE_JWT_AUTH_TOKEN}));
+        it('sends the JWT LogOut passes in the header instead of the session one', async () => {
+            // Given a session JWT, and LogOut sending a different token, as the 2FA flows also do
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: JWT_AUTH_TOKEN});
+            await waitForBatchedUpdates();
+            const sentRequests: SentRequest[] = [];
+            mockSuccessfulFetch(sentRequests);
+            const command = SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT;
 
-        // Then the header and the parameter carry the same token, so the edge and the server authenticate the same session
-        expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${OVERRIDE_JWT_AUTH_TOKEN}`});
-        expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(OVERRIDE_JWT_AUTH_TOKEN);
+            // When the request goes through the same parameter enhancement as Request.ts
+            await HttpUtils.xhr(command, enhanceParameters(command, {authToken: OVERRIDE_JWT_AUTH_TOKEN}));
+
+            // Then the header carries the caller's token, so the server signs out the session the caller meant
+            expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${OVERRIDE_JWT_AUTH_TOKEN}`});
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBeNull();
+        });
+
+        it('keeps a JWT in the body when the request carries the QA server Cloudflare Access bearer', async () => {
+            // Given an active Cloudflare Access session for the QA server, whose bearer takes the Authorization header
+            mockGetQAAccessToken.mockReturnValueOnce('cloudflare-access-token');
+            const sentRequests: SentRequest[] = [];
+            mockSuccessfulFetch(sentRequests);
+
+            // When a request is sent with a JWT
+            await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: JWT_AUTH_TOKEN});
+
+            // Then the Expensify header is left out so it can't replace the Access bearer, and the body still authenticates the request
+            expect(sentRequests.at(0)?.headers).toBeUndefined();
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(JWT_AUTH_TOKEN);
+        });
     });
 
     it('keeps the Authorization header when it retries a prefetched 426', async () => {
@@ -202,7 +241,7 @@ describe('HttpUtils', () => {
         // When ReconnectApp is sent and retried
         await HttpUtils.xhr(WRITE_COMMANDS.RECONNECT_APP, {authToken: JWT_AUTH_TOKEN});
 
-        // Then the retry still carries the header, because it reuses the same body and authToken
+        // Then the retry still carries the header, because its body has no authToken to fall back on
         expect(requestHeaders).toEqual([{Authorization: `Bearer ${JWT_AUTH_TOKEN}`, prefetchKey: RECONNECT_APP_PREFETCH_KEY}, {Authorization: `Bearer ${JWT_AUTH_TOKEN}`}]);
     });
 });

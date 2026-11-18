@@ -18,12 +18,17 @@ type QAAuthRequestOptions = {
     body?: FormData | string;
 };
 
+/** The Cloudflare Access token a request to this URL carries as its bearer, or null when it carries none */
+function getQAAccessToken(url: string): string | null {
+    return isQAServerRequest(url) ? (getCloudflareSession()?.accessToken ?? null) : null;
+}
+
 /**
  * Attaches the bearer only for an exact match on one of the configured QA origins. On a 401 it refreshes once and
  * retries once, and a second 401 rejects with CF_REAUTH_REQUIRED. Transient refresh failures reject as-is.
  */
 async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, isRetry = false): Promise<Response> {
-    const accessToken = isQAServerRequest(url) ? (getCloudflareSession()?.accessToken ?? null) : null;
+    const accessToken = getQAAccessToken(url);
 
     const response = await fetch(url, {
         method: options.method,
@@ -50,4 +55,4 @@ async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, 
 }
 
 export default fetchWithQAAuth;
-export {CF_REAUTH_REQUIRED};
+export {CF_REAUTH_REQUIRED, getQAAccessToken};

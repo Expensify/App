@@ -11,13 +11,15 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type {RequestAuthorization} from './Network/moveJWTAuthTokenToHeader';
+
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import getAuthorizationHeaders from './Network/getAuthorizationHeaders';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import moveJWTAuthTokenToHeader from './Network/moveJWTAuthTokenToHeader';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
@@ -86,7 +88,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
-    authorizationHeaders: Record<string, string> | undefined = undefined,
+    authorization: RequestAuthorization | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
@@ -94,7 +96,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
     let isPrefetchedResponse = false;
-    const headers = authorizationHeaders || prefetchHeaders ? {...authorizationHeaders, ...prefetchHeaders} : undefined;
+    const headers = authorization || prefetchHeaders ? {...authorization?.headers, ...prefetchHeaders} : undefined;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -109,7 +111,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url, headerAuthToken: authorization?.authToken});
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
     const phaseSpanNames = getRequestPhaseSpanNames(command);
@@ -250,7 +252,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
                 // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
                 if (isPrefetchedResponse) {
-                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true, authorizationHeaders);
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true, authorization);
                 }
 
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
@@ -281,12 +283,14 @@ function xhr<TKey extends OnyxKey>(
     shouldUseSecure = false,
     initiatedOffline = false,
 ): Promise<Response<TKey>> {
-    return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
-        const url = getCommandURL({shouldUseSecure, command});
+    const url = getCommandURL({shouldUseSecure, command});
+
+    // The header carries the authToken parameter itself, which callers can override (e.g. for LogOut or 2FA)
+    const {payloadData, authorization} = moveJWTAuthTokenToHeader(url, data);
+    return prepareRequestPayload(command, payloadData, initiatedOffline).then((formData) => {
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
-        // The header carries the same token as the authToken parameter, which callers can override (e.g. for LogOut or 2FA)
-        return processHTTPRequest(url, type, formData, abortSignalController?.signal, false, getAuthorizationHeaders(data.authToken));
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal, false, authorization);
     });
 }
 
