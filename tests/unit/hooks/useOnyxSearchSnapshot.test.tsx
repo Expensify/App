@@ -1,10 +1,16 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, screen} from '@testing-library/react-native';
 
-import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContextDefinitions';
+import {SearchQueryContext, SearchShouldUseLiveDataContext} from '@components/Search/SearchContextDefinitions';
+import SearchResultsProvider from '@components/Search/SearchResultsProvider';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import Text from '@components/Text';
 
 import useOnyx from '@hooks/useOnyx';
 
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -33,14 +39,12 @@ type SearchScreenProps = ChildrenProps & {
 
 function SearchScreen({children, isOnSearch = true, shouldUseLiveData = false}: SearchScreenProps) {
     const queryContext = use(SearchQueryContext);
-    const resultsContext = use(SearchResultsContext);
     const queryContextWithHash = useMemo(() => ({...queryContext, currentSearchHash: SEARCH_HASH}), [queryContext]);
-    const resultsContextWithLiveData = useMemo(() => ({...resultsContext, shouldUseLiveData}), [resultsContext, shouldUseLiveData]);
 
     return (
         <SearchScopeProvider isOnSearch={isOnSearch}>
             <SearchQueryContext.Provider value={queryContextWithHash}>
-                <SearchResultsContext.Provider value={resultsContextWithLiveData}>{children}</SearchResultsContext.Provider>
+                <SearchShouldUseLiveDataContext value={shouldUseLiveData}>{children}</SearchShouldUseLiveDataContext>
             </SearchQueryContext.Provider>
         </SearchScopeProvider>
     );
@@ -219,5 +223,106 @@ describe('useOnyx Search snapshot updates', () => {
 
         // Then Search shows the new name but not the description the snapshot never had
         expect(result.current[0]).toEqual({...SNAPSHOT_REPORT, reportName: 'Updated report'});
+    });
+});
+
+function SearchScreenWithResultsProvider({children}: ChildrenProps) {
+    const queryContext = use(SearchQueryContext);
+
+    return (
+        <SearchScopeProvider>
+            <SearchQueryContext value={{...queryContext, currentSearchHash: SEARCH_HASH}}>
+                <SearchResultsProvider>{children}</SearchResultsProvider>
+            </SearchQueryContext>
+        </SearchScopeProvider>
+    );
+}
+
+const SUGGESTED_SEARCHES = getSuggestedSearches();
+
+function SearchScreenForKey({children, searchKey}: ChildrenProps & {searchKey: SearchKey}) {
+    const queryContext = use(SearchQueryContext);
+    const searchQueryContext = {
+        ...queryContext,
+        currentSearchHash: SEARCH_HASH,
+        currentSearchKey: searchKey,
+        currentSearchQueryJSON: SUGGESTED_SEARCHES[searchKey].searchQueryJSON,
+        suggestedSearches: SUGGESTED_SEARCHES,
+    };
+
+    return (
+        <SearchScopeProvider>
+            <SearchQueryContext value={searchQueryContext}>
+                <SearchResultsProvider>{children}</SearchResultsProvider>
+            </SearchQueryContext>
+        </SearchScopeProvider>
+    );
+}
+
+describe('useOnyx Search snapshot with the results provider', () => {
+    beforeEach(async () => {
+        await Onyx.clear();
+        await Onyx.set(REPORT_KEY, LIVE_REPORT);
+        await Onyx.merge(SNAPSHOT_KEY, {data: {[REPORT_KEY]: SNAPSHOT_REPORT}});
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not re-render a selector consumer when an unrelated part of the snapshot changes', async () => {
+        // Given a report name read through a selector on a Search screen
+        let renderCount = 0;
+        const {result} = renderHook(
+            () => {
+                renderCount++;
+                return useOnyx(REPORT_KEY, {selector: selectReportName});
+            },
+            {wrapper: SearchScreenWithResultsProvider},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeMerge = renderCount;
+
+        // When another key and the sort order of the same snapshot change, as they do whenever a search page loads or is re-sorted
+        await act(() => Onyx.merge(SNAPSHOT_KEY, {search: {sortOrder: CONST.SEARCH.SORT_ORDER.ASC}, data: {[POLICY_KEY]: {id: 'A', name: 'Snapshot policy'}}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the consumer does not re-render, because the selected value and the snapshot redirect are unchanged
+        expect(result.current[0]).toBe(SNAPSHOT_REPORT.reportName);
+        expect(renderCount).toBe(renderCountBeforeMerge);
+    });
+
+    it('switches between the snapshot and live data when the search switches between a regular and a to-do search', async () => {
+        // Given a report read through the real results provider on a regular search
+        function ReportName() {
+            const [reportName] = useOnyx(REPORT_KEY, {selector: selectReportName});
+            return <Text>{reportName}</Text>;
+        }
+        const {rerender} = render(
+            <SearchScreenForKey searchKey={CONST.SEARCH.SEARCH_KEYS.EXPENSES}>
+                <ReportName />
+            </SearchScreenForKey>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(SNAPSHOT_REPORT.reportName ?? '')).toBeOnTheScreen();
+
+        // When the user switches to a to-do search
+        rerender(
+            <SearchScreenForKey searchKey={CONST.SEARCH.SEARCH_KEYS.SUBMIT}>
+                <ReportName />
+            </SearchScreenForKey>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the live copy is read, because to-do searches build their results from live data
+        expect(screen.getByText(LIVE_REPORT.reportName ?? '')).toBeOnTheScreen();
+
+        // When the user switches back to the regular search
+        rerender(
+            <SearchScreenForKey searchKey={CONST.SEARCH.SEARCH_KEYS.EXPENSES}>
+                <ReportName />
+            </SearchScreenForKey>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the snapshot copy is read again, so only the live-data context flipping is needed to switch sources
+        expect(screen.getByText(SNAPSHOT_REPORT.reportName ?? '')).toBeOnTheScreen();
     });
 });
