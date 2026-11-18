@@ -106,6 +106,32 @@ describe('useUpdateFilterQuery', () => {
     });
 
     describe('required violation stages', () => {
+        it.each([{has: []}, {has: [CONST.SEARCH.HAS_VALUES.ATTACHMENT]}])('does not restore expense violation stages when switching to Chat (%j)', ({has}) => {
+            // Given an expense search whose violation filter requires expense stages
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                violationName: ['overLimit'],
+                has: [...has, ...VIOLATION_HAS_VALUES],
+            };
+            onyxData[ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM] = currentValues;
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+
+            // When switching to Chat removes unsupported Has values
+            const updated = result.current.getUpdatedFilterFormValues(currentValues, {type: CONST.SEARCH.DATA_TYPES.CHAT});
+            act(() => {
+                result.current.updateFilterQueryParams({type: CONST.SEARCH.DATA_TYPES.CHAT});
+            });
+
+            // Then normalization does not restore hidden expense stages or serialize them into the Chat query
+            expect(updated.has ?? []).toEqual(has);
+            const query = getNavigatedQuery();
+            expect(query?.type).toBe(CONST.SEARCH.DATA_TYPES.CHAT);
+            expect(query?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)).toEqual([]);
+            expect(query?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)).toEqual(
+                has.length ? [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.HAS_VALUES.ATTACHMENT}]}] : [],
+            );
+        });
+
         it.each([undefined, [], [CONST.SEARCH.HAS_VALUES.RECEIPT]])('adds both stages without dropping existing Has values (%j)', (has) => {
             // Given a form with no positive violation stage
             const currentValues = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, has};
