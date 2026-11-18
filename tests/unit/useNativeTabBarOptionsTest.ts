@@ -28,6 +28,7 @@ const PARAMS: NativeTabBarOptionsParams = {
 
 const FLAT_NAV_PARAMS: NativeTabBarOptionsParams = {
     shouldShowNativeTabBar: true,
+    isTabBarVertical: false,
     dotColors: {[SCREENS.NATIVE_TAB_ITEM.MORE]: '#ff0000'},
     tabLabels: {
         [SCREENS.HOME]: 'Home',
