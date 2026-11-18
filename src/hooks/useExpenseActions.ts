@@ -74,6 +74,7 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
@@ -108,6 +109,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
@@ -283,6 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -393,6 +396,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
@@ -471,6 +475,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',

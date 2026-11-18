@@ -11,7 +11,7 @@ import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -19,7 +19,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type MenuItemActionProps = WithSentryLabel &
+type MenuItemActionProps = WithRequiredSentryLabel &
     WithTestID & {
         /** The title text of the row */
         title: string;

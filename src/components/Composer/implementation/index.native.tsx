@@ -20,8 +20,9 @@ import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {ComponentRef} from 'react';
+import type {NativeSyntheticEvent, TextInput, TextInputChangeEvent} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
@@ -69,7 +70,7 @@ function Composer({
     ref,
     ...props
 }: ComposerProps) {
-    const textInputRef = useRef<MarkdownTextInput | null>(null);
+    const textInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
     const textContainsOnlyEmojis = containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
