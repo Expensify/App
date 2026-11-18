@@ -37,6 +37,25 @@ function evaluate(code: string, modules: Record<string, unknown>) {
     return {exports: moduleObject.exports, loads};
 }
 
+/** Transforms modules that import each other and links them through a cached `require`, so a cycle sees a module that is still evaluating. */
+async function evaluateModules(sources: Record<string, string>) {
+    const codes = Object.fromEntries(await Promise.all(Object.entries(sources).map(async ([name, source]) => [name, await transform(source)] as const)));
+    const cache: Record<string, {exports: Exports}> = {};
+    const loads: Record<string, number> = {};
+    const load = (name: string): Exports => {
+        const cached = cache[name];
+        if (cached) {
+            return cached.exports;
+        }
+        loads[name] = (loads[name] ?? 0) + 1;
+        const moduleObject = {exports: {} as Exports};
+        cache[name] = moduleObject;
+        vm.runInNewContext(codes[name] ?? '', {require: load, exports: moduleObject.exports, module: moduleObject});
+        return moduleObject.exports;
+    };
+    return {load, loads};
+}
+
 describe('cjsInlineRequiresLoader', () => {
     it.each([
         [
@@ -159,5 +178,68 @@ describe('cjsInlineRequiresLoader', () => {
         // When the exported function reads the alias
         // Then it gets the imported value
         expect(exports.run()).toBe('ok');
+    });
+
+    it('reads an alias of a module that was still evaluating when the cycle reached it', async () => {
+        // Given two modules in a cycle, where `a` calls into `b` before it sets the constant that `b` aliases
+        const {load} = await evaluateModules({
+            a: `import {init} from 'b';\ninit();\nexport const LIMIT = 5;`,
+            b: `import {LIMIT} from 'a';\nconst MAX = LIMIT;\nexport function init() {}\nexport function getMax() { return MAX; }`,
+        });
+
+        // When `a` finishes evaluating and `b` reads the alias
+        load('a');
+
+        // Then the alias holds the value `a` set after the cycle, because reading it was deferred to its use
+        expect(load('b').getMax()).toBe(5);
+    });
+
+    it('loads each module of a cycle once when both call each other at runtime', async () => {
+        // Given two modules that import each other
+        const {load, loads} = await evaluateModules({
+            a: `import {b} from 'b';\nexport function a() { return 'a' + b(); }\nexport function upperA() { return 'A'; }`,
+            b: `import {upperA} from 'a';\nexport function b() { return upperA(); }`,
+        });
+
+        // When `a` calls into `b`, which calls back into `a`
+        const result = load('a').a();
+
+        // Then both calls resolve, and each module evaluated only once
+        expect(result).toBe('aA');
+        expect(loads).toEqual({a: 1, b: 1});
+    });
+
+    it('keeps the first exports object when a dependency reassigns module.exports after calling back during a cycle', async () => {
+        // Given a CommonJS dependency that calls into its importer while it is still evaluating, and only then replaces module.exports
+        const {load} = await evaluateModules({
+            a: `import {name} from 'b';\nexport function touch() { return name; }\nexport function getName() { return name; }`,
+            b: `var a = require('a');\na.touch();\nmodule.exports = {name: 'final'};`,
+        });
+
+        // When the importer reads the import after the dependency has finished
+        load('b');
+
+        // Then it still holds the empty object from its first use. This is the limit documented on memoizeDeferredRequiresPlugin, so update that comment if this changes
+        expect(load('a').getName()).toBeUndefined();
+    });
+
+    it.each([
+        ['a parameter', `import {foo} from '@libs/foo';\nexport function run(require) { return foo(); }`],
+        ['a catch binding', `import {foo} from '@libs/foo';\nexport function run() { try { throw new Error('fail'); } catch (require) { return foo(); } }`],
+        [
+            'a local variable in CommonJS',
+            `var _foo = require('@libs/foo');\nexports.run = function run() { var require = function () { return {foo: function () { return 'local'; }}; }; return _foo.foo(); };`,
+        ],
+    ])('loads the import through the module loader when %s is named require', async (_label, source) => {
+        // Given a use of an import inside a scope that declares its own `require`, which the inserted require() must not call
+        const code = await transform(source);
+        const {exports, loads} = evaluate(code, {'@libs/foo': {foo: () => 'ok'}});
+
+        // When the function runs, receiving its own `require` where it takes one
+        const result = exports.run(() => ({foo: () => 'local'}));
+
+        // Then the import comes from the module loader
+        expect(result).toBe('ok');
+        expect(loads['@libs/foo']).toBe(1);
     });
 });
