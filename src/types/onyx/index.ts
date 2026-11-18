@@ -164,7 +164,7 @@ import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard} from './PersonalCard';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsLoadingState} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
@@ -370,7 +370,7 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
-    PersonalDetailsMetadata,
+    PersonalDetailsLoadingState,
     PlaidData,
     Policy,
     PolicyCategories,

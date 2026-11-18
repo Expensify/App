@@ -104,8 +104,8 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     status?: Status;
 }>;
 
-/** Model of personal details metadata */
-type PersonalDetailsMetadata = {
+/** Session-scoped loading state of a user's public profile, keyed by accountID */
+type PersonalDetailsLoadingState = {
     /** Whether we are waiting for the data to load via the API */
     isLoading?: boolean;
 };
@@ -123,4 +123,4 @@ type CurrentUserPersonalDetails = PersonalDetails & {
 
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata, CurrentUserPersonalDetails};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsLoadingState, CurrentUserPersonalDetails};
