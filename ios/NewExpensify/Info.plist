@@ -97,6 +97,8 @@
 	<true/>
 	<key>RNNitroSQLite_DatabaseLocation</key>
 	<string>ApplicationSupport</string>
+	<key>ShareExtensionAppGroup</key>
+	<string>group.com.expensify.new</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ExpensifyNewKansas-Medium.otf</string>
