@@ -1033,7 +1033,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     // A bank payment of this selection would pay none of it, so it explains why before asking for account validation or bank setup
     const isBankPayBlockedForSelection = useMemo(() => {
-        // The backend pays a "Select all" selection itself and skips the reports with nothing owed there
+        // The backend pays a "Select all" selection itself, and only skips the reports with a negative total there
         if (areAllMatchingItemsSelected) {
             return false;
         }
