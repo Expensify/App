@@ -118,6 +118,10 @@ type SearchSnapshotUpdateParams = {
     currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
 };
 
+function getEditRevertValues(transaction: OnyxEntry<OnyxTypes.Transaction>, optimisticTransaction: OnyxEntry<NullishDeep<OnyxTypes.Transaction>>) {
+    return getTransactionRevertValues(transaction, {...optimisticTransaction, receipt: undefined});
+}
+
 /**
  * Builds Onyx writes for the Search snapshot.
  * Search result rows render from snapshot data, so TRANSACTION writes alone do not refresh the list.
@@ -154,7 +158,7 @@ function getSearchSnapshotUpdates({
     successSnapshotData[transactionKey] = {pendingFields: clearedPendingFields};
 
     const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-    failureSnapshotData[transactionKey] = {...getTransactionRevertValues(transaction, updatedTransaction), pendingFields: clearedPendingFields};
+    failureSnapshotData[transactionKey] = {...getEditRevertValues(transaction, updatedTransaction), pendingFields: clearedPendingFields};
     if (currentTransactionViolations !== undefined) {
         failureSnapshotData[violationsKey] = currentTransactionViolations;
     }
@@ -2299,7 +2303,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...getTransactionRevertValues(transaction, optimisticTransaction),
+            ...getEditRevertValues(transaction, optimisticTransaction),
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -2775,7 +2779,7 @@ function getUpdateTrackExpenseParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...getTransactionRevertValues(transaction, optimisticTransaction),
+            ...getEditRevertValues(transaction, optimisticTransaction),
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
