@@ -36,6 +36,11 @@ import {createRandomReport} from '../../utils/collections/reports';
 // Module mocks
 // ---------------------------------------------------------------------------
 
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Report', () => ({
     deleteAppReport: jest.fn(),
     moveIOUReportToPolicy: jest.fn(),

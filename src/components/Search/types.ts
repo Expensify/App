@@ -31,6 +31,7 @@ import type {
     TransactionApproverGroupListItemType,
     TransactionViolationGroupListItemType,
     TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -399,7 +400,7 @@ type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
-type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
+type SearchAmountValues = Partial<Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string>>;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -417,7 +418,9 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -442,6 +445,12 @@ type SearchQueryAST = {
     groupColumns?: SearchColumnType[];
     limit?: number;
     compare?: SearchCompareMode;
+
+    /** 1-based position; omitted queries retain full-tag grouping and text matching. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for an exact level-aware tag filter; empty selects independent tags. */
+    tagParent?: string;
 };
 
 type SearchQueryJSON = {
@@ -501,7 +510,8 @@ type GroupedItem =
     | TransactionQuarterGroupListItemType
     | TransactionApproverGroupListItemType
     | TransactionViolationGroupListItemType
-    | TransactionPaidByGroupListItemType;
+    | TransactionPaidByGroupListItemType
+    | TransactionWorkflowStageGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
