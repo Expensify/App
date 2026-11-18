@@ -57,6 +57,6 @@ type ReceiptRetryContext = {
     introSelected: OnyxEntry<IntroSelected>;
 };
 
-type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed';
+type RetryOutcome = 'dispatched' | 'fileMissing' | 'payloadIncomplete' | 'unsupportedAction' | 'dispatchFailed' | 'rejectedByServer';
 
 export type {ReceiptRetryContext, ResolveReceiptFile, RetryOutcome};

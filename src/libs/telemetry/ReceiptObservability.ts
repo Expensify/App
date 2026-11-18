@@ -240,6 +240,33 @@ function logReceiptGaveUp({
     });
 }
 
+/**
+ * Records that the server answered a receipt request with an error, and whether the app still offers Try again for it.
+ * Without this, a retry that keeps failing only shows up as a repeated "Retrying receipt upload" line with no reason.
+ */
+function logReceiptUploadRejected({
+    transactionID,
+    command,
+    jsonCode,
+    errorMessage,
+    isRetryable,
+}: {
+    transactionID: string | undefined;
+    command: string;
+    jsonCode: number | string | undefined;
+    errorMessage: string | undefined;
+    isRetryable: boolean;
+}) {
+    Log.info(`${RECEIPT_LOG_PREFIX} upload rejected`, false, {
+        event: 'uploadRejected',
+        transactionID,
+        command,
+        jsonCode,
+        errorMessage,
+        isRetryable: String(isRetryable),
+    });
+}
+
 function logReceiptStatFailed(code: string | undefined) {
     Log.info(`${RECEIPT_LOG_PREFIX} stat failed`, false, {
         event: 'statFailed',
@@ -395,6 +422,7 @@ export {
     logReceiptEnqueued,
     logReceiptDropped,
     logReceiptGaveUp,
+    logReceiptUploadRejected,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
     logCameraCaptureFailed,
