@@ -1,5 +1,6 @@
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
@@ -102,8 +103,7 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                         style={styles.pv2}
                     >
                         <MenuItem.Row>
-                            <MenuItem.Content>
-                                <MenuItem.Label>{translate('task.assignee')}</MenuItem.Label>
+                            <MenuItemField.Content name={translate('task.assignee')}>
                                 <UserPill
                                     avatar={supportRepPersonalDetails?.avatar}
                                     displayName={assigneeDisplayName}
@@ -111,7 +111,7 @@ function SupportTicketView({report, action}: SupportTicketViewProps) {
                                     email={supportRepPersonalDetails?.login}
                                     style={styles.userPillStandalone}
                                 />
-                            </MenuItem.Content>
+                            </MenuItemField.Content>
                         </MenuItem.Row>
                     </MenuItem.Root>
                 )}
