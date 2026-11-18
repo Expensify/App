@@ -1,6 +1,5 @@
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -8,7 +7,6 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyCopySettingsSelection from '@hooks/usePolicyCopySettingsSelection';
@@ -37,14 +35,15 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
-
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicies = (copyPolicySettings?.targetPolicyIDs ?? []).map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
-    const {listItems, selectableFeatures, effectiveSelectedFeatures, selectedAvailableFeatures, availablePartSet, isWorkflowsSelected, toggleFeature, toggleAll} =
-        usePolicyCopySettingsSelection(sourcePolicy, targetPolicies, {initialParts: copyPolicySettings?.parts ?? []});
+    const {listItems, selectableFeatures, effectiveSelectedFeatures, confirmWorkflowsWithoutMembers, toggleFeature, toggleAll} = usePolicyCopySettingsSelection(
+        sourcePolicy,
+        targetPolicies,
+        {initialParts: copyPolicySettings?.parts ?? []},
+    );
 
     const saveAndNavigate = () => {
         if (!sourcePolicyID) {
@@ -61,31 +60,16 @@ function CopyPolicySettingsSelectFeaturesPage() {
         });
     };
 
-    const onConfirm = () => {
-        const isMembersSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.MEMBERS);
-        const isMembersPartAvailable = availablePartSet.has(CONST.POLICY.POLICY_FEATURE.MEMBERS);
-
-        if (!isWorkflowsSelected || isMembersSelected || !isMembersPartAvailable) {
-            saveAndNavigate();
-            return;
-        }
-        showConfirmModal({
-            title: translate('common.headsUp'),
-            prompt: translate('workspace.copyPolicySettings.confirmWorkflows.description'),
-            confirmText: translate('workspace.copyPolicySettings.confirmWorkflows.continue'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            saveAndNavigate();
-        });
+    const confirmSelectedFeatures = () => {
+        confirmWorkflowsWithoutMembers(saveAndNavigate);
     };
+
+    const isSelectAllChecked = selectableFeatures.length > 0 && selectableFeatures.every((part) => effectiveSelectedFeatures.includes(part));
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
         text: translate('common.next'),
-        onConfirm,
+        onConfirm: confirmSelectedFeatures,
         isDisabled: effectiveSelectedFeatures.length === 0,
     };
 
@@ -112,8 +96,8 @@ function CopyPolicySettingsSelectFeaturesPage() {
                         <Checkbox
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL}
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
-                            isChecked={selectableFeatures.length > 0 && selectableFeatures.every((part) => selectedAvailableFeatures.includes(part))}
-                            isIndeterminate={selectedAvailableFeatures.length > 0 && selectedAvailableFeatures.length < selectableFeatures.length}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={effectiveSelectedFeatures.length > 0 && !isSelectAllChecked}
                             onPress={toggleAll}
                             disabled={selectableFeatures.length === 0}
                             shouldSelectOnPressEnter

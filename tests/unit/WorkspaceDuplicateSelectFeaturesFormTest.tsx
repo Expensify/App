@@ -230,6 +230,79 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(row?.alternateText ?? '').not.toContain('source.example.com');
     });
 
+    it('ignores deleted categories when inferring Rules for a migrated Control workspace', async () => {
+        // Given a migrated workspace whose only category rule is queued for deletion.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {
+            Deleted: {name: 'Deleted', enabled: true, maxExpenseAmount: 5, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+        });
+        await renderForm(true, {areRulesEnabled: undefined});
+
+        // When the settings list infers the missing Rules feature flag.
+        const rules = getRow('rules');
+
+        // Then a deleted category cannot turn Rules on again.
+        expect(rules).toBeUndefined();
+    });
+
+    it('shows Rules when Agent rules are the only configured rules', async () => {
+        // Given a Control workspace with only one saved Agent rule.
+        await renderForm(false, {rules: {agentRules: {agent: {ruleID: 'agent', prompt: 'Require receipts', created: '2026-11-01'}}}});
+
+        // When the settings selection is submitted.
+        pressContinue();
+
+        // Then Rules remains available alongside Merchant rules.
+        expect(getRow('rules')?.isSelected).toBe(true);
+        expect(getSentParts()).toContain('rules');
+    });
+
+    it('shows Reports when only custom export layouts are configured', async () => {
+        // Given a legacy workspace with no report fields and one export layout.
+        await renderForm(false, {fieldList: {}, exportLayouts: {custom: {name: 'Custom', templateName: 'custom', type: 'csv', policyID: POLICY_ID, description: ''}}});
+
+        // When the selection is submitted.
+        pressContinue();
+
+        // Then Reports is offered so its export layout can be copied.
+        expect(getSentParts()).toContain('reports');
+    });
+
+    it('hides Invoices when a business bank account is its only configuration', async () => {
+        // Given enabled Invoices with no transferable markup or invoice fields.
+        await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {bank: {accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}}});
+        await renderForm(false, {areInvoicesEnabled: true, areInvoiceFieldsEnabled: false, invoice: {}, fieldList: {}});
+
+        // When the selection is submitted.
+        pressContinue();
+
+        // Then an unrelated bank account does not make Invoices available.
+        expect(getRow('invoices')).toBeUndefined();
+        expect(getSentParts()).not.toContain('invoices');
+    });
+
+    it('keeps displayed Travel consent controlled after its footer remounts', async () => {
+        // Given accepted consent for a provisioned source.
+        await renderForm(false, {
+            isTravelEnabled: true,
+            travelSettings: {spotnanaEntityID: 'source'},
+            address: {addressStreet: '1 Main St', country: 'US', city: 'New York', state: 'NY', zipCode: '10001'},
+        });
+        fireEvent.press(screen.getByRole('checkbox', {checked: false}));
+
+        // When Travel is removed and selected again.
+        await pressRow('travel');
+        await pressRow('travel');
+
+        // Then the displayed consent and enabled Continue button still agree.
+        expect(screen.getAllByRole('checkbox', {checked: true})).toHaveLength(2);
+        expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(false);
+        await pressRow('overview');
+        pressContinue();
+        expect(jest.mocked(duplicateWorkspace).mock.calls.at(0)?.[1].hasAcceptedTravelTerms).toBe(false);
+        await pressRow('overview');
+        expect(getRow('travel')?.isSelected).toBe(false);
+    });
+
     it('includes Invoices when markup is the only invoice configuration', async () => {
         // Given enabled invoicing with markup and no company details, invoice fields, or bank accounts.
         await renderForm(false, {areInvoicesEnabled: true, areInvoiceFieldsEnabled: false, invoice: {markUp: 25}, fieldList: {}});

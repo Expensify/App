@@ -1,3 +1,4 @@
+/** Shared Travel consent for copying settings and duplicating workspaces. */
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +21,7 @@ function PolicyCopyTravelTerms({isChecked, onToggle}: PolicyCopyTravelTermsProps
             <CheckboxWithLabel
                 style={styles.mb3}
                 accessibilityLabel={translate('travel.termsAndConditions.label')}
-                isChecked={isChecked}
+                value={isChecked}
                 onInputChange={onToggle}
                 label={translate('travel.termsAndConditions.label')}
             />

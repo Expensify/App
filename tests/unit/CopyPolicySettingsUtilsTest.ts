@@ -266,6 +266,23 @@ describe('CopyPolicySettingsUtils', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('codingRules', baseContext)).toBe(true);
         });
 
+        it.each<NonNullable<Policy['rules']>>([
+            {codingRules: {legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}}}},
+            {approvalRules: [{approver: 'member@example.com', applyWhen: []}]},
+            {expenseRules: [{tax: {field_id_TAX: {externalID: 'VAT'}}, applyWhen: []}]},
+        ])('offers Merchant rules for legacy policy rule groups without rules_ entries: %j', (rules) => {
+            // Given a workspace whose saved rules have not been migrated into rules_.
+            const context = {...baseContext, codingRulesCount: 0, policy: {...createRandomPolicy(0), rules}};
+
+            // When availability is checked for Control and Collect targets.
+            const controlAvailable = isCopyPolicySettingsPartEnabledOnSource('codingRules', context);
+            const collectAvailable = isCopyPolicySettingsPartEnabledOnSource('codingRules', {...context, isCollectPolicy: true});
+
+            // Then legacy groups remain selectable while retaining the existing plan restriction.
+            expect(controlAvailable).toBe(true);
+            expect(collectAvailable).toBe(false);
+        });
+
         it('hides travel when the source policy does not have travel enabled', () => {
             expect(isCopyPolicySettingsPartEnabledOnSource('travel', baseContext)).toBe(false);
 

@@ -49,6 +49,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         listItems: featuresToCopy,
         effectiveSelectedFeatures: effectiveSelectedItems,
         selectableFeatures,
+        confirmWorkflowsWithoutMembers,
         toggleFeature: updateSelectedItems,
         toggleAll: toggleAllItems,
         policyCategories,
@@ -70,10 +71,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             policyName: duplicateWorkspace.name,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
-            welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
             policyCategories,
             policyTags,
-            hasAcceptedTravelTerms,
+            hasAcceptedTravelTerms: requiresTravelTermsConsent && hasAcceptedTravelTerms,
             personalDetailsByLogins: employeePersonalDetails,
             parts: effectiveSelectedItems,
             file: duplicatedWorkspaceAvatar,
@@ -85,22 +85,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const duplicateWorkspaceName = duplicateWorkspace?.name;
     const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
-    const confirmSelectedFeatures = () => {
-        // Without Members, copied workflows cannot keep their original approvers.
-        if (effectiveSelectedItems.includes('workflows') && !effectiveSelectedItems.includes('members') && totalMembers > 1) {
-            showConfirmModal({
-                title: translate('common.headsUp'),
-                prompt: translate('workspace.copyPolicySettings.confirmWorkflows.description'),
-                confirmText: translate('workspace.copyPolicySettings.confirmWorkflows.continue'),
-                cancelText: translate('common.cancel'),
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                confirmDuplicate();
-            });
-            return;
-        }
+    const confirmMembersAndDuplicate = () => {
         if (!totalMembers || totalMembers < 2 || !effectiveSelectedItems.includes('members')) {
             confirmDuplicate();
             return;
@@ -128,6 +113,10 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             }
             confirmDuplicate();
         });
+    };
+
+    const confirmSelectedFeatures = () => {
+        confirmWorkflowsWithoutMembers(confirmMembersAndDuplicate);
     };
 
     // Refreshing loses the avatar blob, so restart the flow if it cannot be read.
@@ -207,6 +196,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                                         onToggle={() => setHasAcceptedTravelTerms((prev) => !prev)}
                                     />
                                     <Button
+                                        style={styles.w100}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         size={CONST.BUTTON_SIZE.LARGE}
                                         onPress={confirmSelectedFeatures}
