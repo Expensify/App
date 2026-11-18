@@ -45,7 +45,12 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
 
     if (isLoading) {
-        return <InsightsAILoadingIndicator />;
+        return (
+            <InsightsAILoadingIndicator
+                key={insightsScope.searchKey}
+                searchKey={insightsScope.searchKey}
+            />
+        );
     }
 
     const cards = (insights ?? [])

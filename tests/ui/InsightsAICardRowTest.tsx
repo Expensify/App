@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -56,17 +56,17 @@ const TREND: AIInsight = {
     explainPrompt: 'Why has Advertising spend gone down 3 months in a row?',
 };
 
-async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = false) {
+async function renderRow(insights: AIInsight[] | undefined, hasFailedToLoad = false, insightsScope = INSIGHTS_SCOPE) {
     const result = render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <InsightsAICardRow
                 insights={insights}
-                insightsScope={INSIGHTS_SCOPE}
+                insightsScope={insightsScope}
                 hasFailedToLoad={hasFailedToLoad}
             />
         </ComposeProviders>,
     );
-    await waitForBatchedUpdatesWithAct();
+    await act(async () => jest.advanceTimersByTimeAsync(0));
     return result;
 }
 
@@ -74,6 +74,7 @@ describe('InsightsAICardRow', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
     beforeEach(async () => {
+        jest.useFakeTimers();
         jest.mocked(useNetwork).mockReturnValue({isOffline: false});
         jest.mocked(useAskConcierge).mockReturnValue({askConcierge: jest.fn(), askConciergeWithAttachment: jest.fn(), shouldShowAskConcierge: true, conciergeTargetReportID: undefined});
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
@@ -91,6 +92,51 @@ describe('InsightsAICardRow', () => {
         expect(screen.getAllByText(LOADING_TITLE)).toHaveLength(1);
         expect(screen.getByText(LOADING_SUBTITLE)).toBeOnTheScreen();
         expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toHaveStyle({width: 60, height: 60});
+    });
+
+    it('advances through the loading hints and waits on the last one until insights arrive', async () => {
+        // Given the backend has not finished generating insights
+        await renderRow(undefined);
+        const messages = ['Reading Spend over time', 'Comparing with your average', 'Looking for anything unusual', 'Writing your insights'];
+
+        // When each two-second hint interval elapses
+        for (const message of messages) {
+            await act(async () => jest.advanceTimersByTimeAsync(2000));
+
+            // Then the next hint replaces the previous one while the loading title stays visible
+            expect(screen.getByText(message)).toBeOnTheScreen();
+            expect(screen.getByText(LOADING_TITLE)).toBeOnTheScreen();
+        }
+
+        await act(async () => jest.advanceTimersByTimeAsync(60000));
+        expect(screen.getByText('Writing your insights')).toBeOnTheScreen();
+        expect(screen.queryByText(LOADING_SUBTITLE)).toBeNull();
+    });
+
+    it('cancels the next loading hint when the row unmounts', async () => {
+        // Given the loader has scheduled its next hint
+        const {unmount} = await renderRow(undefined);
+        const pendingTimers = jest.getTimerCount();
+
+        // When the user leaves Insights before generation finishes
+        unmount();
+
+        // Then the hint timer is removed instead of updating an unmounted loader
+        expect(jest.getTimerCount()).toBeLessThan(pendingTimers);
+    });
+
+    it.each([
+        [CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY, 'Reading Workflow efficiency'],
+        [CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE, 'Reading Violations over time'],
+    ] as const)('names the current chart in the loading hint for %s', async (searchKey, message) => {
+        // Given a dashboard other than Spend is generating insights
+        await renderRow(undefined, false, {...INSIGHTS_SCOPE, searchKey});
+
+        // When the first progress hint appears
+        await act(async () => jest.advanceTimersByTimeAsync(2000));
+
+        // Then it names this dashboard's chart rather than Spend over time
+        expect(screen.getByText(message)).toBeOnTheScreen();
     });
 
     it('replaces the generation message with cards when insights arrive', async () => {
