@@ -181,7 +181,12 @@ function WorkspaceDistanceRatesTableRow({
                                         height={variables.iconSizeSmall}
                                         fill={theme.icon}
                                     />
-                                    <Text style={[styles.textSupportingNormal, styles.flexShrink1]}>{dateLabelText}</Text>
+                                    <Text
+                                        variant="label"
+                                        style={[styles.textSupporting, styles.fontSizeLabel, styles.flexShrink1]}
+                                    >
+                                        {dateLabelText}
+                                    </Text>
                                 </View>
                             )}
                             {shouldShowTaxReclaimableAmount && (
