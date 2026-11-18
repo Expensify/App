@@ -48,7 +48,7 @@ type KeypadAmountEditorProps = {
     /** Whether to dynamically scale the font size down when the amount is long. */
     shouldUseDynamicFontSize?: boolean;
 
-    /** Whether the layout applies the bottom safe area. Defaults to true. Set to false when a parent, such as FormProvider, already applies it, so it is not applied twice. */
+    /** Whether the layout applies the bottom safe area. Set to false when a parent already applies it. Defaults to true. */
     addBottomSafeAreaPadding?: boolean;
 };
 

@@ -36,7 +36,7 @@ type KeypadAmountLayoutProps = {
     /** Called when an empty area of the layout is pressed on web, to keep the input focused. */
     onEmptyAreaPress: () => void;
 
-    /** Passed down from `KeypadAmountEditor`, which defaults it to true. */
+    /** Whether the layout adds the bottom safe area, false when a parent already applies it */
     addBottomSafeAreaPadding: boolean;
 };
 

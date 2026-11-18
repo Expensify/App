@@ -49,13 +49,13 @@ type AmountFormProps = {
     decimals?: number;
     hideCurrencySymbol?: boolean;
 
-    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
+    /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows). Ignored on the keypad path (when `displayAsTextInput` is false). */
     shouldShowCurrencyButton?: boolean;
 
-    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). */
+    /** Text on the trailing dropdown button. Use with `shouldShowCurrencyButton` when the suffix is not a currency code (e.g. duration unit). Ignored on the keypad path. */
     currencyButtonLabel?: string;
 
-    /** Accessibility label for the trailing dropdown */
+    /** Accessibility label for the trailing dropdown. Ignored on the keypad path. */
     currencyButtonAccessibilityLabel?: string;
 
     /** Disables the text input. Ignored on the keypad path (when `displayAsTextInput` is false). */
@@ -147,7 +147,7 @@ function AmountForm({
             decimals={decimals}
             maxLength={amountMaxLength}
             errorText={errorText}
-            // FormProvider and ScreenWrapper already apply the bottom safe area around this editor
+            // A parent (FormWrapper, or ScreenWrapper on screens without edge-to-edge) already applies the bottom safe area around this editor
             addBottomSafeAreaPadding={false}
             actions={
                 isCurrencyPressable && !!currency ? (

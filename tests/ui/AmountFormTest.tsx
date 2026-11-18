@@ -11,8 +11,10 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
@@ -28,6 +30,16 @@ jest.mock('@react-navigation/native', () => ({
     useRoute: jest.fn(() => ({key: '', name: '', params: {}})),
 }));
 
+// No inset by default; the safe area test gives the screen a home indicator
+const NO_SAFE_AREA_INSETS = {top: 0, right: 0, bottom: 0, left: 0};
+const HOME_INDICATOR_INSETS = {...NO_SAFE_AREA_INSETS, bottom: 34};
+const mockSafeAreaInsets = jest.fn(() => NO_SAFE_AREA_INSETS);
+
+jest.mock('@hooks/useSafeAreaInsets', () => ({
+    __esModule: true,
+    default: () => mockSafeAreaInsets(),
+}));
+
 type AmountFormProps = React.ComponentProps<typeof AmountForm>;
 
 function wrapForm(props: AmountFormProps = {}) {
@@ -41,6 +53,10 @@ function renderForm(props: AmountFormProps = {}) {
 // AmountForm routes `displayAsTextInput` to AmountFormField and every other variant to KeypadAmountEditor.
 // These tests pin that routing and the behavior of both paths.
 describe('AmountForm', () => {
+    afterEach(() => {
+        mockSafeAreaInsets.mockReturnValue(NO_SAFE_AREA_INSETS);
+    });
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -221,8 +237,8 @@ describe('AmountForm', () => {
             fireEvent.press(screen.getByTestId('button_5'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then every accepted key is reported and the value is displayed
-            expect(onInputChange).toHaveBeenLastCalledWith('12.5');
+            // Then every accepted key is reported in order and the value is displayed
+            expect(onInputChange.mock.calls).toEqual([['1'], ['12'], ['12.'], ['12.5']]);
             expect(screen.getByDisplayValue('12.5')).toBeOnTheScreen();
 
             // When the user presses backspace
@@ -352,6 +368,26 @@ describe('AmountForm', () => {
 
             // Then the currency callback is invoked
             expect(onCurrencyButtonPress).toHaveBeenCalledTimes(1);
+        });
+
+        it('adds no bottom safe area, because FormProvider and ScreenWrapper already apply it', async () => {
+            // Given a screen with a home indicator
+            mockSafeAreaInsets.mockReturnValue(HOME_INDICATOR_INSETS);
+
+            // When a keypad AmountForm renders, as it does inside FormProvider on the full-screen amount pages
+            renderForm({value: '10', currency: 'USD'});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then no scroll container of the editor pads its content by the inset, so the gap above the submit button is not doubled
+            const scrollViews = screen.UNSAFE_root.findAll((node) => (node.props as {contentContainerStyle?: unknown}).contentContainerStyle !== undefined);
+            const paddings = scrollViews.map((node) => {
+                const {contentContainerStyle} = node.props as {contentContainerStyle?: StyleProp<ViewStyle>};
+                return Number(StyleSheet.flatten(contentContainerStyle)?.paddingBottom ?? 0);
+            });
+            expect(paddings.length).toBeGreaterThan(0);
+            for (const padding of paddings) {
+                expect(padding).toBeLessThan(HOME_INDICATOR_INSETS.bottom);
+            }
         });
 
         it('uses the amount accessibility label unless a label is passed', async () => {
