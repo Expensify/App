@@ -1283,6 +1283,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Más tiempo para pagar',
         share: 'Porcentaje de participación',
         averageDays: 'Días promedio',
+        violationStage: {
+            label: 'Infracciones de',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprobadores',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -11176,6 +11181,7 @@ ${reportName}`,
             },
             searchFilters: 'Filtros de búsqueda',
             noFiltersSelected: 'No se han seleccionado filtros',
+            anySubmission: 'Cualquier envío',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

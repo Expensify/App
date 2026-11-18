@@ -398,6 +398,9 @@ const CONST = {
 
     // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
     ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
+
+    // Rows built from buttons, like "Custom range", sit inside an element with this data attribute, so the arrow keys move through them too
+    ADVANCED_FILTERS_ARROW_ROWS_ELEMENT: 'advanced-filters-arrow-rows',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1644,6 +1647,7 @@ const CONST = {
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
+        MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -9250,6 +9254,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
+            ANY_SUBMISSION: 'anySubmission',
             PAID: 'paid',
             WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
@@ -9352,6 +9357,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'any-approval',
+            ANY_SUBMISSION: 'any-submission',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -10730,6 +10736,10 @@ const CONST = {
                 COUNT: 'count',
                 DURATION: 'duration',
             },
+        },
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
         },
     },
 

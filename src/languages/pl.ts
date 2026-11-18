@@ -1315,6 +1315,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
         share: 'Udział',
         averageDays: 'Średnia liczba dni',
+        violationStage: {
+            label: 'Naruszenia',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Wysyłający',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Zatwierdzający',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -11198,6 +11203,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
             searchFilters: 'Filtry wyszukiwania',
             noFiltersSelected: 'Nie wybrano filtrów',
+            anySubmission: 'Dowolne zgłoszenie',
         },
         display: {
             label: 'Wyświetl',

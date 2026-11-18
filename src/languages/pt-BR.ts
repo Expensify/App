@@ -1291,6 +1291,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Maior prazo para pagar',
         share: 'Participação',
         averageDays: 'Média de dias',
+        violationStage: {
+            label: 'Violações de',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprovadores',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -11168,6 +11173,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             },
             searchFilters: 'Filtros de busca',
             noFiltersSelected: 'Nenhum filtro selecionado',
+            anySubmission: 'Qualquer envio',
         },
         display: {
             label: 'Exibir',

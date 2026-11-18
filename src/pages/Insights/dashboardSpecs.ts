@@ -64,7 +64,13 @@ const WORKFLOW_STAGES: InsightsChartStage[] = [
 ];
 
 /** Dates a chart can narrow the page's period by */
-type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+type InsightsDateFilterKey = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL;
+
+/** Whose violations a chart counts: the ones kept when expenses were submitted, or when they were approved */
+type InsightsViolationStage = ValueOf<typeof CONST.INSIGHTS.VIOLATION_STAGE>;
+
+/** Violation stage the user picked on each chart that offers one */
+type InsightsViolationStages = Partial<Record<InsightsGraphKey, InsightsViolationStage>>;
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -91,6 +97,12 @@ type InsightsChartSpec = {
     /** The date the page's date filter applies to, so the chart's Spend query matches what the backend counts. Defaults to the expense date. */
     dateFilterKey?: InsightsDateFilterKey;
 
+    /** Lets the user switch the chart between submitters' and approvers' violations. The chart's own `has` and `dateFilterKey` are the submitters' default. */
+    hasViolationStageControl?: boolean;
+
+    /** Stage whose violations a chart without a stage control counts, which Explain names */
+    violationStage?: InsightsViolationStage;
+
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: PolicyEligibilityCheck;
 
@@ -103,6 +115,12 @@ type InsightsChartSpec = {
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
+
+/** The violations each stage counts, and the action date the backend buckets them by, so the Spend query finds the same expenses even when a report was submitted more than once */
+const VIOLATION_STAGE_FILTERS: Record<InsightsViolationStage, Required<Pick<InsightsChartSpec, 'has' | 'dateFilterKey'>>> = {
+    [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION},
+    [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL},
+};
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
@@ -262,15 +280,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.violationsOverTime',
             view: CONST.SEARCH.VIEW.LINE,
-            has: VIOLATION_HAS_VALUES,
+            ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
+            hasViolationStageControl: true,
             metric: CONST.SEARCH.CHART_METRIC.COUNT,
         },
         supportingCharts: [
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED,
                 titleKey: 'insightsPage.violationsBySubmitter',
-                has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -281,9 +300,9 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                violationStage: CONST.INSIGHTS.VIOLATION_STAGE.APPROVED,
                 titleKey: 'insightsPage.violationsByApprover',
-                has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
-                dateFilterKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.APPROVED],
                 view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
@@ -295,7 +314,8 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
                 titleKey: 'insightsPage.topViolations',
-                has: VIOLATION_HAS_VALUES,
+                ...VIOLATION_STAGE_FILTERS[CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED],
+                hasViolationStageControl: true,
                 view: CONST.SEARCH.VIEW.TABLE,
                 isFullWidth: true,
                 groupBy: CONST.SEARCH.GROUP_BY.VIOLATION,
@@ -394,16 +414,34 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
+/** Points a chart with a violation stage control at the stage the user picked. Other charts, or no pick yet, keep the chart as declared. */
+function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationStage | undefined): InsightsChartSpec {
+    if (!chart.hasViolationStageControl || !stage) {
+        return chart;
+    }
+    return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
+}
+
+/** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
+function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsViolationStages): InsightsViolationStage | undefined {
+    if (!chart.hasViolationStageControl) {
+        return undefined;
+    }
+    return violationStages[chart.graphKey] ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED;
+}
+
 export {
+    applyViolationStage,
     getAccessibleDashboards,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
+    getViolationStage,
     getVisibleCharts,
     isStackedChart,
     keepEnabledStageGroups,
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;
