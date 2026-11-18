@@ -207,7 +207,7 @@ function DynamicIOURequestStepDistanceRate({
         let taxRateExternalID;
         let taxValue;
         if (shouldShowTax) {
-            const [rules] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE]);
+            const rules = await Onyx.get(ONYXKEYS.COLLECTION.RULE);
             const distanceRateTaxUpdates = getDistanceRateTaxUpdates(policy, currentTransaction, customUnitRateID, rules, getCurrencyDecimals, currentUnit);
             taxAmount = distanceRateTaxUpdates.taxAmount;
             taxRateExternalID = distanceRateTaxUpdates.taxCode;
