@@ -3496,7 +3496,8 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
+    // The receiver of an invoice with a linked bill pays the bill, as in Classic, so the invoice offers no Pay.
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || iouReport.isHiddenForBillReceiver) {
         return false;
     }
 
@@ -5058,6 +5059,20 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 }
 
 /**
+ * Returns the message for a queued payment. An invoice sender needs a business deposit account, so the message on an
+ * invoice doesn't ask for a personal bank account.
+ */
+function getReimbursementQueuedMessageKey(
+    report: OnyxEntry<Report>,
+    paymentType: string | undefined,
+): 'iou.waitingOnEnabledWallet' | 'iou.waitingOnVendorBankAccount' | 'iou.waitingOnBankAccount' {
+    if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        return 'iou.waitingOnEnabledWallet';
+    }
+    return isInvoiceReport(report) ? 'iou.waitingOnVendorBankAccount' : 'iou.waitingOnBankAccount';
+}
+
+/**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
 function getReimbursementQueuedActionMessage({
@@ -5083,14 +5098,7 @@ function getReimbursementQueuedActionMessage({
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         }) ?? '';
-    const originalMessage = getOriginalMessage(reportAction);
-    let messageKey: TranslationPaths;
-    if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        messageKey = 'iou.waitingOnEnabledWallet';
-    } else {
-        messageKey = 'iou.waitingOnBankAccount';
-    }
-    return translate(messageKey, submitterDisplayName);
+    return translate(getReimbursementQueuedMessageKey(report, getOriginalMessage(reportAction)?.paymentType), submitterDisplayName);
 }
 
 /**
@@ -5388,6 +5396,14 @@ function getReasonAndReportActionThatRequiresAttention({
                 reportAction: fraudAlertAction,
             };
         }
+    }
+
+    // An invoice can have no parent chat to show a green dot, so the invoice shows its own. Auth sets
+    // isAwaitingActionFromCurrentUser on an invoice when its sender must act, like adding a bank account so a payment can finish.
+    if (isInvoiceReport(optionOrReport) && optionOrReport.isAwaitingActionFromCurrentUser) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+        };
     }
 
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
@@ -15006,6 +15022,7 @@ function getChatListItemReportName(
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     derivedReportName: string | undefined,
+    isInvoiceLinkedToBill = false,
 ): string {
     const {translate, formatPhoneNumber} = Localize;
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -15013,7 +15030,17 @@ function getChatListItemReportName(
         // Search snapshots of invoice reports may only carry `parentReportID` as the invoice room ID, so fall back to it
         // when `chatReportID` is missing (without mutating the Onyx report) so `getInvoiceReportName` resolves the NewDot title.
         const invoiceReport = reportForHeader.chatReportID ? reportForHeader : {...reportForHeader, chatReportID: reportForHeader.parentReportID};
-        return getInvoiceReportName(invoiceReport, linkedTransactions, translate, formatPhoneNumber, convertToDisplayString, personalDetailsList);
+        return getInvoiceReportName(
+            invoiceReport,
+            linkedTransactions,
+            translate,
+            formatPhoneNumber,
+            convertToDisplayString,
+            personalDetailsList,
+            undefined,
+            undefined,
+            isInvoiceLinkedToBill,
+        );
     }
 
     if (action?.reportName) {
@@ -15196,9 +15223,12 @@ function isPayBlockedByArchivedState(report: OnyxInputOrEntry<Report>, policy: O
     return isExpenseReport(report) ? isArchivedOrPendingDeletePolicy(policy) : isReportOrChatArchived;
 }
 
-/** Whether Pay is blocked, either by archived state or by a cancelled payment that is still going back to the payer. */
+/**
+ * Whether Pay is blocked by archived state, by a cancelled payment that is still going back to the payer, or by a linked
+ * bill. The receiver of an invoice with a linked bill pays the bill, as in Classic, so the invoice offers no Pay.
+ */
 function isPayBlocked(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, isReportOrChatArchived: boolean): boolean {
-    return isPayBlockedByArchivedState(report, policy, isReportOrChatArchived) || !!report?.isWaitingForCancelledReimbursement;
+    return isPayBlockedByArchivedState(report, policy, isReportOrChatArchived) || !!report?.isWaitingForCancelledReimbursement || !!report?.isHiddenForBillReceiver;
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
@@ -16095,6 +16125,7 @@ export {
     getPolicyName,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
+    getReimbursementQueuedMessageKey,
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,

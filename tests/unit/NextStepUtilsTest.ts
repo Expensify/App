@@ -931,6 +931,47 @@ describe('libs/NextStepUtils', () => {
             }).then(waitForBatchedUpdates);
         });
 
+        it('returns the next step of an invoice only while a payment waits for the sender bank account', () => {
+            // Given an invoice that waits for the sender to add a bank account
+            const waitingNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+            const invoice = {
+                reportID: 'invoice-1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: waitingNextStep,
+            } as Report;
+            const getNextStep = (report: Report) =>
+                getReportNextStep({
+                    currentUserLogin: currentUserEmail,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    report,
+                    reportOwnerLogin: currentUserEmail,
+                    reportMetadata: undefined,
+                    reportActions: [],
+                    transactions: {},
+                    violations: {},
+                    policy: undefined,
+                    rules: undefined,
+                    areStrictPolicyRulesEnabled: false,
+                    isReportArchived: false,
+                    theme: undefined,
+                    isOffline: false,
+                });
+
+            // When the next step is read, then the invoice shows it, because the sender must act before they can be paid
+            expect(getNextStep(invoice)).toBe(waitingNextStep);
+
+            // And an invoice with any other next step shows none
+            expect(getNextStep({...invoice, nextStep: {...waitingNextStep, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY}})).toBeUndefined();
+        });
+
         it('returns the current next step when no special conditions are met', () => {
             const currentNextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
