@@ -464,6 +464,21 @@ describe('getReportHistorySteps', () => {
         expect(steps).toEqual([]);
     });
 
+    it('shows a pending manual export as a manual export', () => {
+        // Given a report an admin just marked as exported to Xero, which the server hasn't confirmed yet
+        const markedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.XERO, markedManually: true, lastModified: '2026-01-01 10:00:00.000'},
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([markedAction]);
+
+        // Then history says it was marked manually, since nothing is left to run, rather than claiming an export is in progress
+        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.manual', CONST.EXPORT_LABELS.XERO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
     it.each([
         [true, 'reportHistoryPage.receivedPayment'],
         [false, 'reportHistoryPage.paid'],
