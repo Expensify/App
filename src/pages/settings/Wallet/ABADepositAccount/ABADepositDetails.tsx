@@ -1,3 +1,4 @@
+import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -32,6 +33,18 @@ import {View} from 'react-native';
 const isSuccessSelector = (form: OnyxEntry<ABADepositAccountForm>) => !!form?.isSuccess;
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME, INPUT_IDS.BILLING_ADDRESS, INPUT_IDS.CITY];
+
+const ADDRESS_SEARCH_INPUT_KEYS = {
+    street: INPUT_IDS.BILLING_ADDRESS,
+    city: INPUT_IDS.CITY,
+    state: '',
+    zipCode: '',
+    country: '',
+    name: '',
+    address: '',
+    lat: '',
+    lng: '',
+};
 
 type ABADepositDetailsProps = {
     onBackButtonPress: () => void;
@@ -163,12 +176,15 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         shouldSaveDraft
                     />
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={AddressSearch}
                         inputID={INPUT_IDS.BILLING_ADDRESS}
                         label={translate('addDebitCardPage.billingAddress')}
-                        aria-label={translate('addDebitCardPage.billingAddress')}
-                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt6}
+                        renamedInputKeys={ADDRESS_SEARCH_INPUT_KEYS}
+                        limitSearchesToCountry={CONST.COUNTRY.AU}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        autoComplete="street-address"
                         shouldSaveDraft
                     />
                     <InputWrapper
