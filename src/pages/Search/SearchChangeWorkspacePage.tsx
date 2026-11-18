@@ -94,9 +94,11 @@ function SearchChangeWorkspacePage() {
             ),
         );
 
+    // A moved report's live workspace is newer than the one Search selected it with.
+    const currentPolicyIDs = selectedReports.map((report) => selectedOnyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.policyID ?? report.policyID);
     // A report's own Change workspace checks the workspace it's on, so picked reports that share one do the same.
-    const firstSelectedPolicyID = selectedReports.at(0)?.policyID;
-    const sharedPolicyID = !areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === firstSelectedPolicyID) ? firstSelectedPolicyID : undefined;
+    const firstPolicyID = currentPolicyIDs.at(0);
+    const sharedPolicyID = !areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === firstPolicyID) ? firstPolicyID : undefined;
     const currentSelection = policyID ?? sharedPolicyID;
     // Only the workspace checked when the page opened is pinned, so picking another one doesn't reorder the list.
     const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
@@ -184,7 +186,7 @@ function SearchChangeWorkspacePage() {
                             showButton: true,
                             text: translate('common.save'),
                             onConfirm: changeWorkspace,
-                            isDisabled: !policyID || (!areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === policyID)),
+                            isDisabled: !policyID || (!areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === policyID)),
                         }}
                         initiallyFocusedItemKey={initialSelection}
                         shouldUpdateFocusedIndex

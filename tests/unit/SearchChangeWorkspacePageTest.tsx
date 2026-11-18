@@ -194,6 +194,24 @@ describe('SearchChangeWorkspacePage', () => {
         expect(mockListData.find((item) => item.policyID === 'policy2')?.isSelected).toBe(true);
     });
 
+    it('checks the workspace a picked report was just moved to', async () => {
+        // Given a picked report that Search still shows on Workspace 1, but that a finished move put on Workspace 2
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedReports = [{reportID: 'report1', policyID: 'policy1'}];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}report1`, {reportID: 'report1', policyID: 'policy2'});
+
+        // When the page lists the workspaces
+        render(
+            <OnyxListItemProvider>
+                <SearchChangeWorkspacePage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Workspace 2 is checked, where the report is now
+        expect(mockListData.find((item) => item.policyID === 'policy2')?.isSelected).toBe(true);
+    });
+
     it('checks no workspace when the picked reports are on different ones', async () => {
         // Given two picked reports on different workspaces
         mockAreAllMatchingItemsSelected = false;
