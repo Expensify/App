@@ -50,6 +50,7 @@ import {
     getDefaultTimeTrackingRate,
     getDefaultWorkspacePlanType,
     getDualEntryVendors,
+    getDigitsVendors,
     getCertiniaVendors,
     getEligibleBankAccountShareRecipientEmails,
     getExcludedUsers,
@@ -78,6 +79,7 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    canPayViaABA,
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
     getReimbursementChoice,
@@ -167,6 +169,7 @@ import type {BankAccount, PersonalDetailsList, Policy, PolicyEmployeeList, Polic
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     Connections,
+    DigitsVendor,
     DualEntryVendor,
     FinancialForceSyncedEntity,
     PolicyConnectionSyncProgress,
@@ -4890,6 +4893,52 @@ describe('PolicyUtils', () => {
             );
         });
 
+        describe('canPayViaABA', () => {
+            const AUWithdrawalAccount = {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN};
+
+            it('should return true for an admin of an AUD workspace with an open AU withdrawal account', () => {
+                // Given an AUD workspace with an open AU withdrawal account, viewed by an admin
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy, true);
+
+                // Then they can, since the ABA file debits that withdrawal account
+                expect(result).toBe(true);
+            });
+
+            it.each([
+                ['the user is not an admin', {role: CONST.POLICY.ROLE.USER}],
+                ['the workspace is not AUD', {outputCurrency: CONST.CURRENCY.USD}],
+                ['the workspace has no AU withdrawal account', {reimbursement: {countries: {}}}],
+                ['the AU withdrawal account is not open', {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING}}}}],
+                [
+                    'the AU withdrawal account was set up through Corpay',
+                    {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, additionalData: {verifications: {corpay: {clientCode: 123}}}}}}},
+                ],
+            ])('should return false when %s', (_, overrides: Partial<Policy>) => {
+                // Given a workspace that only misses one of the requirements
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                    ...overrides,
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy, true);
+
+                // Then they can't, since only admins can pay via ABA, and the file needs an open AU withdrawal account
+                expect(result).toBe(false);
+            });
+        });
+
         describe('isPolicyPayer', () => {
             // The owner is the payer under Indirect reimbursement, so both values have to resolve to the same payer.
             it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
@@ -6691,6 +6740,22 @@ describe('PolicyUtils', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined})).toBe(false);
             });
 
+            it('uses an already computed category rules flag only for a migrated corporate policy', () => {
+                // Given callers that select only whether any category has rules, instead of passing the categories themselves
+
+                // When that flag is passed for policies in different Rules states
+                const migratedCorporateResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, true);
+                const rulesOffResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: false}, undefined, true);
+                const teamResult = arePolicyRulesEnabled({...teamBase, areRulesEnabled: undefined}, undefined, true);
+                const noCategoryRulesResult = arePolicyRulesEnabled({...corporateBase, areRulesEnabled: undefined}, undefined, false);
+
+                // Then it only stands in for category rules on a migrated Control policy, so Rules turned off or a Collect policy stay off
+                expect(migratedCorporateResult).toBe(true);
+                expect(rulesOffResult).toBe(false);
+                expect(teamResult).toBe(false);
+                expect(noCategoryRulesResult).toBe(false);
+            });
+
             it('returns true for a team policy with areRulesEnabled explicitly true', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
             });
@@ -7307,6 +7372,36 @@ describe('PolicyUtils', () => {
                     title: translate('workspace.dualEntry.noVendorsFound'),
                     subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
                 });
+            });
+        });
+
+        describe('Digits vendors', () => {
+            it('lists every cached vendor with an ID for the default vendor picker', () => {
+                // Given cached Digits vendors, including one without ledger activity yet and one Digits sent without an ID
+                const vendors: DigitsVendor[] = [
+                    {id: '{"issuer":"digits","id":"v-1"}', name: 'Acme Supplies', email: 'billing@acme.com', roles: ['EntityVendorRole']},
+                    {id: '{"issuer":"digits","id":"v-2"}', name: 'New Vendor', roles: []},
+                    {id: '', name: 'Missing ID', roles: ['EntityVendorRole']},
+                ];
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {digits: {data: {vendors}}}});
+
+                // When the default vendor picker reads the Digits vendors
+                const digitsVendors = getDigitsVendors(policy);
+
+                // Then every vendor with an ID is offered, since the import already left out parties that are only customers
+                expect(digitsVendors).toEqual([
+                    {id: '{"issuer":"digits","id":"v-1"}', name: 'Acme Supplies', currency: '', email: 'billing@acme.com'},
+                    {id: '{"issuer":"digits","id":"v-2"}', name: 'New Vendor', currency: '', email: ''},
+                ]);
+            });
+
+            it('returns no vendors before the first sync', () => {
+                // Given a workspace connected to Digits whose first sync hasn't saved any vendor
+                const policy = createMock<Policy>({...createRandomPolicy(0), connections: {digits: {data: {}}}});
+
+                // When the default vendor picker reads the Digits vendors
+                // Then the list is empty, so the picker shows its empty state
+                expect(getDigitsVendors(policy)).toEqual([]);
             });
         });
 
@@ -8713,6 +8808,24 @@ describe('PolicyUtils', () => {
 
                 // Then the Business Central exporter is listed, so that member can export reports to Business Central
                 expect(exporters).toContain('exporter@example.com');
+            });
+
+            it('includes the Digits preferred exporter', () => {
+                // Given a workspace connected to Digits whose preferred exporter isn't an admin
+                const policy = createMock<Policy>({
+                    ...createRandomPolicy(0),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                            config: {export: {exporter: 'digits-exporter@example.com'}},
+                        },
+                    },
+                });
+
+                // When the workspace's connection exporters are read
+                const exporters = getConnectionExporters(policy);
+
+                // Then the Digits exporter is listed, so that member gets the Export button and the warnings when they leave the workspace
+                expect(exporters).toContain('digits-exporter@example.com');
             });
         });
     });

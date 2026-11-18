@@ -180,4 +180,4 @@ export default function WorkspacePerDiemTable({
     );
 }
 
-export type {PerDiemTableRowData, PerDiemTableColumnKey};
+export type {PerDiemTableRowData};

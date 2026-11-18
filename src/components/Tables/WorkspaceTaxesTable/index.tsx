@@ -193,4 +193,4 @@ export default function WorkspaceTaxesTable({
     );
 }
 
-export type {WorkspaceTaxTableRowData, WorkspaceTaxTableColumnKey};
+export type {WorkspaceTaxTableRowData};

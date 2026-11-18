@@ -355,4 +355,4 @@ export default function WorkspaceExpensifyCardsTable({
     );
 }
 
-export type {WorkspaceExpensifyCardTableRowData, WorkspaceExpensifyCardTableColumnKey};
+export type {WorkspaceExpensifyCardTableRowData};

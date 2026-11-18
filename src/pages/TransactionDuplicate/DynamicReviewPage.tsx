@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
@@ -9,8 +10,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +30,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
-import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -60,7 +62,7 @@ function DynamicReviewPage() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`, {selector: Boolean});
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${route.params.reportID}`);
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -115,7 +117,19 @@ function DynamicReviewPage() {
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(transactions);
+    // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
+    const hasUnloadedTransaction = transactions.length < transactionIDs.length;
+    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
+    const [isLoadingDuplicateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}`);
+    // Undefined means the fetch hasn't started yet, so a partial list isn't rendered for the first frame.
+    const isLoadingDuplicates = !isOffline && (hasUnloadedTransaction || hasUnloadedReport) && isLoadingDuplicateDetails !== false;
+    const shouldShowUnavailableMessage = !hasSettledOrApprovedTransaction && !canKeepSelected;
+    useAccessibilityAnnouncement(translate('iou.someDuplicatesAreUnavailable'), shouldShowUnavailableMessage && !isLoadingDuplicates, {
+        shouldAnnounceOnNative: true,
+        shouldAnnounceOnWeb: true,
+        politeness: 'polite',
+    });
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -160,12 +174,13 @@ function DynamicReviewPage() {
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
     ]);
 
+    // Runs again on reconnect, because an offline fetch never sets the loading flag and the page would wait on it.
     useEffect(() => {
-        if (!transactionID) {
+        if (!transactionID || isOffline) {
             return;
         }
         getDuplicateTransactionDetails(transactionID);
-    }, [transactionID]);
+    }, [transactionID, isOffline]);
 
     useEffect(() => {
         if (!isDeleteNavigateBackToThisReview || !wasTransactionDeleted) {
@@ -278,8 +293,23 @@ function DynamicReviewPage() {
                     heading={translate('iou.noDuplicatesTitle')}
                     description={translate('iou.noDuplicatesDescription')}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.NO_DUPLICATES_CONFIRM}
                     onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
+            </ScreenWrapper>
+        );
+    }
+
+    if (!shouldShowNotFound && isLoadingDuplicates) {
+        return (
+            <ScreenWrapper testID="DynamicReviewPage">
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
             </ScreenWrapper>
         );
     }
@@ -301,10 +331,11 @@ function DynamicReviewPage() {
                         contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
                     >
                         {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                        {shouldShowUnavailableMessage && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesAreUnavailable')}</Text>}
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
-                            shouldShowSelection={!hasSettledOrApprovedTransaction}
+                            shouldShowSelection={canKeepSelected}
                             onSelectTransaction={setSelectedTransactionID}
                             onPreviewPressed={onPreviewPressed}
                         />
@@ -318,7 +349,7 @@ function DynamicReviewPage() {
                         >
                             <Button.Text>{translate('iou.keepAll')}</Button.Text>
                         </Button>
-                        {!hasSettledOrApprovedTransaction && (
+                        {canKeepSelected && (
                             <Button
                                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_DUPLICATE.KEEP_SELECTED_BUTTON}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}

@@ -2,7 +2,8 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {canPayViaABA} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
     getBankAccountRoute,
@@ -18,23 +19,22 @@ import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Pol
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
+import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 
 import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UsePaymentOptionsProps = Pick<
     SettlementButtonProps,
@@ -61,9 +61,11 @@ function usePaymentOptions({
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash', 'CheckCircle', 'Paycheck']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const policy = usePolicy(policyID);
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
@@ -71,7 +73,7 @@ function usePaymentOptions({
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasActivatedWallet = userWallet?.tierName === CONST.WALLET.TIER_NAME.GOLD || userWallet?.tierName === CONST.WALLET.TIER_NAME.PLATINUM;
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
@@ -96,6 +98,7 @@ function usePaymentOptions({
     const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -121,13 +124,13 @@ function usePaymentOptions({
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PERSONAL,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: translate('iou.settleBusiness', formattedAmount),
+                text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.BUSINESS,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', formattedAmount),
+                text: translate('iou.payElsewhere', ''),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_ELSEWHERE,
@@ -140,7 +143,7 @@ function usePaymentOptions({
             sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -155,8 +158,27 @@ function usePaymentOptions({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy, isPayViaABABetaEnabled);
+
+        // An ABA account is also a business account, so only need to show the pay via business account option if there
+        // is another business account to pay with, e.g. one set up through Corpay
+        if (
+            isExpenseReport &&
+            shouldShowPayWithExpensifyOption &&
+            (!shouldShowPayViaABAOption || getBusinessBankAccountOptions(formatPaymentMethods(bankAccountList, fundList, styles, translate), currency).length > 0)
+        ) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
+        }
+        if (shouldShowPayViaABAOption) {
+            buttonOptions.push({
+                text: translate('iou.payViaABA'),
+                icon: icons.Paycheck,
+                value: CONST.PAYMENT_METHODS.ABA,
+                sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_VIA_ABA,
+                // The file is downloaded straight from the API, which can't be queued for when the user is back online
+                disabled: isOffline,
+                onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}),
+            });
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
@@ -164,14 +186,14 @@ function usePaymentOptions({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency);
             const getPaymentSubItems = (payAsBusiness: boolean) => {
                 const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
                 return formattedPaymentMethods
                     .filter((method) => {
-                        const accountData = method?.accountData as AccountData;
-                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                        const accountData = method.accountData;
+                        // Only bank accounts have a type; card account data has none, so cards are left out
+                        return accountData != null && 'type' in accountData && accountData.type === requiredAccountType && !isBankAccountPartiallySetup(accountData.state);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
@@ -273,6 +295,12 @@ function usePaymentOptions({
         icons,
         hasActivatedWallet,
         hasPersonalBankAccount,
+        policy,
+        isPayViaABABetaEnabled,
+        isOffline,
+        bankAccountList,
+        fundList,
+        styles,
     ]);
 
     return paymentButtonOptions;
