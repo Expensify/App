@@ -201,6 +201,7 @@ function DynamicIOURequestStepSubrate({
                         {
                             icon: expensifyIcons.Trashcan,
                             text: translate('iou.deleteSubrate'),
+                            sentryLabel: CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SUBRATE_DELETE,
                             onSelected: () => {
                                 handleDeleteSubrate();
                             },

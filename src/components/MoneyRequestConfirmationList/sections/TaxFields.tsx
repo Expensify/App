@@ -8,7 +8,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
@@ -19,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getEnabledTaxRateCount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -63,7 +62,6 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
@@ -80,7 +78,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const decimals = getCurrencyDecimals(effectiveCurrency);
     const formattedTaxAmount = convertToDisplayString(taxAmount, effectiveCurrency);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
-    const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+    const taxRateTitle = getTaxRateTitle(translate, policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 
@@ -147,7 +145,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
+    const shouldOpenInDropdown = !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
 
     const openTaxRatePage = () => {
         if (!transactionID) {
@@ -219,7 +217,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage, false, session) : undefined}
+                    onPress={canModifyTaxFields ? callIfAuthenticated(openTaxRatePage, session) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >

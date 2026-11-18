@@ -7,7 +7,7 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
@@ -18,7 +18,7 @@ import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
 
-type ContextMenuItemProps = WithSentryLabel & {
+type ContextMenuItemProps = WithRequiredSentryLabel & {
     icon: IconAsset;
     text: string;
 

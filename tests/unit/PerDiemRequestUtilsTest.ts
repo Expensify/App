@@ -1,5 +1,5 @@
 import type {DestinationTreeSection} from '@libs/PerDiemRequestUtils';
-import {getDestinationListSections, getSubratesFields} from '@libs/PerDiemRequestUtils';
+import {getDestinationListSections, getSubratesFields, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 
 import CONST from '@src/CONST';
 import {getCustomUnitID} from '@src/libs/PerDiemRequestUtils';
@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
+import {de} from 'date-fns/locale/de';
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
@@ -152,6 +153,47 @@ describe('PerDiemRequestUtils', () => {
 
             // Then the picked subrate is followed by one empty row for the next one
             expect(fields).toEqual([pickedSubrate, undefined]);
+        });
+    });
+
+    describe('getTimeForDisplay', () => {
+        function buildPerDiemTransaction(start: string, end: string): Transaction {
+            const transaction = createRandomTransaction(1);
+            return {
+                ...transaction,
+                comment: {
+                    ...transaction.comment,
+                    customUnit: {customUnitID: 'per-diem', attributes: {dates: {start, end}}},
+                },
+            };
+        }
+
+        it('shows each time with a readable date instead of the machine date', () => {
+            // Given a per-diem expense that runs from noon on one day to noon the next, read in UTC as the test runner is
+            const transaction = buildPerDiemTransaction('2026-01-22T12:00:00Z', '2026-01-23T12:00:00Z');
+
+            // When its time range is shown on the confirmation page
+            // Then each end shows the time followed by a numeric date in the English order, rather than the `yyyy-MM-dd` it
+            // is stored as
+            expect(getTimeForDisplay(transaction, undefined)).toBe('12:00 PM, 01/22/2026 - 12:00 PM, 01/23/2026');
+        });
+
+        it('orders the date the way the language does', () => {
+            // Given the same per-diem expense, shown to a German user
+            const transaction = buildPerDiemTransaction('2026-01-22T12:00:00Z', '2026-01-23T12:00:00Z');
+
+            // When its time range is shown on the confirmation page
+            // Then the time still comes first, and the date uses the German day-first order and separators
+            expect(getTimeForDisplay(transaction, de)).toBe('12:00, 22.01.2026 - 12:00, 23.01.2026');
+        });
+
+        it('leaves an end blank when its date cannot be read', () => {
+            // Given a per-diem expense whose end date is not a valid date
+            const transaction = buildPerDiemTransaction('2026-01-22T12:00:00Z', 'not a date');
+
+            // When its time range is shown
+            // Then the unreadable end is blank instead of the confirmation page throwing a RangeError
+            expect(getTimeForDisplay(transaction, undefined)).toBe('12:00 PM, 01/22/2026 - ');
         });
     });
 });

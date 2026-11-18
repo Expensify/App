@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import useHorizontalSafeAreaReach from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -82,6 +83,10 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
+    const horizontalSafeAreaReach = useHorizontalSafeAreaReach();
+    // A row keeps the tab row as wide as its tabs, but it also keeps the row from stretching to the screen edge
+    // through the horizontal safe area, so the tabs reaching that edge lay out in a column instead.
+    const doesTabRowReachScreenEdge = !!horizontalSafeAreaReach.left || !!horizontalSafeAreaReach.right;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
@@ -186,12 +191,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     });
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS;
     const isGeneralTab = activeTab === RULES_TAB.GENERAL;
-    const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActions = canWriteRules && isTableTab && shouldUseNarrowLayout && isMobileSelectionModeEnabled;
     const shouldShowAddRuleButton = isGeneralTab || !shouldShowBulkActions;
 
     const handleBackButtonPress = () => {
@@ -211,6 +218,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     count: selectedRuleKeys.length,
                 }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -234,31 +242,37 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const tabs: TabSelectorBaseItem[] = [
         {
             key: RULES_TAB.GENERAL,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.GENERAL,
             title: translate('workspace.rules.tabs.general'),
             icon: icons.Feed,
         },
         {
             key: RULES_TAB.CARD_RESTRICTIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.CARD_RESTRICTIONS,
             title: translate('workspace.rules.tabs.cardRestrictions'),
             icon: icons.CreditCardExclamation,
         },
         {
             key: RULES_TAB.EXPENSE_DEFAULTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
             icon: icons.DocumentMagicWand,
         },
         {
             key: RULES_TAB.REQUIRE_FIELDS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.REQUIRE_FIELDS,
             title: translate('workspace.rules.tabs.requireFields'),
             icon: icons.Task,
         },
         {
             key: RULES_TAB.FLAG_FOR_REVIEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.FLAG_FOR_REVIEW,
             title: translate('workspace.rules.tabs.flagForReview'),
             icon: icons.Flag,
         },
         {
             key: RULES_TAB.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.AGENTS,
             title: translate('workspace.rules.tabs.agents'),
             icon: icons.Bot,
         },
@@ -360,7 +374,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const headerButtons = getHeaderContent();
     const rulesTabSelector = (
         <View style={[styles.flexShrink0, styles.w100]}>
-            <View style={[styles.flexRow, styles.mb1, styles.w100]}>
+            <View style={[!doesTabRowReachScreenEdge && styles.flexRow, styles.mb1, styles.w100]}>
                 <TabSelectorContextProvider activeTabKey={activeTab}>
                     <TabSelectorBase
                         contentContainerStyles={pageGutter}
@@ -378,6 +392,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         policyID,
         canWriteRules,
         headerComponent: rulesTabSelector,
+        bulkActionOptions: canWriteRules ? getBulkActionsButtonOptions() : undefined,
     };
 
     return (

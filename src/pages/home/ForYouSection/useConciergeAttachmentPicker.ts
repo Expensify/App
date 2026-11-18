@@ -41,7 +41,7 @@ function useConciergeAttachmentPicker(reportID: string | undefined, onConfirm: (
 
     // A pasted file arrives as a single FileObject on native and for base64/Google Workspace images on web, so both shapes are accepted.
     const pickAttachments = (files: FileObject | FileObject[]) => {
-        const fileObjects = (Array.isArray(files) ? files : [files]).map((item) => cleanFileObjectName(cleanFileObject(item)));
+        const fileObjects = (Array.isArray(files) ? files : [files]).map((item) => cleanFileObjectName(cleanFileObject(item))).filter((fileObject) => fileObject !== null);
         if (!fileObjects.length) {
             return;
         }

@@ -6,7 +6,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
@@ -49,7 +48,6 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
         params: {action, iouType, transactionID, reportID, backToReport},
     } = route;
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const {accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -86,7 +84,7 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
         setCustomUnitID(transactionID, perDiemUnit.customUnitID);
-        setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined);
         // Runs once per draft: the writes above make it ready, which ends the effect on its next run.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transaction?.iouRequestType, perDiemUnit?.customUnitID, isDraftReady]);

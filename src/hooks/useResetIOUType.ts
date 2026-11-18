@@ -85,7 +85,7 @@ function useResetIOUType({
     // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
     // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on every
     // cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    const {participants: resolvedDefaultParticipants} = useDefaultParticipants({
+    const {participants: resolvedDefaultParticipants, defaultPolicy} = useDefaultParticipants({
         sourceReport: report,
         transaction,
         iouType,
@@ -110,7 +110,7 @@ function useResetIOUType({
         // iouType to TRACK; seeding them early would short-circuit that effect.
         initMoneyRequest({
             reportID,
-            policy,
+            policy: policy ?? defaultPolicy,
             personalPolicy,
             isFromGlobalCreate,
             isTrackDistanceExpense,

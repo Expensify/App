@@ -83,6 +83,7 @@ type ReportPickerListProps = Pick<
     | 'transactionPolicyID'
     | 'removeFromReport'
     | 'isEditing'
+    | 'isCreatingExpense'
     | 'isUnreported'
     | 'isPerDiemRequest'
     | 'isTimeRequest'
@@ -279,6 +280,7 @@ function useReportPickerActions({
             transactionPolicyID: targetExpensePolicyID,
             removeFromReport,
             isEditing,
+            isCreatingExpense: isCreateReport,
             isUnreported,
             isPerDiemRequest: transaction ? isPerDiemTransaction : false,
             isTimeRequest: transaction ? isTimeRequestUtil(transaction) : false,

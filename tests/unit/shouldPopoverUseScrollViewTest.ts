@@ -8,7 +8,8 @@ describe('shouldPopoverUseScrollView', () => {
     const createOption = (value: string, subMenuItems?: Array<{value: string; text: string}>): DropdownOption<string> => ({
         value,
         text: value,
-        ...(subMenuItems && {subMenuItems: subMenuItems.map((item) => ({...item, key: item.value}))}),
+        sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+        ...(subMenuItems && {subMenuItems: subMenuItems.map((item) => ({...item, key: item.value, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}))}),
     });
 
     it('returns false when there are few top-level options and no large submenus', () => {

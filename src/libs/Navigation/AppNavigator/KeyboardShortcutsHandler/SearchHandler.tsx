@@ -30,16 +30,12 @@ function SearchHandler() {
         const unsubscribe = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                Session.callFunctionIfActionIsAllowed(
-                    () => {
-                        if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
-                            return;
-                        }
-                        toggleSearch();
-                    },
-                    false,
-                    sessionRef.current,
-                )();
+                Session.callIfAuthenticated(() => {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
+                        return;
+                    }
+                    toggleSearch();
+                }, sessionRef.current)();
             },
             shortcutConfig.descriptionKey,
             shortcutConfig.modifiers,

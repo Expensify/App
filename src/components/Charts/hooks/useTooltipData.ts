@@ -1,7 +1,8 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import {getPrimaryValue} from '@components/Charts/utils';
-import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
+import formatChartCount from '@components/Charts/utils/formatChartCount';
 import type {TooltipValue} from '@components/Charts/utils/formatTooltipValue';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -17,7 +18,13 @@ type TooltipData = TooltipValue & {
  * Formats the active point's primary value with its share of the total, and the other measure of its expenses:
  * the spend behind a count, or the count behind an amount.
  */
-function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series: NonEmptyTuple<ChartSeries>, formatAmount: (value: number) => string): TooltipData | null {
+function useTooltipData(
+    activeDataIndex: number,
+    data: ChartDataPoint[],
+    series: NonEmptyTuple<ChartSeries>,
+    formatAmount: (value: number) => string,
+    countDimension: SearchChartCountDimension,
+): TooltipData | null {
     const {translate, preferredLocale, numberFormat} = useLocalize();
 
     if (activeDataIndex < 0 || activeDataIndex >= data.length) {
@@ -34,7 +41,8 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
         label: dataPoint.label,
         value: formatAmount(value),
         percentage: dataPoint.percentOfTotal === undefined ? undefined : formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale),
-        secondaryValue: dataPoint.seriesTotals?.[primarySeriesKey] ?? (dataPoint.count === undefined ? undefined : formatExpenseCount(dataPoint.count, translate, numberFormat)),
+        secondaryValue:
+            dataPoint.seriesTotals?.[primarySeriesKey] ?? (dataPoint.count === undefined ? undefined : formatChartCount(dataPoint.count, countDimension, translate, numberFormat)),
     };
 }
 
