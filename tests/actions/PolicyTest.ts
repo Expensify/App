@@ -1107,41 +1107,34 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
         });
 
-        it('duplicate workspace keeps Rules off when the DuplicatePolicyWithSettings response turns it on after the policy merge', async () => {
-            // Given a Control workspace with Rules disabled
-            const fakePolicy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areRulesEnabled: false};
+        it('duplicate workspace preserves the server Rules flag when the source changes before the request completes', async () => {
+            // Given a request built while Rules is on, before another client turns it off on the source.
+            const fakePolicy: PolicyType = {...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE), areRulesEnabled: true};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
-
             const policyID = Policy.generatePolicyID();
-
-            // And a DuplicatePolicyWithSettings response that, like production when categories are copied, merges the new policy with Rules off
-            // and then sends a single {areRulesEnabled: true} merge for the same policy
             mockFetch.mockAPICommand('DuplicatePolicyWithSettings', () => ({
-                onyxData: [
-                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: false}},
-                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: true}},
-                ],
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: {areRulesEnabled: false}}],
             }));
             mockFetch.pause();
 
-            // When the workspace is duplicated with Categories selected and Rules unselected
+            // When the server copies the latest source settings and returns Rules off.
             Policy.duplicateWorkspace(fakePolicy, {
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
-                policyName: 'Rules Off Workspace',
+                policyName: 'Server Rules Setting',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 personalDetailsByLogins: {},
-                parts: ['categories'],
+                parts: ['rules'],
                 localCurrency: 'USD',
             });
             await waitForBatchedUpdates();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`))?.areRulesEnabled).toBe(true);
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Then Rules is still off after the response is applied, so it never shows in the new workspace's menu
+            // Then success cleanup preserves the server's value rather than restoring the stale source snapshot.
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(policy?.areRulesEnabled).toBe(false);
         });

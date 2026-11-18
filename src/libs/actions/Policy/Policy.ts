@@ -3973,13 +3973,6 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 pendingAction: null,
-                // The duplication response can merge a stray `areRulesEnabled: true` into the new policy after the full
-                // policy merge (seen when categories are copied from a Control workspace). successData is applied after the
-                // response's onyxData, so set the final value here, or Rules shows in the new workspace until the policy reloads.
-                areRulesEnabled:
-                    (parts.includes('codingRules') || parts.includes('rules')) &&
-                    PolicyUtils.isControlPolicy(newPolicy) &&
-                    (policy.areRulesEnabled ?? (parts.includes('codingRules') || PolicyUtils.arePolicyRulesEnabled(policy, policyCategories))),
                 pendingFields: {
                     autoReporting: null,
                     approvalMode: null,
