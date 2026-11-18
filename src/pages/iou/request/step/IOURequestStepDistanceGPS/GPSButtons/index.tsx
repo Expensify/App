@@ -58,6 +58,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // The tooltip is centered on the button, so capping it to the button's width keeps it on screen in landscape
     const [startStopButtonWidth, setStartStopButtonWidth] = useState<number>();
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);

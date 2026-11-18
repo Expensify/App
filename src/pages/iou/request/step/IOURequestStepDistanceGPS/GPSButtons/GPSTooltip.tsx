@@ -14,11 +14,6 @@ import React from 'react';
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
 type GPSTooltipProps = React.PropsWithChildren<{
-    /**
-     * Width of the button the tooltip points at. The tooltip is centered on that button, so keeping it no wider than
-     * the button keeps it on screen in landscape, where the button sits in the right half and native tooltips aren't
-     * shifted back from the screen edge.
-     */
     maxWidth?: number;
 }>;
 
