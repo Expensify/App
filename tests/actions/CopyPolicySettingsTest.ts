@@ -20,6 +20,8 @@ jest.mock('@libs/API', () => ({
     write: jest.fn(),
 }));
 
+const TAX_FIELD_ID = 'field_id_TAX';
+
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
 const TARGET_POLICY_ID = 'TARGET000000000B';
 const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}` as const;
@@ -255,24 +257,26 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
             it('replaces coding rule groups using the target members and enabled taxes', () => {
                 // Given saved legacy rules, valid and invalid approvers, and tax defaults.
+                const migratedRuleID = '123';
+                const memberEmail = 'member@example.com';
                 const source = makeSourcePolicy({
                     rules: {
                         codingRules: {
                             legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}, category: 'Meals'},
-                            '123': {ruleID: '123', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Migrated'}},
+                            [migratedRuleID]: {ruleID: migratedRuleID, filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Migrated'}},
                         },
                         approvalRules: [
                             {approver: 'member@example.com', applyWhen: []},
                             {approver: 'outsider@example.com', applyWhen: []},
                         ],
                         expenseRules: [
-                            {tax: {field_id_TAX: {externalID: 'VAT'}}, applyWhen: []},
-                            {tax: {field_id_TAX: {externalID: 'MISSING'}}, applyWhen: []},
+                            {tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []},
+                            {tax: {[TAX_FIELD_ID]: {externalID: 'MISSING'}}, applyWhen: []},
                         ],
                     },
                 });
                 const target = makeTargetPolicy({
-                    employeeList: {'member@example.com': {email: 'member@example.com'}},
+                    employeeList: {[memberEmail]: {email: memberEmail}},
                     taxRates: {name: 'Tax', defaultExternalID: 'VAT', defaultValue: '10%', foreignTaxDefault: 'VAT', taxes: {VAT: {name: 'VAT', value: '10%'}}},
                     rules: {agentRules: {agent: {ruleID: 'agent', prompt: 'Keep this', created: '2026-11-01'}}},
                 });

@@ -29,6 +29,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
+const TAX_FIELD_ID = 'field_id_TAX';
+
 function makePolicyWithConnection(connectionName: ConnectionName, connectionPayload: Record<string, unknown>): Policy {
     const base = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
     return {
@@ -269,7 +271,7 @@ describe('CopyPolicySettingsUtils', () => {
         it.each<NonNullable<Policy['rules']>>([
             {codingRules: {legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}}}},
             {approvalRules: [{approver: 'member@example.com', applyWhen: []}]},
-            {expenseRules: [{tax: {field_id_TAX: {externalID: 'VAT'}}, applyWhen: []}]},
+            {expenseRules: [{tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []}]},
         ])('offers Merchant rules for legacy policy rule groups without rules_ entries: %j', (rules) => {
             // Given a workspace whose saved rules have not been migrated into rules_.
             const context = {...baseContext, codingRulesCount: 0, policy: {...createRandomPolicy(0), rules}};

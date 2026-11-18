@@ -131,19 +131,6 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
 }
 
 /**
- * Creates a selector for useOnyx that returns formatted text for invoice configuration.
- * Returns a primitive string to prevent unnecessary re-renders when unrelated bank account data changes.
- * This matches the filtering logic used by PaymentMethodList with filterType=BUSINESS on the invoices page.
- */
-function createInvoiceConfigurationTextSelector(translate: LocaleContextProps['translate'], invoiceCompany: string) {
-    return (bankAccountList: OnyxEntry<Record<string, {accountData?: {type?: string}}>>): string => {
-        const count = Object.values(bankAccountList ?? {}).filter((account) => account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS).length;
-        const bankAccountsText = count > 0 ? `${count} ${translate('common.bankAccounts').toLowerCase()}` : '';
-        return [bankAccountsText, invoiceCompany].filter(Boolean).join(', ');
-    };
-}
-
-/**
  * Get the active group policies where the current user can create policy rooms.
  */
 function getPoliciesForRoomCreation(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
@@ -425,7 +412,6 @@ export {
     hasOfficeWorkArrangement,
     getPolicyIDOrDefault,
     shouldShowPolicy,
-    createInvoiceConfigurationTextSelector,
     getPoliciesForRoomCreation,
     getOwnedPaidPolicies,
     canCreateCategoryInSitu,

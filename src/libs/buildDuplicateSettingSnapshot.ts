@@ -2,9 +2,7 @@
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-function buildDuplicateSettingSnapshot<T extends object>(
-    setting: T & {pendingFields?: Partial<Record<string, PendingAction>>; pendingAction?: PendingAction; errors?: unknown; errorFields?: unknown},
-): T {
+function buildDuplicateSettingSnapshot<T>(setting: T & {pendingFields?: Partial<Record<string, PendingAction>>; pendingAction?: PendingAction; errors?: unknown; errorFields?: unknown}): T {
     const snapshot = {...setting};
     for (const [field, pendingAction] of Object.entries(setting.pendingFields ?? {})) {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
