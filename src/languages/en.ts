@@ -5909,6 +5909,7 @@ const translations = {
                 other: 'Delete rates',
             }),
             deletePerDiemRate: 'Delete per diem rate',
+            deleteRatesError: 'We couldn’t delete your per diem rates. Please try again.',
             findPerDiemRate: 'Find per diem rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',

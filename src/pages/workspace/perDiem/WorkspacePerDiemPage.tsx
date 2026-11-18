@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -40,7 +41,7 @@ import showInlineEditError from '@libs/showInlineEditError';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {close} from '@userActions/Modal';
-import {clearPerDiemRateError, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {clearPerDiemRateError, clearPolicyPerDiemRatesErrorFields, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -330,9 +331,21 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const headerButtons = getHeaderButtons();
 
     const subtitleContent = (
-        <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            <RenderHTML html={translate('workspace.perDiem.subtitle')} />
-        </View>
+        <>
+            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <RenderHTML html={translate('workspace.perDiem.subtitle')} />
+            </View>
+            <ErrorMessageRow
+                errors={customUnit?.errorFields?.deleteRates}
+                errorRowStyles={[pageGutter, styles.mb5]}
+                onDismiss={() => {
+                    if (!customUnit) {
+                        return;
+                    }
+                    clearPolicyPerDiemRatesErrorFields(policyID, customUnit.customUnitID, {deleteRates: null});
+                }}
+            />
+        </>
     );
 
     const emptyState: TableEmptyStateProps = {
