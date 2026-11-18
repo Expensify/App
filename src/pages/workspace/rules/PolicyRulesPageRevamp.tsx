@@ -373,14 +373,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const rulesTabSelector = (
         <View style={[styles.flexShrink0, styles.w100]}>
             <View style={[!doesTabRowReachScreenEdge && styles.flexRow, styles.mb1, styles.w100]}>
-                <TabSelectorContextProvider activeTabKey={activeTab}>
-                    <TabSelectorBase
-                        contentContainerStyles={pageGutter}
-                        tabs={tabs}
-                        activeTabKey={activeTab}
-                        onTabPress={handleTabPress}
-                    />
-                </TabSelectorContextProvider>
+                <TabSelectorBase
+                    contentContainerStyles={pageGutter}
+                    tabs={tabs}
+                    activeTabKey={activeTab}
+                    onTabPress={handleTabPress}
+                />
             </View>
         </View>
     );
@@ -412,72 +410,76 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 addBottomSafeAreaPadding
                 headerContent={!shouldDisplayButtonsInSeparateLine && headerButtons}
             >
-                <View style={[styles.flex1, styles.w100, styles.mnh0]}>
-                    {separateLineButtons}
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.mnh0,
-                            styles.w100,
-                            shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
-                            (isTableTab || isAgentsTab || isGeneralTab) && styles.mw100,
-                        ]}
-                    >
-                        {isGeneralTab && (
-                            <RulesGeneralTab
-                                policyID={policyID}
-                                canWriteRules={canWriteRules}
-                                isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
-                                onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
-                                headerComponent={rulesTabSelector}
-                            />
-                        )}
-                        {isTableTab && (
-                            <View style={[styles.flex1, styles.mnh0]}>
-                                {activeTab === RULES_TAB.CARD_RESTRICTIONS && (
-                                    <RulesCardRestrictionsTab
-                                        {...sharedTableTabProps}
-                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.CARD_RESTRICTIONS)}
-                                        onSelectionChange={handleSpendRuleSelectionChange}
-                                    />
-                                )}
-                                {activeTab === RULES_TAB.EXPENSE_DEFAULTS && (
-                                    <RulesExpenseDefaultsTab
-                                        {...sharedTableTabProps}
-                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.EXPENSE_DEFAULTS)}
-                                        onSelectionChange={handleExpenseDefaultSelectionChange}
-                                    />
-                                )}
-                                {activeTab === RULES_TAB.REQUIRE_FIELDS && (
-                                    <RulesRequireFieldsTab
-                                        {...sharedTableTabProps}
-                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.REQUIRE_FIELDS)}
-                                        onSelectionChange={handleRequireFieldsRuleSelectionChange}
-                                        showReadOnlyModal={showReadOnlyModal}
-                                    />
-                                )}
-                                {activeTab === RULES_TAB.FLAG_FOR_REVIEW && (
-                                    <RulesFlagForReviewTab
-                                        {...sharedTableTabProps}
-                                        selectedKeys={getFilteredSelectedKeys(RULES_TAB.FLAG_FOR_REVIEW)}
-                                        onSelectionChange={handleFlagForReviewRuleSelectionChange}
-                                        showReadOnlyModal={showReadOnlyModal}
-                                    />
-                                )}
-                            </View>
-                        )}
-                        {isAgentsTab && (
-                            <View style={[styles.flex1, styles.mnh0, styles.w100]}>
-                                <RulesAgentsTab
+                {/* Each tab renders its own copy of the tab row in its list header, so the provider sits above the tabs to
+                keep the row's scroll offset across tab changes. */}
+                <TabSelectorContextProvider activeTabKey={activeTab}>
+                    <View style={[styles.flex1, styles.w100, styles.mnh0]}>
+                        {separateLineButtons}
+                        <View
+                            style={[
+                                styles.flex1,
+                                styles.mnh0,
+                                styles.w100,
+                                shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection,
+                                (isTableTab || isAgentsTab || isGeneralTab) && styles.mw100,
+                            ]}
+                        >
+                            {isGeneralTab && (
+                                <RulesGeneralTab
                                     policyID={policyID}
                                     canWriteRules={canWriteRules}
-                                    showReadOnlyModal={showReadOnlyModal}
+                                    isAgentsRulesBannerDismissed={isAgentsRulesBannerDismissed}
+                                    onOpenAgentsTab={() => handleTabPress(RULES_TAB.AGENTS)}
                                     headerComponent={rulesTabSelector}
                                 />
-                            </View>
-                        )}
+                            )}
+                            {isTableTab && (
+                                <View style={[styles.flex1, styles.mnh0]}>
+                                    {activeTab === RULES_TAB.CARD_RESTRICTIONS && (
+                                        <RulesCardRestrictionsTab
+                                            {...sharedTableTabProps}
+                                            selectedKeys={getFilteredSelectedKeys(RULES_TAB.CARD_RESTRICTIONS)}
+                                            onSelectionChange={handleSpendRuleSelectionChange}
+                                        />
+                                    )}
+                                    {activeTab === RULES_TAB.EXPENSE_DEFAULTS && (
+                                        <RulesExpenseDefaultsTab
+                                            {...sharedTableTabProps}
+                                            selectedKeys={getFilteredSelectedKeys(RULES_TAB.EXPENSE_DEFAULTS)}
+                                            onSelectionChange={handleExpenseDefaultSelectionChange}
+                                        />
+                                    )}
+                                    {activeTab === RULES_TAB.REQUIRE_FIELDS && (
+                                        <RulesRequireFieldsTab
+                                            {...sharedTableTabProps}
+                                            selectedKeys={getFilteredSelectedKeys(RULES_TAB.REQUIRE_FIELDS)}
+                                            onSelectionChange={handleRequireFieldsRuleSelectionChange}
+                                            showReadOnlyModal={showReadOnlyModal}
+                                        />
+                                    )}
+                                    {activeTab === RULES_TAB.FLAG_FOR_REVIEW && (
+                                        <RulesFlagForReviewTab
+                                            {...sharedTableTabProps}
+                                            selectedKeys={getFilteredSelectedKeys(RULES_TAB.FLAG_FOR_REVIEW)}
+                                            onSelectionChange={handleFlagForReviewRuleSelectionChange}
+                                            showReadOnlyModal={showReadOnlyModal}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                            {isAgentsTab && (
+                                <View style={[styles.flex1, styles.mnh0, styles.w100]}>
+                                    <RulesAgentsTab
+                                        policyID={policyID}
+                                        canWriteRules={canWriteRules}
+                                        showReadOnlyModal={showReadOnlyModal}
+                                        headerComponent={rulesTabSelector}
+                                    />
+                                </View>
+                            )}
+                        </View>
                     </View>
-                </View>
+                </TabSelectorContextProvider>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
