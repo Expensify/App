@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -94,9 +94,8 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
             testID="SageIntacctPrerequisitesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.intacct.sageIntacctSetup')}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ScrollView>

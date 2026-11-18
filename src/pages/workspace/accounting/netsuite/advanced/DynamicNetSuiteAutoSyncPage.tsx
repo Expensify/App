@@ -1,5 +1,5 @@
 import Accordion from '@components/Accordion';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -57,7 +57,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
                 testID="NetSuiteAutoSyncPage"
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.settings')}
                     onBackButtonPress={goBack}
                 />

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -56,11 +56,7 @@ function CampfireExistingConnectionsPage({route}: CampfireExistingConnectionsPag
             shouldShowOfflineIndicatorInWideScreen
             testID="CampfireExistingConnectionsPage"
         >
-            <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)} />
             <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)}</Text>
                 <MenuItemNavigation
