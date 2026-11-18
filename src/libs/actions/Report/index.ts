@@ -1173,7 +1173,7 @@ function addActions({
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID);
+    const {lastMessageText = ''} = ReportActionsUtils.getLastVisibleMessage(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
     if (lastMessageText) {
         const lastVisibleActionCreated = lastVisibleAction?.created;
         failureReport = {
