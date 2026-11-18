@@ -1,10 +1,14 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import type useSingleExecution from '@hooks/useSingleExecution';
+
 import {createNewReport} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 
@@ -31,11 +35,14 @@ jest.mock('@libs/actions/Report', () => ({
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => jest.fn(() => ({openCreateReportConfirmation: mockOpenCreateReportConfirmation})));
 
+// Web does not use the native pressable guard, so these tests must rely on the button's loading guard.
+jest.mock('@hooks/useSingleExecution', () => jest.requireActual<{default: typeof useSingleExecution}>('@hooks/useSingleExecution/index.ts'));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     dismissModal: jest.fn(),
-    setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
+    setNavigationActionToMicrotaskQueue: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -153,7 +160,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         expect(await screen.findByText('Please select a workspace')).toBeOnTheScreen();
         expect(mockCreateNewReport).not.toHaveBeenCalled();
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
-        expect(createButton).toBeEnabled();
+        await waitFor(() => expect(createButton).toBeEnabled());
 
         // When a workspace is selected, only the validation error should clear.
         fireEvent.press(await screen.findByText(POLICY_NAME));
@@ -183,6 +190,75 @@ describe('NewReportWorkspaceSelectionPage', () => {
 
         // Then the name supports two lines instead of truncating to one.
         expect(await screen.findByText(longWorkspaceName)).toHaveProp('numberOfLines', 2);
+    });
+
+    it('creates only one report when Create is pressed twice before navigation runs', async () => {
+        // Given a selected workspace can create directly, but navigation has not run yet.
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}txn-1`, createMock<Transaction>({transactionID: 'txn-1', reportID: REPORT_ID, pendingAction: null}));
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+
+        // When both presses arrive before React commits the loading state, only one should be accepted.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- The outer act deliberately batches both presses to reproduce the race before loading commits.
+        act(() => {
+            fireEvent.press(createButton);
+            fireEvent.press(createButton);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a single report and destination are created while navigation is still queued.
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
+        expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('opens confirmation once on a double press and permits retry after cancellation', async () => {
+        // Given the workspace has an empty report, Create must open confirmation rather than create immediately.
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+
+        // When overlapping presses arrive, they should produce only one confirmation prompt.
+        // eslint-disable-next-line testing-library/no-unnecessary-act -- The outer act deliberately batches both presses to reproduce the race before loading commits.
+        act(() => {
+            fireEvent.press(createButton);
+            fireEvent.press(createButton);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no report is created before confirmation.
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+
+        // When the user cancels, the staged selection must remain usable for a fresh attempt.
+        act(() => {
+            jest.mocked(useCreateEmptyReportConfirmation).mock.lastCall?.[0].onCancel?.();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => expect(createButton).toBeEnabled());
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then confirmation can reopen and its accepted result creates exactly one report.
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalledTimes(2);
+        act(() => {
+            jest.mocked(useCreateEmptyReportConfirmation).mock.lastCall?.[0].onConfirm(false);
+        });
+        expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
     });
 
     it('opens the empty-report confirmation when there are no transactions for the user report', async () => {

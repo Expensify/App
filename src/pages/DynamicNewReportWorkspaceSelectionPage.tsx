@@ -325,7 +325,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                                         onSubmit={confirmWorkspace}
                                         isAlertVisible={shouldShowError}
                                         message={translate('newRoomPage.pleaseSelectWorkspace')}
-                                        shouldShowLoadingImmediatelyOnPress={false}
                                         enabledWhenOffline
                                         sentryLabel={CONST.SENTRY_LABEL.NEW_REPORT_WORKSPACE_SELECTION.CREATE}
                                     />
