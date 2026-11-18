@@ -3,7 +3,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -219,10 +219,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     onLinkPress={goBackFromInvalidPolicy}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton
-                        title={isEditingApprover ? translate('workflowsPage.approver') : translate('workflowsCreateApprovalsPage.additionalApprover')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
+                    <HeaderWithBackButtonAndTitle title={isEditingApprover ? translate('workflowsPage.approver') : translate('workflowsCreateApprovalsPage.additionalApprover')} />
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}

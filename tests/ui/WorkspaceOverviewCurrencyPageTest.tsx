@@ -57,7 +57,7 @@ jest.mock('@components/CurrencySelectionList', () => {
         </>
     );
 });
-jest.mock('@components/HeaderWithBackButton', () => () => null);
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',
     () =>
