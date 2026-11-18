@@ -1,6 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -93,7 +93,7 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
 
     return (
         <ScreenWrapper testID="DynamicReportParticipantDetails">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
