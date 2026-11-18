@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention -- ARIA attributes are kebab-case by spec. */
-import * as tableAccessibilityModule from '@components/Table/tableAccessibility';
+import type * as tableAccessibilityModule from '@components/Table/tableAccessibility';
 
 import CONST from '@src/CONST';
 
@@ -17,7 +17,7 @@ jest.mock('@libs/getPlatform', () => ({
 
 function loadModule(platform: string): TableAccessibilityModule {
     mockedPlatform = platform;
-    let module: TableAccessibilityModule = tableAccessibilityModule;
+    let module!: TableAccessibilityModule;
     jest.isolateModules(() => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         module = require('@components/Table/tableAccessibility');

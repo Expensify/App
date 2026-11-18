@@ -48,7 +48,7 @@ function DiagonalAvatarsFrame({size, iconCount, containerStyle, primaryContainer
         <View style={[containerStyle, iconCount === 2 && size === CONST.AVATAR_SIZE.XXXX_LARGE && styles.mr0]}>
             <View
                 style={[styles[singleAvatarStyleKey], primaryContainerStyle]}
-                testID="ReportActionAvatars-MultipleAvatars"
+                testID="Avatar-MultipleAvatars"
             >
                 {primary}
                 <View style={[styles[secondAvatarStyleKey], secondaryContainerStyle]}>{secondary}</View>

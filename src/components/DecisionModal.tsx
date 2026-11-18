@@ -63,6 +63,9 @@ type DecisionModalProps = {
     shouldRenderPromptAsHTML?: boolean;
 };
 
+/**
+ * @deprecated Use @hooks/useDecisionModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function DecisionModal({
     title,
     prompt = '',

@@ -48,6 +48,7 @@ function ToggleSignTrigger() {
             accessibilityLabel="Toggle sign"
             testID="toggle-sign"
             onPress={toggleSign}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />
     );
 }
@@ -703,6 +704,7 @@ describe('KeypadAmountEditor', () => {
                             toggleSign();
                             isInsideToggle = false;
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 );
             }

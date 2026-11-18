@@ -1,4 +1,6 @@
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
+import {getMemberDefaultCategory} from '@libs/CategoryUtils';
 
 import {setMoneyRequestCategory} from '@userActions/IOU/MoneyRequest';
 
@@ -23,7 +25,7 @@ type CategoryDefaultsSetterProps = {
 /**
  * Side-effect-only component that handles two category-related effects:
  * 1. Resets cleared categories back to their last saved value
- * 2. Sets the default distance category for distance requests
+ * 2. Sets the default distance category for distance requests, unless the member can't use it
  */
 function CategoryDefaultsSetter({
     transactions,
@@ -35,7 +37,8 @@ function CategoryDefaultsSetter({
     requestType,
     isMovingTransactionFromTrackExpense,
 }: CategoryDefaultsSetterProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {accountID} = useCurrentUserPersonalDetails();
+
     useEffect(() => {
         for (const item of transactions) {
             if (!item.category) {
@@ -45,7 +48,7 @@ function CategoryDefaultsSetter({
                 if (existingCategory) {
                     const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
                     if (isExistingCategoryEnabled) {
-                        setMoneyRequestCategory(item.transactionID, existingCategory, policy, getCurrencyDecimals);
+                        setMoneyRequestCategory(item.transactionID, existingCategory, policy);
                     }
                 }
                 continue;
@@ -56,14 +59,14 @@ function CategoryDefaultsSetter({
     }, [policy?.id, policyCategories, transactions.length]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const defaultCategory = policyDistance?.defaultCategory ?? '';
+    const defaultCategory = getMemberDefaultCategory(policyDistance?.defaultCategory, policyCategories, accountID);
 
     useEffect(() => {
         for (const item of transactions) {
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, getCurrencyDecimals, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-hooks/exhaustive-deps
