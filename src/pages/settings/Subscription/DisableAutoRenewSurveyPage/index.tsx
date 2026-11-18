@@ -1,5 +1,5 @@
 import FeedbackSurvey from '@components/FeedbackSurvey';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -31,10 +31,7 @@ function DisableAutoRenewSurveyPage() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('subscription.subscriptionSettings.disableAutoRenew')}
-                onBackButtonPress={Navigation.goBack}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('subscription.subscriptionSettings.disableAutoRenew')} />
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>
                 <FeedbackSurvey
                     formID={ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM}

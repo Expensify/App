@@ -3,7 +3,7 @@ import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -128,7 +128,7 @@ function AddPaymentCard() {
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('subscription.paymentCard.addPaymentCard')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
