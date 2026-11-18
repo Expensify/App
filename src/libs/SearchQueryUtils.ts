@@ -77,6 +77,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -94,6 +95,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -3522,7 +3524,38 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
-function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+function getActionFilters(searchQueryJSON: SearchQueryJSON) {
+    return searchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+}
+
+/**
+ * Checks whether filter edits still belong to an explicitly selected search.
+ * Submit, Approve, Pay, and Export deliberately use only their type and a single matching positive action,
+ * so defaults like to:, from:, and payer: may be removed through advanced filters, as agreed in https://github.com/Expensify/App/issues/102448.
+ * Removing to: from Approve broadens it beyond the current recipient to all matching reports the user can access.
+ * Every other search keeps the stricter default-filter-keys check.
+ */
+function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, searchKey?: SearchKey) {
+    if (!searchKey || !TODO_SEARCH_KEYS.has(searchKey)) {
+        return doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON);
+    }
+
+    if (!queryJSON || !defaultQueryJSON || queryJSON.type !== defaultQueryJSON.type) {
+        return false;
+    }
+
+    const actionFilters = getActionFilters(queryJSON);
+    const defaultActionFilters = getActionFilters(defaultQueryJSON);
+    return (
+        actionFilters.length === 1 &&
+        defaultActionFilters.length === 1 &&
+        actionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        defaultActionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        actionFilters[0].value === defaultActionFilters[0].value
+    );
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string, searchKey?: SearchKey) {
     if (!lastQuery) {
         return defaultQuery;
     }
@@ -3539,7 +3572,7 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
         return defaultQuery;
     }
 
-    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+    if (!doesQueryMatchSearchContext(lastQueryJSON, defaultQueryJSON, searchKey)) {
         return defaultQuery;
     }
 
@@ -3638,6 +3671,7 @@ export {
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     shouldRefetchSearchOnReportActionChange,

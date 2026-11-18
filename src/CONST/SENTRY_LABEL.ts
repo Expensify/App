@@ -1,7 +1,12 @@
 const SENTRY_LABEL = {
     TEXT_INPUT: {
+        FIELD: 'TextInput-Field',
         CLEAR_BUTTON: 'TextInput-ClearButton',
         PASSWORD_VISIBILITY_TOGGLE: 'TextInput-PasswordVisibilityToggle',
+    },
+    MENU_ITEM: {
+        COPY_LONG_PRESS: 'MenuItem-CopyLongPress',
+        EXTERNAL_LINK_CONTEXT_MENU: 'MenuItem-ExternalLinkContextMenu',
     },
     ADD_PAYMENT_METHOD_MENU: {
         PERSONAL_BANK_ACCOUNT: 'AddPaymentMethodMenu-PersonalBankAccount',
@@ -16,6 +21,7 @@ const SENTRY_LABEL = {
         TABS_ITEM: 'DynamicForm-TabsItem',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
+        FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
     },
     APPROVE_MENU: {
         OPTION: {
@@ -2354,6 +2360,10 @@ const SENTRY_LABEL = {
                 ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-AccountsSwitch',
                 ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-EnableNewAccountsSwitch',
                 DEPARTMENTS_SWITCH: 'WorkspaceAccountingDigits-DepartmentsSwitch',
+                PREFERRED_EXPORTER: 'WorkspaceAccountingDigits-PreferredExporter',
+                EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
+                DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
+                COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
@@ -2671,6 +2681,7 @@ const SENTRY_LABEL = {
                 RECRUITING_FILTERS: 'WorkspaceConnections-MergeConfigRow-RecruitingFilters',
                 RECRUITING_APPROVAL_MODE: 'WorkspaceConnections-MergeConfigRow-RecruitingApprovalMode',
             },
+            OFFER_BADGE: 'WorkspaceConnections-OfferBadge',
             UBER_CENTRAL_BILLING_ACCOUNT: 'WorkspaceConnections-UberCentralBillingAccount',
             UBER_MANAGE_INVITES: 'WorkspaceConnections-UberManageInvites',
             UBER_INVITE_READY_CONFIRM: 'WorkspaceConnections-UberInviteReadyConfirm',
@@ -3325,6 +3336,7 @@ const SENTRY_LABEL = {
         ADD_COPILOT_ACCESS_LEVEL: 'SettingsSecurity-AddCopilotAccessLevel',
         ADD_COPILOT_CONFIRM: 'SettingsSecurity-AddCopilotConfirm',
         DEVICE_REVOKE: 'SettingsSecurity-DeviceRevoke',
+        SIGN_OUT_ALL_DEVICES: 'SettingsSecurity-SignOutAllDevices',
         LOCK_ACCOUNT_SUBMIT: 'SettingsSecurity-LockAccountSubmit',
         UNLOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-UnlockAccountChatWithConcierge',
         FAILED_TO_LOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-FailedToLockAccountChatWithConcierge',
