@@ -14,17 +14,19 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
-import getPlatform from '@libs/getPlatform';
 import {containsHtmlTag} from '@libs/ValidationUtils';
+
+import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ComponentRef, RefObject} from 'react';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
+import type {AnimatedRef} from 'react-native-reanimated';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
@@ -35,7 +37,7 @@ const SAVED_CONFIRMATION_DURATION_MS = 2000;
 
 type AgentAIPromptSectionProps = {
     accountID: number;
-    parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
+    parentScrollViewRef: AnimatedRef<ComponentRef<typeof RNScrollView>>;
 };
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
@@ -140,13 +142,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         Keyboard.dismiss();
     };
 
-    const handleInputFocus = () => {
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
-            return;
-        }
-        // Like scrollToEnd, as the scroll view stops at its end
-        scrollWithKeyboard({offset: Number.MAX_SAFE_INTEGER});
-    };
+    // Like scrollToEnd, as the scroll view stops at its end
+    const scrollInputIntoView = () => scrollToMultilineInput(scrollWithKeyboard, true, Number.MAX_SAFE_INTEGER);
 
     const handleSave = () => {
         if (isSaving && isUserInitiatedSave) {
@@ -222,7 +219,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     errorText={errorText}
                     containerStyles={[styles.mb3]}
                     testID="ai-prompt-input"
-                    onFocus={handleInputFocus}
+                    onFocus={scrollInputIntoView}
                 />
             </OfflineWithFeedback>
             <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>

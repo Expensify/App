@@ -32,9 +32,8 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
-const mockScrollTo = jest.fn();
 const mockScrollToEnd = jest.fn();
-const mockScrollWithKeyboard = jest.fn((): boolean => true);
+const mockScrollWithKeyboard = jest.fn();
 
 jest.mock('@hooks/useKeyboardDrivenScroll', () => () => mockScrollWithKeyboard);
 
@@ -135,9 +134,9 @@ jest.mock('@components/Form/FormProvider', () => {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
-        ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
+        ref: React.Ref<{scrollToEnd: () => void}>;
     }) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
+        ReactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
             ReactModule.Fragment,
             null,
@@ -271,23 +270,7 @@ describe('New rule describe section', () => {
         fireEvent(input, 'focus');
 
         // Then the box top goes to the keyboard-driven scroll, because iOS and Android do not scroll it above the keyboard
-        expect(mockScrollWithKeyboard).toHaveBeenCalledWith({offset: 420});
-        // And the form does not scroll a second time
-        expect(mockScrollTo).not.toHaveBeenCalled();
-    });
-
-    it('scrolls the form to the describe box when the keyboard-driven scroll does not handle it', async () => {
-        // Given an admin on New rule on web, where the keyboard-driven scroll leaves the scroll to the caller
-        mockScrollWithKeyboard.mockReturnValueOnce(false);
-        await renderRulesNewPage();
-        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
-        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
-
-        // When the admin focuses the describe box
-        fireEvent(input, 'focus');
-
-        // Then the form scrolls to the top of the box itself
-        expect(mockScrollTo).toHaveBeenCalledWith(420);
+        expect(mockScrollWithKeyboard).toHaveBeenCalledWith(420);
     });
 
     it('hides the describe section when New rule opens for a category', async () => {

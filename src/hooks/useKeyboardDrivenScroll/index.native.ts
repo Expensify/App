@@ -2,14 +2,14 @@
  * Scrolls a scroll view on every keyboard frame, on the UI thread, so content moves with the keyboard.
  * A JS-side scroll lands late when JS is busy, so the content jumps twice.
  */
+import type {ScrollEvent} from 'react-native-reanimated';
+
 import {useEffect, useRef} from 'react';
 import {useKeyboardHandler, useReanimatedFocusedInput, useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
-import {measure, scrollTo, useAnimatedRef, useFrameCallback, useScrollOffset, useSharedValue} from 'react-native-reanimated';
+import {measure, scrollTo, useEvent, useFrameCallback, useScrollOffset, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 
-import type {KeyboardScrollable, KeyboardScrollTarget, ScrollWithKeyboard, UseKeyboardDrivenScroll} from './types';
-
-import getFollowOffset from './getFollowOffset';
+import type {ScrollWithKeyboard, UseKeyboardDrivenScroll} from './types';
 
 /** On a busy Android app the keyboard avoiding view can resize about a second late. */
 const TARGET_LIFETIME_MS = 2000;
@@ -23,8 +23,6 @@ const NO_KEYBOARD_DELAY_MS = 500;
 /** Past the last re-apply, due by the lifetime plus one settle delay. The margin covers the UI thread starting later. */
 const WATCHER_STOP_DELAY_MS = TARGET_LIFETIME_MS + SETTLE_DELAY_MS + 100;
 
-const RESIZE_THRESHOLD = 1;
-
 /** No 'closing': the target is dropped when the keyboard starts closing. */
 type KeyboardPhase = 'closed' | 'opening' | 'open';
 
@@ -33,19 +31,16 @@ type FollowStart = {
     keyboardHeight: number;
 };
 
+/** What useEvent returns at runtime. Its public type is a plain function, as it's meant to be passed as a prop. */
+type ViewEventHandler = {
+    workletEventHandler: {
+        registerForEvents: (viewTag: number) => void;
+        unregisterFromEvents: (viewTag: number) => void;
+    };
+};
+
 const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
-    const animatedScrollableRef = useAnimatedRef<KeyboardScrollable>();
-
-    // Attached on mount, so the offset is tracked before the first focus
-    useEffect(() => {
-        if (!scrollableRef?.current) {
-            return;
-        }
-        animatedScrollableRef(scrollableRef.current);
-    }, [scrollableRef, animatedScrollableRef]);
-
-    // Reanimated warns about an unattached ref
-    const scrollOffset = useScrollOffset(scrollableRef ? animatedScrollableRef : undefined);
+    const scrollOffset = useScrollOffset(scrollableRef);
 
     // UI-thread values, current even when JS is busy (unlike KeyboardController.isVisible())
     const providerKeyboard = useReanimatedKeyboardAnimation();
@@ -57,11 +52,13 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
     const keyboardEndHeight = useSharedValue(0);
     const followStart = useSharedValue<FollowStart | null>(null);
 
-    const pendingTarget = useSharedValue<KeyboardScrollTarget | null>(null);
+    const pendingTarget = useSharedValue<number | null>(null);
     const targetInputTag = useSharedValue<number | null>(null);
     const targetSetAt = useSharedValue(0);
     const reapplyAt = useSharedValue<number | null>(null);
     const heightAtLastScroll = useSharedValue(0);
+    // Null until the scroll view sends its first scroll event
+    const contentHeight = useSharedValue<number | null>(null);
 
     const stopWatcherTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -80,24 +77,28 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         return progress <= 0 ? 'closed' : 'opening';
     }
 
-    function getKeyboardHeight() {
-        'worklet';
-
-        // Stored as a negative offset
-        return keyboardHeight.get() ?? Math.abs(providerKeyboard.height.get());
-    }
-
     function getVisibleHeight() {
         'worklet';
 
-        return measure(animatedScrollableRef)?.height ?? 0;
+        return measure(scrollableRef)?.height ?? 0;
+    }
+
+    /**
+     * The scroll view stops at its end, so a target past it, like a scroll to the end, would be reached on the first
+     * frame. Following the end the scroll view can reach right now moves the content with the keyboard instead.
+     */
+    function getReachableOffset(targetOffset: number) {
+        'worklet';
+
+        const height = contentHeight.get();
+        return Math.max(Math.min(targetOffset, height === null ? targetOffset : height - getVisibleHeight()), 0);
     }
 
     function scrollToOffset(offset: number, isAnimated: boolean) {
         'worklet';
 
         heightAtLastScroll.set(getVisibleHeight());
-        scrollTo(animatedScrollableRef, 0, Math.max(offset, 0), isAnimated);
+        scrollTo(scrollableRef, 0, Math.max(offset, 0), isAnimated);
     }
 
     function isTargetExpired() {
@@ -107,10 +108,10 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
     }
 
     /** Scrolls now and again after Android's own scroll to the focused input. No new re-apply once expired. */
-    function scrollAndSettle(target: KeyboardScrollTarget, isAnimated: boolean) {
+    function scrollAndSettle(target: number, isAnimated: boolean) {
         'worklet';
 
-        scrollToOffset(target.offset, isAnimated);
+        scrollToOffset(target, isAnimated);
         if (isTargetExpired()) {
             return;
         }
@@ -131,20 +132,14 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         'worklet';
 
         const target = pendingTarget.get();
-        if (!target) {
+        if (target === null) {
             return null;
         }
-        if (isTargetExpired() && reapplyAt.get() === null) {
-            clearTarget();
-            return null;
-        }
+        // An input that gets focus after the target is set becomes its owner
         const focusedTag = focusedInput.get()?.target ?? null;
-        const ownerTag = targetInputTag.get();
-        if (ownerTag === null) {
-            targetInputTag.set(focusedTag);
-            return target;
-        }
-        if (focusedTag !== ownerTag) {
+        const ownerTag = targetInputTag.get() ?? focusedTag;
+        targetInputTag.set(ownerTag);
+        if (focusedTag !== ownerTag || (isTargetExpired() && reapplyAt.get() === null)) {
             clearTarget();
             return null;
         }
@@ -156,7 +151,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         'worklet';
 
         const target = getTargetOfFocusedInput();
-        if (!target) {
+        if (target === null) {
             return;
         }
 
@@ -164,26 +159,48 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         if (phase === 'opening') {
             return;
         }
-        if (phase === 'open' && Math.abs(getVisibleHeight() - heightAtLastScroll.get()) > RESIZE_THRESHOLD) {
+        // Ignores sub-pixel layout changes
+        if (phase === 'open' && Math.abs(getVisibleHeight() - heightAtLastScroll.get()) > 1) {
             scrollAndSettle(target, false);
             return;
         }
         const reapplyTime = reapplyAt.get();
         if (reapplyTime !== null && Date.now() >= reapplyTime) {
             reapplyAt.set(null);
-            scrollToOffset(target.offset, true);
+            scrollToOffset(target, true);
         }
     }, false);
 
-    useEffect(
-        () => () => {
-            if (!stopWatcherTimer.current) {
-                return;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- useEvent's public type hides the handler object it returns
+    const {workletEventHandler: scrollEventHandler} = useEvent(
+        (event: ScrollEvent) => {
+            'worklet';
+
+            contentHeight.set(event.contentSize.height);
+            // A drag means the user wants the content where they put it, so no re-apply may pull it back.
+            // Our own scrollTo calls don't send this event, so only the user's drags drop the target.
+            // Reanimated prefixes the event name with the view tag.
+            if (event.eventName.endsWith('onScrollBeginDrag')) {
+                clearTarget();
             }
-            clearTimeout(stopWatcherTimer.current);
         },
-        [],
+        ['onScroll', 'onScrollBeginDrag'],
+    ) as unknown as ViewEventHandler;
+
+    // Registered on the view directly, as Reanimated's useScrollOffset does, so the scroll view's props don't change
+    useEffect(
+        () =>
+            scrollableRef.observe((viewTag) => {
+                if (!viewTag) {
+                    return;
+                }
+                scrollEventHandler.registerForEvents(viewTag);
+                return () => scrollEventHandler.unregisterFromEvents(viewTag);
+            }),
+        [scrollableRef, scrollEventHandler],
     );
+
+    useEffect(() => () => clearTimeout(stopWatcherTimer.current ?? undefined), []);
 
     useKeyboardHandler(
         {
@@ -205,18 +222,24 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
                 'worklet';
 
                 const target = getTargetOfFocusedInput();
-                if (target && getKeyboardPhase() === 'opening') {
+                if (target !== null && getKeyboardPhase() === 'opening') {
+                    const endHeight = keyboardEndHeight.get();
                     // The target can be set mid-animation, so the start is taken on its first frame
-                    const start = followStart.get() ?? {offset: scrollOffset.get(), keyboardHeight: getKeyboardHeight()};
-                    followStart.set(start);
-                    const offset = getFollowOffset({
-                        startOffset: start.offset,
-                        startKeyboardHeight: start.keyboardHeight,
-                        endKeyboardHeight: keyboardEndHeight.get(),
-                        keyboardHeight: event.height,
-                        targetOffset: target.offset,
-                    });
-                    scrollToOffset(offset, false);
+                    let start = followStart.get();
+                    if (!start) {
+                        // Before the hook has seen a keyboard frame, the provider may already hold the end height, as iOS sets it when
+                        // the keyboard starts moving. Starting there would finish the follow on the first frame, so the start is
+                        // whichever of the provider and this frame is further from the end. The provider stores a negative offset.
+                        const providerHeight = Math.abs(providerKeyboard.height.get());
+                        const fallbackHeight = Math.abs(providerHeight - endHeight) > Math.abs(event.height - endHeight) ? providerHeight : event.height;
+                        start = {offset: scrollOffset.get(), keyboardHeight: keyboardHeight.get() ?? fallbackHeight};
+                        followStart.set(start);
+                    }
+                    // The content moves by the share of the keyboard animation done so far, so it doesn't jump on the first frame.
+                    // The distance is negative when an open keyboard gets shorter.
+                    const distance = endHeight - start.keyboardHeight;
+                    const share = distance === 0 ? 1 : Math.min(Math.max((event.height - start.keyboardHeight) / distance, 0), 1);
+                    scrollToOffset(start.offset + (getReachableOffset(target) - start.offset) * share, false);
                 }
                 keyboardHeight.set(event.height);
             },
@@ -228,7 +251,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
                 keyboardHeight.set(event.height);
                 followStart.set(null);
                 const target = getTargetOfFocusedInput();
-                if (target && isOpen) {
+                if (target !== null && isOpen) {
                     scrollAndSettle(target, false);
                 }
             },
@@ -237,14 +260,9 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
     );
 
     const scrollWithKeyboard: ScrollWithKeyboard = (target) => {
-        const scrollable = scrollableRef?.current;
-        // Nothing to scroll, so the caller's fallback can't scroll either
-        if (!scrollable) {
-            return true;
-        }
-        // The scroll view can remount. Re-attaching re-subscribes the scroll offset, so only on a change.
-        if (animatedScrollableRef.current !== scrollable) {
-            animatedScrollableRef(scrollable);
+        // Nothing to scroll, e.g. a form without a scroll view
+        if (!scrollableRef.current) {
+            return;
         }
 
         scheduleOnUI(() => {
@@ -268,14 +286,11 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
 
         // A late stop is harmless
         targetWatcher.setActive(true);
-        if (stopWatcherTimer.current) {
-            clearTimeout(stopWatcherTimer.current);
-        }
+        clearTimeout(stopWatcherTimer.current ?? undefined);
         stopWatcherTimer.current = setTimeout(() => {
             targetWatcher.setActive(false);
             scheduleOnUI(clearTarget);
         }, WATCHER_STOP_DELAY_MS);
-        return true;
     };
 
     return scrollWithKeyboard;

@@ -54,6 +54,7 @@ import type {TextInputKeyPressEvent} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {Platform, View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import {PROMPT_MAX_AUTO_GROW_HEIGHT, PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from './const';
 import scrollToMultilineInput from './scrollToMultilineInput';
@@ -92,7 +93,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
-    const scrollViewRef = useRef<KeyboardScrollable>(null);
+    const scrollViewRef = useAnimatedRef<KeyboardScrollable>();
     const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
     // The role list is ordered for display, so the default comes from the role hierarchy instead.

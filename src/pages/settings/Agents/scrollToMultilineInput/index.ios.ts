@@ -4,7 +4,7 @@ function scrollToMultilineInput(scrollWithKeyboard: ScrollWithKeyboard, shouldSc
     if (!shouldScrollToMultilineInput) {
         return;
     }
-    scrollWithKeyboard({offset: inputTopOffset});
+    scrollWithKeyboard(inputTopOffset);
 }
 
 export default scrollToMultilineInput;

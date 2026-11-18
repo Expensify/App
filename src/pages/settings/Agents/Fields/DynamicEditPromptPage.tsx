@@ -35,6 +35,7 @@ import INPUT_IDS from '@src/types/form/EditAgentPromptForm';
 import {Str} from 'expensify-common';
 import React, {useRef} from 'react';
 import {Platform, View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 type DynamicEditPromptPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT>;
 
@@ -52,7 +53,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const accountID = route.params.accountID;
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const scrollViewRef = useRef<KeyboardScrollable>(null);
+    const scrollViewRef = useAnimatedRef<KeyboardScrollable>();
     const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const promptTopOffsetRef = useRef(0);
     const isPromptFocusedRef = useRef(false);

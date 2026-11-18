@@ -57,6 +57,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type only
 import type {GestureResponderEvent, InputModeOptions, KeyboardTypeOptions, ScrollView, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {AnimatedRef} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
 /**
@@ -195,8 +196,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
 
         shouldUseScrollView?: boolean;
 
-        /** Ref to the form's scroll view, e.g. for useKeyboardDrivenScroll */
-        scrollViewRef?: RefObject<ComponentRef<typeof ScrollView> | null>;
+        /** When set, FormWrapper attaches its scroll view to this ref instead of its own, so the caller can scroll it, e.g. with useKeyboardDrivenScroll */
+        scrollViewRef?: AnimatedRef<ComponentRef<typeof ScrollView>>;
 
         /** Container styles */
         style?: StyleProp<ViewStyle>;
@@ -229,12 +230,10 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetFormFieldError: (fieldID: keyof Form) => void;
     submit: () => void;
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
 };
 
 type FormWrapperRef = {
     scrollToEnd: () => void;
-    scrollTo: (y: number) => void;
 };
 
 type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;

@@ -44,15 +44,19 @@ jest.mock('@hooks/usePressLoading', () =>
 
 const moveAccessibilityFocusSpy = jest.spyOn(Accessibility, 'moveAccessibilityFocus').mockImplementation(jest.fn());
 
-type RenderFormWrapperParams = {
+function renderFormWrapper({
+    errors = {},
+    serverErrorFields,
+    inputRefs,
+    shouldScrollChildToFocus,
+    scrollViewRef,
+}: {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
     shouldScrollChildToFocus?: boolean;
     scrollViewRef?: FormProps['scrollViewRef'];
-};
-
-function renderFormWrapper({errors = {}, serverErrorFields, inputRefs, shouldScrollChildToFocus, scrollViewRef}: RenderFormWrapperParams) {
+}) {
     return render(
         <FormContext.Provider
             value={{
@@ -94,7 +98,9 @@ describe('FormWrapper', () => {
 
     it("gives the caller's scroll view ref the form's scroll view", () => {
         // Given a caller that needs the form's scroll view, e.g. for useKeyboardDrivenScroll
-        const scrollViewRef: NonNullable<FormProps['scrollViewRef']> = {current: null};
+        // React fills current on an object ref, which is all FormWrapper needs from the animated ref
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
+        const scrollViewRef = {current: null} as unknown as NonNullable<FormProps['scrollViewRef']>;
 
         // When the form renders
         renderFormWrapper({inputRefs: {current: {}}, scrollViewRef});
