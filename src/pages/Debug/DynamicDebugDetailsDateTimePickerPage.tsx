@@ -1,5 +1,5 @@
 import DatePicker from '@components/DatePicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -41,9 +41,8 @@ function DynamicDebugDetailsDateTimePickerPage({
 
     return (
         <ScreenWrapper testID="DynamicDebugDetailsDateTimePickerPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={fieldName}
-                shouldShowBackButton
                 onBackButtonPress={() => {
                     Navigation.goBack(fieldValue ? appendParam(backPath, fieldName, fieldValue) : backPath, {compareParams: false});
                 }}
