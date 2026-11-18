@@ -54,10 +54,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Freshteam',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Freshteam_Square.png',
     },
-    // 'generic-sftp': {
-    //     displayName: 'Generic SFTP',
-    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/generic_sftp_square_mJ3x0IU.png',
-    // },
+    'generic-sftp': {
+        displayName: 'Generic SFTP',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/generic_sftp_square_mJ3x0IU.png',
+    },
     'hailey-hr': {
         displayName: 'Hailey HR',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformHailey_HR.png',
@@ -146,10 +146,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Sage HR',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Sage_HR_Square_L3bw47M.png',
     },
-    'sap-successfactors': {
-        displayName: 'SAP SuccessFactors',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/SuccessFactors_Square_Logo_BcXogF0.jpg',
-    },
+    // 'sap-successfactors': {
+    //     displayName: 'SAP SuccessFactors',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/SuccessFactors_Square_Logo_BcXogF0.jpg',
+    // },
     simployer: {
         displayName: 'Simployer',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Simployer_Square.png',
