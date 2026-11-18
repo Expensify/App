@@ -87,6 +87,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setOnboardingPolicyID(groupPolicy.id);
     }, [groupPolicy, onboardingPolicyID]);
 
+    const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
+    const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
+    const confirmSoftwareLabel = translate('onboarding.accounting.confirmSoftware', trimmedQuery);
+
     const submitAccounting = async () => {
         if (!selectedAnswer) {
             setError(translate('onboarding.errorSelection'));
@@ -182,13 +186,13 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             width={variables.onboardingAccountingIllustrationWidth}
                             height={variables.onboardingAccountingIllustrationHeight}
                         />
-                        <Text style={[styles.textHeadlineH2, styles.textAlignCenter, styles.mt5]}>{translate('onboarding.accounting.unsupportedTitle', trimmedQuery)}</Text>
-                        <Text style={[styles.textSupporting, styles.textAlignCenter, styles.mt2, styles.mb5]}>{translate('onboarding.accounting.unsupportedSubtitle')}</Text>
+                        <Text style={[styles.textHeadlineH2, styles.textAlignCenter, styles.mt5]}>{unsupportedTitle}</Text>
+                        <Text style={[styles.textSupporting, styles.textAlignCenter, styles.mt2, styles.mb5]}>{unsupportedSubtitle}</Text>
                         <Button
                             onPress={() => selectIntegration({name: trimmedQuery, integration: 'other', iconName: 'Building'})}
                             sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_CONFIRM_SOFTWARE}
                         >
-                            <Button.Text>{translate('onboarding.accounting.confirmSoftware', trimmedQuery)}</Button.Text>
+                            <Button.Text>{confirmSoftwareLabel}</Button.Text>
                         </Button>
                     </View>
                 )}
