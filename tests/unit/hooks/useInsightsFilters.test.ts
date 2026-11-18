@@ -101,6 +101,56 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters.compare).toBeUndefined();
     });
 
+    it('opens Efficiency on this month by day without comparison when no selections are stored', async () => {
+        // Given no saved Efficiency filters to override the defaults
+        await setUpActivePolicy('PLN');
+
+        // When Efficiency resolves its filters for the first visit
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.EFFICIENCY));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the initial view and reset defaults use daily values for this month without comparison
+        expect(result.current.filters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+            policyIDs: [],
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            groupCurrency: 'PLN',
+            defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY,
+        });
+        expect(result.current.filters.compare).toBeUndefined();
+        expect(result.current.defaultFilters).toEqual(result.current.filters);
+    });
+
+    it('preserves saved Efficiency selections instead of applying the new defaults', async () => {
+        // Given explicit Efficiency selections that must survive the default change
+        await setUpActivePolicy('PLN');
+        const stored: InsightsFilters = {
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            policyIDs: ['A1'],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+            groupCurrency: 'USD',
+        };
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.EFFICIENCY].searchKey]: {query: buildInsightsQueryString(stored)},
+        });
+        await waitForBatchedUpdates();
+
+        // When Efficiency restores the saved query
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.EFFICIENCY));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the saved filters win while each control can still reset to the new defaults
+        expect(result.current.filters).toEqual({...stored, defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY});
+        expect(result.current.defaultFilters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
+            policyIDs: [],
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            groupCurrency: 'PLN',
+            defaultGroupBy: CONST.SEARCH.GROUP_BY.DAY,
+        });
+    });
+
     it('opens Compliance on a running total for this month against the previous period when no selections are stored', async () => {
         // Given no saved Compliance filters to override the defaults
         await setUpActivePolicy('PLN');
