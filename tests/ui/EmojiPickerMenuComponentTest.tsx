@@ -120,7 +120,7 @@ function renderEmojiMenu(Menu: typeof WebEmojiPickerMenu, onEmojiSelected: Emoji
     );
 }
 
-/** `instanceof View` alone narrows to `{}` under the React Native Strict TypeScript API, where `View` is a function component */
+/** A type guard, because `instanceof View` alone doesn't narrow to the host instance when `View` is typed as a function component */
 function isViewInstance(instance: unknown): instance is ComponentRef<typeof View> {
     return instance instanceof View;
 }

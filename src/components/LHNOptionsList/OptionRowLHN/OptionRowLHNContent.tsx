@@ -45,7 +45,6 @@ function OptionRowLHNContent({optionDataParams, isReportFocused, viewMode, isIOU
     }
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    // Typed up front so `StyleSheet.flatten` infers a view style on both the current and the Strict TypeScript API types
     const placeholderRowStyles: StyleProp<ViewStyle> = isInFocusMode
         ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
         : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter];

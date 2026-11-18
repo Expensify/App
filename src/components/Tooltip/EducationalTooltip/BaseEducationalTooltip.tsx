@@ -220,8 +220,7 @@ function BaseEducationalTooltip({
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
-                        // The Strict TypeScript API also types the target as a numeric native tag, which can't be measured. It is only
-                        // reached when the event carries no host instance
+                        // A numeric native tag can't be measured
                         if (typeof target === 'number') {
                             return;
                         }

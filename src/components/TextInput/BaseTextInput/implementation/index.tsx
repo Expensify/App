@@ -341,7 +341,6 @@ function BaseTextInput({
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
     const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
 
-    // The Strict TypeScript API types the flattened style as nullable, though this list always holds the container style
     const newTextInputContainerStyles: ViewStyle =
         StyleSheet.flatten([
             styles.textInputContainer,

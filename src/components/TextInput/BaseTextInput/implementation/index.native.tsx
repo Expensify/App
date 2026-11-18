@@ -279,7 +279,6 @@ function BaseTextInput({
 
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    // The Strict TypeScript API types the flattened style as nullable, though this list always holds the container style
     const newTextInputContainerStyles: ViewStyle =
         StyleSheet.flatten([
             styles.textInputContainer,

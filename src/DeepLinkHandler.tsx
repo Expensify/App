@@ -120,7 +120,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 }
 
                 initialUrlProcessed.current = true;
-                // The Strict TypeScript API types an absent initial URL as undefined too
                 onInitialUrl(url ?? null);
 
                 if (url) {
