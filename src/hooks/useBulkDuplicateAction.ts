@@ -28,6 +28,7 @@ import useMoneyRequestPolicyTagsForReport from './useMoneyRequestPolicyTagsForRe
 import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
@@ -62,6 +63,7 @@ function useBulkDuplicateAction({
 }: UseBulkDuplicateActionParams) {
     const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -131,6 +133,7 @@ function useBulkDuplicateAction({
 
         bulkDuplicateExpenses({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             transactionIDs: selectedTransactionsKeys,
             allTransactions: allTransactions ?? {},

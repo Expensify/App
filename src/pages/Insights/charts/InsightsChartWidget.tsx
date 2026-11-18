@@ -16,8 +16,10 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
@@ -26,7 +28,7 @@ import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
+import type {InsightsChartSpec, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -46,6 +48,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
+import type {InsightsChartMenuAction} from './InsightsChartMenu';
+
+import InsightsChartMenu from './InsightsChartMenu';
 import InsightsDataTable from './InsightsDataTable';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
@@ -66,6 +71,8 @@ type InsightsChartWidgetProps = {
 
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
+    averageQueryJSON?: Readonly<SearchQueryJSON>;
+    averageSnapshot?: OnyxEntry<SearchResults>;
 
     /** Average the backend returned for the chart's metric, drawn in the Average compare mode */
     average: ChartAverage | undefined;
@@ -91,12 +98,23 @@ type InsightsChartWidgetProps = {
     /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
     onGroupByChange?: (update: Partial<InsightsFilters>) => void;
 
+    /** Violation stage a chart that offers one counts, left out by other charts */
+    violationStage?: InsightsViolationStage;
+
+    /** Shows the violation stage control in the header of a chart that offers one */
+    onViolationStageChange?: (stage: InsightsViolationStage) => void;
+
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
-    /** Shown below the plot once the chart has loaded, including when it has nothing to plot */
+    /** Controls children stay in the header; other children appear below the plot after loading, including empty charts. */
     children?: React.ReactNode;
 };
+
+/** Marks header controls so chart notes can remain below the plot. */
+function InsightsChartControls({children}: React.PropsWithChildren) {
+    return children;
+}
 
 function InsightsChartWidget({
     dashboardID,
@@ -105,6 +123,8 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
+    averageQueryJSON,
+    averageSnapshot,
     average,
     isDashboardLoaded,
     filters,
@@ -113,17 +133,32 @@ function InsightsChartWidget({
     supportsDrillIn = true,
     onRetry,
     onGroupByChange,
+    violationStage,
+    onViolationStageChange,
     asOfDate,
     children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const controls: React.ReactNode[] = [];
+    const notes: React.ReactNode[] = [];
+    for (const child of React.Children.toArray(children)) {
+        if (React.isValidElement(child) && child.type === InsightsChartControls) {
+            controls.push(child);
+        } else {
+            notes.push(child);
+        }
+    }
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}, filters);
+    const {data, state, comparison} = useInsightsChartData(
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded},
+        filters,
+    );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     useReportChartCaptureLoading(isLoading);
@@ -145,7 +180,7 @@ function InsightsChartWidget({
         const content = buildInsightsChartCSV({
             data,
             groupBy,
-            dateFilterStart: getDateFilterRange(queryJSON).start,
+            dateFilterStart: getDateFilterRange(queryJSON, chart.dateFilterKey ?? getSearchTimeGroupingDateKey(queryJSON)).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
@@ -157,7 +192,6 @@ function InsightsChartWidget({
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
-    // The Details panel covers the Spend dashboard only
     const openDetails =
         dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
             ? (item: GroupedItem) => {
@@ -180,11 +214,12 @@ function InsightsChartWidget({
             />
         ) : null;
 
+    const explainViolationStage = violationStage ?? chart.violationStage;
     const explainButton =
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={insightsScope}
+                insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
             />
         ) : null;
 
@@ -196,45 +231,69 @@ function InsightsChartWidget({
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSONForSearch)}));
     };
 
-    const headerMenu =
-        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn)) ? (
+    const menuActions: InsightsChartMenuAction[] = [];
+    if (supportsDrillIn) {
+        menuActions.push({
+            text: translate('insightsPage.viewOnSpend'),
+            sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
+            icon: icons.Expand,
+            onSelected: openOnSpend,
+        });
+    }
+    if (state === INSIGHTS_CHART_STATE.READY) {
+        menuActions.push({
+            text: translate('spreadsheet.downloadCSV'),
+            sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
+            icon: icons.Table,
+            onSelected: downloadCSV,
+        });
+    }
+
+    const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
+    const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
+    let headerMenu: React.ReactNode = null;
+    // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
+    if (shownViolationStage && onViolationStageChange) {
+        headerMenu = (
+            <InsightsChartMenu
+                graphKey={chart.graphKey}
+                violationStage={shownViolationStage}
+                onViolationStageChange={onViolationStageChange}
+                actions={canUseMenuActions ? menuActions : []}
+            />
+        );
+    } else if (canUseMenuActions) {
+        headerMenu = (
             <WidgetHeaderMenu
                 size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
-                menuItems={[
-                    ...(supportsDrillIn
-                        ? [
-                              {
-                                  text: translate('insightsPage.viewOnSpend'),
-                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
-                                  icon: icons.Expand,
-                                  onSelected: openOnSpend,
-                                  shouldCallAfterModalHide: true,
-                              },
-                          ]
-                        : []),
-                    ...(state === INSIGHTS_CHART_STATE.READY
-                        ? [
-                              {
-                                  text: translate('spreadsheet.downloadCSV'),
-                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
-                                  icon: icons.Table,
-                                  onSelected: downloadCSV,
-                                  shouldCallAfterModalHide: true,
-                              },
-                          ]
-                        : []),
-                ]}
+                menuItems={menuActions.map((action) => ({...action, shouldCallAfterModalHide: true}))}
             />
-        ) : null;
+        );
+    }
 
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
+            titleContent={
+                shownViolationStage ? (
+                    <>
+                        <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate(chart.titleKey)}</Text>
+                        <Text
+                            variant="label"
+                            style={styles.textSupporting}
+                            numberOfLines={1}
+                        >
+                            {translate(`insightsPage.violationStage.${shownViolationStage}`)}
+                        </Text>
+                    </>
+                ) : undefined
+            }
             titleRightContent={
-                !!groupByControl || !!explainButton || !!headerMenu ? (
+                controls.length > 0 || !!groupByControl || !!explainButton || !!headerMenu ? (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                        {controls}
                         {groupByControl}
                         {explainButton}
                         {headerMenu}
@@ -278,6 +337,7 @@ function InsightsChartWidget({
                                 comparison={comparison}
                                 shouldShowRunningTotal={shouldShowRunningTotal}
                                 chartContainerStyle={cardPaddingHorizontal}
+                                dateFilterKey={chart.dateFilterKey}
                                 trackedFrom={trackedFrom}
                                 today={today}
                                 shouldShowSinglePointAsBar
@@ -304,11 +364,13 @@ function InsightsChartWidget({
             {(state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY) && (
                 <>
                     {isTimeGrouped && !!trackedFrom && doesRangeStartBeforeTracking(filters, trackedFrom) && <InsightsTrackedFromNote trackedFrom={trackedFrom} />}
-                    {children}
+                    {notes}
                 </>
             )}
         </WidgetContainer>
     );
 }
+
+InsightsChartWidget.Controls = InsightsChartControls;
 
 export default InsightsChartWidget;

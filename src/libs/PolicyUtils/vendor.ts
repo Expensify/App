@@ -550,6 +550,12 @@ function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
+/** Digits has no active flag or vendor type, and its import already leaves out parties that are only customers, so every cached vendor is eligible */
+function getDigitsVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DIGITS]?.data?.vendors;
+    return (vendors ?? []).filter((vendor) => !!vendor.id).map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
 /** Zoho Books export settings and vendor matching use only active vendor-type records, never customers or inactive vendors */
 function getZohoBooksVendors(policy: OnyxEntry<Policy>): Vendor[] {
     const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]?.data?.vendors;
@@ -604,6 +610,7 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     getCampfireVendors,
+    getDigitsVendors,
     getZohoBooksVendors,
     getCertiniaVendors,
     isRilletVendorMatchingActive,

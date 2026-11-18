@@ -28,6 +28,8 @@ groupCurrency
   = "groupCurrency"
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
+tagLevel = "tagLevel"i / "tag-level"i { return "tagLevel"; }
+tagParent = "tagParent"i / "tag-parent"i { return "tagParent"; }
 category = "category"i { return "category"; }
 vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
@@ -91,6 +93,9 @@ approved = "approved"i { return "approved"; }
 anyApproval
   = "anyApproval"i { return "anyApproval"; }
   / "any-approval"i { return "anyApproval"; }
+anySubmission
+  = "anySubmission"i { return "anySubmission"; }
+  / "any-submission"i { return "anySubmission"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }

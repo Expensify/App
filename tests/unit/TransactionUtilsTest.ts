@@ -3186,6 +3186,79 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasViolation', () => {
+        const futureDateViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            },
+        ];
+        const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true for a futureDate violation when the date and time are beyond the +14 hour window', () => {
+            // Given a futureDate violation on an expense that SmartScan dated today at UTC+14, with a time that hasn't happened yet at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28', modifiedCreated: '2026-10-28 18:11:40'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation counts, because the backend still returns it and it is shown on the expense
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
+            // Given a futureDate violation saved earlier on a date-only expense dated the current UTC+14 date
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a missingAttendees violation when attendee tracking is off', () => {
+            // Given a missingAttendees violation on a Control workspace that has attendee tracking turned off, so the violation is hidden
+            const missingAttendeesViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const trackingOffPolicy: Policy = {...policy, isAttendeeTrackingEnabled: false};
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(
+                generateTransaction(),
+                missingAttendeesViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                openReport,
+                CURRENT_USER_EMAIL,
+                trackingOffPolicy,
+            );
+
+            // Then the violation doesn't count, because the user can't see it and has nothing to fix before submitting
+            expect(result).toBe(false);
+        });
+
+        it('should return true for a missingCategory violation while Concierge AI picks a category', () => {
+            // Given a missingCategory violation on a new expense that is still being created, so it is hidden while Concierge AI picks a category
+            const missingCategoryViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const transaction = generateTransaction({category: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation still counts, so the report can't be submitted before the category is set
+            expect(result).toBe(true);
+        });
+    });
+
     describe('hasNoticeTypeViolation', () => {
         const noticeViolations: TransactionViolation[] = [
             {

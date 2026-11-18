@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
+import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {getDateFilterRange} from '@libs/SearchQueryUtils';
@@ -23,7 +24,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartCountDimension, SearchChartMetric, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from './types';
 
 import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
@@ -86,7 +87,7 @@ type SearchChartViewProps = {
     /** Shown at the end of a tooltip opened by a touch tap */
     tooltipFooter?: React.ReactNode;
 
-    /** Whether a line chart with a single point is drawn as a bar */
+    /** Whether line and pie charts with a single point are drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
     /** What the chart is compared against, drawn as a second series */
@@ -100,6 +101,9 @@ type SearchChartViewProps = {
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The date `queryJSON` narrows the period by, which time buckets cover and drill into. Defaults to the date the query's filters bucket by. */
+    dateFilterKey?: SearchDateFilterKeys;
 
     /** First day the data was recorded, as a yyyy-MM-dd string, so compared buckets before it plot nothing instead of 0 */
     trackedFrom?: string;
@@ -131,6 +135,7 @@ function SearchChartView({
     shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
+    dateFilterKey,
     trackedFrom,
     today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
 }: SearchChartViewProps) {
@@ -142,7 +147,8 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const bucketDateFilterKey = dateFilterKey ?? getSearchTimeGroupingDateKey(queryJSON);
+    const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON, bucketDateFilterKey) : {};
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
     // Only an amount is money, so other metrics drop the currency symbol from the axis
     const isAmountMetric = metric === CONST.SEARCH.CHART_METRIC.AMOUNT;
@@ -189,6 +195,7 @@ function SearchChartView({
         colorScheme: theme.colorScheme,
     });
     const points = rows.map((row) => row.point);
+    const renderedView = view === CONST.SEARCH.VIEW.PIE && shouldShowSinglePointAsBar && points.length === 1 ? CONST.SEARCH.VIEW.BAR : view;
 
     // On narrow layout, a single step spanning the whole axis labels only the first and last points
     const labelSteps = shouldUseNarrowLayout && axisLabelSteps ? [Math.max(1, points.length - 1)] : axisLabelSteps;
@@ -209,7 +216,7 @@ function SearchChartView({
             return;
         }
 
-        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item));
+        const query = buildChartDrillDownQuery(pressedQueryJSON, getFilterQuery(item, bucketDateFilterKey));
 
         if (!query) {
             return;
@@ -300,7 +307,7 @@ function SearchChartView({
 
     return (
         <>
-            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
+            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[renderedView]}</View>
             {renderDetails?.({series, rows, metric, formatValue})}
         </>
     );
