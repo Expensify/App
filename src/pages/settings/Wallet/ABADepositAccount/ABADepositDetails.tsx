@@ -191,6 +191,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                     <TextLink
                         href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                         style={styles.mt3}
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
                     >
                         {translate('common.privacy')}
                     </TextLink>
