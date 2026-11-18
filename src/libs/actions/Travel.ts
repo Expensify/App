@@ -277,10 +277,12 @@ function rejectTravelBooking(decisionParams: TravelBookingDecisionParams, pnrID:
 
     const params: RejectTravelBookingParams = {reportID, pnrID};
     const onyxData = buildBookingDecisionOnyxData(decisionParams, [pnrID], CONST.TRAVEL.BOOKING_APPROVAL.STATUS.REJECTED);
-    if (reason) {
+    // The backend skips a blank reason, so one of only spaces would leave its comment pending forever
+    const trimmedReason = reason?.trim();
+    if (trimmedReason) {
         // The backend posts the reason as a comment in the trip room under this ID, so it shows right away like a reject expense comment
-        const reasonReportAction = buildOptimisticRejectReportActionComment(reason, decisionParams.delegateAccountID);
-        params.reason = reason;
+        const reasonReportAction = buildOptimisticRejectReportActionComment(trimmedReason, decisionParams.delegateAccountID);
+        params.reason = trimmedReason;
         params.reasonReportActionID = reasonReportAction.reportActionID;
 
         const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;

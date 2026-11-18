@@ -150,7 +150,7 @@ describe('Travel booking decisions', () => {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRIP_ROOM_ID}` as const;
 
         // When they reject it with a reason
-        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID, 'Too expensive');
+        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID, '  Too expensive  ');
         await applyOnyxData('optimisticData');
 
         // Then the reason shows in the trip room as a pending comment with the ID that was sent, so the backend's comment replaces it
@@ -161,6 +161,7 @@ describe('Travel booking decisions', () => {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             message: [expect.objectContaining({text: 'Too expensive'})],
         });
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, expect.objectContaining({reason: 'Too expensive'}), expect.anything());
 
         // When the rejection fails
         await applyOnyxData('failureData');
@@ -169,13 +170,16 @@ describe('Travel booking decisions', () => {
         expect((await getOnyxValue(reportActionsKey))?.[reasonReportActionID]).toBeUndefined();
     });
 
-    it('adds no comment when the booking is rejected without a reason', async () => {
+    it.each([
+        {case: 'without a reason', reason: undefined},
+        {case: 'with a reason of only spaces', reason: '   '},
+    ])('adds no comment when the booking is rejected $case', async ({reason}) => {
         // Given an approver with an outstanding hotel
         const tripData = buildTripData(CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING);
         await setUpTrip(tripData);
 
-        // When they reject it without a reason
-        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID);
+        // When they reject it with no reason the backend would post, since it skips a blank one
+        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID, reason);
         await applyOnyxData('optimisticData');
 
         // Then nothing is posted, so no comment ID is sent and the trip room has no comment
