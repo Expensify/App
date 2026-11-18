@@ -91,7 +91,7 @@ describe('MultiChoiceDropdownAdapter', () => {
         expect(onInputChange).not.toHaveBeenCalled();
     });
 
-    it('does not report a change when an untouched list is applied over a value the field no longer offers', () => {
+    it('drops a value the field no longer offers when an untouched list is applied', () => {
         // Given a field holding Retail and a key its options no longer list, such as an old draft, whose list is open
         const onInputChange = jest.fn();
         renderAdapter({value: ['RETAIL', 'RETIRED'], onInputChange});
@@ -100,8 +100,8 @@ describe('MultiChoiceDropdownAdapter', () => {
         // When the user applies without changing anything, so the list hands back only the offered Retail
         lastPopoverProps()?.onApply(['RETAIL']);
 
-        // Then nothing changes, so the field does not ask the server for new requirements for a change the user never made
-        expect(onInputChange).not.toHaveBeenCalled();
+        // Then the field keeps only Retail, so the hidden key the user can no longer see or uncheck is not submitted
+        expect(onInputChange).toHaveBeenCalledWith(['RETAIL']);
     });
 
     it('treats an unanswered field as holding nothing', () => {

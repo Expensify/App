@@ -55,12 +55,10 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
         .map((item) => item.label)
         .join(', ');
 
-    // The list only checks the options it offers, so Apply is compared against those. Otherwise a held value the
-    // field no longer offers would make an untouched Apply look like a change and ask for new requirements.
-    const offeredSelectedValues = selectedValues.filter((selectedValue) => items.some((item) => item.value === selectedValue));
-
+    // A held value the field no longer offers has no row, so the list leaves it out of the applied values. Comparing
+    // against everything the field holds makes that Apply a change, so the hidden value is dropped and not submitted.
     const applyValues = (appliedValues: string[]) => {
-        if (haveSameValues(appliedValues, offeredSelectedValues)) {
+        if (haveSameValues(appliedValues, selectedValues)) {
             return;
         }
         onInputChange?.(appliedValues);
