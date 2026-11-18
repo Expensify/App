@@ -2,6 +2,7 @@
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RESIZE_HANDLE_COLUMN_OVERLAP from '@components/Table/columnResize/resizeHandleColumnOverlap';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -65,8 +66,6 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
     // Reserves the sort arrow, so sorting never flips the layout. `null` on native, which can't measure text.
     const labelWidth = isEndAligned ? measureSearchHeaderLabelWidth(columnLabel, styles.gap1.gap) : null;
     const labelRowInsets = getHorizontalInsets(labelRowStyle);
-    // The grip fills the cell's last pixels, so the caret after the label ends as far from the grip as it sits from the sort arrow.
-    const caretToGripPadding = Math.max(CONST.RESIZE_HANDLE.INDICATOR_WIDTH + styles.ml1.marginLeft - labelRowInsets.right, 0);
     const updateHeadingWidth = labelWidth === null ? undefined : (event: LayoutChangeEvent) => setHeadingWidth(event.nativeEvent.layout.width);
     const labelRowContentWidth = headingWidth === null ? null : headingWidth - labelRowInsets.left - labelRowInsets.right;
     const caretBeforeLabelWidth = variables.iconSizeExtraSmall + styles.mr1.marginRight;
@@ -107,7 +106,7 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
                         </View>
                     );
                     const labelRow = (
-                        <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(caretToGripPadding)}>
+                        <View style={isCaretVisible && hasResizeHandle && !isCaretBeforeLabel && StyleUtils.getPaddingRight(RESIZE_HANDLE_COLUMN_OVERLAP)}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, isEndAligned && styles.justifyContentEnd, labelRowStyle]}>
                                 {isCaretBeforeLabel && caret}
                                 <View
