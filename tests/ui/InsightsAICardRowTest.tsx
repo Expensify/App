@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
 import Accessibility from '@libs/Accessibility';
+import {isRecord} from '@libs/ObjectUtils';
 
 import InsightsAICardRow from '@pages/Insights/ai/InsightsAICardRow';
 
@@ -18,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
@@ -170,6 +172,35 @@ describe('InsightsAICardRow', () => {
         expect(screen.queryByText(LOADING_SUBTITLE)).toBeNull();
         expect(screen.queryByText('Reading Spend over time')).toBeNull();
         expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['desktop', false, false],
+        ['tablet', false, true],
+        ['narrow', true, false],
+    ] as const)('reserves the same space for the loader and cards on %s layouts', async (_layout, shouldUseNarrowLayout, isMediumScreenWidth) => {
+        // Given loading and loaded content share a responsive space reservation
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isMediumScreenWidth}));
+        const {rerender} = await renderRow(undefined);
+        const loadingStyle: unknown = StyleSheet.flatten(screen.root.props.style);
+        const minHeight = isRecord(loadingStyle) ? loadingStyle.minHeight : undefined;
+        expect(minHeight).toEqual(expect.any(Number));
+        expect(findAncestorWithStyle(screen.getByText(LOADING_TITLE), 'minHeight', minHeight)).toBeDefined();
+
+        // When insights arrive and replace the loader
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
+                <InsightsAICardRow
+                    insights={[SPIKE, TREND]}
+                    insightsScope={INSIGHTS_SCOPE}
+                    hasFailedToLoad={false}
+                />
+            </ComposeProviders>,
+        );
+        await act(async () => jest.advanceTimersByTimeAsync(0));
+
+        // Then the chart below keeps the same reserved boundary
+        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'minHeight', minHeight)).toBeDefined();
     });
 
     it('reveals cards one at a time across tablet rows', async () => {

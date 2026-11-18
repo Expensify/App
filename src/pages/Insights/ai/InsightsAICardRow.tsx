@@ -10,6 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
+import {lineHeightScale} from '@styles/typography';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
@@ -53,6 +56,28 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
     const {isOffline} = useNetwork();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
+    const cardsPerRow = isMediumScreenWidth ? CARDS_PER_ROW_ON_MEDIUM_SCREEN : MAX_CARD_COUNT;
+    const reservedRowCount = shouldUseNarrowLayout ? 1 : Math.ceil(MAX_CARD_COUNT / cardsPerRow);
+
+    // Reserve the maximum card layout before its copy arrives. Taller content can still grow.
+    const reservedCardHeight =
+        styles.defaultBadge.minHeight +
+        styles.gap2.gap +
+        lineHeightScale.text * variables.insightsAIReservedTextLines +
+        styles.gap3.gap +
+        lineHeightScale.label * variables.insightsAIReservedTextLines +
+        styles.gap5.gap +
+        variables.componentSizeSmall;
+    const reservedCardsHeight =
+        reservedCardHeight * reservedRowCount + styles.gap8.gap * (reservedRowCount - 1) + 2 * (shouldUseNarrowLayout ? styles.pv5.paddingVertical : styles.pv10.paddingVertical);
+    const reservedLoaderHeight =
+        variables.insightsAILoadingAnimationSize +
+        styles.mb4.marginBottom +
+        lineHeightScale.text +
+        styles.mb1.marginBottom +
+        lineHeightScale.text * variables.insightsAIReservedTextLines +
+        2 * styles.pv12.paddingVertical;
+    const reservedHeightStyle = StyleUtils.getMinimumHeight(Math.max(reservedCardsHeight, reservedLoaderHeight));
 
     const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
 
@@ -61,6 +86,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
             <Animated.View
                 key={insightsScope.searchKey}
                 exiting={isReducedMotionEnabled ? undefined : EXITING_LOADER}
+                style={[reservedHeightStyle, styles.justifyContentCenter]}
             >
                 <InsightsAILoadingIndicator searchKey={insightsScope.searchKey} />
             </Animated.View>
@@ -111,7 +137,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={hasHoverSupport()}
-                style={[pageGutterEdgeToEdge, styles.pv5]}
+                style={[pageGutterEdgeToEdge, styles.pv5, reservedHeightStyle]}
                 contentContainerStyle={pageGutter}
             >
                 {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
@@ -119,11 +145,10 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
         );
     }
 
-    const cardsPerRow = isMediumScreenWidth ? CARDS_PER_ROW_ON_MEDIUM_SCREEN : MAX_CARD_COUNT;
     const rows = Array.from({length: Math.ceil(cards.length / cardsPerRow)}, (row, rowIndex) => cards.slice(rowIndex * cardsPerRow, (rowIndex + 1) * cardsPerRow));
 
     return (
-        <View style={[styles.pv10, styles.gap8]}>
+        <View style={[styles.pv10, styles.gap8, reservedHeightStyle, styles.justifyContentCenter]}>
             {rows.map((row, rowIndex) => (
                 <View
                     key={row.at(0)?.key}

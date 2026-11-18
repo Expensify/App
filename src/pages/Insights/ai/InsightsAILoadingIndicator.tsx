@@ -11,6 +11,9 @@ import Accessibility from '@libs/Accessibility';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 
+import {lineHeightScale} from '@styles/typography';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {InsightsSearchKey} from '@src/types/onyx';
 
@@ -18,7 +21,6 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInDown, FadeOutUp} from 'react-native-reanimated';
 
-const ANIMATION_SIZE = 40;
 const MESSAGE_INTERVAL_MS = 2000;
 const MESSAGE_TRANSITION_DURATION_MS = 200;
 const ENTERING_MESSAGE = FadeInDown.duration(MESSAGE_TRANSITION_DURATION_MS);
@@ -32,7 +34,8 @@ function InsightsAILoadingIndicator({searchKey}: InsightsAILoadingIndicatorProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const animationStyle = StyleUtils.getWidthAndHeightStyle(ANIMATION_SIZE);
+    const animationStyle = StyleUtils.getWidthAndHeightStyle(variables.insightsAILoadingAnimationSize);
+    const messageMinHeightStyle = StyleUtils.getMinimumHeight(lineHeightScale.text * variables.insightsAIReservedTextLines);
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
     const [messageIndex, setMessageIndex] = useState(0);
     const chartTitleKey = Object.values(INSIGHTS_DASHBOARD_SPECS).find((dashboard) => dashboard.searchKey === searchKey)?.headlineChart.titleKey;
@@ -76,7 +79,7 @@ function InsightsAILoadingIndicator({searchKey}: InsightsAILoadingIndicatorProps
             >
                 {translate('insightsPage.generatingAIInsights')}
             </Text>
-            <View style={[styles.overflowHidden, styles.alignSelfStretch]}>
+            <View style={[styles.overflowHidden, styles.alignSelfStretch, messageMinHeightStyle]}>
                 <Animated.View
                     key={messageIndex}
                     entering={!isReducedMotionEnabled && messageIndex > 0 ? ENTERING_MESSAGE : undefined}
