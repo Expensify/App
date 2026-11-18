@@ -47,6 +47,7 @@ import type {
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
+import type CompanyCardNumberSearch from './CompanyCardNumberSearch';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -89,6 +90,7 @@ import type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
@@ -478,6 +480,7 @@ export type {
     CardFeeds,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
+    CompanyCardNumberSearch,
     ReceiptTranslation,
     ReceiptTranslationState,
     TranslatedReceiptRow,
@@ -508,6 +511,7 @@ export type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,

@@ -2461,14 +2461,19 @@ const ROUTES = {
             graphKey,
             itemKey,
             periodEnd,
+            tagLevel,
+            parentTagPath,
             asOfDate,
         }: {
             dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>;
             graphKey: ValueOf<typeof CONST.INSIGHTS.GRAPH>;
             itemKey: string;
             periodEnd?: string;
+            tagLevel?: number;
+            parentTagPath?: string;
             asOfDate?: string;
-        }) => `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
+        }) =>
+            `insights/${dashboardID}/details/${graphKey}?item=${encodeURIComponent(itemKey)}${periodEnd ? `&end=${periodEnd}` : ''}${tagLevel ? `&level=${tagLevel}` : ''}${parentTagPath ? `&parent=${encodeURIComponent(parentTagPath)}` : ''}${asOfDate ? `&asOf=${asOfDate}` : ''}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -5694,6 +5699,26 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_IMPORT: {
         route: 'workspaces/:policyID/accounting/digits/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT: {
+        route: 'workspaces/:policyID/accounting/digits/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/digits/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/digits/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/digits/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
