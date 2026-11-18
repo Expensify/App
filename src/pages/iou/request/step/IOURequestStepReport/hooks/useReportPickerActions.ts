@@ -16,12 +16,13 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
+import {getDefaultMoneyRequestReport, getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isPerDiemRequest,
+    isScanRequest,
     isTimeRequest as isTimeRequestUtil,
     isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil,
 } from '@libs/TransactionUtils';
@@ -130,7 +131,14 @@ function useReportPickerActions({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, rules, reportNameValuePair)) || isUnreported;
-    const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
+    const [chatIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(participantReport?.iouReportID)}`);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // Mark the report the Report field shows. When saving would start a new report, e.g. for a scan in the ASAP Submit beta, nothing is
+    // marked, so picking the chat's open report writes it to the expense instead of only closing the picker.
+    const outstandingReportID = isPolicyExpenseChat(participantReport)
+        ? getDefaultMoneyRequestReport(chatIOUReport, participantReport, isScanRequest(transaction), isASAPSubmitBetaEnabled, rules, action)?.reportID
+        : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const {allPolicies, perDiemOriginalPolicy} = usePerDiemPolicyData(transaction);
@@ -144,8 +152,6 @@ function useReportPickerActions({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const ownerAccountID = isUnreported

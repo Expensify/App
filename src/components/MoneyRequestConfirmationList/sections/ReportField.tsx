@@ -16,12 +16,12 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     canAddTransaction,
     generateReportID,
+    getDefaultMoneyRequestReport,
     getNewestOutstandingReportForUser,
     getOutstandingReportsForUser,
     isMoneyRequestReport,
     isOpenExpenseReport,
     isReportOutstanding,
-    shouldCreateNewMoneyRequestReport,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
 
@@ -106,8 +106,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
             ? getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {})
             : availableOutstandingReports.at(0);
     })();
-    const shouldCreateNewReport = isCreatingExpense && shouldCreateNewMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action);
-    const defaultReportID = shouldCreateNewReport ? undefined : defaultReport?.reportID;
+    const defaultReportID = getDefaultMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action)?.reportID;
 
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
     const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;

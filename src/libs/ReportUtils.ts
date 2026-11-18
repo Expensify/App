@@ -13651,6 +13651,29 @@ function getNewestOutstandingReportForUser(
 }
 
 /**
+ * Returns the report a new expense is added to when the user doesn't pick one, or undefined when saving it starts a new report.
+ * The Report field and the report picker both read it, so the picker marks the same report the field shows, and picking any
+ * other report, including the candidate when saving would skip it, writes the choice to the expense.
+ *
+ * @param candidateReport - The report the expense would join, usually the one the workspace chat points at
+ * @param chatReport - The workspace chat the expense is created in
+ */
+function getDefaultMoneyRequestReport(
+    candidateReport: OnyxInputOrEntry<Report>,
+    chatReport: OnyxInputOrEntry<Report>,
+    isScanRequest: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    rules: OnyxCollection<Rule>,
+    action: IOUAction,
+): OnyxInputOrEntry<Report> {
+    // Only a new expense goes through the save path's checks; other actions keep the report they were given.
+    if (action !== CONST.IOU.ACTION.CREATE) {
+        return candidateReport;
+    }
+    return shouldCreateNewMoneyRequestReport(candidateReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules, action) ? undefined : candidateReport;
+}
+
+/**
  * Whether the member is the approver of any of the policy's reports that are waiting for their approval.
  * An approver assigned through "Change approver" is only stored in the report's `managerID`, so they are not covered by `isPolicyApprover`.
  * @param accountID - The accountID of the member to check
@@ -16329,6 +16352,7 @@ export {
     buildOptimisticMovedTransactionAction,
     getOutstandingReportsForUser,
     getNewestOutstandingReportForUser,
+    getDefaultMoneyRequestReport,
     isApproverOfOutstandingPolicyReports,
     isReportOutstanding,
     isReportTotalPending,
