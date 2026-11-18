@@ -43,6 +43,7 @@ import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
@@ -17024,6 +17025,29 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
+        });
+
+        test.each<[SearchAdvancedFiltersKey, Partial<SearchAdvancedFiltersForm>, string]>([
+            [FILTER_KEYS.TRAVEL_TYPE, {travelType: [CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL]}, 'Flight, Car rental'],
+            [FILTER_KEYS.TRAVEL_TYPE_NOT, {travelTypeNot: [CONST.SEARCH.TRAVEL_TYPE.HOTEL]}, 'Hotel'],
+            [FILTER_KEYS.TRAVEL_PLATFORM, {travelPlatform: [CONST.SEARCH.TRAVEL_PLATFORM.AMEX_GBT, CONST.SEARCH.TRAVEL_PLATFORM.OTHER]}, 'Amex GBT/Egencia, Other'],
+            [FILTER_KEYS.TRAVEL_PLATFORM_NOT, {travelPlatformNot: [CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL]}, 'Expensify Travel'],
+        ])('shows %s values by their names', (filterKey, form, expected) => {
+            // Given a travel filter saved with stored values, including an "is not" filter
+            // When the advanced filters list builds the row's value
+            const result = SearchUIUtils.getDisplayValue(filterKey, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            // Then the row shows the names people picked from the list, not the stored values
+            expect(result).toBe(expected);
+        });
+
+        test('lists every approved travel platform in order', () => {
+            // Given the travel platform filter on an expense search
+            // When its options are built for the filter list
+            const options = SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.TRAVEL_PLATFORM, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+
+            // Then the options follow the approved design, with Expensify Travel first and Other last
+            expect(options.map((option) => option.text)).toEqual(['Expensify Travel', 'Amex GBT/Egencia', 'SAP Concur', 'Navan', 'FCM', 'Flight Centre', 'Serko', 'CTM', 'Other']);
         });
 
         test('continues to use common translations for is filter values', () => {
