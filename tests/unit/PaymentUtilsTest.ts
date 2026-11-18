@@ -2,7 +2,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBusinessBankAccountOptions, isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, getWalletTransferBankAccounts, isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {BankAccount, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 
@@ -642,6 +642,55 @@ describe('PaymentUtils', () => {
             // Then the existing order is preserved
             expect(resultWithoutDefault.map((option) => option.methodID)).toEqual([1, 2]);
             expect(resultWithUnknownDefault.map((option) => option.methodID)).toEqual([1, 2]);
+        });
+    });
+
+    describe('getWalletTransferBankAccounts', () => {
+        const createBankAccount = (bankAccountID: number, type: string, overrides: Partial<BankAccount> = {}): BankAccount => ({
+            accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            methodID: bankAccountID,
+            accountData: {
+                bankAccountID,
+                type,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {country: CONST.COUNTRY.US},
+            },
+            ...overrides,
+        });
+
+        it('keeps only open personal US accounts', () => {
+            // Given a personal account next to a business account, the wallet pseudo-account, a closed personal account and a non-US personal account
+            const personal = createBankAccount(1, CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+            const bankAccountList: Record<string, BankAccount> = {
+                1: personal,
+                2: createBankAccount(2, CONST.BANK_ACCOUNT.TYPE.BUSINESS),
+                3: createBankAccount(3, CONST.BANK_ACCOUNT_TYPES.WALLET),
+                4: createBankAccount(4, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {
+                    accountData: {bankAccountID: 4, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.PENDING},
+                }),
+                5: createBankAccount(5, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {
+                    accountData: {bankAccountID: 5, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {country: 'GB'}},
+                }),
+            };
+
+            // When the wallet transfer destinations are picked, since Auth rejects a transfer to anything but an open personal US account
+            const result = getWalletTransferBankAccounts(bankAccountList);
+
+            // Then only the personal account remains, so the business one can't be offered or auto-selected
+            expect(result).toEqual({1: personal});
+        });
+
+        it('drops a personal account pending deletion', () => {
+            // Given a personal account the user just deleted offline
+            const bankAccountList: Record<string, BankAccount> = {
+                1: createBankAccount(1, CONST.BANK_ACCOUNT.TYPE.PERSONAL, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            };
+
+            // When the wallet transfer destinations are picked
+            const result = getWalletTransferBankAccounts(bankAccountList);
+
+            // Then it is not offered, matching hasExpensifyPaymentMethod which hides the transfer view in that state
+            expect(result).toEqual({});
         });
     });
 });

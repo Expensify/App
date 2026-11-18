@@ -73,19 +73,28 @@ type BusinessBankAccountOption = {
 };
 
 /**
+ * Auth only pays a wallet balance out to an open personal US bank account, business accounts are rejected.
+ */
+function isWalletTransferBankAccount(bankAccountJSON: BankAccount): boolean {
+    const bankAccount = new BankAccountModel(bankAccountJSON);
+
+    return (
+        bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        bankAccount.isOpen() &&
+        bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
+        bankAccount.getCountry() === CONST.COUNTRY.US
+    );
+}
+
+function getWalletTransferBankAccounts(bankAccountList: Record<string, BankAccount>): Record<string, BankAccount> {
+    return Object.fromEntries(Object.entries(bankAccountList).filter(([, bankAccount]) => isWalletTransferBankAccount(bankAccount)));
+}
+
+/**
  * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
-    const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
-        const bankAccount = new BankAccountModel(bankAccountJSON);
-
-        return (
-            bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            bankAccount.isOpen() &&
-            bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
-            bankAccount?.getCountry() === CONST.COUNTRY.US
-        );
-    });
+    const validBankAccount = Object.values(bankAccountList).some(isWalletTransferBankAccount);
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
     const validDebitCard = Object.values(fundList).some((card) => card?.accountData?.additionalData?.isP2PDebitCard ?? false);
@@ -357,6 +366,7 @@ function getActivePaymentType(
 
 export {
     hasExpensifyPaymentMethod,
+    getWalletTransferBankAccounts,
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
