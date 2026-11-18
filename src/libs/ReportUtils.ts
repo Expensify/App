@@ -5223,12 +5223,13 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  *
  * @param reportID - the report for which last visible message has to be fetched
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
-
+ * @param [reportIDToName] - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
 function getLastVisibleMessage(
     reportID: string | undefined,
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportIDToName?: Record<string, string>,
 ): LastVisibleMessage {
     const report = getReportOrDraftReport({reportID});
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
@@ -5242,7 +5243,7 @@ function getLastVisibleMessage(
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge, undefined, undefined, undefined, reportIDToName);
 }
 
 /**
@@ -14584,15 +14585,16 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param reportID
  * @param actionsToMerge
  * @param canUserPerformWriteActionInReport
+ * @param reportIDToName - names for the rooms the last message mentions by reportID, so they aren't shown as #Hidden
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions, reportIDToName?: Record<string, string>) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge, reportIDToName);
 
     if (lastMessageText) {
         const report = getReport(reportID, deprecatedAllReports);

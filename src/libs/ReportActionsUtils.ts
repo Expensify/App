@@ -2049,6 +2049,9 @@ function formatLastMessageText(lastMessageText: string | undefined) {
     return StringUtils.lineBreaksToSpaces(trimmedMessage).substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
+/**
+ * @param reportIDToName - names for the rooms the last visible message mentions by reportID, so they aren't shown as #Hidden
+ */
 function getLastVisibleMessage(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
@@ -2057,6 +2060,7 @@ function getLastVisibleMessage(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
+    reportIDToName?: Record<string, string>,
 ): LastVisibleMessage {
     const lastVisibleAction = reportAction ?? getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, undefined, visibleReportActionsData, currentUserAccountID);
     const message = getReportActionMessage(lastVisibleAction);
@@ -2074,7 +2078,7 @@ function getLastVisibleMessage(
         };
     }
 
-    let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
+    let messageText = getReportActionMessageText(lastVisibleAction, reportIDToName) ?? '';
     if (messageText) {
         messageText = formatLastMessageText(messageText);
     }

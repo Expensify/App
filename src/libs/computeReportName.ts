@@ -143,6 +143,7 @@ import {
     isUnapprovedAction,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDsInReportActions} from './ReportIDToNameMapUtils';
 import {buildReportNameFromParticipantNames, getGroupChatName, getInvoiceReportName, getInvoicesChatName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
 import {
     formatReportLastMessageText,
@@ -861,7 +862,8 @@ function computeChatThreadReportName({
         return translate('parentReportAction.deletedMessage');
     }
 
-    const parentReportActionText = getReportActionText(parentReportAction);
+    // Look up only the rooms the parent message mentions, so a thread without mentions costs nothing on each recompute
+    const parentReportActionText = getReportActionText(parentReportAction, buildReportIDToNameMap(reports, getMentionedReportIDsInReportActions([parentReportAction])));
 
     // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
     // A thread opened by hand is named after the parent message, and that copy isn't localized (an attachment is stored
