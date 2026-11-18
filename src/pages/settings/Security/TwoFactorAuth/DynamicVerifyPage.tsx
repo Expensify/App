@@ -109,7 +109,14 @@ function DynamicVerifyPage() {
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
-                        <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.VERIFY_AUTHENTICATOR_APP_LINK}
+                            href={TROUBLESHOOTING_LINK}
+                        >
+                            {' '}
+                            {translate('twoFactorAuth.authenticatorApp')}
+                        </TextLink>
+                        .
                     </Text>
                     <View
                         style={[styles.alignItemsCenter, styles.mt5]}
@@ -151,6 +158,7 @@ function DynamicVerifyPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.VERIFY_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}

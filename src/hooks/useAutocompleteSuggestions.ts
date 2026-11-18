@@ -1,6 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
@@ -13,14 +12,15 @@ import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldSho
 import {
     CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompletePolicyData,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
-import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, getViolationDisplayName, isFilterSupported, VIOLATION_FILTER_VALUES, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
+import {getDatePresets, getHasOptionAvailability, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -79,7 +80,10 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+// Insights-only group-bys aren't suggested because Search can't group by them (see https://github.com/Expensify/App/issues/105303)
+const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
+    .filter(isGroupBySupportedBySearch)
+    .map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
@@ -133,6 +137,7 @@ function useAutocompleteSuggestions({
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -145,11 +150,12 @@ function useAutocompleteSuggestions({
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
-    const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
+    const {policyFilter: typedPolicyFilter, selectedPolicyIDs} = getAutocompletePolicyData(autocompleteQueryValue, ranges, policies, autocompleteSubstitutions);
+    const {exportedToFilterOptions} = useExportedToFilterOptions(typedPolicyFilter);
 
     let autocompleteKey = autocomplete?.key;
     let autocompleteValue = autocomplete?.value ?? '';
@@ -455,6 +461,28 @@ function useAutocompleteSuggestions({
                 text: receiptType,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
+            if (!getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
+            const searchValue = autocompleteValue.toLowerCase();
+            const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
+                .filter(
+                    ({violationName, displayName}) =>
+                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) &&
+                        !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
+                        !alreadyAutocompletedKeys.has(violationName.toLowerCase()),
+                )
+                .sort((first, second) => localeCompare(first.displayName, second.displayName));
+
+            return filteredViolations.map(({violationName, displayName}) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                text: displayName,
+                autocompleteID: violationName,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+            }));
+        }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
             const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
                 (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
@@ -578,21 +606,7 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
-            const policyIdRanges = ranges.filter((range) => range.key === autocompleteKey);
-            const keyValueCount = new Map<string, number>();
-            const alreadySelectedPolicyIds =
-                autocompleteSubstitutions &&
-                new Set(
-                    policyIdRanges
-                        .map((range) => {
-                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
-                            const index = keyValueCount.get(baseKey) ?? 0;
-                            keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
-                            return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
-                        })
-                        .filter(Boolean),
-                );
+            const alreadySelectedPolicyIds = autocompleteSubstitutions && new Set(selectedPolicyIDs);
 
             const filteredPolicies = workspaceList
                 .filter((workspace) => {
@@ -626,7 +640,7 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyCategories: allPolicyCategories,
+                policyIDsWithCategoryRules,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());

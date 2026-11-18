@@ -558,6 +558,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             {/* We need to wrap the video component in a component that will catch unhandled pointer events. Otherwise, these
             events will bubble up the tree, and it will cause unexpected press behavior. */}
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.CONTAINER}
                 accessible={false}
                 style={[styles.cursorDefault, style]}
             >

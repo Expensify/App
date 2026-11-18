@@ -1,8 +1,12 @@
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 
+import type {FSClass} from '@libs/Fullstory/types';
+
+import CONST from '@src/CONST';
+
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {createContext, useContext, useEffect, useState} from 'react';
+import {createContext, useContext, useEffect, useId, useState} from 'react';
 
 /**
  * Label slots a `MenuItem` row can contribute, in the order they are announced. Keyed by line rather
@@ -41,6 +45,9 @@ type MenuItemAccessibilityRegistries = {
 
     /** Leaves announce facts about the row here. Always there, since the facts are read even on a row that names itself */
     announcement: MenuItemAccessibilityRegistry<MenuItemAccessibilityAnnouncement>;
+
+    /** Masked text leaves register here, one entry per leaf, so the row also masks the label it builds from their text */
+    mask: MenuItemAccessibilityRegistry<string>;
 };
 
 const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityRegistries | undefined>(undefined);
@@ -67,6 +74,15 @@ function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | u
 /** Contributes an already translated announcement about the row */
 function useMenuItemAccessibilityAnnouncement(announcement: MenuItemAccessibilityAnnouncement, text: string | undefined) {
     useRegistration(useContext(MenuItemAccessibilityContext)?.announcement, announcement, text);
+}
+
+/**
+ * Marks the row as holding masked text. The row's accessibility label repeats the text of its leaves, and on the web
+ * it lands in the button's `aria-label`, so a masked leaf alone would still leave its text unmasked in session recordings.
+ */
+function useMenuItemMaskedText(fsClass: FSClass | undefined) {
+    const leafID = useId();
+    useRegistration(useContext(MenuItemAccessibilityContext)?.mask, leafID, fsClass === CONST.FULLSTORY.CLASS.MASK ? fsClass : undefined);
 }
 
 /**
@@ -110,6 +126,7 @@ function useKeyedRegistry<TKey>() {
 function useMenuItemAccessibility(accessibilityLabel?: string) {
     const labels = useKeyedRegistry<MenuItemLabelSlot>();
     const announcements = useKeyedRegistry<MenuItemAccessibilityAnnouncement>();
+    const maskedLeaves = useKeyedRegistry<string>();
 
     const derivedLabel = MENU_ITEM_LABEL_SLOTS.map((slot) => labels.entries.get(slot))
         .filter(Boolean)
@@ -126,11 +143,13 @@ function useMenuItemAccessibility(accessibilityLabel?: string) {
     const registries: MenuItemAccessibilityRegistries = {
         label: accessibilityLabel === undefined ? labels.registry : undefined,
         announcement: announcements.registry,
+        mask: maskedLeaves.registry,
     };
+    const fsClass = maskedLeaves.entries.size > 0 ? CONST.FULLSTORY.CLASS.MASK : undefined;
 
-    return {...accessibilityProps, registries};
+    return {...accessibilityProps, fsClass, registries};
 }
 
 export type {MenuItemLabelSlot};
 export default MenuItemAccessibilityContext;
-export {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibility, useMenuItemAccessibilityAnnouncement, useMenuItemAccessibilityLabel};
+export {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibility, useMenuItemAccessibilityAnnouncement, useMenuItemAccessibilityLabel, useMenuItemMaskedText};

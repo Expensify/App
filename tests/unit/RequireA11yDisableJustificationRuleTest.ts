@@ -87,4 +87,16 @@ describe('require-a11y-disable-justification', () => {
 
         expect(reports).toHaveLength(0);
     });
+
+    it('checks accessibility rule names without regard to case', () => {
+        // Given an accessibility disable written in uppercase
+        const comment = ' ESLINT-DISABLE REACT-NATIVE-A11Y/foo ';
+
+        // When the comment has no justification
+        const reports = runRule([comment]);
+
+        // Then the rule still reports it
+        expect(reports).toHaveLength(1);
+        expect(reports.at(0)?.messageId).toBe('missingIssueOrRationale');
+    });
 });

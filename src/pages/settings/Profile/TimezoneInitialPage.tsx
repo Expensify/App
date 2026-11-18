@@ -67,6 +67,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                     </View>
                 </View>
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE_SELECT}
                     name={translate('timezonePage.timezone')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
                     isDisabled={!!timezone.automatic}

@@ -2,8 +2,8 @@ import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvide
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {hasViolations as hasViolationsReportUtils, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils} from '@libs/ReportUtils';
 
@@ -19,13 +19,13 @@ function ApproveActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
-    const {shouldShowPayButton} = useReportPreviewActionState();
+    const {shouldShowPayButton, reportPreviewAction} = useReportPreviewActionState();
 
     const {iouReportID} = useReportPreviewData();
 
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport} = actionButtonData;
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(iouReport?.reportID);
+    const reportTransactions = useReportTransactionsCollection(iouReport?.reportID);
     const transactions = Object.values(reportTransactions);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -37,6 +37,7 @@ function ApproveActionButton() {
 
     return (
         <ExpenseHeaderApprovalButton
+            isSecondary={reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS}
             isAnyTransactionOnHold={isAnyTransactionOnHold}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             onApprove={confirmApproval}

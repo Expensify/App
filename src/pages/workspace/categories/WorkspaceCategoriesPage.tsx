@@ -40,7 +40,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getEnabledCategoriesCount, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -268,6 +268,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
 
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
     const categoryRows: WorkspaceCategoryTableRowData[] = categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
         const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -291,7 +293,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             enabled: value.enabled,
             errors: value.errors ?? undefined,
             pendingAction: value.pendingAction,
-            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value], enabledCategoriesCount) || !canWriteCategories || isDisabled,
             canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
             action: () => navigateToCategory(value),
             onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
@@ -354,15 +356,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
+    // Auto-categorizing can't do anything without an enabled category, so the toggle shows off + locked instead of on + locked.
+    // Wait for the categories to load so a saved-on setting doesn't flash off.
+    const isAutoCategorizeToggleLocked = !policy?.areCategoriesEnabled || (policyCategories !== undefined && !hasEnabledCategories);
+    const autoCategorizeToggleTooltip = isAutoCategorizeToggleLocked && policy?.areCategoriesEnabled ? translate('workspace.categories.enableAtLeastOneCategory') : undefined;
+
     const menuItems = [];
     // The former Settings page's toggles are surfaced directly in this menu. Selecting a toggle row (click or Enter)
     // flips it; the Switch is a display-only indicator and the menu stays open on select.
     if (canWriteCategories) {
         menuItems.push({
             text: translate('workspace.categories.autoCategorizeNewExpenses'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_AUTO_CATEGORIZE,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             shouldCloseModalOnSelect: false,
-            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true)),
+            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true), getReviewWorkspaceSettingsTaskCompletion()),
             numberOfLinesTitle: 0,
             shouldIgnoreCompactStyle: true,
             innerContainerStyle: styles.alignItemsCenter,
@@ -370,18 +378,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             pendingAction: policy?.pendingFields?.autoCategorizeNewExpenses,
             errors: policy?.errorFields?.autoCategorizeNewExpenses,
             onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
+            switchTooltipText: autoCategorizeToggleTooltip,
             switchProps: {
-                isOn: policy?.autoCategorizeNewExpenses ?? true,
+                isOn: !isAutoCategorizeToggleLocked && (policy?.autoCategorizeNewExpenses ?? true),
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
-                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
-                disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
+                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value, getReviewWorkspaceSettingsTaskCompletion()),
+                disabled: isAutoCategorizeToggleLocked,
             },
         });
     }
     if (canWriteCategories && !!policy?.glCodes) {
         menuItems.push({
             text: translate('workspace.categories.showCategoryGLCodes'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_SHOW_GL_CODES,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             shouldCloseModalOnSelect: false,
             onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
@@ -407,6 +417,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: navigateToImportSpreadsheet,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_IMPORT_SPREADSHEET,
             // Group the toggle rows apart from the spreadsheet actions.
             addSeparatorBefore: true,
         });
@@ -425,6 +436,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 });
             },
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_MENU_DOWNLOAD_CSV,
         });
     }
     const secondaryActions = menuItems;
@@ -444,6 +456,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DELETE,
                     shouldSkipFocusRestore: true,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
@@ -482,6 +495,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS.DISABLE,
                     shouldSkipFocusRestore: isDisablingLastEnabledCategory || membersWithoutVisibleCategories.length > 0,
                     onSelected: () => {
                         if (isDisablingLastEnabledCategory) {
@@ -530,6 +544,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Checkmark,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS.ENABLE,
                     onSelected: () => {
                         clearTableSelection();
                         setWorkspaceCategoryEnabled({
@@ -638,11 +653,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                   icon: icons.Table,
                   buttonText: translate('common.import'),
                   buttonAction: navigateToImportSpreadsheet,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.EMPTY_STATE.IMPORT,
               },
               {
                   icon: icons.Plus,
                   buttonText: translate('workspace.categories.addCategory'),
                   buttonAction: navigateToCreateCategoryPage,
+                  sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.EMPTY_STATE.ADD_CATEGORY,
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
               },
           ]
