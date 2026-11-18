@@ -19,6 +19,7 @@ import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
+import SearchTabContextHold from '@navigation/AppNavigator/SearchTabContextHold';
 
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -88,20 +89,25 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
         <FreezeWrapper shouldStayUnfrozen={isInPreloadedTab && (!isPreloadedContentReady || isPreloadedTabHovered)}>
             <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
                 <PreloadedTabContentReadyContext.Provider value={markPreloadedContentReady}>
-                    {shouldRenderContent && (
-                        <Stack.Navigator
-                            screenOptions={centralScreenOptions}
-                            defaultCentralScreen={SCREENS.SEARCH.ROOT}
-                            parentRoute={route}
-                        >
-                            <Stack.Screen
-                                name={SCREENS.SEARCH.ROOT}
-                                getComponent={loadSearchPage}
-                                initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                                options={{animation: Animations.NONE}}
-                            />
-                        </Stack.Navigator>
-                    )}
+                    <SearchTabContextHold
+                        isInPreloadedTab={isInPreloadedTab}
+                        isPreloadedContentReady={isPreloadedContentReady}
+                    >
+                        {shouldRenderContent && (
+                            <Stack.Navigator
+                                screenOptions={centralScreenOptions}
+                                defaultCentralScreen={SCREENS.SEARCH.ROOT}
+                                parentRoute={route}
+                            >
+                                <Stack.Screen
+                                    name={SCREENS.SEARCH.ROOT}
+                                    getComponent={loadSearchPage}
+                                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                                    options={{animation: Animations.NONE}}
+                                />
+                            </Stack.Navigator>
+                        )}
+                    </SearchTabContextHold>
                 </PreloadedTabContentReadyContext.Provider>
             </IsInPreloadedTabContext.Provider>
         </FreezeWrapper>

@@ -21,6 +21,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
@@ -249,6 +250,20 @@ function SearchPageNarrow({
             });
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
+
+    // A Spend tab preloaded at idle builds its list from cached results while hidden, so the first tap only reveals it.
+    // Hidden, the list sends no request and ends no span, as `Search` reads the same preloaded state. Without cached
+    // results there is no list to build, only an animated loading skeleton, so the still placeholder stays.
+    const isInPreloadedTab = useIsInPreloadedTab();
+    useEffect(() => {
+        if (!isInPreloadedTab || isInteractive || shouldShowLoadingSkeleton) {
+            return;
+        }
+        startTransition(() => {
+            setIsHeaderInteractive(true);
+            setIsInteractive(true);
+        });
+    }, [isInPreloadedTab, isInteractive, shouldShowLoadingSkeleton, startTransition]);
 
     // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
     if (!queryJSON || !contentQueryJSON) {

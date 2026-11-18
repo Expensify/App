@@ -3,10 +3,12 @@ import {render} from '@testing-library/react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import SearchTabPreload from '@libs/Navigation/AppNavigator/SearchTabPreload';
+import type * as GetSearchTabPreloadTargetModule from '@libs/Navigation/helpers/getSearchTabPreloadTarget';
 import {clearIdlePreloadedSearchTabRouteKey, isIdlePreloadedSearchTabRoute} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import {Scheduler} from '@libs/Scheduler';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -44,8 +46,17 @@ jest.mock('@libs/getPlatform', () => ({
     default: jest.fn(() => 'web'),
 }));
 
+// Jest resolves the native file first, and this suite covers the desktop browser preload target.
+jest.mock('@libs/Navigation/helpers/getSearchTabPreloadTarget', () =>
+    jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.ts'),
+);
+
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
+}));
+
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    getPendingSubmitFollowUpAction: jest.fn(() => null),
 }));
 
 function buildRootState(focusedTabIndex = 0, preloadedRouteKeys: string[] = []): NavigationState {
@@ -106,6 +117,7 @@ describe('SearchTabPreload', () => {
         jest.restoreAllMocks();
         jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
         jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue(null);
     });
 
     const savedQueryJSON = buildSearchQueryJSON('type:expense status:drafts');
@@ -178,14 +190,28 @@ describe('SearchTabPreload', () => {
         expectNoSpendPreload();
     });
 
-    it.each([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID, CONST.PLATFORM.MOBILE_WEB])('does not preload the Spend tab on %s', async (platform) => {
-        // Given the app runs outside a desktop browser, where the native tab bar already mounts every tab and the cost on a phone CPU is unmeasured
-        jest.mocked(getPlatform).mockReturnValue(platform);
+    it('does not preload the Spend tab in a mobile browser', async () => {
+        // Given the app runs in a mobile browser, where the cost of building the tab on a phone CPU is unmeasured
+        jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
 
         // When the app goes idle on Home
         await renderAtIdle();
 
         // Then the Spend tab is not preloaded
         expectNoSpendPreload();
+    });
+
+    it.each([
+        ['leaves the Spend tab to a submit that ends on Spend', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH, false],
+        ['still preloads the Spend tab while a submit ends on a report', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, true],
+    ])('%s', async (_description, followUpAction, shouldPreload) => {
+        // Given an expense submit in flight, which pre-inserts the Spend tab under the RHP only when it ends on Spend
+        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue({followUpAction});
+
+        // When the app goes idle on Home
+        await renderAtIdle();
+
+        // Then the preload only steps aside for the submit that opens Spend itself
+        expect(jest.mocked(startSpan).mock.calls.length > 0).toBe(shouldPreload);
     });
 });

@@ -6,6 +6,7 @@ import {
     getTabPreloadTarget,
     getTabScreenParam,
     getTabState,
+    getUnvisitedTabPreloadTarget,
     isReportsTabPreloaded,
     isTabPreloaded,
     isTabRoutePreloaded,
@@ -320,5 +321,54 @@ describe('getTabPreloadTarget for the Spend tab', () => {
         // When the idle preload asks for a target
         // Then there is nothing to preload
         expect(getTabPreloadTarget(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)).toBeUndefined();
+    });
+});
+
+describe('getUnvisitedTabPreloadTarget for the Spend tab', () => {
+    type Options = {index?: number; history?: Array<{type: 'route'; key: string}>; withSearchRoute?: boolean};
+
+    // Native tab bars mount every tab at startup, so the Spend route always carries the state of its mounted screens.
+    const buildRootState = ({index = 0, history = [{type: 'route', key: 'home-1'}], withSearchRoute = true}: Options) => ({
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tab-1',
+                    index,
+                    history,
+                    routes: [
+                        {name: SCREENS.HOME, key: 'home-1'},
+                        ...(withSearchRoute
+                            ? [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, key: 'search-1', state: {key: 'stack-1', index: 0, routes: [{name: SCREENS.SEARCH.ROOT, key: 'root-1'}]}}]
+                            : []),
+                    ],
+                },
+            },
+        ],
+    });
+
+    it.each<[string, Options, string | undefined]>([
+        ['the tab state key when Spend is mounted but was never shown', {}, 'tab-1'],
+        ['undefined when Spend is the focused tab', {index: 1, history: [{type: 'route', key: 'search-1'}]}, undefined],
+        [
+            'undefined when Spend was shown earlier in the session',
+            {
+                history: [
+                    {type: 'route', key: 'search-1'},
+                    {type: 'route', key: 'home-1'},
+                ],
+            },
+            undefined,
+        ],
+        ['undefined when there is no Spend route', {withSearchRoute: false}, undefined],
+    ])('returns %s', (_description, options, expected) => {
+        // Given a native tab navigator in the state described by this case
+        const rootState = buildRootState(options);
+
+        // When the idle preload asks where to dispatch the Spend tab preload
+        const target = getUnvisitedTabPreloadTarget(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+        // Then it only targets a Spend tab whose list was never built, since a shown tab built it already
+        expect(target).toBe(expected);
     });
 });

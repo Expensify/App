@@ -193,8 +193,41 @@ describe('useOnyx Search snapshot updates', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.set(REPORT_KEY, LIVE_REPORT);
-        await Onyx.merge(SNAPSHOT_KEY, {data: {[REPORT_KEY]: SNAPSHOT_REPORT}});
+        await Onyx.merge(SNAPSHOT_KEY, {data: {[REPORT_KEY]: SNAPSHOT_REPORT, [POLICY_KEY]: {id: 'A', name: 'Snapshot policy'}}});
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([
+        [
+            'does not re-render a read of one snapshot entry when another entry of the snapshot changes',
+            () => Onyx.merge(SNAPSHOT_KEY, {data: {[POLICY_KEY]: {name: 'Edited policy'}}}),
+            SNAPSHOT_REPORT.reportName,
+            false,
+        ],
+        ['re-renders a read of one snapshot entry when that entry changes', () => Onyx.merge(SNAPSHOT_KEY, {data: {[REPORT_KEY]: {reportName: 'Edited report'}}}), 'Edited report', true],
+    ])('%s', async (_description, writeSnapshot, expectedReportName, shouldRender) => {
+        // Given a report read on a Search screen without a selector
+        let renderCount = 0;
+        const {result} = renderHook(
+            () => {
+                renderCount++;
+                return useOnyx(REPORT_KEY);
+            },
+            {wrapper: SearchScreen},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeWrite = renderCount;
+
+        // When an expense update writes one entry of the snapshot
+        await act(writeSnapshot);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the reader shows the snapshot copy of its report
+        expect(result.current[0]?.reportName).toBe(expectedReportName);
+
+        // And it re-renders only when its own entry changed, as a read outside Search would, so a list row does not
+        // re-render for every write to the results it is part of
+        expect(renderCount > renderCountBeforeWrite).toBe(shouldRender);
     });
 
     it('keeps the snapshot copy inside Search after a plain merge to live data', async () => {
