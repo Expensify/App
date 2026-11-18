@@ -108,3 +108,4 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
 };
 
 export default useOnyx;
+export {getKeyData};
