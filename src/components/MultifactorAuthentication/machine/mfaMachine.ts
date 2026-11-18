@@ -1,11 +1,14 @@
 import {deviceVerificationType} from '@components/MultifactorAuthentication/biometrics/operations';
 import {navigate as mfaNavigate, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 
 import {isHttpResponse, isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
+import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import {createMFAErrorFromApiResponse, createUnhandledExceptionMFAError, getMFAFailureError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
+import {clearLocalMFAPublicKeyList, markHasAcceptedSoftPrompt} from '@userActions/MultifactorAuthentication';
 import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -14,7 +17,7 @@ import SCREENS from '@src/SCREENS';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {and, assign, not, setup, stateIn} from 'xstate';
 
-import type {CancelScenarioInput, MfaContext, MfaEvent} from './types';
+import type {CancelScenarioInput, MfaContext, MfaEvent, RecoverableStep} from './types';
 
 import createActors from './mfaActors';
 
@@ -76,6 +79,42 @@ function getInFlightCancelOutcome({scenarioActionResult, cancelError}: MfaContex
     return {error: errors.find((error) => isHttpResponse(error.httpStatusCode)) ?? errors.at(0) ?? createCancelTimeoutError()};
 }
 
+/** A recoverable step's `onDone` event. Every recoverable step resolves to an `MFAResult`. */
+type RecoverableStepDone = {event: {output: MFAResult}};
+
+/**
+ * Why a step goes back to registration, and what else that leaves stale. The server answers `Registration required`
+ * only to an authentication challenge (requested while signing) or a scenario action, and only signing can fail on
+ * the local key, so each step wires only the causes it can hit.
+ * - `keyUnknownToServer`: the Onyx copy of the server's key list is stale too. On web, registration excludes the
+ *   local passkeys that list still contains, so a stale entry would make the authenticator refuse the new passkey.
+ * - `localKeyUnusable`: the authorize actor already deleted the key, so nothing else needs clearing.
+ */
+const RECOVERY_CAUSES = {
+    keyUnknownToServer: {
+        reasons: new Set<MultifactorAuthenticationReason>([CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED]),
+        actions: ['clearServerCredentialList'],
+    },
+    localKeyUnusable: {
+        reasons: CONST.MULTIFACTOR_AUTHENTICATION.CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION,
+        actions: [],
+    },
+} as const;
+
+/**
+ * The `onDone` branch that sends a failed step back to the validate-code screen to register a new key. It goes
+ * right before the step's plain failure branch and after any branch that has to win over it, such as a confirmed
+ * cancel: a branch above it takes precedence, so adding one there turns recovery off for the events it matches.
+ */
+function getRecoveryTransition(step: RecoverableStep, cause: keyof typeof RECOVERY_CAUSES) {
+    const getRecoveryParams = ({event}: RecoverableStepDone) => ({error: getMFAFailureError(event.output), step});
+    return {
+        guard: {type: 'canRecover', params: ({event}: RecoverableStepDone) => ({result: event.output, reasons: RECOVERY_CAUSES[cause].reasons})},
+        target: VALIDATE_CODE_TARGET,
+        actions: [{type: 'logRecoveryStarted', params: getRecoveryParams}, ...RECOVERY_CAUSES[cause].actions, {type: 'prepareRecovery', params: getRecoveryParams}, 'requestValidateCode'],
+    } as const;
+}
+
 // Which prompt variant the screen renders is a device property, resolved once per platform.
 const PROMPT_TYPE = CONST.MULTIFACTOR_AUTHENTICATION.PROMPT_TYPE_MAP[deviceVerificationType];
 
@@ -100,6 +139,8 @@ const DEFAULT_CONTEXT: MfaContext = {
     isCancelConfirmed: false,
     cancelError: undefined,
     scenarioActionResult: undefined,
+    recoveryAttempts: 0,
+    recoveredFrom: undefined,
 };
 
 /**
@@ -129,6 +170,9 @@ const MFAMachine = setup({
         shouldConfirmCancel: and([not(stateIn(OUTCOME_TARGET)), not(stateIn(CANCELLING_TARGET)), not(stateIn(CANCELLING_IN_FLIGHT_TARGET))]),
         // A successful scenario action decides on its own; anything else waits for both results.
         canResolveInFlightCancel: ({context: {scenarioActionResult, cancelError}}) => !!scenarioActionResult?.success || (scenarioActionResult !== undefined && cancelError !== undefined),
+        // A failure that a fresh key registration can fix restarts registration until the flow runs out of attempts.
+        canRecover: ({context}, {result, reasons}: {result: MFAResult; reasons: ReadonlySet<MultifactorAuthenticationReason>}) =>
+            !result.success && reasons.has(result.error.reason) && context.recoveryAttempts < CONST.MULTIFACTOR_AUTHENTICATION.MAX_RECOVERY_ATTEMPTS,
     },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
@@ -162,9 +206,9 @@ const MFAMachine = setup({
         navigateToValidateCode: () => {
             Navigation.runAfterTransition(() => mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE));
         },
-        // Emails the user a validate code. Runs only on the decision transition into the
-        // validate-code screen and on an explicit resend request, never on (re)entry, so the
-        // invalid-code retry loop cannot resend the email.
+        // Emails the user a validate code. Runs only on the transitions into the validate-code screen
+        // (the registration decision and recovery) and on an explicit resend request, never on
+        // (re)entry, so the invalid-code retry loop cannot resend the email.
         requestValidateCode: () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY}),
         // Stores the submitted code. Same narrowing pattern as initFlow: only VALIDATE_CODE_ENTERED
         // is wired here, so the early return just satisfies the type checker.
@@ -185,6 +229,19 @@ const MFAMachine = setup({
         resetContext: assign(() => ({...DEFAULT_CONTEXT})),
         markCancelConfirmed: assign({isCancelConfirmed: true}),
         applyInFlightCancelOutcome: assign(({context}) => getInFlightCancelOutcome(context)),
+        logRecoveryStarted: (_, {error, step}: {error: MFAError; step: RecoverableStep}) => {
+            addMFABreadcrumb('Recovery started', {reason: error.reason, step}, 'warning');
+        },
+        clearServerCredentialList: () => clearLocalMFAPublicKeyList(),
+        // Drops the failed attempt's registration challenge, so re-registration starts from a new validate code. The
+        // validate code, key info and signed challenge are cleared by the exit actions of the states that hold them.
+        // `isRegistrationComplete`, `softPromptApproved` and `authenticationMethod` are kept, because the outcome
+        // telemetry reports the whole flow and the next attempt sets them again.
+        prepareRecovery: assign(({context}, {error, step}: {error: MFAError; step: RecoverableStep}) => ({
+            registrationChallenge: undefined,
+            recoveryAttempts: context.recoveryAttempts + 1,
+            recoveredFrom: context.recoveredFrom ?? {reason: error.reason, step},
+        })),
         // Clears the module-level navigation buffer (pendingNavigation/hasInitialLaidOut). Owned by
         // the machine so a navigator that unmounts mid-close cannot leave a stale buffered screen
         // behind for the next flow.
@@ -464,6 +521,8 @@ const MFAMachine = setup({
                                                     return {accountID: context.accountID};
                                                 },
                                                 onDone: [
+                                                    getRecoveryTransition(MFA_STATE.SIGNING_CHALLENGE, 'keyUnknownToServer'),
+                                                    getRecoveryTransition(MFA_STATE.SIGNING_CHALLENGE, 'localKeyUnusable'),
                                                     {
                                                         guard: ({event}) => !event.output.success,
                                                         target: OUTCOME_TARGET,
@@ -510,6 +569,7 @@ const MFAMachine = setup({
                                                 onDone: [
                                                     // A confirmed cancel holds the result until `cancellingInFlight` decides with both.
                                                     {guard: stateIn(CANCELLING_IN_FLIGHT_TARGET), actions: assign({scenarioActionResult: ({event}) => event.output})},
+                                                    getRecoveryTransition(MFA_STATE.EXECUTING_SCENARIO_ACTION, 'keyUnknownToServer'),
                                                     {
                                                         guard: ({event}) => !event.output.success,
                                                         target: OUTCOME_TARGET,
@@ -600,6 +660,8 @@ const MFAMachine = setup({
                                                 softPromptApproved: context.softPromptApproved,
                                                 registrationStateAtStart: context.registrationStateAtStart,
                                                 isCancelConfirmed: context.isCancelConfirmed,
+                                                recoveryAttempts: context.recoveryAttempts,
+                                                recoveredFrom: context.recoveredFrom,
                                             };
                                         },
                                         onDone: [

@@ -191,17 +191,18 @@ const ALTERNATIVE_OUTCOMES = new Set<ReasonValue>([REASON.FLOW_OUTCOMES.TRANSACT
 
 /**
  * Local credential failures that confirm the device credential is unusable, so it should be deleted
- * before recovery. Read failures such as `KEY_ACCESS_FAILED` are deliberately absent: an unreadable
- * keystore may recover, and deleting on one would force a re-registration the device did not need.
+ * before recovery. The native library reports `KEY_ACCESS_FAILED` only when signing on iOS finds the key
+ * data corrupted; a keystore read that fails reports its own reason instead.
  */
 const CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = new Set<ReasonValue>([
     REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
 ]);
 
-/** Failures the recovery slice will route to re-registration rather than retrying authorization. */
-const RECOVERABLE_CREDENTIAL_FAILURES = new Set<ReasonValue>([...CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION, REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED]);
+/** How many times one flow may go back to re-registration after a recoverable credential failure. */
+const MAX_RECOVERY_ATTEMPTS = 1;
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. missing reason). */
 const ANOMALOUS_FAILURES = new Set<ReasonValue>([
@@ -314,7 +315,7 @@ const SHARED_VALUES = {
     ALTERNATIVE_OUTCOMES,
     ANOMALOUS_FAILURES,
     CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION,
-    RECOVERABLE_CREDENTIAL_FAILURES,
+    MAX_RECOVERY_ATTEMPTS,
 
     /**
      * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.

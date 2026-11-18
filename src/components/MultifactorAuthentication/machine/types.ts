@@ -12,7 +12,13 @@ import type {
 
 import type {RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import type {MFAError, MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {AuthTypeInfo, MultifactorAuthenticationCallbackResponse, MultifactorAuthenticationScenarioCallback, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
+import type {
+    AuthTypeInfo,
+    MultifactorAuthenticationCallbackResponse,
+    MultifactorAuthenticationReason,
+    MultifactorAuthenticationScenarioCallback,
+    RegistrationKeyInfo,
+} from '@libs/MultifactorAuthentication/shared/types';
 
 import type {RunScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 
@@ -91,7 +97,19 @@ type MfaContext = {
 
     /** The scenario action's result while `cancellingInFlight`, held until `cancellingInFlight` decides the outcome. */
     scenarioActionResult: ExecuteScenarioActionOutput | undefined;
+
+    /** How many times this flow went back to re-registration after a recoverable credential failure. Once it reaches the limit, such a failure ends the flow instead. */
+    recoveryAttempts: number;
+
+    /** The failure the flow's first recovery started from, carried for the outcome telemetry. */
+    recoveredFrom: RecoveredFrom | undefined;
 };
+
+/** The steps whose failure a fresh key registration can fix. */
+type RecoverableStep = typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.SIGNING_CHALLENGE | typeof CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.EXECUTING_SCENARIO_ACTION;
+
+/** See `MfaContext.recoveredFrom`. */
+type RecoveredFrom = {reason: MultifactorAuthenticationReason; step: RecoverableStep};
 
 /** See `MfaContext.promptPresentationPhase`. */
 type PromptPresentationPhase =
@@ -206,6 +224,8 @@ type FinalizeOutcomeInput = {
     softPromptApproved: boolean;
     registrationStateAtStart: MFARegistrationStateSnapshot | undefined;
     isCancelConfirmed: boolean;
+    recoveryAttempts: number;
+    recoveredFrom: RecoveredFrom | undefined;
 };
 
 /**
@@ -247,6 +267,8 @@ export type {
     MfaEvent,
     MfaModalState,
     MultifactorAuthenticationInitEvent,
+    RecoverableStep,
+    RecoveredFrom,
     RegisterCredentialInput,
     RegisterCredentialOutput,
     RequestRegistrationChallengeInput,

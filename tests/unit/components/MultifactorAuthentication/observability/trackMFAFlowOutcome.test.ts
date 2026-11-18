@@ -19,6 +19,7 @@ const REGISTRATION_STATE: MFARegistrationStateSnapshot = {hasServerCredentials: 
 
 // The reveal scenarios put the card PIN and the PAN/expiration/CVV in the scenario response body, so
 // this exact object must never reach Sentry or the logs through any path out of the tracker.
+const RECOVERED_FROM = {reason: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, step: CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.SIGNING_CHALLENGE};
 const SECRET_BODY = {pin: '4321', pan: '4111111111111111', cvv: '737'};
 
 type FlowOutcomeContext = Parameters<typeof trackMFAFlowOutcome>[0];
@@ -33,6 +34,8 @@ function buildContext(overrides: Partial<FlowOutcomeContext> = {}): FlowOutcomeC
         isRegistrationComplete: false,
         isAuthorizationComplete: true,
         softPromptApproved: false,
+        recoveryAttempts: 0,
+        recoveredFrom: undefined,
         startState: REGISTRATION_STATE,
         endState: REGISTRATION_STATE,
         ...overrides,
@@ -68,6 +71,39 @@ describe('trackMFAFlowOutcome', () => {
         expect(mockLogWarn).toHaveBeenCalledTimes(1);
         expect(everythingReported()).not.toContain(SECRET_BODY.pin);
         expect(everythingReported()).not.toContain(SECRET_BODY.cvv);
+    });
+
+    it('reports the recovery a successful flow needed and the failure it started from', () => {
+        // Given a flow that succeeded after recovering from `Registration required`
+        const context = buildContext({recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM});
+
+        // When its outcome is tracked
+        trackMFAFlowOutcome(context);
+
+        // Then the success log carries the recovery, since a successful flow reports nothing else about it
+        expect(mockLogInfo).toHaveBeenCalledWith('[MFA] MFA Flow Success', false, {mfa: expect.objectContaining({recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM})});
+    });
+
+    it('tags a failed flow with how many recoveries it went through, so failures after a recovery can be filtered', () => {
+        // Given a flow that failed after recovering
+        const context = buildContext({
+            isSuccessful: false,
+            error: createLocalMFAError(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION, 'failed after recovery'),
+            recoveryAttempts: 1,
+            recoveredFrom: RECOVERED_FROM,
+        });
+
+        // When its outcome is tracked
+        trackMFAFlowOutcome(context);
+
+        // Then the error event is tagged with the recovery count and carries the failure the recovery started from
+        expect(mockCaptureMessage).toHaveBeenCalledWith(
+            expect.any(String),
+            expect.objectContaining({
+                tags: expect.objectContaining({[CONST.TELEMETRY.TAGS.MFA_RECOVERY_ATTEMPTS]: '1'}),
+                extra: expect.objectContaining({recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM}),
+            }),
+        );
     });
 
     it('keeps the body out of the fallback log when reporting itself throws', () => {

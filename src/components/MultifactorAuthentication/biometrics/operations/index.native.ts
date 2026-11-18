@@ -73,9 +73,8 @@ async function getLocalCredential(accountID: number): Promise<LocalCredentialLoo
     } catch (error) {
         const readError = decodeLibraryError(error);
         addMFABreadcrumb('Failed to get local credential ID', readError, 'error');
-        // The library rejects with KEY_NOT_FOUND rather than returning an empty key list when the
-        // alias does not exist. That is a confirmed absence, so it has to keep routing a first-time
-        // device into registration instead of being reported as a read failure.
+        // A missing alias resolves to an empty key list (handled above). A KEY_NOT_FOUND rejection is
+        // still a confirmed absence rather than a failed read, so it routes to registration the same way.
         if (readError.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND) {
             return {status: 'absent'};
         }
@@ -93,7 +92,7 @@ async function getLocalCredential(accountID: number): Promise<LocalCredentialLoo
 async function areLocalCredentialsKnownToServer(accountID: number, signal?: AbortSignal): Promise<boolean> {
     const localCredential = await getLocalCredential(accountID);
     // A read failure still answers "no", which sends the flow to registration. This check returns a
-    // plain boolean, so it has no way to fail the flow instead; the recovery slice owns that.
+    // plain boolean, so it has no way to fail the flow instead.
     if (localCredential.status !== 'found') {
         return false;
     }

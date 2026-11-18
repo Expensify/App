@@ -17,10 +17,11 @@ import {createActor, waitFor} from 'xstate';
 
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 // Only failures that confirm the credential is unusable belong here. A keystore the device merely
-// failed to read may recover, so it must not reach the deletion path.
+// failed to read reports its own reason, which isn't one of these.
 const EXPECTED_CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION = [
     REASON.LOCAL_ERRORS.HSM.KEY_NOT_FOUND,
     REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL,
+    REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED,
     REASON.LOCAL_ERRORS.WEBAUTHN.NO_MATCHING_LOCAL_CREDENTIAL,
 ] as const;
 
@@ -229,17 +230,6 @@ describe('authorize actor', () => {
         resolveDeletion();
         await waitFor(actorRef, (snapshot) => snapshot.status !== 'active');
         expect(actorRef.getSnapshot().output).toEqual({success: false, error: recoverableError});
-    });
-
-    it('keeps the local credential after a keystore read failure, which cannot confirm the credential is unusable', async () => {
-        const readError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED, 'Keystore unavailable');
-        mockAuthorize.mockResolvedValue({success: false, error: readError});
-
-        const snapshot = await runAuthorizeActor();
-
-        expect(CONST.MULTIFACTOR_AUTHENTICATION.CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION.has(REASON.LOCAL_ERRORS.HSM.KEY_ACCESS_FAILED)).toBe(false);
-        expect(mockDeleteLocalCredentials).not.toHaveBeenCalled();
-        expect(snapshot.output).toEqual({success: false, error: readError});
     });
 
     it('does not delete credentials when a recoverable failure resolves after the flow was cancelled', async () => {

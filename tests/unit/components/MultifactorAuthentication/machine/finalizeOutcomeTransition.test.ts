@@ -37,6 +37,7 @@ const CALLBACK_RESPONSE = CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE;
 const FINALIZING_OUTCOME_STATE = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FINALIZING_OUTCOME}}};
 const AUTHORIZING_STATE = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}}}};
 const CANCEL_CONFIRM_VISIBLE = {[MFA_STATE.CANCEL_CONFIRM]: MFA_STATE.CANCEL_CONFIRM_VISIBLE};
+const RECOVERED_FROM = {reason: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED, step: MFA_STATE.SIGNING_CHALLENGE};
 
 /**
  * `mfaMachine` only declares `MfaEvent`, so production code cannot send the events XState raises
@@ -83,7 +84,7 @@ describe('MFA outcome finalization', () => {
                     receivedInput = input;
                     return new Promise(() => {});
                 }),
-                {softPromptApproved: true, isRegistrationComplete: true},
+                {softPromptApproved: true, isRegistrationComplete: true, recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM},
             );
 
             sendAuthorizationSuccess(actor);
@@ -102,6 +103,8 @@ describe('MFA outcome finalization', () => {
                 softPromptApproved: true,
                 registrationStateAtStart: MFA_TEST_REGISTRATION_STATE_AT_START,
                 isCancelConfirmed: false,
+                recoveryAttempts: 1,
+                recoveredFrom: RECOVERED_FROM,
             });
 
             actor.stop();
@@ -115,11 +118,12 @@ describe('MFA outcome finalization', () => {
                     receivedInput = input;
                     return new Promise(() => {});
                 }),
+                {recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM},
             );
 
             actor.send(createActorDoneEvent('authorize', {success: false, error: failureError}));
 
-            expect(receivedInput).toMatchObject({error: failureError, scenarioResponse: undefined, authenticationMethod: undefined});
+            expect(receivedInput).toMatchObject({error: failureError, scenarioResponse: undefined, authenticationMethod: undefined, recoveryAttempts: 1, recoveredFrom: RECOVERED_FROM});
 
             actor.stop();
         });
