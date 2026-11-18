@@ -310,6 +310,8 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / travelType
+      / travelPlatform
       / violationName
       / transactionStatus
       / withdrawalType

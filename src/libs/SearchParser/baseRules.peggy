@@ -61,6 +61,12 @@ violationName
 transactionStatus
   = "transactionStatus"
   / "transaction-status"i { return "transactionStatus"; }
+travelType
+  = "travelType"
+  / "travel-type"i { return "travelType"; }
+travelPlatform
+  = "travelPlatform"
+  / "travel-platform"i { return "travelPlatform"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }

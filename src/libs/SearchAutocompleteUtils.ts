@@ -225,6 +225,8 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
+const travelTypeList = Object.values(CONST.SEARCH.TRAVEL_TYPE) as string[];
+const travelPlatformList = Object.values(CONST.SEARCH.TRAVEL_PLATFORM) as string[];
 // Insights-only group-bys aren't highlighted because Search can't group by them
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY)
     .filter(isGroupBySupportedBySearch)
@@ -323,6 +325,10 @@ function filterOutRangesWithCorrectValue(
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || violationNameList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || travelTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || travelPlatformList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:

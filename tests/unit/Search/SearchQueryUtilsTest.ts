@@ -5,6 +5,7 @@ import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/N
 import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import {
     applyContainsOperatorToTextFields,
@@ -1968,6 +1969,39 @@ describe('SearchQueryUtils', () => {
             expect(result).toBe('type:expense status:all merchant*:Uber');
         });
 
+        test('shows travel types and platforms by their names', async () => {
+            // Given English copy and a query that filters on stored travel values, which aren't what people call them
+            await IntlStore.load('en');
+            const queryString = 'type:expense travel-type:air,carRental travel-platform:amexGBT';
+            const canonicalQueryString = getQueryWithUpdatedValues(queryString);
+            if (!canonicalQueryString) {
+                throw new Error('Failed to standardize query string');
+            }
+            const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the query is turned into the text shown in the search bar
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+                formatPhoneNumber,
+                reportAttributes: undefined,
+            });
+
+            // Then each value shows the name from the filter list, so "air" reads as "Flight"
+            expect(result).toBe('type:expense travel-type:Flight,"Car rental" travel-platform:"Amex GBT/Egencia"');
+        });
+
         test('maps workspace names and maintains manual order', () => {
             const queryString = 'policyID:123 type:expense merchant:Starbucks';
             const canonicalQueryString = getQueryWithUpdatedValues(queryString);
@@ -2977,6 +3011,53 @@ describe('SearchQueryUtils', () => {
             expect(formValues[formKey]).toEqual(['missingCategory', 'overLimit']);
             expect(formValues[otherFormKey]).toBeUndefined();
             expect(result).toEqual(expectedQuery);
+        });
+
+        test.each([
+            {
+                query: 'type:expense travel-type:air,carRental travel-platform:other',
+                expectedTravelType: ['air', 'carRental'],
+                expectedTravelPlatform: ['other'],
+                expectedQuery: 'type:expense travelType:air,carRental travelPlatform:other',
+            },
+            {
+                query: 'type:expense -travel-type:hotel -travel-platform:expensifyTravel',
+                expectedTravelTypeNot: ['hotel'],
+                expectedTravelPlatformNot: ['expensifyTravel'],
+                expectedQuery: 'type:expense -travelType:hotel -travelPlatform:expensifyTravel',
+            },
+        ])('travel filters round trip through the advanced filters form: $query', ({query, expectedQuery, ...expectedFormValues}) => {
+            // Given a query using the user-friendly travel keys, which is what people type in the search bar
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When it is loaded into the advanced filters form and serialized back, as happens when the filters page saves
+            const formValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            const result = buildQueryStringFromFilterFormValues(formValues);
+
+            // Then the values land on the positive or negated form keys and come back unchanged, so "is not" filters keep their meaning
+            expect(formValues.travelType).toEqual('expectedTravelType' in expectedFormValues ? expectedFormValues.expectedTravelType : undefined);
+            expect(formValues.travelTypeNot).toEqual('expectedTravelTypeNot' in expectedFormValues ? expectedFormValues.expectedTravelTypeNot : undefined);
+            expect(formValues.travelPlatform).toEqual('expectedTravelPlatform' in expectedFormValues ? expectedFormValues.expectedTravelPlatform : undefined);
+            expect(formValues.travelPlatformNot).toEqual('expectedTravelPlatformNot' in expectedFormValues ? expectedFormValues.expectedTravelPlatformNot : undefined);
+            expect(result).toEqual(expectedQuery);
+        });
+
+        test('travel filters drop values that are not travel types or platforms', () => {
+            // Given a query with typos next to real travel values
+            const queryJSON = buildSearchQueryJSON('type:expense travel-type:air,plane travel-platform:navan,kayak');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the query is loaded into the advanced filters form
+            const formValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then only the real values are kept, because Auth would never match the unknown ones
+            expect(formValues.travelType).toEqual(['air']);
+            expect(formValues.travelPlatform).toEqual(['navan']);
         });
 
         test('violation filter drops names that are not violations', () => {
