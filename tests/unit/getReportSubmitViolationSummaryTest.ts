@@ -73,6 +73,55 @@ function createMockRejectedReport(): Report {
 }
 
 describe('getReportApproveViolationSummary', () => {
+    it.each([true, false])('omits the auto-approval limit notice during approval (full: %s) without changing submission warnings', (full) => {
+        // Given a processing report whose only notice explains why an admin must approve it manually
+        const transaction = createMockTransactionWithMerchant('Merchant');
+        const report = createMock<Report>({
+            ...createMockExpenseReport(),
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 2,
+            managerID: 1,
+        });
+        const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+        const notice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const violations = {[getViolationsKey('1')]: [notice]};
+
+        // When the non-submitter admin reviews the same data for approval and submission
+        const approval = getReportApproveViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1, full);
+        const submission = getReportSubmitViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1);
+
+        // Then only approval omits the notice, without mutating the server data
+        expect(hasAnySubmitViolation(approval)).toBe(false);
+        expect(submission.otherViolations.get(CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT)).toBe(notice);
+        expect(violations[getViolationsKey('1')]).toEqual([notice]);
+    });
+
+    it('keeps other review notices alongside the auto-approval limit notice', () => {
+        // Given an expense with another notice that still needs review
+        const transaction = createMockTransactionWithMerchant('Merchant');
+        const report = createMock<Report>({
+            ...createMockExpenseReport(),
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 2,
+            managerID: 1,
+        });
+        const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
+        const autoApprovalNotice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const otherNotice = createMock<TransactionViolation>({name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true});
+        const violations = {[getViolationsKey('1')]: [autoApprovalNotice, otherNotice]};
+
+        // When the admin approves the report
+        const summary = getReportApproveViolationSummary([transaction], violations, report, policy, APPROVER_EMAIL, 1);
+
+        // Then only the auto-approval notice is excluded, and the other notice still triggers confirmation
+        expect(hasAnySubmitViolation(summary)).toBe(true);
+        expect(summary.otherViolations.size).toBe(1);
+        expect(summary.otherViolations.get(CONST.VIOLATIONS.MODIFIED_AMOUNT)).toBe(otherNotice);
+        expect(violations[getViolationsKey('1')]).toEqual([autoApprovalNotice, otherNotice]);
+    });
+
     it('omits raw violations dismissed by the approver without modifying the source data', () => {
         // Given raw violations from a header, hold menu or bulk approval input
         const transaction = createMockTransactionWithMerchant('Merchant', {

@@ -1,5 +1,3 @@
-import type {AttachmentSource} from '@components/Attachments/types';
-
 import useCachedImageSource from '@hooks/useCachedImageSource';
 
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
@@ -20,11 +18,11 @@ function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}:
 
     const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
-        if (isAttachmentLoaded?.(source as AttachmentSource)) {
+        if (isAttachmentLoaded?.(source)) {
             return;
         }
 
-        setAttachmentLoaded?.(source as AttachmentSource, false);
+        setAttachmentLoaded?.(source, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -37,7 +35,7 @@ function BaseImage({onLoad, onLoadStart, source, style, recyclingKey, ...props}:
     }, [source, onLoadStart]);
 
     const imageLoadedSuccessfully = (event: ImageLoadEventData) => {
-        setAttachmentLoaded?.(source as AttachmentSource, true);
+        setAttachmentLoaded?.(source, true);
         if (!onLoad) {
             return;
         }

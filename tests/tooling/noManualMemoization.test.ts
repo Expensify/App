@@ -7,7 +7,7 @@ import {Linter} from 'eslint';
 import type {LintMessage} from '../../scripts/lint/types';
 
 import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
-import * as rule from '../../eslint-plugin-local-rules/no-manual-memoization';
+import {create, meta} from '../../eslint-plugin-local-rules/no-manual-memoization';
 import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
 import {LINT_SEVERITY} from '../../scripts/lint/types';
 
@@ -16,7 +16,7 @@ function isRuleModule(value: unknown): value is Rule.RuleModule {
 }
 
 function lint(code: string) {
-    const ruleModule: unknown = rule;
+    const ruleModule: unknown = {create, meta};
     if (!isRuleModule(ruleModule)) {
         throw new TypeError('Expected a local ESLint rule module');
     }

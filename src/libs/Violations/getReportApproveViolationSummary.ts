@@ -1,6 +1,7 @@
 /** Builds approval warnings from local data without the submitter's rejection or card-match warnings. */
 import {getTransactionViolations, isOnHold} from '@libs/TransactionUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
@@ -25,6 +26,7 @@ function getReportApproveViolationSummary(
         }
         approvalTransactions.push(transaction);
         // Raw overrides must respect the approver's dismissals before warnings are classified or deduplicated.
+        // Manual approval addresses the auto-approval limit notice; other notices can still flag expenses that need review.
         approvalViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = getTransactionViolations(
             transaction,
             violationsCollection,
@@ -33,7 +35,7 @@ function getReportApproveViolationSummary(
             report,
             undefined,
             policy,
-        );
+        )?.filter((violation) => violation.name !== CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT);
     }
 
     const summary = getReportSubmitViolationSummary(approvalTransactions, approvalViolations, report, policy, currentUserEmail, currentUserAccountID, full);

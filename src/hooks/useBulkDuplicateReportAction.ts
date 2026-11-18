@@ -20,6 +20,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
@@ -32,6 +33,7 @@ type UseBulkDuplicateReportActionParams = {
 function useBulkDuplicateReportAction({selectedReports, allReports, allTransactions, searchData}: UseBulkDuplicateReportActionParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
@@ -58,6 +60,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
     const handleDuplicateReports = () => {
         bulkDuplicateReports({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             selectedReports,
             allReports: allReports ?? {},
             searchData,
