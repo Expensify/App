@@ -106,6 +106,7 @@ function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed, on
                         {
                             icon: icons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
+                            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.RECEIPT_PARTNERS_MENU_DISCONNECT,
                             onSelected: () => {
                                 // Safari blocks the new tab unless it opens before navigating away, so the link opens first
                                 openExternalLink(`${CONST.UBER_REVOKE_URL}?${uberRevokeFormData}&org_uuid=${encodeURIComponent(uberOrganizationID)}`);
