@@ -386,6 +386,11 @@ const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
             }
             const customFieldsByLogin: Record<string, MemberCustomFields> = {};
             for (const [login, employee] of Object.entries(employeeList)) {
+                // Despite the non-null employee type, entries can be null or undefined at runtime.
+                // Skip them so valid members' custom fields are still selected without crashing Search.
+                if (!employee) {
+                    continue;
+                }
                 customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
             }
             customFieldsByPolicyID[policyID] = customFieldsByLogin;
@@ -509,8 +514,7 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  */
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(
-        (policy): policy is Policy =>
-            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy): policy is Policy => !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !isArchivedOrPendingDeletePolicy(policy),
     )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {

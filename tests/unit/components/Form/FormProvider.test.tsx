@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import * as FormActions from '@libs/actions/FormActions';
 import type * as FormActionsModule from '@libs/actions/FormActions';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
@@ -39,6 +40,7 @@ const mockFormWrapper = jest.fn(({children, onSubmit, isLoading}: MockFormWrappe
             onPress={onSubmit}
             accessibilityRole="button"
             accessibilityLabel="Submit"
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         >
             <Text>Submit</Text>
         </PressableWithFeedback>
@@ -89,6 +91,7 @@ function RegisteredInput({inputID = 'name' as keyof Form}: {inputID?: keyof Form
             onPress={() => inputProps.onInputChange?.('value', inputID)}
             accessibilityRole="button"
             accessibilityLabel={`Change ${inputID}`}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         >
             <Text>{`Change ${inputID}`}</Text>
         </PressableWithFeedback>

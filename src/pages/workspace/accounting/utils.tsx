@@ -700,11 +700,18 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
-                onExportPagePress: () => null,
-                subscribedExportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [CONST.DIGITS_CONFIG.ENABLE_NEW_CATEGORIES, `${CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${CONST.DIGITS_FIELD.DEPARTMENTS}`],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DIGITS_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.DIGITS_CONFIG.EXPORTER,
+                    CONST.DIGITS_CONFIG.EXPORT_DATE,
+                    CONST.DIGITS_CONFIG.REIMBURSABLE,
+                    CONST.DIGITS_CONFIG.NON_REIMBURSABLE,
+                    CONST.DIGITS_CONFIG.DEFAULT_VENDORID,
+                    CONST.DIGITS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                ],
+                // The Advanced page is added in a later release.
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
                 workspaceUpgradeNavigationDetails: {
@@ -852,6 +859,7 @@ function getSynchronizationErrorMessage(
                 {connectionName in CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS && (
                     <>
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.AUTHENTICATION_ERROR_LEARN_MORE_LINK}
                             style={[styles?.link, styles?.fontSizeLabel]}
                             href={CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS[connectionName as keyof typeof CONST.POLICY.CONNECTIONS.AUTH_HELP_LINKS]}
                         >

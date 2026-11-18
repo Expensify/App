@@ -13,6 +13,7 @@ import {
     createMemberCustomFieldsSelector,
     createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
+    homeAndOfficeCommuterExclusionPolicyNameSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
     policyNameSelector,
@@ -231,6 +232,34 @@ describe('createMemberCustomFieldsSelector', () => {
                 'c@d.com': {employeeUserID: undefined, employeePayrollID: undefined},
             },
         });
+    });
+
+    it.each([null, undefined])('skips a %s employee without losing valid member custom fields', (missingEmployee) => {
+        // Given an employee entry missing at runtime despite the employee list's declared type
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', missingEmployee);
+        employeeList['valid@example.com'] = {employeeUserID: 'U1', employeePayrollID: 'P1'};
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields, a missing employee must not prevent later members from being selected
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then only the valid member remains, with both custom fields preserved
+        expect(result).toEqual({'1': {'valid@example.com': {employeeUserID: 'U1', employeePayrollID: 'P1'}}});
+    });
+
+    it('returns an empty member map when every employee entry is null', () => {
+        // Given a list with no valid employees, which must not produce member placeholders
+        const employeeList: NonNullable<Policy['employeeList']> = {};
+        Reflect.set(employeeList, 'missing@example.com', null);
+        Reflect.set(employeeList, 'other@example.com', null);
+        const policies = {[`${P}1`]: buildPolicy({id: '1', employeeList})};
+
+        // When Search selects custom fields for that policy
+        const result = createMemberCustomFieldsSelector(['1'])(policies);
+
+        // Then the policy remains present with no members rather than throwing
+        expect(result).toEqual({'1': {}});
     });
 
     it('omits a requested policy that is missing or has no employee list', () => {
@@ -848,5 +877,43 @@ describe('createIOURequestStartPoliciesSelector', () => {
             [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.ADMIN, areInvoicesEnabled: false}),
         });
         expect(result.canSendInvoiceFromAnyWorkspace).toBe(false);
+    });
+});
+
+describe('homeAndOfficeCommuterExclusionPolicyNameSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            name: 'Workspace',
+            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+            ...overrides,
+        });
+
+    it('names the active workspace that measures commutes from the home address', () => {
+        // Given an archived workspace and an active one, both measuring commutes from the member's home
+        const policies = {
+            [`${P}archived`]: makePolicy({id: 'archived', name: 'Archived Workspace', archivedDate: '2026-10-28 00:00:00.000'}),
+            [`${P}active`]: makePolicy({id: 'active', name: 'Active Workspace'}),
+        };
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then the active one is named, because an archived workspace no longer takes expenses that need the address
+        expect(result).toBe('Active Workspace');
+    });
+
+    it.each([
+        ['archived', {archivedDate: '2026-10-28 00:00:00.000'}],
+        ['being deleted', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
+    ])('names no workspace when the only one measuring commutes from home is %s', (_case, workspaceState) => {
+        // Given the only workspace measuring commutes from the member's home is no longer usable
+        const policies = {[`${P}p1`]: makePolicy({id: 'p1', ...workspaceState})};
+
+        // When resolving which workspace relies on the home address
+        const result = homeAndOfficeCommuterExclusionPolicyNameSelector(policies);
+
+        // Then none is named, so the profile doesn't point the member at a workspace they can't use
+        expect(result).toBeUndefined();
     });
 });

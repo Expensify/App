@@ -8,6 +8,7 @@ import {openReport} from '@libs/actions/Report';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 
+import DynamicReportDetailsPage from '@pages/DynamicReportDetailsPage';
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
@@ -36,6 +37,10 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     const {View} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
     return () => <View testID="notFound" />;
 });
+jest.mock('@pages/DynamicReportDetailsPage/ReportDetailsContent', () => {
+    const {Text: NativeText} = jest.requireActual<Record<string, React.FC<{testID: string; children: string}>>>('react-native');
+    return ({reportID: contentReportID}: {reportID: string}) => <NativeText testID="content">{contentReportID}</NativeText>;
+});
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useIsFocused: jest.fn(() => true),
@@ -60,12 +65,12 @@ function ForwardedReportName({report: forwardedReport}: WithReportOrNotFoundProp
 
 const WrappedContent = withReportOrNotFound()(ForwardedReportName);
 
-function renderWithHOC() {
+function renderWithHOC(params: Partial<ScreenProps['route']['params']> | undefined) {
     render(
         <OnyxListItemProvider>
             <WrappedContent
                 navigation={createMock<ScreenProps['navigation']>({})}
-                route={createMock<ScreenProps['route']>({params: {reportID}})}
+                route={createMock<ScreenProps['route']>(params === undefined ? {} : {params})}
                 report={callerReport}
                 policy={undefined}
                 reportMetadata={undefined}
@@ -82,6 +87,17 @@ function renderWithGuard() {
             <ReportOrNotFoundGuard reportID={reportID}>
                 <Content />
             </ReportOrNotFoundGuard>
+        </OnyxListItemProvider>,
+    );
+}
+
+function renderWithPage(params: Partial<ScreenProps['route']['params']> | undefined) {
+    render(
+        <OnyxListItemProvider>
+            <DynamicReportDetailsPage
+                navigation={createMock<ScreenProps['navigation']>({})}
+                route={createMock<ScreenProps['route']>(params === undefined ? {} : {params})}
+            />
         </OnyxListItemProvider>,
     );
 }
@@ -123,8 +139,9 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
     });
 
     describe.each([
-        ['withReportOrNotFound', renderWithHOC],
+        ['withReportOrNotFound', () => renderWithHOC({reportID})],
         ['ReportOrNotFoundGuard', renderWithGuard],
+        ['DynamicReportDetailsPage', () => renderWithPage({reportID})],
     ])('%s', (_, renderSubject) => {
         it('should render the loading indicator while the report is missing and report data is still loading', async () => {
             // Given no report in Onyx and no finished OpenReport call
@@ -205,7 +222,7 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByTestId('content')).toBeTruthy();
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, 'r/1');
+                await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, 'r/1');
             });
 
             // When the report is removed
@@ -241,13 +258,52 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
         });
     });
 
+    describe.each([
+        ['withReportOrNotFound', renderWithHOC],
+        ['DynamicReportDetailsPage', renderWithPage],
+    ])('%s without a report ID', (_, renderSubject) => {
+        describe.each([
+            ['omitted', undefined],
+            ['empty', {}],
+        ] as const)('with %s route params', (_paramsDescription, params) => {
+            it.each([undefined, true, false])('should preserve guard behavior when global loading is %s', async (isLoadingReportData) => {
+                // Given a malformed route that must reach the guard regardless of the global loading state
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, isLoadingReportData ?? null);
+                });
+
+                // When the screen mounts, parameter extraction must not throw before the guard renders
+                renderSubject(params);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then only the guard fallback renders, without trying to fetch an absent report ID
+                expect(screen.getByTestId(isLoadingReportData === false ? 'notFound' : 'loading')).toBeTruthy();
+                expect(screen.queryByTestId('content')).toBeNull();
+                expect(mockOpenReport).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    it('should pass the route report ID to details content', async () => {
+        // Given an accessible report that has finished loading
+        await seedFinishedLoading();
+        await seedReport();
+
+        // When the actual details page mounts with that report ID
+        renderWithPage({reportID});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the content receives the original ID rather than rendering without report context
+        expect(screen.getByTestId('content')).toHaveTextContent(reportID);
+    });
+
     it('should forward the report read from Onyx rather than the one passed by the caller', async () => {
         // Given a report in Onyx that differs from the one the caller passes as a prop
         await seedFinishedLoading();
         await seedReport();
 
         // When the wrapped screen renders
-        renderWithHOC();
+        renderWithHOC({reportID});
         await waitForBatchedUpdatesWithAct();
 
         // Then the wrapper overrides the caller's report with its own Onyx read

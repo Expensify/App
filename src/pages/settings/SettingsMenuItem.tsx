@@ -63,7 +63,6 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             hoveredTitleStyle={hoveredTitleStyle}
             title={keyTitle}
             icon={item.icon}
-            iconType={item.iconType}
             disabled={isExecuting && !isFocused}
             onPress={onPress}
             iconStyles={item.iconStyles}

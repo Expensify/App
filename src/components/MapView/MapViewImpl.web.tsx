@@ -376,6 +376,9 @@ function MapViewImpl({
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
             style={[style, !interactive ? styles.pointerEventsNone : {}]}
+            // A click on the map can pick a route, and the canvas it lands on has no label, so the map reports every click
+            // under its own label. The map's buttons have labels of their own, which Sentry finds first.
+            dataSet={{sentryLabel: CONST.SENTRY_LABEL.MAP_VIEW.MAP, sentryLabelExact: true}}
             {...responder.panHandlers}
         >
             <div
@@ -444,6 +447,7 @@ function MapViewImpl({
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.CENTER_BUTTON}
                         onPress={centerMap}
                         accessibilityLabel={translate('common.center')}
                     >

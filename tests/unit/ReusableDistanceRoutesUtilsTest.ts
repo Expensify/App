@@ -1,8 +1,11 @@
+import {de} from 'date-fns/locale/de';
+import {ja} from 'date-fns/locale/ja';
+
 import type {ReusableDistanceRoute, Transaction} from '../../src/types/onyx';
 import type {WaypointCollection} from '../../src/types/onyx/Transaction';
 
 import CONST from '../../src/CONST';
-import {filterRoutes, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
+import {filterRoutes, formatLastUsed, getAvailableReusableDistanceRoutes, getOrderedWaypoints, getRouteEndpoints, getRouteThumbnailSource} from '../../src/libs/ReusableDistanceRoutesUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 const createRoute = (transactionID: string, addresses: string[]): ReusableDistanceRoute => ({
@@ -16,6 +19,20 @@ const createRoute = (transactionID: string, addresses: string[]): ReusableDistan
 });
 
 describe('ReusableDistanceRoutesUtils', () => {
+    it.each([
+        ['German', de, '22. Jan.'],
+        ['Japanese', ja, '1月22日'],
+    ] as const)('formats the Last used date in %s', (languageName, locale, expected) => {
+        // Given a source expense inserted late on a UTC calendar day
+        const inserted = '2026-01-22 23:30:00';
+
+        // When the badge asks for an explicit-locale date
+        const label = formatLastUsed(inserted, locale);
+
+        // Then the label uses that locale without moving to a different day
+        expect(label).toBe(expected);
+    });
+
     describe('filterRoutes', () => {
         const routes = [
             createRoute('1', ['Expensify Lounge, San Francisco, CA', 'Marina Green East Beach, San Francisco, CA']),
@@ -139,6 +156,62 @@ describe('ReusableDistanceRoutesUtils', () => {
 
             // Then the route is included
             expect(available).toEqual([route]);
+        });
+
+        it('excludes routes with invalid waypoints or zero distance', () => {
+            // Given routes with zero coordinates, zero resolved distance (no route found), fewer than two waypoints, or duplicate adjacent waypoints
+            const zeroCoordinatesRoute: ReusableDistanceRoute = {
+                ...createRoute('tx-1', ['Invalid Start', 'Invalid End']),
+                waypoints: {
+                    waypoint0: {address: 'Invalid Start', lat: 0, lng: 0},
+                    waypoint1: {address: 'Invalid End', lat: 0, lng: 0},
+                },
+            };
+            const noRouteFoundRoute: ReusableDistanceRoute = {
+                ...createRoute('tx-2', ['Unreachable Start', 'Unreachable End']),
+                distance: 0,
+            };
+            const singleWaypointRoute = createRoute('tx-3', ['Only One']);
+            const duplicateWaypointsRoute = createRoute('tx-4', ['Same Address', 'Same Address']);
+            const validRoute = createRoute('tx-5', ['Start', 'End']);
+
+            // When resolving available routes
+            const availableOnline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, noRouteFoundRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, false);
+            const availableOffline = getAvailableReusableDistanceRoutes([zeroCoordinatesRoute, noRouteFoundRoute, singleWaypointRoute, duplicateWaypointsRoute, validRoute], undefined, true);
+
+            // Then only the route with valid waypoints and a resolved distance is returned
+            expect(availableOnline).toEqual([validRoute]);
+            expect(availableOffline).toEqual([validRoute]);
+        });
+
+        it('excludes routes whose source transaction resolved to invalid waypoints after syncing', () => {
+            // Given an optimistically saved offline route whose transaction later synced with zero coordinates
+            const optimisticOfflineRoute: ReusableDistanceRoute = {
+                transactionID: 'tx-1',
+                distance: 0,
+                inserted: '2026-09-01 12:00:00',
+                waypoints: {
+                    waypoint0: {address: 'Invalid Start'},
+                    waypoint1: {address: 'Invalid End'},
+                },
+            };
+            const transactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}tx-1`]: {
+                    ...baseTransaction,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Invalid Start', lat: 0, lng: 0},
+                            waypoint1: {address: 'Invalid End', lat: 0, lng: 0},
+                        },
+                    },
+                },
+            };
+
+            // When resolving available routes after the transaction synced
+            const available = getAvailableReusableDistanceRoutes([optimisticOfflineRoute], transactions, false);
+
+            // Then the route is excluded
+            expect(available).toEqual([]);
         });
     });
 });

@@ -216,6 +216,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             fill={theme.icon}
                         />
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ADD_NEW_DETAILS_HELP_LINK}
                             style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
                             href={CONST.COMPANY_CARDS_DELIVERY_FILE_HELP[feedProvider]}
                         >
