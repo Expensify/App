@@ -1,13 +1,11 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspacePerDiemTable from '@components/Tables/WorkspacePerDiemTable';
-import type {PerDiemTableRowData} from '@components/Tables/WorkspacePerDiemTable';
 
 import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -28,155 +26,30 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {renamePerDiemDestinationInline, renamePerDiemSubrateInline, updatePerDiemAmountInline} from '@libs/actions/Policy/InlineEdit';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {close} from '@userActions/Modal';
-import {clearPerDiemRateError, deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
+import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {shallowEqual} from 'fast-equals';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
-type SubRateData = {
-    pendingAction?: PendingAction;
-    errors?: Errors | null;
-    destination: string;
-    subRateName: string;
-    rate: number;
-    currency: string;
-    rateID: string;
-    subRateID: string;
-};
+import type {SubRateData} from './usePerDiemRows';
 
-// The page renders on every selection change, and a workspace can have over a hundred thousand subrates, so each step
-// below keeps its last result per source object instead of rebuilding every row.
-const subRatesDataCache = new WeakMap<Record<string, Rate>, SubRateData[]>();
-const selectableSubRatesCache = new WeakMap<SubRateData[], Record<string, SubRateData>>();
-const perDiemRowsCache = new WeakMap<SubRateData[], {params: PerDiemRowsParams; rows: PerDiemTableRowData[]}>();
-
-function getSubRatesData(customUnitRates: Record<string, Rate>) {
-    const cachedSubRatesData = subRatesDataCache.get(customUnitRates);
-    if (cachedSubRatesData) {
-        return cachedSubRatesData;
-    }
-
-    const subRatesData: SubRateData[] = [];
-    for (const rate of Object.values(customUnitRates)) {
-        const subRates = rate.subRates;
-        if (subRates) {
-            for (const [index, subRate] of subRates.entries()) {
-                subRatesData.push({
-                    pendingAction: rate.pendingAction,
-                    // Rate-level errors appear once; subrate errors appear on the row that was edited.
-                    errors: rate.errorFields?.[subRate.id] ?? (index === 0 ? rate.errors : undefined),
-                    destination: rate.name ?? '',
-                    subRateName: subRate.name,
-                    rate: subRate.rate,
-                    currency: rate.currency ?? CONST.CURRENCY.USD,
-                    rateID: rate.customUnitRateID,
-                    subRateID: subRate.id,
-                });
-            }
-        }
-    }
-
-    subRatesDataCache.set(customUnitRates, subRatesData);
-    return subRatesData;
-}
-
-function getSelectableSubRatesByKey(allSubRates: SubRateData[]) {
-    const cachedSelectableSubRates = selectableSubRatesCache.get(allSubRates);
-    if (cachedSelectableSubRates) {
-        return cachedSelectableSubRates;
-    }
-
-    const selectableSubRatesByKey: Record<string, SubRateData> = {};
-    for (const subRate of allSubRates) {
-        if (subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            selectableSubRatesByKey[getPerDiemRowKey(subRate.rateID, subRate.subRateID)] = subRate;
-        }
-    }
-
-    selectableSubRatesCache.set(allSubRates, selectableSubRatesByKey);
-    return selectableSubRatesByKey;
-}
-
-type PerDiemRowsParams = {
-    allSubRates: SubRateData[];
-    isOffline: boolean;
-    canWritePerDiem: boolean;
-    customUnit: CustomUnit | undefined;
-    policyID: string;
-    translate: LocaleContextProps['translate'];
-    openSubRateDetails: (rateID: string, subRateID: string) => void;
-};
-
-function getPerDiemRows(params: PerDiemRowsParams) {
-    const cachedRows = perDiemRowsCache.get(params.allSubRates);
-    if (cachedRows && shallowEqual(cachedRows.params, params)) {
-        return cachedRows.rows;
-    }
-
-    const {allSubRates, isOffline, canWritePerDiem, customUnit, policyID, translate, openSubRateDetails} = params;
-    const rows: PerDiemTableRowData[] = allSubRates
-        .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map((subRate) => {
-            const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            // Whether editing is paused by selection mode is decided by each row, so entering or leaving it doesn't rebuild every row.
-            const canEdit = canWritePerDiem && !isDeleting;
-
-            return {
-                keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
-                subRateID: subRate.subRateID,
-                rateID: subRate.rateID,
-                destination: subRate.destination,
-                subRateName: subRate.subRateName,
-                rate: subRate.rate,
-                currency: subRate.currency,
-                formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
-                disabled: isDeleting,
-                pendingAction: subRate.pendingAction,
-                errors: subRate.errors,
-                canEditDestination: canEdit,
-                canEditSubrate: canEdit,
-                canEditAmount: canEdit,
-                action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
-                onRenameDestination: (newName: string) => showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
-                onRenameSubrate: (newName: string) =>
-                    showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
-                onChangeAmount: (newAmount: string) =>
-                    showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
-                dismissError: () => {
-                    if (!customUnit) {
-                        return;
-                    }
-                    clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
-                },
-            };
-        });
-
-    perDiemRowsCache.set(allSubRates, {params, rows});
-    return rows;
-}
+import usePerDiemRows from './usePerDiemRows';
 
 type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM>;
 
@@ -198,7 +71,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
 
     const customUnit = getPerDiemCustomUnit(policy);
-    const allSubRates = getSubRatesData(customUnit?.rates ?? CONST.EMPTY_OBJECT);
 
     const fetchPerDiem = () => {
         openPolicyPerDiemPage(policyID);
@@ -212,7 +84,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }, [fetchPerDiem]),
     );
 
-    const selectableSubRatesByKey = getSelectableSubRatesByKey(allSubRates);
+    const {allSubRates, selectableSubRatesByKey, perDiemRows} = usePerDiemRows({customUnit, isOffline, canWritePerDiem, policyID});
 
     const filterSelectableSubRate = (subRate?: SubRateData) => !!subRate;
 
@@ -226,10 +98,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const openSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_SETTINGS.getRoute(policyID));
-    };
-
-    const openSubRateDetails = (rateID: string, subRateID: string) => {
-        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
     };
 
     const showOfflineModal = () => {
@@ -251,8 +119,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const perDiemRows = getPerDiemRows({allSubRates, isOffline, canWritePerDiem, customUnit, policyID, translate, openSubRateDetails});
 
     const menuItems = [];
     if (canWritePerDiem && policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {

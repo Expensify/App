@@ -232,7 +232,7 @@ export default function useSelection<DataType extends TableData>({
      * rows in the table
      */
     const handleSelectAll = () => {
-        // Any existing selection is cleared, so there is no need to check whether every row is selected (that check was quadratic).
+        // A partial selection is cleared too, so the header checkbox acts as a clear while it is indeterminate.
         if (selectedKeys.length > 0) {
             onRowSelectionChange?.([]);
             return;
