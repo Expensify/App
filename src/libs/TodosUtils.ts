@@ -271,6 +271,7 @@ function getTodoReportsForSearchKey(
     }: CreateTodosReportsAndTransactionsParams,
 ) {
     const reports: Report[] = [];
+    const incompleteReportIDs: string[] = [];
     const transactionsByReportID = buildTransactionsByReportID(allTransactions);
 
     for (const report of Object.values(allReports ?? {})) {
@@ -298,12 +299,20 @@ function getTodoReportsForSearchKey(
             rules,
         };
 
-        if (reportMatchesTodoBucket(searchKey, report, context)) {
-            reports.push(report);
+        if (!reportMatchesTodoBucket(searchKey, report, context)) {
+            continue;
+        }
+        reports.push(report);
+
+        // A report that first reached the device through a Pusher workflow update (e.g. a forward to the current user)
+        // only has the workflow fields, without its created date, currency or totals, so its row is blank until the
+        // caller loads the full report.
+        if (!report.created) {
+            incompleteReportIDs.push(report.reportID);
         }
     }
 
-    return {reports, transactionsByReportID};
+    return {reports, incompleteReportIDs, transactionsByReportID};
 }
 
 export default createTodosReportsAndTransactions;

@@ -28,6 +28,7 @@ jest.mock('@libs/TodosUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/TodosUtils'),
     getTodoReportsForSearchKey: (_searchKey: string, {allReports}: {allReports?: Record<string, {reportID: string}>}) => ({
         reports: Object.values(allReports ?? {}),
+        incompleteReportIDs: [],
         transactionsByReportID: {},
     }),
 }));

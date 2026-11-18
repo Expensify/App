@@ -1663,6 +1663,28 @@ function search({
 }
 
 /**
+ * Loads the full data of to-do reports the device only holds partially. Passing the to-do `searchKey` makes the backend
+ * merge the results into the main report and transaction collections, so the live to-do list can show them. It sends
+ * the request directly instead of through search(), which would overwrite the user's last query for that to-do list.
+ */
+function loadIncompleteTodoReports(searchKey: SearchKey, reportIDs: string[]) {
+    const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${reportIDs.join(',')}`);
+    if (!queryJSON) {
+        return;
+    }
+    const {backendQueryJSON} = getBackendQueryJSON(queryJSON);
+    const jsonQuery = serializeQueryJSONForBackend({
+        ...backendQueryJSON,
+        searchKey,
+        offset: 0,
+        filters: backendQueryJSON.filters ?? null,
+        shouldCalculateTotals: false,
+        shouldSaveRecentSearch: false,
+    });
+    read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery});
+}
+
+/**
  * Fetches converted footer-total figures for the Search footer currency picker. The Auth command merges the
  * results into the SEARCH_FOOTER_CONVERSION cache via onyxData (nested under the target currency), leaving the
  * live search snapshot untouched:
@@ -2893,6 +2915,7 @@ export {
     saveSearch,
     seedMyExpensesSearch,
     search,
+    loadIncompleteTodoReports,
     getFooterConvertedAmounts,
     clearFooterConversion,
     rejectMoneyRequestsOnSearch,

@@ -739,6 +739,43 @@ describe('TodosUtils', () => {
 
             expect(result.reports).toEqual([]);
         });
+
+        it('flags a report that only has the fields a forward update sends so its full data gets loaded', () => {
+            // Given a report that first reached the device through the Pusher update sent when it was forwarded to the
+            // current user, so it has the workflow fields but no created date, currency or totals
+            const forwardedReport: Report = {
+                reportID: 'forwarded_partial',
+                chatType: undefined,
+                description: '',
+                lastActorAccountID: OTHER_USER_ACCOUNT_ID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                parentReportActionID: '456',
+                parentReportID: '123',
+                policyID: POLICY_ID,
+                reportName: 'Forwarded Report',
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy = createMockPolicy(POLICY_ID, {
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            });
+
+            // When the approve to-do bucket is computed
+            const result = getTodoReportsForSearchKey(CONST.SEARCH.SEARCH_KEYS.APPROVE, {
+                ...baseParams,
+                allReports: toReportsCollection([forwardedReport]),
+                allTransactions: toTransactionsCollection([createMockTransaction('trans_forwarded', 'forwarded_partial')]),
+                allPolicies: toPoliciesCollection([policy]),
+            });
+
+            // Then it stays in the bucket, since it is still a to-do, and it is flagged so its full data gets loaded
+            expect(result.reports.map((report) => report.reportID)).toEqual(['forwarded_partial']);
+            expect(result.incompleteReportIDs).toEqual(['forwarded_partial']);
+        });
     });
 });
 
