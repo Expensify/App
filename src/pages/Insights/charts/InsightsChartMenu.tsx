@@ -78,8 +78,8 @@ function InsightsChartMenu({graphKey, violationStage, onViolationStageChange, ac
                     onBackButtonPress={() => setIsPickingStage(false)}
                     closeOverlay={closeOverlay}
                     onChange={(item) => onViolationStageChange(item?.value ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED)}
-                    applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_APPLY.VIOLATION_STAGE}
-                    resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_POPUP_RESET.VIOLATION_STAGE}
+                    applySentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIOLATION_STAGE_APPLY}
+                    resetSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIOLATION_STAGE_RESET}
                 />
             );
         }
