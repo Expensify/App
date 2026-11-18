@@ -5,6 +5,9 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 type ShortcutCallback = () => void;
 type ShortcutConfig = {isActive?: boolean};
 
+/** The rows a re-rendered list hands the hook */
+type ListRowsProps = {maxIndex: number; disabledIndexes: readonly number[]};
+
 const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 
 jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
@@ -243,8 +246,9 @@ describe('useArrowKeyFocusManager', () => {
 
     it('keeps its arrow key subscriptions when the list re-renders with new rows', () => {
         // Given a list subscribed to the arrow keys, as a list behind an open dropdown is
-        const {rerender} = renderHook((props: {maxIndex: number; disabledIndexes: readonly number[]}) => useArrowKeyFocusManager({...props, isActive: true}), {
-            initialProps: {maxIndex: 3, disabledIndexes: [0]},
+        const initialRows: ListRowsProps = {maxIndex: 3, disabledIndexes: [0]};
+        const {rerender} = renderHook((props: ListRowsProps) => useArrowKeyFocusManager({...props, isActive: true}), {
+            initialProps: initialRows,
         });
         const subscribedArrowUp = shortcuts.ArrowUp?.callback;
         const subscribedArrowDown = shortcuts.ArrowDown?.callback;
@@ -260,12 +264,10 @@ describe('useArrowKeyFocusManager', () => {
 
     it('moves through the latest rows after the list re-renders', () => {
         // Given a list of two rows focused on its last row
-        const {result, rerender} = renderHook(
-            (props: {maxIndex: number; disabledIndexes: readonly number[]}) => useArrowKeyFocusManager({...props, initialFocusedIndex: 1, isActive: true}),
-            {
-                initialProps: {maxIndex: 1, disabledIndexes: []},
-            },
-        );
+        const initialRows: ListRowsProps = {maxIndex: 1, disabledIndexes: []};
+        const {result, rerender} = renderHook((props: ListRowsProps) => useArrowKeyFocusManager({...props, initialFocusedIndex: 1, isActive: true}), {
+            initialProps: initialRows,
+        });
 
         // When rows are added below it, the one right under the focused row disabled, and ArrowDown is pressed
         rerender({maxIndex: 3, disabledIndexes: [2]});
