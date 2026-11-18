@@ -1233,6 +1233,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Niveau de tag ${level}`,
+        tagLevelLabel: 'Niveau de tag',
+        parent: 'Parent',
+        shareOfTotal: 'Part du total (%)',
         viewOnSpend: 'Voir dans Dépenses',
         emptyState: {title: 'Rien à afficher', subtitle: 'Essayez de modifier vos critères ci-dessus'},
         noExpensesState: {
@@ -1258,6 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
             allSpenderAverage: 'Moyenne tous dépensiers',
             allMerchantAverage: 'Moyenne tous marchands',
             allCategoryAverage: 'Moyenne toutes catégories',
+            tagAverage: 'Moyenne du tag',
             averageValue: (amount: string) => `${amount} en moyenne`,
             allViolationAverage: 'Moyenne de toutes les infractions',
             noChange: 'Aucun changement',
@@ -2435,6 +2440,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nouveau moyen de contact',
         goBackContactMethods: 'Revenir aux méthodes de contact',
+        integrationServerLogin: {
+            title: 'Intégrations',
+            description: 'Utilisé pour l’API Integration Server.',
+            removeDescription: 'Supprimer cet identifiant révoquera l’accès de l’API Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Utilisé pour l’intégration ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Supprimer cet identifiant révoquera l’accès de l’intégration ${partnerName}.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Ceci est votre méthode de contact par défaut actuelle. Votre entreprise a restreint sa suppression ou sa modification.',
     },
     pronouns: {
@@ -2708,6 +2720,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">En savoir plus</a>.',
         revoke: 'Révoquer',
         unknownDevice: 'Appareil Inconnu',
+        signOutAllDevices: 'Se déconnecter de tous les appareils',
+        signOutAllDevicesConfirmation: 'Vous serez déconnecté de tous les appareils, y compris celui-ci. Vous devrez vous reconnecter pour utiliser Expensify.',
+        signOutAllDevicesError: 'Nous n’avons pas pu vous déconnecter de tous les appareils. Veuillez réessayer.',
+        signOutAllDevicesSuccess: 'Vous avez été déconnecté de tous les appareils.',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
@@ -7346,6 +7362,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 allCards: 'Toutes les cartes',
                 assignedCards: 'Assigné',
                 unassignedCards: 'Non assigné',
+                matchesLastFourDigitsOnly: 'Correspond uniquement aux 4 derniers chiffres',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportation ${integration} ${type.toLowerCase()}` : `Export ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.${exportPageLink ? ` Sélectionnez une autre <a href="${exportPageLink}">option d’exportation</a> pour modifier les comptes disponibles.` : ''}`,
@@ -11261,6 +11278,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             insights: 'Analyses',
             topSpenders: 'Plus gros dépensiers',
             topCategories: 'Catégories principales',
+            topTags: 'Tags principaux',
             topMerchants: 'Meilleurs commerçants',
             violationsBySubmitter: 'Infractions par déclarant',
             travel: 'Voyage',

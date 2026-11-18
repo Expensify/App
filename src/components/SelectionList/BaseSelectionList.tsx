@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
@@ -110,7 +111,7 @@ function BaseSelectionListImpl({
     const shouldShowTextInput = shouldShowTextInputProp ?? !!textInputOptions?.label;
 
     const listRef = useRef<FlashListRef<ListItem> | null>(null);
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);

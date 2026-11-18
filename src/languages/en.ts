@@ -1372,6 +1372,10 @@ const translations = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag level ${level}`,
+        tagLevelLabel: 'Tag level',
+        parent: 'Parent',
+        shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
@@ -1408,6 +1412,7 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            tagAverage: 'Tag average',
             allViolationAverage: 'All-violation average',
             allApproverAverage: 'All-approver average',
             allPayerAverage: 'All-payer average',
@@ -2583,6 +2588,13 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
+        },
     },
     // cspell:disable
     pronouns: {
@@ -2857,6 +2869,10 @@ const translations = {
             'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
+        signOutAllDevices: 'Sign out on all devices',
+        signOutAllDevicesConfirmation: 'You’ll be signed out on all devices, including this one. You’ll need to sign in again to use Expensify.',
+        signOutAllDevicesError: 'We couldn’t sign you out on all devices. Please try again.',
+        signOutAllDevicesSuccess: 'You’ve been signed out on all devices.',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -7916,6 +7932,7 @@ const translations = {
                 allCards: 'All cards',
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
+                matchesLastFourDigitsOnly: 'Matches last 4 digits only',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
@@ -11182,6 +11199,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            topTags: 'Top tags',
             violationsBySubmitter: 'Violations by submitter',
             travel: 'Travel',
             trips: 'Trips',

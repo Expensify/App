@@ -1119,6 +1119,8 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** How long the terms page waits after Submit for Wise to decide whether it needs more info */
+        ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS: 8000,
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',
@@ -1594,7 +1596,6 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
-        SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
@@ -9135,6 +9136,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9252,6 +9255,7 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_GROUP_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         VENDOR_EMPTY_VALUE: 'none',
@@ -9461,6 +9465,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -10630,6 +10635,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',
@@ -10647,6 +10653,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
@@ -10719,9 +10726,13 @@ const CONST = {
         EXPENSIFY: 1,
         IPHONE: 14,
         ANDROID: 16,
+        INTEGRATIONS: 53,
         NEWDOT: 83,
         OAUTH: 86,
     },
+
+    /** Start of the partnerUserID Auth gives a login it issues to an Integration Server OAuth partner */
+    INTEGRATION_SERVER_OAUTH_LOGIN_PREFIX: 'is-oauth-',
 } as const;
 
 const HAS_VALUE_TRANSLATION_KEYS: Readonly<Record<string, TranslationPaths | undefined>> & Record<ValueOf<typeof CONST.SEARCH.HAS_VALUES>, TranslationPaths> = {

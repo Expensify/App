@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
 
@@ -16,6 +15,7 @@ import type {Reservation} from '@src/types/onyx/Transaction';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type CarTripDetailsProps = {
     reservation: Reservation;
@@ -44,28 +44,43 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{reservation.vendor}</Text>
-            <MenuItemWithTopDescription
-                description={translate('travel.carDetails.pickUp')}
-                titleComponent={
-                    <Text style={[styles.textLarge, styles.textHeadlineH2]}>
-                        {pickUpDate.date} {CONST.DOT_SEPARATOR} {pickUpDate.hour}
-                    </Text>
-                }
-                interactive={false}
-                helperText={reservation.start.location}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-            />
-            <MenuItemWithTopDescription
-                description={translate('travel.carDetails.dropOff')}
-                titleComponent={
-                    <Text style={[styles.textLarge, styles.textHeadlineH2]}>
-                        {dropOffDate.date} {CONST.DOT_SEPARATOR} {dropOffDate.hour}
-                    </Text>
-                }
-                interactive={false}
-                helperText={reservation.end.location}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-            />
+            <View>
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            {/* Legacy titleComponent rows have no gap between the label and heading. */}
+                            <View>
+                                <MenuItem.FieldName style={styles.textNormal}>{translate('travel.carDetails.pickUp')}</MenuItem.FieldName>
+                                <MenuItem.FieldValue
+                                    style={[styles.textLarge, styles.textHeadlineH2]}
+                                    numberOfLines={0}
+                                >
+                                    {`${pickUpDate.date} ${CONST.DOT_SEPARATOR} ${pickUpDate.hour}`}
+                                </MenuItem.FieldValue>
+                            </View>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                {!!reservation.start.location && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb3, styles.mtn2]}>{reservation.start.location}</Text>}
+            </View>
+            <View>
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <View>
+                                <MenuItem.FieldName style={styles.textNormal}>{translate('travel.carDetails.dropOff')}</MenuItem.FieldName>
+                                <MenuItem.FieldValue
+                                    style={[styles.textLarge, styles.textHeadlineH2]}
+                                    numberOfLines={0}
+                                >
+                                    {`${dropOffDate.date} ${CONST.DOT_SEPARATOR} ${dropOffDate.hour}`}
+                                </MenuItem.FieldValue>
+                            </View>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                {!!reservation.end.location && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb3, styles.mtn2]}>{reservation.end.location}</Text>}
+            </View>
             {!!reservation.carInfo?.name && (
                 <MenuItemField
                     name={translate('travel.carDetails.carType')}
