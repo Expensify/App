@@ -1,7 +1,5 @@
 import registerPrefetchOnAppStart from '@libs/Prefetch/registerPrefetchOnAppStart';
 
-import CONST from '@src/CONST';
-
 import {prefetchOnAppStart, registerTokenRefresh} from 'react-native-nitro-fetch';
 
 jest.mock('@libs/Network/NetworkStore', () => ({
@@ -62,25 +60,6 @@ describe('registerPrefetchOnAppStart', () => {
 
         // Then the body is saved as is, because only RN FormData bodies are rebuilt
         expect(getSavedPrefetchBody()).toBe(body);
-    });
-
-    it('puts a JWT sent in the header back into the saved body', () => {
-        // Given a ReconnectApp that sent its JWT in the Authorization header, so its body has no authToken
-        const body = createReactNativeFormData([{fieldName: 'clientUpdateID', string: '123'}]);
-        const headers = {[CONST.HTTP_HEADER_NAMES.AUTHORIZATION]: `Bearer ${JWT_AUTH_TOKEN}`, prefetchKey: PREFETCH_KEY};
-
-        // When the request is registered for the next app start
-        registerPrefetchOnAppStart({prefetchKey: PREFETCH_KEY, command: 'ReconnectApp', url: URL, fetchParams: {method: 'POST', body, headers}, headerAuthToken: JWT_AUTH_TOKEN});
-
-        // Then the saved request carries the token in both places, so it still authenticates if Auth refreshes it to a hex token on the next launch
-        const savedBody = getSavedPrefetchBody();
-        if (!(savedBody instanceof FormData)) {
-            throw new Error('Expected the saved prefetch body to be FormData');
-        }
-        expect(savedBody.get('authToken')).toBe(JWT_AUTH_TOKEN);
-        expect(savedBody.get('clientUpdateID')).toBe('123');
-        const [, fetchParams] = jest.mocked(prefetchOnAppStart).mock.calls.at(0) ?? [];
-        expect(fetchParams?.headers).toEqual(headers);
     });
 
     it.each([

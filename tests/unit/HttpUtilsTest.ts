@@ -171,7 +171,7 @@ describe('HttpUtils', () => {
             mockPrepareRequestPayloadModule = payloadModule;
         });
 
-        it('sends a JWT authToken in the Authorization header and leaves it out of the body', async () => {
+        it('sends a JWT authToken in the Authorization header as well as the body', async () => {
             // Given an account on Auth's JWT beta
             const sentRequests: SentRequest[] = [];
             mockSuccessfulFetch(sentRequests);
@@ -179,9 +179,9 @@ describe('HttpUtils', () => {
             // When a request is sent with its JWT
             await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: JWT_AUTH_TOKEN});
 
-            // Then Cloudflare can validate the token from the header, and the server reads it from there too
+            // Then Cloudflare can validate the token from the header, and the server keeps reading it from the body
             expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${JWT_AUTH_TOKEN}`});
-            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBeNull();
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(JWT_AUTH_TOKEN);
         });
 
         it('keeps a hex authToken in the body and sends no Authorization header', async () => {
@@ -197,7 +197,7 @@ describe('HttpUtils', () => {
             expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(HEX_AUTH_TOKEN);
         });
 
-        it('sends the JWT LogOut passes in the header instead of the session one', async () => {
+        it('sends the JWT LogOut passes in the header and the body instead of the session one', async () => {
             // Given a session JWT, and LogOut sending a different token, as the 2FA flows also do
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: JWT_AUTH_TOKEN});
             await waitForBatchedUpdates();
@@ -208,9 +208,9 @@ describe('HttpUtils', () => {
             // When the request goes through the same parameter enhancement as Request.ts
             await HttpUtils.xhr(command, enhanceParameters(command, {authToken: OVERRIDE_JWT_AUTH_TOKEN}));
 
-            // Then the header carries the caller's token, so the server signs out the session the caller meant
+            // Then the header and the body carry the caller's token, so the edge and the server see the session the caller meant
             expect(sentRequests.at(0)?.headers).toEqual({Authorization: `Bearer ${OVERRIDE_JWT_AUTH_TOKEN}`});
-            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBeNull();
+            expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(OVERRIDE_JWT_AUTH_TOKEN);
         });
 
         it('keeps a JWT in the body when the request carries the QA server Cloudflare Access bearer', async () => {
@@ -222,7 +222,7 @@ describe('HttpUtils', () => {
             // When a request is sent with a JWT
             await HttpUtils.xhr(WRITE_COMMANDS.ADD_COMMENT, {authToken: JWT_AUTH_TOKEN});
 
-            // Then the Expensify header is left out so it can't replace the Access bearer, and the body still authenticates the request
+            // Then the Expensify header is left out so it can't replace the Access bearer, and the body authenticates the request
             expect(sentRequests.at(0)?.headers).toBeUndefined();
             expect(getSentAuthToken(sentRequests.at(0)?.body)).toBe(JWT_AUTH_TOKEN);
         });
@@ -241,7 +241,7 @@ describe('HttpUtils', () => {
         // When ReconnectApp is sent and retried
         await HttpUtils.xhr(WRITE_COMMANDS.RECONNECT_APP, {authToken: JWT_AUTH_TOKEN});
 
-        // Then the retry still carries the header, because its body has no authToken to fall back on
+        // Then the retry still carries the header, because it reuses the same authToken
         expect(requestHeaders).toEqual([{Authorization: `Bearer ${JWT_AUTH_TOKEN}`, prefetchKey: RECONNECT_APP_PREFETCH_KEY}, {Authorization: `Bearer ${JWT_AUTH_TOKEN}`}]);
     });
 });
