@@ -6856,6 +6856,25 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
         });
 
+        it('blocks leaving hidden tickets', () => {
+            // Given a ticket hidden for the invitee
+            const hiddenTicket: Report = {
+                ...supportTicket,
+                participants: {...supportTicket.participants, [inviteeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+
+            // When the invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(hiddenTicket, undefined, inviteeAccountID, false)).toBe(false);
+        });
+
+        it('blocks anonymous users from leaving tickets', () => {
+            // Given a ticket viewed anonymously
+            // When checking leave permissions with an invitee account ID
+            // Then the anonymous viewer cannot leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, true)).toBe(false);
+        });
+
         it('blocks leaving archived tickets', () => {
             // Given an archived ticket
             // When an invitee opens the ticket details

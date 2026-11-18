@@ -1944,12 +1944,7 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
         return false;
     }
     if (isSupportTicket(report)) {
-        return (
-            report?.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
-            report.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-            !!currentUserAccountID &&
-            (report.ownerAccountID === currentUserAccountID || report.managerID === currentUserAccountID)
-        );
+        return isOpenReport(report) && !!currentUserAccountID && (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID);
     }
     if (isGroupChat(report)) {
         return true;
@@ -1965,10 +1960,9 @@ function canRemoveSupportTicketParticipant(report: OnyxEntry<Report>, isReportAr
     return (
         isSupportTicket(report) &&
         !isReportArchived &&
-        report?.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
-        report.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+        isOpenReport(report) &&
         !!currentUserAccountID &&
-        report.managerID === currentUserAccountID &&
+        report?.managerID === currentUserAccountID &&
         targetAccountID !== report.ownerAccountID &&
         targetAccountID !== report.managerID
     );
@@ -13476,7 +13470,14 @@ function canLeaveChat(
 ): boolean {
     if (isSupportTicket(report)) {
         // The customer and assigned support rep must stay on the ticket. Other invited participants can leave.
-        return !isReportArchived && !!currentUserAccountID && report?.ownerAccountID !== currentUserAccountID && report?.managerID !== currentUserAccountID;
+        return (
+            !isReportArchived &&
+            !isAnonymousUser &&
+            !!currentUserAccountID &&
+            !isHiddenForCurrentUser(getReportNotificationPreference(report, currentUserAccountID)) &&
+            report?.ownerAccountID !== currentUserAccountID &&
+            report?.managerID !== currentUserAccountID
+        );
     }
 
     if (isRootGroupChat(report, isReportArchived)) {
