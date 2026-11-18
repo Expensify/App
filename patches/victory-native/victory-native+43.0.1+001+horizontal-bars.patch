@@ -1,5 +1,5 @@
 diff --git a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
-index 36915fe..0cb7746 100644
+index 64b8b88..a3e91dd 100644
 --- a/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
 +++ b/node_modules/victory-native/dist/cartesian/components/BarGroup.d.ts
 @@ -16,6 +16,7 @@ type BarGroupProps = {
@@ -11,7 +11,7 @@ index 36915fe..0cb7746 100644
  export declare function BarGroup({ betweenGroupPadding, withinGroupPadding, chartBounds, roundedCorners, children, onBarSizeChange, barWidth: customBarWidth, barCount, }: BarGroupProps): React.JSX.Element | null;
  export declare namespace BarGroup {
 diff --git a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
-index 63b69bc..75641b1 100644
+index 8844862..ad58945 100644
 --- a/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
 +++ b/node_modules/victory-native/dist/cartesian/hooks/useBarGroupPaths.d.ts
 @@ -1,6 +1,6 @@
@@ -23,7 +23,7 @@ index 63b69bc..75641b1 100644
      groupWidth: number;
      gapWidth: number;
 diff --git a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
-index f188ddc..526c5a7 100644
+index f3a3408..9186ac7 100644
 --- a/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
 +++ b/node_modules/victory-native/src/cartesian/components/BarGroup.tsx
 @@ -20,6 +20,7 @@ type BarGroupProps = {
@@ -51,7 +51,7 @@ index f188ddc..526c5a7 100644
  
    // Handle bar size change
 diff --git a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
-index fafab1a..07da62f 100644
+index 3f2cb80..3ebe287 100644
 --- a/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
 +++ b/node_modules/victory-native/src/cartesian/hooks/useBarGroupPaths.ts
 @@ -17,10 +17,11 @@ export const useBarGroupPaths = (

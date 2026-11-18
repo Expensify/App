@@ -13,10 +13,10 @@ import VictoryTheme, {
 
 import variables from '@styles/variables';
 
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from 'react-native-skia';
 
-import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
+import {FontStyle, FontWeight, Skia, TextAlign} from 'react-native-skia';
 
 import getDrawablePieData from './getDrawablePieData';
 import getLineRuns from './getLineRuns';

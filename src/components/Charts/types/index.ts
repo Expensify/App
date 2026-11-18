@@ -1,8 +1,8 @@
 import type {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 import type {SearchChartCountDimension} from '@components/Search/types';
 
-import type {SkParagraph} from '@shopify/react-native-skia';
 import type {ReactNode} from 'react';
+import type {SkParagraph} from 'react-native-skia';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 
 /** One plotted dataset: a line, or one bar of every group. */
