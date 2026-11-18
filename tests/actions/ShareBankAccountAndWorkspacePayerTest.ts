@@ -68,6 +68,12 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
                                 shouldShowSuccess: true,
                             }),
                         }),
+                        // The server sends the new payer's copy of the bank account, so the sharer's own copy is put back after it
+                        expect.objectContaining({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                            value: {achAccount: {bankAccountID, state: bankAccountState}},
+                        }),
                     ]),
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
