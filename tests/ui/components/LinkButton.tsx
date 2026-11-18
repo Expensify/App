@@ -15,6 +15,7 @@ const TEXT = 'Open docs';
 const renderLinkButton = (innerStyles?: React.ComponentProps<typeof LinkButton>['innerStyles']) =>
     render(
         <LinkButton
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             accessibilityLabel={LABEL}
             innerStyles={innerStyles}
         >

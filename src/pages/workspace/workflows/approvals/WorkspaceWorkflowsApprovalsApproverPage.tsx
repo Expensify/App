@@ -11,7 +11,7 @@ import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover, setApprovalWorkflowIsInitialFlow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -30,7 +30,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigationState} from '@react-navigation/native';
 import React, {useState} from 'react';
@@ -42,8 +41,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
@@ -76,10 +74,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
     let allApprovers: SelectionListApprover[];
-    if (isApprovalWorkflowLoading || !employeeList) {
+    if (!employeeList) {
         allApprovers = [];
     } else {
         const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
         const approvers = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
@@ -102,18 +101,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
-                // Another step's additional approver can't also approve here, or that step's limit would add no one
-                const isOtherStepsAdditionalApprover = approversFromWorkflow?.some((approver, index) => approver?.overLimitForwardsTo === email && index !== approverIndex);
-                if (shouldUseApprovalWorkflowRules && isOtherStepsAdditionalApprover && visibleSelectedApproverEmail !== email) {
-                    return null;
-                }
-
                 // On employeeList a workflow is identified by its first approver, and everyone who submits to the default
                 // approver is in the default workflow, so no other workflow can start with them. Rules store each workflow separately.
                 if (!shouldUseApprovalWorkflowRules && !isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                 if (!accountID) {
                     return null;
@@ -165,7 +157,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         allApprovers = approvers;
     }
 
-    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApprover;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !removingApprover;
 
     const goBack = () => {
         let backToRoute;
@@ -211,28 +203,49 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 email: newSelectedEmail,
                 avatar,
                 displayName,
-                approvalLimit: null,
-                overLimitForwardsTo: '',
+                // Whether the approver only gets the reports over an amount belongs to their place in the workflow, so it stays when they're changed
+                overLimitAmount: currentApprover?.overLimitAmount,
             },
             approverIndex,
             currentApprovalWorkflow: approvalWorkflow,
             policy,
             personalDetailsByEmail,
+            shouldUseApprovalWorkflowRules,
         });
 
         // If this is the change approver route, go back to the Approval Limit page
-        // Otherwise, navigate forward to set the approval limit
         if (isChangeApproverRoute) {
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+            return;
         }
+
+        // The first approver gets every report, so there's nothing more to ask about them
+        if (approverIndex === 0 && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+            setApprovalWorkflowIsInitialFlow(false);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+            return;
+        }
+        if (approverIndex === 0) {
+            goBack();
+            return;
+        }
+
+        // Otherwise, navigate forward to ask whether the approver only gets the reports over an amount
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, true));
     };
+
+    const isAddingAdditionalApprover = approverIndex > 0 && !isChangeApproverRoute;
+    let title = translate('workflowsApproverPage.title');
+    if (approverIndex === 0) {
+        title = translate('workflowsApproverPage.setFirstApprover');
+    } else if (isAddingAdditionalApprover) {
+        title = translate('workflowsApproverPage.addApprover');
+    }
 
     const subtitle = (
         <>
-            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.title')}</Text>
-            <Text style={[styles.mh5, styles.mb3, styles.textSupporting]}>{translate('workflowsApproverPage.description')}</Text>
+            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{title}</Text>
+            {!isAddingAdditionalApprover && <Text style={[styles.mh5, styles.mb3, styles.textSupporting]}>{translate('workflowsApproverPage.description')}</Text>}
         </>
     );
 
@@ -245,7 +258,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         >
             <ApproverSelectionList
                 testID="WorkspaceWorkflowsApprovalsApproverPage"
-                headerTitle={translate('workflowsPage.approver')}
+                headerTitle={isAddingAdditionalApprover ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
                 subtitle={subtitle}
                 isLoadingReportData={isLoadingReportData}
                 policy={policy}

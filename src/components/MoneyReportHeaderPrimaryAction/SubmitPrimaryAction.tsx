@@ -138,6 +138,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
     const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
@@ -241,6 +243,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
                 text: translate('common.submit'),
                 icon: expensifyIcons.Send,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
                     handleSubmit();
@@ -250,6 +253,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF,
                 text: translate('common.submitViaPDF'),
                 icon: expensifyIcons.Document,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT_VIA_PDF,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
                     handleSubmit(true);
@@ -260,6 +264,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
         return (
             <ButtonWithDropdownMenu<SubmissionMethod>
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.SUBMIT}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
@@ -276,6 +281,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     return (
         <AnimatedSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.SUBMIT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}

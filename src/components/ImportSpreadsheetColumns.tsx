@@ -77,7 +77,11 @@ function ImportSpreadsheetColumns({
                         {customHeaderText ?? (
                             <>
                                 {translate('spreadsheet.importDescription')}
-                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
+                                <TextLink
+                                    href={learnMoreLink ?? ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.LEARN_MORE_LINK}
+                                >{` ${translate('common.learnMore')}`}</TextLink>
+                                .
                             </>
                         )}
                     </Text>
@@ -121,6 +125,7 @@ function ImportSpreadsheetColumns({
                     errorRowStyles={styles.mv2}
                 >
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.IMPORT_SPREADSHEET.IMPORT_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}

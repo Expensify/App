@@ -110,6 +110,10 @@ For additional control:
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+- **Currency conversion fee account** – Select the account for currency conversion (FX) fees. This setting appears under **Sync reimbursed reports** only when it is enabled, you reimburse through Expensify, and a business bank account is connected. If **Workspaces > [workspace name] > Workflows > Payments > Currency conversion fees** is set to **Company pays**, each cross-border reimbursement exports a separate journal entry for the fee alongside the bill payment. This journal entry:
+  - Debits the selected currency conversion fee account and credits cash
+  - Uses the memo “Foreign Exchange Fees for Expensify report [reportID]”
+  - Only exports if this account is mapped
 
 **Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
 
@@ -187,4 +191,3 @@ When **Split exports by posting period** is on, a report with non-reimbursable e
 
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
-

@@ -77,6 +77,9 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** A map of inputID key names */
     renamedInputKeys?: Record<string, string>;
 
+    /** Whether the state stays a code outside the US and Canada, for a caller whose picker lists the states of other countries */
+    shouldKeepStateCode?: boolean;
+
     /** Auto complete attribute for the input field */
     autoComplete?: TextInputProps['autoComplete'];
 
