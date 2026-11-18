@@ -15,6 +15,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn((): boolean => true);
 
@@ -879,6 +880,57 @@ describe('useSearchAutoRefetch', () => {
             rerender(buildProps(memberWithUserID('NEW'), {}));
 
             // Then no search is sent, since nothing the results already show has changed
+            expect(search).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Select all jobs', () => {
+        const BULK_ACTION_KEY = `${ONYXKEYS.COLLECTION.BULK_ACTION}job1` as const;
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('searches again when a Select all job finishes', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+            expect(search).not.toHaveBeenCalled();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search runs again, since the job changed reports the results show
+            expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
+        });
+
+        it('searches again when a running job is deleted after Concierge sends its summary', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE, shouldSendFromConcierge: true});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+
+            // When its record is deleted before a finished state shows up
+            await Onyx.set(BULK_ACTION_KEY, null);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search still runs again
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not search again while the job is still running', async () => {
+            // Given Search is open while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch(baseProps));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user hands it to Concierge, which doesn't change its state
+            await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: true});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is searched yet
             expect(search).not.toHaveBeenCalled();
         });
     });
