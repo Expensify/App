@@ -342,6 +342,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
+    const isWorkflowEditingDisabled = shouldBlockApprovalWorkflowEditing || !canWriteApprovals;
     const approvalSubtitle = !isWorkflowFromIntegration ? (
         translate('workflowsPage.addApprovalsDescription')
     ) : (
@@ -461,10 +462,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                     <WorkflowRow
                                         key={`${approverEmail}-${memberEmail}`}
                                         workflow={workflow}
-                                        onEdit={shouldBlockApprovalWorkflowEditing || !canWriteApprovals ? undefined : editWorkflow}
+                                        onEdit={isWorkflowEditingDisabled ? undefined : editWorkflow}
                                         onShowAllMembers={shouldBlockApprovalWorkflowEditing ? undefined : showAllWorkflowMembers}
                                         currency={policy?.outputCurrency}
-                                        isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
+                                        isDisabled={isWorkflowEditingDisabled}
                                         providerName={approvalWorkflowSource?.providerName}
                                         isHRAdvancedModeEnabled={isHRAdvancedModeEnabled}
                                         isRecruitingAdvancedModeEnabled={isRecruitingAdvancedModeEnabled}
