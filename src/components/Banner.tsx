@@ -4,7 +4,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
@@ -85,6 +84,9 @@ function Banner({
 
     const displayIcon = icon ?? expensifyIcons.Exclamation;
 
+    // The text is pressable only with onPress, and the props require a label with it.
+    const pressProps = onPress ? {onPress, sentryLabel} : {};
+
     return (
         <Hoverable>
             {(isHovered) => {
@@ -120,8 +122,7 @@ function Banner({
                                 ) : (
                                     <Text
                                         style={[styles.flex1, styles.flexWrap, textStyles]}
-                                        sentryLabel={castToSentryLabel(sentryLabel)}
-                                        onPress={onPress}
+                                        {...pressProps}
                                         suppressHighlighting
                                     >
                                         {text}

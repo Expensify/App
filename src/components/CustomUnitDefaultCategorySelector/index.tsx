@@ -1,16 +1,22 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type CustomUnitDefaultCategorySelectorProps = {
@@ -20,9 +26,6 @@ type CustomUnitDefaultCategorySelectorProps = {
     label: string;
     wrapperStyle: StyleProp<ViewStyle>;
 
-    /** Whether item is focused or active */
-    focused?: boolean;
-
     /** The custom unit ID to update when selecting a category */
     customUnitID: string;
 
@@ -30,8 +33,9 @@ type CustomUnitDefaultCategorySelectorProps = {
     interactive?: boolean;
 };
 
-function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
+function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const decodedCategoryName = getDecodedCategoryName(defaultValue);
     const title = decodedCategoryName || translate('common.none');
@@ -41,16 +45,18 @@ function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, lab
     };
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={interactive}
-            title={title}
-            description={label}
-            onPress={onPress}
-            interactive={interactive}
-            wrapperStyle={wrapperStyle}
-            focused={focused}
+        <MenuItem.Root
+            onPress={interactive ? callIfAuthenticated(onPress, session) : undefined}
+            style={wrapperStyle}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CATEGORY_SELECTOR}
-        />
+        >
+            <MenuItemField.Row
+                name={label}
+                value={title}
+            >
+                {interactive && <MenuItem.Chevron />}
+            </MenuItemField.Row>
+        </MenuItem.Root>
     );
 }
 

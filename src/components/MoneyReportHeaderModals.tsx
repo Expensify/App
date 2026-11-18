@@ -65,13 +65,14 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
     // Wait one frame so the current touch animation finishes before the modal opens
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
+    const openHoldMenu = ({requestType, paymentType, paymentMethod, methodID, onConfirm}: HoldMenuParams) => {
         requestAnimationFrame(() => {
             showHoldMenu({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID,
                 ...getHoldMenuAmounts(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm,
