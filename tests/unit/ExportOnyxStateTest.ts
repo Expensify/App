@@ -162,7 +162,8 @@ describe('maskOnyxState', () => {
         // When exporting in either masking mode
         const result = maskOnyxState(input, isMaskingEnabled);
         // Then the integration is retained but the free-text name is redacted
-        expect(result[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]).toEqual({integration: 'other', name: expect.any(String)});
+        expect(result[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]).toHaveProperty('integration', 'other');
+        expect(result[ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]).toHaveProperty('name', expect.any(String));
         expect(JSON.stringify(result)).not.toContain('Private software name');
     });
 

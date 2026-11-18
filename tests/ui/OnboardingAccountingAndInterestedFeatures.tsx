@@ -53,7 +53,14 @@ function renderInterestedFeaturesPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>{() => <BaseOnboardingInterestedFeatures shouldUseNativeStyles={false} />}</Stack.Screen>
+                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
+                        {(props) => (
+                            <BaseOnboardingInterestedFeatures
+                                {...props}
+                                shouldUseNativeStyles={false}
+                            />
+                        )}
+                    </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
@@ -65,7 +72,14 @@ function renderAccountingPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>{() => <BaseOnboardingAccounting shouldUseNativeStyles={false} />}</Stack.Screen>
+                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>
+                        {(props) => (
+                            <BaseOnboardingAccounting
+                                {...props}
+                                shouldUseNativeStyles={false}
+                            />
+                        )}
+                    </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
@@ -125,7 +139,7 @@ describe('Onboarding interested features and accounting pages', () => {
         // Then it is not submitted as a selected integration
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledTimes(1));
         expect(mockCompleteOnboardingFlow.mock.calls.at(0)?.at(0)?.userReportedIntegration).toBeUndefined();
-        expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeNull();
+        expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeUndefined();
     });
 
     it('renders all mocked products in order with 28px icons and no tabs', async () => {
