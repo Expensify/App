@@ -388,7 +388,11 @@ function DatePresetFilterBase({
     const handleSingleDateSelected = (date: Date) => {
         setEphemeralDateValue(format(date, CONST.DATE.FNS_FORMAT_STRING));
     };
-    const selectCustomDateMode = () => selectDateModifier(customDateModifier);
+    // Opening a custom date takes the focused row away without a blur, so its highlight is cleared here.
+    const openCustomDateMode = (dateModifier: SearchDateModifier) => {
+        setFocusedPresetKey(null);
+        selectDateModifier(dateModifier);
+    };
 
     if (!selectedDateModifier) {
         return (
@@ -425,38 +429,49 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                {shouldShowCustomDate && (
-                    <MenuItem.Root
-                        sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
-                        isCompact
-                        onPress={() => callIfAuthenticated(selectCustomDateMode, session)()}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Content>
-                                <MenuItem.Title>{customDateTitle}</MenuItem.Title>
-                                {!!customDateDescription && <MenuItem.Description>{customDateDescription}</MenuItem.Description>}
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
-                )}
-                <MenuItem.Root
-                    sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
-                    isCompact
-                    onPress={() => callIfAuthenticated(() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.RANGE), session)()}
+                <View
+                    dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}
+                    onBlur={() => setFocusedPresetKey(null)}
                 >
-                    <MenuItem.Row>
-                        <MenuItem.Content>
-                            <MenuItem.Title>{customRangeTitle}</MenuItem.Title>
-                            {!!rangeDescription && <MenuItem.Description>{rangeDescription}</MenuItem.Description>}
-                        </MenuItem.Content>
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    </MenuItem.Row>
-                </MenuItem.Root>
+                    {shouldShowCustomDate && (
+                        <View onFocus={() => setFocusedPresetKey(customDateModifier)}>
+                            <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_DATE_ITEM}
+                                isCompact
+                                style={focusedPresetKey === customDateModifier && StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE, true)}
+                                onPress={() => callIfAuthenticated(() => openCustomDateMode(customDateModifier), session)()}
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{customDateTitle}</MenuItem.Title>
+                                        {!!customDateDescription && <MenuItem.Description>{customDateDescription}</MenuItem.Description>}
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        </View>
+                    )}
+                    <View onFocus={() => setFocusedPresetKey(CONST.SEARCH.DATE_MODIFIERS.RANGE)}>
+                        <MenuItem.Root
+                            sentryLabel={CONST.SENTRY_LABEL.DATE_FILTER.CUSTOM_RANGE_ITEM}
+                            isCompact
+                            style={focusedPresetKey === CONST.SEARCH.DATE_MODIFIERS.RANGE && StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE, true)}
+                            onPress={() => callIfAuthenticated(() => openCustomDateMode(CONST.SEARCH.DATE_MODIFIERS.RANGE), session)()}
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{customRangeTitle}</MenuItem.Title>
+                                    {!!rangeDescription && <MenuItem.Description>{rangeDescription}</MenuItem.Description>}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
+                </View>
             </>
         );
     }

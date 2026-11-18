@@ -184,6 +184,16 @@ type SortMiddlewareParams<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
 };
 
+type SortedDataCacheEntry = {
+    columnKey: string | undefined;
+    order: SortOrder;
+    compareItems: unknown;
+    sortedData: unknown[];
+};
+
+// Re-sorting on every selection change is too slow for very large tables, so the last result is kept per data array.
+const sortedDataCache = new WeakMap<WeakKey, SortedDataCacheEntry>();
+
 /**
  * Sorts table data based on the active sorting configuration.
  *
@@ -202,11 +212,19 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
         return data;
     }
 
+    const cachedEntry = sortedDataCache.get(data);
+    if (cachedEntry && cachedEntry.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its sorted items have the same type
+        return cachedEntry.sortedData as T[];
+    }
+
     const sortedData = [...data];
 
     sortedData.sort((firstItem, secondItem) => {
         return compareItems(firstItem, secondItem, activeSorting);
     });
+
+    sortedDataCache.set(data, {columnKey: activeSorting.columnKey, order: activeSorting.order, compareItems, sortedData});
 
     return sortedData;
 }
