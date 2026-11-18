@@ -32,8 +32,10 @@ import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pag
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListContent from '@pages/inbox/report/ReportActionsList/ReportActionsListContent';
 import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import ReportActionsSkeletonGuard from '@pages/inbox/report/ReportActionsSkeletonGuard';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import * as ReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import * as ReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -205,6 +207,7 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    ListFooterComponent?: React.ReactNode;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -1243,6 +1246,107 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Skeleton Loading States', () => {
+        it('keeps cached offline actions visible while queued app and report loads resume', () => {
+            // Given cached actions are visible before the report has loaded during this app session.
+            let isOffline = true;
+            let isAppLoadPending = true;
+            let hasOnceLoadedReportActions = false;
+            mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUseIsReportLoadPending.mockReturnValue(true);
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                    return [isAppLoadPending, {status: 'loaded'}];
+                }
+                if (key.includes('reportLoadingState')) {
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            const content = <ReportActionsListContent reportID={mockReport.reportID} />;
+            const view = render(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+            const visibleActions = getCapturedVisibleActions();
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+            // When reconnecting resumes both queued loads before either response arrives.
+            isOffline = false;
+            view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+
+            // Then the displayed action window survives the pending loads.
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(getCapturedVisibleActions()).toEqual(visibleActions);
+
+            // When both loads complete.
+            isAppLoadPending = false;
+            hasOnceLoadedReportActions = true;
+            mockUseIsReportLoadPending.mockReturnValue(false);
+            view.rerender(<ReportActionsSkeletonGuard reportID={mockReport.reportID}>{content}</ReportActionsSkeletonGuard>);
+
+            // Then the same action window stays on screen without a skeleton in between.
+            expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+            expect(getCapturedVisibleActions()).toEqual(visibleActions);
+        });
+
+        it('keeps the offline history skeleton after reconnecting until the older actions have loaded', () => {
+            // Given a cached chat without its oldest actions or pagination pages, opened offline with OpenReport queued
+            // and the history skeleton above its messages. Without pages, pagination reports no older actions yet.
+            const actionsWithoutCreated = mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+            let isOffline = true;
+            let isReportLoadPending = true;
+            let hasOlderActions = false;
+            mockUseNetwork.mockImplementation(() => ({isOffline}));
+            mockUseIsReportLoadPending.mockImplementation(() => isReportLoadPending);
+            mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: actionsWithoutCreated, hasOlderActions}));
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When the connection returns while OpenReport is still loading
+            isOffline = false;
+            view.rerender(renderList());
+
+            // Then the skeleton keeps the space of the missing history, so removing it cannot move the messages being read
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When OpenReport finishes and stores pages that have older actions on the server
+            isReportLoadPending = false;
+            hasOlderActions = true;
+            view.rerender(renderList());
+
+            // Then the skeleton still holds the space until those older actions load
+            expect(getCapturedListProps()?.ListFooterComponent).toBeDefined();
+
+            // When the oldest page has loaded
+            hasOlderActions = false;
+            view.rerender(renderList());
+
+            // Then there is no missing history left to hold space for
+            expect(getCapturedListProps()?.ListFooterComponent).toBeUndefined();
+        });
+
+        it('does not show the history skeleton online for a chat that was not displayed offline', () => {
+            // Given a chat with older actions still on the server, opened while online
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            // When the list renders
+            render(
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>,
+            );
+
+            // Then online pagination keeps its existing behavior without a placeholder above the messages
+            expect(getCapturedListProps()?.ListFooterComponent).toBeUndefined();
+        });
+
         it('derives a true report pending value for the initial skeleton decision', () => {
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
