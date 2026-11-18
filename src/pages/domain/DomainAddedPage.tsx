@@ -1,5 +1,5 @@
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -40,7 +40,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
 
     return (
         <ScreenWrapper testID="DomainAddedPage">
-            <HeaderWithBackButton title={translate('domain.domainAdded.title')} />
+            <HeaderWithBackButtonAndTitle title={translate('domain.domainAdded.title')} />
             <ConfirmationPageDefault
                 illustration={Encryption}
                 heading={translate('domain.domainAdded.title')}

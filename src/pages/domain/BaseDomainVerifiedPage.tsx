@@ -1,6 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -61,7 +61,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             testID="BaseDomainVerifiedPage"
             shouldShowOfflineIndicator={false}
         >
-            <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
+            <HeaderWithBackButtonAndTitle title={translate('domain.domainVerified.title')} />
             <ConfirmationPage>
                 <ConfirmationPage.Content style={styles.p10}>
                     <ConfirmationPage.Illustration />
