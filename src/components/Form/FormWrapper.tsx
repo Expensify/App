@@ -259,16 +259,28 @@ function FormWrapper({
     );
 
     if (!shouldUseScrollView) {
-        if (shouldSubmitButtonStickToBottom) {
-            return (
-                <>
-                    {scrollViewContent()}
-                    {SubmitButton}
-                </>
-            );
+        const content = shouldSubmitButtonStickToBottom ? (
+            <>
+                {scrollViewContent()}
+                {SubmitButton}
+            </>
+        ) : (
+            scrollViewContent()
+        );
+
+        // Without the scroll view there's no FSClassView around the form, so one is added when a class is passed. Forms without a class keep their layout.
+        if (!forwardedFSClass) {
+            return content;
         }
 
-        return scrollViewContent();
+        return (
+            <FSClassView
+                style={styles.flex1}
+                forwardedFSClass={forwardedFSClass}
+            >
+                {content}
+            </FSClassView>
+        );
     }
 
     return (
