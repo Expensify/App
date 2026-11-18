@@ -8223,12 +8223,13 @@ function convertIOUReportToExpenseReport(
         parentReportID: optimisticPolicyExpenseChatReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...getNegatedReportTotals(iouReport),
+        // The server always reopens a moved IOU, even one that was already paid, so the workspace's coding and approval workflow can run on it
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
     };
 
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
-        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
-        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
         expenseReport.managerID = nextApproverAccountID;
     }
 

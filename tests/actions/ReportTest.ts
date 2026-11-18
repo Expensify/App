@@ -6162,6 +6162,47 @@ describe('actions/Report', () => {
                 expect(ReportUtils.getMoneyRequestSpendBreakdown(convertedReport).totalDisplaySpend).toBe(10000);
             });
 
+            it('should reopen an IOU report that was paid elsewhere when its manager does not change', async () => {
+                // Given an IOU report that the payer already paid elsewhere, with the payer as its manager
+                const policyID = '305';
+                const payerAccountID = 5;
+                const policy: OnyxTypes.Policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    fieldList: {},
+                    name: 'Test Policy',
+                };
+
+                const iouReport: OnyxTypes.Report = {
+                    ...createRandomReport(6, undefined),
+                    reportID: 'iouReport305',
+                    type: CONST.REPORT.TYPE.IOU,
+                    ownerAccountID: 6,
+                    managerID: payerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+                // When converting the IOU report to an expense report
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat305', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
+
+                // Then the expense report is open, because Auth always reopens a moved IOU so the workspace's approval workflow can run on it
+                const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const expenseReport = isReportMergeUpdate(reportUpdate) ? reportUpdate.value : undefined;
+                expect(expenseReport?.managerID).toBe(payerAccountID);
+                expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(expenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+                // And a failed request restores the paid state
+                const reportFailureUpdate = result.failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                const restoredReport = isReportMergeUpdate(reportFailureUpdate) ? reportFailureUpdate.value : undefined;
+                expect(restoredReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+                expect(restoredReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            });
+
             it('should flip the unheld columns independently of `total` when an expense is on hold', async () => {
                 // Given an IOU report with a held expense, so the unheld columns are smaller than `total`
                 const policyID = '304';
