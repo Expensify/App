@@ -3002,6 +3002,7 @@ const SENTRY_LABEL = {
     },
     ONBOARDING: {
         HELP_DROPDOWN: 'Onboarding-HelpDropdown',
+        OUTER_AREA: 'Onboarding-OuterArea',
         MERGING_ACCOUNT_BLOCKED_CONFIRM: 'Onboarding-MergingAccountBlockedConfirm',
         INTERESTED_FEATURES_ITEM: {
             CATEGORIES: 'Onboarding-InterestedFeaturesItem-Categories',
