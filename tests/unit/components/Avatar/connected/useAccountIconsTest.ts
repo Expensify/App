@@ -28,8 +28,8 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
+jest.mock('@hooks/usePersonalDetails', () => ({
+    useAllPersonalDetailsWithoutSnapshots: (selector: (personalDetails: PersonalDetailsList) => unknown) => [selector(mockPersonalDetails)],
 }));
 
 describe('useAccountIcons', () => {

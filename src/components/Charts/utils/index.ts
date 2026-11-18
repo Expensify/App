@@ -11,8 +11,6 @@ import VictoryTheme, {
     WRAPPED_LABEL_ELLIPSIS,
 } from '@components/Charts/VictoryTheme';
 
-import {isShareWorthDrawing} from '@libs/PercentageUtils';
-
 import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
@@ -20,6 +18,7 @@ import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@sho
 import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getDrawablePieData from './getDrawablePieData';
 import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
@@ -238,9 +237,8 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  * Process raw data into pie chart slices sorted by absolute value descending.
  * Slices are sized by the primary series only.
  *
- * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
- * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
- * the visible slices cover only the significant share of the spend rather than all of it.
+ * Points too small relative to the plotted groups are left out so every remaining slice can be hovered or tapped.
+ * Their reported share of all spend is kept separately for tooltips and tables.
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
@@ -248,16 +246,7 @@ function processDataIntoSlices(
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
-    const visibleSlices = data
-        .map((point, index) => ({
-            label: point.label,
-            color: point.color,
-            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
-            originalIndex: index,
-            percentOfTotal: point.percentOfTotal,
-        }))
-        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
-        .sort((a, b) => b.absTotal - a.absTotal);
+    const visibleSlices = getDrawablePieData(data, primarySeriesKey);
 
     // Angles span only the surviving slices, matching how the canvas normalizes its values.
     const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);
@@ -467,11 +456,30 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
- * Tick count that keeps a Y axis on whole numbers, for charts plotting counts rather than amounts.
- * A domain spanning fewer units than the default tick count is otherwise split into fractions, which repeat once the labels drop their decimals.
+ * Y-axis ticks on whole multiples of `step`, picked as round numbers of steps rather than of plotted units, so a count never shows half an expense
+ * and seconds can read as round days. The ticks always include the domain's ends, and a flat domain still gets a tick one step above it.
  */
-function getWholeNumberTickCount(domain: [number, number], tickCount: number): number {
-    return Math.min(tickCount, Math.max(1, Math.floor(domain[1] - domain[0])));
+function getSteppedYAxisTicks(domain: [number, number], tickCount: number, step: number): number[] {
+    const min = Math.floor(domain[0] / step);
+    const max = Math.max(Math.ceil(domain[1] / step), min + 1);
+    return scaleLinear()
+        .domain([min, max])
+        .nice(tickCount)
+        .ticks(tickCount)
+        .filter((tick) => Number.isInteger(tick))
+        .map((tick) => tick * step);
+}
+
+/**
+ * Y-axis ticks, tick count and domain of a cartesian chart. With a `step`, the ticks stay on its multiples and the domain stretches to the outermost tick,
+ * so the axis ends on a label. Without one, the axis takes the default tick count over the data's own domain.
+ */
+function getYAxisTickLayout(domain: [number, number], step: number | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+    if (!step) {
+        return {ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain};
+    }
+    const ticks = getSteppedYAxisTicks(domain, VictoryTheme.axis.tickCount, step);
+    return {ticks, tickCount: ticks.length, domain: [Math.min(domain[0], ticks.at(0) ?? 0), Math.max(domain[1], ticks.at(-1) ?? 0)]};
 }
 
 /**
@@ -562,6 +570,7 @@ function getYAxisLabelWidth(
     fontSize: number,
     domainPadding: {top: number; bottom: number},
     tickCount: number = VictoryTheme.axis.tickCount,
+    tickValues?: number[],
 ): number {
     if (!fontManager) {
         return 0;
@@ -569,10 +578,8 @@ function getYAxisLabelWidth(
     const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
-    return Math.max(
-        0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom).map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)),
-    );
+    const ticks = tickValues ?? getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom);
+    return Math.max(0, ...ticks.map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)));
 }
 
 export {
@@ -601,7 +608,8 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
-    getWholeNumberTickCount,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getYAxisLabelWidth,
     getCartesianPlotBounds,
     getBarLayout,

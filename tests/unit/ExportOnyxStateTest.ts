@@ -680,6 +680,74 @@ describe('maskOnyxState', () => {
         }
     });
 
+    it('should mask identity and credential fields saved in form drafts', () => {
+        // Given wallet, bank account, Travel and accounting setup data that hold SSNs, dates of birth, tax IDs and credentials, including a beneficial owner's fields, which are keyed by owner ID
+        const sensitiveValues = ['123456789', '1985-04-12', '6789', '1990-01-31', '4321', '98-7654321', '11-2233445', '55-6677889', 'IntacctPassword', 'NetSuiteTokenSecret'];
+        const {PREFIX, DOB, SSN_LAST_4} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+        const ownerID = '6f1c2b3a-1234-4bcd-9e8f-000000000001';
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT]: {ssn: '123456789', dob: '1985-04-12'},
+            [ONYXKEYS.TRAVEL_PROVISIONING]: {taxID: '98-7654321'},
+            [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT]: {
+                ssnLast4: '6789',
+                companyTaxID: '11-2233445',
+                taxIDEINNumber: '55-6677889',
+                [`${PREFIX}_${ownerID}_${DOB}`]: '1990-01-31',
+                [`${PREFIX}_${ownerID}_${SSN_LAST_4}`]: '4321',
+                beneficialOwnerKeys: [ownerID],
+            },
+            [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT]: {password: 'IntacctPassword'},
+            [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM_DRAFT]: {netSuiteTokenSecret: 'NetSuiteTokenSecret'},
+        };
+
+        // When the state is exported with masking on
+        const serialized = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of those values appear in the export, so a file shared with support can't leak them
+        for (const sensitiveValue of sensitiveValues) {
+            expect(serialized).not.toContain(sensitiveValue);
+        }
+    });
+
+    it('should mask the token and secret field names that server logs redact', () => {
+        // Given Plaid, OAuth and NetSuite credentials stored under the same field names the Web-Expensify log redaction covers
+        const fieldNames = [
+            'access_token',
+            'accessSecret',
+            'accessToken',
+            'accessTokenSecret',
+            'asset_report_token',
+            'assetReportToken',
+            'client_secret',
+            'netSuiteTokenID',
+            'oldAccessToken',
+            'oldAssetReportToken',
+            'plaidAccessToken',
+            'plaidAssetReportToken',
+            'public_token',
+            'publicToken',
+            'refresh_token',
+            'refreshToken',
+            'secret',
+            'tokenID',
+            'tokenSecret',
+        ];
+        const credentials = Object.fromEntries(fieldNames.map((fieldName) => [fieldName, `${fieldName}-live-value`]));
+        const input = {
+            session: mockSession,
+            [ONYXKEYS.PLAID_DATA]: credentials,
+        };
+
+        // When the state is exported with masking on
+        const serialized = JSON.stringify(maskOnyxState(input, true));
+
+        // Then none of the credential values appear in the export, so the export redacts at least what the server logs do
+        for (const credentialValue of Object.values(credentials)) {
+            expect(serialized).not.toContain(credentialValue);
+        }
+    });
+
     it.each([
         ['masking enabled', true],
         ['masking disabled', false],

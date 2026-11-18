@@ -46,8 +46,9 @@ function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererPr
 
     return (
         <Text
-            style={[style as TextStyle, linkStyle]}
+            style={[style, linkStyle]}
             onPress={navigateToAccountManager}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.ACCOUNT_MANAGER_LINK}
             onKeyDown={handleKeyDown}
             suppressHighlighting
             role={CONST.ROLE.LINK}

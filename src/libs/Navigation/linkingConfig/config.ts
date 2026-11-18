@@ -524,6 +524,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY]: DYNAMIC_ROUTES.WORKSPACE_CURRENCY.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY]: DYNAMIC_ROUTES.WORKSPACE_CURRENCY_GOVERNMENT_RATE_COUNTRY.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN]: DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP.route},
@@ -1623,6 +1625,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                            parse: {domainAccountID: Number, accountID: Number},
                         },
                         [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
                             path: ROUTES.DOMAIN_ADMINS_SETTINGS.route,
