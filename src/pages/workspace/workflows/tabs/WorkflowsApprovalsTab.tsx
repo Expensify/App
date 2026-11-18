@@ -105,6 +105,12 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
     );
 }
 
+// The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
+// on a member too (each member belongs to exactly one workflow).
+function getWorkflowAnchor(workflow: ApprovalWorkflow) {
+    return {approverEmail: workflow.approvers.at(0)?.email ?? '', memberEmail: workflow.members.at(0)?.email ?? ''};
+}
+
 type WorkflowRowProps = {
     workflow: ApprovalWorkflow;
     onEdit?: (workflow: ApprovalWorkflow) => void;
@@ -283,7 +289,8 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const editWorkflow = (workflow: ApprovalWorkflow) => {
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
         clearApprovalWorkflow();
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, workflow.approvers.at(0)?.email ?? '', workflow.members.at(0)?.email ?? ''));
+        const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, approverEmail, memberEmail));
     };
 
     const showAllWorkflowMembers = (workflow: ApprovalWorkflow) => {
@@ -448,14 +455,11 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                 searchValue={workflowSearchInput}
                             />
                             {deferredWorkflowList.workflows.map((workflow) => {
-                                const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
-                                // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
-                                // on a member too (each member belongs to exactly one workflow).
-                                const firstMemberEmail = workflow.members.at(0)?.email ?? '';
+                                const {approverEmail, memberEmail} = getWorkflowAnchor(workflow);
 
                                 return (
                                     <WorkflowRow
-                                        key={`${firstApproverEmail}-${firstMemberEmail}`}
+                                        key={`${approverEmail}-${memberEmail}`}
                                         workflow={workflow}
                                         onEdit={shouldBlockApprovalWorkflowEditing || !canWriteApprovals ? undefined : editWorkflow}
                                         onShowAllMembers={shouldBlockApprovalWorkflowEditing ? undefined : showAllWorkflowMembers}
