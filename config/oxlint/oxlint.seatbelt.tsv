@@ -942,10 +942,9 @@
 "../../src/libs/PolicyUtils/connections.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/PolicyUtils/connections.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/PolicyUtils/errors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/PolicyUtils/index.ts"	"import/no-cycle"	3
+"../../src/libs/PolicyUtils/index.ts"	"import/no-cycle"	2
 "../../src/libs/PolicyUtils/members.ts"	"import/no-cycle"	1
 "../../src/libs/PolicyUtils/rules.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/PolicyUtils/tag.ts"	"import/no-cycle"	1
 "../../src/libs/prepareRequestPayload/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/prepareRequestPayload/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
@@ -959,7 +958,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"import/no-cycle"	1
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
-"../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	3
+"../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	2
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	26
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	14
@@ -988,13 +987,10 @@
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/TransactionUtils/duplicates.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/TransactionUtils/duplicates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/libs/TransactionUtils/duplicates.ts"	"import/no-cycle"	2
 "../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
-"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	6
-"../../src/libs/TransactionUtils/tax.ts"	"import/no-cycle"	1
+"../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	4
 "../../src/libs/TransactionUtils/violations.ts"	"import/no-cycle"	2
 "../../src/libs/updateMultilineInputRange/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Url.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
