@@ -31,7 +31,7 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 }
 
 type NativeTabNavigatorParams = {
-    /** Whether the bar shows the flat nav items, see useIsNativeFlatNavTabBarEnabled */
+    /** Whether the bar shows the flat nav items: Home, Inbox, Expenses, Reports and More */
     isFlatNavTabBarEnabled?: boolean;
 };
 

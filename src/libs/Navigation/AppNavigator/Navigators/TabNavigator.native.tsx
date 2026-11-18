@@ -1,6 +1,7 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -30,7 +31,6 @@ import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
-import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
 import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeFlatNavSearchSection from './NativeTabNavigator/useNativeFlatNavSearchSection';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
@@ -161,11 +161,11 @@ function FlatNavNativeTabNavigator() {
 
 /**
  * The flat nav bar is a navigator of its own, so the data it reads leaves the tab navigator without the beta untouched.
- * Turning the beta on or off, or a tablet crossing the narrow breakpoint with it, remounts the tabs.
+ * Turning the beta on or off remounts the tabs.
  */
 function TabNavigator() {
-    const isFlatNavTabBarEnabled = useIsNativeFlatNavTabBarEnabled();
-    return isFlatNavTabBarEnabled ? <FlatNavNativeTabNavigator /> : <NativeTabNavigator />;
+    const {isBetaEnabled} = usePermissions();
+    return isBetaEnabled(CONST.BETAS.FLAT_NAV) ? <FlatNavNativeTabNavigator /> : <NativeTabNavigator />;
 }
 
 export default TabNavigator;

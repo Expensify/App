@@ -13,7 +13,7 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {storedSearchTabSearchKeySelector} from '@selectors/ReportNavigation';
-import {savedSearchesPresenceSelector} from '@selectors/SavedSearches';
+import {savedSearchesPresenceSelector, shouldShowSavedSearchesSection} from '@selectors/SavedSearches';
 import {useState} from 'react';
 
 type NativeFlatNavSearchSectionParams = {
@@ -34,7 +34,7 @@ function useNativeFlatNavSearchSection({isSearchFocused}: NativeFlatNavSearchSec
         setHasSearchBeenShown(true);
     }
 
-    const isSavedSectionVisible = !!savedSearchesPresence?.hasSavedSearchesNotPendingDelete || (isOffline && !!savedSearchesPresence?.hasSavedSearches);
+    const isSavedSectionVisible = shouldShowSavedSearchesSection(savedSearchesPresence, isOffline);
 
     return (searchKey) => {
         // Search mounts with no search key and gets the stored search before its first visit, see TabPressListeners, so

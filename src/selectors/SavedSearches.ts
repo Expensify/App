@@ -10,7 +10,6 @@ type SavedSearchesPresence = {
     hasSavedSearchesNotPendingDelete: boolean;
 };
 
-/** Whether the Spend menu, and with it the flat nav Saved section, shows saved searches. See createTypeMenuSections. */
 const savedSearchesPresenceSelector = (savedSearches: OnyxEntry<SaveSearch>): SavedSearchesPresence => {
     const items = Object.values(savedSearches ?? {});
     return {
@@ -19,5 +18,12 @@ const savedSearchesPresenceSelector = (savedSearches: OnyxEntry<SaveSearch>): Sa
     };
 };
 
-// eslint-disable-next-line import/prefer-default-export -- additional selectors may be added here
-export {savedSearchesPresenceSelector};
+/**
+ * Whether the Spend menu, and with it the flat nav Saved section, shows saved searches. A saved search waiting to be
+ * deleted still counts offline, where it stays in the list until the deletion is sent.
+ */
+function shouldShowSavedSearchesSection(savedSearchesPresence: SavedSearchesPresence | undefined, isOffline: boolean | undefined): boolean {
+    return !!savedSearchesPresence?.hasSavedSearchesNotPendingDelete || (!!isOffline && !!savedSearchesPresence?.hasSavedSearches);
+}
+
+export {savedSearchesPresenceSelector, shouldShowSavedSearchesSection};

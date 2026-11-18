@@ -5,7 +5,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getFlatNavTabHostRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
-import useIsNativeFlatNavTabBarEnabled from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
 import useNativeFlatNavSearchSection from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeFlatNavSearchSection';
 import useNativeTabNavigator from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useNativeTabNavigator';
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
@@ -253,23 +252,6 @@ describe('getFlatNavTabHostRouteName', () => {
         // Then Search is drawn inside the placeholder of its section, Expenses with no section, and Account, which has no
         // slot, inside no placeholder
         expect(hostRouteName).toBe(expectedHostRouteName);
-    });
-});
-
-describe('useIsNativeFlatNavTabBarEnabled', () => {
-    it.each([
-        [true, true, true],
-        [true, false, false],
-        [false, true, false],
-    ])('shows the flat nav items with the beta %s on a narrow layout %s: %s', (isBetaEnabled, shouldUseNarrowLayout, expected) => {
-        // Given a user with or without the flat nav beta, on a phone or on a tablet whose JS side bar replaces the native bar
-        mockFlatNav({isBetaEnabled, shouldUseNarrowLayout});
-
-        // When the bar decides whether to show the flat nav items
-        const {result} = renderHook(() => useIsNativeFlatNavTabBarEnabled());
-
-        // Then only a narrow layout with the beta shows them, so tablets keep the side bar of today
-        expect(result.current).toBe(expected);
     });
 });
 

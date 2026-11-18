@@ -49,11 +49,13 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     // Focus and the current search are read at the press, not from the last render, so a quick second tap sees the
     // navigation the first one made.
     const openSpendTab = (searchKey: SpendTabSearchKey) => {
-        if (pendingSearchNavigation.current.isPending) {
+        const isSearchFocused = !!searchNavigation?.isFocused();
+        // A press made after leaving the pending Search for another tab is not queued, since the queue is replayed only
+        // for a user still on Search. It navigates from that tab, which hands Search its search in the params again.
+        if (pendingSearchNavigation.current.isPending && isSearchFocused) {
             pendingSearchNavigation.current.queuedSearchKey = searchKey;
             return;
         }
-        const isSearchFocused = !!searchNavigation?.isFocused();
         // Search already on this search: the tap is a repeated selection, which the native bar answers by itself.
         if (isSearchFocused && getSearchTabSearchKey(getCurrentSearchTabRoute()) === searchKey) {
             return;
@@ -62,7 +64,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
         const searchTabParams = getCurrentSearchTabRoute()?.params;
         openSearchFromTabBar(() => navigateToSpendTab(searchKey, lastSearchQuery, clearSelectedTransactions), isSearchFocused, session);
         // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
-        pendingSearchNavigation.current.isPending = getCurrentSearchTabRoute()?.params !== searchTabParams;
+        pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabParams};
     };
 
     // The tab navigator reports its new state after Search has taken the params.

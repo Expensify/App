@@ -219,6 +219,24 @@ describe('FlatNavTabPressListeners', () => {
         expect(jest.mocked(navigateToSpendTab).mock.calls.map(([searchKey]) => searchKey)).toEqual([CONST.SEARCH.SEARCH_KEYS.REPORTS]);
     });
 
+    it('opens the search of a tap made from another tab the user went to before Search took the search of the previous tap', async () => {
+        // Given Search opened from Home with the Reports search still in the tab route params
+        await renderListeners(SCREENS.HOME);
+        jest.mocked(navigateToSpendTab).mockImplementationOnce(() => {
+            liveFocusedRouteName = NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
+            liveSearchTabParams = {screen: SCREENS.SEARCH.ROOT, params: {searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS}};
+        });
+        press(SCREENS.NATIVE_TAB_ITEM.REPORTS);
+
+        // When the user goes back to Home and taps Expenses before the tab navigator reports its new state
+        liveFocusedRouteName = SCREENS.HOME;
+        press(SCREENS.NATIVE_TAB_ITEM.EXPENSES);
+
+        // Then Expenses opens right away, because a tap queued behind the Reports navigation would be dropped once the
+        // user is no longer on Search
+        expect(jest.mocked(navigateToSpendTab).mock.calls.map(([searchKey]) => searchKey)).toEqual([CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
+    });
+
     it('mounts the More menu only while it is shown or closing', async () => {
         // Given Home focused, with the More menu never opened
         jest.mocked(MoreMenuPopover).mockImplementation(MountedMoreMenu);
