@@ -8,7 +8,6 @@ import useApplyWorkspaceCurrencyChange from '@hooks/useApplyWorkspaceCurrencyCha
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -44,7 +43,6 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CURRENCY.path, isDynamicRoute);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
     const applyWorkspaceCurrencyChange = useApplyWorkspaceCurrencyChange(policy);
 
     const goBack = () => {
@@ -64,7 +62,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             return;
         }
 
-        if (isCurrencyChangeBlockedByDirectReimbursement(policy, item.currencyCode, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS))) {
+        if (isCurrencyChangeBlockedByDirectReimbursement(policy, item.currencyCode)) {
             showConfirmModal({
                 title: translate('workspace.editor.directReimbursementCurrencyTitle'),
                 prompt: translate('workspace.editor.directReimbursementCurrencyPrompt', item.currencyCode),

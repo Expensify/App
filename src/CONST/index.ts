@@ -1869,13 +1869,10 @@ const CONST = {
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
-    // The server only lets a workspace with Direct reimbursement switch to these currencies, and accounts outside the Global Reimbursements beta get the shorter list.
-    // The beta list copies the server's own direct reimbursement list, which can differ from DIRECT_REIMBURSEMENT_CURRENCIES above, so the two are kept separate.
-    get DIRECT_REIMBURSEMENT_WORKSPACE_CURRENCIES() {
-        return {
-            DEFAULT: [this.CURRENCY.USD, this.CURRENCY.AUD],
-            GLOBAL_REIMBURSEMENTS: [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD],
-        };
+    // The server only lets a workspace with Direct reimbursement switch to these currencies. The list copies the server's own
+    // direct reimbursement list, which also includes SGD, so it is kept apart from DIRECT_REIMBURSEMENT_CURRENCIES above.
+    get CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE() {
+        return [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD];
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
