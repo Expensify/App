@@ -4,6 +4,7 @@ import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormField
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 
 import type {ComponentProps} from 'react';
 
@@ -35,10 +36,15 @@ function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country
     return typeof country === 'string' && isCountryCode(country) ? country : '';
 }
 
-/** AddressFormFields lists US states, or Canadian provinces, and assumes the US until a country is picked */
+/** The states the picker lists, which are the US states until a country is picked */
+function getStateOptions(country: Country | ''): Record<string, string> | undefined {
+    return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+}
+
+/** The state is asked only where the picker can list the country's states */
 function isStateAsked(country: Country | ''): boolean {
-    return !country || country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA;
+    return !!getStateOptions(country);
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, isStateAsked};
+export {getAddressCountry, getStateOptions, isStateAsked};

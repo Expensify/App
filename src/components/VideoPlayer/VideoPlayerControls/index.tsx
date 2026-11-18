@@ -75,7 +75,7 @@ function MoreMenuTrigger({videoPlayerRef, url, fileName, small}: {videoPlayerRef
     };
 
     return (
-        <PopoverMenuTrigger>
+        <PopoverMenuTrigger sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}>
             <IconButton
                 src={icons.ThreeDots}
                 tooltipText={translate('common.more')}

@@ -364,6 +364,7 @@ export type {default as ReplaceReceiptParams} from './ReplaceReceiptParams';
 export type {default as SubmitReportParams} from './SubmitReportParams';
 export type {default as DetachReceiptParams} from './DetachReceiptParams';
 export type {default as PayMoneyRequestParams} from './PayMoneyRequestParams';
+export type {default as PayViaABAParams} from './PayViaABAParams';
 export type {default as HoldMoneyRequestParams} from './HoldMoneyRequestParams';
 export type {default as UnHoldMoneyRequestParams} from './UnHoldMoneyRequestParams';
 export type {default as CancelPaymentParams} from './CancelPaymentParams';
@@ -746,7 +747,7 @@ export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthent
 export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
-export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
+export type {default as GetTransactionsMatchingRuleParams} from './GetTransactionsMatchingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
 export type {default as ToggleTwoFactorAuthRequiredForDomainParams} from './ToggleTwoFactorAuthRequiredForDomainParams';
 export type {default as SetReportDetailsColumnsParams} from './SetReportDetailsColumnsParams';

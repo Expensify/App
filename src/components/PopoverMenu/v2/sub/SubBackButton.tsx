@@ -72,4 +72,3 @@ function SubBackButton({text, testID, onPress: consumerOnPress}: SubBackButtonPr
 SubBackButton.displayName = 'PopoverMenu.Sub.BackButton';
 
 export default SubBackButton;
-export type {SubBackButtonProps};

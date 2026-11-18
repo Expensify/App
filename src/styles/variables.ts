@@ -177,6 +177,7 @@ export default {
     rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
+    growlNotificationMaxWidth: 400,
     receiptPaneRHPMaxWidth: 465,
     receiptPreviewMaxWidth: 440,
     receiptPreviewMaxHeight: 440,
@@ -187,6 +188,11 @@ export default {
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     insightsAICardWidth: 250,
+    insightsRankingTableBarHeight: 8,
+    insightsRankingTableBarMinWidth: 4,
+    insightsRankingTableShareLabelSpace: 56,
+    insightsRankingTableAverageMarkerWidth: 2,
+    insightsRankingTableAverageMarkerOverhang: 6,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
@@ -202,6 +208,10 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
+    // Collapsed, a row shows only its icon: the row's inset (8) and padding (12) on each side around the 20px icon.
+    flatNavigationBarCollapsedWidth: 60,
+    // Expanded, the collapse toggle sits this far from the bar's right edge. Collapsed, the bar narrows until the toggle lands on the icon column.
+    flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarItemHeight: 40,
     flatNavigationBarAccountItemHeight: 56,
     // Horizontal inset every row's background sits at, inside the bar's own width.

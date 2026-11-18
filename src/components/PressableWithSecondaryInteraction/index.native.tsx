@@ -2,6 +2,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import Text from '@components/Text';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
 
@@ -20,16 +22,18 @@ function PressableWithSecondaryInteraction({
     preventDefaultContextMenu,
     withoutFocusOnSecondaryInteraction,
     enableLongPressWithHover,
+    sentryLabel: rawSentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
     // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
-    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls, sentryLabel} = usePressResponderProps({
         onSecondaryInteraction: rawOnSecondaryInteraction,
         accessibilityState: rest.accessibilityState,
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rawSentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
@@ -41,9 +45,12 @@ function PressableWithSecondaryInteraction({
     if (inline) {
         return (
             <Text
-                {...(rest as TextProps)}
-                suppressHighlighting={suppressHighlighting}
+                // The cast hides the press props and the label, since TypeScript can't tie a handler in `rest` to its label.
+                // At runtime `rest` still passes any onPress with its label.
+                {...(rest as Omit<TextProps, 'onPress' | 'onLongPress' | 'sentryLabel'>)}
+                sentryLabel={castToSentryLabel(sentryLabel)}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
+                suppressHighlighting={suppressHighlighting}
             >
                 {children as ReactNode}
             </Text>
@@ -52,9 +59,7 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
-            // `{...rest}` already forwards the label, but the sentryLabel lint rule only sees a literal attribute, not what a spread contains.
-            // Remove this once `sentryLabel` is required in the props type and the lint rule is gone.
-            sentryLabel={rest.sentryLabel}
+            sentryLabel={castToSentryLabel(sentryLabel)}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}
