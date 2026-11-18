@@ -63,46 +63,48 @@ function page(report: Report) {
     return <DynamicReportSettingsPage {...createMock<ComponentProps<typeof DynamicReportSettingsPage>>({report})} />;
 }
 
-describe('DynamicReportSettingsPage notification visibility', () => {
-    it.each([CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE])(
-        'hides notifications after leaving and restores them when %s is restored',
-        (notificationPreference) => {
-            // Given a subscribed room, including muted rooms that must remain editable
-            const {rerender} = render(page(buildReport(notificationPreference)));
-            expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.${notificationPreference}`)).toBeTruthy();
+describe('DynamicReportSettingsPage', () => {
+    describe('notification visibility', () => {
+        it.each([CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE])(
+            'hides notifications after leaving and restores them when %s is restored',
+            (notificationPreference) => {
+                // Given a subscribed room, including muted rooms that must remain editable
+                const {rerender} = render(page(buildReport(notificationPreference)));
+                expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.${notificationPreference}`)).toBeTruthy();
 
-            // When leaving retains the participant but hides the room
-            rerender(page(buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)));
+                // When leaving retains the participant but hides the room
+                rerender(page(buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN)));
 
-            // Then notifications disappear and return after rejoining or rolling back a failed leave
+                // Then notifications disappear and return after rejoining or rolling back a failed leave
+                expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
+                rerender(page(buildReport(notificationPreference)));
+                expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.${notificationPreference}`)).toBeTruthy();
+            },
+        );
+
+        it('preserves the legacy admins-room default without exposing explicitly hidden notifications', () => {
+            // Given an admins room with a legacy empty preference
+            const report = buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+            Object.defineProperty(report.participants?.[ACCOUNT_ID], 'notificationPreference', {value: '', configurable: true});
+            const {rerender} = render(page(report));
+            expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.always`)).toBeTruthy();
+
+            // When that room has an explicit hidden preference instead
+            rerender(page(buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS)));
+
+            // Then the legacy fallback does not expose the notifications row
             expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
-            rerender(page(buildReport(notificationPreference)));
-            expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.${notificationPreference}`)).toBeTruthy();
-        },
-    );
+        });
 
-    it('preserves the legacy admins-room default without exposing explicitly hidden notifications', () => {
-        // Given an admins room with a legacy empty preference
-        const report = buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
-        Object.defineProperty(report.participants?.[ACCOUNT_ID], 'notificationPreference', {value: '', configurable: true});
-        const {rerender} = render(page(report));
-        expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.always`)).toBeTruthy();
+        it.each([CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS])('does not show notifications for a non-participant in %s', (chatType) => {
+            // Given a room without the current user in its participants
+            const report = {...buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, chatType), participants: {}};
 
-        // When that room has an explicit hidden preference instead
-        rerender(page(buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS)));
+            // When its settings are rendered
+            render(page(report));
 
-        // Then the legacy fallback does not expose the notifications row
-        expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
-    });
-
-    it.each([CONST.REPORT.CHAT_TYPE.POLICY_ROOM, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS])('does not show notifications for a non-participant in %s', (chatType) => {
-        // Given a room without the current user in its participants
-        const report = {...buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY, chatType), participants: {}};
-
-        // When its settings are rendered
-        render(page(report));
-
-        // Then notifications remain unavailable
-        expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
+            // Then notifications remain unavailable
+            expect(screen.queryByText(new RegExp(NOTIFICATION_LABEL))).toBeNull();
+        });
     });
 });
