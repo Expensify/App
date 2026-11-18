@@ -11,6 +11,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -93,13 +94,19 @@ function SearchChangeWorkspacePage() {
             ),
         );
 
+    // A report's own Change workspace checks the workspace it's on, so picked reports that share one do the same.
+    const firstSelectedPolicyID = selectedReports.at(0)?.policyID;
+    const sharedPolicyID = !areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === firstSelectedPolicyID) ? firstSelectedPolicyID : undefined;
+    const currentSelection = policyID ?? sharedPolicyID;
+    // Only the workspace checked when the page opened is pinned, so picking another one doesn't reorder the list.
+    const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
+
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: policyID ? [policyID] : undefined,
-        // An empty list keeps the picked workspace where it is instead of moving it to the top.
-        policyIDsToSortToTop: [],
+        selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
+        policyIDsToSortToTop: initialSelection ? [initialSelection] : [],
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: canMoveAReportTo,
@@ -179,7 +186,7 @@ function SearchChangeWorkspacePage() {
                             onConfirm: changeWorkspace,
                             isDisabled: !policyID || (!areAllMatchingItemsSelected && selectedReports.every((report) => report.policyID === policyID)),
                         }}
-                        initiallyFocusedItemKey={policyID}
+                        initiallyFocusedItemKey={initialSelection}
                         shouldUpdateFocusedIndex
                         addBottomSafeAreaPadding
                     />
