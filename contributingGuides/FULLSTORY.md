@@ -7,13 +7,13 @@ FullStory records sessions on web and native. Everything it records is readable 
 Masked:
 
 - Self DMs
-- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms and threads of expenses, reports and invoices stay unmasked. See `getChatFSClass` below
+- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms and threads of expenses, reports and invoices stay unmasked. See `getChatFSClass` below.
 - Bank account, wallet and payment card flows: the fields with sensitive or personal data, both the inputs and the screens that show the values back
 - Personal details: legal name, date of birth, phone number and address
 - Business and identity data: tax IDs, registration numbers, beneficial owners and signers, ID documents
 - 2FA, magic and validate codes, and card PINs
 
-Unmasked: everything else, including expenses, reports, Search and workspace settings. Displays that only show the last 4 digits of a card or account stay unmasked.
+Unmasked: everything else, including expenses, reports, Search (apart from the chat items of masked chats) and workspace settings. Displays that only show the last 4 digits of a card or account stay unmasked.
 
 When a new screen shows or collects data from the masked list, mask it in the same PR.
 
@@ -31,7 +31,7 @@ When a new screen shows or collects data from the masked list, mask it in the sa
 
 ## Defaults
 
-Every layer defaults to `UNMASK`:
+Every layer defaults to `UNMASK`, and chats follow their own rules:
 
 | Layer | Where |
 | --- | --- |
@@ -74,7 +74,6 @@ Limits:
 
 - An input that is passed its own `forwardedFSClass` keeps it, whatever the container says.
 - A `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` inside a masked container starts a new context that defaults to `UNMASK`, so a picker modal opened from a masked form isn't masked unless it's given the class too.
-- `FormProvider` with `shouldUseScrollView={false}` drops `forwardedFSClass`: wrap its content in `FSClassView` instead.
 
 ### How a text input picks its class
 
@@ -89,7 +88,7 @@ So give inputs the right `autoComplete` value. It helps autofill and masks the i
 
 ### Pass the class through custom components
 
-Lint only allows the `fsClass` prop on React Native's `View` and `Text` (plain or Animated) and `Pressable`. A custom component that shows sensitive data takes `ForwardedFSClassProps` and passes `forwardedFSClass` down to one of those:
+Lint only allows the `fsClass` prop on React Native's `View`, `Animated.View`, `Text`, `Animated.Text` and `Pressable`. A custom component that shows sensitive data takes `ForwardedFSClassProps` and passes `forwardedFSClass` down to one of those:
 
 ```tsx
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -137,11 +136,11 @@ The classes render even when FullStory isn't running.
 
 `shouldInitializeFullstory` (`src/libs/Fullstory/common.ts`) starts FullStory in production for everyone, and in any environment for test accounts whose email starts with `fullstory` on the QA domain. It never starts for `@expensify.com` accounts, and on web it shuts down for support logins (`src/libs/Fullstory/index.ts`). FullStory's "Capture data by domain" setting then decides which hosts are recorded: local web (`dev.new.expensify.com`) and staging aren't. So to record a change before it ships, sign in with a `fullstory*` QA-domain account on a host FullStory captures:
 
-- **AdHoc build:** open a draft PR and ask for an AdHoc build. Test on the web URL the build posts on the PR and on the AdHoc native apps. Check with an FS admin that the AdHoc web domain is on in "Capture data by domain" first.
+- **AdHoc build:** open a draft PR and ask for an AdHoc build. Test on `https://<PR number>.adhoc.expensify.com` and on the AdHoc native apps.
 - **Local web**, with a hostname the capture settings allow:
-    1. Add `127.0.0.1 local.pr-testing.expensify.com` to `/etc/hosts`. `*.pr-testing.expensify.com` is on in "Capture data by domain".
-    2. Regenerate the dev certificate with that name: `mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com local.pr-testing.expensify.com localhost 127.0.0.1`. Run `mkcert -install` first if you never set up HTTPS for the App.
-    3. Restart `npm run web` and open the URL it prints, with `dev.new.expensify.com` swapped for `local.pr-testing.expensify.com` (the port is 8082 unless another session took it).
+    1. Add `127.0.0.1 local.adhoc.expensify.com` to `/etc/hosts`, so the `*.adhoc.expensify.com` rule in "Capture data by domain" matches it.
+    2. Regenerate the dev certificate with that name: `mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com local.adhoc.expensify.com localhost 127.0.0.1`. Run `mkcert -install` first if you never set up HTTPS for the App.
+    3. Restart `npm run web` and open the URL it prints, with `dev.new.expensify.com` swapped for `local.adhoc.expensify.com` (the port is 8082 unless another session took it).
 
 To record with any other account, make `shouldInitializeFullstory` return `true` temporarily. Never merge that change.
 

@@ -55,7 +55,7 @@ Flag ONLY when ALL of these are true:
 - The changed code adds or moves an input, or a display of a value, holding one of: a bank account or routing number, a card number, CVV, expiry, PIN or cardholder name, a tax ID, registration number, SSN or ID document, a legal name, date of birth, phone number or home address, a 2FA, magic or validate code, or a recovery code
 - Neither the element nor a container that applies to it masks it. These mask it:
     - `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}` (or `fsClass` on a `View`, `Text` or `Pressable`) on the element itself
-    - an enclosing `FSClassView`, or a `FormProvider`, `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` with `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}`. A `FormProvider` with `shouldUseScrollView={false}` drops the class, and a `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` in between starts over unmasked, so neither counts
+    - an enclosing `FSClassView`, or a `FormProvider`, `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` with `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}`. A `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` in between starts over unmasked, so a masked container above it doesn't count
     - for text inputs only, an `autoComplete` or `textContentType` value listed in `src/libs/Fullstory/isSensitiveInput.ts`
     - a masked-by-default sub-step (`FullNameStep`, `DateOfBirthStep`, `AddressStep`, `ConfirmationStep`) that the code doesn't override with `UNMASK`, or `RegistrationNumberStep`, which always masks
     - for anything that isn't a text input, a masked ancestor `View`. A plain `<View fsClass={CONST.FULLSTORY.CLASS.MASK}>` doesn't count for text inputs, because they set their own class
