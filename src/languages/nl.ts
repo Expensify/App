@@ -11246,6 +11246,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Ingediend → Goedgekeurd',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Goedgekeurd → Betaald',
         },
+        workflowStageChartLabels: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Ingediend',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Goedgekeurd',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Betaald',
+        },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {
             tripName: 'Reisnaam',

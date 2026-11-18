@@ -11249,6 +11249,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Enviado → Aprovado',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Aprovado → Pago',
         },
+        workflowStageChartLabels: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Enviado',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Aprovado',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Pago',
+        },
         moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
