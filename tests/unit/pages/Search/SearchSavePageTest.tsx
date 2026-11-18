@@ -1,11 +1,14 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
+import FormProvider from '@components/Form/FormProvider';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import * as SearchUIUtils from '@libs/SearchUIUtils';
 
 import SearchSavePage from '@pages/Search/SearchSavePage';
@@ -102,4 +105,38 @@ it('lists no footer rows for a search that keeps the footer defaults', () => {
 
     // Then no footer choice is listed
     expect(['Count', 'Reimbursable', 'Currency'].some((text) => output.includes(text))).toBe(false);
+});
+
+it('shows the reason when the current search is rejected while Save view is open', () => {
+    // Given a save form opened before Auth has responded to the current search
+    form = {};
+    const currentSearchQueryJSON = buildSearchQueryJSON('type:expense reportID:-1');
+    const queryContext = createMock<ReturnType<typeof useSearchQueryContext>>({currentSearchQueryJSON, currentDefaultSearchQueryFilterKeys: new Set()});
+    jest.mocked(useSearchQueryContext).mockReturnValueOnce(queryContext);
+
+    // When the form first renders
+    const {rerender} = render(<SearchSavePage />);
+
+    // Then the user can still save while validation is pending
+    expect(jest.mocked(FormProvider).mock.lastCall?.[0].isSubmitDisabled).toBe(false);
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    // When Auth rejects that search and provides a reason
+    jest.mocked(useSearchQueryContext).mockReturnValueOnce(queryContext);
+    jest.mocked(useSearchResultsContext).mockReturnValueOnce(
+        createMock<ReturnType<typeof useSearchResultsContext>>({
+            currentSearchResults: {
+                search: {
+                    hash: currentSearchQueryJSON?.hash,
+                    responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY,
+                    errorTranslationKey: 'search.searchResults.invalidReportID',
+                },
+            },
+        }),
+    );
+    rerender(<SearchSavePage />);
+
+    // Then saving is disabled and the form explains how to correct the query
+    expect(jest.mocked(FormProvider).mock.lastCall?.[0].isSubmitDisabled).toBe(true);
+    expect(screen.getByRole('alert')).toHaveTextContent(translateLocal('search.searchResults.invalidReportID'));
 });

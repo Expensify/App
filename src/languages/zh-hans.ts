@@ -10364,7 +10364,7 @@ ${reportName}`,
         resetFilters: '重置筛选条件',
         searchResults: {
             tooManyKeywords: `搜索关键词过多。请使用不超过${CONST.SEARCH.MAX_KEYWORD_TOKENS}个关键词，然后重试。`,
-            unsupportedGrouping: '此搜索无法按这种方式分组。请移除 group-by 后重试。',
+            unsupportedGrouping: '此搜索不支持分组或图表视图。请移除分组并使用表格视图。',
             invalidReportID: '请输入有效的报告ID。如需查找未归入报告的费用，请使用 status:unreported。',
             unsupportedFilter: '此搜索不支持 "is:" 筛选条件。如需查找未归入报告的费用，请使用 status:unreported。',
             emptyResults: {

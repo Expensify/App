@@ -27,7 +27,7 @@ import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {isSearchQuerySavable} from '@libs/SearchQueryUtils';
+import {getSearchQueryError} from '@libs/SearchQueryUtils';
 import {
     getCustomColumnDefault,
     getFiltersFormWithTripRoomStatuses,
@@ -198,7 +198,8 @@ function SearchSavePage() {
 
     const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const canSave = isSearchQuerySavable(currentSearchQueryJSON, undefined, currentSearchResults?.search);
+    const queryError = currentSearchQueryJSON ? getSearchQueryError(currentSearchQueryJSON, currentSearchResults?.search) : undefined;
+    const canSave = !!currentSearchQueryJSON && !queryError;
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
@@ -259,6 +260,15 @@ function SearchSavePage() {
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
                 />
+                {!!queryError && (
+                    <Text
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="polite"
+                        style={[styles.formError, styles.mt2]}
+                    >
+                        {translate(queryError)}
+                    </Text>
+                )}
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
                 {appliedFilters.length > 0 ? (
                     appliedFilters.map((filter) => (

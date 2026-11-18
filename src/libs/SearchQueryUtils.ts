@@ -1289,10 +1289,13 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
     return getCachedSearchQueryJSON(query, rawQuery);
 }
 
-/** Checks query forms that Auth rejects, including queries typed directly into the search input. */
-function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationPaths | undefined {
-    // The parser turns comma-separated values like `type:expense,invoice` into arrays, even though the AST types
-    // say string, and Auth rejects a type or groupBy that isn't a single string.
+/** Returns the validation error for this query from the matching snapshot or from client checks. */
+function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>, search?: Pick<SearchResultsInfo, 'hash' | 'responseJsonCode' | 'errorTranslationKey'>): TranslationPaths | undefined {
+    if (search?.hash === queryJSON.hash && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+        return search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle';
+    }
+
+    // The parser can return an array for `type:expense,invoice`, but Auth requires one search type.
     if (typeof queryJSON.type !== 'string') {
         return 'errorPage.wrongTypeSubtitle';
     }
@@ -1300,11 +1303,8 @@ function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationP
     const type = queryJSON.type.toLowerCase();
     // Auth only groups expense, invoice and trip searches. Insights-only group-bys are skipped because the Search
     // action drops them from the request, so Auth never sees them.
-    if (queryJSON.groupBy && isGroupBySupportedBySearch(queryJSON.groupBy)) {
-        const groupBy = typeof queryJSON.groupBy === 'string' ? queryJSON.groupBy.toLowerCase() : undefined;
-        if (!groupBy || !VALID_GROUP_BYS.has(groupBy) || !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type)) {
-            return 'search.searchResults.unsupportedGrouping';
-        }
+    if (queryJSON.groupBy && isGroupBySupportedBySearch(queryJSON.groupBy) && !SEARCH_TYPES_SUPPORTING_GROUP_BY.has(type)) {
+        return 'search.searchResults.unsupportedGrouping';
     }
 
     for (const filter of queryJSON.flatFilters) {
@@ -1464,8 +1464,7 @@ function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, def
         return false;
     }
 
-    const isCurrentSnapshot = search?.hash === currentQueryJSON.hash;
-    if ((isCurrentSnapshot && search.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) || getSearchQueryError(currentQueryJSON)) {
+    if (getSearchQueryError(currentQueryJSON, search)) {
         return false;
     }
 

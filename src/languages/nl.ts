@@ -10788,7 +10788,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         resetFilters: 'Filters resetten',
         searchResults: {
             tooManyKeywords: `Je zoekopdracht bevat te veel trefwoorden. Gebruik maximaal ${CONST.SEARCH.MAX_KEYWORD_TOKENS} trefwoorden en probeer het opnieuw.`,
-            unsupportedGrouping: 'Deze zoekopdracht kan niet zo worden gegroepeerd. Verwijder group-by en probeer het opnieuw.',
+            unsupportedGrouping: 'Deze zoekopdracht ondersteunt geen groepering of grafiekweergave. Verwijder de groepering en gebruik de tabelweergave.',
             invalidReportID: 'Voer een geldige rapport-ID in. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
             unsupportedFilter: 'Het filter "is:" wordt niet ondersteund voor deze zoekopdracht. Gebruik status:unreported om niet-gerapporteerde uitgaven te zoeken.',
             emptyResults: {

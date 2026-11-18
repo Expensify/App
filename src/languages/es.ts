@@ -10792,7 +10792,7 @@ ${reportName}`,
         resetFilters: 'Restablecer filtros',
         searchResults: {
             tooManyKeywords: `Tu búsqueda tiene demasiadas palabras clave. Usa ${CONST.SEARCH.MAX_KEYWORD_TOKENS} o menos e inténtalo de nuevo.`,
-            unsupportedGrouping: 'Esta búsqueda no se puede agrupar de esa manera. Quita group-by e inténtalo de nuevo.',
+            unsupportedGrouping: 'Esta búsqueda no admite agrupaciones ni vistas de gráficos. Quita la agrupación y usa la vista de tabla.',
             invalidReportID: 'Introduce un ID de informe válido. Para buscar gastos sin reportar, usa status:unreported.',
             unsupportedFilter: 'El filtro "is:" no es compatible con esta búsqueda. Para buscar gastos sin reportar, usa status:unreported.',
             emptyResults: {
