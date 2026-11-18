@@ -6632,6 +6632,17 @@ describe('SearchQueryUtils', () => {
             expect(shouldRefetch).toBe(true);
         });
 
+        test('returns true when grouped by violation, even without a has filter', () => {
+            // Given a typed query grouped by violation with no has value, which Auth answers from both stages
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting or approving a report saves the violations its groups count
+            expect(shouldRefetch).toBe(true);
+        });
+
         test('returns true for a positive has:approved-violation filter', () => {
             // Given a query filtered to approved violations, whose matches change when a report is approved
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);

@@ -919,13 +919,15 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
 
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
- * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
- * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
+ * must refetch it: grouping by approver or violation, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter,
+ * or a `submitted-violation` or `approved-violation` filter. Violation groups count the violations saved when a report is
+ * submitted or approved, so those actions change them even with no `has:` filter. Negated filters count too, because
+ * submitting or approving a report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */
 function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): boolean {
     return (
         queryJSON.groupBy === CONST.SEARCH.GROUP_BY.APPROVER ||
+        queryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION ||
         queryJSON.flatFilters.some((filter) => WORKFLOW_FILTER_KEYS.has(filter.key)) ||
         queryHasHasFilter(queryJSON, VIOLATION_HAS_VALUES, true)
     );

@@ -1862,6 +1862,46 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
+    describe('Template export on a violation grouping', () => {
+        beforeEach(() => {
+            jest.mocked(getSelectedGroupFilterEntry).mockImplementation(jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').getSelectedGroupFilterEntry);
+        });
+
+        afterEach(() => {
+            jest.mocked(getSelectedGroupFilterEntry).mockReset();
+        });
+
+        it('scopes the selected violation groups with one violation filter on the ungrouped query', () => {
+            // Given two violation groups ticked on a search grouped by violation. One expense can be in both, so the
+            // export has to ask for the union rather than add up the groups
+            const queryJSON = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+            if (!queryJSON) {
+                throw new Error('Failed to parse violation grouped search query');
+            }
+            const missingCategoryKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
+            const overLimitKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`;
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {
+                [missingCategoryKey]: {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 1, currency: 'USD', total: 100},
+                [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 1, currency: 'USD', total: 100},
+            });
+            const selectedTransactions = {[missingCategoryKey]: makeSelectedTransaction(), [overLimitKey]: makeSelectedTransaction()};
+
+            // When the template export query is built
+            const templateQuery = getTemplateGroupExportQuery(queryJSON, selectedTransactions, searchResults.data);
+
+            // Then the export is ungrouped and filtered to both violations, so the server returns each expense once
+            expect(templateQuery?.groupBy).toBeUndefined();
+            expect(templateQuery?.flatFilters).toContainEqual({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                filters: [
+                    {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.MISSING_CATEGORY},
+                    {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.OVER_LIMIT},
+                ],
+            });
+        });
+    });
+
     describe('Reconciliation - All Expenses on a card group selection', () => {
         const CARD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1234`;
 
