@@ -2,14 +2,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
 import {AppState} from 'react-native';
-import {KeyboardEvents} from 'react-native-keyboard-controller';
+import {KeyboardController, KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type UseScrollOnKeyboardReopen from './types';
 
 const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput, isActive) => {
     const isScreenFocused = useIsFocused();
     const shouldScrollOnReopen = useRef(false);
-    const shouldSkipNextHide = useRef(false);
 
     const resetScrollOnReopen = () => {
         shouldScrollOnReopen.current = false;
@@ -17,9 +16,11 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
 
     // Use the current callback without discarding a pending reopen when the form rerenders.
     const scrollToReopenedInput = useEffectEvent(() => {
-        if (!isActive || !isScreenFocused || AppState.currentState !== 'active' || !ref.current?.isFocused()) {
+        if (!shouldScrollOnReopen.current || !isActive || !isScreenFocused || AppState.currentState !== 'active' || !ref.current?.isFocused()) {
             return;
         }
+        // A keyboard show can arrive before the app becomes active, so consume the scroll only when it can run.
+        resetScrollOnReopen();
         scrollToInput();
     });
 
@@ -29,13 +30,19 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
             return;
         }
 
+        // Android can resend didShow without willShow, which is what updates the controller's visibility flag.
+        let isKeyboardVisible = KeyboardController.isVisible();
+
         const appStateSubscription = AppState.addEventListener('change', (state) => {
             if (state === 'active') {
+                // Android can retain the keyboard without sending another show event when the app returns.
+                if (isKeyboardVisible || KeyboardController.isVisible()) {
+                    scrollToReopenedInput();
+                }
                 return;
             }
-            // Android can send the background hide again after the app returns to the foreground.
-            shouldSkipNextHide.current = true;
-            resetScrollOnReopen();
+            // The form can lose its scroll offset in the background even though the input retains focus.
+            shouldScrollOnReopen.current = !!ref.current?.isFocused();
         });
 
         const hideSubscription = KeyboardEvents.addListener('keyboardDidHide', (event) => {
@@ -43,20 +50,15 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
             if (event.height !== 0) {
                 return;
             }
-            shouldScrollOnReopen.current = !shouldSkipNextHide.current && AppState.currentState === 'active' && !!ref.current?.isFocused();
-            shouldSkipNextHide.current = false;
+            isKeyboardVisible = false;
+            shouldScrollOnReopen.current = !!ref.current?.isFocused();
         });
 
         const showSubscription = KeyboardEvents.addListener('keyboardDidShow', (event) => {
             if (event.height <= 0) {
                 return;
             }
-            const shouldScroll = shouldScrollOnReopen.current;
-            resetScrollOnReopen();
-            shouldSkipNextHide.current = false;
-            if (!shouldScroll) {
-                return;
-            }
+            isKeyboardVisible = true;
             scrollToReopenedInput();
         });
 

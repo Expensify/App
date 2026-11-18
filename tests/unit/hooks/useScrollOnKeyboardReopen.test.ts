@@ -10,12 +10,14 @@ import {AppState} from 'react-native';
 
 const mockKeyboardListeners: Record<string, Set<(event: KeyboardEventData) => void>> = {};
 let mockIsScreenFocused = true;
+let mockIsKeyboardVisible = false;
 const mockRemove = jest.fn();
 const appStateListeners = new Set<(state: AppStateStatus) => void>();
 const mockAppStateRemove = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({useIsFocused: () => mockIsScreenFocused}));
 jest.mock('react-native-keyboard-controller', () => ({
+    KeyboardController: {isVisible: () => mockIsKeyboardVisible},
     KeyboardEvents: {
         addListener: jest.fn((event: string, listener: (data: KeyboardEventData) => void) => {
             (mockKeyboardListeners[event] ??= new Set()).add(listener);
@@ -29,7 +31,12 @@ jest.mock('react-native-keyboard-controller', () => ({
     },
 }));
 
-function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height: number, duration = 250) {
+function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height: number, duration = 250, shouldUpdateVisibility = true) {
+    if (event === 'keyboardDidShow' && height > 0 && shouldUpdateVisibility) {
+        mockIsKeyboardVisible = true;
+    } else if (event === 'keyboardDidHide' && height === 0) {
+        mockIsKeyboardVisible = false;
+    }
     const data: KeyboardEventData = {height, duration, timestamp: 0, target: -1, type: 'default', appearance: 'light'};
     act(() => {
         for (const listener of mockKeyboardListeners[event] ?? []) {
@@ -39,20 +46,25 @@ function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height:
 }
 
 function setAppState(state: AppStateStatus) {
-    (AppState as {currentState: AppStateStatus}).currentState = state;
     act(() => {
+        // The shared native mock exposes currentState as a getter, so assigning to it cannot simulate an app state change.
+        if (!('emitCurrentTestState' in AppState) || typeof AppState.emitCurrentTestState !== 'function') {
+            throw new Error('The AppState mock must support emitting state changes');
+        }
+        AppState.emitCurrentTestState(state);
         for (const listener of appStateListeners) {
             listener(state);
         }
     });
 }
 
-type Step = 'hide' | 'instantHide' | 'partialHide' | 'show' | 'zeroShow' | 'blur' | 'focus' | 'background' | 'foreground';
+type Step = 'hide' | 'instantHide' | 'partialHide' | 'show' | 'resyncShow' | 'zeroShow' | 'blur' | 'focus' | 'background' | 'foreground';
 
 describe('useScrollOnKeyboardReopen', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsScreenFocused = true;
+        mockIsKeyboardVisible = false;
         for (const key of Object.keys(mockKeyboardListeners)) {
             delete mockKeyboardListeners[key];
         }
@@ -80,11 +92,22 @@ describe('useScrollOnKeyboardReopen', () => {
         ['does not arm for an unfocused input', ['blur', 'hide', 'show'], 0],
         ['does not scroll for a zero-height show', ['hide', 'zeroShow'], 0],
         ['preserves a pending reopen until a positive-height show', ['hide', 'zeroShow', 'show'], 1],
-        ['clears the flag when the app enters the background', ['hide', 'background', 'foreground', 'show'], 0],
+        ['restores after a hide before the app enters the background', ['hide', 'background', 'foreground', 'show'], 1],
         ['does not scroll while the app is backgrounded', ['hide', 'background', 'hide', 'show'], 0],
-        ['ignores a foreground resynchronization hide', ['background', 'foreground', 'hide', 'show'], 0],
-        ['does not consume background suppression on a partial hide', ['background', 'foreground', 'partialHide', 'hide', 'show'], 0],
-        ['supports reopening after returning from the background', ['background', 'foreground', 'show', 'hide', 'show'], 1],
+        ['restores after a foreground resynchronization hide', ['background', 'foreground', 'hide', 'show'], 1],
+        ['ignores a partial hide while waiting for foreground restoration', ['background', 'foreground', 'partialHide', 'hide', 'show'], 1],
+        ['supports reopening after returning from the background', ['background', 'foreground', 'show', 'hide', 'show'], 2],
+        ['restores when the keyboard stays visible in the background', ['show', 'background', 'foreground'], 1],
+        ['restores when the keyboard shows before the app becomes active', ['background', 'show', 'foreground'], 1],
+        ['restores when a background show does not update controller visibility', ['background', 'resyncShow', 'foreground'], 1],
+        ['waits for reopening if the keyboard hides after a background show', ['background', 'resyncShow', 'hide', 'foreground', 'show'], 1],
+        ['restores when the keyboard hides in the background', ['show', 'background', 'hide', 'foreground', 'show'], 1],
+        ['waits for the keyboard when returning with it hidden', ['show', 'hide', 'background', 'foreground'], 0],
+        ['consumes foreground restoration before a repeated show', ['show', 'background', 'foreground', 'show', 'foreground'], 1],
+        ['restores once for each background cycle', ['show', 'background', 'foreground', 'background', 'foreground'], 2],
+        ['discards foreground restoration on blur', ['show', 'background', 'blur', 'foreground', 'show'], 0],
+        ['leaves a new foreground focus to the focus handler', ['show', 'background', 'blur', 'foreground', 'focus', 'show'], 0],
+        ['does not arm foreground restoration without input focus', ['blur', 'background', 'show', 'foreground'], 0],
         ['restores scrolling after rotation without blurring', ['instantHide', 'show'], 1],
     ])('%s', (_name, steps, expectedScrolls) => {
         // Given an input whose native focus is preserved unless an actual blur event occurs
@@ -102,13 +125,13 @@ describe('useScrollOnKeyboardReopen', () => {
                 setAppState(step === 'background' ? 'background' : 'active');
             } else {
                 let height = 0;
-                if (step === 'show') {
+                if (step === 'show' || step === 'resyncShow') {
                     height = 300;
                 } else if (step === 'partialHide') {
                     height = 100;
                 }
                 const isHide = step === 'hide' || step === 'instantHide' || step === 'partialHide';
-                emitKeyboardEvent(isHide ? 'keyboardDidHide' : 'keyboardDidShow', height, step === 'instantHide' ? 0 : 250);
+                emitKeyboardEvent(isHide ? 'keyboardDidHide' : 'keyboardDidShow', height, step === 'instantHide' ? 0 : 250, step !== 'resyncShow');
             }
         }
 
@@ -135,6 +158,42 @@ describe('useScrollOnKeyboardReopen', () => {
         emitKeyboardEvent('keyboardDidShow', 300);
 
         // Then the old dismissal cannot trigger a scroll on the newly active screen
+        expect(scrollToInput).not.toHaveBeenCalled();
+    });
+
+    it.each(['form', 'route'] as const)('discards foreground restoration when the %s becomes inactive', (target) => {
+        // Given a focused input whose keyboard was visible before the app entered the background
+        const ref = {current: {isFocused: () => true}};
+        const scrollToInput = jest.fn();
+        const {rerender} = renderHook(({isActive}) => useScrollOnKeyboardReopen(ref, scrollToInput, isActive), {initialProps: {isActive: true}});
+        emitKeyboardEvent('keyboardDidShow', 300);
+        setAppState('background');
+
+        // When the form or route becomes inactive before the app returns
+        mockIsScreenFocused = target !== 'route';
+        rerender({isActive: target !== 'form'});
+        setAppState('active');
+        mockIsScreenFocused = true;
+        rerender({isActive: true});
+        emitKeyboardEvent('keyboardDidShow', 300);
+
+        // Then the previous form cannot request a scroll
+        expect(scrollToInput).not.toHaveBeenCalled();
+    });
+
+    it('does not restore on foreground after the input ref is cleared', () => {
+        // Given a focused input whose keyboard is still visible in the background
+        const ref: {current: {isFocused: () => boolean} | null} = {current: {isFocused: () => true}};
+        const scrollToInput = jest.fn();
+        renderHook(() => useScrollOnKeyboardReopen(ref, scrollToInput, true));
+        emitKeyboardEvent('keyboardDidShow', 300);
+        setAppState('background');
+
+        // When the input disappears before foregrounding
+        ref.current = null;
+        setAppState('active');
+
+        // Then no scroll targets the removed input
         expect(scrollToInput).not.toHaveBeenCalled();
     });
 
