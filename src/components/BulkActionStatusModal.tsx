@@ -17,7 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type BulkAction from '@src/types/onyx/BulkAction';
-import type {BulkActionType, BulkPaySkippedReportIDs, BulkPaySkipReason} from '@src/types/onyx/BulkAction';
+import type {BulkActionType, BulkPaySkipReason} from '@src/types/onyx/BulkAction';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -72,14 +72,6 @@ const SKIPPED_BODIES = {
 
 function isKnownSkipReason(reason: string): reason is BulkPaySkipReason {
     return reason in SKIPPED_BODIES;
-}
-
-function getSkippedReportIDsByReason(skippedReportIDs: BulkAction['skippedReportIDs']): BulkPaySkippedReportIDs | undefined {
-    // A backend that only skips reports with nothing to pay saves them as a plain list, which still has to read as that reason
-    if (Array.isArray(skippedReportIDs)) {
-        return {[CONST.BULK_ACTION.SKIP_REASON.NOTHING_TO_PAY]: skippedReportIDs};
-    }
-    return skippedReportIDs;
 }
 
 type BulkActionRunningProps = {
@@ -161,7 +153,7 @@ type BulkActionDoneProps = {
     failedReportIDs: string[];
 
     /** The reports a bank payment left unpaid on purpose, grouped by why */
-    skippedReportIDs: BulkPaySkippedReportIDs | undefined;
+    skippedReportIDs: BulkAction['skippedReportIDs'];
 
     /** Whether a bulk payment paid through a bank account instead of marking the reports as paid */
     isBankPayment: boolean;
@@ -311,7 +303,7 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
                         action={action}
                         total={displayedBulkAction?.total ?? 0}
                         failedReportIDs={displayedBulkAction?.failedReportIDs ?? []}
-                        skippedReportIDs={getSkippedReportIDsByReason(displayedBulkAction?.skippedReportIDs)}
+                        skippedReportIDs={displayedBulkAction?.skippedReportIDs}
                         isBankPayment={isBankPayment}
                         onClose={onClose}
                     />

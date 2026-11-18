@@ -41,12 +41,12 @@ type BulkAction = {
     /** How a bulk payment pays the reports, set when it pays through a bank account instead of marking them as paid */
     paymentType?: PaymentMethodType;
 
-    /** Reports a bank payment left unpaid on purpose, set once it is done. A backend that only skips reports with nothing to pay saves them as a plain list. */
-    skippedReportIDs?: string[] | BulkPaySkippedReportIDs;
+    /** Reports a bank payment left unpaid on purpose, grouped by why, set once it is done */
+    skippedReportIDs?: BulkPaySkippedReportIDs;
 
     /** Whether Concierge should message the result instead of showing it here */
     shouldSendFromConcierge?: boolean;
 };
 
 export default BulkAction;
-export type {BulkActionType, BulkPaySkipReason, BulkPaySkippedReportIDs};
+export type {BulkActionType, BulkPaySkipReason};
