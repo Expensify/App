@@ -1,3 +1,4 @@
+// Throwaway: probes selective test runs, reverted before merge.
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {
