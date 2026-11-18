@@ -51,6 +51,7 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
+import useWorkspaceCompanyCardsBulkActions from './useWorkspaceCompanyCardsBulkActions';
 import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableControls';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
@@ -552,15 +553,24 @@ function WorkspaceCompanyCardsTable({
                 />
             </View>
         ) : undefined;
+    // Derived here rather than from the table's own rows, so the floating bar and the narrow layout's dropdown are
+    // built from one selection.
+    const selectedCards = cardsData.filter((card) => !card.disabled && validSelectedCardKeys.includes(keyExtractor(card)));
+    const bulkActionOptions = useWorkspaceCompanyCardsBulkActions({
+        policyID,
+        domainOrWorkspaceAccountID,
+        bankName,
+        feedName,
+        canWriteCompanyCards,
+        clearCardSelection,
+        selectedCards,
+    });
+
     const tableControlsComponent = showCards ? (
         <WorkspaceCompanyCardsTableControls
-            policyID={policyID}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            bankName={bankName}
-            feedName={feedName}
-            canWriteCompanyCards={canWriteCompanyCards}
-            clearCardSelection={clearCardSelection}
+            bulkActionOptions={bulkActionOptions}
             isSelectionModeEnabled={isSelectionModeEnabled}
+            selectedCardsCount={selectedCards.length}
         />
     ) : undefined;
     const balanceLabelsComponent = showCards ? (
@@ -680,6 +690,7 @@ function WorkspaceCompanyCardsTable({
             )}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
+            {showCards && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }
