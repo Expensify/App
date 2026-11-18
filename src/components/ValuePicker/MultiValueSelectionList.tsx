@@ -35,13 +35,27 @@ type MultiValueSelectionListProps = {
 
     /** Sentry label of the Apply button, named after the field it applies to */
     applyButtonSentryLabel: SentryLabel;
+
+    /** Whether the Apply button keeps clear of the home indicator, for a list on a full page in edge-to-edge mode */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the search input takes focus when the list opens. Off on touch screens in a bottom sheet, so the keyboard does not cover the list */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 /**
  * A list of plain values the user checks several of, applied together with the Apply button as the attendee list
  * applies its selection. Checking a row only changes the list, so nothing reaches the caller until Apply.
  */
-function MultiValueSelectionList({items, selectedValues, isVisible, onApply, applyButtonSentryLabel}: MultiValueSelectionListProps) {
+function MultiValueSelectionList({
+    items,
+    selectedValues,
+    isVisible,
+    onApply,
+    applyButtonSentryLabel,
+    addBottomSafeAreaPadding = false,
+    shouldAutoFocusSearchInput = true,
+}: MultiValueSelectionListProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValues = useInitialSelection(selectedValues, {isVisible});
@@ -92,6 +106,7 @@ function MultiValueSelectionList({items, selectedValues, isVisible, onApply, app
                 value: searchValue,
                 onChangeText: setSearchValue,
                 headerMessage: debouncedSearchValue.trim() && data.length === 0 ? translate('common.noResultsFound') : undefined,
+                disableAutoFocus: !shouldAutoFocusSearchInput,
             }}
             searchValueForFocusSync={debouncedSearchValue}
             initiallyFocusedItemKey={initialSelectedValues.at(0)}
@@ -110,6 +125,7 @@ function MultiValueSelectionList({items, selectedValues, isVisible, onApply, app
             shouldScrollToFocusedIndexOnMount={false}
             disableMaintainingScrollPosition
             shouldShowTooltips={false}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }

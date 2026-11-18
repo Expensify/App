@@ -5,6 +5,7 @@ import FSClassView from '@components/FSClassView';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import CONST from '@src/CONST';
@@ -51,6 +52,8 @@ function ValuePickerPopover({items, selectedItem, onItemSelected, forwardedFSCla
                         onClose();
                     }}
                     addBottomSafeAreaPadding={false}
+                    // A bottom sheet opening with the keyboard up would have most of its options covered
+                    shouldAutoFocusSearchInput={canFocusInputOnScreenFocus()}
                 />
             </FSClassView>
         </AnchoredSelectionListPopover>

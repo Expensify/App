@@ -5,6 +5,7 @@ import FSClassView from '@components/FSClassView';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import CONST from '@src/CONST';
@@ -16,7 +17,7 @@ import type {MultiValueSelectionListProps} from './MultiValueSelectionList';
 import MultiValueSelectionList from './MultiValueSelectionList';
 
 type MultiValuePickerPopoverProps = ForwardedFSClassProps &
-    Omit<MultiValueSelectionListProps, 'isVisible'> &
+    Omit<MultiValueSelectionListProps, 'isVisible' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput'> &
     Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'headerActions' | 'children'>;
 
 /**
@@ -50,6 +51,8 @@ function MultiValuePickerPopover({items, selectedValues, onApply, applyButtonSen
                         onClose();
                     }}
                     applyButtonSentryLabel={applyButtonSentryLabel}
+                    // A bottom sheet opening with the keyboard up would have most of its options covered
+                    shouldAutoFocusSearchInput={canFocusInputOnScreenFocus()}
                 />
             </FSClassView>
         </AnchoredSelectionListPopover>

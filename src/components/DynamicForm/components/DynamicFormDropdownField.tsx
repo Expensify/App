@@ -2,6 +2,7 @@
 import DropdownField from '@components/DropdownField';
 import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import FSClassView from '@components/FSClassView';
+import ModalContext from '@components/Modal/ModalContext';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,6 @@ import type {View} from 'react-native';
 import React, {useContext, useState} from 'react';
 
 import DynamicFormFullPageList from './DynamicFormFullPageList';
-import DynamicFormModalContext from './DynamicFormModalContext';
 
 type DynamicFormDropdownFieldRenderProps = {
     /** Whether the list is open, so a list that keeps unapplied picks can drop them each time it opens or closes */
@@ -78,7 +78,8 @@ function DynamicFormDropdownField({
     onBlur,
 }: DynamicFormDropdownFieldProps) {
     const styles = useThemeStyles();
-    const isInsideModal = useContext(DynamicFormModalContext);
+    // BaseModal tells its children they render inside it, so any modal holding the fields opens the full page
+    const isInsideModal = !useContext(ModalContext).default;
     const [isFullPageListVisible, setIsFullPageListVisible] = useState(false);
     const closeFullPageList = () => {
         setIsFullPageListVisible(false);

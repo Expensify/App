@@ -2,8 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import DynamicFormDropdownField from '@components/DynamicForm/components/DynamicFormDropdownField';
 import type {DynamicFormDropdownFieldRenderProps} from '@components/DynamicForm/components/DynamicFormDropdownField';
-import DynamicFormModalContext from '@components/DynamicForm/components/DynamicFormModalContext';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import ModalContext from '@components/Modal/ModalContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -48,7 +48,7 @@ describe('DynamicFormDropdownField', () => {
     const renderField = (isInsideModal: boolean) =>
         render(
             <LocaleContextProvider>
-                <DynamicFormModalContext.Provider value={isInsideModal}>
+                <ModalContext.Provider value={{default: !isInsideModal}}>
                     <DynamicFormDropdownField
                         label={LABEL}
                         title={LABEL}
@@ -60,7 +60,7 @@ describe('DynamicFormDropdownField', () => {
                             return null;
                         }}
                     />
-                </DynamicFormModalContext.Provider>
+                </ModalContext.Provider>
             </LocaleContextProvider>,
         );
 

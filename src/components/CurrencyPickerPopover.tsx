@@ -3,6 +3,7 @@ import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import React from 'react';
@@ -51,6 +52,8 @@ function CurrencyPickerPopover({selectedCurrencyCode, onSelected, forwardedFSCla
                         onSelected(item);
                         onClose();
                     }}
+                    // A bottom sheet opening with the keyboard up would have most of its options covered
+                    shouldAutoFocusSearchInput={canFocusInputOnScreenFocus()}
                 />
             </FSClassView>
         </AnchoredSelectionListPopover>

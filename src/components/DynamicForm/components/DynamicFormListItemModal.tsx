@@ -23,8 +23,6 @@ import type {ComponentRef, ReactNode} from 'react';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import DynamicFormModalContext from './DynamicFormModalContext';
-
 type ListItemDialogFrameProps = {
     /** The modal's screen */
     children: ReactNode;
@@ -124,9 +122,7 @@ function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, is
                                 submitButtonStyles={styles.mb0}
                                 enabledWhenOffline
                             >
-                                {({inputValues}) => (
-                                    <DynamicFormModalContext.Provider value>{renderFields(itemFields, withInputValues(inputValues), isSensitive)}</DynamicFormModalContext.Provider>
-                                )}
+                                {({inputValues}) => renderFields(itemFields, withInputValues(inputValues), isSensitive)}
                             </FormProvider>
                         )}
                     </ScreenWrapper>

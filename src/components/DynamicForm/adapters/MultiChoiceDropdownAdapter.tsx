@@ -100,6 +100,7 @@ function MultiChoiceDropdownAdapter({items, label, title, value, onInputChange, 
                         onClose();
                     }}
                     applyButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_APPLY}
+                    addBottomSafeAreaPadding
                 />
             )}
         />

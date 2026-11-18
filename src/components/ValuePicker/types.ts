@@ -64,6 +64,9 @@ type ValueSelectionListProps = Pick<
 > & {
     /** Whether the parent modal is visible */
     isVisible?: boolean;
+
+    /** Whether the search input takes focus when the list opens. Off on touch screens in a bottom sheet, so the keyboard does not cover the list */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 type ValuePickerProps = ForwardedFSClassProps & {

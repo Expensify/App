@@ -24,6 +24,7 @@ function ValueSelectionList({
     disableKeyboardShortcuts = false,
     alternateNumberOfSupportedLines,
     isVisible,
+    shouldAutoFocusSearchInput = true,
 }: ValueSelectionListProps) {
     const {translate} = useLocalize();
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
@@ -69,6 +70,7 @@ function ValueSelectionList({
                 value: searchValue,
                 onChangeText: setSearchValue,
                 headerMessage: searchValue && filteredOptions.length === 0 ? translate('common.noResultsFound') : undefined,
+                disableAutoFocus: !shouldAutoFocusSearchInput,
             }}
             initiallyFocusedItemKey={initialSelectedValue}
             shouldStopPropagation
