@@ -1409,7 +1409,6 @@
 "../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateRolePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/AddDelegate/UpdateDelegateRole/UpdateDelegateValidateCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Security/CloseAccount/CloseAccountPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/CloseAccount/CloseAccountValidateCodePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Security/DeviceManagementPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/LockAccount/FailedToLockAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/LockAccount/UnlockAccountPage.tsx"	"no-restricted-imports"	1
@@ -1417,17 +1416,12 @@
 "../../src/pages/settings/Security/MergeAccounts/AccountValidatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/MergeAccounts/MergeResultPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Security/SecuritySettingsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Security/TwoFactorAuth/DynamicSuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Security/TwoFactorAuth/EnabledPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/settings/Security/TwoFactorAuth/SuccessPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Security/TwoFactorAuth/TwoFactorAuthWrapper.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/SettingsMenuItem.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/settings/Subscription/CancelSubscriptionPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Subscription/CancelSubscriptionPage/index.tsx"	"rulesdir/no-onyx-loading-status"	2
 "../../src/pages/settings/Subscription/CardSection/BillingBanner/TrialEndedBillingBanner.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/settings/Subscription/CardSection/CardSection.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Subscription/DisableAutoRenewSurveyPage/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Subscription/EarlyRenewalOfferPage/index.web.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Subscription/ExpensifyCodePage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Subscription/PaymentCard/ChangeBillingCurrency/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/settings/Subscription/PaymentCard/ChangeBillingCurrency/index.tsx"	"no-restricted-imports"	1
@@ -1448,9 +1442,7 @@
 "../../src/pages/settings/Troubleshoot/ServerSelector.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Troubleshoot/TroubleshootPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Troubleshoot/TroubleshootPage.tsx"	"react-hooks/purity"	1
-"../../src/pages/settings/Troubleshoot/TroubleshootPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/useInitialSettingsPageMenuData.ts"	"react-hooks/purity"	1
-"../../src/pages/settings/useInitialSettingsPageMenuData.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/VerifyAccountPageBase.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/AddCardToDigitalWalletPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/AddCardToDigitalWalletPage.tsx"	"rulesdir/no-onyx-loading-status"	1
