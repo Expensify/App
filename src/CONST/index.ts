@@ -5089,11 +5089,12 @@ const CONST = {
         VARIANT: {
             VIDEO: 'video',
         },
-        ERROR: {
-            USER_CANCELLED: 'User canceled flow.',
-            USER_TAPPED_BACK: 'User exited by clicking the back button.',
-            USER_EXITED: 'User exited by manual action.',
+        // The backend picks the face report from this value: anything other than "standard" requests a video report, and a
+        // missing value falls back to the photo report and fails the check. "VIDEO" is what the previous native SDK sent.
+        NATIVE_FACE_VARIANT: {
+            VIDEO: 'VIDEO',
         },
+        DOCUMENT_COUNTRY_CODE: 'USA',
     },
 
     KYC_WALL_SOURCE: {
