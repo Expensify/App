@@ -11,9 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentProps} from 'react';
+import type {Button, View} from 'react-native';
 
 import React from 'react';
-import type {Button, View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
