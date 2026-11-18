@@ -26,7 +26,7 @@ function getRequestPhaseApplyAttributes(command: string, requestData: Record<str
         return {};
     }
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${String(requestData?.hash)}` as const;
-    // Reads apply the response before this runs, so the cache holds the merged snapshot with every page loaded so far.
+    // We read the snapshot from the cache, not the response, because a response only carries the page it loaded, while the stored snapshot has every page loaded so far.
     const snapshot = OnyxCache.get(snapshotKey);
     const snapshotData = snapshot && typeof snapshot === 'object' && 'data' in snapshot ? snapshot.data : undefined;
     return {
