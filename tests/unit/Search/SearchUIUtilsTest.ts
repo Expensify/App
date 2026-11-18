@@ -37,6 +37,7 @@ import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {findSelfDMReportID} from '@src/libs/ReportUtils';
+import {getCustomColumns} from '@src/libs/SearchColumnsUtils';
 import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -13333,7 +13334,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the Search column picker but only shown once picked, and it is not offered in the
             // single-report view because the report view's transactions never carry the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
@@ -13350,7 +13351,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the expense report column picker, stays out of the defaults, and is shown in the
             // picked position once chosen, so it is sent in the query columns the backend reads to return the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(pickedResult).toEqual(visibleColumns);
@@ -14685,12 +14686,12 @@ describe('SearchUIUtils', () => {
 
     describe('Test getCustomColumns', () => {
         it('should return custom columns for EXPENSE type', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const columns = getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));
         });
 
         it('should return custom columns for CATEGORY groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14698,7 +14699,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return custom columns for MERCHANT groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14706,7 +14707,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return empty array for undefined value', () => {
-            const columns = SearchUIUtils.getCustomColumns(undefined);
+            const columns = getCustomColumns(undefined);
             expect(columns).toEqual([]);
         });
     });

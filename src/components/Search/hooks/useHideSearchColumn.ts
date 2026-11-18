@@ -1,9 +1,10 @@
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
+import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
 import {getPinnedColumns, getQueryWithPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getCustomColumnDefault, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 type HideSearchColumn = {
     /** The shown columns users can hide from their menu. */
@@ -38,7 +39,7 @@ function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnTy
 
     const hideColumn = (column: SearchColumnType) => {
         const queryWithoutColumn = {...queryJSON, columns: columnsToSave.filter((columnToSave) => columnToSave !== column)};
-        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryWithoutColumn, getPinnedColumns(queryJSON)));
+        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryWithoutColumn, getPinnedColumns(queryJSON), queryHasViolationFilter(queryJSON)));
         navigateToSearchWithColumns(query, currentSearchKey);
     };
 

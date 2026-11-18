@@ -111,26 +111,57 @@ describe('setColumnPin', () => {
 
 describe('getPinsOnSavedColumns', () => {
     it('drops pins on columns the query no longer saves', () => {
-        // Given Merchant and Date pinned, and a query that now saves only Merchant and Total
+        // Given Merchant and Date pinned on an expense search that now saves only Merchant and Amount
         const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]};
 
         // When the pins are matched to the saved columns
-        const kept = getPinsOnSavedColumns(pinnedColumns, [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const kept = getPinsOnSavedColumns(pinnedColumns, {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+            hasViolationFilter: false,
+        });
 
         // Then Date stops being pinned, so adding it back later doesn't pin it again
         expect(kept).toEqual({left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: []});
     });
 
-    it('keeps pins on the columns the table adds without the query saving them', () => {
-        // Given Violations pinned left and Total pinned right, on a query whose saved columns leave both out,
-        // as a typed `has:violations columns:date,merchant,total-amount` expense search or a Reports search does
-        const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS], right: [CONST.SEARCH.TABLE_COLUMNS.TOTAL]};
+    it('keeps pins on the columns users cannot take off the table, even when the query does not save them', () => {
+        // Given Type and Violations pinned on a typed `has:submitted-violation columns:date,merchant` expense search,
+        // which shows Type always and Violations because of the filter
+        const expensePins = {left: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS], right: [CONST.SEARCH.TABLE_COLUMNS.TYPE]};
+        // And Total pinned on a Reports search that saves only Date and Title, which shows Total always
+        const reportPins = {left: [], right: [CONST.SEARCH.TABLE_COLUMNS.TOTAL]};
 
         // When the pins are matched to the saved columns
-        const kept = getPinsOnSavedColumns(pinnedColumns, [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        const keptExpensePins = getPinsOnSavedColumns(expensePins, {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
+            hasViolationFilter: true,
+        });
+        const keptReportPins = getPinsOnSavedColumns(reportPins, {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TITLE],
+            hasViolationFilter: false,
+        });
 
-        // Then both pins stay, because the table shows those columns anyway and pinning them must move them
-        expect(kept).toEqual(pinnedColumns);
+        // Then every pin stays, because the table shows those columns anyway and pinning them must move them
+        expect(keptExpensePins).toEqual(expensePins);
+        expect(keptReportPins).toEqual(reportPins);
+    });
+
+    it('drops the Violations pin once the search stops filtering by violations', () => {
+        // Given Violations pinned on an expense search whose violation filter was removed, so its column can be taken off again
+        const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS], right: []};
+
+        // When the pins are matched to saved columns that leave Violations out
+        const kept = getPinsOnSavedColumns(pinnedColumns, {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            columns: [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT],
+            hasViolationFilter: false,
+        });
+
+        // Then Violations stops being pinned, like any other column taken off the table
+        expect(kept).toEqual({left: [], right: []});
     });
 
     it('keeps every pin when the query saves no columns, since the table then shows its defaults', () => {
@@ -138,7 +169,7 @@ describe('getPinsOnSavedColumns', () => {
         const pinnedColumns = {left: [CONST.SEARCH.TABLE_COLUMNS.MERCHANT], right: [CONST.SEARCH.TABLE_COLUMNS.DATE]};
 
         // When the pins are matched to no saved columns
-        const kept = getPinsOnSavedColumns(pinnedColumns, undefined);
+        const kept = getPinsOnSavedColumns(pinnedColumns, {type: CONST.SEARCH.DATA_TYPES.EXPENSE, columns: undefined, hasViolationFilter: false});
 
         // Then the pins stay, because the default columns those pins sit on aren't known here
         expect(kept).toEqual(pinnedColumns);

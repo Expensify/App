@@ -2,8 +2,11 @@
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {ValueOf} from 'type-fest';
+
+import {getCustomColumns, getRequiredSearchColumns} from './SearchColumnsUtils';
 
 type PinnedColumnSide = ValueOf<typeof CONST.SEARCH.PINNED_COLUMN_SIDE>;
 
@@ -12,10 +15,14 @@ type PinnedColumns = Record<PinnedColumnSide, SearchColumnType[]>;
 
 type QueryPins = Pick<SearchQueryJSON, 'leftPinnedColumns' | 'rightPinnedColumns'>;
 
-const NO_PINNED_COLUMNS: PinnedColumns = {left: [], right: []};
+/** The columns a query saves, and what decides which of its table's columns users can take off. */
+type SavedColumns = {
+    type: SearchDataTypes | undefined;
+    columns: SearchColumnType | SearchColumnType[] | undefined;
+    hasViolationFilter: boolean;
+};
 
-/** Columns a table adds even when its query's saved columns leave them out: Type on expenses, Total on reports, and Violations under a violation filter. */
-const COLUMNS_SHOWN_WITHOUT_SAVING = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]);
+const NO_PINNED_COLUMNS: PinnedColumns = {left: [], right: []};
 
 /** Reads the query's pins. A query can name a column twice, so the left list wins, and within a list its first mention does. */
 function getPinnedColumns({leftPinnedColumns, rightPinnedColumns}: QueryPins): PinnedColumns {
@@ -50,21 +57,23 @@ function setColumnPin(pinnedColumns: PinnedColumns, column: SearchColumnType, si
 
 /**
  * Drops the pins on columns a query no longer saves, so a column taken off the table doesn't come back pinned when it's added again.
- * With no saved columns the table shows its default ones, which can't be told apart here, so every pin is kept. Pins on the columns
- * a table adds by itself are kept too, since those can't be taken off the table.
+ * Only columns users can take off lose their pins: the table shows the others, like Type or Total, whether the query saves them or not.
+ * With no saved columns the table shows its default ones, which can't be told apart here, so every pin is kept.
  */
-function getPinsOnSavedColumns(pinnedColumns: PinnedColumns, savedColumns: SearchColumnType | SearchColumnType[] | undefined): PinnedColumns {
-    const saved = new Set([savedColumns ?? []].flat());
+function getPinsOnSavedColumns(pinnedColumns: PinnedColumns, {type, columns, hasViolationFilter}: SavedColumns): PinnedColumns {
+    const saved = new Set([columns ?? []].flat());
     if (saved.size === 0) {
         return pinnedColumns;
     }
-    const isKept = (column: SearchColumnType) => saved.has(column) || COLUMNS_SHOWN_WITHOUT_SAVING.has(column);
+    const requiredColumns = getRequiredSearchColumns(hasViolationFilter);
+    const removableColumns = new Set<SearchColumnType>(getCustomColumns(type).filter((column) => !requiredColumns.has(column)));
+    const isKept = (column: SearchColumnType) => saved.has(column) || !removableColumns.has(column);
     return {left: pinnedColumns.left.filter(isKept), right: pinnedColumns.right.filter(isKept)};
 }
 
-/** The query with its pins replaced, keeping only pins on the columns it saves. An edge with no pins is left out of the query rather than written empty. */
-function getQueryWithPinnedColumns(queryJSON: SearchQueryJSON, pinnedColumns: PinnedColumns): SearchQueryJSON {
-    const {left, right} = getPinsOnSavedColumns(pinnedColumns, queryJSON.columns);
+/** The query with its pins replaced, dropping pins on the columns it no longer saves. An edge with no pins is left out of the query rather than written empty. */
+function getQueryWithPinnedColumns(queryJSON: SearchQueryJSON, pinnedColumns: PinnedColumns, hasViolationFilter: boolean): SearchQueryJSON {
+    const {left, right} = getPinsOnSavedColumns(pinnedColumns, {type: queryJSON.type, columns: queryJSON.columns, hasViolationFilter});
     return {
         ...queryJSON,
         leftPinnedColumns: left.length > 0 ? left : undefined,

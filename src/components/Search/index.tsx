@@ -470,7 +470,7 @@ function Search({
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
     const isInPreloadedTab = useIsInPreloadedTab();
     // Pins only reorder the table, so a query that differs by its pins alone must not send the search again.
-    const searchRequestQuery = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, NO_PINNED_COLUMNS));
+    const searchRequestQuery = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, NO_PINNED_COLUMNS, false));
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.

@@ -9,17 +9,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
+import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
 import {getPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
-import {
-    getCustomColumnDefault,
-    getCustomColumns,
-    getRequiredSearchColumns,
-    getValidGroupBy,
-    insertColumnBeforeTotalAmount,
-    isSearchDataLoaded,
-    navigateToSearchWithColumns,
-} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getValidGroupBy, insertColumnBeforeTotalAmount, isSearchDataLoaded, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

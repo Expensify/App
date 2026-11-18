@@ -1635,7 +1635,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         }
     }
 
-    const pinnedColumns = getPinsOnSavedColumns(getPinnedColumns({leftPinnedColumns, rightPinnedColumns}), columns);
+    const pinnedColumns = getPinsOnSavedColumns(getPinnedColumns({leftPinnedColumns, rightPinnedColumns}), {
+        type,
+        columns,
+        hasViolationFilter: hasValuesIncludeViolationFilter(supportedFilterValues.has),
+    });
     for (const [key, pinnedColumnsToSave] of [
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS, pinnedColumns.left],
         [CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS, pinnedColumns.right],
