@@ -103,7 +103,7 @@ Paid/reimbursed and Done/closed reports cannot be merged. You cannot mix Draft, 
 **On web:**
 
 1. In the navigation tabs on the left, select **Spend > Reports**.
-2. Select the checkbox beside each report you want to merge. Select specific reports rather than all matching search results.
+3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More (⋮)**, then **Merge reports**.
 3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More**, then **Merge reports**.
 4. Choose the report you want to keep.
 5. Select **Confirm**.

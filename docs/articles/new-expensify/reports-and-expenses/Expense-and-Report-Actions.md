@@ -188,7 +188,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 
 Open a report to see available actions.
 
-- Primary actions (like **Submit**, **Approve**, or **Pay**) appear at the top of the report
+- **Merge reports** is a selection action, not an individual report action. On web, select specific reports in **Spend > Reports**, then select **Merge reports** from the selection bar, or from **More (⋮)** if it is not shown directly.
 - Additional actions are available when you open the report and choose **More**
 - **Merge reports** is a selection action, not an individual report action. On web, select specific reports in **Spend > Reports**, then select **Merge reports** from the selection bar, or from **More** if it is not shown directly.
   - On mobile, press and hold a report in **Spend > Reports**, select **Select**, then select the other reports. Open **X selected** (where X is the number of selected reports), then select **Merge reports**.
