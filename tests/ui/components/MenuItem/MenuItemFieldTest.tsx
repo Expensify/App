@@ -149,6 +149,7 @@ describe('MenuItemField', () => {
                         value={VALUE}
                         onPress={onPress}
                         isValueSelectable
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -182,6 +183,7 @@ describe('MenuItemField', () => {
                         onPress={() => {}}
                         isDisabled
                         isValueSelectable
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -362,6 +364,7 @@ describe('MenuItemField', () => {
                         name={NAME}
                         value={VALUE}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -392,6 +395,7 @@ describe('MenuItemField', () => {
                         name={NAME}
                         value={VALUE}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     >
                         <Text>Badge</Text>
                     </MenuItemField>
@@ -444,6 +448,7 @@ describe('MenuItemField', () => {
                         name={NAME}
                         value={VALUE}
                         onPress={() => {}}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -461,6 +466,7 @@ describe('MenuItemField', () => {
                         value={VALUE}
                         onPress={onPress}
                         isValueSelectable={isValueSelectable}
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );
@@ -481,6 +487,7 @@ describe('MenuItemField', () => {
                         value={VALUE}
                         onPress={onPress}
                         isDisabled
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     />
                 </Wrapper>,
             );

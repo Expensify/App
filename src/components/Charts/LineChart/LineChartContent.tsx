@@ -22,9 +22,9 @@ import {
     getCartesianPlotBounds,
     getDomainPaddingForEdgeSpace,
     getLineRuns,
-    getWholeNumberTickCount,
     getXAxisLabel,
     getYAxisLabelWidth,
+    getYAxisTickLayout,
     labelOverhang,
 } from '@components/Charts/utils';
 import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
@@ -71,7 +71,8 @@ function LineChartCanvas({
     yAxisUnit,
     yAxisUnitPosition = 'left',
     formatValue: formatValueOverride,
-    shouldUseWholeNumberTicks = false,
+    countDimension,
+    yAxisTickStep,
     onPointPress,
     onTooltipPress,
     tooltipFooter,
@@ -125,8 +126,8 @@ function LineChartCanvas({
         formatValue: formatValueOverride,
     });
 
-    const yAxisTickCount = shouldUseWholeNumberTicks ? getWholeNumberTickCount(yAxisDomain, CARTESIAN_Y_AXIS.tickCount) : CARTESIAN_Y_AXIS.tickCount;
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding, yAxisTickCount);
+    const {ticks: yAxisTicks, tickCount: yAxisTickCount, domain: yAxisTickDomain} = getYAxisTickLayout(yAxisDomain, yAxisTickStep);
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding, yAxisTickCount, yAxisTicks);
 
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const {left: boundsLeft, right: boundsRight, width: plotAreaWidth} = getCartesianPlotBounds(chartWidth, chartPaddingRight);
@@ -399,7 +400,7 @@ function LineChartCanvas({
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, domain: yAxisDomain}]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, tickValues: yAxisTicks, domain: yAxisTickDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
@@ -418,6 +419,7 @@ function LineChartCanvas({
                     data={data}
                     series={series}
                     formatValue={formatValue}
+                    countDimension={countDimension}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
