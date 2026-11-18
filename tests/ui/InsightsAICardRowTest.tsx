@@ -140,8 +140,10 @@ describe('InsightsAICardRow', () => {
     });
 
     it('replaces the generation message with cards when insights arrive', async () => {
-        // Given the user is waiting for the AI insights
+        // Given a progress hint is already visible while the user waits for insights
         const {rerender} = await renderRow(undefined);
+        await act(async () => jest.advanceTimersByTimeAsync(2000));
+        expect(screen.getByText('Reading Spend over time')).toBeOnTheScreen();
 
         // When the dashboard receives its generated insights
         rerender(
@@ -158,6 +160,7 @@ describe('InsightsAICardRow', () => {
         // Then the loading message disappears and the generated card becomes available
         expect(screen.queryByText(LOADING_TITLE)).toBeNull();
         expect(screen.queryByText(LOADING_SUBTITLE)).toBeNull();
+        expect(screen.queryByText('Reading Spend over time')).toBeNull();
         expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
     });
 

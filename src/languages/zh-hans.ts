@@ -1239,6 +1239,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: '平均天数',
         generatingAIInsights: '正在生成 AI 洞察…',
         generatingAIInsightsSubtitle: '这不会花费超过一分钟',
+        readingChart: (chartTitle: string) => `正在读取 ${chartTitle}`,
+        comparingWithYourAverage: '与您的平均值比较',
+        lookingForAnythingUnusual: '正在查找任何异常情况',
+        writingYourInsights: '撰写你的见解',
     },
     allSettingsScreen: {
         subscription: '订阅',

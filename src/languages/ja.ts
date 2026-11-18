@@ -1278,6 +1278,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: '平均日数',
         generatingAIInsights: 'AI インサイトを生成しています…',
         generatingAIInsightsSubtitle: '1 分もかからないはずです',
+        readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
+        comparingWithYourAverage: '平均と比較',
+        lookingForAnythingUnusual: '異常な点がないか確認しています',
+        writingYourInsights: 'インサイトの記入',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

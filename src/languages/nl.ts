@@ -1289,6 +1289,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: 'Gemiddeld aantal dagen',
         generatingAIInsights: 'AI-inzichten genereren...',
         generatingAIInsightsSubtitle: 'Dit duurt niet langer dan een minuut',
+        readingChart: (chartTitle: string) => `${chartTitle} wordt geladen`,
+        comparingWithYourAverage: 'Vergelijken met je gemiddelde',
+        lookingForAnythingUnusual: 'Op zoek naar iets ongewoons',
+        writingYourInsights: 'Je inzichten opschrijven',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

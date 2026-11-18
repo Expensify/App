@@ -1316,6 +1316,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: 'Średnia liczba dni',
         generatingAIInsights: 'Generowanie podpowiedzi AI...',
         generatingAIInsightsSubtitle: 'To nie powinno zająć więcej niż minutę',
+        readingChart: (chartTitle: string) => `Odczytywanie ${chartTitle}`,
+        comparingWithYourAverage: 'Porównanie z twoją średnią',
+        lookingForAnythingUnusual: 'Szukamy czegoś nietypowego',
+        writingYourInsights: 'Spisywanie twoich spostrzeżeń',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',

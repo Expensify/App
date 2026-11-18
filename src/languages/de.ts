@@ -1290,6 +1290,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: 'Durchschnittliche Tage',
         generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
         generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
+        readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
+        comparingWithYourAverage: 'Verglichen mit Ihrem Durchschnitt',
+        lookingForAnythingUnusual: 'Suche nach ungewöhnlichen Vorgängen',
+        writingYourInsights: 'Ihre Erkenntnisse schreiben',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

@@ -1292,6 +1292,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: 'Média de dias',
         generatingAIInsights: 'Gerando insights de IA...',
         generatingAIInsightsSubtitle: 'Isso não deve levar mais de um minuto',
+        readingChart: (chartTitle: string) => `Lendo ${chartTitle}`,
+        comparingWithYourAverage: 'Comparando com a sua média',
+        lookingForAnythingUnusual: 'Procurando algo incomum',
+        writingYourInsights: 'Escrevendo seus insights',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

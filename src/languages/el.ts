@@ -1336,6 +1336,10 @@ const translations: TranslationDeepObject<typeof en> = {
         averageDays: 'Μέσος όρος ημερών',
         generatingAIInsights: 'Δημιουργία AI Insights...',
         generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
+        readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
+        comparingWithYourAverage: 'Σύγκριση με τον μέσο όρο σας',
+        lookingForAnythingUnusual: 'Αναζητούμε οτιδήποτε ασυνήθιστο',
+        writingYourInsights: 'Καταγράφετε τις ιδέες σας',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

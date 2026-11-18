@@ -7,8 +7,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
+import CONST from '@src/CONST';
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
 import type {ReactElement} from 'react';
@@ -16,12 +18,15 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import InsightsAICard from './InsightsAICard';
 import InsightsAILoadingIndicator from './InsightsAILoadingIndicator';
 
 const MAX_CARD_COUNT = 4;
 const CARDS_PER_ROW_ON_MEDIUM_SCREEN = 2;
+const ENTERING_CARDS = FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION);
+const EXITING_LOADER = FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION);
 
 type InsightsAICardRowProps = {
     insights: AIInsight[] | undefined;
@@ -41,15 +46,18 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {pageGutter, pageGutterEdgeToEdge} = useLayoutSpacing();
     const {isOffline} = useNetwork();
+    const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
     const isLoading = insights === undefined && !hasFailedToLoad && !isOffline;
 
     if (isLoading) {
         return (
-            <InsightsAILoadingIndicator
+            <Animated.View
                 key={insightsScope.searchKey}
-                searchKey={insightsScope.searchKey}
-            />
+                exiting={isReducedMotionEnabled ? undefined : EXITING_LOADER}
+            >
+                <InsightsAILoadingIndicator searchKey={insightsScope.searchKey} />
+            </Animated.View>
         );
     }
 
@@ -77,14 +85,19 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
 
     if (shouldUseNarrowLayout) {
         return (
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={hasHoverSupport()}
-                style={[pageGutterEdgeToEdge, styles.pv5]}
-                contentContainerStyle={pageGutter}
+            <Animated.View
+                key="cards"
+                entering={isReducedMotionEnabled ? undefined : ENTERING_CARDS}
             >
-                {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
-            </ScrollView>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={hasHoverSupport()}
+                    style={[pageGutterEdgeToEdge, styles.pv5]}
+                    contentContainerStyle={pageGutter}
+                >
+                    {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
+                </ScrollView>
+            </Animated.View>
         );
     }
 
@@ -92,7 +105,11 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const rows = Array.from({length: Math.ceil(cards.length / cardsPerRow)}, (row, rowIndex) => cards.slice(rowIndex * cardsPerRow, (rowIndex + 1) * cardsPerRow));
 
     return (
-        <View style={[styles.pv10, styles.gap8]}>
+        <Animated.View
+            key="cards"
+            entering={isReducedMotionEnabled ? undefined : ENTERING_CARDS}
+            style={[styles.pv10, styles.gap8]}
+        >
             {rows.map((row) => (
                 <View
                     key={row.at(0)?.key}
@@ -101,7 +118,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
                     {Array.from({length: cardsPerRow}, (slot, index) => renderSlot(row.at(index), index, [styles.flex1, styles.mnw0]))}
                 </View>
             ))}
-        </View>
+        </Animated.View>
     );
 }
 
