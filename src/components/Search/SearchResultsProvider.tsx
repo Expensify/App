@@ -1,3 +1,4 @@
+import useLoadIncompleteTodoReports from '@hooks/useLoadIncompleteTodoReports';
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
 import {getFooterSelectionFromQuery} from '@libs/SearchQueryUtils';
@@ -51,12 +52,13 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // applied while the live totals are summed.
     const {footerTotal} = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal, snapshotSearchResults?.search);
+    useLoadIncompleteTodoReports(shouldUseLiveData ? currentSearchKey : undefined, liveTodoData?.incompleteReportIDs);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
     // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
     let currentSearchResults;
     if (shouldUseLiveData) {
-        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}};
+        const liveData = liveTodoData ?? {data: {}, metadata: {count: 0, total: 0, currency: undefined}, incompleteReportIDs: []};
         const searchInfo: SearchResultsInfo = {
             ...(snapshotSearchResults?.search ?? defaultSearchInfo),
             count: liveData.metadata.count,

@@ -183,7 +183,7 @@ function useTodoSearchResults(
     searchKey: SearchKey | undefined,
     footerTotal: SearchFooterTotal | undefined,
     serverSearch: SearchResults['search'] | undefined,
-): {data: TodoSearchResultsData; metadata: TodoMetadata} | undefined {
+): {data: TodoSearchResultsData; metadata: TodoMetadata; incompleteReportIDs: string[]} | undefined {
     const [allReports, reportsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs, reportNameValuePairsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -218,7 +218,7 @@ function useTodoSearchResults(
         rulesResult,
     );
 
-    const {reports, transactionsByReportID} = getTodoReportsForSearchKey(searchKey, {
+    const {reports, incompleteReportIDs, transactionsByReportID} = getTodoReportsForSearchKey(searchKey, {
         allReports,
         allTransactions,
         allPolicies,
@@ -246,7 +246,7 @@ function useTodoSearchResults(
     }
     const reportCount = getTodoReportCount({serverSearch, liveData: data, isLoaded, seenReportIDs});
 
-    return {data, metadata: {count, total, currency, reportCount}};
+    return {data, metadata: {count, total, currency, reportCount}, incompleteReportIDs};
 }
 
 export default useTodoSearchResults;
