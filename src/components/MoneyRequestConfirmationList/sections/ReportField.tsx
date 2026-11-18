@@ -112,10 +112,6 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
     const reportIDToUse = shouldUseTransactionReport ? transactionReportID : outstandingReportID;
 
-    // When saving would create a report by default, any outstanding report is an alternative the user can pick. This is based on
-    // the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
-    const isNewReport = !outstandingReportID;
-
     const [selectedReportID, selectedReport] = (() => {
         if (!reportIDToUse) {
             // Even if we have no report to use we still need a report id for proper navigation
@@ -156,7 +152,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || isNewReport) && !isMoneyRequestReport(reportID);
+    // Use the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
+    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || !outstandingReportID) && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
