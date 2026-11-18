@@ -12,7 +12,7 @@ import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
@@ -165,7 +165,7 @@ describe('QuickCreationActionsBar - empty report confirmation', () => {
 describe('QuickCreationActionsBar - travel', () => {
     const TRAVEL_POLICY_ID = 'policy-travel-456';
 
-    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true) => {
+    const seedTravelWorkspaces = async (defaultPolicyID: string, isTravelWorkspaceProvisioned = true, shouldIncludeTravelSettings = true) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
@@ -187,9 +187,11 @@ describe('QuickCreationActionsBar - travel', () => {
                 owner: CURRENT_USER_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
                 isTravelEnabled: true,
-                travelSettings: isTravelWorkspaceProvisioned
-                    ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
-                    : undefined,
+                isTravelProvisioned: isTravelWorkspaceProvisioned,
+                travelSettings:
+                    isTravelWorkspaceProvisioned && shouldIncludeTravelSettings
+                        ? {spotnanaCompanyID: 'spotnana-company-uuid', associatedTravelDomainAccountID: 'spotnana-entity-uuid', hasAcceptedTerms: true}
+                        : undefined,
             });
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
         });
@@ -208,7 +210,15 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('blocks opening travel when the default workspace has no travel', async () => {
+    it('shows travel when a policy summary says another workspace is provisioned', async () => {
+        await seedTravelWorkspaces(MOCK_POLICY_ID, true, false);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(translateLocal('workspace.common.travel'))).toBeOnTheScreen();
+    });
+
+    it('explains the wrong default workspace instead of opening travel for another workspace', async () => {
         await seedTravelWorkspaces(MOCK_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -216,11 +226,40 @@ describe('QuickCreationActionsBar - travel', () => {
         fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
         await waitForBatchedUpdatesWithAct();
 
+        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toBe(translateLocal('travel.defaultWorkspaceTravelDisabled.message'));
         expect(openTravelDotLink).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('default workspace');
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('opens travel when the travel-enabled workspace is the default one', async () => {
+    it('sends the user to set up travel on their default workspace rather than on another workspace', async () => {
+        const DEFAULT_POLICY_AWAITING_SETUP_ID = 'policy-awaiting-setup-789';
+        await seedTravelWorkspaces(MOCK_POLICY_ID);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_AWAITING_SETUP_ID}`, {
+                id: DEFAULT_POLICY_AWAITING_SETUP_ID,
+                name: 'Workspace Awaiting Travel Setup',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: null,
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isTravelEnabled: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, DEFAULT_POLICY_AWAITING_SETUP_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(openTravelDotLink).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(DEFAULT_POLICY_AWAITING_SETUP_ID));
+    });
+
+    it('opens travel when the default workspace is set up for travel', async () => {
         await seedTravelWorkspaces(TRAVEL_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -229,6 +268,7 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('does not show travel for a workspace that is not provisioned and has a stale enabled flag', async () => {

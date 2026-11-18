@@ -1,5 +1,6 @@
 import DismissibleBackdrop from '@components/DismissibleBackdrop';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -9,8 +10,6 @@ import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import useSafeAreaHorizontalPadding from './useSafeAreaHorizontalPadding';
 
 type CenteredModalLayoutProps = {
     children: React.ReactNode;
@@ -42,10 +41,9 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
 
-    const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
-        style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
+        style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, contentStyle],
     });
 
     return (
@@ -55,7 +53,9 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
         >
             <FocusTrapForScreen>
                 <View style={styles.getCenteredModalInnerView(shouldDockToBottom, width, height)}>
-                    <View style={safeAreaStyle}>{children}</View>
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                        <View style={safeAreaStyle}>{children}</View>
+                    </HorizontalSafeAreaContext.Provider>
                 </View>
             </FocusTrapForScreen>
         </DismissibleBackdrop>

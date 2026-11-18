@@ -4,12 +4,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
-import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
-import useTabEmojiStatus from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabEmojiStatus';
 
 import variables from '@styles/variables';
-
-import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 
@@ -24,19 +20,13 @@ const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativ
  */
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
-    avatarSize: variables.iconBottomBar,
+    iconBoxSize: variables.iconBottomBar,
     direction: 'stacked',
-    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
-    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
-    // Material scales an icon down to fit its slot, so a badge past the avatar would shrink the whole icon.
-    emojiStatusOffset: 0,
 };
 
-function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const avatar = useTabAvatarImage(isAccountAvatarShown);
-    const emojiStatus = useTabEmojiStatus();
 
     // The tint only reaches the labels, since the icons arrive already recolored (react-native-screens patch 004).
     const screenOptions: NativeBottomTabNavigationOptions = {
@@ -51,13 +41,10 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
 
     const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
         tabBarLabel: tabLabels[name],
-        // The active indicator pill marks the selected tab, so the avatar is the same image in both selection states.
         tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
             name,
             color: isSelected ? theme.iconMenu : theme.icon,
-            avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
-            emojiStatus: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? emojiStatus : undefined,
         })),
     });
 

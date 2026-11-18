@@ -9,7 +9,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import React from 'react';
@@ -19,7 +18,7 @@ type TransactionHistoryLinkRendererProps = CustomRendererProps<TText | TPhrasing
 
 // This component is rendered whenever a locale string uses the <transaction-history-link> custom tag.
 // Used on outcome screens (e.g. AlreadyReviewedFailureScreen). Navigating to search may re-trigger
-// useNavigateTo3DSAuthorizationChallenge if a pending challenge exists; that behavior is acceptable
+// useNavigateToForcedTransactionReview if a pending challenge exists; that behavior is acceptable
 // as the user is leaving the flow and the next challenge (if any) would be shown from the stack.
 function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRendererProps) {
     const styles = useThemeStyles();
@@ -32,8 +31,9 @@ function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRe
 
     return (
         <Text
-            style={[style as TextStyle, styles.link]}
+            style={[style, styles.link]}
             onPress={navigateToTransactionHistory}
+            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.TRANSACTION_HISTORY_LINK}
             onKeyDown={handleKeyDown}
             suppressHighlighting
             accessible

@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -28,9 +29,20 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useRoute: jest.fn(),
+        useIsFocused: () => true,
     };
 });
 const mockedUseRoute = jest.mocked(useRoute);
+
+jest.mock('@hooks/useConciergeAskState', () => ({
+    __esModule: true,
+    default: jest.fn(jest.requireActual<{default: typeof useConciergeAskState}>('@hooks/useConciergeAskState').default),
+}));
+
+jest.mock('@pages/inbox/report/ReportActionCompose/ReportActionCompose', () => {
+    const MockReportActionCompose = Object.assign(() => null, {EditOnly: () => null});
+    return {__esModule: true, default: MockReportActionCompose};
+});
 
 const REPORT_ID = '1';
 const OFFLINE_MESSAGE = 'You appear to be offline.';
@@ -92,6 +104,28 @@ describe('ReportFooter', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.mocked(useConciergeAskState).mockImplementation(jest.requireActual<{default: typeof useConciergeAskState}>('@hooks/useConciergeAskState').default);
+    });
+
+    it('labels the composer `Ask a new question` once the Concierge chat history is expanded', async () => {
+        // Given the main Concierge chat with its history expanded
+        mockLayout({isSmallScreenWidth: false, isInNarrowPaneModal: false});
+        jest.mocked(useConciergeAskState).mockReturnValue({
+            isHistoryExpanded: true,
+            shouldShowWelcome: false,
+            shouldCenterWelcomeWithComposer: false,
+            hasUnreadMessageFromOthers: false,
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+        });
+
+        // When the footer renders
+        renderReportFooter();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the composer is labeled, so the user knows a new message starts a new question
+        expect(screen.getByText('Ask a new question')).toBeOnTheScreen();
     });
 
     describe.each([

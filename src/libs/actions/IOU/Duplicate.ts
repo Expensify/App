@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -13,7 +14,7 @@ import {getExistingTransactionID} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -25,6 +26,8 @@ import {
     generateReportID,
     getReimbursableTotal,
     getTransactionDetails,
+    isArchivedReport,
+    isExpenseReport,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -39,6 +42,7 @@ import {
     isExpenseSplit,
     isFromCreditCardImport,
     isGPSDistanceRequest,
+    isMapDistanceRequest,
     isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
@@ -56,7 +60,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
@@ -73,7 +76,7 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
-import {createDistanceRequest} from './Split';
+import {commitDistanceRequest, planDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(
@@ -186,6 +189,7 @@ type MergeDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     allReportActionsList: OnyxCollection<OnyxTypes.ReportActions>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
+    allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 };
 
 type ResolveDuplicatesFuncParams = MergeDuplicatesTransactionParams & {
@@ -207,6 +211,7 @@ function mergeDuplicates({
     allTransactionViolations,
     allReportActionsList,
     allReportsList,
+    allReportNameValuePairsList,
     ...params
 }: MergeDuplicatesFuncParams) {
     const {transaction: originalSelectedTransaction, transactionList, ...restParams} = params;
@@ -334,6 +339,7 @@ function mergeDuplicates({
                 transactionThread,
                 iouReport,
                 chatReport,
+                isArchivedIOUReport: isArchivedReport(allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`]),
                 transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`],
             });
             cleanUpTransactionThreadReportsOptimisticData.push(...cleanUp.optimisticData);
@@ -660,6 +666,9 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         count: transaction.comment?.units?.count,
         rate: transaction.comment?.units?.rate,
         unit: transaction.comment?.units?.unit,
+        // Saved expenses don't keep `routes`, so the selected route's distance only survives in routeDistanceMeters.
+        // Without it, the backend recalculates the duplicate using the primary route instead of the alternate route.
+        selectedRouteDistance: isMapDistanceRequest(transaction) && shouldKeepWaypoints ? (transaction.comment?.customUnit?.routeDistanceMeters ?? undefined) : undefined,
     };
 
     if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceDuplicate)) {
@@ -705,10 +714,10 @@ function createExpenseByType({
     recentWaypoints,
     isTrackIntentUser,
     formatPhoneNumber,
-    dateFnsLocale,
     participantsPolicyTags,
     policyTags,
     rules,
+    personalDetailsByLogins,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -723,18 +732,19 @@ function createExpenseByType({
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const duplicateRequestType = getDuplicateRequestType(transaction);
+            const {writeBarrier, ...distanceBaseParams} = params;
             const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
+                ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so createDistanceRequest's
+                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
                 // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
                 moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
@@ -771,12 +781,13 @@ function createExpenseByType({
                 participantsPolicyTags,
                 rules,
             };
-            return createDistanceRequest(distanceParams);
+            const distanceRequestPlan = planDistanceRequest(distanceParams);
+            commitDistanceRequest(distanceRequestPlan, writeBarrier);
+            return {iouReport: distanceRequestPlan.iouReport, transactionID: distanceRequestPlan.transactionID};
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
-                dateFnsLocale,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -788,6 +799,7 @@ function createExpenseByType({
                 formatPhoneNumber,
                 policyTags,
                 rules,
+                personalDetailsByLogins,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -799,7 +811,6 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -831,10 +842,10 @@ type DuplicateExpenseTransactionParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function duplicateExpenseTransaction({
-    dateFnsLocale,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -866,6 +877,7 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -977,7 +989,6 @@ function duplicateExpenseTransaction({
     };
 
     return createExpenseByType({
-        dateFnsLocale,
         transactionType: getTransactionType(transaction),
         params,
         transaction,
@@ -994,11 +1005,11 @@ function duplicateExpenseTransaction({
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
         rules,
+        personalDetailsByLogins,
     });
 }
 
 type DuplicateReportParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -1026,6 +1037,7 @@ type DuplicateReportParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 /**
@@ -1085,7 +1097,6 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
 }
 
 function duplicateReport({
-    dateFnsLocale,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -1113,6 +1124,7 @@ function duplicateReport({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1251,7 +1263,6 @@ function duplicateReport({
         };
 
         const result = createExpenseByType({
-            dateFnsLocale,
             transactionType: getTransactionType(transaction),
             params,
             transaction,
@@ -1268,6 +1279,7 @@ function duplicateReport({
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
             rules,
+            personalDetailsByLogins,
         });
 
         if (result?.iouReport) {
@@ -1281,7 +1293,6 @@ function duplicateReport({
 }
 
 type BulkDuplicateExpensesParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     transactionIDs: string[];
     allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
     sourcePolicyIDMap: Record<string, string | undefined>;
@@ -1308,10 +1319,10 @@ type BulkDuplicateExpensesParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function bulkDuplicateExpenses({
-    dateFnsLocale,
     transactionIDs,
     allTransactions,
     sourcePolicyIDMap,
@@ -1338,6 +1349,7 @@ function bulkDuplicateExpenses({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1362,6 +1374,8 @@ function bulkDuplicateExpenses({
     // module-level allReports in IOU/index.ts is not yet updated when iteration 2 runs.
     let currentTargetReport = targetReport;
     let optimisticIOUReport: OnyxEntry<OnyxTypes.Report>;
+    // The iouReportID patching only applies to a chat target. An expense report target is the report itself.
+    const isTargetExpenseReport = isExpenseReport(targetReport);
 
     // When instant-submit + submit-and-close is active AND the duplicated
     // expenses are all non-reimbursable (or the policy disables reimbursement
@@ -1370,8 +1384,11 @@ function bulkDuplicateExpenses({
     // iteration will create a new report, so we must never defer auto-submit
     // — otherwise the first expense's report stays in Draft because the
     // server was told to wait for more expenses that will never arrive.
+    // An expense report target isn't split up front: the caller already checked it can
+    // take the copies, so they land on it and auto-submit waits for the last one.
     const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
     const policyWillSplitReport =
+        !isTargetExpenseReport &&
         isInstantSubmitEnabled(targetPolicy) &&
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
@@ -1396,11 +1413,17 @@ function bulkDuplicateExpenses({
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
         if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
-            optimisticIOUReport = undefined;
+            // An expense report target can stop accepting copies partway through, for example when a copy raises its
+            // total past an approval rule's limit. Keeping its latest optimistic state lets the builder open a new report
+            // in the same workspace chat. Without it, the builder rereads the report from Onyx, which doesn't count the
+            // earlier copies yet, and adds this copy to it with a stale total.
+            if (!isTargetExpenseReport) {
+                optimisticIOUReport = undefined;
+            }
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
             reportWasSplit = true;
-            if (currentTargetReport) {
+            if (currentTargetReport && !isTargetExpenseReport) {
                 currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
             }
         }
@@ -1414,7 +1437,7 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
+            personalDetailsByLogins,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1454,7 +1477,7 @@ function bulkDuplicateExpenses({
             lastDuplicateTransactionID = result.transactionID;
         }
 
-        if (currentTargetReport && !currentTargetReport.iouReportID) {
+        if (currentTargetReport && !isTargetExpenseReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: currentOptimisticIOUReportID};
         }
     }
@@ -1466,7 +1489,6 @@ function bulkDuplicateExpenses({
 }
 
 type BulkDuplicateReportsParams = {
-    dateFnsLocale: DateFnsLocale | undefined;
     selectedReports: SelectedReports[];
     allReports: NonNullable<OnyxCollection<OnyxTypes.Report>>;
     allTransactions: OnyxCollection<OnyxTypes.Transaction>;
@@ -1494,10 +1516,10 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 async function bulkDuplicateReports({
-    dateFnsLocale,
     selectedReports: selectedReportsParam,
     allReports,
     allTransactions,
@@ -1525,6 +1547,7 @@ async function bulkDuplicateReports({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateReportsParams) {
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
@@ -1584,7 +1607,7 @@ async function bulkDuplicateReports({
         }
 
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin);
+        const isSourcePolicyValid = !!reportPolicy && isPolicyAccessible(reportPolicy, currentUserLogin) && canCreateExpensesOnPolicy(reportPolicy, currentUserLogin);
         const chatReportID = report.chatReportID ?? report.parentReportID;
         const chatReport = chatReportID
             ? ((searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] as OnyxTypes.Report | undefined) ?? allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`])
@@ -1600,7 +1623,7 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
-            dateFnsLocale,
+            personalDetailsByLogins,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',

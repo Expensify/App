@@ -13,6 +13,7 @@ import type {
     OpenPolicyExpensifyCardsPageParams,
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
+    SetFeedReimbursableParams,
     SetFeedStatementPeriodEndDayParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
@@ -40,6 +41,8 @@ import type {
     CompanyCardFeed,
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
+    FeedReimbursable,
+    SelectableFeedReimbursable,
     StatementPeriodEnd,
     StatementPeriodEndDay,
 } from '@src/types/onyx/CardFeeds';
@@ -74,6 +77,20 @@ type ImportCSVCompanyCardsData = {
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
     existingInstanceID?: string;
+};
+
+type StartCardFeedRefreshParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+
+    /**
+     * Country stored on the feed. Required, even when undefined, so every caller passes it: a Plaid feed reconnects in this
+     * country, and only falls back to a guess from outputCurrency and countryByIp when the feed has none.
+     */
+    feedCountry: string | undefined;
+    outputCurrency?: string;
+    currencyList?: CurrencyList;
+    countryByIp?: string;
 };
 
 type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
@@ -1329,6 +1346,89 @@ function setFeedStatementPeriodEndDay(
     });
 }
 
+function setFeedReimbursable(
+    policyID: string,
+    bankName: CompanyCardFeedWithNumber,
+    domainAccountID: number,
+    newForceReimbursable: SelectableFeedReimbursable,
+    oldForceReimbursable: FeedReimbursable | undefined,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            forceReimbursable: newForceReimbursable,
+                            pendingFields: {
+                                forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                forceReimbursable: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            pendingFields: {
+                                forceReimbursable: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            forceReimbursable: oldForceReimbursable ?? null,
+                            pendingFields: {
+                                forceReimbursable: null,
+                            },
+                            errorFields: {
+                                forceReimbursable: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: SetFeedReimbursableParams = {
+        policyID,
+        bankName,
+        domainAccountID,
+        forceReimbursable: newForceReimbursable,
+    };
+
+    API.write(WRITE_COMMANDS.SET_FEED_REIMBURSABLE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function importCSVCompanyCards({
     policyID,
     domainAccountID,
@@ -1461,12 +1561,12 @@ function importCSVCompanyCards({
  *
  * When identity validation is required first, call this from the `useVerifyAccountAndResume` resume callback.
  */
-function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+function startCardFeedRefresh({policyID, feed, feedCountry, outputCurrency, currencyList, countryByIp}: StartCardFeedRefreshParams) {
     const isPlaidFeed = !!CardUtils.getPlaidInstitutionId(feed);
     const currentStep = isPlaidFeed ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
 
     if (isPlaidFeed) {
-        const selectedCountry = CardUtils.getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        const selectedCountry = CardUtils.getPlaidCountryForFeed(feedCountry, outputCurrency, currencyList, countryByIp);
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
@@ -1584,6 +1684,7 @@ export {
     clearAssignCardStepAndData,
     openPolicyAddCardFeedPage,
     setFeedStatementPeriodEndDay,
+    setFeedReimbursable,
     importCSVCompanyCards,
     clearErrorField,
     clearAssignCardErrors,

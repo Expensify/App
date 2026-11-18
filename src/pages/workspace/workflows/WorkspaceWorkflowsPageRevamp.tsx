@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
@@ -22,7 +23,7 @@ import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {canMemberRead, getApprovalWorkflow, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -72,6 +73,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
@@ -146,6 +148,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const tabs: Array<TabSelectorBaseItem<WorkflowsTab>> = [
         {
             key: WORKFLOWS_TAB.SUBMISSIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.SUBMISSIONS,
             title: translate('workflowsPage.submissionFrequency'),
             icon: expensifyIcons.Send,
             isDisabled: !canAccessSubmissions,
@@ -153,11 +156,13 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         },
         {
             key: WORKFLOWS_TAB.APPROVALS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.APPROVALS,
             title: translate('workflowsPage.addApprovalsTitle'),
             icon: expensifyIcons.ThumbsUp,
         },
         {
             key: WORKFLOWS_TAB.PAYMENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.PAYMENTS,
             title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
             icon: expensifyIcons.MoneyBag,
             isDisabled: !canReadPayments,
@@ -165,6 +170,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         },
         {
             key: WORKFLOWS_TAB.ADVANCED,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.ADVANCED,
             title: translate('workspace.rules.expenseReportRules.title'),
             icon: expensifyIcons.Wrench,
         },
@@ -232,6 +238,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         }
         downloadMembersCSV(
             policyID,
+            shouldUseApprovalWorkflowRules,
             () => {
                 showConfirmModal({
                     title: translate('common.downloadFailedTitle'),
@@ -249,14 +256,18 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy) || shouldHideApprovalWorkflows;
 
+    // With rules, the spreadsheet sets up approval workflow rules, which don't route anything while approvals are off
+    const shouldHideImportWithoutApprovals = shouldUseApprovalWorkflowRules && getApprovalWorkflow(policy) === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
-    if (!shouldBlockApprovalWorkflowEditing) {
+    if (!shouldBlockApprovalWorkflowEditing && !shouldHideImportWithoutApprovals) {
         approvalSecondaryActions.push({
             icon: expensifyIcons.Table,
             text: translate('spreadsheet.importWorkflows'),
             onSelected: importWorkflowsAction,
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_MENU_IMPORT_SPREADSHEET,
         });
     }
     // Downloading is read-only, so the read-only HR modes keep it. Hiding the workflow drops it too, because the
@@ -267,6 +278,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             text: translate('spreadsheet.downloadWorkflows'),
             onSelected: downloadWorkflowsAction,
             value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_MENU_DOWNLOAD_CSV,
         });
     }
 

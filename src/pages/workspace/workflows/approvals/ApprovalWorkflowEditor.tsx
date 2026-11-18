@@ -11,7 +11,7 @@ import UserPills from '@components/UserPills';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useShouldUseApprovalWorkflowRules from '@hooks/useShouldUseApprovalWorkflowRules';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getApprovalLimitDescription, getNonMemberApproverError} from '@libs/WorkflowUtils';
+import {getApproverTitles, getNonMemberApproverError} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -52,13 +52,22 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const approverDescription = (index: number) =>
-        approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
+    const approverDescriptions = getApproverTitles({
+        approvers: approvalWorkflow.approvers,
+        getTitle: (position, count, approver, isLast) => {
+            if (approverCount <= 1) {
+                return translate('workflowsPage.approver');
+            }
+            return position > 0 && isLast ? translate('workflowsPage.finalApprover') : `${toLocaleOrdinalWithWords(position + 1)} ${translate('workflowsPage.approver').toLowerCase()}`;
+        },
+        currency,
+        translate,
+        convertToDisplayString,
+    });
 
     const getApprovalPendingAction = (index: number) => {
         // The approver's own `pendingAction` takes precedence — it's set when an approver was
@@ -126,7 +135,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     };
 
     const editApprover = (approverIndex: number) => {
-        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        // Every report reaches the first approver, so there's nothing to set for them besides who they are
+        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE || approverIndex === 0) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
@@ -196,18 +206,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
-                    // Without the beta an approver has one employeeList entry shared by every workflow they are in, so an edit here
-                    // reaches all of them. With the beta each workflow routes through its own rules and the edit stays in this one.
+                    // Without rules an approver has one employeeList entry shared by every workflow they are in, so an edit here
+                    // reaches all of them. With rules each workflow routes through its own rules and the edit stays in this one.
                     const isApproverInMultipleWorkflows =
-                        !isMultipleApproversBetaEnabled && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({
-                        approver,
-                        currency,
-                        translate,
-                        formatPhoneNumber,
-                        convertToDisplayString,
-                    });
-                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
+                        !shouldUseApprovalWorkflowRules && !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
 
                     return (
                         <OfflineWithFeedback
@@ -219,7 +221,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
-                                description={approverDescription(approverIndex)}
+                                description={approverDescriptions.at(approverIndex)}
                                 descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
                                 titleComponent={
                                     approver ? (
@@ -235,7 +237,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 }
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
-                                hintText={hintText}
+                                hintText={isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined}
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
@@ -245,7 +247,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     );
                 })}
 
-                <MenuItemSectionRoot onPress={addAdditionalApprover}>
+                <MenuItemSectionRoot
+                    onPress={addAdditionalApprover}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_ADDITIONAL_APPROVER}
+                >
                     <MenuItemField.Row name={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}>
                         {!!approvalWorkflow?.errors?.additionalApprover && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         <MenuItem.Chevron />
@@ -260,7 +265,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <View style={styles.mt6}>
-                        <MenuItemSectionRoot onPress={removeApprovalWorkflow}>
+                        <MenuItemSectionRoot
+                            onPress={removeApprovalWorkflow}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_DELETE}
+                        >
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Trashcan} />

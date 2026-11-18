@@ -1,4 +1,3 @@
-import usePermissions from '@hooks/usePermissions';
 import useTodoSearchResults from '@hooks/useTodoSearchResults';
 
 import {getFooterSelectionFromQuery} from '@libs/SearchQueryUtils';
@@ -19,7 +18,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {SearchResultsActionsValue, SearchResultsContextValue} from './types';
 
 import {useSearchQueryContext} from './SearchContext';
-import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext} from './SearchContextDefinitions';
+import {EMPTY_TRANSACTIONS_BY_REPORT_ID, SearchResultsActionsContext, SearchResultsContext, SearchShouldUseLiveDataContext} from './SearchContextDefinitions';
 
 type SearchResultsProviderProps = {
     children: React.ReactNode;
@@ -49,10 +48,8 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
 
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
     // A to-do search has no snapshot to carry the backend's aggregate, so the breakdown the footer asks for is
-    // applied while the live totals are summed. Nothing is applied without the beta: the query is stripped of footer
-    // selections upstream, and this is the one place that would act on one anyway, so it checks for itself.
-    const {isBetaEnabled} = usePermissions();
-    const {footerTotal} = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) ? getFooterSelectionFromQuery(currentSearchQueryJSON) : {footerTotal: undefined};
+    // applied while the live totals are summed.
+    const {footerTotal} = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal, snapshotSearchResults?.search);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
@@ -113,9 +110,11 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     };
 
     return (
-        <SearchResultsContext value={resultsValue}>
-            <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
-        </SearchResultsContext>
+        <SearchShouldUseLiveDataContext value={shouldUseLiveData}>
+            <SearchResultsContext value={resultsValue}>
+                <SearchResultsActionsContext value={resultsActionsValue}>{children}</SearchResultsActionsContext>
+            </SearchResultsContext>
+        </SearchShouldUseLiveDataContext>
     );
 }
 

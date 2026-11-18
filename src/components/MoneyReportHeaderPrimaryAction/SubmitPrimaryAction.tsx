@@ -19,7 +19,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -27,7 +29,13 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
-import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {
+    hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
 import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -40,6 +48,7 @@ import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {getArchiveReason} from '@selectors/Report';
 import React from 'react';
 
 const ANCHOR_ALIGNMENT = {
@@ -85,6 +94,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {selector: getArchiveReason});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -127,14 +138,18 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
 
     // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
     // submits the report to the submitter, which is what makes the backend generate it.
     const canSubmitViaPDF = !!moneyRequestReport && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
@@ -214,6 +229,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
                     isLoading: !!currentSearchResults?.search?.isLoading,
+                    shouldReturnTripRooms,
                 });
             }
         });
@@ -227,6 +243,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
                 text: translate('common.submit'),
                 icon: expensifyIcons.Send,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
                     handleSubmit();
@@ -236,6 +253,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF,
                 text: translate('common.submitViaPDF'),
                 icon: expensifyIcons.Document,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT_VIA_PDF,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
                     handleSubmit(true);
@@ -246,6 +264,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
         return (
             <ButtonWithDropdownMenu<SubmissionMethod>
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.SUBMIT}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
                 pressOnEnter
@@ -262,6 +281,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     return (
         <AnimatedSubmitButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.SUBMIT}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}

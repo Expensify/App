@@ -44,8 +44,11 @@ const MOCK_UNIFIED_LAST_ITEM_INDEX = 37;
 const mockScrollToIndex = jest.fn();
 const mockScrollToEnd = jest.fn();
 const mockScrollToOffset = jest.fn();
+const mockNewestActionUnmount = jest.fn();
 let mockIsNewestReportAction: boolean | undefined;
 let mockScrollToNewestAction: (() => void) | undefined;
+let mockOnCommitLayoutEffect: (() => void) | undefined;
+let mockShouldRenderNewestAction = true;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -103,6 +106,7 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
         isLoadingInitialActions,
         listRef,
         onLastItemIndexChange,
+        onCommitLayoutEffect,
         visibleReportActions,
         renderReportAction,
     }: {
@@ -114,17 +118,19 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
             scrollToOffset: typeof mockScrollToOffset;
         }>;
         onLastItemIndexChange?: (index: number) => void;
+        onCommitLayoutEffect?: () => void;
         visibleReportActions: ReportAction[];
         renderReportAction: (reportAction: ReportAction, index: number) => React.ReactElement;
     }) => {
         ReactActual.useImperativeHandle(listRef, () => ({scrollToIndex: mockScrollToIndex, scrollToEnd: mockScrollToEnd, scrollToOffset: mockScrollToOffset}));
         ReactActual.useLayoutEffect(() => onLastItemIndexChange?.(MOCK_UNIFIED_LAST_ITEM_INDEX), [onLastItemIndexChange]);
+        mockOnCommitLayoutEffect = onCommitLayoutEffect;
         const newestAction = visibleReportActions.at(-1);
 
         return (
             <View testID="MockMoneyRequestReportTransactionList">
                 {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
-                {newestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
+                {newestAction && mockShouldRenderNewestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
                 {listFooterComponent}
             </View>
         );
@@ -137,6 +143,8 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
+const mockSentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
+
 // The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
 // FeatureTrainingModal tree on the global modal stack
 jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
@@ -146,7 +154,7 @@ jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
     const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
     return () => (
         <View testID="HoldOrRejectEducationalModal">
-            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            <FeatureTraining.ConfirmButton sentryLabel={mockSentryLabel}>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
         </View>
     );
 });
@@ -209,6 +217,12 @@ jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
         jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
 
     return jest.fn(() => {
+        ReactActual.useEffect(
+            () => () => {
+                mockNewestActionUnmount();
+            },
+            [],
+        );
         mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
         mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
         return null;
@@ -320,6 +334,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         jest.clearAllMocks();
         mockIsNewestReportAction = undefined;
         mockScrollToNewestAction = undefined;
+        mockOnCommitLayoutEffect = undefined;
+        mockShouldRenderNewestAction = true;
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -329,7 +345,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         });
     });
 
-    it('should use the unified list index when the newest action requests a bottom scroll', async () => {
+    it('keeps newest-action scroll requests until FlashList commits after the editor unmounts', async () => {
+        // Given a loaded money report with an editable newest action and an unchanged row height.
         await act(async () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
@@ -348,9 +365,34 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockIsNewestReportAction).toBe(true);
-        act(() => mockScrollToNewestAction?.());
+        mockScrollToIndex.mockClear();
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // When closing the editor queues a request and unmounts its consumer, without a size-change event.
+        const requestScroll = mockScrollToNewestAction;
+        mockShouldRenderNewestAction = false;
+        act(() => requestScroll?.());
+        expect(mockNewestActionUnmount).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // Then the list's layout commit consumes the request once and preserves its indexed landing.
+        const firstCommit = mockOnCommitLayoutEffect;
+        act(() => {
+            firstCommit?.();
+            firstCommit?.();
+        });
         expect(mockScrollToIndex).toHaveBeenCalledWith({index: MOCK_UNIFIED_LAST_ITEM_INDEX, animated: false, viewPosition: 1});
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
         expect(mockScrollToEnd).not.toHaveBeenCalled();
+
+        // A later edit needs its own layout commit; a repeated older callback cannot consume it.
+        mockShouldRenderNewestAction = true;
+        act(() => requestScroll?.());
+        act(() => firstCommit?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(2);
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {

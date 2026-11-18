@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
@@ -117,7 +116,7 @@ function PrivatePersonalDetailsConfirmValidateCodePage({navigation}: PrivatePers
     // back, and is idempotent with the success path above (which already clears the draft before navigating away).
     useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
 
-    const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
+    const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues));
 
     const handleSubmitForm = (validateCode: string) => {
         updatePrivatePersonalDetails(values, validateCode, countryCode);

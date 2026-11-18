@@ -73,7 +73,7 @@ function MoneyRequestReportTableHeader({
     };
 
     return (
-        <View style={[styles.dFlex, styles.flex5]}>
+        <View style={[styles.dFlex, styles.flex5, styles.alignSelfStretch]}>
             <SortableTableHeader
                 columns={orderedColumnConfig}
                 shouldShowColumn={shouldShowColumn}

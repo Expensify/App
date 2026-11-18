@@ -193,7 +193,6 @@ function ExpenseGroupedSearchView({
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
@@ -325,6 +324,21 @@ function ExpenseGroupedSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={shouldSplit}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
@@ -337,21 +351,8 @@ function ExpenseGroupedSearchView({
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={shouldSplit}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={listData}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
@@ -377,7 +378,6 @@ function ExpenseGroupedSearchView({
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
                 overrideItemLayout={shouldSplit ? overrideItemLayout : undefined}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }

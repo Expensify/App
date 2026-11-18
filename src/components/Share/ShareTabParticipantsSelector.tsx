@@ -5,6 +5,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {cancelSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -26,9 +27,15 @@ type ShareTabParticipantsSelectorProps = {
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
+
+    // Focusing the search input opens the keyboard, so wait until the shared file is known and, when it has to be checked
+    // or converted first (e.g. HEIC), until it has passed. Otherwise the keyboard opens just before a file error bottom sheet.
+    const shouldDeferTextInputAutoFocus = !currentAttachment || (shouldValidateFile(currentAttachment) && !validatedFile);
 
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
@@ -100,6 +107,10 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     return (
         <MoneyRequestParticipantsSelector
             iouType={CONST.IOU.TYPE.SUBMIT}
+            // Share shows file errors in a bottom sheet from the global modal stack. On iOS the contacts prompt opening
+            // over that sheet replaced it mid-presentation and froze the screen, so this flow doesn't show the prompt.
+            shouldShowContactImportPrompt={false}
+            shouldDeferTextInputAutoFocus={shouldDeferTextInputAutoFocus}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
                 // clear the existing draft transaction from the previous flow to prevent the old data from being displayed

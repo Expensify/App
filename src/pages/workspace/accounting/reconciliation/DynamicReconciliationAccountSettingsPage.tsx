@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -190,7 +191,8 @@ function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountLi
 function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
 
-    const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${travelBillingFundID}`);
     const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
     const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);

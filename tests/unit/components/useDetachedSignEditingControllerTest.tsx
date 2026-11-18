@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useDetachedSignEditingController from '@components/NumericEditingController/hooks/useDetachedSignEditingController';
-import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController/types';
+import useDetachedSignEditingController from '@components/AmountEditingController/hooks/useDetachedSignEditingController';
+import type {AmountEditingKeyPressEvent} from '@components/AmountEditingController/types';
 
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
 
@@ -30,7 +30,7 @@ type HookProps = {
     decimals: number;
 };
 
-const buildKeyPressEvent = (key: string): NumericEditingKeyPressEvent => ({nativeEvent: {key}});
+const buildKeyPressEvent = (key: string): AmountEditingKeyPressEvent => ({nativeEvent: {key}});
 
 function renderController({value, allowNegative = true, decimals = 2}: Partial<HookProps> & {value: string}) {
     const onInputChange = jest.fn();
@@ -42,6 +42,30 @@ function renderController({value, allowNegative = true, decimals = 2}: Partial<H
 }
 
 describe('useDetachedSignEditingController', () => {
+    it('displays only the magnitude of a negative value', () => {
+        // Given a negative canonical value
+        const value = '-12';
+
+        // When the controller is rendered
+        const {result} = renderController({value});
+
+        // Then the input text drops the sign, because the sign is rendered outside the input
+        expect(result.current.formattedNumber).toBe('12');
+        expect(result.current.isNegative).toBe(true);
+    });
+
+    it('keeps the minus inside the displayed text when negative values are not allowed', () => {
+        // Given a value with a minus while negatives are disallowed
+        const value = '-12';
+
+        // When the controller is rendered
+        const {result} = renderController({value, allowNegative: false});
+
+        // Then nothing treats it as a sign
+        expect(result.current.formattedNumber).toBe('-12');
+        expect(result.current.isNegative).toBe(false);
+    });
+
     it('makes a positive value negative when a minus is typed before the magnitude', () => {
         // Given a positive value with the caret at the start
         const {result, onInputChange} = renderController({value: '12'});
@@ -56,6 +80,81 @@ describe('useDetachedSignEditingController', () => {
         expect(onInputChange).toHaveBeenLastCalledWith('-12');
     });
 
+    it('makes a negative value positive when a minus is typed again', () => {
+        // Given a negative value with the caret at the start of its magnitude
+        const {result, onInputChange} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+
+        // When the user types a minus, which toggles the sign
+        act(() => result.current.setNumber('-12'));
+
+        // Then the value is positive again
+        expect(result.current.value).toBe('12');
+        expect(onInputChange).toHaveBeenLastCalledWith('12');
+    });
+
+    it('keeps the sign of a pasted negative number instead of toggling it', () => {
+        // Given a negative value with only part of its magnitude selected
+        const {result} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 1));
+
+        // When a negative number is pasted over the selection, which is not a lone minus typed at the start
+        act(() => result.current.setNumber('-32'));
+
+        // Then the pasted sign is kept instead of being toggled off, because a paste sets the sign rather than typing it
+        expect(result.current.value).toBe('-32');
+    });
+
+    it('rejects a minus typed inside the magnitude', () => {
+        // Given a positive value with the caret between its digits
+        const {result, onInputChange} = renderController({value: '12'});
+        act(() => result.current.handleSelectionChange(1, 1));
+
+        // When the user types a minus there
+        act(() => result.current.setNumber('1-2'));
+
+        // Then the edit is rejected, because a sign can only lead the number
+        expect(result.current.value).toBe('12');
+        expect(onInputChange).not.toHaveBeenCalled();
+    });
+
+    it('clears the sign when the whole number is replaced with a positive one', () => {
+        // Given a negative value whose whole magnitude is selected
+        const {result} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 2));
+
+        // When the user types a digit over the selection
+        act(() => result.current.setNumber('7'));
+
+        // Then the new number replaces the old one, sign included
+        expect(result.current.value).toBe('7');
+    });
+
+    it('keeps the sign when a digit is appended to a negative value', () => {
+        // Given a negative value with the caret at the end
+        const {result} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(2, 2));
+
+        // When the user types a digit
+        act(() => result.current.setNumber('123'));
+
+        // Then only the magnitude changes
+        expect(result.current.value).toBe('-123');
+    });
+
+    it('removes the sign on backspace at the start of the magnitude', () => {
+        // Given a negative value with the caret at the start of its magnitude
+        const {result, onInputChange} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+
+        // When the user presses backspace, which has no digit to delete before the caret
+        act(() => result.current.handleKeyPress(buildKeyPressEvent('Backspace')));
+
+        // Then the sign is cleared and the magnitude is untouched, so a native deletion is not doubled by the controller
+        expect(result.current.value).toBe('12');
+        expect(onInputChange).toHaveBeenLastCalledWith('12');
+    });
+
     it('keeps the sign on backspace after a digit', () => {
         // Given a negative value with the caret after its last digit
         const {result} = renderController({value: '-12'});
@@ -66,6 +165,39 @@ describe('useDetachedSignEditingController', () => {
 
         // Then the key press alone leaves the sign, because the input deletes the digit itself
         expect(result.current.value).toBe('-12');
+    });
+
+    it.each([{}, {key: undefined}, {key: null}, {key: 123}, {key: {}}, {key: ''}, {key: 'Unidentified'}])('preserves the sign for an unrecognized key event %p', (nativeEvent) => {
+        // Given a negative value with the caret where backspace would remove its sign
+        const {result, onInputChange} = renderController({value: '-12'});
+        act(() => result.current.handleSelectionChange(0, 0));
+        const event: AmountEditingKeyPressEvent = {nativeEvent: {}};
+        Object.assign(event.nativeEvent, nativeEvent);
+
+        // When an event arrives without a recognized key
+        act(() => result.current.handleKeyPress(event));
+
+        // Then neither the sign nor the caret changes because no backspace was identified
+        expect(result.current.value).toBe('-12');
+        expect(result.current.selection).toEqual({start: 0, end: 0});
+        expect(onInputChange).not.toHaveBeenCalled();
+    });
+
+    it.each([{}, {key: undefined}, {key: null}, {key: 123}, {key: {}}])('clears a previous forward-delete keypress for an unrecognized key event %p', (nativeEvent) => {
+        // Given repeated digits whose deletion direction depends on the last keypress
+        const {result} = renderController({value: '-111'});
+        act(() => result.current.handleSelectionChange(2, 2));
+        act(() => result.current.handleKeyPress(buildKeyPressEvent('Delete')));
+        const event: AmountEditingKeyPressEvent = {nativeEvent: {}};
+        Object.assign(event.nativeEvent, nativeEvent);
+
+        // When an unrecognized key precedes a native edit that removes the digit before the caret
+        act(() => result.current.handleKeyPress(event));
+        act(() => result.current.setNumber('11'));
+
+        // Then the base controller has cleared the old forward-delete flag so the caret moves back
+        expect(result.current.value).toBe('-11');
+        expect(result.current.selection).toEqual({start: 1, end: 1});
     });
 
     it('toggles the sign and removes it through deleteBackward with the caret at the start', () => {
@@ -120,18 +252,6 @@ describe('useDetachedSignEditingController', () => {
         // Then there is no sign or digit before the caret, so nothing changes
         expect(result.current.value).toBe('12');
         expect(onInputChange).not.toHaveBeenCalled();
-    });
-
-    it('clears only the sign on a backspace key press at the start of a negative value', () => {
-        // Given a negative value with the caret at the start
-        const {result} = renderController({value: '-12'});
-        act(() => result.current.handleSelectionChange(0, 0));
-
-        // When the user presses backspace on the keyboard
-        act(() => result.current.handleKeyPress(buildKeyPressEvent('Backspace')));
-
-        // Then the sign is cleared and the magnitude is untouched, so a native deletion is not doubled by the controller
-        expect(result.current.value).toBe('12');
     });
 
     it('ignores a sign toggle when negative values are not allowed', () => {

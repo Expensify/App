@@ -66,6 +66,8 @@ import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, 
 
 import variables from '@styles/variables';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -77,6 +79,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
@@ -94,6 +97,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const delegateAccountID = useDelegateAccountID();
 
     const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
@@ -174,7 +178,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             parentReport,
         );
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, effectivePolicy, true) ?? {};
     let transactionDetailsAmount;
     // `initSplitExpense` computes the total against the fallback rate for self-DM splits
     // where the original rate was deleted from the workspace, and stores it on the draft.
@@ -487,11 +491,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const percentage = adjustedPercentages.at(index) ?? 0;
 
-        const date = DateUtils.formatWithUTCTimeZone(
-            item.created,
-            DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(item.created, dateFnsLocale);
         previewHeaderText.unshift({text: date}, dotSeparator);
 
         if (isApproved) {
@@ -556,21 +556,35 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const listFooterContent = (
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
-                <MenuItem
-                    onPress={onAddSplitExpense}
-                    title={translate('iou.addSplit')}
-                    icon={icons.Plus}
+                <MenuItem.Root
+                    onPress={callIfAuthenticated(onAddSplitExpense, session)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
-                />
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Plus} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('iou.addSplit')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
                 {isInitialSplit && (
-                    <MenuItem
-                        onPress={onMakeSplitsEven}
-                        title={translate('iou.makeSplitsEven')}
-                        icon={icons.ArrowsLeftRight}
+                    <MenuItem.Root
+                        onPress={callIfAuthenticated(onMakeSplitsEven, session)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.ArrowsLeftRight} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('iou.makeSplitsEven')}</MenuItem.Title>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
             </View>
             {isInLandscapeMode && footerContent}
@@ -579,7 +593,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
 
     const splitStartDate = draftTransaction?.comment?.splitsStartDate;
     const splitEndDate = draftTransaction?.comment?.splitsEndDate;
-    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate);
+    const splitDatesTitle = DateUtils.getFormattedSplitDateRange(translate, splitStartDate, splitEndDate, dateFnsLocale);
 
     const handleDatePress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path));
@@ -588,6 +602,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const headerDateContent = (
         <View style={styles.pb3}>
             <MenuItemField
+                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SPLIT_DATES_FIELD}
                 name={translate('iou.splitDates')}
                 value={splitDatesTitle}
                 numberOfLinesValue={2}

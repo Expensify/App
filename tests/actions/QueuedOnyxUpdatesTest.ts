@@ -78,7 +78,7 @@ async function testOnyxKeyValue(key: OnyxKey): Promise<void> {
         const connection = Onyx.connect({
             key,
             callback: (value) => {
-                Onyx.disconnect(connection);
+                connection.unsubscribe();
 
                 expect(value).toEqual(expectedValue);
                 resolve();
@@ -119,7 +119,7 @@ describe('actions/QueuedOnyxUpdates', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeUndefined();
 
                         resolve();
@@ -131,7 +131,7 @@ describe('actions/QueuedOnyxUpdates', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeUndefined();
 
                         resolve();
@@ -162,7 +162,7 @@ describe('actions/QueuedOnyxUpdates', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toEqual(getOnyxUpdateValue(`${ONYXKEYS.COLLECTION.REPORT}2175919089355165`));
 
                         resolve();
@@ -174,7 +174,7 @@ describe('actions/QueuedOnyxUpdates', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(reportActions).toEqual(getOnyxUpdateValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`));
 
                         resolve();

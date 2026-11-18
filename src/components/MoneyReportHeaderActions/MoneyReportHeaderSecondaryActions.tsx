@@ -29,13 +29,17 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePayViaABA from '@hooks/usePayViaABA';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShareActions from '@hooks/useShareActions';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -47,6 +51,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -66,7 +71,8 @@ import {
 } from '@libs/ReportUtils';
 import {isPending} from '@libs/TransactionUtils';
 
-import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,6 +107,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
 function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
+    const {payReportsViaABA} = usePayViaABA();
 
     const {translate, localeCompare} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
@@ -151,7 +158,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -170,6 +180,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
@@ -177,6 +188,21 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyReportTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -188,9 +214,15 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             const holdMenuParams = {
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 onConfirm: () => startAnimation(),
             };
+            // Verify before opening the hold menu for Pay via ABA,since it isn't verified before reaching here like other payment methods
+            if (paymentMethod === CONST.PAYMENT_METHODS.ABA && !isUserValidated) {
+                verifyAccountAndResume(() => openHoldMenu(holdMenuParams));
+                return;
+            }
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // TransitionTracker.runAfterTransitions delays modal until current interaction completes, preventing visual glitches on iOS
                 TransitionTracker.runAfterTransitions({
@@ -229,9 +261,12 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 rules,
             });
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport], policy, {onPaid: startAnimation});
+            }
         } else {
-            startAnimation();
-            payMoneyRequest({
+            payWithWiseQuote({
                 bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
@@ -250,24 +285,17 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: () => {
                     startAnimation();
                 },
+                onPaymentSent: refreshSearch,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
                 rules,
             });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                });
-            }
         }
     };
 
@@ -339,6 +367,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                             '',
                         ),
                         icon: expensifyIcons.Building,
+                        sentryLabel: CONST.SENTRY_LABEL.PAY_MENU.OPTION.PAY_WITH_WORKSPACE,
                         workspacePolicy: wp,
                     };
                     paymentSubMenuItems.push(workspacePolicyItem);
@@ -457,9 +486,17 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
+    const handleOptionsMenuShow = () => {
+        if (!secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)) {
+            return;
+        }
+        openPaymentMethods();
+    };
+
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         const runPaymentSelection = () =>
             selectPaymentType({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 event,
                 iouPaymentType,
@@ -481,6 +518,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 delegateAccountID,
+                allTransactionViolations,
             });
 
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -506,6 +544,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
             isDisabled={isDisabled}
+            onOptionsMenuShow={handleOptionsMenuShow}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton
@@ -526,6 +565,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled
     return (
         <View style={wrapperStyle}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}

@@ -99,6 +99,7 @@ function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
@@ -148,6 +149,7 @@ function setupMergeTransactionDataAndNavigate(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            translate,
             getCurrencyDecimals,
             searchReports,
             targetTransactionPolicy,
@@ -209,7 +211,7 @@ function getTransactionsForMergingLocally(
         // Resolve admin status against the candidate’s own workspace. If the policy is absent from
         // the local cache we cannot verify access, so we exclude the candidate rather than assuming
         // admin rights.
-        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport(transaction.reportID);
+        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport({reportID: transaction.reportID});
         if (!candidateReport) {
             return false;
         }
@@ -363,11 +365,13 @@ function getOnyxTargetTransactionData({
         data = getUpdateTrackExpenseParams({
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
-            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionThread: targetTransactionThreadReport,
+            transactionThreadParentReport: targetTransactionThreadParentReport,
             transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
             currencyContext: {getCurrencyDecimals, getCurrencySymbol},
+            rules,
             shouldBuildOptimisticModifiedExpenseReportAction,
         });
     } else {
@@ -460,6 +464,7 @@ type MergeTransactionRequestParams = {
     sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isSourceActionIOUReportArchived: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -500,6 +505,7 @@ function mergeTransactionRequest({
     sourceActionChatReport,
     rules,
     isVendorMatchingBetaEnabled,
+    isSourceActionIOUReportArchived,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -581,7 +587,7 @@ function mergeTransactionRequest({
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
         const transactionsOfDeletableReport = Object.values(transactionsOfDeletableReportCollection);
-        const deletableReport = getReportOrDraftReport(transactionToDelete.reportID);
+        const deletableReport = getReportOrDraftReport({reportID: transactionToDelete.reportID});
         const reportPreviewActionIDOfDeletableReport = deletableReport?.parentReportActionID;
         const optimisticReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
@@ -600,7 +606,7 @@ function mergeTransactionRequest({
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID) ?? null,
+                          value: getReportOrDraftReport({reportID: transactionToDelete.reportID}) ?? null,
                       },
                   ]
                 : [];
@@ -675,6 +681,7 @@ function mergeTransactionRequest({
                 currentUserAccountID: currentUserAccountIDParam,
                 iouReport: sourceActionIOUReport,
                 chatReport: sourceActionChatReport,
+                isArchivedIOUReport: isSourceActionIOUReportArchived,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });

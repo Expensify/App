@@ -30,6 +30,9 @@ type Args = {
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 
+    /** Returns the list's visible index range as of now, or undefined before the list has a layout */
+    getVisibleIndexRange?: () => {startIndex: number; endIndex: number} | undefined;
+
     /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
     shouldBeAlignedToTop?: boolean;
 
@@ -46,6 +49,7 @@ export default function useReportUnreadMessageScrollTracking({
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
+    getVisibleIndexRange,
     shouldBeAlignedToTop = false,
     shouldDisablePillTracking = false,
 }: Args) {
@@ -59,6 +63,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: boolean;
         onUnreadActionVisible: () => void;
         actionBadgeTargetIndex: number;
+        getVisibleIndexRange: Args['getVisibleIndexRange'];
     }>({
         reportID,
         unreadMarkerReportActionIndex,
@@ -66,6 +71,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: true,
         onUnreadActionVisible,
         actionBadgeTargetIndex,
+        getVisibleIndexRange,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -81,6 +87,10 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.onUnreadActionVisible = onUnreadActionVisible;
     }, [onUnreadActionVisible]);
+
+    useEffect(() => {
+        ref.current.getVisibleIndexRange = getVisibleIndexRange;
+    }, [getVisibleIndexRange]);
 
     /**
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
@@ -124,6 +134,17 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         updatePillVisibility();
+
+        // Without a divider, reaching the newest messages must still finish a skipped read.
+        if (
+            event &&
+            ref.current.isFocused &&
+            unreadMarkerReportActionIndex === -1 &&
+            !hasNewerActions &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD
+        ) {
+            ref.current.onUnreadActionVisible();
+        }
     };
 
     const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -163,7 +184,9 @@ export default function useReportUnreadMessageScrollTracking({
         if (badgeTargetIndex !== -1) {
             // In an inverted list, higher indexes are "above" (older messages). The target is above the viewport
             // when its index is greater than the max visible index.
-            const isAbove = isInverted ? badgeTargetIndex > maxIndex : badgeTargetIndex < minIndex;
+            // FlashList reports a snapshot taken up to 250ms earlier, which can predate the new row's measured layout, so prefer the live range
+            const visibleRange = ref.current.getVisibleIndexRange?.();
+            const isAbove = isInverted ? badgeTargetIndex > (visibleRange?.endIndex ?? maxIndex) : badgeTargetIndex < (visibleRange?.startIndex ?? minIndex);
             setIsActionBadgeAboveViewport(isAbove);
         } else {
             setIsActionBadgeAboveViewport(false);

@@ -1,19 +1,24 @@
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import GpsDraftDetailsRefSync from '@components/GpsDraftDetailsRefSync';
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import Icon from '@components/Icon';
+import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useRootNavigationState from '@hooks/useRootNavigationState';
-import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
+import useRequire2FAOverlayVisibility from '@hooks/useRequire2FAOverlayVisibility';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSignOut from '@hooks/useSignOut';
+import useTestToolsTapResponder from '@hooks/useTestToolsTapResponder';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
-import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
@@ -29,7 +34,6 @@ import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useNavigation} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
@@ -49,17 +53,20 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 };
 
 function RequireTwoFactorAuthenticationOverlay() {
-    const navigation = useNavigation();
-    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
-    const isIn2FASetupFlow = useRootNavigationState((state) => {
-        // When navigation is not ready yet, use the navigation state from the navigation hook.
-        const focusedScreen = getDeepestFocusedScreen(state ?? navigation.getState());
-        return isTwoFactorSetupScreen(focusedScreen?.name);
-    });
+    const {isRequire2FAOverlayVisible, isTestToolsRouteFocused} = useRequire2FAOverlayVisibility();
 
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const testToolsTapResponder = useTestToolsTapResponder();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    // OfflineIndicator is a fixed-height row. Safe-area padding has to live on the container around it,
+    // or the home-indicator inset consumes that height and the "You appear to be offline" label clips.
+    const offlineBannerSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+    });
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
     const gpsDraftDetailsRef = useRef<GpsDraftDetails | undefined>(undefined);
@@ -90,11 +97,11 @@ function RequireTwoFactorAuthenticationOverlay() {
     };
 
     useEffect(() => {
-        if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+        if (!isRequire2FAOverlayVisible) {
             return;
         }
         snapshotOnboardingResumePathIfNeeded();
-    }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
+    }, [isRequire2FAOverlayVisible, snapshotOnboardingResumePathIfNeeded]);
 
     const onEscapePress = () => {
         if (isEscapeInFlight) {
@@ -109,57 +116,74 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const enableTwoFactorAuth = () => {
         snapshotOnboardingResumePathIfNeeded();
-        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true}));
+        Navigation.navigate(getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY.getRoute(true), {forceSetup: true}));
     };
 
-    if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+    if (!isRequire2FAOverlayVisible) {
         return null;
     }
 
     return (
         <>
             {isActingAsDelegate && isTrackingGPS && <GpsDraftDetailsRefSync gpsDraftDetailsRef={gpsDraftDetailsRef} />}
-            <FocusTrapForModal active>
+            <FocusTrapForModal active={!isTestToolsRouteFocused}>
                 <View
-                    style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
+                    style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay, styles.appBG]}
                     testID="RequireTwoFactorAuthenticationOverlay"
+                    {...testToolsTapResponder}
                 >
-                    <View style={[styles.flex1, styles.appBG]}>
-                        <View style={styles.twoFARequiredContainer}>
-                            <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
-                                <Icon
-                                    src={illustrations.Encryption}
-                                    width={variables.twoFAIconHeight}
-                                    height={variables.twoFAIconHeight}
-                                />
-                            </View>
-                            <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
-                                <View style={styles.mb5}>
-                                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
-                                    <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                                        {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
-                                    </Text>
+                    <HorizontalSafeArea>
+                        <View style={styles.flex1}>
+                            <View style={styles.twoFARequiredContainer}>
+                                <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
+                                    <Icon
+                                        src={illustrations.Encryption}
+                                        width={variables.twoFAIconHeight}
+                                        height={variables.twoFAIconHeight}
+                                    />
                                 </View>
-                                <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
-                                    <Button
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        isLoading={isEscapeInFlight}
-                                        onPress={onEscapePress}
-                                    >
-                                        <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
-                                    </Button>
-                                    <Button
-                                        size={CONST.BUTTON_SIZE.LARGE}
-                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                        onPress={enableTwoFactorAuth}
-                                    >
-                                        <Button.KeyboardShortcut />
-                                        <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
-                                    </Button>
+                                <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
+                                    <View style={styles.mb5}>
+                                        <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
+                                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                                            {translate(is2FARequiredBecauseOfXero ? 'twoFactorAuth.twoFactorAuthIsRequiredXero' : 'twoFactorAuth.twoFactorAuthIsRequiredCompany')}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
+                                        <Button
+                                            sentryLabel={
+                                                isActingAsDelegate
+                                                    ? CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_LEAVE_ACCOUNT_BUTTON
+                                                    : CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_SIGN_OUT_BUTTON
+                                            }
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            isLoading={isEscapeInFlight}
+                                            onPress={onEscapePress}
+                                        >
+                                            <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
+                                        </Button>
+                                        <Button
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.REQUIRED_OVERLAY_ENABLE_BUTTON}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                            onPress={enableTwoFactorAuth}
+                                        >
+                                            {!isTestToolsRouteFocused && <Button.KeyboardShortcut />}
+                                            <Button.Text>{translate('twoFactorAuth.enable2FA')}</Button.Text>
+                                        </Button>
+                                    </View>
                                 </View>
                             </View>
                         </View>
-                    </View>
+                        {shouldUseNarrowLayout && isOffline && (
+                            <View
+                                style={offlineBannerSafeAreaStyle}
+                                testID="RequireTwoFactorOfflineBanner"
+                            >
+                                <OfflineIndicator style={styles.pl5} />
+                            </View>
+                        )}
+                    </HorizontalSafeArea>
                 </View>
             </FocusTrapForModal>
         </>

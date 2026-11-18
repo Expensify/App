@@ -40,6 +40,7 @@ import type {
     CompanyCardFeedWithNumber,
     CompanyFeeds,
     NonConnectableBankName,
+    SelectableFeedReimbursable,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -53,7 +54,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore} from 'date-fns';
+import {format, fromUnixTime, isBefore, isValid} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -78,11 +79,6 @@ function getCardFeedColors(cardFeed: string | undefined): {background: string; t
         .sort((a, b) => b.length - a.length)
         .find((key) => cardFeed.startsWith(key));
     return feedKey !== undefined ? CARD_FEED_COLORS[feedKey] : GENERIC_CARD_COLORS;
-}
-
-/** Returns the background hex color for the card image shown for a given feed. */
-function getCardFeedBackgroundColor(cardFeed: string | undefined): string {
-    return getCardFeedColors(cardFeed).background;
 }
 
 /** Returns the WCAG-compliant overlay text color for a given feed's card artwork. */
@@ -1232,6 +1228,16 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
+/**
+ * Gets the country to open Plaid with when reconnecting an existing Plaid feed.
+ * The feed keeps the country its bank connection was made in. That country can differ from the one the workspace currency
+ * points to, for example when the feed is linked from another workspace, and Plaid rejects a country it does not support.
+ * So the workspace currency is only a fallback for feeds that have no stored country.
+ */
+function getPlaidCountryForFeed(feedCountry: string | undefined, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    return feedCountry || getPlaidCountry(outputCurrency, currencyList, countryByIp);
+}
+
 function getCorrectStepForPlaidSelectedBank(selectedBank: BankName) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
@@ -1834,6 +1840,25 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
         return false;
     }
     return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
+}
+
+/**
+ * Builds a card's "Last updated" value: Updating... while an update runs, Never without a usable `lastScrape`, otherwise
+ * the full local timestamp. `localDate` is set only for a timestamp, so callers can also show it in a shorter form.
+ *
+ * @param card the card to read
+ * @returns the text the card details page shows, and the sync time in the viewer's timezone when there is one
+ */
+function getCardLastUpdated(card: Card, translate: LocalizedTranslate, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime']): {text: string; localDate?: Date} {
+    if (card.isLoadingLastUpdated) {
+        return {text: translate('workspace.moreFeatures.companyCards.updating')};
+    }
+    const localDate = card.lastScrape ? getLocalDateFromDatetime(card.lastScrape) : undefined;
+    // A malformed lastScrape would make format() throw, so it reads as never synced.
+    if (!localDate || !isValid(localDate)) {
+        return {text: translate('workspace.moreFeatures.companyCards.neverUpdated')};
+    }
+    return {text: format(localDate, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), localDate};
 }
 
 /**
@@ -2568,10 +2593,29 @@ function resolveTransactionCardFields<T extends Transaction>(transactions: T[], 
     });
 }
 
+function isSelectableFeedReimbursable(value: unknown): value is SelectableFeedReimbursable {
+    return Object.values(CONST.COMPANY_CARDS.FEED_REIMBURSABLE).some((option) => option === value);
+}
+
+/**
+ * Normalizes unset and legacy settings so they match the options available to admins.
+ * Undefined or an empty string means `force_no`, and legacy `none` means `default_no`.
+ * Unknown server values return undefined to avoid displaying an incorrect setting.
+ */
+function getEffectiveFeedReimbursable(value: string | undefined): SelectableFeedReimbursable | undefined {
+    if (!value) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO;
+    }
+    if (value === CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE) {
+        return CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO;
+    }
+    return isSelectableFeedReimbursable(value) ? value : undefined;
+}
+
 export {
+    getEffectiveFeedReimbursable,
     canResolveTransactionCard,
     getAssignedCardSortKey,
-    getCardFeedBackgroundColor,
     getCardFeedTextColor,
     getDefaultExpensifyCardLimitType,
     getDisplayedExpensifyCardLimitType,
@@ -2614,6 +2658,7 @@ export {
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,
+    getPlaidCountryForFeed,
     getCustomOrFormattedFeedName,
     doesCardFeedExist,
     getCustomFeedNameFromFeeds,
@@ -2645,6 +2690,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
+    getCardLastUpdated,
     toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,

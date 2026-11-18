@@ -6,6 +6,8 @@ import type {ReportHierarchyInfo} from '@userActions/ClearReportActionErrors';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -57,6 +59,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
+
+    /** Hands the mounted first revealed message to an explicit expansion's focus request. */
+    onExpandedSystemMessageReady?: (target: ComponentRef<typeof View> | null) => void;
 };
 
 function ReportActionsListItemRenderer({
@@ -78,6 +83,7 @@ function ReportActionsListItemRenderer({
     shouldDisableContextMenuForConciergeDraft = false,
     isLatestConciergeFeedbackAction = false,
     reportsParentHierarchy,
+    onExpandedSystemMessageReady,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = getOriginalMessage(reportAction);
 
@@ -117,8 +123,12 @@ function ReportActionsListItemRenderer({
         childOwnerAccountID: reportAction.childOwnerAccountID,
     } as ReportAction;
 
-    const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
+    const isCreatedAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const shouldDisplayParentAction = isCreatedAction && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
+
+    // Only the created row shows the parent action. Sending a message updates the parent's child counters,
+    // so passing it to every other row would re-render them all.
+    const parentReportActionForRow = isCreatedAction ? parentReportAction : undefined;
 
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
@@ -140,7 +150,7 @@ function ReportActionsListItemRenderer({
     return (
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-            parentReportAction={parentReportAction}
+            parentReportAction={parentReportActionForRow}
             report={report}
             transactionThreadReport={transactionThreadReport}
             chatReport={chatReport}
@@ -156,8 +166,10 @@ function ReportActionsListItemRenderer({
             shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
             isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
             reportsParentHierarchy={reportsParentHierarchy}
+            onExpandedSystemMessageReady={onExpandedSystemMessageReady}
         />
     );
 }
 
 export default ReportActionsListItemRenderer;
+export type {ReportActionsListItemRendererProps};

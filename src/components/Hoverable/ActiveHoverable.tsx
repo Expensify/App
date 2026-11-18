@@ -3,7 +3,7 @@ import mergeRefs from '@libs/mergeRefs';
 
 import CONST from '@src/CONST';
 
-import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 import type HoverableProps from './types';
@@ -21,29 +21,26 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
     const isHoveredRef = useRef(false);
     const isVisibilityHidden = useRef(false);
 
-    const updateIsHovered = useCallback(
-        (hovered: boolean) => {
-            if (shouldFreezeCapture) {
-                return;
-            }
+    const updateIsHovered = (hovered: boolean) => {
+        if (shouldFreezeCapture) {
+            return;
+        }
 
-            isHoveredRef.current = hovered;
-            isVisibilityHidden.current = false;
+        isHoveredRef.current = hovered;
+        isVisibilityHidden.current = false;
 
-            if (shouldHandleScroll && isScrollingRef.current) {
-                return;
-            }
+        if (shouldHandleScroll && isScrollingRef.current) {
+            return;
+        }
 
-            setIsHovered(hovered);
+        setIsHovered(hovered);
 
-            if (hovered) {
-                onHoverIn?.();
-            } else {
-                onHoverOut?.();
-            }
-        },
-        [shouldHandleScroll, shouldFreezeCapture, onHoverIn, onHoverOut],
-    );
+        if (hovered) {
+            onHoverIn?.();
+        } else {
+            onHoverOut?.();
+        }
+    };
 
     useEffect(() => {
         if (!shouldHandleScroll) {
@@ -87,20 +84,17 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
         setIsHovered(false);
     }, [isFocused]);
 
-    const handleMouseEvents = useCallback(
-        (type: 'enter' | 'leave') => () => {
-            if (shouldFreezeCapture) {
-                return;
-            }
+    const handleMouseEvents = (type: 'enter' | 'leave') => () => {
+        if (shouldFreezeCapture) {
+            return;
+        }
 
-            const newHoverState = type === 'enter';
-            isHoveredRef.current = newHoverState;
-            isVisibilityHidden.current = false;
+        const newHoverState = type === 'enter';
+        isHoveredRef.current = newHoverState;
+        isVisibilityHidden.current = false;
 
-            updateIsHovered(newHoverState);
-        },
-        [shouldFreezeCapture, updateIsHovered],
-    );
+        updateIsHovered(newHoverState);
+    };
 
     useEffect(() => {
         const element = elementRef.current;
@@ -117,25 +111,29 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
         };
     }, [shouldUseNativeHoverEvents, handleMouseEvents]);
 
-    const child = useMemo(() => getReturnValue(children, isHovered), [children, isHovered]);
+    const child = getReturnValue(children, isHovered);
 
     const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
 
-    return cloneElement(child, {
-        ref: mergeRefs(elementRef, ref, child.props.ref),
-        onMouseEnter: (e: React.MouseEvent) => {
-            if (!shouldUseNativeHoverEvents) {
-                handleMouseEvents('enter')();
-            }
-            onMouseEnter?.(e);
-        },
-        onMouseLeave: (e: React.MouseEvent) => {
-            if (!shouldUseNativeHoverEvents) {
-                handleMouseEvents('leave')();
-            }
-            onMouseLeave?.(e);
-        },
-    } as React.HTMLAttributes<HTMLElement>);
+    return (
+        <child.type
+            {...child.props}
+            key={child.key}
+            ref={mergeRefs(elementRef, ref, child.props.ref)}
+            onMouseEnter={(e: React.MouseEvent) => {
+                if (!shouldUseNativeHoverEvents) {
+                    handleMouseEvents('enter')();
+                }
+                onMouseEnter?.(e);
+            }}
+            onMouseLeave={(e: React.MouseEvent) => {
+                if (!shouldUseNativeHoverEvents) {
+                    handleMouseEvents('leave')();
+                }
+                onMouseLeave?.(e);
+            }}
+        />
+    );
 }
 
 export default ActiveHoverable;

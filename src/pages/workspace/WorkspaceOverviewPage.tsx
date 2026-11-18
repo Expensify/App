@@ -73,9 +73,12 @@ import {
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
+import {getWorkspaceTimezone} from '@libs/SubmissionScheduleUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -163,6 +166,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
     };
+    const onPressTimezone = () => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_TIMEZONE.getRoute(policyID));
+    };
     const onPressAddress = () => {
         if (!policyID) {
             return;
@@ -232,6 +241,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
         {
             text: translate('common.replace'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REPLACE,
             icon: expensifyIcons.Upload,
             shouldCallAfterModalHide: true,
             onSelected: () => {
@@ -242,6 +252,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         },
         {
             text: translate('common.remove'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU_REMOVE,
             icon: expensifyIcons.Trashcan,
             onSelected: () => {
                 if (!policyID || !rulesDocumentURL) {
@@ -406,6 +417,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canUnarchive) {
             secondaryActions.push({
                 value: 'unarchive',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_UNARCHIVE,
                 text: translate('workspace.common.unarchive'),
                 icon: expensifyIcons.ArrowCircleClockwise,
                 // The confirmation modal is handled by UnarchiveWorkspaceFlow, which mounts when this is set.
@@ -415,6 +427,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
@@ -426,11 +439,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             text: translate('common.share'),
             icon: expensifyIcons.QrCode,
             onSelected: isAccountLocked ? showLockedAccountModal : onPressShare,
-            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_SHARE,
         });
         if (isOwner) {
             secondaryActions.push({
                 value: canArchivePolicies ? 'archive' : 'delete',
+                sentryLabel: canArchivePolicies ? CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_ARCHIVE : CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_DELETE,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
                 icon: canArchivePolicies ? expensifyIcons.Box : expensifyIcons.Trashcan,
                 onSelected: () => {
@@ -457,6 +471,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton(fundList)) {
             secondaryActions.push({
                 value: 'transferOwner',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_TRANSFER_OWNER,
                 text: translate('workspace.people.transferOwner'),
                 icon: expensifyIcons.Transfer,
                 onSelected: startChangeOwnershipFlow,
@@ -465,6 +480,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (canLeave) {
             secondaryActions.push({
                 value: 'leave',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_MENU_LEAVE,
                 text: translate('common.leave'),
                 icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
@@ -481,7 +497,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             customText={translate('common.more')}
             options={secondaryActions}
             isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+            wrapperStyle={!isPolicyAdmin && shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : undefined}
         />
     );
 
@@ -652,16 +668,21 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                         >
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    title={policyDescription}
-                                    description={translate('workspace.editor.descriptionInputLabel')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={onPressDescription}
-                                    shouldRenderAsHTML
-                                />
+                                    onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription, session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.editor.descriptionInputLabel')}>
+                                            {!!policyDescription && <MenuItem.FieldValueHTML>{policyDescription}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}
@@ -676,7 +697,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemSectionRoot onPress={readOnly ? undefined : onPressClientID}>
+                            <MenuItemSectionRoot
+                                onPress={readOnly ? undefined : onPressClientID}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CLIENT_ID}
+                            >
                                 <MenuItemField.Row
                                     name={translate('workspace.common.clientID')}
                                     value={policy?.clientID}
@@ -715,6 +739,32 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
                                 />
+                            </MenuItemSectionRoot>
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        pendingAction={policy?.pendingFields?.timeZone}
+                        errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.TIME_ZONE)}
+                        onClose={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.TIME_ZONE);
+                        }}
+                        errorRowStyles={[styles.mt2]}
+                    >
+                        <View>
+                            <MenuItemSectionRoot
+                                onPress={readOnly ? undefined : onPressTimezone}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.TIMEZONE}
+                            >
+                                <MenuItemField.Row
+                                    name={translate('workspace.editor.timezoneInputLabel')}
+                                    value={getWorkspaceTimezone(policy)}
+                                >
+                                    {!readOnly && <MenuItem.Chevron />}
+                                </MenuItemField.Row>
+                                <MenuItem.HelpText message={translate('workspace.editor.timezoneInputHelpText')} />
                             </MenuItemSectionRoot>
                         </View>
                     </OfflineWithFeedback>
@@ -898,6 +948,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                     {isPolicyAdmin && (
                                                         <View style={[styles.pAbsolute, rulesDocumentMenuPositionStyle]}>
                                                             <ThreeDotsMenu
+                                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_MENU}
                                                                 menuItems={getRulesDocumentMenuItems(openPicker)}
                                                                 shouldSelfPosition
                                                                 iconStyles={[styles.receiptActionButton]}
@@ -915,6 +966,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         return (
                                             <View style={[styles.flexRow]}>
                                                 <Button
+                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.RULES_DOCUMENT_CHOOSE_FILE}
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: handleRulesDocumentPicked,
@@ -932,16 +984,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
                         {(isPolicyAdmin || hasCustomRulesText) && (
                             <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
-                                <MenuItemWithTopDescription
-                                    title={policy?.customRules ?? ''}
-                                    description={translate('workspace.rules.customRules.policyText')}
+                                <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
-                                    shouldShowRightIcon={!readOnly}
-                                    interactive={!readOnly}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                    shouldRenderAsHTML
-                                />
+                                    style={shouldShowRulesDocumentSubSection && styles.mt4}
+                                    onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)), session)}
+                                >
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>
+                                            {!!policy?.customRules && <MenuItem.FieldValueHTML>{policy.customRules}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        {!readOnly && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             </OfflineWithFeedback>
                         )}
                     </Section>

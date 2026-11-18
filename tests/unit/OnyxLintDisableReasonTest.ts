@@ -80,6 +80,17 @@ describe('collectUnreasonedDisables', () => {
         expect(collectUnreasonedDisables(quoted, FILE)).toEqual([{file: FILE, line: 1}]);
     });
 
+    it('flags a reasonless oxlint-disable and accepts a reasoned one', () => {
+        // Given an oxlint-disable-next-line of the rule without a reason, and one with a reason
+        const unreasoned = [`// oxlint-disable-next-line ${RULE_ID}`, snapshotKeyRead].join('\n');
+        const reasoned = [`// oxlint-disable-next-line ${RULE_ID} -- ${REASON}`, snapshotKeyRead].join('\n');
+
+        // When the reason check scans them
+        // Then the oxlint- prefix is held to the same rule as eslint-, since oxlint honors both
+        expect(collectUnreasonedDisables(unreasoned, FILE)).toEqual([{file: FILE, line: 1}]);
+        expect(collectUnreasonedDisables(reasoned, FILE)).toEqual([]);
+    });
+
     it('ignores disables of other rules and blanket disables', () => {
         // Given a disable of another rule and a blanket disable over a snapshot key read
         const source = ['// eslint-disable-next-line no-console', 'console.log(1);', '/* eslint-disable */', snapshotKeyRead].join('\n');
@@ -111,12 +122,23 @@ describe('collectUnreasonedDisables', () => {
         ]);
     });
 
-    it('reads the reason only after a spaced double dash, as ESLint does', () => {
-        // Given a directive whose `--` touches the preceding word, so ESLint sees no description at all
-        const source = [`// eslint-disable-next-line ${RULE_ID}, x--aaaaaaaaaaaaaaaa`, snapshotKeyRead].join('\n');
+    it('reads the reason after a bare double dash, as oxlint does', () => {
+        // Given a directive whose `--` touches the preceding word, with a long enough reason after it, and one with only dashes after the rule
+        const glued = [`// eslint-disable-next-line ${RULE_ID}, x--aaaaaaaaaaaaaaaa`, snapshotKeyRead].join('\n');
+        const bareDashes = [`// eslint-disable-next-line ${RULE_ID}--`, snapshotKeyRead].join('\n');
+
+        // When the reason check scans each
+        // Then the glued one passes, because oxlint reads the text after any `--` as the description, and the bare one is reported as reasonless
+        expect(collectUnreasonedDisables(glued, FILE)).toEqual([]);
+        expect(collectUnreasonedDisables(bareDashes, FILE)).toEqual([{file: FILE, line: 1}]);
+    });
+
+    it('flags a line-comment block disable of the rule, which oxlint honors', () => {
+        // Given `// eslint-disable <rule> -- reason`, the block form written as a line comment, above a read
+        const source = [`// eslint-disable ${RULE_ID} -- ${REASON}`, snapshotKeyRead].join('\n');
 
         // When the reason check scans it
-        // Then it is reported, because the text after `--` is not a description to ESLint either
+        // Then it is reported like any block disable, since oxlint applies it to the rest of the file and one reason cannot cover that
         expect(collectUnreasonedDisables(source, FILE)).toEqual([{file: FILE, line: 1}]);
     });
 });

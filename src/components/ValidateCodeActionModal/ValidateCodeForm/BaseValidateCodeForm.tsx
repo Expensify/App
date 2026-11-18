@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
-import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -302,12 +302,9 @@ function BaseValidateCodeForm({
         handleSubmitForm(validateCode);
     };
 
-    let errorText;
-    if (!canShowError) {
-        errorText = '';
-    } else {
-        errorText = formError?.validateCode ? translate(formError?.validateCode) : getLatestErrorMessage(account ?? {});
-    }
+    // Only this form's own input validation goes under the input. Server errors from the flow are shown above the submit button, and `account.errors` belongs to sign-in, so a
+    // stale sign-in error would otherwise show up here in an unrelated flow.
+    const errorText = canShowError && formError?.validateCode ? translate(formError.validateCode) : '';
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 

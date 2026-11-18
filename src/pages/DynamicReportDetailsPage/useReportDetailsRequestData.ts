@@ -72,6 +72,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const [requestParentReportActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(requestParentReportAction?.childReportID)}`);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof currentUserAccountID === 'number' && requestParentReportAction.actorAccountID === currentUserAccountID;
@@ -107,6 +108,7 @@ function useReportDetailsRequestData(reportID: string): ReportDetailsRequestData
         iouReportTransactions,
         requestParentReportActionChildReport,
         transactionThreadReportActions,
+        chatIOUReportActions,
         isDeletedParentAction,
         moneyRequestReport,
         isMoneyRequestReportArchived,

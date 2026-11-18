@@ -18,8 +18,8 @@ import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
 import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {getExpenseDefaultFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,7 +40,6 @@ import type SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyVendors, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -63,14 +62,20 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string {
+function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): string {
     return JSON.stringify([
         formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         formValues.merchantToMatch?.toLowerCase() ?? '',
+        // A spreadsheet can't set these conditions, but a rule the policy already has can carry them, and a rule
+        // that matches on more than the row does is a different rule.
+        formValues.categoriesToMatch ?? [],
+        formValues.tagsToMatch ?? [],
         formValues.merchant ?? '',
         formValues.category ?? '',
         formValues.tag ?? '',
         formValues.comment ?? '',
+        formValues.amount ?? null,
+        formValues.tax ?? null,
         formValues.reimbursable ?? null,
         formValues.billable ?? null,
         formValues.vendorID ?? null,
@@ -205,7 +210,7 @@ function parseSpreadsheetRules(
     const seenRuleKeys = new Set(
         getPolicyExpenseDefaultRules(existingRules, policy?.id)
             .filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map(({rule}) => getMerchantRuleFormValues(rule))
+            .map(({rule}) => getExpenseDefaultFormValues(rule))
             .filter((formValues) => !!formValues)
             .map(getRuleContentKey),
     );
@@ -249,7 +254,7 @@ function parseSpreadsheetRules(
             continue;
         }
 
-        const formValues: Partial<MerchantRuleFormValues> = {
+        const formValues: Partial<ExpenseDefaultFormValues> = {
             merchantToMatch,
             matchType: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             ...(updatedMerchant && {merchant: updatedMerchant}),
@@ -303,7 +308,7 @@ type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingRules, setIsImportingRules] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
@@ -453,10 +458,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         }
         closeImportPageAndModal();
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return null;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
 

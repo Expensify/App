@@ -98,6 +98,11 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
         translate,
         icons: expensifyIcons,
+        sentryLabels: {
+            createExpense: CONST.SENTRY_LABEL.REPORT.LIST_FOOTER.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.REPORT.LIST_FOOTER.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.REPORT.LIST_FOOTER.ADD_EXISTING_EXPENSE,
+        },
         iouReportID: report?.reportID,
         policy,
         userBillingGracePeriodEnds,
@@ -148,6 +153,7 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.LIST_FOOTER.ADD_EXPENSE}
                         />
                     </OfflineWithFeedback>
                 )}

@@ -1,17 +1,17 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
-import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import getPlatform from '@libs/getPlatform';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isOneTransactionReport} from '@libs/ReportUtils';
@@ -31,10 +31,13 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import React, {startTransition, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+
+import MoneyRequestReportNavigationCounter from './MoneyRequestReportNavigationCounter';
 
 const CAROUSEL_PRESERVING_SCREENS = [
     SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -43,9 +46,11 @@ const CAROUSEL_PRESERVING_SCREENS = [
     SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
 ] as const;
 
+// Native keydown handling doesn't skip text inputs, so the arrow keys only page between expenses on web.
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
-    isFromReviewDuplicates?: boolean;
     shouldDisplayNarrowVersion?: boolean;
 };
 
@@ -80,9 +85,76 @@ const collectParentReportActions = (
     }
 };
 
-function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
+// React Compiler treats the snapshot as mutated until the scan below passes it to collectParentReportActions. Inline in
+// the component that range spans the useOnyx calls, so neither selector was cached and both reran on every render.
+function usePrevNextParentReportActions(
+    currentTransactionReportID: string | undefined,
+    prevTransactionID: string | undefined,
+    nextTransactionID: string | undefined,
+    prevTransactionReportID: string | undefined,
+    nextTransactionReportID: string | undefined,
+    snapshotData: OnyxTypes.SearchResults['data'] | undefined,
+) {
+    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
+    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
+    const parentReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+        // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
+        // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
+        const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
+        const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
+        const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
+        // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
+        // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
+        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
+        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
+        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
+        if (!prevTransactionID && !nextTransactionID) {
+            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+        }
+        const parentReportIDs = new Set([currentTransactionReportID, prevActionsReportID, nextActionsReportID]);
+        for (const parentReportID of parentReportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
+            collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
+        }
+        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+    };
+
+    const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector: parentReportActionsSelector,
+    });
+
+    // The live pass above resolves a sibling from its parent report's actions (the self-DM's, for an unreported
+    // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
+    // what resolves a sibling whose parent actions were never loaded in this session.
+    const snapshotParentReportActions: PrevNextParentReportActions = {
+        prevParentReportAction: undefined,
+        nextParentReportAction: undefined,
+    };
+    if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
+        for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, snapshotParentReportActions);
+            }
+        }
+    }
+
+    // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
+    // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
+    // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
+    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
+    // duplicate one instead of navigating to the existing thread.
+    return {
+        prevParentReportAction: reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction,
+        nextParentReportAction: reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction,
+        hasPrevParentReportActions: !!reportedParentReportActions?.hasPrevParentReportActions,
+        hasNextParentReportActions: !!reportedParentReportActions?.hasNextParentReportActions,
+    };
+}
+
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     // Shared with the header, which uses the same filtered list to decide whether to render this carousel at all.
     const {transactionIDs: transactionIDsList, snapshot} = useCarouselTransactionIDs();
     // Snapshot-backed flows (e.g. Home "Recently added") seed a descriptor per sibling so the carousel can
@@ -99,6 +171,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    // The RHP itself marks the modal as visible, so only a popover or modal opened on top of it should take the arrow keys away.
+    const [isModalOpenOnTop] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
@@ -119,63 +193,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         selector: prevNextTransactionsSelector,
     });
 
-    const prevTransactionReportID = prevTransaction?.reportID;
-    const nextTransactionReportID = nextTransaction?.reportID;
-
-    // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
-    // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
-    const parentReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-        // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
-        // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
-        const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
-        const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
-        const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
-        // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
-        // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
-        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
-        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
-        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
-        if (!prevTransactionID && !nextTransactionID) {
-            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-        }
-        const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
-        for (const parentReportID of parentReportIDs) {
-            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
-            collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
-        }
-        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-    };
-
-    const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        selector: parentReportActionsSelector,
-    });
-
-    // The live pass above resolves a sibling from its parent report's actions (the self-DM's, for an unreported
-    // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
-    // what resolves a sibling whose parent actions were never loaded in this session.
-    const snapshotData = snapshot?.data;
-    const parentActions: PrevNextParentReportActions = {
-        prevParentReportAction: undefined,
-        nextParentReportAction: undefined,
-    };
-    if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
-        for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
-            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, parentActions);
-            }
-        }
-    }
-    const snapshotParentReportActions = parentActions;
-
-    // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
-    // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
-    // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
-    // been created. Letting that stale copy win would make prev/next believe the sibling has no thread and create a
-    // duplicate one instead of navigating to the existing thread.
-    const prevParentReportAction = reportedParentReportActions?.prevParentReportAction ?? snapshotParentReportActions.prevParentReportAction;
-    const nextParentReportAction = reportedParentReportActions?.nextParentReportAction ?? snapshotParentReportActions.nextParentReportAction;
+    const {prevParentReportAction, nextParentReportAction, hasPrevParentReportActions, hasNextParentReportActions} = usePrevNextParentReportActions(
+        currentTransaction?.reportID,
+        prevTransactionID,
+        nextTransactionID,
+        prevTransaction?.reportID,
+        nextTransaction?.reportID,
+        snapshot?.data,
+    );
 
     const prevParentReportID = prevParentReportAction?.reportID ?? prevTransaction?.reportID;
     const nextParentReportID = nextParentReportAction?.reportID ?? nextTransaction?.reportID;
@@ -226,14 +251,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         return true;
     };
 
+    // Siblings replace this screen in place via setParams, so backTo must keep pointing at where the user entered the
+    // carousel from. Pointing it at the current expense would make Back step to the previous sibling instead of leaving.
     const getBackTo = () => {
-        let backTo = Navigation.getActiveRoute();
-        if (isFromReviewDuplicates) {
-            const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
-            backTo = params?.backTo ?? backTo;
-        }
-        return backTo;
+        const currentRoute = navigationRef.getCurrentRoute();
+        const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+        return params?.backTo;
     };
 
     const resolveContext = {
@@ -384,26 +407,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            nextTransactionID,
-            nextTransaction,
-            nextParentReportAction,
-            nextTransactionParentReport,
-            nextThreadReport,
-            !!reportedParentReportActions?.hasNextParentReportActions,
-        );
+        navigateToSibling(e, nextTransactionID, nextTransaction, nextParentReportAction, nextTransactionParentReport, nextThreadReport, hasNextParentReportActions);
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(
-            e,
-            prevTransactionID,
-            prevTransaction,
-            prevParentReportAction,
-            prevTransactionParentReport,
-            prevThreadReport,
-            !!reportedParentReportActions?.hasPrevParentReportActions,
-        );
+        navigateToSibling(e, prevTransactionID, prevTransaction, prevParentReportAction, prevTransactionParentReport, prevThreadReport, hasPrevParentReportActions);
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -
     // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
@@ -428,6 +435,36 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
     }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
 
+    const canNavigateToPrevious = canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction);
+    const canNavigateToNext = canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction);
+    const isArrowKeyNavigationActive = isWeb && isFocused && !isModalOpenOnTop && transactionIDsList.length > 1 && currentTransactionIndex !== -1;
+
+    // The arrow keys mirror the on-screen arrows. Text inputs keep them for editing, and a key already handled by
+    // whatever has focus (e.g. a menu) is left alone, so keyboard and assistive tech navigation keep working.
+    // The shortcuts stay active at the first and last expense so they still swallow the key there. Otherwise the
+    // browser's default arrow-key scrolling reaches whatever was focused last, such as the report table behind the RHP.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
+        (event) => {
+            if (event?.defaultPrevented || !canNavigateToPrevious) {
+                return;
+            }
+            onPrevious(event);
+        },
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
+    );
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
+        (event) => {
+            if (event?.defaultPrevented || !canNavigateToNext) {
+                return;
+            }
+            onNext(event);
+        },
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
+    );
+
     // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
     // means this expense doesn't belong to the active carousel at all. The list belongs to a screen the user has
     // since left. Showing arrows then would step to an unrelated expense.
@@ -438,13 +475,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             {!shouldDisplayNarrowVersion && (
-                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
-                    {translate('common.currentOfTotal', {current: currentTransactionIndex + 1, total: transactionIDsList.length})}
-                </Text>
+                <MoneyRequestReportNavigationCounter
+                    current={currentTransactionIndex + 1}
+                    total={transactionIDsList.length}
+                />
             )}
             <PrevNextButtons
-                isPrevButtonDisabled={!canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction)}
-                isNextButtonDisabled={!canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction)}
+                isPrevButtonDisabled={!canNavigateToPrevious}
+                isNextButtonDisabled={!canNavigateToNext}
                 onNext={onNext}
                 onPrevious={onPrevious}
             />

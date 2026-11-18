@@ -4,13 +4,14 @@ import type {ButtonVariant} from '@styles/utils/types';
 
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type HeaderMedia = IconAsset;
-type EmptyStateButton = {
+type EmptyStateButton = WithRequiredSentryLabel & {
     buttonText?: string;
     buttonAction?: () => void;
     buttonVariant?: ButtonVariant;

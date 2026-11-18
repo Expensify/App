@@ -4,18 +4,20 @@ import type {ButtonProps} from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-type ConfirmationPageButtonProps = Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
-    text: string;
-    onPress?: () => void;
-};
+type ConfirmationPageButtonProps = WithRequiredSentryLabel &
+    Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
+        text: string;
+        onPress?: () => void;
+    };
 
 type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &
     Pick<ButtonProps, 'testID' | 'variant'> & {
         children?: React.ReactNode;
     };
 
-function ConfirmationPageButtonBase({text, onPress = () => {}, isDisabled, isLoading, testID, variant, children}: ConfirmationPageButtonBaseProps) {
+function ConfirmationPageButtonBase({text, onPress = () => {}, isDisabled, isLoading, sentryLabel, testID, variant, children}: ConfirmationPageButtonBaseProps) {
     const styles = useThemeStyles();
 
     return (
@@ -27,6 +29,7 @@ function ConfirmationPageButtonBase({text, onPress = () => {}, isDisabled, isLoa
             isLoading={isLoading}
             variant={variant}
             onPress={onPress}
+            sentryLabel={sentryLabel}
         >
             {children}
             <Button.Text>{text}</Button.Text>

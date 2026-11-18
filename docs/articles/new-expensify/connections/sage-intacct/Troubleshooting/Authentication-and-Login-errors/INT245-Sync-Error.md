@@ -64,8 +64,9 @@ Follow the section below that matches your export configuration.
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
-4. Click **Sync Now**.
+3. Select **Connections**, then select **Configure** next to Sage Intacct.
+4. Select **More (⋮)**.
+5. Select **Sync now**.
 
 If permissions are correct, the sync should complete successfully.
 
@@ -81,7 +82,7 @@ If the **Time & Expense** module is not used in Sage Intacct, reimbursable expen
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**.
 4. Click **Configure**.
 5. Open the **Export** tab.
 6. Change the **Reimbursable export option** to **Vendor Bill**.
@@ -89,7 +90,7 @@ If the **Time & Expense** module is not used in Sage Intacct, reimbursable expen
 
 Then:
 
-1. Click **Sync Now** under **Accounting**.
+1. Select **Connections**, select **Configure** next to Sage Intacct, select **More (⋮)**, then select **Sync now**.
 2. Confirm the sync completes without errors.
 
 ---

@@ -16,6 +16,9 @@ type CompilationResult = {
 };
 
 declare function checkReactCompilerWithOxc(source: string, filename: string): CompilationResult;
+declare function shouldSkipReactCompiler(filename: string): boolean;
+declare function isFileMemoized(source: string, filename: string): boolean;
 
 export type {CompilationResult, CompilerError};
+export {isFileMemoized, shouldSkipReactCompiler};
 export default checkReactCompilerWithOxc;

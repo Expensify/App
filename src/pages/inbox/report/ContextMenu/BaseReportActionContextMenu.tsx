@@ -5,6 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -29,6 +30,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     getLinkedTransactionID,
     getOneTransactionThreadReportAction,
@@ -236,6 +238,8 @@ function BaseReportActionContextMenu({
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU | undefined)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(iouTransaction?.reportID)}`);
+    const [moneyRequestActionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestAction?.childReportID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
@@ -305,6 +309,7 @@ function BaseReportActionContextMenu({
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,
+                moneyRequestReportOwnerLogin: getLoginByAccountID(moneyRequestReport?.ownerAccountID, personalDetails),
                 areHoldRequirementsMet,
                 isDebugModeEnabled,
                 iouTransaction,
@@ -346,9 +351,9 @@ function BaseReportActionContextMenu({
      * shows the sign in modal. Else, executes the callback.
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (isAnonymousUser() && !isAnonymousAction) {
+        if (isAnonymousUser(session) && !isAnonymousAction) {
             hideContextMenu(false, () => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn(session);
             });
         } else {
             callback();
@@ -388,6 +393,7 @@ function BaseReportActionContextMenu({
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
@@ -405,6 +411,7 @@ function BaseReportActionContextMenu({
                                 childReportActions,
                                 originalReportActions,
                                 reportIDToName,
+                                accountIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -449,6 +456,8 @@ function BaseReportActionContextMenu({
                                 encryptedAuthToken,
                                 iouTransaction,
                                 iouTransactionViolations,
+                                iouTransactionReport,
+                                moneyRequestActionChildReport,
                                 bankAccountList,
                                 isOffline,
                                 conciergeReportID,
@@ -458,6 +467,7 @@ function BaseReportActionContextMenu({
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
                                 rules,
+                                isThreadReportParentAction,
                             };
 
                             if ('renderContent' in contextAction) {
