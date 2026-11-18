@@ -80,7 +80,7 @@ describe('Account settings Classic eligibility', () => {
         return menu.generalMenuItemsData.items.find((item) => item.translationKey === 'exitSurvey.goToExpensifyClassic');
     }
 
-    it('passes unresolved OpenApp loading to the shared check even after storage loads', () => {
+    it('passes unresolved OpenApp loading to the shared check', () => {
         // Given a missing NVP while OpenApp is still pending
         // When Account settings builds its Classic item
         const {result} = renderMenu();
