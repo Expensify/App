@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -108,6 +109,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     // Tapping a row used to create the report immediately, which closed the page on input (WCAG 3.2.2 On Input).
     // The tap now only stages the workspace, and the report is created from an explicit Create button.
     const [draftPolicy, setDraftPolicy] = useState<WorkspaceListItem>();
+    const [shouldShowError, setShouldShowError] = useState(false);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
@@ -279,12 +281,13 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
     };
 
-    const confirmButtonOptions = {
-        showButton: true,
-        // This page creates a report rather than editing a value, so the button says "Create" instead of "Save".
-        text: translate('common.create'),
-        onConfirm: () => selectPolicy(draftPolicy),
-        isDisabled: !draftPolicy,
+    const confirmWorkspace = () => {
+        if (!draftPolicy) {
+            setShouldShowError(true);
+            return;
+        }
+
+        selectPolicy(draftPolicy);
     };
 
     return (
@@ -309,10 +312,24 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                             <SelectionList<WorkspaceListItem>
                                 data={filteredAndSortedUserWorkspaces}
                                 ListItem={UserListItem}
-                                onSelectRow={setDraftPolicy}
-                                confirmButtonOptions={confirmButtonOptions}
+                                onSelectRow={(policy) => {
+                                    setDraftPolicy(policy);
+                                    setShouldShowError(false);
+                                }}
+                                titleNumberOfLines={2}
                                 textInputOptions={textInputOptions}
                                 shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
+                                footerContent={
+                                    <FormAlertWithSubmitButton
+                                        buttonText={translate('common.create')}
+                                        onSubmit={confirmWorkspace}
+                                        isAlertVisible={shouldShowError}
+                                        message={translate('newRoomPage.pleaseSelectWorkspace')}
+                                        shouldShowLoadingImmediatelyOnPress={false}
+                                        enabledWhenOffline
+                                        sentryLabel={CONST.SENTRY_LABEL.NEW_REPORT_WORKSPACE_SELECTION.CREATE}
+                                    />
+                                }
                             />
                         </>
                     )}

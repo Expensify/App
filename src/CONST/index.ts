@@ -10445,6 +10445,9 @@ const CONST = {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
         },
+        NEW_REPORT_WORKSPACE_SELECTION: {
+            CREATE: 'NewReportWorkspaceSelection-Create',
+        },
         NAVIGATION_TAB_BAR: {
             EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
             INBOX: 'NavigationTabBar-Inbox',

@@ -109,7 +109,7 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
 }
 
 /**
- * Selecting a workspace only stages it — the report is created when the user presses Create.
+ * Selecting a workspace only stages it. The report is created when the user presses Create.
  * The two-step press keeps these tests aligned with that flow.
  */
 async function selectWorkspaceAndCreate(workspaceName: string) {
@@ -130,6 +130,59 @@ describe('NewReportWorkspaceSelectionPage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it('shows an error without creating a report until a workspace is selected and confirmed', async () => {
+        // Given no workspace is selected, Create must remain available to explain the required selection.
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = await screen.findByRole('button', {name: 'Create'});
+        expect(createButton).toBeEnabled();
+        expect(screen.queryByText('Please select a workspace')).not.toBeOnTheScreen();
+
+        // When Create is pressed without a selection, validation must prevent both creation paths.
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error explains the missing selection without creating a report or opening confirmation.
+        expect(await screen.findByText('Please select a workspace')).toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+        expect(createButton).toBeEnabled();
+
+        // When a workspace is selected, only the validation error should clear.
+        fireEvent.press(await screen.findByText(POLICY_NAME));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then selecting a row still requires an explicit Create press.
+        expect(screen.queryByText('Please select a workspace')).not.toBeOnTheScreen();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+    });
+
+    it('allows workspace names to wrap to two lines', async () => {
+        // Given a workspace name can exceed the available row width.
+        const longWorkspaceName = 'A long workspace name that needs a second line in the workspace selection page';
+        await act(async () => {
+            await seedBaseOnyx({name: longWorkspaceName});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the workspace selection page renders its rows.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the name supports two lines instead of truncating to one.
+        expect(await screen.findByText(longWorkspaceName)).toHaveProp('numberOfLines', 2);
     });
 
     it('opens the empty-report confirmation when there are no transactions for the user report', async () => {
