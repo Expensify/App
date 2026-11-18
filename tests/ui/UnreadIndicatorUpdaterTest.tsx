@@ -47,6 +47,16 @@ const unreadReport = {
     lastMessageText: 'test',
 };
 
+async function waitForUnreadUpdate() {
+    await waitForBatchedUpdatesWithAct();
+    await act(
+        () =>
+            new Promise((resolve) => {
+                setTimeout(resolve, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
+            }),
+    );
+}
+
 describe('UnreadIndicatorUpdater', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -66,7 +76,7 @@ describe('UnreadIndicatorUpdater', () => {
 
         // When the updater is mounted
         render(<UnreadIndicatorUpdater />);
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
 
         // Then the tab title and badge get a count of one, with that report's ID
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
@@ -76,12 +86,12 @@ describe('UnreadIndicatorUpdater', () => {
         // Given the updater is showing one unread report
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
         render(<UnreadIndicatorUpdater />);
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
 
         // When the report is read, so its last read time passes its last action
         await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadTime: '2023-09-08 07:15:44.030'}));
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
 
         // Then the count drops to zero without waiting for any other trigger
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
@@ -91,13 +101,13 @@ describe('UnreadIndicatorUpdater', () => {
         // Given an unread report with no name, which the list skips unless it is the report being viewed
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {...unreadReport, reportName: undefined});
         const {rerender} = render(<UnreadIndicatorUpdater />);
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(0, []);
 
         // When the user navigates to that report
         mockUseCurrentReportIDState.mockReturnValue({currentReportID: '1'});
         rerender(<UnreadIndicatorUpdater />);
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
 
         // Then the count is recomputed for the new current report instead of reusing the old snapshot
         expect(mockUpdateUnread).toHaveBeenLastCalledWith(1, ['1']);
@@ -107,9 +117,9 @@ describe('UnreadIndicatorUpdater', () => {
         // Given the updater has published one unread report and the report was then read
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, unreadReport);
         render(<UnreadIndicatorUpdater />);
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
         await act(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {lastReadTime: '2023-09-08 07:15:44.030'}));
-        await waitForBatchedUpdatesWithAct();
+        await waitForUnreadUpdate();
         mockUpdateUnread.mockClear();
 
         // When the app becomes active, firing the most recently registered listener
