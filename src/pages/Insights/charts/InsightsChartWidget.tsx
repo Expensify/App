@@ -16,6 +16,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getSearchTimeGroupingDateKey from '@libs/getSearchTimeGroupingDateKey';
@@ -27,7 +28,6 @@ import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import InsightsViolationStageDropdown from '@pages/Insights/controls/InsightsViolationStageDropdown';
 import type {InsightsChartSpec, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
@@ -48,6 +48,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
+import type {InsightsChartMenuAction} from './InsightsChartMenu';
+
+import InsightsChartMenu from './InsightsChartMenu';
 import InsightsDataTable from './InsightsDataTable';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
@@ -136,6 +139,7 @@ function InsightsChartWidget({
     children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
@@ -210,19 +214,6 @@ function InsightsChartWidget({
             />
         ) : null;
 
-    const violationStageControl =
-        chart.hasViolationStageControl && violationStage && onViolationStageChange ? (
-            <InsightsViolationStageDropdown
-                value={violationStage}
-                onChange={onViolationStageChange}
-                sentryLabel={
-                    chart.graphKey === CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME
-                        ? CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE.VIOLATIONS_OVER_TIME
-                        : CONST.SENTRY_LABEL.INSIGHTS.CONTROL_VIOLATION_STAGE.TOP_VIOLATIONS
-                }
-            />
-        ) : null;
-
     const explainViolationStage = violationStage ?? chart.violationStage;
     const explainButton =
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
@@ -240,46 +231,68 @@ function InsightsChartWidget({
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSONForSearch)}));
     };
 
-    const headerMenu =
-        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn)) ? (
+    const menuActions: InsightsChartMenuAction[] = [];
+    if (supportsDrillIn) {
+        menuActions.push({
+            text: translate('insightsPage.viewOnSpend'),
+            sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
+            icon: icons.Expand,
+            onSelected: openOnSpend,
+        });
+    }
+    if (state === INSIGHTS_CHART_STATE.READY) {
+        menuActions.push({
+            text: translate('spreadsheet.downloadCSV'),
+            sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
+            icon: icons.Table,
+            onSelected: downloadCSV,
+        });
+    }
+
+    const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
+    const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
+    let headerMenu: React.ReactNode = null;
+    // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
+    if (shownViolationStage && onViolationStageChange) {
+        headerMenu = (
+            <InsightsChartMenu
+                graphKey={chart.graphKey}
+                violationStage={shownViolationStage}
+                onViolationStageChange={onViolationStageChange}
+                actions={canUseMenuActions ? menuActions : []}
+            />
+        );
+    } else if (canUseMenuActions) {
+        headerMenu = (
             <WidgetHeaderMenu
                 size={CONST.BUTTON_SIZE.SMALL}
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
-                menuItems={[
-                    ...(supportsDrillIn
-                        ? [
-                              {
-                                  text: translate('insightsPage.viewOnSpend'),
-                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_VIEW_ON_SPEND,
-                                  icon: icons.Expand,
-                                  onSelected: openOnSpend,
-                                  shouldCallAfterModalHide: true,
-                              },
-                          ]
-                        : []),
-                    ...(state === INSIGHTS_CHART_STATE.READY
-                        ? [
-                              {
-                                  text: translate('spreadsheet.downloadCSV'),
-                                  sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU_DOWNLOAD_CSV,
-                                  icon: icons.Table,
-                                  onSelected: downloadCSV,
-                                  shouldCallAfterModalHide: true,
-                              },
-                          ]
-                        : []),
-                ]}
+                menuItems={menuActions.map((action) => ({...action, shouldCallAfterModalHide: true}))}
             />
-        ) : null;
+        );
+    }
 
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
+            titleContent={
+                shownViolationStage ? (
+                    <>
+                        <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate(chart.titleKey)}</Text>
+                        <Text
+                            variant="label"
+                            style={styles.textSupporting}
+                            numberOfLines={1}
+                        >
+                            {translate(`insightsPage.violationStage.${shownViolationStage}`)}
+                        </Text>
+                    </>
+                ) : undefined
+            }
             titleRightContent={
-                !!violationStageControl || controls.length > 0 || !!groupByControl || !!explainButton || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentEnd, styles.alignItemsCenter, styles.flexShrink1]}>
-                        {violationStageControl}
+                controls.length > 0 || !!groupByControl || !!explainButton || !!headerMenu ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                         {controls}
                         {groupByControl}
                         {explainButton}

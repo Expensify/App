@@ -1401,7 +1401,7 @@ const translations = {
         futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
         violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
         violationStage: {
-            label: 'Violations of',
+            label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
         },
