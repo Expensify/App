@@ -10957,6 +10957,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         filtersHeader: 'Filtry',
         filters: {
+            requiredWithViolationFilter: 'Wymagane przy filtrze naruszeń',
             date: {
                 before: (date?: string) => `Przed ${date ?? ''}`,
                 after: (date?: string) => `Po ${date ?? ''}`,

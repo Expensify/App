@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
-import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON, getHasValuesWithRequiredViolations} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +36,8 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
             updatedFilterFormValues.columns = [];
         }
+
+        updatedFilterFormValues.has = getHasValuesWithRequiredViolations(updatedFilterFormValues);
 
         return updatedFilterFormValues;
     }

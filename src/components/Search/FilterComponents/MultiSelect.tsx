@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {TextInputOptions} from '@components/SelectionList/types';
+import Tooltip from '@components/Tooltip';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
@@ -38,6 +39,9 @@ type MultiSelectItem<T> = {
 type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & {
     items: Array<MultiSelectItem<T>>;
 
+    /** Recomputed from the live selection, including changes not yet applied to the query. */
+    getItemState?: (item: MultiSelectItem<T>, selectedItems: Array<MultiSelectItem<T>>) => MultiSelectItemState;
+
     /** Whether the search input should be displayed. */
     isSearchable?: boolean;
 
@@ -67,11 +71,29 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     isSearching?: boolean;
 };
 
+type MultiSelectItemState = {
+    isDisabled?: boolean;
+    tooltipText?: string;
+};
+
+type MultiSelectFilterListItemData = ListItem & MultiSelectItemState;
+
+function MultiSelectFilterListItem(props: ListItemProps<MultiSelectFilterListItemData>) {
+    return (
+        <Tooltip text={props.item.tooltipText}>
+            <View>
+                <MultiSelectListItem {...props} />
+            </View>
+        </Tooltip>
+    );
+}
+
 function MultiSelect<T extends string>({
     loading,
     shouldShowLoadingPlaceholder,
     value,
     items,
+    getItemState,
     isSearchable,
     isNegatable,
     itemHeight,
@@ -121,7 +143,7 @@ function MultiSelect<T extends string>({
         isSearchable && !onSearchChange
             ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
             : orderedItems;
-    const listData: ListItem[] = filteredItems.map((item) => ({
+    const listData: MultiSelectFilterListItemData[] = filteredItems.map((item) => ({
         text: item.text,
         alternateText: item.alternateText,
         keyForList: item.value,
@@ -130,12 +152,17 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
         // Without vertical padding a two line title still fits the estimated row height
         itemStyle: item.alternateText ? undefined : styles.pv0,
+        ...getItemState?.(item, selectedItems),
     }));
 
     const shouldShowSearchSpinner = isSearching && listData.length === 0;
     const headerMessage = isSearchable && listData.length === 0 && !isSearching ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
+        if (item.isDisabled) {
+            return;
+        }
+
         if (item.isSelected) {
             const newSelectedItems = selectedItems.filter((i) => i.value !== item.keyForList);
             setSelectedItems(newSelectedItems);
@@ -202,7 +229,7 @@ function MultiSelect<T extends string>({
                     shouldUpdateFocusedIndex
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     data={listData}
-                    ListItem={MultiSelectListItem}
+                    ListItem={getItemState ? MultiSelectFilterListItem : MultiSelectListItem}
                     titleNumberOfLines={2}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}

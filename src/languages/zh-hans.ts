@@ -10486,6 +10486,7 @@ ${reportName}`,
         },
         filtersHeader: '筛选器',
         filters: {
+            requiredWithViolationFilter: '使用违规筛选条件时为必选项',
             date: {
                 before: (date?: string) => `在 ${date ?? ''} 之前`,
                 after: (date?: string) => `在 ${date ?? ''} 之后`,

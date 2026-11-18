@@ -10772,6 +10772,7 @@ ${reportName}`,
         },
         filtersHeader: 'フィルター',
         filters: {
+            requiredWithViolationFilter: '違反フィルター使用時に必須',
             date: {
                 before: (date?: string) => `${date ?? ''} より前`,
                 after: (date?: string) => `${date ?? ''} の後`,

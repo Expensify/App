@@ -938,6 +938,24 @@ function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefine
     return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
 }
 
+/** UI filter edits make the implicit violation stages explicit; typed queries keep their original semantics. */
+function getHasValuesWithRequiredViolations(values: Partial<SearchAdvancedFiltersForm>): SearchAdvancedFiltersForm['has'] | undefined {
+    if (!values.violationName?.length || hasValuesIncludeViolationFilter(values.has)) {
+        return values.has;
+    }
+
+    return [...(values.has ?? []), ...VIOLATION_HAS_VALUES];
+}
+
+/** Keep one positive violation stage selected while a positive violation filter depends on it. */
+function isLastRequiredViolationHasValue(value: string, hasValues: readonly string[], violationNames: readonly string[] | undefined): boolean {
+    if (!violationNames?.length || !hasValues.includes(value) || !hasValuesIncludeViolationFilter([value])) {
+        return false;
+    }
+
+    return hasValues.filter((hasValue) => hasValuesIncludeViolationFilter([hasValue])).length === 1;
+}
+
 /**
  * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
  * guessing which workspace was meant.
@@ -3639,6 +3657,9 @@ export {
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    getHasValuesWithRequiredViolations,
+    isLastRequiredViolationHasValue,
+    VIOLATION_HAS_VALUES,
     shouldRefetchSearchOnReportActionChange,
     getViolationDisplayName,
     VIOLATION_FILTER_VALUES,

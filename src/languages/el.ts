@@ -11210,6 +11210,7 @@ ${reportName}`,
         },
         filtersHeader: 'Φίλτρα',
         filters: {
+            requiredWithViolationFilter: 'Απαιτείται με φίλτρο παραβάσεων',
             date: {
                 before: (date?: string) => `Πριν από ${date ?? ''}`,
                 after: (date?: string) => `Μετά από ${date ?? ''}`,

@@ -224,7 +224,10 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                               return;
                           }
 
-                          updateFilterQueryParams({[filterKey]: undefined});
+                          updateFilterQueryParams({
+                              [filterKey]: undefined,
+                              ...(filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ? {violationName: undefined} : {}),
+                          });
                       },
         }),
     );
