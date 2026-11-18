@@ -21,7 +21,6 @@ function useParticipantSection({
     isScanRequest,
     isTypeSplit,
     isTypeInvoice,
-    isPerDiemRequest,
     isTimeRequest,
     shouldHideToSection,
     shouldShowReadOnlySplits,
@@ -72,7 +71,9 @@ function useParticipantSection({
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
-    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
+    // A per diem expense can move to another workspace with per diem: the picker only lists those, and the selection resets
+    // the form to the new workspace's rates.
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isTimeRequest;
     const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;

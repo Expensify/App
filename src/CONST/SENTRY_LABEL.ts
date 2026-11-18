@@ -1572,6 +1572,9 @@ const SENTRY_LABEL = {
     TAX_PICKER_MODAL: {
         BACK_BUTTON: 'TaxPickerModal-BackButton',
     },
+    VALUE_FIELD_DROPDOWN: {
+        BACK_BUTTON: 'ValueFieldDropdown-BackButton',
+    },
     CREATE_DISTANCE_RATE: {
         COUNTRY_FIELD: 'CreateDistanceRate-CountryField',
         COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
@@ -1687,6 +1690,9 @@ const SENTRY_LABEL = {
         EDIT_CATEGORIES_BUTTON: 'IOURequestStep-CategoryEditButton',
         EDIT_TAGS_BUTTON: 'IOURequestStep-TagEditButton',
         EDIT_PER_DIEM_RATES_BUTTON: 'IOURequestStep-EditPerDiemRatesButton',
+        PER_DIEM_START_TIME_FIELD: 'IOURequestStep-PerDiemStartTimeField',
+        PER_DIEM_END_TIME_FIELD: 'IOURequestStep-PerDiemEndTimeField',
+        PER_DIEM_SUBRATE_FIELD: 'IOURequestStep-PerDiemSubrateField',
         HOURS_NEXT_BUTTON: 'IOURequestStep-HoursNextButton',
         SCAN_FILE_UPLOAD_BUTTON: 'IOURequestStep-ScanFileUploadButton',
         SCAN_CAMERA_PERMISSION_BUTTON: 'IOURequestStep-ScanCameraPermissionButton',

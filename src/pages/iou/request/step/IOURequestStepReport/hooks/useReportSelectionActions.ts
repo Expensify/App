@@ -12,16 +12,13 @@ import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyReque
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -58,18 +55,6 @@ type UseReportSelectionActionsParams = {
     /** Current user session — provides accountID and email for the changeTransactionsReport call. */
     session: OnyxEntry<Session>;
 
-    /** Route param: the transactionID being acted upon. */
-    transactionID: string;
-
-    /** Type of IOU flow (request, split, track, etc.). */
-    iouType: IOUType;
-
-    /** Route param: the IOU action (create / edit). */
-    action: IOUAction;
-
-    /** Route param: the originating reportID — fallback for the destination route on policy change. */
-    reportIDFromRoute: string;
-
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
@@ -84,7 +69,7 @@ type UseReportSelectionActionsParams = {
 };
 
 type UseReportSelectionActionsResult = {
-    /** Handler invoked when the user picks a report from the global-create flow (changes report + may navigate to destination step on policy change). */
+    /** Handler invoked when the user picks a report from the global-create flow (changes report, and clears the per diem rate and subrates on a policy change). */
     handleGlobalCreateReport: (item: TransactionGroupListItem) => void;
 
     /** Handler invoked for ordinary report selection — schedules the change after the back animation. */
@@ -103,10 +88,6 @@ function useReportSelectionActions({
     isEditing,
     isASAPSubmitBetaEnabled,
     session,
-    transactionID,
-    iouType,
-    action,
-    reportIDFromRoute,
     personalPolicyID,
     handleGoBack,
     shouldWriteAfterTransition = true,
@@ -173,14 +154,6 @@ function useReportSelectionActions({
             // personalPolicyOutputCurrency is intentionally omitted: no customUnitRateID is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
             setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy, false, undefined);
             clearSubrates(transaction.transactionID);
-
-            const newChatReportID = reportOrDraftReportFromValue?.chatReportID ?? reportIDFromRoute;
-            const destinationRoute = createDynamicRoute(
-                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
-                ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, newChatReportID),
-            );
-            Navigation.goBack(destinationRoute, {compareParams: false});
-            return;
         }
 
         handleGoBack();
