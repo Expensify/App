@@ -355,6 +355,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textAlignRight: {},
         pr1: {},
         ml1: {marginLeft: 4},
+        mr1: {marginRight: 4},
         lh16: {},
         ph5: {},
         pt3: {},
