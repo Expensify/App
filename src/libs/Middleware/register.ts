@@ -79,7 +79,7 @@ function registerMiddlewares() {
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
 
-    // DiscardStaleSearchSnapshot - Drops the snapshot from a Search response that writes were queued behind, so it can't overwrite their optimistic data. Must run before SaveResponseInOnyx.
+    // DiscardStaleSearchSnapshot - Drops snapshots explicitly invalidated before inline edits. Must run before SaveResponseInOnyx.
     addMiddleware(DiscardStaleSearchSnapshot);
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.

@@ -116,7 +116,6 @@ describe('useSearchAutoRefetch', () => {
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
-            shouldDiscardStaleSnapshot: true,
         });
     });
 
@@ -175,7 +174,6 @@ describe('useSearchAutoRefetch', () => {
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
-            shouldDiscardStaleSnapshot: true,
         });
     });
 
@@ -243,7 +241,6 @@ describe('useSearchAutoRefetch', () => {
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
-            shouldDiscardStaleSnapshot: true,
         });
     });
 
@@ -314,7 +311,6 @@ describe('useSearchAutoRefetch', () => {
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
-            shouldDiscardStaleSnapshot: true,
         });
     });
 
@@ -376,7 +372,6 @@ describe('useSearchAutoRefetch', () => {
             offset: 0,
             shouldCalculateTotals: false,
             isLoading: false,
-            shouldDiscardStaleSnapshot: true,
         });
     });
 
@@ -686,7 +681,6 @@ describe('useSearchAutoRefetch', () => {
                 offset: 0,
                 shouldCalculateTotals: false,
                 isLoading: false,
-                shouldDiscardStaleSnapshot: true,
             });
         });
 

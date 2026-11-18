@@ -1,4 +1,3 @@
-import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -29,20 +28,6 @@ let crossTabRequestsCallback: (() => void) | undefined;
 // When the counter is 0, any callback must be from a cross-tab storage event,
 // so it is safe to reconcile deletions from the leader tab.
 let pendingOnyxWrites = 0;
-// Tracks how many inline edit writes this tab has queued. A search saves this count when it is sent and compares it when
-// its response arrives: if it went up, an edit was queued while the search was in flight, so the response is stale. The
-// count never goes down, so this still works after the edit's write has finished and left the queue.
-let queuedInlineEditWritesCount = 0;
-const INLINE_EDIT_WRITE_COMMANDS = new Set<string>([
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE,
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT,
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION,
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY,
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG,
-    // Changing a mileage expense's date can update its distance rate instead of sending the regular date command.
-    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
-]);
 
 function trackOnyxWrite<T>(promise: Promise<T>): Promise<T> {
     pendingOnyxWrites++;
@@ -244,10 +229,6 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function getQueuedInlineEditWritesCount(): number {
-    return queuedInlineEditWritesCount;
-}
-
 function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
     Log.info('[PersistedRequests] Saving request to queue started', false, {
         command: requestToPersist.command,
@@ -255,9 +236,6 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
     });
-    if (INLINE_EDIT_WRITE_COMMANDS.has(requestToPersist.command)) {
-        queuedInlineEditWritesCount++;
-    }
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
@@ -573,7 +551,6 @@ export {
     endRequestAndRemoveFromQueue,
     update,
     getLength,
-    getQueuedInlineEditWritesCount,
     getOngoingRequest,
     processNextRequest,
     updateOngoingRequest,

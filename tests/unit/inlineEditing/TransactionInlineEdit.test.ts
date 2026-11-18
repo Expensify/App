@@ -1,3 +1,5 @@
+import {markInFlightSearchRequestsStale} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import type {TransactionEditPermissions, TransactionEditPermissionsParams, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -53,6 +55,11 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
+
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    markInFlightSearchRequestsStale: jest.fn(),
+}));
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -746,9 +753,14 @@ describe('TransactionInlineEdit', () => {
             ['amount', () => editTransactionAmountInline(translate, buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
             ['tag', () => editTransactionTagInline(buildParams(), 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
         ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
+            // Given a valid inline edit on a snapshot-only transaction
+            // When the edit delegates to its canonical write action
             edit();
 
+            // Then invalidation happens synchronously before that action applies optimistic data
             expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
+            expect(markInFlightSearchRequestsStale).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(markInFlightSearchRequestsStale).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(getDelegate()).mock.invocationCallOrder.at(0) ?? 0);
         });
 
         it('clears the merchant instead of discarding the edit', () => {

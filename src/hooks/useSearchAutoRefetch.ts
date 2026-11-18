@@ -180,7 +180,7 @@ function useSearchAutoRefetch({
             // Trigger the search
             TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading, shouldDiscardStaleSnapshot: true});
+                    search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
                 },
             });
 
