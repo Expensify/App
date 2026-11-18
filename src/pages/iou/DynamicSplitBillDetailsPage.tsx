@@ -141,9 +141,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             ONYXKEYS.NVP_INTRO_SELECTED,
             ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
         ]);
-        const chatReportTransactions = Object.values((reportID ? reportTransactionsAndViolations?.[reportID]?.transactions : undefined) ?? {}).filter(
-            (chatReportTransaction) => !!chatReportTransaction,
-        );
+        const hasChatReportTransactions = Object.values((reportID ? reportTransactionsAndViolations?.[reportID]?.transactions : undefined) ?? {}).some(Boolean);
         completeSplitBill({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
@@ -162,7 +160,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             rules,
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-        dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
+        dismissModalAndOpenReportInInboxTab(reportID, undefined, hasChatReportTransactions);
     };
 
     const confirmSplitBill = () => {
