@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
@@ -29,7 +30,9 @@ function WorkspaceOwnerRestrictedAction() {
 
     const addPaymentCard = () => {
         Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route)),
+            // The transition ends a moment before React removes this screen. Opening the card form in that gap shows
+            // this screen again for a frame, so wait until it is gone.
+            afterTransition: () => runAfterClosingScreenUnmount(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route))),
         });
     };
 

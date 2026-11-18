@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceOwnerRestrictedActionNative from '@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction/index.native';
@@ -25,6 +26,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/getActiveRoute', () => () => mockGetActiveRoute());
+jest.mock('@libs/Navigation/helpers/runAfterClosingScreenUnmount', () => jest.fn());
 
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: string) => key)})));
 
@@ -130,14 +132,21 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         // When the owner taps "Add payment card"
         fireEvent.press(screen.getByText('workspace.restrictedAction.addPaymentCard'));
 
-        // Then dismissal finishes before the card form opens over Subscription, regardless of the underlying page
+        // Then both dismissal and the closing screen deferral finish before the card form opens over Subscription
         expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(runAfterClosingScreenUnmount).not.toHaveBeenCalled();
 
         const afterTransition = getDismissModalAfterTransition();
         expect(afterTransition).toBeInstanceOf(Function);
 
         afterTransition?.();
+
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(runAfterClosingScreenUnmount).toHaveBeenCalledTimes(1);
+        const openPaymentCard = jest.mocked(runAfterClosingScreenUnmount).mock.calls.at(0)?.at(0);
+        expect(openPaymentCard).toBeInstanceOf(Function);
+        openPaymentCard?.();
 
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/subscription/add-payment-card');
