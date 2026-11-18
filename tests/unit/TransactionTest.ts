@@ -3737,6 +3737,64 @@ describe('Transaction', () => {
             await mockFetch.resume();
         });
 
+        it('should only add the dismissed violation report action to the transactions that have the DUPLICATED_TRANSACTION violation', async () => {
+            // Given a duplicate review of two transactions with their own threads, where only one of them has the violation
+            const flaggedTransactionID = 'dismissActionTxnFlagged';
+            const unflaggedTransactionID = 'dismissActionTxnUnflagged';
+            const flaggedThreadReportID = 'threadDismissFlagged';
+            const unflaggedThreadReportID = 'threadDismissUnflagged';
+            const flaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${flaggedTransactionID}` as const;
+            const unflaggedTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${unflaggedTransactionID}` as const;
+            const duplicateViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
+            const flaggedTransaction = generateTransaction({transactionID: flaggedTransactionID, reportID: FAKE_OLD_REPORT_ID});
+            const unflaggedTransaction = generateTransaction({transactionID: unflaggedTransactionID, reportID: FAKE_NEW_REPORT_ID});
+            const buildIOUAction = (transaction: Transaction, childReportID: string) => ({
+                reportActionID: rand64(),
+                reportID: transaction.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            });
+            const flaggedIOUAction = buildIOUAction(flaggedTransaction, flaggedThreadReportID);
+            const unflaggedIOUAction = buildIOUAction(unflaggedTransaction, unflaggedThreadReportID);
+
+            mockFetch.pause();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[flaggedIOUAction.reportActionID]: flaggedIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`, {[unflaggedIOUAction.reportActionID]: unflaggedIOUAction});
+
+            // When the user keeps all of them
+            dismissDuplicateTransactionViolation({
+                transactionIDs: [flaggedTransactionID, unflaggedTransactionID],
+                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
+                expenseReport: newReport,
+                policy: undefined,
+                isASAPSubmitBetaEnabled: false,
+                allTransactions: {[flaggedTransactionKey]: flaggedTransaction, [unflaggedTransactionKey]: unflaggedTransaction},
+                currentTransactionViolations: [
+                    {transactionID: flaggedTransactionID, violations: duplicateViolations},
+                    {transactionID: unflaggedTransactionID, violations: []},
+                ],
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then only the flagged transaction's thread gets the optimistic action, because the server does not add one to the other thread and it would disappear on success
+            const flaggedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${flaggedThreadReportID}`);
+            const unflaggedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${unflaggedThreadReportID}`);
+            expect(Object.values(flaggedThreadActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)).toHaveLength(1);
+            expect(Object.values(unflaggedThreadActions ?? {})).toHaveLength(0);
+
+            await mockFetch.resume();
+        });
+
         describe('integration with useOnyx', () => {
             it('works when violations are read via useOnyx hook', async () => {
                 const transactionID = 'dismissTxn4';
