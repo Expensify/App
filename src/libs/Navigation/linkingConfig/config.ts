@@ -1630,6 +1630,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.ADMIN_DETAILS]: {
                             path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                            parse: {domainAccountID: Number, accountID: Number},
                         },
                         [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
                             path: ROUTES.DOMAIN_ADMINS_SETTINGS.route,

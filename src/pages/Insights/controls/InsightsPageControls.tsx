@@ -106,15 +106,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, isPolicyAvaila
                 style={[styles.flexGrow0, styles.flexShrink0, styles.pb5]}
                 contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, pageGutter]}
             >
-                <View
-                    ref={captureRef ? viewRef(captureRef) : undefined}
-                    collapsable={false}
-                    testID="InsightsCaptureControls"
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                >
-                    {controls}
-                    {exportButton}
-                </View>
+                {controls}
             </ScrollView>
         );
     }
