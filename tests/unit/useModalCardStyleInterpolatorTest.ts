@@ -39,32 +39,31 @@ describe('useModalCardStyleInterpolator', () => {
     };
 
     it('returns an empty cardStyle with clipping container when enter kind is none', () => {
-        // Given a card without an entry animation, which previously got fixed positioning and a screen-wide width
-        // that made header buttons jump when the navigation bar collapsed
+        // Given a card without an entry animation
         // When the interpolator computes its styles
         const style = getCardStyle({kind: 'none'});
 
-        // Then the card gets no positioning or sizing of its own and the container clips it, as in the narrow layout used by the test environment
+        // Then the card gets no styles of its own and the container clips it, as in the narrow layout used by the test environment
         expect(style.cardStyle).toEqual({});
         expect(Object.keys(style.containerStyle ?? {})).toEqual(['overflow']);
         expect(style.containerStyle).toHaveProperty('overflow', 'hidden');
     });
 
-    it('fades the card in without forcing its position or width', () => {
-        // Given a fade entry, which must only animate opacity so the card keeps its layout from the navigator
+    it('fades the card in', () => {
+        // Given a fade entry, which only animates opacity
         // When the interpolator computes its styles
         const style = getCardStyle({kind: 'fade'});
 
-        // Then opacity follows the transition progress and no fixed positioning or width is applied
+        // Then opacity follows the transition progress and no other styles are applied
         expect(style.cardStyle).toEqual({opacity: progress});
     });
 
-    it('slides the card in from its width without forcing its position or width', () => {
-        // Given a slide entry, which must only translate the card so the layout underneath stays stable
+    it('slides the card in from its width', () => {
+        // Given a slide entry, which only translates the card
         // When the interpolator computes its styles
         const style = getCardStyle({kind: 'slide-from-width'});
 
-        // Then the card is translated horizontally and no fixed positioning or width is applied
+        // Then the card is translated horizontally and no other styles are applied
         expect(Object.keys(style.cardStyle ?? {})).toEqual(['transform']);
         expect(style.cardStyle).toHaveProperty('transform.length', 1);
     });
@@ -74,7 +73,7 @@ describe('useModalCardStyleInterpolator', () => {
         // When the interpolator computes its styles
         const style = getCardStyle({kind: 'slide-and-fade', distancePx: 120});
 
-        // Then the card is translated and faded, without padding, fixed positioning or width
+        // Then the card is translated and faded, without padding or other styles
         expect(Object.keys(style.cardStyle ?? {}).sort()).toEqual(['opacity', 'transform']);
         expect(style.cardStyle).toHaveProperty('opacity', progress);
         expect(style.cardStyle).toHaveProperty('transform.length', 1);
