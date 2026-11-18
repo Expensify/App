@@ -42,6 +42,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
         {
             title: translate('workspace.businessCentral.followSteps'),
             key: 'workspace.businessCentral.followSteps',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.PREREQUISITES_FOLLOW_STEPS,
             icon: icons.Task,
             iconRight: icons.NewWindow,
             shouldShowRightIcon: true,
@@ -88,6 +89,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
                 addBottomSafeAreaPadding
             >
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.PREREQUISITES_NEXT}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP.getRoute(policyID))}
                     size={CONST.BUTTON_SIZE.LARGE}

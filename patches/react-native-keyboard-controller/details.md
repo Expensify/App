@@ -11,3 +11,15 @@
 - Upstream PR/issue: -
 - E/App issue: https://github.com/Expensify/App/issues/87307
 - PR introducing patch: https://github.com/Expensify/App/pull/87376
+
+### [react-native-keyboard-controller+1.22.4+002+apply-initial-keyboard-state-on-ui-thread.patch](react-native-keyboard-controller+1.22.4+002+apply-initial-keyboard-state-on-ui-thread.patch)
+
+- Reason:
+  
+    ```
+    KeyboardAvoidingView sets its starting keyboard state from the JS thread when it mounts. Reanimated applies those writes on the UI thread later, once the JS thread is free. When a screen opens with a focused input, such as a chat with a draft, the keyboard can open before that happens. The late writes then reset the view to "keyboard closed, height 0", so it never adds the bottom padding and the composer stays behind the keyboard. The patch applies the starting state on the UI thread and skips it if a keyboard event arrived after the keyboard handlers were attached. The same sync runs again whenever the handlers are attached again. That happens when a frozen screen, such as a chat covered by another screen, becomes visible. The keyboard may have opened or closed while it was frozen, and without the sync the chat kept the old keyboard padding below the composer. The autofocus part is the change from the upstream PR below.
+    ```
+  
+- Upstream PR/issue: https://github.com/kirillzyusko/react-native-keyboard-controller/pull/1685
+- E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-6411009930, https://github.com/Expensify/App/issues/106859
+- PR introducing patch: https://github.com/Expensify/App/pull/106003

@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 
@@ -6,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
@@ -16,20 +14,16 @@ import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
 
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
 function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -54,14 +48,6 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
         },
         shouldSaveDraft: true,
     });
-
-    if (isLoadingReimbursementAccount) {
-        return (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>

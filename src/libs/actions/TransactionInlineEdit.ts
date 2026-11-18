@@ -323,7 +323,6 @@ function editTransactionDescriptionInline(translate: LocalizedTranslate, params:
         ...iouParams,
         comment: description,
         hash: params.hash,
-        isEditedFromExpenseList: true,
     });
 }
 
@@ -335,7 +334,6 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
         ...iouParams,
         category: newCategory,
         hash: params.hash,
-        isEditedFromExpenseList: true,
     });
 }
 
@@ -387,7 +385,6 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
         isOffline: params.isOffline,
-        isEditedFromExpenseList: true,
     });
 }
 

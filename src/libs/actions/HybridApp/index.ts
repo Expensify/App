@@ -1,6 +1,6 @@
 import Navigation from '@libs/Navigation/Navigation';
 import {suspendFrameDropMonitor} from '@libs/telemetry/frameDrops/frameDropMonitor';
-import {isLockedToNewApp, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
+import {isLockedToNewApp, isTryNewDotLoading, shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 
@@ -25,27 +25,17 @@ function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] 
     return session?.accountID;
 }
 
-function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewDotUpdate = false) {
-    if (currentTryNewDot !== undefined) {
-        isLoadingTryNewDot = false;
-        return;
-    }
-
-    if (isTryNewDotUpdate && !isInitialTryNewDotUpdate && isLoadingTryNewDot === false) {
-        isLoadingTryNewDot = true;
-        return;
-    }
-
-    isLoadingTryNewDot = isLoadingApp !== false;
+function updateTryNewDotLoadingState() {
+    // Wait for the NVP subscription before trusting an earlier app-loading update.
+    isLoadingTryNewDot = isTryNewDotLoading(currentTryNewDot, !hasReceivedTryNewDotUpdate, isLoadingApp);
 }
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
-        const isInitialTryNewDotUpdate = !hasReceivedTryNewDotUpdate;
         hasReceivedTryNewDotUpdate = true;
         currentTryNewDot = tryNewDot;
-        updateTryNewDotLoadingState(true, isInitialTryNewDotUpdate);
+        updateTryNewDotLoadingState();
     },
 });
 
@@ -73,7 +63,7 @@ Onyx.connectWithoutView({
         }
 
         currentTryNewDot = undefined;
-        hasReceivedTryNewDotUpdate = false;
+        // Storage is still initialized; OpenApp may finish without another optional NVP update.
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
     },
 });

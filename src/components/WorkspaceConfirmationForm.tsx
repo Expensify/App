@@ -190,6 +190,7 @@ function WorkspaceConfirmationForm({
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage}
                     avatar={workspaceAvatarNode}
@@ -269,6 +270,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_PLAN_TYPE}
                                         value={userPlanType}
                                     />
                                 </View>
@@ -284,6 +286,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_OWNER}
                                         value={userOwner}
                                     />
                                 </View>
@@ -296,6 +299,7 @@ function WorkspaceConfirmationForm({
                                             </View>
                                             <Switch
                                                 accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH}
                                                 isOn={makeMeAdmin}
                                                 onToggle={setMakeMeAdmin}
                                             />

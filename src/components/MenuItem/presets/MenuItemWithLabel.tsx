@@ -5,7 +5,7 @@ import MenuItemLabel from '@components/MenuItem/leaves/content/MenuItemLabel';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -25,6 +25,8 @@ type MenuItemWithLabelProps = MenuItemRootProps & {
 function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, children}: MenuItemWithLabelProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
+    // Built in one object so TypeScript keeps sentryLabel tied to onPress, which MenuItemRoot requires together.
+    const pressProps = onPress ? {onPress: callIfAuthenticated(onPress, session), sentryLabel} : {sentryLabel};
 
     return (
         <View>
@@ -32,9 +34,8 @@ function MenuItemWithLabel({label, onPress, isDisabled = false, sentryLabel, tes
                 <MenuItemLabel>{label}</MenuItemLabel>
             </View>
             <MenuItemRoot
-                onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+                {...pressProps}
                 isDisabled={isDisabled}
-                sentryLabel={sentryLabel}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
             >

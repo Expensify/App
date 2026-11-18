@@ -14,6 +14,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -25,11 +27,12 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getIsOffline} from '@libs/NetworkState';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
-import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
+import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +54,7 @@ type PayPrimaryActionProps = {
 
 function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -118,6 +122,22 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
+
+    const refreshSearch = () => {
+        // Read at payment time, since the Wise quote can be confirmed after the network state changes
+        if (!currentSearchQueryJSON || getIsOffline()) {
+            return;
+        }
+        search({
+            searchKey: currentSearchKey,
+            shouldCalculateTotals,
+            offset: 0,
+            queryJSON: currentSearchQueryJSON,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
+        });
+    };
 
     const runPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -131,6 +151,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID,
                 onConfirm: () => startAnimation(),
             });
@@ -180,7 +201,14 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             return;
         }
 
-        payMoneyRequest({
+        if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport], policy, {onPaid: startAnimation});
+            }
+            return;
+        }
+
+        payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             getCurrencyDecimals,
@@ -201,26 +229,18 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
             onPaid: startAnimation,
+            onPaymentSent: refreshSearch,
             chatReportActions: getChatReportActions(false),
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
             rules,
         });
-        if (currentSearchQueryJSON && !isOffline) {
-            search({
-                searchKey: currentSearchKey,
-                shouldCalculateTotals,
-                offset: 0,
-                queryJSON: currentSearchQueryJSON,
-                isLoading: !!currentSearchResults?.search?.isLoading,
-                shouldReturnTripRooms,
-            });
-        }
     };
 
     return (
         <AnimatedSettlementButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.PAY}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
@@ -237,7 +257,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={!isOffline && !canAllowSettlement}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
         />
     );
 }

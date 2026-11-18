@@ -1,6 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FSClassView from '@components/FSClassView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -205,7 +206,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
+                <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</FSClassView>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon
@@ -215,6 +216,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             fill={theme.icon}
                         />
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.ADD_NEW_DETAILS_HELP_LINK}
                             style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
                             href={CONST.COMPANY_CARDS_DELIVERY_FILE_HELP[feedProvider]}
                         >

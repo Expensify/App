@@ -105,6 +105,9 @@ type PaymentMethodItem = PaymentMethod & {
 
         /** Whether the admin has something to do, which shows Continue */
         canContinue: boolean;
+
+        /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+        isOnboardingSubmitted: boolean;
     };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
@@ -260,6 +263,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>
             <ThreeDotsMenu
+                sentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.THREE_DOTS_MENU}
                 shouldSelfPosition
                 onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
                 menuItems={threeDotsMenuItems}
@@ -273,6 +277,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     ) : undefined;
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
+        sentryLabel: CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.ROW,
         title: item.title,
         titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
         // The globe sits inside the row's button, so screen readers only hear it through the row's label
@@ -333,6 +338,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         actionText={connectionStatus.actionText}
                                         actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
+                                        actionSentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.CONNECTION_STATUS_ACTION}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
                                         onLinkPress={connectionStatus.onLinkPress}
@@ -371,6 +377,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <WiseSetupInProgressRow
                     bankAccountID={item.wiseSetupInProgress.bankAccountID}
                     canContinue={item.wiseSetupInProgress.canContinue}
+                    isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
                     style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}

@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+// eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
+import computeReportNameOriginal from '@libs/computeReportName';
 import {translate} from '@libs/Localize';
 import {
     getAddedOfficeLocationMessage,
@@ -11,8 +13,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     buildReportNameFromParticipantNames,
-    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
-    computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,

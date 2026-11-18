@@ -30,6 +30,7 @@ import type {
     ReportAction,
     SageIntacctMappingName,
     ViolationDataType,
+    ReportNextStepMessageParams,
 } from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 
@@ -101,14 +102,17 @@ const translations = {
         unableToDisplayChart: 'Unable to display chart',
         // @context Shown below "Unable to display chart". "WebGL" is a graphics technology name; keep it untranslated.
         webGLNotSupported: "Your browser doesn't support WebGL. Please enable it or switch browsers.",
+        webAssemblyNotSupported: 'WebAssembly is unavailable in your browser. Try another browser to view charts.',
         // @context Shown below "Unable to display chart" when the chart renderer failed to load, e.g. after an app update while the page stayed open.
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
         // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
         resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
-        // @context Spoken by screen readers for the width of a table column while its edge is resized.
-        columnWidth: ({width}: {width: number}) => `${width} pixels`,
+        // @context Accessible name of the draggable edge of a side panel, such as the right-hand panel.
+        resizePanel: 'Resize panel',
+        // @context Spoken by screen readers for the width of a table column or panel while its edge is resized.
+        widthInPixels: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -253,6 +257,7 @@ const translations = {
         dob: 'Date of birth',
         currentYear: 'Current year',
         currentMonth: 'Current month',
+        todayDateLabel: (date: string) => `${date}, today`,
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: (lineNumber: number) => `Address line ${lineNumber}`,
@@ -400,6 +405,7 @@ const translations = {
         searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
         category: 'Category',
+        amount: 'Amount',
         vendor: 'Vendor',
         report: 'Report',
         billable: 'Billable',
@@ -517,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -727,6 +738,7 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         imageDimensionsTooLarge: 'Image dimensions are too large to process. Please use a smaller image.',
         tooManyFiles: (fileLimit: number) => `You can only upload up to ${fileLimit} files at a time.`,
+        fileAlreadyAdded: 'A file with the same name is already added.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
         someFilesCantBeUploaded: "Some files can't be uploaded",
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
@@ -1328,10 +1340,14 @@ const translations = {
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
             customizeExpenseCategories: 'Customize your expense categories',
             customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
-            createExpense: 'Create an expense',
-            createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
+            addFirstReceipt: 'Add your first receipt',
+            addFirstReceiptSubText: 'Scan or manually enter a receipt',
             linkPersonalCard: 'Link personal card',
             linkPersonalCardSubText: 'Import expenses automatically',
+            addName: 'Add your name',
+            addNameSubText: 'Help your teammates recognize you in Expensify.',
+            downloadApp: 'Download the app',
+            downloadAppSubText: 'Scan receipts, submit expenses, and approve reports on the go.',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
             talkToConcierge: 'Talk to Concierge',
@@ -1357,13 +1373,39 @@ const translations = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag level ${level}`,
+        tagLevelLabel: 'Tag level',
+        parent: 'Parent',
+        shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
         viewDetails: 'View details',
         viewAll: 'View all',
+        topExpenses: 'Top expenses',
+        noExpensesInRange: 'No expenses in this range',
         compliance: 'Compliance',
+        violationsOverTime: 'Violations over time',
+        topViolations: 'Top violations',
+        violationsBySubmitter: 'Violations by submitter',
+        violationsByApprover: 'Violations by approver',
+        // @context Column header for each group's portion of the total, as a percentage. A noun, not the verb "to share".
+        share: 'Share',
+        efficiency: 'Efficiency',
+        workflowEfficiency: 'Workflow efficiency',
+        averageProcessingTime: 'Average processing time',
+        longestToSubmit: 'Longest to submit',
+        slowestToApprove: 'Slowest to approve',
+        mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
+        violationStage: {
+            label: 'Violations by',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -1376,12 +1418,19 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            tagAverage: 'Tag average',
+            allViolationAverage: 'All-violation average',
+            allApproverAverage: 'All-approver average',
+            allPayerAverage: 'All-payer average',
+            allStageAverage: 'All-stage average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
             monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
             quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
             yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
+            noChange: 'No change',
+            percentChange: '% change',
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
@@ -1392,6 +1441,11 @@ const translations = {
         noExpensesState: {
             title: 'See where your money goes',
             subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
+        },
+        upsellState: {
+            title: 'Upgrade to Control for more insights',
+            subtitle: 'Track expense policy compliance trends and flag repeat offenders.',
+            button: 'Upgrade to Control',
         },
     },
     allSettingsScreen: {
@@ -1545,6 +1599,14 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        translate: 'Translate',
+        viewOriginal: 'View original',
+        translationDisclaimer: 'AI can make mistakes. Please double-check the original.',
+        translationError: {
+            unreadable: "We couldn't read this receipt clearly enough to translate it.",
+            alreadyInLanguage: 'This receipt is already in your language.',
+            generic: "We couldn't translate this receipt. Please try again.",
+        },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
@@ -1620,6 +1682,7 @@ const translations = {
         removeThisExpense: 'Remove this expense',
         removeExpenseConfirmation: 'Are you sure you want to remove this receipt? This action cannot be undone.',
         addExpense: 'Add expense',
+        createAnExpense: 'Create an expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
         confirmDetails: 'Confirm details',
@@ -1701,6 +1764,12 @@ const translations = {
                 other: (count: number) => `${formattedCount ?? count} expenses`,
             };
         },
+        reportCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
+            return {
+                one: (count: number) => `${formattedCount ?? count} report`,
+                other: (count: number) => `${formattedCount ?? count} reports`,
+            };
+        },
         deleteExpense: () => ({
             one: 'Delete expense',
             other: 'Delete expenses',
@@ -1735,6 +1804,9 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        payViaABA: 'Pay via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
+        submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,
@@ -1954,6 +2026,7 @@ const translations = {
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
+        someDuplicatesAreUnavailable: "Some of these duplicates couldn't be loaded, so you can only keep all of them.",
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         keepSelected: 'Keep selected',
@@ -1963,6 +2036,23 @@ const translations = {
         confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
+        wisePaymentSummary: {
+            confirmPayment: 'Confirm payment',
+            reportTotal: 'Report total',
+            unheldAmountBeingPaid: 'Unheld amount being paid',
+            debitAmount: 'Debit amount',
+            employeeWillReceive: 'Employee will receive',
+            totalFees: 'Total fees',
+            fxRate: 'FX rate',
+            paymentDetails: 'Payment details',
+            debitedAmount: 'Debited amount',
+            employeeReceived: 'Employee received',
+            payAll: 'Pay all',
+            reportCount: ({count}: {count: number}) => ({
+                one: '1 report',
+                other: `${count} reports`,
+            }),
+        },
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
             one: 'This expense is on hold. Do you want to pay anyway?',
@@ -2229,231 +2319,167 @@ const translations = {
         backdropLabel: 'Modal Backdrop',
     },
     nextStep: {
-        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to add expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to add expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to add expenses.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to add expenses.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to submit expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to submit expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to submit expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to add expenses.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to mark this as done.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to mark this as done.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to add expenses.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `No further action required!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => `Change the report's workspace for further actions.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                requiredDepositCurrency?: string,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to submit expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to submit expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to submit expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to mark this as done.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to mark this as done.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to mark this as done.`;
+                }
+                return '';
+            },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (params: ReportNextStepMessageParams) => `No further action required!`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: (params: ReportNextStepMessageParams) => `Change the report's workspace for further actions.`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.APPROVE_ONLY_SUBMIT_BLOCKED]: (params: ReportNextStepMessageParams) =>
+                `You can only approve in this workspace. Move this report to another one to submit.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType, requiredDepositCurrency}: ReportNextStepMessageParams) => {
                 const account = requiredDepositCurrency ? `${requiredDepositCurrency} bank account` : 'bank account';
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to add a ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to add a ${account}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to add a ${account}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to add a ${account}.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to add a ${account}.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` on the ${eta} of each month` : ` ${eta}`;
                 }
-
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for your expenses to automatically submit${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to fix the issues.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to fix the issues.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to fix the issues.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                isBill = false,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin's expenses to automatically submit${formattedETA}.`;
                 }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to export this report.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to export this report.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to export this report.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to fix the issues.`;
                 }
-            },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-                isBill = false,
-            ) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to fix the issues.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to fix the issues.`;
+                }
+                return '';
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Waiting for <strong>you</strong> to approve the bill.` : `Waiting for <strong>you</strong> to approve expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Waiting for <strong>${actor}</strong> to approve the bill.` : `Waiting for <strong>${actor}</strong> to approve expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Waiting for an admin to approve the bill.` : `Waiting for an admin to approve expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `Waiting for <strong>you</strong> to export this report.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `Waiting for <strong>${actor}</strong> to export this report.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `Waiting for an admin to export this report.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType, isBill}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return isBill ? `Waiting for <strong>you</strong> to pay this bill.` : `Waiting for <strong>you</strong> to pay expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return isBill ? `Waiting for <strong>${actor}</strong> to pay this bill.` : `Waiting for <strong>${actor}</strong> to pay expenses.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return isBill ? `Waiting for an admin to pay this bill.` : `Waiting for an admin to pay expenses.`;
+                }
+                return '';
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
                 }
-
                 return `Waiting for payment to complete${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                eta?: string,
-                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: ({eta, etaType}: ReportNextStepMessageParams) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` by ${eta}` : ` ${eta}`;
                 }
-
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
-                _actor: string,
-                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) =>
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
-                actor: string,
-                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
-                _eta?: string,
-                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
-            ) => {
-                // All ACTOR_TYPE enum values are explicitly handled
-                // eslint-disable-next-line default-case
-                switch (actorType) {
-                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER) {
+                    return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
                 }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER) {
+                    return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                }
+                if (actorType === CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN) {
+                    return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                }
+                return '';
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS]: (params: ReportNextStepMessageParams) =>
+                `Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>This report can't be submitted. Please review the comments to resolve.</alert-text>`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR]: (params: ReportNextStepMessageParams) =>
+                `<alert-text>This report can't be approved. Please review the comments to resolve.</alert-text>`,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE]: (params: ReportNextStepMessageParams) => `Waiting for you to come back online to determine next steps.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
@@ -2485,6 +2511,10 @@ const translations = {
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'on the last Saturday of the month',
                 [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'on the last Sunday of the month',
             },
+        },
+        autoExport: {
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'This report will be exported after final approval.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Reimbursable expenses will be exported when this report is paid.',
         },
     },
     profilePage: {
@@ -2564,6 +2594,13 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
+        },
     },
     // cspell:disable
     pronouns: {
@@ -2838,6 +2875,10 @@ const translations = {
             'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
+        signOutAllDevices: 'Sign out on all devices',
+        signOutAllDevicesConfirmation: 'You’ll be signed out on all devices, including this one. You’ll need to sign in again to use Expensify.',
+        signOutAllDevicesError: 'We couldn’t sign you out on all devices. Please try again.',
+        signOutAllDevicesSuccess: 'You’ve been signed out on all devices.',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -3210,6 +3251,90 @@ const translations = {
                 description: 'Business description',
                 descriptionHint: 'Briefly describe what your company does.',
             },
+            sourceOfWealth: {
+                label: "Where does your company's money come from?",
+                description: 'Our payments partner needs to verify any sources of wealth. Select all that apply.',
+                options: {
+                    REVENUE: 'Business revenue',
+                    PERSONAL_FUNDING: 'Personal funding',
+                    BUSINESS_LOAN: 'Business loan',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Funding & shareholder investments',
+                    INVESTMENT_INCOME: 'Investment income',
+                    DONATIONS: 'Donations',
+                    GRANTS: 'Grants',
+                    LEGAL: 'Legal settlement',
+                },
+            },
+            sourceOfFunds: {
+                label: 'Which sources fund your daily operations?',
+                description: 'Our payments partner needs to know which sources fund your operations. Select all that apply.',
+            },
+            sourceOfWealthProof: {
+                title: 'Source of wealth documents',
+                description: 'Upload the required documents for each source listed below.',
+                hints: {
+                    REVENUE: 'Upload a tax return, audited financial statements, or business bank statements.',
+                    PERSONAL_FUNDING: 'Upload a personal tax declaration, savings or bank statements, or payslips.',
+                    BUSINESS_LOAN: 'Upload a loan agreement and a bank statement.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Upload an equity agreement, subscription agreement, or share sale certificate, plus a bank statement.',
+                    INVESTMENT_INCOME: 'Upload a personal investment statement, share sale certificate, or asset sale agreement, plus a bank statement.',
+                    DONATIONS: 'Upload a donation receipt, written confirmation, or contract, plus a bank statement.',
+                    GRANTS: 'Upload a grant approval letter, written confirmation, or contract, plus a bank statement.',
+                    LEGAL: 'Upload a contract, written confirmation, or asset sale agreement.',
+                },
+                bankStatementHints: {
+                    REVENUE: 'Must show the revenue received.',
+                    PERSONAL_FUNDING: 'Must show the funds you put in.',
+                    BUSINESS_LOAN: 'Must show the loan funds received.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Must show the investment funds received.',
+                    INVESTMENT_INCOME: 'Must show the investment income received.',
+                    DONATIONS: 'Must show the donation received.',
+                    GRANTS: 'Must show the grant funds received.',
+                    LEGAL: 'Must show the settlement funds received.',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: 'Upload tax return',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Upload audited financial statements',
+                    BANK_STATEMENT: 'Upload bank statement',
+                    E_COMMERCE_STATEMENTS: 'Upload e-commerce statements',
+                    INVOICES: 'Upload invoices',
+                    CONTRACTS: 'Upload contracts',
+                    PERSONAL_TAX_DECLARATION: 'Upload personal tax declaration',
+                    SAVINGS_STATEMENT: 'Upload savings statement',
+                    PAYSLIP: 'Upload payslip',
+                    PERSONAL_LOAN_AGREEMENT: 'Upload personal loan agreement',
+                    PERSONAL_INVESTMENT: 'Upload personal investment statement',
+                    ASSET_SALE_AGREEMENT: 'Upload asset sale agreement',
+                    LOAN_AGREEMENT: 'Upload loan agreement',
+                    EQUITY_AGREEMENT: 'Upload equity agreement',
+                    SUBSCRIPTION_AGREEMENT: 'Upload subscription agreement',
+                    SHARE_SALE_CERTIFICATE: 'Upload share sale certificate',
+                    DONATION_RECEIPTS: 'Upload donation receipts',
+                    WRITTEN_CONFIRMATION: 'Upload written confirmation',
+                    GRANT_APPROVAL_LETTER: 'Upload grant approval letter',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: 'Tax return',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Audited financial statements',
+                    BANK_STATEMENT: 'Bank statement',
+                    E_COMMERCE_STATEMENTS: 'E-commerce statements',
+                    INVOICES: 'Invoices',
+                    CONTRACTS: 'Contracts',
+                    PERSONAL_TAX_DECLARATION: 'Personal tax declaration',
+                    SAVINGS_STATEMENT: 'Savings statement',
+                    PAYSLIP: 'Payslip',
+                    PERSONAL_LOAN_AGREEMENT: 'Personal loan agreement',
+                    PERSONAL_INVESTMENT: 'Personal investment statement',
+                    ASSET_SALE_AGREEMENT: 'Asset sale agreement',
+                    LOAN_AGREEMENT: 'Loan agreement',
+                    EQUITY_AGREEMENT: 'Equity agreement',
+                    SUBSCRIPTION_AGREEMENT: 'Subscription agreement',
+                    SHARE_SALE_CERTIFICATE: 'Share sale certificate',
+                    DONATION_RECEIPTS: 'Donation receipts',
+                    WRITTEN_CONFIRMATION: 'Written confirmation',
+                    GRANT_APPROVAL_LETTER: 'Grant approval letter',
+                },
+            },
             terms: {
                 title: 'Accept terms',
                 subtitle: 'Please accept the terms below.',
@@ -3219,7 +3344,6 @@ const translations = {
                 wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
-                alreadySubmitted: 'This business is already submitted to Wise for review.',
             },
             moreInfoNeeded: {
                 headerTitle: 'More info needed',
@@ -3550,14 +3674,18 @@ const translations = {
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
         goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
+        ifReportIsOver: ({amount}: {amount: string}) => `If report is over ${amount}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
-        collectEmployeeBankDetails: 'Collect employee bank details',
-        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        collectEmployeeBankDetails: 'Collect bank account details',
+        collectEmployeeBankDetailsDescription: 'Gather bank details from workspace members, so you can reimburse them outside of Expensify.',
+        disablePaymentsTitle: 'Disable payments?',
+        disablePaymentsPrompt: 'This will remove all of your payment settings.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
+        businessBankAccountCountriesError: 'Your reimbursement countries update failed. Please try again.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3601,8 +3729,8 @@ const translations = {
         approverInMultipleWorkflows: 'This member already belongs to another approval workflow. Any updates here will reflect there too.',
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
-        overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
-        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
+        overLimitAmountBelowPreviousApprover: 'Enter a report total at least as high as the previous approver’s.',
+        overLimitAmountAboveNextApprover: 'Enter a report total no higher than the next approver’s.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -3624,7 +3752,7 @@ const translations = {
     },
     workflowsCreateApprovalsPage: {
         title: 'Confirm',
-        header: 'Add more approvers and confirm.',
+        header: 'Add more approvers or confirm',
         additionalApprover: 'Additional approver',
         submitButton: 'Add workflow',
     },
@@ -3632,6 +3760,9 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
+        hiddenRoutesTitle: 'Some reports will be routed differently',
+        hiddenRoutesPrompt:
+            'This workflow was set up with approvers who send some reports to other approvers, depending on the report total. Saving it keeps only the approvers shown here, so every report will go through them.',
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -3645,24 +3776,19 @@ const translations = {
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
         title: 'Set approver',
+        setFirstApprover: 'Set first approver',
+        addApprover: 'Add approver',
         description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
-        additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
+        whenShouldApprove: ({approverName}: {approverName: string}) => `When should ${approverName} approve?`,
+        always: 'Always',
+        overSetAmount: 'Only for reports over a set amount',
+        reportTotal: 'Report total',
+        approvesOverAmount: ({approverName, amount}: {approverName: string; amount: string}) => `${approverName} only approves reports over ${amount}.`,
+        removeApprover: 'Remove approver',
         next: 'Next',
-        removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -3928,6 +4054,7 @@ const translations = {
         submitted: 'submitted',
         approved: 'approved',
         paid: 'paid',
+        receivedPayment: 'received payment',
         toSubmit: 'to submit',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
@@ -3935,6 +4062,7 @@ const translations = {
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `to automatically submit on the ${eta} of each month` : `to automatically submit ${eta}`;
         },
+        toMarkAsDone: 'to mark as done',
         toApprove: 'to approve',
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,
@@ -4467,7 +4595,6 @@ const translations = {
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
-            hasInvalidCharacter: 'Name can only include Latin characters',
             cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4630,7 +4757,7 @@ const translations = {
         bankAccountPurposeTitle: 'What do you want to do with your bank account?',
         getReimbursed: 'Get reimbursed',
         getReimbursedDescription: 'By employer or others',
-        makePayments: 'Make payments',
+        makePayments: 'Make business payments',
         makePaymentsDescription: 'Pay expenses or issue Expensify Cards',
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
@@ -4679,7 +4806,6 @@ const translations = {
             lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
-            fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
             deletePaymentBankAccount:
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
@@ -4706,6 +4832,8 @@ const translations = {
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
+        uploadFile: 'Upload file',
+        selectDocumentToUpload: 'Select document to upload',
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
@@ -4720,6 +4848,8 @@ const translations = {
         accountTypeStepHeader: 'What type of account is this?',
         bankInformationStepHeader: 'What are your bank details?',
         accountHolderInformationStepHeader: 'What are the account holder details?',
+        bankDetails: 'Bank details',
+        accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
@@ -4737,6 +4867,8 @@ const translations = {
         chooseAccountLabel: 'Account',
         successTitle: 'Personal bank account added!',
         successMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
+        bankAccountAddedTitle: 'Bank account added!',
+        bankAccountAddedMessage: 'Congrats, your personal bank account is set up and ready to receive reimbursements.',
     },
     attachmentView: {
         unknownFilename: 'Unknown filename',
@@ -5290,6 +5422,18 @@ const translations = {
         bookDemo: 'Book demo',
         bookADemo: 'Book a demo',
         toLearnMore: ' to learn more.',
+        approval: {
+            status: {
+                outstanding: 'Outstanding',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                canceled: 'Canceled',
+            },
+            deadline: {
+                softApproval: (time: string) => `Auto-approves in ${time}. Free cancellation until then.`,
+                hardApproval: (time: string) => `Auto-cancels in ${time} if not approved.`,
+            },
+        },
         termsAndConditions: {
             header: 'Before we continue...',
             title: 'Review terms & conditions',
@@ -5362,6 +5506,10 @@ const translations = {
         viewTripDetails: 'View trip details',
         trip: 'Trip',
         trips: 'Trips',
+        bookingCount: ({count}: {count: number}) => ({
+            one: '1 booking',
+            other: `${count} bookings`,
+        }),
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
@@ -5509,6 +5657,7 @@ const translations = {
             settings: 'Settings',
             categories: 'Categories',
             vendors: 'Vendors',
+            noVendorsFound: 'No vendors found',
             tags: 'Tags',
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
@@ -5622,6 +5771,12 @@ const translations = {
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
             approveOnlyAlternateText: 'Approve reports only.',
+            newRoles: 'New roles',
+            adminRoles: 'Admin roles',
+            otherRoles: 'Other roles',
+            roleSelectorDescription: `Assign a role to manage a member's workspace permissions. <a href="${CONST.HELP_DOC_LINKS.WORKSPACE_ROLES_AND_PERMISSIONS}">Compare workspace roles</a>.`,
+            roleSelectorFeedback: 'Not seeing the role you need?',
+            roleSelectorFeedbackLink: 'Let us know',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -5852,6 +6007,7 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Desktop and sync the connection again',
+            noVendorsFoundDescription: 'Please add vendors in QuickBooks Desktop and sync the connection again',
             qbdSetup: 'QuickBooks Desktop setup',
             requiredSetupDevice: {
                 title: "Can't connect from this device",
@@ -6113,7 +6269,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Xero and sync the connection again',
             accountingMethods: {
                 label: 'When to Export',
@@ -6250,7 +6405,6 @@ const translations = {
             exportNonReimbursableExpenseReports: {
                 helperText: 'Expenses marked as non-reimbursable will be exported as Expense Reports made out to the employee.',
             },
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
             fxExpenseAccount: 'Currency conversion fee account',
             fxExpenseAccountDescription:
@@ -6481,7 +6635,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in NetSuite and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in NetSuite and sync the connection again',
             noItemsFound: 'No invoice items found',
             noItemsFoundDescription: 'Please add invoice items in NetSuite and sync the connection again',
@@ -6489,7 +6642,11 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
-                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
+                tokenAuthenticationPrompt: {
+                    beforeLink: 'Or connect with',
+                    link: 'token-based authentication',
+                    afterLink: '(SOAP) instead.',
+                },
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
@@ -6705,7 +6862,6 @@ const translations = {
             entitySelectDescription: "Choose the entity in Rillet that you'd like to import data from.",
             noEntitiesFound: 'No entities found',
             noEntitiesFoundDescription: 'Please add an entity in Rillet and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Rillet and sync the connection again',
@@ -6840,7 +6996,6 @@ const translations = {
             companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in DualEntry and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in DualEntry and sync the connection again',
@@ -6967,7 +7122,6 @@ const translations = {
             entitySelectDescription: "Choose the entity in Campfire that you'd like to import data from.",
             noEntitiesFound: 'No entities found',
             noEntitiesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
             accountTypesDescription: 'Your Campfire accounts will import as categories.',
@@ -7081,6 +7235,64 @@ const translations = {
                 label: 'Consolidated Travel Billing payable account',
             },
         },
+        digits: {
+            entity: 'Entity',
+            updateCurrencyTitle: 'Update workspace currency?',
+            updateCurrencyPrompt: 'Digits is currently only available for US-based companies that operate in USD.',
+            importDescription: 'Choose which Digits configurations to import.',
+            accountTypesDescription: 'Your Digits accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
+            dimensionsImport: 'All Digits dimensions import as tags.',
+            departments: 'Departments',
+            exportDescription: 'Configure how Expensify data exports to Digits.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    VENDOR_BILL: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Digits.',
+                values: {
+                    LAST_EXPENSE: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Digits.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    TRANSACTION: {
+                        label: 'Transactions',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Digits vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
+        },
         zohoBooks: {
             organization: 'Zoho Books organization',
             organizationSelectDescription: "Choose the organization in Zoho Books that you'd like to import data from.",
@@ -7135,7 +7347,35 @@ const translations = {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
             },
-            noVendorsFound: 'No vendors found',
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All programs use default account';
+                    }
+                    return {
+                        one: `${count} program with custom account`,
+                        other: `${count} programs with custom accounts`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All cards use program accounts';
+                    }
+                    return {
+                        one: `${count} card with custom account`,
+                        other: `${count} cards with custom accounts`,
+                    };
+                },
+            },
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
@@ -7182,7 +7422,6 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
             accountsDescription: 'Your Dynamics 365 Business Central accounts will import as categories.',
@@ -7373,9 +7612,9 @@ const translations = {
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
                     visa: 'We have global integrations with Visa, though eligibility varies by bank and card program.\n\nTo get started, simply:',
                     mastercard: 'We have global integrations with Mastercard, though eligibility varies by bank and card program.\n\nTo get started, simply:',
-                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. [Contact your bank](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    vcf: `1. Visit [this help article](${CONST.COMPANY_CARDS_VISA_COMMERCIAL_CARD_HELP}) for detailed instructions on how to set up your Visa Commercial Cards.\n\n2. Contact your bank to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     gl1025: `1. Visit [this help article](${CONST.COMPANY_CARDS_AMEX_COMMERCIAL_CARD_HELP}) to find out if American Express can enable a commercial feed for your program.\n\n2. Once the feed is enabled, Amex will send you a production letter.\n\n3. *Once you have the feed information, continue to the next screen.*`,
-                    cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. [Contact your bank](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
+                    cdf: `1. Visit [this help article](${CONST.COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS}) for detailed instructions on how to set up your Mastercard Commercial Cards.\n\n 2. Contact your bank to verify they support a commercial feed for your program, and ask them to enable it.\n\n3. *Once the feed is enabled and you have its details, continue to the next screen.*`,
                     stripe: `1. Visit Stripe’s Dashboard, and go to [Settings](${CONST.COMPANY_CARDS_STRIPE_HELP}).\n\n2. Under Product Integrations, click Enable next to Expensify.\n\n3. Once the feed is enabled, click Submit below and we’ll work on adding it.`,
                 },
                 whatBankIssuesCard: 'What bank issues these cards?',
@@ -7621,6 +7860,7 @@ const translations = {
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -7649,6 +7889,15 @@ const translations = {
             cannotDeleteOrDisableAllCategories: {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
+            },
+            cannotDisableCategoryForMembers: {
+                title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
+                bulkTitle: 'Can’t disable these categories',
+                description: ({count}: {count: number}) => ({
+                    one: '1 member would be left with no categories to choose from. Update their category visibility, then try again:',
+                    other: `${count} members would be left with no categories to choose from. Update their category visibility, then try again:`,
+                }),
+                andMore: ({count}: {count: number}) => `and ${count} more`,
             },
         },
         moreFeatures: {
@@ -7816,6 +8065,7 @@ const translations = {
                 allCards: 'All cards',
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
+                matchesLastFourDigitsOnly: 'Matches last 4 digits only',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
@@ -7826,12 +8076,15 @@ const translations = {
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
-                unassignCardsDescription: 'Unassigning will delete all unsubmitted transactions from the selected cards.',
+                unassignCardDescription: (transactionsUrl: string) =>
+                    `Unassigning this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
+                unassignCardsDescription: (transactionsUrl: string) =>
+                    `Unassigning will permanently delete all <a href="${transactionsUrl}">unsubmitted transactions</a> from the selected cards, including unreported transactions and those on draft reports. This can’t be undone.`,
                 assignCard: 'Assign card',
                 removeCard: 'Remove card',
                 remove: 'Remove',
-                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
+                removeCardDescription: (transactionsUrl: string) =>
+                    `Removing this card will permanently delete all its <a href="${transactionsUrl}">unsubmitted transactions</a>, including unreported transactions and those on draft reports. This can’t be undone.`,
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
@@ -7846,9 +8099,9 @@ const translations = {
                     statementCloseDateRequired: 'Please select a statement close date.',
                 },
                 corporate: 'Restrict deleting transactions',
-                personal: 'Allow deleting transactions',
+                personal: 'Allow cardholders to delete transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others',
-                setTransactionLiabilityDescription: 'Cardholders can delete transactions. Applies to new transactions only.',
+                setTransactionLiabilityDescription: 'Applies to new transactions only. Admins can delete transactions with this setting disabled.',
                 emptyAddedFeedTitle: 'No cards in this feed',
                 emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
                 pendingFeedTitle: `We're reviewing your request...`,
@@ -8183,10 +8436,10 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            merchantRules: 'Merchant rules',
+            merchantRules: 'Expense defaults',
             merchantRulesCount: () => ({
-                one: '1 merchant rule',
-                other: (count: number) => `${count} merchant rules`,
+                one: '1 expense default',
+                other: (count: number) => `${count} expense defaults`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
@@ -8292,6 +8545,16 @@ const translations = {
             },
             officeLocation: 'Office location',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Category visibility',
+            allCategories: 'All categories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 category',
+                other: `${count} categories`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Members must have at least one category',
+                description: 'Select at least one category this member can use.',
+            },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
@@ -8346,6 +8609,10 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            newRolesBanner: {
+                title: 'New roles available',
+                subtitle: '<label-text>Give members just the access they need with new <strong>Approve-only</strong> and <strong>Guest</strong> roles.</label-text>',
+            },
             configureHRSync: (providerName: string) => `Configure ${providerName} sync.`,
             syncWithHR: (providerName: string) => `Sync with ${providerName}`,
             allMembers: 'All members',
@@ -8491,10 +8758,12 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
-            exactOnline: {
+            integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
                 onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
+                onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
             setup: 'Connect',
@@ -9076,6 +9345,9 @@ const translations = {
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',
+            ukFuelRateTaxError: 'Please add a 20% tax rate to track tax on the UK Advisory Fuel Rates.',
+            ukFuelRateTaxErrorWithIntegration: ({integrationName}: {integrationName: string}) =>
+                `Please add a 20% tax rate in ${integrationName} to track tax on the UK Advisory Fuel Rates.`,
             deleteDistanceRate: 'Delete distance rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
@@ -9312,6 +9584,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                title: 'Digits',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Digits integration. Align expense coding dimensions with your Digits setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Digits integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 title: 'Dynamics 365 Business Central',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + Dynamics 365 Business Central integration. Align expense coding dimensions and tax sync with your Dynamics 365 Business Central setup for clearer financial visibility.`,
@@ -9527,6 +9805,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -9725,8 +10004,10 @@ const translations = {
                 autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
                 autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `Auto-pay is only available on the Control plan. [Upgrade](${upgradeLink}) to unlock this feature.`,
-                autoPayReportsUnderTitle: 'Auto-pay reports under',
+                autoPayReportsUnderTitle: 'Auto-pay reports less than',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
+                autoPayCrossBorderFeesDisclosure:
+                    'Cross-border payments use the mid-market exchange rate at the time of payment. A 1% variable fee applies to all cross-border payments, except the following currencies: CRC (1.32%), KES (1.01%), MAD (1.60%), NPR (1.05%), UGX (1.47%), UYU (1.12%).\n\nExact rates and fees cannot be previewed prior to payment when a report is auto-paid. A complete itemized breakdown (including the exact exchange rate, fees, and final amount) is available on the report immediately after payment.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) => `Go to [more features](${moreFeaturesLink}) and enable ${featureName} to unlock this feature.`,
             },
@@ -9776,8 +10057,8 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
-                duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
+                duplicateRuleTitle: 'Similar rule already exists',
+                duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
                 expenseDefaultsTitle: 'Expense defaults',
@@ -9785,24 +10066,8 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCategoryTax: 'Please select a tax rate',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
-                confirmErrorCondition: 'Please enter a merchant',
-                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
-                turnOnTaxesFirstTitle: 'Turn on taxes first',
-                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
-                addTaxRateFirstTitle: 'Add a tax rate first',
-                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
-                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
-                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
-            },
-            expenseDefaultType: {
-                title: 'Apply expense defaults',
-                subtitle: 'What should this rule match on?',
-                merchant: 'Merchant',
-                merchantDescription: 'Update fields on expenses from a specific merchant',
-                category: 'Category',
-                categoryDescription: 'Set a default tax rate for a specific category',
+                confirmErrorCondition: 'Please add at least one condition',
+                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
             },
             newRule: {
                 title: 'New rule',
@@ -9848,7 +10113,9 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
-                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                merchantContains: (merchant: string) => `Merchant contains "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
+                tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {
@@ -10075,7 +10342,9 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
+                tags: 'Tags',
                 merchants: 'Merchants',
+                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
@@ -10136,6 +10405,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
+                saveAnyway: 'Save anyway',
+                checkingRule: 'Checking your rule...',
                 fallbackBanner: "This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated.",
                 fallbackBannerWithExplanation: (explanation: string) =>
                     `This isn't a standard rule, so we drafted an agent rule. Agent rules run when an expense or report is created or updated. ${explanation}`,
@@ -10183,7 +10454,7 @@ const translations = {
         scheduleACall: 'Schedule call',
         questionMarkButtonTooltip: 'Get assistance from our team',
         exploreHelpDocs: 'Explore help docs',
-        registerForWebinar: 'Register for webinar',
+        registerForWebinar: 'Webinar',
         onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
@@ -10327,6 +10598,25 @@ const translations = {
             return `changed the "${categoryName}" category Itemized receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `renamed the category "${oldName}" to "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `set ${members} to only see ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `changed ${members} to only see ${categories}`,
+        clearedCategoryVisibility: (members: string) => `changed ${members} to see all categories`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `the ${categoryName} category`,
+        someCategories: (categoryList: string) => `the ${categoryList} categories`,
+        everyone: 'everyone',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 category',
+            other: `${count} categories`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 member',
+            other: `${count} members`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categories: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Members: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', since their only category was deleted. Update their category visibility if needed.',
+        categoryVisibilityReasonDisabled: ', since their only category was disabled. Update their category visibility if needed.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
@@ -11020,11 +11310,14 @@ const translations = {
                 upcoming: 'Upcoming',
                 done: 'Done',
                 canceled: 'Canceled',
+                outstanding: 'Outstanding',
+                rejected: 'Rejected',
             },
         },
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            myReports: 'My reports',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',
@@ -11039,6 +11332,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            topTags: 'Top tags',
             violationsBySubmitter: 'Violations by submitter',
             travel: 'Travel',
             trips: 'Trips',
@@ -11112,6 +11406,13 @@ const translations = {
         columns: 'Columns',
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
+            hideColumn: 'Hide column',
+            resetColumnSizes: 'Reset column sizes',
+        },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         saveView: 'Save view',
@@ -11129,6 +11430,8 @@ const translations = {
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        chartValueUnavailable: 'Unavailable',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
         weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -11204,7 +11507,9 @@ const translations = {
             completed: 'Completed',
             amount: {
                 lessThan: (amount?: string) => `Less than ${amount ?? ''}`,
+                lessThanOrEqualTo: (amount?: string) => `Less than or equal to ${amount ?? ''}`,
                 greaterThan: (amount?: string) => `Greater than ${amount ?? ''}`,
+                greaterThanOrEqualTo: (amount?: string) => `Greater than or equal to ${amount ?? ''}`,
                 between: (greaterThan?: string, lessThan?: string) => {
                     if (greaterThan && lessThan) {
                         return `Between ${greaterThan} and ${lessThan}`;
@@ -11243,6 +11548,7 @@ const translations = {
             submitted: 'Submitted',
             approved: 'Approved',
             anyApproval: 'Any approval',
+            anySubmission: 'Any submission',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
             paidBy: 'Paid by',
@@ -11276,6 +11582,9 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
                 [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
+                [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
+                [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
+                [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stage',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11341,6 +11650,14 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
             [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
+        },
+        workflowStages: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Paid',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -11352,6 +11669,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11511,7 +11829,53 @@ const translations = {
                 reimbursementACHBounceWithReason: ({returnReason}: {returnReason: string}) => `couldn't process the payment: ${returnReason}`,
                 reimbursementACHCancelled: `canceled the payment`,
                 reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
-                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
+                reimbursementDelayed: `Processed the payment but it’s delayed by 1-2 more business days.`,
+                reimbursementEstimateUpdated: ({expectedDate}: {expectedDate: string}) => `Funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementEstimateSooner: ({expectedDate}: {expectedDate: string}) => `Great news, funds are now expected to arrive by ${expectedDate}.`,
+                reimbursementArrived: ({arrivalDate}: {arrivalDate: string}) => `Funds arrived on ${arrivalDate}.`,
+                reimbursementArrivedWithoutDate: 'Funds arrived.',
+                reimbursementDepositFailed: ({reason}: {reason: string}) =>
+                    `Payment failed: ${reason}. Funds will most likely return, though payment may still complete late. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.`,
+                reimbursementDepositFailedReason: {
+                    reasonNotSpecified: "the recipient's bank rejected it",
+                    wrongAccountNumber: 'incorrect account number',
+                    wrongAccountDetails: 'incorrect account number or bank code',
+                    wrongBankCode: 'incorrect bank code',
+                    wrongBranchCode: 'incorrect branch code',
+                    wrongAccountType: 'incorrect account type',
+                    wrongCardNumber: 'incorrect card number',
+                    wrongCardType: "the recipient's bank doesn't accept this card type",
+                    wrongName: "the account holder name doesn't match",
+                    wrongPhoneNumber: 'incorrect recipient phone number',
+                    wrongIdNumber: 'incorrect recipient ID number',
+                    wrongRutNumber: 'incorrect recipient tax ID',
+                    taxIdNotMatching: "the tax ID doesn't match the recipient's name",
+                    wrongCurrency: 'the recipient account is in a different currency',
+                    accountDoesNotExist: "the account doesn't exist at the recipient's bank",
+                    externalIdentifierDetailsHaveChanged: "the recipient's bank details have changed",
+                    accountClosed: 'the recipient account is closed',
+                    accountFrozen: 'the recipient account is frozen',
+                    accountBlocked: 'the recipient account is blocked',
+                    accountLimitReached: 'the recipient account has reached a limit',
+                    taxIdSuspended: "the recipient's tax ID is suspended",
+                    cannotAcceptFrom3rdParty: "the recipient's bank doesn't accept third-party payments",
+                    creditingAccountForbidden: "the recipient account can't be credited",
+                    businessPaymentsForbidden: "the recipient account doesn't accept business payments",
+                    returnRequestedByRecipient: 'the recipient asked for it to be returned',
+                    fundsNotExpectedReturned: "the recipient's bank wasn't expecting it and returned it",
+                    duplicateEntry: "the recipient's bank saw it as a duplicate payment",
+                    mandateNotFilledIn: "the recipient didn't complete their bank's form in time",
+                    requestForInformationExpired: 'a request for more information expired',
+                    wrongReference: 'the payment reference was rejected',
+                    wrongPaymentPurpose: 'the payment purpose was rejected',
+                    senderRequestedToCancel: 'the payment was cancelled',
+                    technicalIssue: 'a technical issue at our payments partner',
+                    technicalIssueRetryable: 'a technical issue at our payments partner, which will retry',
+                },
+                reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
+                reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
+                reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
+                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -11537,6 +11901,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11955,6 +12342,7 @@ const translations = {
         autoReportedRejectedExpense: 'This expense was rejected.',
         billableExpense: 'Billable no longer valid',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
+        categoryNotAllowed: 'Category not allowed',
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: (surcharge: number) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
@@ -11971,6 +12359,14 @@ const translations = {
         missingComment: 'Description required for selected category',
         missingAttendees: 'Multiple attendees required for this category',
         missingTag: (tagName?: string) => `Missing ${tagName ?? 'tag'}`,
+        nonDefaultAmount: 'Amount differs from workspace default',
+        nonDefaultBillable: 'Billable differs from workspace default',
+        nonDefaultCategory: 'Category differs from workspace default',
+        nonDefaultComment: 'Description differs from workspace default',
+        nonDefaultMerchant: 'Merchant differs from workspace default',
+        nonDefaultReimbursable: 'Reimbursable differs from workspace default',
+        nonDefaultTag: 'Tag differs from workspace default',
+        nonDefaultTax: 'Tax differs from workspace default',
         modifiedAmount: (type?: ViolationDataType, displayPercentVariance?: number) => {
             switch (type) {
                 case 'distance':
@@ -12194,6 +12590,7 @@ const translations = {
             autoReportedRejectedExpense: 'Expense rejected',
             billableExpense: 'Billable no longer valid',
             cashExpenseWithNoReceipt: 'Receipt required',
+            categoryNotAllowed: 'Category not allowed',
             categoryOutOfPolicy: 'Category no longer valid',
             companyCardRequired: 'Company card required',
             conversionSurcharge: 'Conversion surcharge applied',
@@ -12215,6 +12612,14 @@ const translations = {
             modifiedAmount: 'Amount modified',
             modifiedDate: 'Date modified',
             noRoute: 'No valid route',
+            nonDefaultAmount: 'Non-default amount',
+            nonDefaultBillable: 'Non-default billable setting',
+            nonDefaultCategory: 'Non-default category',
+            nonDefaultComment: 'Non-default description',
+            nonDefaultMerchant: 'Non-default merchant',
+            nonDefaultReimbursable: 'Non-default reimbursable setting',
+            nonDefaultTag: 'Non-default tag',
+            nonDefaultTax: 'Non-default tax',
             nonExpensiworksExpense: 'Non-Expensiworks expense',
             overAutoApprovalLimit: 'Over auto-approval limit',
             overCategoryLimit: 'Over category limit',
@@ -12231,6 +12636,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',
@@ -12895,6 +13301,7 @@ const translations = {
         deletingTitle: 'Deleting reports...',
         deletingExpensesTitle: 'Deleting expenses...',
         runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
+        changingWorkspaceTitle: 'Moving reports...',
         sendFromConcierge: "Message me when it's done",
         conciergeTitle: 'You bet!',
         conciergeBody: "Concierge will message you when it's done.",
@@ -12931,6 +13338,10 @@ const translations = {
             one: `Deleted expenses on ${doneCount} of ${count} report`,
             other: `Deleted expenses on ${doneCount} of ${count} reports`,
         }),
+        changedWorkspaceTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Changed workspace on ${doneCount} of ${count} report`,
+            other: `Changed workspace on ${doneCount} of ${count} reports`,
+        }),
         noReportsTitle: 'No matching reports',
         noReportsBody: 'None of the reports you selected needed this action.',
         notApprovedBody: ({count}: {count: number}) => ({
@@ -12960,6 +13371,10 @@ const translations = {
         notDeletedBody: ({count}: {count: number}) => ({
             one: "1 report couldn't be deleted.",
             other: `${count} reports couldn't be deleted.`,
+        }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be moved.",
+            other: `${count} reports couldn't be moved.`,
         }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Expenses on 1 report couldn't be deleted.",

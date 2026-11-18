@@ -13,14 +13,19 @@ import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusRetu
 import {recordPress} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {DistributedOmit, ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+
+/** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
+type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
 
 function GenericPressable({
     children,
@@ -52,7 +57,7 @@ function GenericPressable({
     forwardedFSClass,
     accessibilityState,
     ...rest
-}: PressableProps) {
+}: BaseGenericPressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -169,13 +174,13 @@ function GenericPressable({
      * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
      */
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: ViewKeyDownEvent) => {
         if (onKeyDown) {
-            onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+            onKeyDown(event);
             return;
         }
 
-        if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+        if (isRoleLink && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
             onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
         }

@@ -47,7 +47,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Advanced**.
 5. Enable **Cross-Subsidiary Customers/Projects**.
 6. Click **Save**.
@@ -56,7 +56,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Tap **Advanced**.
 5. Enable **Cross-Subsidiary Customers/Projects**.
 6. Tap **Save**.
@@ -77,9 +77,9 @@ If project restrictions are limiting classification access:
 
 Then in the Workspace:
 
-1. Go to **Settings > Workspaces > Accounting**.
-2. Click the three-dot menu next to the NetSuite connection.
-3. Click **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 4. Retry exporting the report.
 
 ---
@@ -96,9 +96,10 @@ Then in the Workspace:
 
 Then:
 
-1. Go to **Workspaces > Accounting**.
-2. Click **Sync Now**.
-3. Retry exporting the report.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
+4. Retry exporting the report.
 
 ---
 

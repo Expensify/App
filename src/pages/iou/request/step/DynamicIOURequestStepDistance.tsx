@@ -116,6 +116,7 @@ function DynamicIOURequestStepDistance({
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [optimisticTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
@@ -670,7 +671,7 @@ function DynamicIOURequestStepDistance({
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                splitDraftTransaction,
+                splitDraftTransaction ?? optimisticTransaction,
                 {distance: distanceAsFloat},
                 getCurrencyDecimals,
                 getCurrencySymbol,

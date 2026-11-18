@@ -1,5 +1,5 @@
 import Log from '@libs/Log';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
@@ -29,6 +29,18 @@ function buildChartDrillDownQuery(queryJSON: Readonly<SearchQueryJSON>, filterQu
 
 /** Builds the Spend table query behind a chart's "View on Spend", which opens the rows the chart plots as they are grouped and sorted, over the whole period. */
 function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
+    // Search can't group by Insights-only values, so the chart's expenses are listed ungrouped instead (waiting for https://github.com/Expensify/App/issues/105303)
+    if (!isGroupBySupportedBySearch(queryJSON.groupBy)) {
+        return buildSearchQueryString({
+            ...queryJSON,
+            groupBy: undefined,
+            limit: undefined,
+            view: CONST.SEARCH.VIEW.TABLE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        });
+    }
+
     return buildSearchQueryString({...queryJSON, limit: undefined, view: CONST.SEARCH.VIEW.TABLE});
 }
 

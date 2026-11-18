@@ -10,6 +10,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getManagerAccountID,
     getSubmitToAccountID,
@@ -60,14 +61,15 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasOnlyUnsettledExpenses,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
     isScanning,
     isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -170,6 +172,10 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
@@ -206,7 +212,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    return !reportTransactions.every((transaction) => isPending(transaction));
+    return !hasOnlyUnsettledExpenses(reportTransactions, report);
 }
 
 function isPrimaryPayAction({
@@ -286,6 +292,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 

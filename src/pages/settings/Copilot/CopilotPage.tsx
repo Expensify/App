@@ -462,6 +462,7 @@ function CopilotPage() {
                                     <Text style={[styles.textNormal, styles.colorMuted, styles.mt2]}>
                                         {translate('delegate.copilotDelegatedAccessDescription')}{' '}
                                         <TextLink
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.COPILOT_LEARN_MORE_LINK}
                                             href={CONST.COPILOT_HELP_URL}
                                             accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
                                         >

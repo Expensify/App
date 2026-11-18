@@ -31,7 +31,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canCreateCategoryInSitu, canEditWorkspaceSettings, isGroupPolicy} from '@libs/PolicyUtils';
-import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getTransactionDetails, isCurrentUserSubmitter, isSelfDM} from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -95,7 +95,8 @@ function DynamicIOURequestStepCategory({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
     useRestartOnReceiptFailure(transaction, routeReportID, iouType, action);
-    const currentUserEmailParam = useCurrentUserPersonalDetails().login ?? '';
+    const {login: currentUserEmailParam = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isOwnExpense = !isEditing || !transactionReport || isCurrentUserSubmitter(transactionReport, currentUserAccountID);
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
@@ -110,6 +111,7 @@ function DynamicIOURequestStepCategory({
               {
                   icon: expensifyIcons.Plus,
                   text: translate('workspace.categories.addCategory'),
+                  sentryLabel: CONST.SENTRY_LABEL.IOU_REQUEST_STEP.CATEGORY_ADD_CATEGORY,
                   onSelected: () => {
                       const reportID = report?.reportID ?? routeReportID;
                       if (!policyID || !reportID) {
@@ -253,6 +255,7 @@ function DynamicIOURequestStepCategory({
                     policyID={policyID ?? report?.policyID}
                     onSubmit={updateCategory}
                     onCreateCategory={canCreateSearchedCategory ? createSearchedCategory : undefined}
+                    ownerAccountID={isOwnExpense ? currentUserAccountID : undefined}
                 />
             )}
         </StepScreenWrapper>

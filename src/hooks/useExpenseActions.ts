@@ -15,7 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isPolicyAccessible} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canDuplicateExpenseIntoSourceReport,
@@ -74,6 +74,7 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
@@ -101,13 +102,14 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
@@ -283,7 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -323,9 +325,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         translate,
         icons: useMemoizedLazyExpensifyIcons(['Plus', 'ReceiptPlus', 'Location', 'Feed', 'ArrowRight']),
         sentryLabels: {
-            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.CREATE_EXPENSE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_MENU.ADD_EXISTING_EXPENSE,
         },
         iouReportID: moneyRequestReport?.reportID,
         policy,
@@ -386,7 +388,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!currentTransaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, getCurrencyDecimals);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, translate, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
@@ -394,6 +396,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
@@ -453,7 +456,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '') && canCreateExpensesOnPolicy(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
                 if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -472,7 +475,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    dateFnsLocale,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -614,7 +617,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     return;
                                 }
 
-                                removeTransaction(transaction.transactionID);
+                                removeTransaction(transaction.transactionID, {isDeleted: true});
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         };
                         if (goBackRoute) {

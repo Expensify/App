@@ -178,10 +178,14 @@ describe('SearchActions', () => {
     });
 
     describe('deleteSavedSearch', () => {
-        it('sends the optimistic DELETE, failure revert, and success removal keyed by the savedSearchID', () => {
+        it('sends the optimistic DELETE, failure revert, and success removal of the search and its column widths', () => {
+            // Given a saved search
             const savedSearchID = '987654321';
+
+            // When it's deleted
             deleteSavedSearch(savedSearchID);
 
+            // Then once the server confirms, its column widths go too, for every data type its query could have had
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_SAVED_SEARCH,
                 {savedSearchID},
@@ -191,6 +195,18 @@ describe('SearchActions', () => {
                     successData: [
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SAVED_SEARCHES, value: {[savedSearchID]: null}},
                         {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[savedSearchIDToSearchKey(savedSearchID)]: null}},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.TABLE_COLUMN_WIDTHS,
+                            value: {
+                                [`search:expense:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:expense-report:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:invoice:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:task:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:trip:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                                [`search:chat:${savedSearchIDToSearchKey(savedSearchID)}`]: null,
+                            },
+                        },
                     ],
                 },
             );

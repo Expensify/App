@@ -7,7 +7,6 @@ import type ChildrenProps from './types/utils/ChildrenProps';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
-import loadUnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater/load';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
 
@@ -28,9 +27,10 @@ const SplashScreenActionsContext = React.createContext<SplashScreenActionsContex
 });
 
 function loadPostSplashScreenModules() {
+    // The GroupIB SDK sets up on the main thread, so starting it earlier holds up the first screen on iOS.
+    import('./setup/fraudProtection');
     import('./libs/actions/replaceOptimisticReportWithActualReport');
     import('./libs/actions/replaceOptimisticAgentWithActualAgent');
-    loadUnreadIndicatorUpdater();
 }
 
 function SplashScreenStateContextProvider({children}: ChildrenProps) {

@@ -17,6 +17,8 @@ function AddDepositAccount() {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.ADD_DEPOSIT_ACCOUNT}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.ADD_DEPOSIT_ACCOUNT}
             icon={icons.Bank}
             title={translate('homePage.timeSensitiveSection.addDepositAccount.title')}
             subtitle={translate('common.wallet')}

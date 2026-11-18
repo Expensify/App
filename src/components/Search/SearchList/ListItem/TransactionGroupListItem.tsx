@@ -4,6 +4,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {resolveGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -155,6 +156,7 @@ function TransactionGroupListItemImpl({
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
         groupTransactions: groupItem.transactions,
+        groupCount: resolveGroupCount(groupItem),
     });
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -503,6 +505,10 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            // Only Insights charts group by these, so Search never lists their groups
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: null,
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

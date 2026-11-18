@@ -80,6 +80,7 @@ describe('ExpenseFieldDropdown', () => {
     const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) =>
         render(
             <ExpenseFieldDropdown
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 name={FIELD_NAME}
                 testID={ROW_TEST_ID}
                 shouldOpenInDropdown={shouldOpenInDropdown}
@@ -138,6 +139,7 @@ describe('ExpenseFieldDropdown', () => {
             const ref = createRef<ExpenseFieldDropdownHandle>();
             render(
                 <ExpenseFieldDropdown
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     ref={ref}
                     name={FIELD_NAME}
                     testID={ROW_TEST_ID}

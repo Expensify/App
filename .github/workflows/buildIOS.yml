@@ -52,7 +52,7 @@ on:
 jobs:
   build:
     name: Build iOS HybridApp
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
       RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}

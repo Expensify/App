@@ -15,6 +15,8 @@ type ActiveSpanEntry = {
     startTimeForLog: number;
     /** Set for root spans, which are recorded as the user flow frame drops are attributed to. */
     frameDropFlowID?: number;
+    /** Set by cancelSpan. endSpan reads this instead of the span's canceled attribute, because it calls spanToJSON only in development builds. */
+    isCanceled?: boolean;
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
@@ -37,11 +39,14 @@ function startSpan(spanId: string, options: StartSpanOptions) {
     }
     // End any existing span for this name
     cancelSpan(spanId);
-    console.debug(`[Sentry][${spanId}] Starting span`, {
-        spanId,
-        spanOptions: options,
-        timestamp: Date.now(),
-    });
+    // Native release bundles keep console calls, and React Native serializes every argument before passing it to the native logger.
+    if (__DEV__) {
+        console.debug(`[Sentry][${spanId}] Starting span`, {
+            spanId,
+            spanOptions: options,
+            timestamp: Date.now(),
+        });
+    }
     // Sentry adopts the scope's active span when no parent is given, and a tap's idle span teardown force-ends live
     // children. `forceTransaction` keeps the span out of that child list while preserving the trace link.
     const span = Sentry.startInactiveSpan({...options, forceTransaction: options.forceTransaction ?? !options.parentSpan});
@@ -61,13 +66,15 @@ function endSpan(spanId: string) {
     if (!entry) {
         return;
     }
-    const {span, spanName, startTimeForLog, frameDropFlowID} = entry;
+    const {span, spanName, startTimeForLog, frameDropFlowID, isCanceled} = entry;
     endFlow(frameDropFlowID);
     const performanceTimestamp = performance.now();
     const durationMs = Math.round(performanceTimestamp - startTimeForLog);
-    const attributes = Sentry.spanToJSON(span).data ?? {};
-    console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: Date.now(), attributes});
-    if (attributes[CONST.TELEMETRY.ATTRIBUTE_CANCELED] !== true) {
+    if (__DEV__) {
+        const attributes = Sentry.spanToJSON(span).data ?? {};
+        console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: Date.now(), attributes});
+    }
+    if (!isCanceled) {
         logBenchmarkSpanEnd(spanName, durationMs);
     }
     span.setStatus({code: SPAN_STATUS_OK});
@@ -83,6 +90,7 @@ function cancelSpan(spanId: string) {
         return;
     }
     entry.span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
+    entry.isCanceled = true;
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
     entry.span.setStatus({code: SPAN_STATUS_OK});

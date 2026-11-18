@@ -7,7 +7,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import variables from '@styles/variables';
 
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -20,7 +20,7 @@ import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Tooltip from './Tooltip';
 
-type FloatingReceiptButtonProps = WithSentryLabel & {
+type FloatingReceiptButtonProps = WithRequiredSentryLabel & {
     /** Callback to fire on request to toggle the FloatingReceiptButton */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
