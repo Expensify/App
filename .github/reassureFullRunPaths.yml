@@ -15,5 +15,8 @@ any:
   - 'config/babel/**'
   - 'tsconfig.json'
   - '.nvmrc'
+  - '.github/workflows/test.yml'
+  - '.github/workflows/reassurePerformanceTests.yml'
   - '.github/actions/composite/setupNode/**'
   - 'src/polyfills/**'
+  - '.github/reassureFullRunPaths.yml'
