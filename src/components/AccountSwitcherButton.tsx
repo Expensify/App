@@ -142,7 +142,11 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     };
 
     // Anchor the menu to the bottom-left of the Switch button so it opens directly below it.
-    const measureDelegatorMenuPosition = () => calculatePopoverPosition(buttonRef, {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP});
+    const measureDelegatorMenuPosition = () =>
+        calculatePopoverPosition(buttonRef, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        });
 
     // Keep the menu anchored to the button if the window is resized while it is open.
     useLayoutEffect(() => {
@@ -279,7 +283,10 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
             shouldHideOnScroll: shouldUseNarrowLayout,
         };
     } else {
-        tooltipProps = {text: translate('delegate.copilotAccess'), shouldRender: canSwitchAccounts || isWaitingForAccountData};
+        tooltipProps = {
+            text: translate('delegate.copilotAccess'),
+            shouldRender: canSwitchAccounts || isWaitingForAccountData,
+        };
     }
 
     if (!canSwitchAccounts && !isWaitingForAccountData) {
@@ -310,7 +317,10 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
                 onItemSelected={hideDelegatorMenu}
                 anchorRef={buttonRef}
                 anchorPosition={popoverPosition ?? {...CONST.POPOVER_ACCOUNT_SWITCHER_POSITION, horizontal: CONST.POPOVER_ACCOUNT_SWITCHER_POSITION.horizontal + navigationBarWidth}}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
                 menuItems={menuItems()}
                 headerText={translate('delegate.switchAccount')}
                 searchInputOptions={

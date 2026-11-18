@@ -271,7 +271,10 @@ function PopoverMenuContent({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
     const shouldAddBottomSafeAreaPadding = addBottomSafeAreaPadding && isSmallScreenWidth && !isKeyboardActive;
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding, style: contentContainerStyle});
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
+        style: contentContainerStyle,
+    });
 
     if (shouldUseScrollView) {
         return (
@@ -375,7 +378,10 @@ function BasePopoverMenu({
     searchInputOptions,
     fromSidebarMediumScreen,
     shouldHandleNavigationBack,
-    anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     shouldSwitchPositionIfOverflow = false,
     animationIn = 'fadeIn',
     animationInDelay,
@@ -450,7 +456,10 @@ function BasePopoverMenu({
         if (rowLayout.y < scrollOffsetRef.current) {
             scrollViewRef.current?.scrollTo({y: rowLayout.y, animated: false});
         } else if (rowBottom > viewportBottom) {
-            scrollViewRef.current?.scrollTo({y: Math.max(0, rowBottom - scrollViewHeightRef.current), animated: false});
+            scrollViewRef.current?.scrollTo({
+                y: Math.max(0, rowBottom - scrollViewHeightRef.current),
+                animated: false,
+            });
         }
     };
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
@@ -728,7 +737,10 @@ function BasePopoverMenu({
 
     // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {
+        isActive: isWeb && isVisible,
+        shouldPreventDefault: false,
+    });
 
     const handleModalHide = () => {
         onModalHide?.();
@@ -799,11 +811,26 @@ function BasePopoverMenu({
 
     let menuContainerStyle;
     if (isSmallScreenWidth) {
-        menuContainerStyle = shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
+        menuContainerStyle =
+            shouldEnableMaxHeight && !isInLandscapeMode
+                ? [
+                      {
+                          maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE,
+                      },
+                  ]
+                : [];
     } else {
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
+        const stylesArray: ViewStyle[] = [
+            StyleSheet.flatten(styles.createMenuContainer),
+            {
+                width: variables.compactPopoverMenuWidth,
+            },
+            styles.pv2,
+        ];
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
+            stylesArray.push({
+                maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT),
+            });
         }
         menuContainerStyle = stylesArray;
     }
