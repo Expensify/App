@@ -29,6 +29,9 @@ type InsightsGraph = {
 
     /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
     averageCount?: number;
+
+    /** Average group duration over the selected period, in seconds, which the "Average" compare mode draws on duration charts */
+    averageDuration?: number;
 };
 
 /** Kind of signal an AI insight was detected from */
