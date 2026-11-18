@@ -1887,6 +1887,16 @@ var require_API = __commonJS({
           return performPOSTRequest(commandName, newParameters);
         },
         /**
+         * @param  {Object} parameters
+         * @param  {String} parameters.email
+         * @returns {ExpensifyAPIDeferred}
+         */
+        Domain_RequestAccess(parameters) {
+          const commandName = "Domain_RequestAccess";
+          requireParameters(["email"], parameters, commandName);
+          return performPOSTRequest(commandName, parameters);
+        },
+        /**
          * @param {Object} parameters
          * @param {String[]} parameters.emailList
          *
@@ -21649,21 +21659,26 @@ var require_Network = __commonJS({
     exports.default = Network;
     var jquery_1 = __importDefault(require_jquery());
     var Utils = __importStar(require_utils());
+    function addCommandToUrl(command, url) {
+      let newUrl = url;
+      if (command) {
+        if (newUrl.indexOf("?") === -1) {
+          newUrl = `${newUrl}?`;
+        }
+        newUrl = `${newUrl}&command=${command}`;
+      }
+      return newUrl;
+    }
     function Network(endpoint2) {
       let isNavigatingAway = false;
+      const isNewURLFormat = endpoint2[endpoint2.length - 1] === "/";
       if (!endpoint2) {
         throw new Error("Cannot instantiate Network without an url endpoint");
       }
-      const baseURL = endpoint2.endsWith("/") ? endpoint2 : `${endpoint2}/`;
       if (Utils.isWindowAvailable()) {
         window.onbeforeunload = () => {
           isNavigatingAway = true;
         };
-      }
-      function getRequestURL(parameters) {
-        const command = parameters.command;
-        delete parameters.command;
-        return command ? `${baseURL}${command}` : baseURL;
       }
       return {
         /**
@@ -21679,13 +21694,20 @@ var require_Network = __commonJS({
          * @returns {$.Deferred}
          */
         post(parameters) {
+          let newURL = endpoint2;
+          if (isNewURLFormat) {
+            const command = parameters.command;
+            delete parameters.command;
+            newURL = `${endpoint2}${command}`;
+          }
           const settings = {
-            url: getRequestURL(parameters),
+            url: newURL,
             type: "POST",
             data: parameters
           };
           const formData = new FormData();
           let shouldUseFormData = false;
+          settings.url = addCommandToUrl(parameters.command, settings.url);
           for (const [key, value] of Object.entries(parameters)) {
             if (value === void 0) {
               continue;
@@ -21719,7 +21741,8 @@ var require_Network = __commonJS({
             keepalive: true,
             credentials: "same-origin"
           };
-          const url = getRequestURL(parameters);
+          let url = endpoint2;
+          url = addCommandToUrl(parameters.command, url);
           const formData = new FormData();
           for (const [key, value] of Object.entries(parameters)) {
             if (value === void 0) {
@@ -22293,10 +22316,8 @@ var require_str = __commonJS({
        * @returns The decoded string.
        */
       htmlDecodeWithJQueryOrNative(s) {
-        if (typeof document !== "undefined") {
-          const textarea = document.createElement("textarea");
-          textarea.innerHTML = s;
-          return textarea.value;
+        if (typeof jquery_1.default !== "undefined") {
+          return (0, jquery_1.default)("<textarea/>").html(s).text();
         }
         return HtmlEntities.decode(s);
       },
@@ -26450,9 +26471,6 @@ var require_fastMerge = __commonJS({
       const nonNullObject = value != null ? typeof value === "object" : false;
       return nonNullObject && Object.prototype.toString.call(value) !== "[object RegExp]" && Object.prototype.toString.call(value) !== "[object Date]" && !Array.isArray(value);
     }
-    function isUnsafeKey(key) {
-      return key === "__proto__";
-    }
     function fastMerge(target, source, shouldRemoveNullObjectValues = true) {
       if (Array.isArray(source) || source === null || source === void 0) {
         return source;
@@ -26466,7 +26484,7 @@ var require_fastMerge = __commonJS({
           const targetValue = target === null || target === void 0 ? void 0 : target[key];
           const isSourceOrTargetNull = targetValue === null || sourceValue === null;
           const shouldOmitSourceKey = shouldRemoveNullObjectValues && isSourceOrTargetNull;
-          if (!shouldOmitSourceKey && !isUnsafeKey(key)) {
+          if (!shouldOmitSourceKey) {
             destination[key] = targetValue;
           }
         }
@@ -26478,7 +26496,7 @@ var require_fastMerge = __commonJS({
         const targetValue = target === null || target === void 0 ? void 0 : target[key];
         const shouldOmitSourceKey = shouldRemoveNullObjectValues && sourceValue === null;
         const isSourceKeyUndefined = sourceValue === void 0;
-        if (!isSourceKeyUndefined && !shouldOmitSourceKey && !isUnsafeKey(key)) {
+        if (!isSourceKeyUndefined && !shouldOmitSourceKey) {
           const isSourceKeyMergable = isMergeableObject(sourceValue);
           if (isSourceKeyMergable && targetValue) {
             if (!shouldRemoveNullObjectValues || isSourceKeyMergable) {
