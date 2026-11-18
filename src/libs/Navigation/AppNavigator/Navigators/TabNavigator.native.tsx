@@ -1,13 +1,13 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFlatNavSectionIDForSearchKey} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
@@ -15,8 +15,6 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -28,7 +26,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React from 'react';
+import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
@@ -60,6 +58,14 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
+type FlatNavSearchSectionResolver = (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined;
+
+/**
+ * Resolves the section of the search Search shows from its search key, given only with the flat nav bar. The bar and
+ * the placeholders under its items read the same resolver, so they agree on the item Search is under.
+ */
+const FlatNavSearchSectionContext = createContext<FlatNavSearchSectionResolver | undefined>(undefined);
+
 /** The More item of the flat nav bar, which shows the routes drawn inside it rather than a screen of its own. */
 function NativeTabItemPlaceholder() {
     return null;
@@ -74,9 +80,11 @@ function NativeTabSearchItemPlaceholder() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
+    const getFlatNavSearchSectionID = useContext(FlatNavSearchSectionContext);
     const isSearchUnderMore = useNavigationState(
         (state) =>
-            getFlatNavTabHostRouteName(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, getFlatNavSectionIDForSearchKey(getSearchTabSearchKey(findSearchTabRoute(state)))) ===
+            getFlatNavTabHostRouteName(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(state)))) ===
             SCREENS.NATIVE_TAB_ITEM.MORE,
     );
 
@@ -86,21 +94,19 @@ function NativeTabSearchItemPlaceholder() {
 
     return (
         <View style={[styles.flex1, styles.appBG]}>
-            {/* The room the Search header takes above its list */}
-            <View style={StyleUtils.getHeight(top + variables.contentHeaderHeight)} />
-            <SearchRowSkeleton />
+            {/* The room the Search page header takes, with the list padded for the type tabs and the search bar as on that page */}
+            <View style={StyleUtils.getHeight(top + contentHeaderHeight)} />
+            <SearchRowSkeleton containerStyle={styles.searchListContentContainerStyles(false)} />
         </View>
     );
 }
 
 type NativeTabNavigatorProps = {
-    /** Resolves the section of the search Search shows from its search key, given only with the flat nav bar */
-    getFlatNavSearchSectionID?: (searchKey: SearchKey | undefined) => FlatNavSectionID | undefined;
-
     isFlatNavTabBarEnabled?: boolean;
 };
 
-function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
+    const getFlatNavSearchSectionID = useContext(FlatNavSearchSectionContext);
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
@@ -189,10 +195,9 @@ function FlatNavNativeTabNavigator() {
     const getFlatNavSearchSectionID = useNativeFlatNavSearchSection({isSearchFocused});
 
     return (
-        <NativeTabNavigator
-            isFlatNavTabBarEnabled
-            getFlatNavSearchSectionID={getFlatNavSearchSectionID}
-        />
+        <FlatNavSearchSectionContext.Provider value={getFlatNavSearchSectionID}>
+            <NativeTabNavigator isFlatNavTabBarEnabled />
+        </FlatNavSearchSectionContext.Provider>
     );
 }
 
