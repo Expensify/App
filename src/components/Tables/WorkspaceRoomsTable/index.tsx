@@ -6,6 +6,7 @@ import Table, {composeTableListHeader} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,6 +68,7 @@ function WorkspaceRoomsTable({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
     const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
@@ -141,7 +143,7 @@ function WorkspaceRoomsTable({
         </View>
     ) : undefined;
 
-    if (!roomsMetadata?.isLoaded) {
+    if (!roomsMetadata?.isLoaded && !isOffline) {
         // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
         return (
             <>
