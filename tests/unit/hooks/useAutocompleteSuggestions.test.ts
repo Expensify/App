@@ -104,6 +104,8 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
     resolvePolicyIDFromName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').resolvePolicyIDFromName,
     getViolationDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getViolationDisplayName,
+    getTravelTypeDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getTravelTypeDisplayName,
+    getTravelPlatformDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getTravelPlatformDisplayName,
     VIOLATION_FILTER_VALUES: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').VIOLATION_FILTER_VALUES,
     isGroupBySupportedBySearch: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isGroupBySupportedBySearch,
 }));
@@ -404,6 +406,43 @@ describe('useAutocompleteSuggestions', () => {
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE);
+    });
+
+    it('suggests travel types by name and searches on their stored values', () => {
+        // Given someone typing a travel type the way it reads in the filter list
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE, value: 'car'},
+            ranges: [],
+        });
+
+        // When the suggestions are built
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'travel-type:car'}));
+
+        // Then the car rental suggestion shows its name but fills in the stored value the backend matches on
+        expect(result.current).toEqual([
+            {
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE,
+                text: 'search.filters.travelType.carRental',
+                autocompleteID: CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE,
+            },
+        ]);
+    });
+
+    it('leaves out travel platforms that are already in the query', () => {
+        // Given a query that already filters on Expensify Travel
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM, value: CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL, start: 16, length: 15}],
+        });
+
+        // When the platform suggestions are built for the next value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'travel-platform:expensifyTravel,'}));
+
+        // Then every other platform is offered in the filter list's order, without repeating Expensify Travel
+        expect(result.current.map((item) => item.autocompleteID)).toEqual(
+            Object.values(CONST.SEARCH.TRAVEL_PLATFORM).filter((travelPlatform) => travelPlatform !== CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL),
+        );
     });
 
     it('excludes already autocompleted keys from results', () => {
