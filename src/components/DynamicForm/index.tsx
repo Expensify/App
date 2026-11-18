@@ -345,7 +345,8 @@ function DynamicFormFlow({
         if (!SHOULD_SHOW_PROGRESS_SAVED_TOAST) {
             return;
         }
-        Growl.success({bodyText: translate('dynamicForm.continueOffline.progressSaved')});
+        // At the bottom, as in the save and return design
+        Growl.success({bodyText: translate('dynamicForm.continueOffline.progressSaved'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     };
 
     // A flow on replaced routes has no page stack for Android's back to pop, so it takes the header's steps
