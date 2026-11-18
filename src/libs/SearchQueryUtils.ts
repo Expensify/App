@@ -19,6 +19,7 @@ import type {
     SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
+    SearchSortBy,
     SearchWithdrawalType,
     SelectedTransactions,
     SyntaxFilterKey,
@@ -77,6 +78,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -94,6 +96,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -187,6 +190,24 @@ function buildMerchantFilterQuery(
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
+
+// Search, Insights and the CSV export skip the cash expense notice that only Classic records, so violation filter skips it too.
+// customRules and ruleViolation belong to the new rules engine, so they're left out until it ships with clearer names.
+const EXCLUDED_VIOLATION_FILTER_VALUES = new Set<string>([CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT, CONST.VIOLATIONS.CUSTOM_RULES, CONST.VIOLATIONS.RULE_VIOLATION]);
+const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => !EXCLUDED_VIOLATION_FILTER_VALUES.has(name));
+
+function isViolationName(name: string): name is OnyxTypes.ViolationName {
+    return VALID_VIOLATION_NAMES.has(name);
+}
+
+/**
+ * Returns the display label for a violation name.
+ * Falls back to the raw identifier when no short-name translation exists.
+ */
+function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
+    return isViolationName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+}
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
@@ -204,6 +225,7 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
 const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
@@ -899,9 +921,32 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
     );
 }
 
+function isHasFilterValue(value: string): value is HasFilterValue {
+    return Object.values<string>(CONST.SEARCH.HAS_VALUES).includes(value);
+}
+
+/**
+ * Returns the `has` values the query includes, leaving out negated ones such as `-has:submitted-violation`.
+ */
+function getPositiveHasFilterValues(queryJSON: SearchQueryJSON | undefined): HasFilterValues {
+    const hasValues: HasFilterValues = [];
+    for (const filterGroup of queryJSON?.flatFilters ?? []) {
+        if (filterGroup.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            continue;
+        }
+        for (const filter of filterGroup.filters) {
+            const value = filter.value.toString();
+            if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && isHasFilterValue(value)) {
+                hasValues.push(value);
+            }
+        }
+    }
+    return hasValues;
+}
+
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `anySubmission:`, `submitted:` or `approved:` filter, or a
  * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
  * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */
@@ -918,6 +963,22 @@ function shouldRefetchSearchOnReportActionChange(queryJSON: SearchQueryJSON): bo
  */
 function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
     return VIOLATION_HAS_VALUES.some((violationHasValue) => !!hasValues?.includes(violationHasValue));
+}
+
+/**
+ * Returns the column the rows are sorted by on the client. Like the backend, it sorts by violations only for expense
+ * searches with a positive `has:*-violation` filter, since only those rows carry violation labels, and by date otherwise.
+ */
+function getEffectiveSortBy(queryJSON: SearchQueryJSON | undefined): SearchSortBy | undefined {
+    if (queryJSON?.sortBy !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) {
+        return queryJSON?.sortBy;
+    }
+
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryHasViolationFilter(queryJSON)) {
+        return queryJSON.sortBy;
+    }
+
+    return CONST.SEARCH.TABLE_COLUMNS.DATE;
 }
 
 /**
@@ -1058,6 +1119,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
+    if (query.tagLevel !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`;
+    }
+    if (query.tagParent !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`;
+    }
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
@@ -1065,6 +1132,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    if (query.tagLevel !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`);
+    }
+    if (query.tagParent !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -1251,6 +1324,14 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        if (result.tagLevel !== undefined) {
+            const tagLevel = Number(result.tagLevel);
+            result.tagLevel = Number.isSafeInteger(tagLevel) && tagLevel > 0 ? tagLevel : undefined;
+        }
+        if (result.tagParent !== undefined && (result.tagLevel === undefined || typeof result.tagParent !== 'string')) {
+            result.tagParent = undefined;
+        }
+
         // Normalize compare before computing hashes so invalid values don't affect hash
         if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
             result.compare = undefined;
@@ -1298,6 +1379,10 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT && queryJSON?.tagParent !== undefined) {
+            queryParts.push(`${key}:${sanitizeSearchValue(queryJSON.tagParent) || '""'}`);
+            continue;
+        }
         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
@@ -1529,7 +1614,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
+    const {
+        type,
+        groupBy,
+        view,
+        columns,
+        limit,
+        tagLevel,
+        tagParent,
+        footerCount,
+        footerTotal,
+        footerCurrency,
+        [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator,
+        ...otherFilters
+    } = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1547,6 +1645,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+    const level = Number(tagLevel);
+    if (tagLevel !== undefined && Number.isSafeInteger(level) && level > 0) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${level}`);
+        if (tagParent !== undefined) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${sanitizeSearchValue(tagParent) || '""'}`);
+        }
     }
 
     // View is only valid when groupBy is set
@@ -1689,6 +1794,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
+                    filterKey === FILTER_KEYS.VIOLATION ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
@@ -1864,10 +1970,10 @@ type DateFilterRange = {
 };
 
 /**
- * Extracts the effective start and end dates from date filters in a search query.
+ * Extracts the effective start and end dates from a search query's filters on the given date, the expense date by default.
  */
-function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap((filter) => filter.filters);
+function getDateFilterRange(queryJSON: SearchQueryJSON, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey).flatMap((filter) => filter.filters);
     let start: string | undefined;
     let end: string | undefined;
 
@@ -2075,6 +2181,14 @@ function buildFilterFormValuesFromQuery(
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE_NOT] = receiptTypeValues;
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
+            }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+            const violationNames = filterValues.filter(isViolationName);
+            if (isNegated) {
+                filtersForm[FILTER_KEYS.VIOLATION_NOT] = violationNames;
+            } else {
+                filtersForm[FILTER_KEYS.VIOLATION] = violationNames;
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
@@ -2384,6 +2498,12 @@ function buildFilterFormValuesFromQuery(
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
     }
+    if (queryJSON.tagLevel !== undefined) {
+        filtersForm[FILTER_KEYS.TAG_LEVEL] = queryJSON.tagLevel.toString();
+        if (queryJSON.tagParent !== undefined) {
+            filtersForm[FILTER_KEYS.TAG_PARENT] = queryJSON.tagParent;
+        }
+    }
 
     const footerSelection = getFooterSelectionFromQuery(queryJSON);
     if (footerSelection.footerCount) {
@@ -2523,6 +2643,9 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
+        return getViolationDisplayName(filterValue, translate);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
         // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
@@ -3441,7 +3564,38 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
-function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+function getActionFilters(searchQueryJSON: SearchQueryJSON) {
+    return searchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+}
+
+/**
+ * Checks whether filter edits still belong to an explicitly selected search.
+ * Submit, Approve, Pay, and Export deliberately use only their type and a single matching positive action,
+ * so defaults like to:, from:, and payer: may be removed through advanced filters, as agreed in https://github.com/Expensify/App/issues/102448.
+ * Removing to: from Approve broadens it beyond the current recipient to all matching reports the user can access.
+ * Every other search keeps the stricter default-filter-keys check.
+ */
+function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, searchKey?: SearchKey) {
+    if (!searchKey || !TODO_SEARCH_KEYS.has(searchKey)) {
+        return doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON);
+    }
+
+    if (!queryJSON || !defaultQueryJSON || queryJSON.type !== defaultQueryJSON.type) {
+        return false;
+    }
+
+    const actionFilters = getActionFilters(queryJSON);
+    const defaultActionFilters = getActionFilters(defaultQueryJSON);
+    return (
+        actionFilters.length === 1 &&
+        defaultActionFilters.length === 1 &&
+        actionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        defaultActionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        actionFilters[0].value === defaultActionFilters[0].value
+    );
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string, searchKey?: SearchKey) {
     if (!lastQuery) {
         return defaultQuery;
     }
@@ -3458,7 +3612,7 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
         return defaultQuery;
     }
 
-    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+    if (!doesQueryMatchSearchContext(lastQueryJSON, defaultQueryJSON, searchKey)) {
         return defaultQuery;
     }
 
@@ -3557,9 +3711,14 @@ export {
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     queryHasViolationFilter,
+    getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
     shouldRefetchSearchOnReportActionChange,
+    getViolationDisplayName,
+    VIOLATION_FILTER_VALUES,
 };
 
 export type {BuildUserReadableQueryStringParams};
