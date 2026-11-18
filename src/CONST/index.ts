@@ -1119,6 +1119,8 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** How long the terms page waits after Submit for Wise to decide whether it needs more info */
+        ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS: 8000,
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',
