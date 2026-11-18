@@ -284,7 +284,7 @@ function DescribeRuleForm({
 
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
-    const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+    const scrollToInput = (shouldDelayScroll = true) => formRef.current?.scrollTo(inputTopOffsetRef.current, shouldDelayScroll);
     const resetScrollOnKeyboardReopen = useScrollOnKeyboardReopen(inputRef, scrollToInput, isActive);
 
     const scrollToFocusedInput = () => {

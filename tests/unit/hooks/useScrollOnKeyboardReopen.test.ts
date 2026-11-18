@@ -161,6 +161,37 @@ describe('useScrollOnKeyboardReopen', () => {
         expect(scrollToInput).not.toHaveBeenCalled();
     });
 
+    it('requests an immediate scroll after the keyboard finishes reopening', () => {
+        // Given a dismissed keyboard with input focus retained
+        const scrollToInput = jest.fn();
+        renderHook(() => useScrollOnKeyboardReopen({current: {isFocused: () => true}}, scrollToInput, true));
+        emitKeyboardEvent('keyboardDidHide', 0);
+
+        // When the positive-height didShow event confirms the animation is complete
+        emitKeyboardEvent('keyboardDidShow', 300);
+
+        // Then the form can scroll without another keyboard transition delay
+        expect(scrollToInput).toHaveBeenCalledTimes(1);
+        expect(scrollToInput).toHaveBeenCalledWith(false);
+    });
+
+    it('keeps the transition delay when foreground visibility comes from willShow', () => {
+        // Given an app returning while the keyboard is still opening
+        const scrollToInput = jest.fn();
+        renderHook(() => useScrollOnKeyboardReopen({current: {isFocused: () => true}}, scrollToInput, true));
+        setAppState('background');
+        // The controller updates isVisible at willShow, before didShow confirms the animation has finished.
+        mockIsKeyboardVisible = true;
+
+        // When the app becomes active before didShow
+        setAppState('active');
+        emitKeyboardEvent('keyboardDidShow', 300);
+
+        // Then the form retains its safe transition wait without requesting a second scroll
+        expect(scrollToInput).toHaveBeenCalledTimes(1);
+        expect(scrollToInput).toHaveBeenCalledWith(true);
+    });
+
     it.each(['form', 'route'] as const)('discards foreground restoration when the %s becomes inactive', (target) => {
         // Given a focused input whose keyboard was visible before the app entered the background
         const ref = {current: {isFocused: () => true}};

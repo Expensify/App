@@ -15,13 +15,13 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
     };
 
     // Use the current callback without discarding a pending reopen when the form rerenders.
-    const scrollToReopenedInput = useEffectEvent(() => {
+    const scrollToReopenedInput = useEffectEvent((shouldDelayScroll: boolean) => {
         if (!shouldScrollOnReopen.current || !isActive || !isScreenFocused || AppState.currentState !== 'active' || !ref.current?.isFocused()) {
             return;
         }
         // A keyboard show can arrive before the app becomes active, so consume the scroll only when it can run.
         resetScrollOnReopen();
-        scrollToInput();
+        scrollToInput(shouldDelayScroll);
     });
 
     useEffect(() => {
@@ -37,7 +37,8 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
             if (state === 'active') {
                 // Android can retain the keyboard without sending another show event when the app returns.
                 if (isKeyboardVisible || KeyboardController.isVisible()) {
-                    scrollToReopenedInput();
+                    // Controller visibility can become true at willShow, before the keyboard animation completes.
+                    scrollToReopenedInput(true);
                 }
                 return;
             }
@@ -59,7 +60,7 @@ const useScrollOnKeyboardReopen: UseScrollOnKeyboardReopen = (ref, scrollToInput
                 return;
             }
             isKeyboardVisible = true;
-            scrollToReopenedInput();
+            scrollToReopenedInput(false);
         });
 
         return () => {
