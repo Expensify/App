@@ -2346,7 +2346,7 @@ describe('PolicyUtils', () => {
                 expect(Object.keys(result?.newDist.rates ?? {})).toEqual(['newB', 'newA']);
             });
 
-            it('keeps the source ID for a rate the map leaves out', () => {
+            it('waits for Auth for a rate the map leaves out', () => {
                 // Given a source rate absent from the client ID map.
                 const sourceUnit = {
                     customUnitID: 'srcPerDiem',
@@ -2366,8 +2366,8 @@ describe('PolicyUtils', () => {
                     perDiemCustomUnitID: 'newPerDiem',
                     rateIDsBySourceRateID: {},
                 });
-                // Then the unmapped rate keeps its ID instead of being dropped.
-                expect(result?.newPerDiem.rates).toEqual(sourceUnit.rates);
+                // Then the source identity cannot leak into the duplicate while Auth assigns a new ID.
+                expect(result?.newPerDiem.rates).toEqual({});
             });
         });
         describe('getRateValueWithDecimals', () => {

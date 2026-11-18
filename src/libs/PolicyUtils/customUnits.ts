@@ -2,6 +2,8 @@
  * Distance and per diem custom units, rate display, and the units copied when a workspace is duplicated.
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
+import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
+
 import CONST from '@src/CONST';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
@@ -87,18 +89,17 @@ function getPolicyForDistanceRateID(customUnitRateID: string | undefined, polici
     });
 }
 
-/** Gives the unit and each of its rates the new IDs the duplicate uses. A rate missing from the map keeps its ID. */
+/** Only mapped rates can be shown before Auth returns their new IDs. */
 function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newRateIDsBySourceRateID: Record<string, string>): CustomUnit {
     const rates: Record<string, Rate> = {};
     for (const rate of Object.values(unit.rates)) {
-        const newRateID = newRateIDsBySourceRateID[rate.customUnitRateID] ?? rate.customUnitRateID;
-        rates[newRateID] = {...rate, customUnitRateID: newRateID};
+        const newRateID = newRateIDsBySourceRateID[rate.customUnitRateID];
+        if (!newRateID) {
+            continue;
+        }
+        rates[newRateID] = {...buildDuplicateSettingSnapshot(rate), customUnitRateID: newRateID};
     }
-    return {
-        ...unit,
-        customUnitID: newCustomUnitID,
-        rates,
-    };
+    return {...buildDuplicateSettingSnapshot(unit), customUnitID: newCustomUnitID, rates};
 }
 
 function getCustomUnitsForDuplication(
@@ -125,7 +126,7 @@ function getCustomUnitsForDuplication(
         return {
             ...customUnit,
             customUnitID,
-            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => !!rate && rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         };
     };
 

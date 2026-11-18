@@ -743,7 +743,7 @@ describe('actions/Policy', () => {
             const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
             expect(duplicate?.employeeList?.[EMPLOYEE_EMAIL]).toBeUndefined();
             expect(duplicate?.employeeList?.[ESH_EMAIL]).toBeDefined();
-            expect(duplicate?.fieldList).toEqual({});
+            expect(duplicate?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue).toBe(CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN);
             expect(duplicate?.taxRates?.taxes).toEqual({});
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({
                 Kept: {name: 'Kept', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
@@ -752,6 +752,46 @@ describe('actions/Policy', () => {
                 Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Kept: {name: 'Kept', enabled: true}}},
             });
             expect(source.employeeList?.[EMPLOYEE_EMAIL]?.pendingAction).toBe(pendingAction);
+        });
+
+        it('duplicate workspace omits null categories and the source RuleBot while keeping clean members', async () => {
+            // Given a source with a RuleBot and failed member edits, plus an Onyx category tombstone.
+            const sourceBotEmail = 'source-bot@example.com';
+            const source: PolicyType = {
+                ...createRandomPolicy(36, CONST.POLICY.TYPE.CORPORATE),
+                ruleBotAccountID: 999,
+                employeeList: {
+                    [sourceBotEmail]: {email: sourceBotEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Source member error'}},
+                },
+            };
+            const categories = {Kept: {name: 'Kept', enabled: true}};
+            Object.defineProperty(categories, 'deleted', {value: null, enumerable: true});
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When Members and Categories are duplicated before the server provisions the new RuleBot.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Clean duplicate',
+                localCurrency: 'USD',
+                parts: ['members', 'categories'],
+                policyCategories: categories,
+                personalDetailsByLogins: {[sourceBotEmail]: {accountID: 999, login: sourceBotEmail}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the duplicate has clean member data and no source bot identity or null category.
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
+            expect(duplicate?.employeeList?.[sourceBotEmail]).toBeUndefined();
+            expect(duplicate?.ruleBotAccountID).toBeUndefined();
+            expect(duplicate?.employeeList?.[EMPLOYEE_EMAIL]).toEqual({email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({
+                Kept: {name: 'Kept', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
         });
 
         it('duplicate workspace retains backend creation defaults before the response', () => {
@@ -816,11 +856,11 @@ describe('actions/Policy', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then loading indicators remain until the response, and the PDF is only included with Overview.
+            // Then loading indicators remain until the response, and the source PDF cannot be opened from the duplicate.
             const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
             expect(duplicate?.pendingFields?.autoReporting).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(duplicate?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(duplicate?.rulesDocumentURL).toBe(shouldCopyOverview ? source.rulesDocumentURL : undefined);
+            expect(duplicate?.rulesDocumentURL).toBeUndefined();
             expect(duplicate?.pendingFields?.rulesDocumentURL).toBe(shouldCopyOverview ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined);
 
             await mockFetch.resume?.();
@@ -1307,7 +1347,17 @@ describe('actions/Policy', () => {
                         enabled: true,
                         attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
                         rates: {
-                            [sourceDefaultRateID]: {customUnitRateID: sourceDefaultRateID, name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                            [sourceDefaultRateID]: {
+                                customUnitRateID: sourceDefaultRateID,
+                                name: 'Default Rate',
+                                rate: 72.5,
+                                currency: 'USD',
+                                enabled: true,
+                                index: 0,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                errors: {old: 'Source rate error'},
+                            },
+                            deleted: {customUnitRateID: 'deleted', name: 'Deleted', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                             [sourceExtraRateID]: {customUnitRateID: sourceExtraRateID, name: 'Extra Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
                         },
                     },
@@ -1363,7 +1413,9 @@ describe('actions/Policy', () => {
             const newDefaultRateID = rates.find((rate) => rate.name === 'Default Rate')?.customUnitRateID;
             const newExtraRateID = rates.find((rate) => rate.name === 'Extra Rate')?.customUnitRateID;
             expect(rates).toHaveLength(2);
+            expect(rates.every((rate) => !rate.pendingAction && !rate.errors)).toBe(true);
             expect(newDefaultRateID).not.toBe(sourceDefaultRateID);
+            expect(params.customUnitRateID).toBe(newDefaultRateID);
             expect(newExtraRateID).not.toBe(sourceExtraRateID);
             if (!params.optimisticRateIDs) {
                 throw new Error('Expected duplicated distance rate IDs');

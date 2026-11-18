@@ -88,6 +88,7 @@ import type {
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -319,7 +320,7 @@ type DuplicatePolicyDataOptions = {
     policyName: string;
     policyID?: string;
     targetPolicyID?: string;
-    welcomeNote: string;
+    welcomeNote?: string;
     parts: Part[];
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
@@ -3732,8 +3733,8 @@ function buildOptimisticDuplicatePolicy(
         // These amounts match Policy_Generator defaults.
         invoice: {markUp: 0},
         units: {time: {enabled: false, rate: 50}},
-        areCompanyCardsEnabled: true,
-        areTagsEnabled: false,
+        areCompanyCardsEnabled: sourcePolicy.type !== CONST.POLICY.TYPE.SUBMIT,
+        areTagsEnabled: sourcePolicy.type === CONST.POLICY.TYPE.SUBMIT,
         areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
         isCollectDepositAccountsEnabled: false,
@@ -3761,34 +3762,15 @@ function buildOptimisticDuplicatePolicy(
         },
         avatarURL: file?.uri,
         originalFileName: file?.name,
-        // The backend must copy the PDF to the new policy before it can be opened from the duplicate.
-        rulesDocumentURL: parts.includes('overview') ? sourcePolicy.rulesDocumentURL : undefined,
     };
 }
 
 function filterPendingDeletes<T>(data: Record<string, T> | undefined): Record<string, T> {
     return Object.fromEntries(
         Object.entries(data ?? {}).filter(
-            ([, value]) => !value || typeof value !== 'object' || !('pendingAction' in value) || value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            ([, value]) => !!value && (typeof value !== 'object' || !('pendingAction' in value) || value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         ),
     );
-}
-
-/** Applies queued field deletions before removing feedback belonging to the source workspace. */
-function buildDuplicateSettingSnapshot<T extends {pendingFields?: Partial<Record<string, PendingAction>>; pendingAction?: PendingAction; errors?: unknown; errorFields?: unknown}>(
-    setting: T,
-): T {
-    const snapshot = {...setting};
-    for (const [field, pendingAction] of Object.entries(setting.pendingFields ?? {})) {
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            Reflect.deleteProperty(snapshot, field);
-        }
-    }
-    delete snapshot.pendingFields;
-    delete snapshot.pendingAction;
-    delete snapshot.errors;
-    delete snapshot.errorFields;
-    return snapshot;
 }
 
 function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicyDataOptions) {
@@ -3809,10 +3791,19 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
     // Queued deletions belong to the source and must not appear in the duplicate.
     const policy = {
         ...sourcePolicy,
-        employeeList: filterPendingDeletes(sourcePolicy.employeeList),
-        fieldList: filterPendingDeletes(sourcePolicy.fieldList),
-        connections: filterPendingDeletes(sourcePolicy.connections),
-        taxRates: sourcePolicy.taxRates ? {...sourcePolicy.taxRates, taxes: filterPendingDeletes(sourcePolicy.taxRates.taxes)} : undefined,
+        employeeList: Object.fromEntries(
+            Object.entries(filterPendingDeletes(sourcePolicy.employeeList))
+                .filter(([email]) => personalDetailsByLogins?.[email]?.accountID !== sourcePolicy.ruleBotAccountID || !sourcePolicy.ruleBotAccountID)
+                .map(([email, employee]) => [email, buildDuplicateSettingSnapshot(employee)]),
+        ),
+        fieldList: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.fieldList)).map(([id, field]) => [id, buildDuplicateSettingSnapshot(field)])),
+        connections: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.connections)).map(([name, connection]) => [name, buildDuplicateSettingSnapshot(connection)])),
+        taxRates: sourcePolicy.taxRates
+            ? {
+                  ...sourcePolicy.taxRates,
+                  taxes: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.taxRates.taxes)).map(([id, tax]) => [id, buildDuplicateSettingSnapshot(tax)])),
+              }
+            : undefined,
     };
     const policyCategories = Object.fromEntries(Object.entries(filterPendingDeletes(sourceCategories)).map(([name, category]) => [name, buildDuplicateSettingSnapshot(category)]));
     const policyTags = Object.fromEntries(
@@ -3840,7 +3831,6 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
     const distanceCustomUnitID = generateCustomUnitID();
-    const customUnitRateID = generateCustomUnitID();
     const perDiemCustomUnitID = generateCustomUnitID();
 
     // Use fresh rate IDs to keep the duplicate separate from its source.
@@ -3850,6 +3840,9 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
         parts.includes('perDiem') ? PolicyUtils.getPerDiemCustomUnit(policy) : undefined,
     ];
     for (const rate of copiedUnits.flatMap((unit) => Object.values(unit?.rates ?? {}))) {
+        if (!rate || rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
         optimisticRateIDs[rate.customUnitRateID] = generateCustomUnitID();
     }
 
@@ -3877,7 +3870,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
         parts,
         {
             [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories,
-            [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`]: defaultOptimisticCategoriesData.categories,
+            ...(!parts.includes('categories') ? {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`]: defaultOptimisticCategoriesData.categories} : {}),
         },
         {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTags},
         rules,
@@ -3903,18 +3896,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
             | typeof ONYXKEYS.COLLECTION.RULE
         >
     > = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
-            value: newPolicy,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`,
-            value: {
-                isOptimisticReport: true,
-            },
-        },
+        {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseChatReportID}`, value: {isOptimisticReport: true}},
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
@@ -3992,7 +3974,10 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
                 // The duplication response can merge a stray `areRulesEnabled: true` into the new policy after the full
                 // policy merge (seen when categories are copied from a Control workspace). successData is applied after the
                 // response's onyxData, so set the final value here, or Rules shows in the new workspace until the policy reloads.
-                areRulesEnabled: parts.includes('codingRules') || (parts.includes('rules') && PolicyUtils.arePolicyRulesEnabled(sourcePolicy, sourceCategories)),
+                areRulesEnabled:
+                    (parts.includes('codingRules') || parts.includes('rules')) &&
+                    PolicyUtils.isControlPolicy(newPolicy) &&
+                    (policy.areRulesEnabled ?? (parts.includes('codingRules') || PolicyUtils.arePolicyRulesEnabled(policy, policyCategories))),
                 pendingFields: {
                     autoReporting: null,
                     approvalMode: null,
@@ -4127,6 +4112,11 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? createFile(file as File) : undefined;
 
+    const defaultDistanceRate = Object.values(PolicyUtils.getDistanceRateCustomUnit(newPolicy)?.rates ?? {})
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+        .at(0);
+
     const params: DuplicateWorkspaceParams = {
         policyID,
         targetPolicyID,
@@ -4139,7 +4129,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
         announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID,
         perDiemCustomUnitID,
         distanceCustomUnitID,
-        customUnitRateID,
+        customUnitRateID: defaultDistanceRate?.customUnitRateID ?? generateCustomUnitID(),
         parts: JSON.stringify(parts),
         optimisticRateIDs: Object.keys(optimisticRateIDs).length ? JSON.stringify(optimisticRateIDs) : undefined,
         currency: options.localCurrency,
