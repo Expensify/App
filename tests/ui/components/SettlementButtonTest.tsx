@@ -219,6 +219,7 @@ function createPersonalBankAccount(accountNumber = '5678'): BankAccountList {
 
 const defaultProps: SettlementButtonProps = {
     onPress: jest.fn(),
+    sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
     enablePaymentsRoute: ROUTES.ENABLE_PAYMENTS,
     policyID: POLICY_ID,
     formattedAmount: '$100.00',

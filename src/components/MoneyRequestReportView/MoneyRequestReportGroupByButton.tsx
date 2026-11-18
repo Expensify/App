@@ -90,6 +90,7 @@ function MoneyRequestReportGroupByButton({currentSelection, onSelect}: MoneyRequ
 
     return (
         <DropdownButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.GROUP_BY_BUTTON}
             label={translate('search.display.groupBy')}
             value={isLayoutMatrixSelected ? '' : (selectedGroupByItem?.text ?? '')}
             PopoverComponent={groupByPopoverComponent}

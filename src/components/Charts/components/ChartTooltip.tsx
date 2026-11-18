@@ -1,5 +1,6 @@
 import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
-import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
+import {markChartTouch, pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -9,6 +10,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
@@ -52,9 +55,12 @@ type ChartTooltipProps = {
 
     /** Called once the content is laid out, which is the first moment it is on screen on native */
     onContentLayout?: () => void;
+
+    /** Called after the tooltip is dismissed by a press on it */
+    onPress?: () => void;
 };
 
-function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout}: ChartTooltipProps) {
+function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout, onPress}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {top: safeAreaTop, bottom: safeAreaBottom} = useSafeAreaInsets();
@@ -170,6 +176,22 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         };
     }, [initialTooltipPosition, windowWidth, windowHeight, safeAreaTop, safeAreaBottom]);
 
+    const content = (
+        <View
+            key={contentKey}
+            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+            onLayout={handleContentLayout}
+        >
+            <Text style={styles.chartTooltipTitle}>{label}</Text>
+            {children}
+        </View>
+    );
+
+    const pressTooltip = () => {
+        onDismiss();
+        onPress?.();
+    };
+
     return (
         <>
             <ChartTooltipAnchor
@@ -180,16 +202,22 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
                 <ChartTooltipPortal>
                     <Animated.View
                         style={[styles.chartTooltipLayer, tooltipStyle]}
-                        pointerEvents="none"
+                        pointerEvents={onPress && isShown ? 'auto' : 'none'}
+                        // Any touch start hides the pinned tooltip unless it's marked as on its chart, and a tap on the tooltip must keep it shown for the press to fire
+                        onTouchStart={onPress ? () => markChartTouch(onDismiss) : undefined}
                     >
-                        <View
-                            key={contentKey}
-                            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
-                            onLayout={handleContentLayout}
-                        >
-                            <Text style={styles.chartTooltipTitle}>{label}</Text>
-                            {children}
-                        </View>
+                        {onPress ? (
+                            <PressableWithoutFeedback
+                                onPress={pressTooltip}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={label}
+                                sentryLabel={CONST.SENTRY_LABEL.CHART_TOOLTIP.PRESS}
+                            >
+                                {content}
+                            </PressableWithoutFeedback>
+                        ) : (
+                            content
+                        )}
                     </Animated.View>
                 </ChartTooltipPortal>
             )}

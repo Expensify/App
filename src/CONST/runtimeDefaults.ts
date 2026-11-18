@@ -19,7 +19,6 @@ type ConstRuntime = {
     };
     STYLE_VARIABLES: {
         componentSizeNormal: number;
-        navigationTabBarSize: number;
         receiptPreviewMaxWidth: number;
     };
     EXPENSIFY_ACCOUNT_IDS: {
@@ -64,7 +63,6 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
     },
     STYLE_VARIABLES: {
         componentSizeNormal: 40,
-        navigationTabBarSize: 72,
         receiptPreviewMaxWidth: 440,
     },
     EXPENSIFY_ACCOUNT_IDS: {

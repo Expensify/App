@@ -59,6 +59,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route, navigation}: W
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <CompanyCardTransactionStartDateForm
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TRANSACTION_START_DATE_SAVE}
                 testID="WorkspaceCompanyCardEditTransactionStartDatePage"
                 description={translate('workspace.companyCards.editStartDateDescription')}
                 initialDateOption={savedDateOption}

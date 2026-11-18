@@ -117,6 +117,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
                 isDisabled: !canWriteMoreFeatures,
                 buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
                 buttonAction: handleGetExpensifyCardPress,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.CARD_RESTRICTIONS_EMPTY_STATE_GET_EXPENSIFY_CARD,
             },
         ],
     };

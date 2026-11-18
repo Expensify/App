@@ -3,13 +3,14 @@
  * and building the tax names and titles shown in the UI.
  * Extracted from TransactionUtils/index.ts to keep that file smaller.
  */
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
-import {translateLocal} from '@libs/Localize';
-import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, isTaxCodeCustomized, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Rule, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -21,7 +22,14 @@ import getDistanceInMeters from './getDistanceInMeters';
 // This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
-import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest} from './index';
+import {getAmount, getCurrency, getRateID, getTaxCode, isDistanceRequest, isPerDiemRequest, isTimeRequest} from './index';
+
+function getTaxCodeForDisplay(transaction: Transaction, policy: OnyxEntry<Policy>): string {
+    if (isPerDiemRequest(transaction) || isTimeRequest(transaction) || !isTaxCodeCustomized(transaction.taxCode, policy)) {
+        return '';
+    }
+    return getTaxCode(transaction);
+}
 
 /**
  * Calculates tax amount from the given expense amount and tax percentage
@@ -115,7 +123,7 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
  * @param  policy - The policy which the user has access to and which the report is tied to.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+function transformedTaxRates(translate: LocalizedTranslate, policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
 
@@ -126,17 +134,23 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${translate('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
+}
+
+/**
+ * Gets the policy tax rate stored under the given tax code
+ */
+function getPolicyTaxRate(policy: OnyxEntry<Policy>, taxCode: string | undefined): TaxRate | undefined {
+    return Object.entries(policy?.taxRates?.taxes ?? {}).find(([code]) => code === taxCode)?.[1];
 }
 
 /**
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
+    return getPolicyTaxRate(policy, resolveCurrentTaxCode(policy, taxCode))?.value;
 }
 
 /**
@@ -186,14 +200,14 @@ function getCalculatedTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntr
 /**
  * Gets the tax name for Workspace Taxes Settings
  */
-function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
-    return Object.values(transformedTaxRates(policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
+function getWorkspaceTaxesSettingsName(translate: LocalizedTranslate, policy: OnyxEntry<Policy>, taxCode: string) {
+    return Object.values(transformedTaxRates(translate, policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
 }
 
 /**
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
-function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
+function getTaxName(translate: LocalizedTranslate, policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, shouldFallbackToValue = false) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
 
     // Only fall back to the default tax code when tax tracking is enabled on the policy.
@@ -202,7 +216,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     // We use || instead of ?? because taxCode may be an empty string, which should also trigger the fallback.
     const taxCodeToMatch = transaction?.taxCode || (policy?.tax?.trackingEnabled ? defaultTaxCode : undefined);
     const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
-    const taxRate = taxCodeToMatch ? Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode) : undefined;
+    const taxRate = taxCodeToMatch ? Object.values(transformedTaxRates(translate, policy, transaction)).find((rate) => rate.code === resolvedTaxCode) : undefined;
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {
         return transaction?.taxValue;
@@ -221,8 +235,7 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
 
     const transactionTaxCode = getTaxCode(transaction);
     const resolvedTaxCode = transactionTaxCode ? resolveCurrentTaxCode(policy, transactionTaxCode) : transactionTaxCode;
-    const transformedRates = transformedTaxRates(policy, transaction);
-    const taxRate = Object.values(transformedRates).find((rate) => rate.code === resolvedTaxCode);
+    const taxRate = getPolicyTaxRate(policy, resolvedTaxCode);
 
     if (!transaction?.taxValue) {
         return !!taxRate;
@@ -234,20 +247,26 @@ function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: Ony
 /**
  * Gets the tax rate title for display, handling the case when moving expenses from track to submit
  */
-function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, isMovingFromTrackExpense: boolean, policyForMovingExpenses?: OnyxEntry<Policy>): string {
-    const currentTaxName = getTaxName(policy, transaction);
+function getTaxRateTitle(
+    translate: LocalizedTranslate,
+    policy: OnyxEntry<Policy>,
+    transaction: OnyxEntry<Transaction>,
+    isMovingFromTrackExpense: boolean,
+    policyForMovingExpenses?: OnyxEntry<Policy>,
+): string {
+    const currentTaxName = getTaxName(translate, policy, transaction);
 
     if (currentTaxName) {
         // If moving from track expense show the tax name from the moving policy
         if (isMovingFromTrackExpense && !hasTaxRateWithMatchingValue(policy, transaction)) {
-            return getTaxName(policyForMovingExpenses, transaction) ?? '';
+            return getTaxName(translate, policyForMovingExpenses, transaction) ?? '';
         }
-        return getTaxName(policy, transaction, true) ?? '';
+        return getTaxName(translate, policy, transaction, true) ?? '';
     }
 
     // If no tax name on current policy but moving from track expense, use the moving policy
     if (isMovingFromTrackExpense) {
-        return getTaxName(policyForMovingExpenses, transaction, true) ?? '';
+        return getTaxName(translate, policyForMovingExpenses, transaction, true) ?? '';
     }
 
     return '';
@@ -282,23 +301,28 @@ function getCategoryTaxDetails(
 ) {
     const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
 
+    // Both branches fall back to the workspace default, which keeps a category with no rule from carrying the rate
+    // its predecessor set, the way the confirmation page does for every other expense. A policy with no tax rule at
+    // all is left alone, so an expense whose tax was never rule driven keeps whatever it holds.
+    //
     // Distance tax is charged on the taxable portion of the mileage rate rather than the full amount, so reuse the
     // rate-aware calculation instead of taxing the expense amount.
     if (isDistanceRequest(transaction)) {
         const {
             categoryTaxCode: distanceCategoryTaxCode,
+            taxCode,
             taxAmount,
             taxValue,
         } = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction), rules, getCurrencyDecimals, undefined, category);
-        if (!distanceCategoryTaxCode) {
+        // `taxCode` is the rate's own default, which is the fallback the manual branch below applies, and the
+        // amount has already been charged at it.
+        const resolvedTaxCode = distanceCategoryTaxCode ?? (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? taxCode : undefined);
+        if (!resolvedTaxCode) {
             return unresolvedTaxDetails;
         }
-        return {categoryTaxCode: distanceCategoryTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
+        return {categoryTaxCode: resolvedTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    // Falling back to the workspace default keeps a category with no rule from carrying the rate its predecessor
-    // set, which is what the confirmation page does for every other expense. A policy with no tax rule at all is
-    // left alone, so an expense whose tax was never rule driven keeps whatever it holds.
     const categoryTaxCode =
         getCategoryTaxCode(category, transaction, policy, rules, currency) ??
         (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);
@@ -322,6 +346,7 @@ export {
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,
+    getTaxCodeForDisplay,
     getTaxName,
     getTaxRateTitle,
     getTaxValue,

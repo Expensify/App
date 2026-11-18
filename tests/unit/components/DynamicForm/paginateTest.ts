@@ -166,9 +166,52 @@ describe('getPageTitle', () => {
         // Then it is blank, since no one question names the page
         expect(title).toBe('');
     });
+
+    it('ignores the section title', () => {
+        // Given a page that asks a question and names its confirmation section separately
+        const page: DynamicFormPage = {
+            key: 'p',
+            title: 'What are your account details?',
+            sectionTitleKey: 'addPersonalBankAccount.bankDetails',
+            content: [text('a', {label: 'Alpha'})],
+        };
+
+        // When its title is read
+        const title = getPageTitle(page, {}, translateLocal);
+
+        // Then the page still asks its question, since the section title only names its answers on the confirmation page
+        expect(title).toBe('What are your account details?');
+    });
 });
 
 describe('getPageSectionName', () => {
+    it('prefers the section title over the page title', () => {
+        // Given a page that asks a question and names its confirmation section separately
+        const page: DynamicFormPage = {
+            key: 'p',
+            title: 'What are your account details?',
+            sectionTitleKey: 'addPersonalBankAccount.bankDetails',
+            content: [text('a', {label: 'Alpha'})],
+        };
+
+        // When its section name is read
+        const name = getPageSectionName(page, {}, translateLocal);
+
+        // Then the confirmation page names the section plainly instead of repeating the question
+        expect(name).toBe(translateLocal('addPersonalBankAccount.bankDetails'));
+    });
+
+    it("uses the schema author's section title when there is no translation", () => {
+        // Given a page whose section title has no translation key
+        const page: DynamicFormPage = {key: 'p', title: 'What are the account holder details?', sectionTitle: 'Holder', content: [text('a', {label: 'Alpha'})]};
+
+        // When its section name is read
+        const name = getPageSectionName(page, {}, translateLocal);
+
+        // Then it is the schema's wording, so a section the App has no copy for still gets its own name
+        expect(name).toBe('Holder');
+    });
+
     it('uses the page title', () => {
         // Given a titled page
         const page: DynamicFormPage = {key: 'p', title: 'Bank details', content: [text('a', {label: 'Alpha'})]};

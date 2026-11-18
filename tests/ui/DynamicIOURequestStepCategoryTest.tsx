@@ -2,9 +2,12 @@ import {render} from '@testing-library/react-native';
 
 import CategoryPicker from '@components/CategoryPicker';
 
+import type usePolicy from '@hooks/usePolicy';
+
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicIOURequestStepCategory from '@pages/iou/request/step/DynamicIOURequestStepCategory';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,12 +45,7 @@ jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => (Compon
         transaction={mockTransaction}
     />
 ));
-jest.mock(
-    '@pages/iou/request/step/StepScreenWrapper',
-    () =>
-        ({children}: {children: React.ReactNode}) =>
-            children,
-);
+jest.mock('@pages/iou/request/step/StepScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 
 // The picker is replaced so the test can tap the create row by calling the handler the page passes it.
 jest.mock('@components/CategoryPicker', () => jest.fn(() => null));
@@ -59,7 +57,10 @@ jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCate
 jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn(), isDraftUpdate: true}));
 jest.mock('@hooks/usePolicyForTransaction', () => () => ({policy: mockPolicy}));
 jest.mock('@hooks/usePolicyForMovingExpenses', () => () => ({policyForMovingExpenses: undefined}));
-jest.mock('@hooks/usePolicyData', () => () => ({}));
+jest.mock('@hooks/usePolicyData', () => {
+    const {default: useRealPolicy} = jest.requireActual<{default: typeof usePolicy}>('@hooks/usePolicy');
+    return (policyID?: string) => ({policy: useRealPolicy(policyID)});
+});
 jest.mock('@hooks/useDynamicBackPath', () => () => BACK_PATH);
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
 jest.mock('@hooks/useRestartOnReceiptFailure', () => () => {});
@@ -121,6 +122,7 @@ describe('DynamicIOURequestStepCategory create row', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: makeCategory('Meals')});
     });
 
@@ -151,5 +153,35 @@ describe('DynamicIOURequestStepCategory create row', () => {
         expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
         expect(Navigation.goBack).toHaveBeenCalledWith(BACK_PATH, {shouldSkipFocusRestore: true});
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.CATEGORIZE])('hides only the create row for a draft-only workspace during %s', async (action) => {
+        // Given a workspace that exists only as a draft, including Categorize's draft workspace
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${POLICY_ID}`, {...mockPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+        // When its category step opens
+        renderPage(action);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then inline creation is hidden but the existing add-category menu is unchanged
+        expect(jest.mocked(CategoryPicker).mock.lastCall?.[0].onCreateCategory).toBeUndefined();
+        expect(jest.mocked(StepScreenWrapper).mock.lastCall?.[0].threeDotsMenuItems).toHaveLength(1);
+        expect(mockCreateAndApplyCategory).not.toHaveBeenCalled();
+    });
+
+    it('keeps the create row for a real workspace created optimistically while offline', async () => {
+        // Given a real workspace whose creation is still pending while offline
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+        // When the user creates the searched-for category
+        renderPage(CONST.IOU.ACTION.CREATE);
+        await waitForBatchedUpdatesWithAct();
+        tapCreateRow('Training');
+
+        // Then pending workspace creation does not block inline category creation
+        expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
+        expect(jest.mocked(StepScreenWrapper).mock.lastCall?.[0].threeDotsMenuItems).toHaveLength(1);
     });
 });

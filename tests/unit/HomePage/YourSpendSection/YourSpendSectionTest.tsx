@@ -199,16 +199,17 @@ describe('YourSpendSection', () => {
     });
 
     it('navigates to SEARCH_ROOT when the approval row is tapped', () => {
+        // Given a ready approval row with its search query.
         const approvalQuery = 'type:expense status:outstanding from:12345 reimbursable:yes';
         mockHook({
             approvalRowState: YOUR_SPEND_ROW_STATE.READY,
             awaitingApprovalQuery: approvalQuery,
         });
         render(<YourSpendSection />);
-        // Press the row description (translation key surfaces as the text in tests because
-        // useLocalize is mocked to (key) => key).
+        // When the composed row is pressed with a native event.
         const description = screen.getByText('homePage.yourSpend.awaitingApproval');
-        fireEvent.press(description);
+        fireEvent.press(description, {nativeEvent: {}});
+        // Then it navigates to the approval search without an authentication gate.
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 

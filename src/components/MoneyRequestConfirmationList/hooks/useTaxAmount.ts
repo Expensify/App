@@ -77,7 +77,10 @@ function useTaxAmount({
     const hasCurrencyChanged = transaction?.currency !== previousTransactionCurrency;
     // The distance rate's default category is written by CategoryDefaultsSetter after this runs, so the rule is
     // resolved against the category the expense is about to carry rather than the empty one this render still sees.
-    const category = transaction?.category || (isDistanceRequest ? (getDistanceRateCustomUnit(policy)?.defaultCategory ?? '') : '');
+    // The rate is read into its own value so React Compiler can cache the lookup. The hooks below split the block
+    // it used to be cached in, which left it running on every render.
+    const distanceRateCustomUnit = isDistanceRequest ? getDistanceRateCustomUnit(policy) : undefined;
+    const category = transaction?.category || (distanceRateCustomUnit?.defaultCategory ?? '');
     // The category whose rate the expense is currently carrying, which only moves on once a rate has been resolved
     // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
     // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the
@@ -102,9 +105,49 @@ function useTaxAmount({
     const isFollowingWorkspaceDefault = hasCurrencyChanged && !!transaction?.taxCode && transaction.taxCode === previousWorkspaceDefaultTaxCode;
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
-    const defaultTaxCode = isFollowingWorkspaceDefault ? workspaceDefaultTaxCode : (getCategoryTaxCode(category, transaction, policy, rules) ?? workspaceDefaultTaxCode);
-    const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
-    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
+    const categoryTaxCode = isFollowingWorkspaceDefault ? undefined : getCategoryTaxCode(category, transaction, policy, rules);
+    // A category rule that has applied can be dropped again by picking a category without one, and by then the
+    // transaction is carrying the rule's rate. Only a rate read before the first rule applied is the expense's own.
+    const [arrivedTax, setArrivedTax] = useState<Pick<OnyxTypes.Transaction, 'taxCode' | 'taxValue' | 'taxAmount'>>();
+    const [hasCategoryRuleApplied, setHasCategoryRuleApplied] = useState(false);
+    useEffect(() => {
+        if (!isMovingTransactionFromTrackExpense || !!arrivedTax || !transaction) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the rate has to be read before the render that writes a rule's rate over it, which is not knowable during that render
+        setArrivedTax({taxCode: transaction.taxCode, taxValue: transaction.taxValue, taxAmount: transaction.taxAmount});
+    }, [arrivedTax, isMovingTransactionFromTrackExpense, transaction]);
+    useEffect(() => {
+        if (hasCategoryRuleApplied || !categoryTaxCode) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- whether a rule has ever applied is history, so it cannot be derived from the current render
+        setHasCategoryRuleApplied(true);
+    }, [categoryTaxCode, hasCategoryRuleApplied]);
+    // A moved track expense keeps the tax it arrived with rather than taking the destination workspace's default,
+    // which is a rate nobody chose for it. A category rule is a rate the destination's admin chose, so it still
+    // applies. Dropping that category puts the arrived rate back, since the rule's rate belonged to the category
+    // the expense has just left.
+    const isKeepingArrivedTax = isMovingTransactionFromTrackExpense && !categoryTaxCode;
+    const shouldRestoreArrivedTax = isKeepingArrivedTax && hasCategoryRuleApplied;
+    const shouldHoldBackDefault = isKeepingArrivedTax && !hasCategoryRuleApplied;
+    const defaultTaxCode = categoryTaxCode ?? (shouldRestoreArrivedTax ? (arrivedTax?.taxCode ?? '') : workspaceDefaultTaxCode);
+    const defaultTaxValue = (shouldRestoreArrivedTax ? arrivedTax?.taxValue : getTaxValue(policy, transaction, defaultTaxCode)) ?? null;
+    // The default this hook has already handed over. A `GetRules` that fails or times out settles the wait with no
+    // rules, so the expense is given the workspace default. Without knowing that rate came from here, the category's
+    // rule landing on a retry would read as a rate the user chose and would never be applied. Only a default the
+    // hook has since moved on from counts, so a rate the user picked that happens to match is still left alone.
+    const [appliedDefaultTaxCode, setAppliedDefaultTaxCode] = useState<string>();
+    const isCarryingSupersededDefault = !!appliedDefaultTaxCode && transaction?.taxCode === appliedDefaultTaxCode && defaultTaxCode !== appliedDefaultTaxCode;
+    const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode && !isCarryingSupersededDefault;
+
+    useEffect(() => {
+        if (areRulesLoading || shouldHoldBackDefault || !defaultTaxCode || defaultTaxCode === appliedDefaultTaxCode) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- which default was handed over is history, so it cannot be derived from the current render
+        setAppliedDefaultTaxCode(defaultTaxCode);
+    }, [appliedDefaultTaxCode, areRulesLoading, defaultTaxCode, shouldHoldBackDefault]);
 
     const commuterExclusionData = isDistanceRequest
         ? DistanceRequestUtils.getCommuterExclusionDisplayData(
@@ -120,11 +163,16 @@ function useTaxAmount({
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
         (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
     const taxDecimals = getCurrencyDecimals(transaction?.currency ?? CONST.CURRENCY.USD);
-    const taxAmount = isMovingTransactionFromTrackExpense && transaction?.taxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
+    // A moved track expense keeps the tax amount it arrived with, since it keeps the rate that amount was charged at.
+    // A category rule on the destination workspace replaces that rate, so the amount has to be charged again.
+    const keptTaxAmount = shouldRestoreArrivedTax ? arrivedTax?.taxAmount : transaction?.taxAmount;
+    const shouldKeepMovedTaxAmount = isKeepingArrivedTax && !!keptTaxAmount;
 
-    const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
+    // A kept amount is read off a transaction, which holds it in the smallest currency units already, so only a
+    // freshly calculated one is converted.
+    const taxAmountInSmallestCurrencyUnits = shouldKeepMovedTaxAmount ? Math.abs(keptTaxAmount ?? 0) : convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals));
 
-    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
+    return {categoryTaxCode, defaultTaxCode, defaultTaxValue, shouldHoldBackDefault, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
 
 export default useTaxAmount;

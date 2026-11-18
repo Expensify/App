@@ -149,9 +149,7 @@ function getUpdatedTransaction({
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
-
-    /** Only read when a split's category changes, which is the one case this resolves a tax rate for */
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 
     /** Expense default rules, which is where a category's tax rate lives */
     rules?: OnyxCollection<Rule>;
@@ -409,10 +407,10 @@ function getUpdatedTransaction({
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
 
-        // A split draft gets no server response, so it sends the tax it holds and nothing recomputes it on the way.
-        // Every other expense has its category tax resolved by the confirmation page, which writes to the money
-        // request draft rather than to the split draft.
-        if (isSplitTransaction && getCurrencyDecimals) {
+        // On a server backed edit, clearing the category leaves the stored tax rate untouched, so predicting a
+        // change here only writes a rate that the response immediately overwrites. Split drafts have no such
+        // response and send whatever tax the draft holds, so they keep recalculating.
+        if (transactionChanges.category || isSplitTransaction) {
             const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, rules, getCurrencyDecimals);
             if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
                 updatedTransaction.taxCode = categoryTaxCode;

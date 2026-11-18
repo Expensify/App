@@ -181,6 +181,14 @@ function SearchRouterItem({
     );
 }
 
+function useRouterSearchOptions(params: Parameters<typeof getSearchOptions>[0] | undefined) {
+    // The hook boundary lets React Compiler cache this search on its own inputs, apart from the sections built from it.
+    // The hook calls no other hooks, so it opts into compilation explicitly.
+    'use memo';
+
+    return params ? getSearchOptions(params).options : defaultListOptions;
+}
+
 function SearchAutocompleteList({
     autocompleteQueryValue,
     inputQueryValue,
@@ -204,7 +212,10 @@ function SearchAutocompleteList({
     });
 
     const {isBetaEnabled} = usePermissions();
-    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    // React Compiler treats a call result as mutable, and one created before later hooks stops it from caching the search
+    // options below. Negating it makes it a primitive.
+    const isDefaultRoomsBetaEnabled = !!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    const isTravelApprovalBetaEnabled = !!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -276,10 +287,10 @@ function SearchAutocompleteList({
         }
     }, [isLoadingOptions]);
 
-    const searchOptions =
+    const searchOptions = useRouterSearchOptions(
         listOptions === null
-            ? defaultListOptions
-            : getSearchOptions({
+            ? undefined
+            : {
                   dateFnsLocale,
                   convertToDisplayString,
                   convertToDisplayStringWithoutCurrency,
@@ -315,7 +326,8 @@ function SearchAutocompleteList({
                   translate,
                   getReportByID,
                   rules,
-              }).options;
+              },
+    );
 
     // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
     const orderedSearchResultReportIDs: string[] = searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : [];
@@ -354,6 +366,7 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
             conciergeReportID,
             isTrackIntentUser,
             translate,
@@ -435,6 +448,7 @@ function SearchAutocompleteList({
         getReportByID,
         draftComments,
         isDefaultRoomsBetaEnabled,
+        isTravelApprovalBetaEnabled,
         countryCode,
         loginList,
         policies,

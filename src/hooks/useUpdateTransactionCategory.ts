@@ -99,7 +99,17 @@ function useUpdateTransactionCategory({
 
     const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
         if (isSplitUpdate) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
+            setDraftSplitTransaction(
+                transaction.transactionID,
+                splitDraftTransaction ?? transaction,
+                {category},
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                policy,
+                undefined,
+                undefined,
+                rules,
+            );
             return;
         }
 

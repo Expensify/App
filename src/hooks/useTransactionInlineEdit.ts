@@ -14,13 +14,13 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {filterRulesForPolicy} from '@libs/RuleUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
-import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction} from '@src/types/onyx';
+import type {PolicyCategories, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -78,7 +78,7 @@ type UseTransactionInlineEditReturn = {
     onEditDate: (newDate: string) => Promise<void>;
     onEditMerchant: (newMerchant: string) => Promise<void>;
     onEditDescription: (newDescription: string) => Promise<void>;
-    onEditCategory: (newCategory: string) => Promise<void>;
+    onEditCategory: (newCategory: string, updatedPolicyCategories?: PolicyCategories) => Promise<void>;
     onEditAmount: (newAmount: number) => Promise<void>;
     onEditTag: (newTag: string) => Promise<void>;
     /**
@@ -281,7 +281,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const onEditDescription = (newDescription: string) => getEditParams().then((editParams) => showInlineEditError(editTransactionDescriptionInline(translate, editParams, newDescription)));
 
-    const onEditCategory = (newCategory: string) => getEditParams().then((editParams) => editTransactionCategoryInline(editParams, newCategory));
+    const onEditCategory = (newCategory: string, updatedPolicyCategories?: PolicyCategories) =>
+        getEditParams().then((editParams) => editTransactionCategoryInline({...editParams, policyCategories: updatedPolicyCategories ?? editParams.policyCategories}, newCategory));
 
     const onEditAmount = (newAmount: number) => getEditParams().then((editParams) => showInlineEditError(editTransactionAmountInline(translate, editParams, newAmount)));
 

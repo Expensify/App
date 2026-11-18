@@ -1,13 +1,59 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
 import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
-import {getTrimmedUserSearchQueryPreservingComma, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getAutocompletePolicyData, getTrimmedUserSearchQueryPreservingComma, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import type {KnownFilterValues} from '@libs/SearchAutocompleteUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import CONST from '@src/CONST';
 
 describe('SearchAutocompleteUtils', () => {
+    describe('getAutocompletePolicyData', () => {
+        test.each([
+            {query: 'exported-to:', value: undefined, isNegated: false},
+            {query: 'workspace:A -workspace:B exported-to:', value: ['A'], isNegated: false},
+            {query: '-workspace:B workspace:A exported-to:', value: ['A'], isNegated: false},
+            {query: 'workspace:A -workspace:A exported-to:', value: [], isNegated: false},
+            {query: '-workspace:A -workspace:B exported-to:', value: ['A', 'B'], isNegated: true},
+            {query: 'workspace:A,B exported-to:', value: ['A', 'B'], isNegated: false},
+            {query: 'workspace:A workspace:B exported-to:', value: [], isNegated: false},
+            {query: 'workspace:A,B workspace:B,C exported-to:', value: ['B'], isNegated: false},
+            {query: 'workspace:A,B -workspace:B exported-to:', value: ['A'], isNegated: false},
+            {query: '-workspace:B workspace:A,B exported-to:', value: ['A'], isNegated: false},
+            {query: 'workspace:A,B merchant:Coffee workspace:B,C exported-to:', value: ['B'], isNegated: false},
+            {query: 'workspace:"A,B",C workspace:C exported-to:', value: ['C'], isNegated: false},
+            {query: 'workspace:"A\\"B",C workspace:C exported-to:', value: ['C'], isNegated: false},
+        ])('preserves clause semantics for $query', ({query, value, isNegated}) => {
+            // Given the real parser's offsets, including comma lists and separate workspace clauses.
+            const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+            // When the typed scope is resolved without a submitted-query fallback.
+            const result = getAutocompletePolicyData(query, ranges, undefined);
+
+            // Then positive clauses intersect and negative clauses exclude independently of their order.
+            expect(result.policyFilter).toEqual({value, isNegated});
+        });
+
+        test.each([
+            {query: 'workspace:"Same name" -workspace:"Same name" exported-to:', expected: ['A']},
+            {query: '-workspace:"Same name" workspace:"Same name" exported-to:', expected: ['B']},
+        ])('preserves indexed substitutions across signs for $query', ({query, expected}) => {
+            // Given duplicate display names selected as distinct workspace IDs in source order.
+            const substitutions = Object.fromEntries([
+                ['policyID:Same name', 'A'],
+                ['policyID:Same name:1', 'B'],
+            ]);
+            const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+            // When one occurrence is negated and the other is positive.
+            const result = getAutocompletePolicyData(query, ranges, undefined, substitutions);
+
+            // Then policyFilter.value contains only the ID from the positive clause,
+            // and selectedPolicyIDs contains both IDs so both workspaces can be excluded from suggestions.
+            expect(result).toEqual({policyFilter: {value: expected, isNegated: false}, selectedPolicyIDs: ['A', 'B']});
+        });
+    });
+
     describe('parseForLiveMarkdown', () => {
         const currentUserName = 'currentuser@example.com';
         const mockSubstitutionMap: SubstitutionMap = {
@@ -30,6 +76,24 @@ describe('SearchAutocompleteUtils', () => {
                 CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
             ]),
         };
+
+        it('highlights trip room statuses and no group-by for a trip search with the TravelApproval beta', () => {
+            // Given a trip search with a trip room status and a group-by
+            const input = 'type:trip status:canceled group-by:from';
+            const parseTrip = (isTravelApprovalBetaEnabled: boolean) => parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues, isTravelApprovalBetaEnabled);
+
+            // When it's parsed with and without the beta
+            // Then the status is valid either way, and group-by is only valid without the beta, since trip rooms can't be grouped
+            expect(parseTrip(true)).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 17, type: 'mention-user', length: 8},
+            ]);
+            expect(parseTrip(false)).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 17, type: 'mention-user', length: 8},
+                {start: 35, type: 'mention-user', length: 4},
+            ]);
+        });
 
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';

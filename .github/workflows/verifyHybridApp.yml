@@ -3,7 +3,6 @@ name: Verify HybridApp build
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths:
       - '**.kt'
       - '**.java'

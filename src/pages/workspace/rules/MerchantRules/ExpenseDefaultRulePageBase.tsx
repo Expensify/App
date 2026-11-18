@@ -711,7 +711,12 @@ function ExpenseDefaultRulePageBase({
                         {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
                         a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
                         {canWriteRules && !isEditing && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
-                            <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
+                            <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
+                                onPress={resetRule}
+                            >
+                                {translate('common.reset')}
+                            </TextLink>
                         )}
                     </Header.Actions>
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
@@ -733,6 +738,7 @@ function ExpenseDefaultRulePageBase({
                         </Text>
                         <Switch
                             accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH}
                             isOn={shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
                         />

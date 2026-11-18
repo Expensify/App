@@ -1,5 +1,5 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,6 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -49,8 +50,8 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isOnSearch = useIsOnSearch();
     const personalDetail = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
 
     const createAndOpenTransactionThread = async () => {
         const [introSelected, conciergeReportID, onboarding, fullPolicySnapshotData] = await Onyx.multiGet([
@@ -70,7 +71,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
             currentUserAccountID: personalDetail.accountID,
             iouReport,
             iouReportAction: action,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             fullPolicySnapshotLastModified: fullPolicySnapshotLastModifiedSelector(fullPolicySnapshotData),
         });
         if (!createdTransactionThreadReport?.reportID) {
@@ -94,7 +95,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
                 transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
                 onPreviewPressed={() => {
                     if (shouldShowSplitPreview) {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID, isOnSearch ? reportID : undefined)));
                         return;
                     }
 

@@ -1,5 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
@@ -113,8 +114,13 @@ function WorkspaceCompanyCardsTableControls({
 
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
-            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
+            title: translate('common.areYouSure'),
+            prompt: (
+                <CardUnsubmittedTransactionsPrompt
+                    cardIDs={selectedAssignedCards.map((card) => card.assignedCard?.cardID).filter((cardID): cardID is number => cardID !== undefined)}
+                    descriptionKey={isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'}
+                />
+            ),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -169,6 +175,7 @@ function WorkspaceCompanyCardsTableControls({
                     icon: icons.RemoveMembers,
                     text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
                     value: 'unassign',
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_UNASSIGN,
                     shouldSkipFocusRestore: !!bankName,
                     onSelected: confirmBulkUnassign,
                 });
@@ -177,6 +184,7 @@ function WorkspaceCompanyCardsTableControls({
                 icon: icons.MoneySearch,
                 text: translate('workspace.common.viewTransactions'),
                 value: 'viewTransactions',
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_VIEW_TRANSACTIONS,
                 onSelected: viewSelectedCardTransactions,
             });
             if (canWriteCompanyCards) {
@@ -184,6 +192,7 @@ function WorkspaceCompanyCardsTableControls({
                     icon: icons.CalendarSolid,
                     text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
                     value: 'editTransactionStartDate',
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EDIT_TRANSACTION_START_DATE,
                     onSelected: editSelectedCardTransactionStartDates,
                 });
             }
@@ -193,6 +202,7 @@ function WorkspaceCompanyCardsTableControls({
             icon: icons.Export,
             text: translate('workspace.expensifyCard.exportAsCSV'),
             value: 'exportCSV',
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BULK_ACTIONS_EXPORT_CSV,
             onSelected: exportSelectedCardsToCSV,
         });
 

@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ReportNotFoundGuard from '@pages/inbox/ReportNotFoundGuard';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -149,6 +150,37 @@ describe('ReportNotFoundGuard', () => {
         renderGuard();
         await waitForBatchedUpdates();
 
+        expect(isContentVisible()).toBe(true);
+        expect(isNotFoundVisible()).toBe(false);
+    });
+
+    it('shows the not-found page for a bill when the user does not have the newDotBillPay beta', async () => {
+        // Given a loaded bill and a user without the newDotBillPay beta
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the guard renders
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // Then the user sees the not-found page, because NewDot only shows bills behind the beta
+        expect(isNotFoundVisible()).toBe(true);
+        expect(isContentVisible()).toBe(false);
+    });
+
+    it('renders a bill when the user has the newDotBillPay beta', async () => {
+        // Given a loaded bill and a user with the newDotBillPay beta
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_DOT_BILL_PAY]);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // When the guard renders
+        renderGuard();
+        await waitForBatchedUpdates();
+
+        // Then the bill content renders
         expect(isContentVisible()).toBe(true);
         expect(isNotFoundVisible()).toBe(false);
     });

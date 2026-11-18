@@ -19,6 +19,7 @@ import type {ChartComparisonPeriods, TimeGroupBy} from './comparisonBuckets';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchChartMetric, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+import {getAverageDuration, hasChartedValue} from './chartMetricValue';
 import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
 const CHART_SERIES_KEY = {
@@ -38,18 +39,15 @@ type ChartComparedRows = {
     periods?: ChartComparisonPeriods;
 };
 
-/** One value every group is compared against, drawn as a horizontal line */
-type ChartAverage = {
-    /** The average, in the same units and currency as a group's total */
-    total: number;
-};
+/** The average group value of each metric, drawn as a horizontal line in the chart's own metric. An amount is in the same units and currency as a group's total. */
+type ChartAverage = Partial<Record<SearchChartMetric, number>>;
 
 /** What the chart is compared against, drawn as a second series */
 type ChartComparison = ChartComparedRows | ChartAverage;
 
 /** Returns whether the chart is compared against an average rather than other rows */
 function isChartAverage(comparison: ChartComparison | undefined): comparison is ChartAverage {
-    return !!comparison && 'total' in comparison;
+    return !!comparison && !('data' in comparison);
 }
 
 /** Tooltip label of the average for each group-by */
@@ -77,7 +75,7 @@ type BuildChartSeriesParams = {
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
 
-    /** What each group contributes to the chart: the money it totals, or how many expenses it holds. Defaults to the amount. */
+    /** What each group contributes to the chart: the money it totals, how many expenses it holds, or how long its reports took. Defaults to the amount. */
     metric?: SearchChartMetric;
 
     /** Returns the full label of a group */
@@ -140,8 +138,8 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
 
 /** This is the single place group totals and counts are turned into plotted values. */
 function buildChartSeries({
-    data,
-    comparison,
+    data: allData,
+    comparison: allComparison,
     groupBy,
     view,
     metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
@@ -159,24 +157,58 @@ function buildChartSeries({
 }: BuildChartSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
-    // The average is an average of spend, so a chart plotting counts has nothing to compare it against.
-    const average = !isCountMetric && isChartAverage(comparison) ? comparison : undefined;
+    const isDurationMetric = metric === CONST.SEARCH.CHART_METRIC.DURATION;
+    const isCharted = (item: GroupedItem) => hasChartedValue(item, metric);
+    const data = allData.filter(isCharted);
+    const comparison = allComparison && !isChartAverage(allComparison) ? {...allComparison, data: allComparison.data.filter(isCharted)} : allComparison;
+    const average = isChartAverage(comparison) ? comparison : undefined;
     const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
     const periods = comparedRows?.periods;
-    const getValue = (item: GroupedItem) => (isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD)));
-    // The share the search reports is a share of total spend, so it says nothing about a group's place among the counts.
-    const getShare = (item: GroupedItem) => (isCountMetric ? undefined : item.percentOfTotal);
+    const getValue = (item: GroupedItem) => {
+        if (isDurationMetric) {
+            return getAverageDuration(item) ?? 0;
+        }
+        return isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
+    };
+    const sumValues = (items: GroupedItem[]) => items.reduce((sum, item) => sum + getValue(item), 0);
+    const totalDuration = isDurationMetric ? sumValues(data) : 0;
+    const comparedTotalDuration = isDurationMetric && comparedRows ? sumValues(comparedRows.data) : 0;
+    // The share the search reports is a share of total spend, so a duration's share is worked out among the groups drawn beside it instead,
+    // in percentage points like the search's.
+    const getShareOf = (item: GroupedItem, durationSum: number) => {
+        if (!isDurationMetric) {
+            return item.percentOfTotal;
+        }
+        return durationSum ? (getValue(item) / durationSum) * 100 : undefined;
+    };
+    const getShare = (item: GroupedItem) => getShareOf(item, totalDuration);
+    const getComparedShare = (item: GroupedItem) => getShareOf(item, comparedTotalDuration);
     // A group a search reports no spend for has no money to name, so the value stands on its own.
     const getTotal = (item: GroupedItem) => (item.total === undefined ? undefined : formatTotal?.(item.total, item.currency));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
     const comparedByKey = new Map(comparedRows?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
-    // The average is in the same currency as the rows
-    const averageValue = average && convertToFrontendAmountAsInteger(average.total, getCurrencyDecimals(data.at(0)?.currency ?? CONST.CURRENCY.USD));
+    // The average amount is in the same currency as the rows
+    const averageCurrency = data.at(0)?.currency;
+    const averageOfMetric = average?.[metric];
+    const averageAmount = average?.[CONST.SEARCH.CHART_METRIC.AMOUNT];
+    // The average must sit on the same scale as the rows, so it is converted only when the rows are amounts
+    const averageValue =
+        metric !== CONST.SEARCH.CHART_METRIC.AMOUNT || averageOfMetric === undefined
+            ? averageOfMetric
+            : convertToFrontendAmountAsInteger(averageOfMetric, getCurrencyDecimals(averageCurrency ?? CONST.CURRENCY.USD));
+    // A count chart names the spend behind its average in the tooltip, like each group's total
+    const averageTotal = isCountMetric && averageAmount !== undefined ? formatTotal?.(averageAmount, averageCurrency) : undefined;
+
+    /**
+     * Builds the compared group a search leaves out for having no expenses, so its value, share and spend all read as zero.
+     * A duration has no such zero, because none of the left-out group's reports completed the stage, so it is left with nothing to compare.
+     */
+    const buildEmptyGroup = (item: GroupedItem): GroupedItem | undefined => (isDurationMetric ? undefined : {...item, count: 0, total: 0, percentOfTotal: 0});
 
     /** Returns a group's compared value, share and total, plus its bucket labels when it is compared against another period, or nothing when the chart isn't compared */
     const getCompared = (item: GroupedItem) => {
         if (averageValue !== undefined) {
-            return {value: averageValue, percentOfTotal: undefined};
+            return {value: averageValue, percentOfTotal: undefined, total: averageTotal};
         }
         if (!comparedRows) {
             return undefined;
@@ -186,10 +218,11 @@ function buildChartSeries({
         if (periods && isTimeGroupBy(groupBy) && bucketRange) {
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
+            const compared = comparedItem ?? (counterpartRange && buildEmptyGroup(item));
             return {
-                value: counterpartRange && (comparedItem ? getValue(comparedItem) : 0),
-                percentOfTotal: comparedItem && getShare(comparedItem),
-                total: comparedItem && getTotal(comparedItem),
+                value: compared && getValue(compared),
+                percentOfTotal: compared && getComparedShare(compared),
+                total: compared && getTotal(compared),
                 hasExpenses: !!comparedItem && hasComparedExpenses(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
@@ -197,10 +230,9 @@ function buildChartSeries({
             };
         }
 
-        const comparedItem = comparedByKey.get(item.keyForList);
         // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
-        const missingValue = getDateRange ? undefined : 0;
-        return {value: comparedItem ? getValue(comparedItem) : missingValue, percentOfTotal: comparedItem && getShare(comparedItem), total: comparedItem && getTotal(comparedItem)};
+        const compared = comparedByKey.get(item.keyForList) ?? (getDateRange ? undefined : buildEmptyGroup(item));
+        return {value: compared && getValue(compared), percentOfTotal: compared && getComparedShare(compared), total: compared && getTotal(compared)};
     };
 
     const pairedRows = data.map((item) => {
@@ -251,7 +283,7 @@ function buildChartSeries({
             shortLabel: bucketLabels.shortLabel,
             values: {[CHART_SERIES_KEY.COMPARISON]: getValue(comparedItem)},
             seriesLabels: {[CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabel},
-            seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: getShare(comparedItem)},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: getComparedShare(comparedItem)},
             ...(formatTotal && {seriesTotals: {[CHART_SERIES_KEY.COMPARISON]: getTotal(comparedItem)}}),
             isInProgress: false,
         };
@@ -287,9 +319,10 @@ function buildChartSeries({
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};
-    const comparisonSeries: ChartSeries | undefined = average
-        ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
-        : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
+    const comparisonSeries: ChartSeries | undefined =
+        averageValue !== undefined
+            ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
+            : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
 
     return {
         series: comparisonSeries ? [primarySeries, comparisonSeries] : [primarySeries],
@@ -312,4 +345,4 @@ function buildChartSeries({
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
-export type {ChartComparison, SearchChartModel};
+export type {ChartAverage, ChartComparison, SearchChartModel};
