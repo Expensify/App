@@ -1396,12 +1396,29 @@ const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
     const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
-
-    return buildSearchQueryString({
+    const resetQueryJSON: SearchQueryJSON = {
         ...currentQueryJSON,
         type: defaultQueryJSON?.type ?? currentQueryJSON.type,
         flatFilters: [...resetFilters, ...keptFilters],
-    });
+    };
+
+    // The filters UI pairs the violation grouping with a violation has value (see useUpdateFilterQuery), so resetting
+    // the Has pill away also drops the grouping, along with the sorting and columns that only exist for it.
+    if (
+        currentQueryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        queryHasHasFilter(currentQueryJSON, VIOLATION_HAS_VALUES) &&
+        !queryHasHasFilter(resetQueryJSON, VIOLATION_HAS_VALUES)
+    ) {
+        return buildSearchQueryString({
+            ...resetQueryJSON,
+            groupBy: undefined,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            columns: undefined,
+        });
+    }
+
+    return buildSearchQueryString(resetQueryJSON);
 }
 
 function getDisplayDefaultQueryJSON(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
