@@ -177,8 +177,7 @@ function BulkActionDone({action, total, failedReportIDs, skippedReportIDs, isBan
         })),
     ];
     const doneTitlePath = isBankPayment ? 'bulkAction.paidWithBankTitle' : DONE_TITLES[action ?? CONST.SEARCH.BULK_ACTION_TYPES.PAY];
-    // Clamped at 0 in case the backend's total leaves out reports it skipped, so the title never reads "Paid -1 of 3"
-    const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(doneTitlePath, {doneCount: Math.max(total - unpaidReportIDs.length, 0), count: total});
+    const doneTitle = total === 0 ? translate('bulkAction.noReportsTitle') : translate(doneTitlePath, {doneCount: total - unpaidReportIDs.length, count: total});
 
     const viewUnpaidReports = () => {
         const queryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}:${unpaidReportIDs.join(',')}`);
