@@ -227,15 +227,13 @@ function buildStackedSeries({
         .map(({row}) => row);
 
     const buildStackSeries = (stackIndex: number, period: ChartComparisonPeriods['primary'] | undefined) =>
-        stages.map(
-            (stage): ChartSeries => ({
-                key: getStackSeriesKey(stackIndex, stage.key),
-                label: stage.label,
-                color: stackIndex === STACK_INDEX.PRIMARY ? stage.color : stage.comparisonColor,
-                stackIndex,
-                stackLabel: period && formatDates(period, dateFnsLocale),
-            }),
-        );
+        stages.map((stage): ChartSeries => ({
+            key: getStackSeriesKey(stackIndex, stage.key),
+            label: stage.label,
+            color: stackIndex === STACK_INDEX.PRIMARY ? stage.color : stage.comparisonColor,
+            stackIndex,
+            stackLabel: period && formatDates(period, dateFnsLocale),
+        }));
     const [firstSeries, ...otherPrimarySeries] = buildStackSeries(STACK_INDEX.PRIMARY, periods?.primary);
     const comparisonSeries = periods ? buildStackSeries(STACK_INDEX.COMPARISON, periods.comparison) : [];
     const averageSeries: ChartSeries[] =
