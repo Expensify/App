@@ -4395,7 +4395,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
+        const oldTaxRate = oldTaxPercentage && typeof oldValue === 'string' && oldValue ? formatTaxRateName(oldValue, oldTaxPercentage) : undefined;
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, formatTaxRateName(newValue, newTaxPercentage), oldTaxRate);
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
