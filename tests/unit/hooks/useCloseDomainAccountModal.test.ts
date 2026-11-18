@@ -196,6 +196,43 @@ describe('useCloseDomainAccountModal', () => {
         expect(getLatestGuards().confirmGuard?.isVisible).toBe(false);
     });
 
+    it('ends the flow when browser Back jumps over both history entries from the confirmation', async () => {
+        // Given the admin picks the safe close option and the confirmation is shown. Like the modal stack, the confirmation
+        // resolves only with the first close that reaches it.
+        mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CLOSE});
+        mockShowConfirmModal.mockImplementationOnce(
+            ({id}: {id: string}) =>
+                new Promise((resolve) => {
+                    mockCloseModalByID.mockImplementation((closedID: string, data: unknown) => {
+                        if (closedID !== id) {
+                            return;
+                        }
+                        mockCloseModalByID.mockImplementation(() => {});
+                        resolve(data);
+                    });
+                }),
+        );
+        const {result} = renderHook(() => useCloseDomainAccountModal());
+        const onResolved = jest.fn();
+        act(() => {
+            result.current.showCloseAccountModal(1).then(onResolved);
+        });
+        await waitFor(() => expect(getLatestGuards().confirmGuard?.isVisible).toBe(true));
+
+        // When the browser history menu removes both entries at once, so both guards report Back in the order they are declared
+        act(() => {
+            const {flowGuard, confirmGuard} = getLatestGuards();
+            flowGuard?.onClose?.();
+            confirmGuard?.onClose?.();
+        });
+
+        // Then the flow ends without a choice and the choice is not shown again, because it would have no history entry left
+        await waitFor(() => expect(onResolved).toHaveBeenCalledWith(undefined));
+        expect(mockShowDecisionModal).toHaveBeenCalledTimes(1);
+        expect(getLatestGuards().flowGuard?.isVisible).toBe(false);
+        mockCloseModalByID.mockReset();
+    });
+
     it('dismisses the choice when browser Back removes the flow entry', async () => {
         // Given the close account choice is shown
         mockShowDecisionModal.mockReturnValueOnce(new Promise(() => {}));

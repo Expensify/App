@@ -44,11 +44,16 @@ function useCloseDomainAccountModal() {
     const [step, setStep] = useState<CloseAccountStep | null>(null);
     const flowEndedCallbacksRef = useRef<Array<(isActive: boolean) => void>>([]);
 
-    // Removed last by Back, so Back while the choice is shown closes the choice and ends the flow
+    // Removed last by Back, so Back while the choice is shown closes the choice and ends the flow. The confirmation is
+    // dismissed too, because the browser history menu can jump back over both entries at once, and the confirmation must
+    // then end the flow instead of re-opening the choice without a history entry. Only one of the modals is open.
     useSyncModalWithHistory({
         isVisible: step !== null,
         shouldHandleNavigationBack: true,
-        onClose: () => decisionModal.closeModalByID(CLOSE_ACCOUNT_DECISION_MODAL_ID, {action: ModalActions.DISMISS}),
+        onClose: () => {
+            decisionModal.closeModalByID(CLOSE_ACCOUNT_DECISION_MODAL_ID, {action: ModalActions.DISMISS});
+            decisionModal.closeModalByID(CLOSE_ACCOUNT_CONFIRM_MODAL_ID, {action: ModalActions.DISMISS});
+        },
     });
 
     // Removed first by Back, so Back while the confirmation is shown returns to the choice without adding a new entry
@@ -122,6 +127,11 @@ function useCloseDomainAccountModal() {
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
+
+        if (result.action === ModalActions.DISMISS) {
+            setStep(null);
+            return undefined;
+        }
 
         if (result.action !== ModalActions.CONFIRM) {
             return showCloseAccountModal(count);
