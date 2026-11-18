@@ -30,7 +30,6 @@ import {
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
-    compareDuplicateTransactionFields,
     getAmount,
     getExpenseTypeTranslationKey,
     getFormattedCreated,
@@ -51,6 +50,7 @@ import {
     isScanning,
     shouldShowViolation,
 } from './TransactionUtils';
+import {compareDuplicateTransactionFields} from './TransactionUtils/duplicates';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 

@@ -120,3 +120,10 @@
 - Upstream PR/issue: [software-mansion/react-native-screens#5074](https://github.com/software-mansion/react-native-screens/pull/5074), the same change as [#4812](https://github.com/software-mansion/react-native-screens/pull/4812) rebased onto the current tabs layout. Once it ships in a release we consume, this patch can be dropped.
 - E/App issue: [#104505](https://github.com/Expensify/App/issues/104505)
 - PR introducing patch: [#105020](https://github.com/Expensify/App/pull/105020)
+
+### [react-native-screens+4.28.0+009+skip-android-tab-appearance-without-selected-tab.patch](react-native-screens+4.28.0+009+skip-android-tab-appearance-without-selected-tab.patch)
+
+- Reason: On Android, unmounting a tab host crashed with `[RNScreens] No selected tab present`. React removes the host's tab screens one by one (patch 008), and the host still gets Fabric's mount callback, where it updates the bar appearance from its selected tab, which is gone by then. So the app crashed on any tab host unmount (the flat nav beta toggle, the `NativeTabLayout` key remount). The patch skips the appearance update while the selected tab is missing and keeps it pending until a tab is selected.
+- Upstream PR/issue: not reported yet. The crash comes from the removals that [software-mansion/react-native-screens#5074](https://github.com/software-mansion/react-native-screens/pull/5074), the upstream PR of patch 008, lets reach the host, and that PR does not include this fix, so it belongs there.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR introducing patch: [#106500](https://github.com/Expensify/App/pull/106500)

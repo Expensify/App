@@ -222,6 +222,23 @@ describe('actions/Workflow', () => {
             ]);
             expect(approvalWorkflow?.errors).toBeUndefined();
         });
+
+        it('should not leave the place of a cleared approver at the end once the approver after them is removed', async () => {
+            // Given a workflow whose first approver was cleared, leaving only the approver after them
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                approvers: [undefined, {email: 'approver2@example.com', displayName: 'Approver 2'}],
+            };
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+
+            // When that approver is removed too
+            removeApprovalWorkflowApprover({approverIndex: 1, currentApprovalWorkflow});
+            await waitForBatchedUpdates();
+
+            // Then no approver is left, so the editor asks for a first approver instead of showing an empty approver before an additional one
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.approvers).toHaveLength(0);
+        });
     });
 
     describe('validateApprovalWorkflow', () => {
@@ -2806,6 +2823,74 @@ describe('actions/Workflow', () => {
 
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.[employee1Email]?.submitsTo).not.toBe(employee2Email);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('returns members with only employee list routing to an implicit default workflow on a policy with custom rules', async () => {
+            mockFetch.pause();
+
+            // Given an invited member with a custom approver but no rules, and another workflow that makes the policy rule-based
+            const policyID = '123456789';
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await createForwardApproveRules(policyID, [employee3Email], employee2Email, 'custom');
+
+            const defaultApprovalWorkflow = {
+                members: [{email: employee2Email, displayName: employee2Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, isCircularReference: false}],
+                isDefault: true,
+            };
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee2Email, displayName: employee2Email, isCircularReference: false}],
+                isDefault: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the invited member's workflow is deleted
+            const didRemoveRules = removeApprovalWorkflowRules(approvalWorkflow, policy, await getRulesCollection(), defaultApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the rules backend handles the deletion without changing the unrelated custom workflow
+            expect(didRemoveRules).toBe(true);
+            expect(getFetchMockCalls(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW)).toHaveLength(1);
+            expect(getFetchMockCalls(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL)).toHaveLength(0);
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules).toHaveLength(4);
+            const defaultRules = rules.filter((rule) => rule.isDefaultApprovalWorkflow);
+            expect(defaultRules).toHaveLength(2);
+            for (const rule of defaultRules) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee1Email]);
+            }
+            for (const rule of rules.filter((customRule) => !customRule.isDefaultApprovalWorkflow)) {
+                expect(extractSubmitterEmails(rule)).toEqual([employee3Email]);
+            }
+
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            const memberWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((member) => member.email === employee1Email));
+            expect(memberWorkflow?.isDefault).toBe(true);
+            expect(memberWorkflow?.approvers.at(0)?.email).toBe(ownerEmail);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
