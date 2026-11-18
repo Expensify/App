@@ -9254,6 +9254,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
+            ANY_SUBMISSION: 'anySubmission',
             PAID: 'paid',
             WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
@@ -9356,6 +9357,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'any-approval',
+            ANY_SUBMISSION: 'any-submission',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -10734,6 +10736,10 @@ const CONST = {
                 COUNT: 'count',
                 DURATION: 'duration',
             },
+        },
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
         },
     },
 

@@ -64,9 +64,11 @@ function getDashboardState(
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
     const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
+    // The other violation stage may still have data, so the charts and their stage controls stay on screen to switch back
+    const hasViolationStageControl = charts.some(({chart}) => chart.hasViolationStageControl);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
-        return INSIGHTS_DASHBOARD_STATE.OFFLINE;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
@@ -82,7 +84,7 @@ function getDashboardState(
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
     if (chartStates.every(({isLoaded}) => isLoaded)) {
-        return INSIGHTS_DASHBOARD_STATE.EMPTY;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;
 }

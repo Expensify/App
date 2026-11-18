@@ -224,6 +224,7 @@ const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
 const WORKFLOW_FILTER_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
 ]);
@@ -921,7 +922,7 @@ function queryHasHasFilter(queryJSON: SearchQueryJSON | undefined, hasValues: Re
 
 /**
  * Whether the query's results depend on report state that only report actions reveal, so adding a workflow action
- * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `submitted:` or `approved:` filter, or a
+ * must refetch it: grouping by approver, an `approver:`, `anyApproval:`, `anySubmission:`, `submitted:` or `approved:` filter, or a
  * `submitted-violation` or `approved-violation` filter. Negated filters count too, because submitting or approving a
  * report moves its expenses out of a `-has:submitted-violation` or `-has:approved-violation` search.
  */
@@ -1929,10 +1930,10 @@ type DateFilterRange = {
 };
 
 /**
- * Extracts the effective start and end dates from date filters in a search query.
+ * Extracts the effective start and end dates from a search query's filters on the given date, the expense date by default.
  */
-function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
-    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap((filter) => filter.filters);
+function getDateFilterRange(queryJSON: SearchQueryJSON, dateFilterKey: SearchDateFilterKeys = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE): DateFilterRange {
+    const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === dateFilterKey).flatMap((filter) => filter.filters);
     let start: string | undefined;
     let end: string | undefined;
 
