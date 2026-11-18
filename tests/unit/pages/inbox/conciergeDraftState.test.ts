@@ -1,6 +1,7 @@
 import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
 
 import CONST from '@src/CONST';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 const REPORT_ID = '123';
 const REPORT_ACTION_ID = '456';
@@ -79,7 +80,7 @@ describe('conciergeDraftState', () => {
 
     it('keeps canonical entity Markdown while displaying only the prefix until final HTML arrives', () => {
         // Given an entity split across streamed snapshots
-        const bodyMarkdown = '**Lunch** &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
+        const bodyMarkdown = '**Lunch** &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '**Lunch** &'}), REPORT_ID, false);
         expect(getFirstMessageText(initialDraft)).toBe('Lunch ');
 
@@ -93,13 +94,13 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(updatedDraft)).toBe('Lunch ');
 
         // Then server-rendered HTML reveals the exact literal text in the same action
-        const finalRenderedHTML = '<comment><strong>Lunch</strong> &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
+        const finalRenderedHTML = '<comment><strong>Lunch</strong> &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
         const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
         expect(completedDraft?.bodyMarkdown).toBe(bodyMarkdown);
         expect(completedDraft?.status).toBe('completed');
         expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
         expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
-        expect(getFirstMessageText(completedDraft)).toBe('Lunch <client team> *alpha* &lt;literal&gt;');
+        expect(getFirstMessageText(completedDraft)).toBe('Lunch © client <client team> *alpha* &lt;literal&gt;');
     });
 
     it('waits for final HTML when an entity starts the draft', () => {
@@ -120,14 +121,28 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(completedDraft)).toBe('<client team>');
     });
 
-    it('also waits at an ordinary ampersand until final HTML arrives', () => {
+    it('resumes a draft when later text resolves a trailing ampersand', () => {
+        // Given a draft ending with a possible entity opener
+        const initial = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Manufacturing &'}), REPORT_ID, false);
+        expect(getFirstMessageText(initial)).toBe('Manufacturing ');
+
+        // When later snapshots identify literal text and a query-string ampersand
+        const bodyMarkdown = 'Manufacturing & Wholesale, R&D; review it tomorrow: https://example.com/?one=1&two=2';
+        const updated = applyConciergeDraftEvent(initial, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+
+        // Then the whole draft is visible before the completed event
+        expect(getFirstMessageText(updated)).toBe(bodyMarkdown);
+        expect(updated?.status).toBe('updated');
+    });
+
+    it('continues past an ordinary ampersand before final HTML arrives', () => {
         // Given an ordinary draft that contains an ampersand rather than an entity
         const bodyMarkdown = 'Lunch & dinner';
 
-        // When rendering Markdown, the same boundary avoids guessing which ampersands start entities
+        // When rendering Markdown, the following space identifies the ampersand as literal text
         const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown}), REPORT_ID, false);
         expect(draft?.bodyMarkdown).toBe(bodyMarkdown);
-        expect(getFirstMessageText(draft)).toBe('Lunch ');
+        expect(getFirstMessageText(draft)).toBe('Lunch & dinner');
 
         // Then final HTML reveals the complete text without truncation
         const completedDraft = applyConciergeDraftEvent(
@@ -137,6 +152,31 @@ describe('conciergeDraftState', () => {
             false,
         );
         expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
+    });
+
+    it('should resolve user mentions in the draft text from the passed personal details', () => {
+        // Given final HTML that mentions a user by accountID, and a personal details list that knows that user
+        const mentionedAccountID = 5;
+        const finalRenderedHTML = `<comment>Ask <mention-user accountID="${mentionedAccountID}"/> about it</comment>`;
+        const personalDetailsList: PersonalDetailsList = {[mentionedAccountID]: {accountID: mentionedAccountID, login: 'alice@example.com'}};
+
+        // When the completed event is applied with that list
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', finalRenderedHTML}), REPORT_ID, false, personalDetailsList);
+
+        // Then the text form of the message names the mentioned user instead of hiding it
+        expect(getFirstMessageText(draft)).toBe('Ask @alice@example.com about it');
+    });
+
+    it('should keep the room mention in the HTML and convert it to a placeholder in the text', () => {
+        // Given a Concierge reply whose final HTML from the server mentions a room by reportID only
+        const finalRenderedHTML = '<comment>Ask in <mention-report reportID="987654"></mention-report></comment>';
+
+        // When the completed event is applied
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({status: 'completed', bodyMarkdown: 'Ask in #admins', finalRenderedHTML}), REPORT_ID, false);
+
+        // Then the HTML still holds the mention that the draft renders, and the unused text gets a placeholder instead of #Hidden
+        expect(getFirstMessageHTML(draft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(draft)).toBe('Ask in #room');
     });
 
     it('should ignore stale events from the same stream session', () => {

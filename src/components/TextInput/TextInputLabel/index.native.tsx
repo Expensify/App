@@ -1,5 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
@@ -22,6 +24,8 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, should
                 ellipsizeMode={shouldClipToSingleLine ? 'tail' : undefined}
                 allowFontScaling={false}
                 style={[styles.textInputLabel, animatedStyleForText]}
+                // The label names the field, not what the user typed, so it stays readable in session recordings even inside a masked input
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 {label}
             </Animated.Text>

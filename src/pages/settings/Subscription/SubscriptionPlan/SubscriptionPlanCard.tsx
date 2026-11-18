@@ -151,12 +151,11 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                         <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
                         {renderBenefits()}
                     </View>
-                    <View style={subscriptionPlanCardActionButtonWrapStyles}>
+                    <View style={[cardPaddingHorizontal, subscriptionPlanCardActionButtonWrapStyles]}>
                         <SubscriptionPlanCardActionButton
                             subscriptionPlan={subscriptionPlan}
                             isFromComparisonModal={isFromComparisonModal}
                             isSelected={isSelected}
-                            style={cardPaddingHorizontal}
                             closeComparisonModal={closeComparisonModal}
                         />
                     </View>

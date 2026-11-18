@@ -42,11 +42,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     const {convertToDisplayString} = useCurrencyListActions();
     const {dateFnsLocale, translate} = useLocalize();
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        expense.created,
-        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        dateFnsLocale,
-    );
+    const formattedDate = DateUtils.formatToMonthDayWithOptionalYearInUTC(expense.created, dateFnsLocale);
 
     const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(expense.transaction, isSettled(expense.report));
     const shouldShowScanFailureMessage = hasFailedScanAmountPlaceholder && expense.transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
@@ -105,7 +101,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
             <PressableWithFeedback
                 testID={`recentlyAddedRow-${expense.transactionID}`}
                 accessibilityLabel={expense.merchant}
-                sentryLabel="RecentlyAddedRow"
+                sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.RECENTLY_ADDED_ROW}
                 onPress={isPendingDelete ? () => {} : onPress}
                 wrapperStyle={styles.w100}
                 hoverStyle={styles.hoveredComponentBG}

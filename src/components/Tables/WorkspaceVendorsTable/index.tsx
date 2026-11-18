@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Switch from '@components/Switch';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -12,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -45,9 +47,12 @@ type WorkspaceVendorsTableProps = {
 
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected vendors support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent}: WorkspaceVendorsTableProps) {
+function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceVendorsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -91,7 +96,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                 interactive={selectionEnabled}
                 accessibilityLabel={accessibilityLabel}
                 rowIndex={index}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INITIAL.VENDORS}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW}
                 disabled={item.disabled}
                 offlineWithFeedback={{
                     errors: item.errors,
@@ -112,6 +117,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
                         showLockIcon={item.isLocked}
                         disabled={item.disabled}
                         accessibilityLabel={`${translate('workspace.vendors.enableVendor')}: ${item.name}`}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.ROW_ENABLE_SWITCH}
                         onToggle={item.onToggleEnabled}
                     />
                 </View>
@@ -138,11 +144,12 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.vendors.emptyTitle')}
-                subtitleText={translate('workspace.vendors.emptySubtitle')}
+                subtitle={translate('workspace.vendors.emptySubtitle')}
             />
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -66,6 +68,7 @@ function renderUnreadMarker(params: Partial<Parameters<typeof useUnreadMarker>[0
 
 describe('useUnreadMarker', () => {
     beforeEach(() => {
+        jest.restoreAllMocks();
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
@@ -91,6 +94,49 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
     });
 
+    describe.each([
+        {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+        {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [OTHER_USER_ACCOUNT_ID]}},
+    ])('informational $actionName', ({actionName, originalMessage}) => {
+        it('does not use the informational action as an automatic unread pagination anchor', () => {
+            // Given informational activity selected as the oldest unread by pagination
+            const action = makeAction('informational', {actionName, message: {...originalMessage, type: 'TEXT', html: 'hey', text: 'test'}});
+
+            // When the first page is shown
+            const {result} = renderUnreadMarker({sortedVisibleReportActions: [action], oldestUnreadReportActionID: action.reportActionID, hasOnceLoadedReportActions: false});
+
+            // Then pagination cannot bypass the automatic marker filter
+            expect(result.current.unreadMarkerReportActionID).toBeNull();
+        });
+
+        it('filters offline informational activity without suppressing a real offline message', () => {
+            // Given a read chat with informational activity received offline
+            const read = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+            const informational = makeAction('informational', {actionName, message: {...originalMessage, type: 'TEXT', html: 'hey', text: 'test'}});
+            jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID !== read.reportActionID);
+            const {result, rerender} = renderHook(
+                (actions: OnyxTypes.ReportAction[]) =>
+                    useUnreadMarker({
+                        reportID: REPORT_ID,
+                        sortedVisibleReportActions: actions,
+                        sortedReportActions: actions,
+                        oldestUnreadReportActionID: undefined,
+                        isScrolledOverThreshold: false,
+                        hasOnceLoadedReportActions: true,
+                    }),
+                {initialProps: [informational, read]},
+            );
+            expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+            // When a real message is also received offline
+            const comment = makeAction('offline-comment', {created: '2023-01-01 12:00:00.000'});
+            rerender([comment, informational, read]);
+
+            // Then the divider belongs to the real message, not the informational action
+            expect(result.current.unreadMarkerReportActionID).toBe(comment.reportActionID);
+        });
+    });
+
     it('prefers the oldestUnread pagination anchor over the scan on first open when the scan finds nothing', () => {
         const readAction = makeAction('a', {created: '2023-01-01 09:00:00.000'});
         const {result} = renderUnreadMarker({
@@ -111,6 +157,43 @@ describe('useUnreadMarker', () => {
             hasOnceLoadedReportActions: true,
         });
 
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('does not use the oldestUnread anchor on first open when the current user authored the anchored action', () => {
+        // Given an action from the current user that is newer than the session's lastReadTime
+        const selfAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [selfAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown because the current user authored the anchor action
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('does not use the oldestUnread anchor on first open when the current user is the last actor of the anchored report preview', () => {
+        // Given a report preview anchor where actorAccountID belongs to another user
+        // and childLastActorAccountID belongs to the current user
+        const reportPreviewAction = makeAction('a', {
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            actorAccountID: OTHER_USER_ACCOUNT_ID,
+            childLastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+        });
+
+        // When the chat opens before the report actions have loaded
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: [reportPreviewAction],
+            oldestUnreadReportActionID: 'a',
+            hasOnceLoadedReportActions: false,
+        });
+
+        // Then no marker is shown, because report previews are attributed to their child report's last actor
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });

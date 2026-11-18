@@ -19,6 +19,7 @@ function renderMerchantFilter({value = 'I', isNegated = false, merchantOperator}
     render(
         <NavigationContainer>
             <MerchantFilterContent
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value={value}
                 isNegated={isNegated}

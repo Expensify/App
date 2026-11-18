@@ -111,7 +111,7 @@ function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePo
             stayNormalOnDisable={shouldDisablePointerEvents}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             wrapperStyle={styles.w100}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.APPROVE}
         />
     );
 }

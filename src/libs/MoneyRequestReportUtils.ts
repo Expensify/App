@@ -3,12 +3,15 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, OriginalMessageIOU, Policy, PolicyCategories, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getStableReportSelector} from '@selectors/Report';
+
+import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
@@ -81,24 +84,6 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCre
     }
 
     return true;
-}
-
-/**
- * Give a list of report actions and a list of transactions,
- * function will return a list of reportIDs for the threads for the IOU parent action of every transaction.
- * It is used in UI to allow for navigation to "sibling" transactions when opening a single transaction (report) view.
- */
-function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
-    return transactions
-        .map((transaction) => {
-            if (isTransactionPendingDelete(transaction)) {
-                return;
-            }
-
-            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-            return action?.childReportID;
-        })
-        .filter((reportID): reportID is string => !!reportID);
 }
 
 /**
@@ -267,11 +252,58 @@ function getVisibleReportRowViolations(
     return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
 }
 
+function getReportRowPolicy(policy: OnyxEntry<Policy>): OnyxEntry<Policy> {
+    if (!policy) {
+        return policy;
+    }
+    const {employeeList, lastModified, pendingFields, errors, errorFields, isLoading, ...rowPolicy} = policy;
+    return rowPolicy;
+}
+
+function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategories>, category: string | undefined): PolicyCategories | undefined {
+    const rowCategory = category ? policyCategories?.[category] : undefined;
+    const rowCategories = rowCategory && category ? {[category]: rowCategory} : undefined;
+    if (hasAnyCategoryGLCode(rowCategories)) {
+        return rowCategories;
+    }
+
+    // CategoryGLCodeCell stays editable only when the workspace has any GL code, so keep one GL-coded category even if the row's category has none.
+    const glCodeCategory = Object.entries(policyCategories ?? {}).find(
+        ([name, policyCategory]) =>
+            !!policyCategory?.enabled && policyCategory.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, name).trim(),
+    );
+    if (!glCodeCategory) {
+        return rowCategories;
+    }
+    const [glCodeCategoryName, glCodePolicyCategory] = glCodeCategory;
+    return {...rowCategories, [glCodeCategoryName]: glCodePolicyCategory};
+}
+
+function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
+    const stableReport = getStableReportSelector(report);
+    if (!stableReport) {
+        return stableReport;
+    }
+    const {unheldTotal, unheldNonReimbursableTotal, ...rowReport} = stableReport;
+    return rowReport;
+}
+
+const EMPTY_CARDS: CardList = {};
+
+function getReportRowCards(cards: OnyxEntry<CardList>, cardID: number | undefined): CardList {
+    const card = cardID ? cards?.[cardID] : undefined;
+    return card && cardID ? {[cardID]: card} : EMPTY_CARDS;
+}
+
 export {
+    EMPTY_CARDS,
     EMPTY_VIOLATIONS,
+    getReportRowCards,
+    getReportRowPolicy,
+    getReportRowPolicyCategories,
+    getReportRowReport,
     getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
-    getThreadReportIDsForTransactions,
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,

@@ -40,6 +40,10 @@
     week: "groupweek",
     year: "groupyear",
     quarter: "groupquarter",
+    approver: "groupApprover",
+    violation: null,
+    "paid-by": null,
+    "workflow-stage": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -54,6 +58,7 @@
     week: "desc",
     year: "desc",
     quarter: "desc",
+    approver: "asc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -72,7 +77,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -220,6 +225,10 @@ defaultFilter
       if (op === "contains") {
         return buildFilter("eq", "keyword", text().trim());
       }
+      // Ignore unsupported groupings before they override a valid grouping or affect sort and view defaults.
+      if (key === "groupBy" && !Object.hasOwn(GROUP_BY_DEFAULT_SORT, value)) {
+        return null;
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     }
@@ -303,6 +312,7 @@ key "key"
       / receiptType
       / travelType
       / travelPlatform
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -310,17 +320,20 @@ key "key"
       / withdrawalID
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo
       / exported
       / posted
       / withdrawn
+      / workflowStage
       / feed
       / title
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / assignee
       / createdBy
       / reimbursable
@@ -346,7 +359,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / compare / tagLevel / tagParent)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

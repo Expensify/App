@@ -32,7 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
@@ -55,7 +54,7 @@ function PrivatePersonalDetailsPage() {
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
     const dob = privatePersonalDetails?.dob ?? '';
-    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address | undefined;
+    const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
     const [street1, street2Fallback] = getStreetLines(address?.street);
     const initialStreet1 = street1 ?? '';
     const initialStreet2 = address?.street2 ?? street2Fallback ?? '';
@@ -144,7 +143,8 @@ function PrivatePersonalDetailsPage() {
 
         const stateValue = values[INPUT_IDS.STATE] ?? '';
         const effectiveCountry = values[INPUT_IDS.COUNTRY] ?? '';
-        if (!stateValue.trim()) {
+        // Country changes validate before the change handler converts a full state name to its code.
+        if (!stateValue.trim() || (effectiveCountry === CONST.COUNTRY.US && !Object.hasOwn(COMMON_CONST.STATES, resolveStateCode(stateValue)))) {
             errors[INPUT_IDS.STATE] = translate('common.error.fieldRequired');
         }
 
@@ -205,13 +205,16 @@ function PrivatePersonalDetailsPage() {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        if (!hasChanges(values)) {
+        // Resolve US state names to codes so hasChanges compares equivalent values and submission uses codes.
+        // Other countries accept free-text states, so preserve those values.
+        const normalizedValues = values[INPUT_IDS.COUNTRY] === CONST.COUNTRY.US ? {...values, [INPUT_IDS.STATE]: resolveStateCode(values[INPUT_IDS.STATE] ?? '')} : values;
+        if (!hasChanges(normalizedValues)) {
             Navigation.goBack();
             return;
         }
         // UI-prefilled values (geolocation country, normalized state) only live in component state until the user touches
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
-        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
+        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, normalizedValues);
         skipClearDraftOnUnmountRef.current = true;
         Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
@@ -236,7 +239,6 @@ function PrivatePersonalDetailsPage() {
                     validate={validate}
                     onSubmit={onSubmit}
                     submitButtonText={translate('common.save')}
-                    enabledWhenOffline
                 >
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
                     <View style={styles.mb4}>
@@ -401,9 +403,9 @@ function PrivatePersonalDetailsPage() {
                                 setSelectedCountry(newCountry);
                                 if (newCountry === CONST.COUNTRY.US) {
                                     const resolved = resolveStateCode(selectedState);
-                                    if (resolved !== selectedState) {
-                                        setSelectedState(resolved);
-                                    }
+                                    const validState = Object.hasOwn(COMMON_CONST.STATES, resolved) ? resolved : '';
+                                    setSelectedState(validState);
+                                    setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: validState});
                                     return;
                                 }
                                 // A previously selected US state (or another country's value) does not apply to the new country.

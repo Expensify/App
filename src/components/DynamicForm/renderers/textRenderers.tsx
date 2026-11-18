@@ -1,8 +1,11 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
+import FSClassView from '@components/FSClassView';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
@@ -45,26 +48,31 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
 
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {translate}: DynamicFieldContext,
+    {values, translate}: DynamicFieldContext,
     inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
 ): DynamicFieldInput {
+    const textInputProps = {
+        ...inputProps,
+        label: getInputLabel(field, translate),
+        hint: getTextHint(field, translate),
+        maxLength: field.maxLength,
+        inputMode,
+        multiline: isMultiline,
+        autoGrowHeight: isMultiline,
+        maxAutoGrowHeight: isMultiline ? variables.textInputAutoGrowMaxHeight : undefined,
+        ...(isMultiline ? {} : getTextInputAutocorrectProps()),
+    };
     return {
         isMenuRow: false,
         showsDescription: true,
-        input: (
+        input: hasProvidedAnswer(field, values) ? (
+            <DynamicFormOnFileTextInput {...textInputProps} />
+        ) : (
             <InputWrapper
                 InputComponent={TextInput}
-                {...inputProps}
-                label={getInputLabel(field, translate)}
-                hint={getTextHint(field, translate)}
-                maxLength={field.maxLength}
-                inputMode={inputMode}
-                multiline={isMultiline}
-                autoGrowHeight={isMultiline}
-                maxAutoGrowHeight={isMultiline ? variables.textInputAutoGrowMaxHeight : undefined}
-                {...(isMultiline ? {} : getTextInputAutocorrectProps())}
+                {...textInputProps}
             />
         ),
     };
@@ -74,7 +82,7 @@ function renderTextInput(
 const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
     text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
-    date: (field, {translate}, inputProps) => {
+    date: (field, {translate, styles}, inputProps) => {
         const isDateOfBirth = field.rule === 'dateOfBirth';
         return {
             isMenuRow: false,
@@ -86,6 +94,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     label={getInputLabel(field, translate)}
                     hint={getLocalizedText(translate, field.descriptionKey, field.description)}
                     placeholder={translate('common.dateFormat')}
+                    // DatePicker adds its own vertical margin, while the field row already spaces it like every other input
+                    wrapperStyle={styles.mv0}
                     // A date of birth can only be picked within the ages getDynamicFieldErrors accepts
                     minDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE) : undefined}
                     maxDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT) : undefined}
@@ -96,9 +106,9 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
         const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
-        // AmountForm takes no FullStory class, so the mask goes on a View around it
+        // AmountForm takes no FullStory class, so the mask goes on an FSClassView around it, which its input follows
         const amountInput = (
-            <View fsClass={inputProps.forwardedFSClass}>
+            <FSClassView forwardedFSClass={inputProps.forwardedFSClass}>
                 <InputWrapper
                     InputComponent={AmountForm}
                     {...inputProps}
@@ -107,7 +117,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     displayAsTextInput
                     isCurrencyPressable={false}
                 />
-            </View>
+            </FSClassView>
         );
         if (!field.currencyKey) {
             return {isMenuRow: false, input: amountInput};
@@ -116,7 +126,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
             isMenuRow: false,
             input: (
                 <>
-                    <View style={[styles.mhn5, styles.mb2]}>
+                    {/* The picker is a push row, so it pulls into the field row's padding to sit as far from its neighbors as a push row does */}
+                    <View style={[styles.mhn5, styles.mtn1, styles.mb3]}>
                         <InputWrapper
                             InputComponent={CurrencyPicker}
                             inputID={field.currencyKey}

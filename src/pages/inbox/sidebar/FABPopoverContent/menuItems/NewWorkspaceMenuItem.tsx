@@ -46,6 +46,7 @@ function NewWorkspaceMenuItem() {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.NEW_WORKSPACE}
             itemId={ITEM_ID}
             isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.NEW_WORKSPACE}

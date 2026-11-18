@@ -26659,6 +26659,14 @@ var GitUtils_default = {
 var context2 = new Context();
 
 // .github/actions/javascript/getDeployPullRequestList/getDeployPullRequestList.ts
+async function getNewlyDeployedPullRequests(fromTag, toTag, repo) {
+  const pullRequests = await GitUtils_default.getPullRequestsDeployedBetween(fromTag, toTag, repo);
+  if (pullRequests.length === 0) {
+    return pullRequests;
+  }
+  const previouslyDeployedPullRequests = new Set(await GitUtils_default.getPullRequestsDeployedBetween(toTag, fromTag, repo));
+  return pullRequests.filter((pr) => !previouslyDeployedPullRequests.has(pr));
+}
 async function run() {
   try {
     const inputTag = getInput("TAG", { required: true });
@@ -26698,12 +26706,12 @@ async function run() {
       throw new Error("Something went wrong and the prior tag could not be found.");
     }
     console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-    const prList = await GitUtils_default.getPullRequestsDeployedBetween(priorTag, inputTag, CONST_default.APP_REPO);
+    const prList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST_default.APP_REPO);
     console.log("Found the pull request list: ", prList);
     setOutput("PR_LIST", prList);
     let mobileExpensifyPRList = [];
     try {
-      mobileExpensifyPRList = await GitUtils_default.getPullRequestsDeployedBetween(priorTag, inputTag, CONST_default.MOBILE_EXPENSIFY_REPO);
+      mobileExpensifyPRList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST_default.MOBILE_EXPENSIFY_REPO);
       console.log("Found Mobile-Expensify pull request list: ", mobileExpensifyPRList);
     } catch (error2) {
       if (process.env.GITHUB_REPOSITORY !== `${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO}`) {
@@ -26715,6 +26723,7 @@ async function run() {
       }
     }
     setOutput("MOBILE_EXPENSIFY_PR_LIST", mobileExpensifyPRList);
+    setOutput("PREVIOUS_TAG", priorTag);
   } catch (error2) {
     const message = error2 instanceof Error ? error2.message : String(error2);
     console.error(message);

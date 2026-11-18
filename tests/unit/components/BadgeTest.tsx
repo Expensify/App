@@ -76,6 +76,7 @@ describe('Badge accessibility', () => {
             <Badge
                 text="Upgrade"
                 pressable
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             />,
         );
 

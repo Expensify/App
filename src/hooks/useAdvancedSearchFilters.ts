@@ -1,5 +1,6 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {getHasOptionAvailability} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,11 +11,13 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
+import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useWorkspaceList from './useWorkspaceList';
 
 /**
@@ -46,17 +49,12 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
         ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-        ],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
@@ -66,10 +64,12 @@ const typeFiltersKeys = {
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_SUBMISSION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
         ],
@@ -78,6 +78,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
         ],
@@ -207,6 +208,12 @@ const typeFiltersKeys = {
     ],
 };
 
+/** A trip search that returns trip rooms only filters by what a trip row has */
+const tripRoomFiltersKeys: (typeof typeFiltersKeys)[typeof CONST.SEARCH.DATA_TYPES.TRIP] = [
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
+];
+
 function shouldDisplayFilter(numberOfFilters: number, isFeatureEnabled: boolean, singlePolicyCondition = false): boolean {
     return (numberOfFilters !== 0 || singlePolicyCondition) && isFeatureEnabled;
 }
@@ -278,6 +285,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             taxRates: policy.taxRates,
             tax: policy.tax,
             areTagsEnabled: policy.areTagsEnabled,
+            areRulesEnabled: policy.areRulesEnabled,
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
@@ -321,6 +329,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
+    const shouldDisplayViolationFilter = getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation;
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
@@ -330,6 +340,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     let currentType = type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -337,7 +348,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
-    return typeFiltersKeys[currentType]
+    return (shouldReturnTripRooms ? tripRoomFiltersKeys : typeFiltersKeys[currentType])
         .map((section) =>
             section
                 .map((key) => {
@@ -360,6 +371,9 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && !shouldDisplayTaxFilter) {
+                        return;
+                    }
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION && !shouldDisplayViolationFilter) {
                         return;
                     }
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID && !shouldDisplayWorkspaceFilter) {

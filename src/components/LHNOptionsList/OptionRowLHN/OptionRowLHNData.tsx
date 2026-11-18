@@ -1,8 +1,7 @@
 import type {OptionRowLHNDataProps} from '@components/LHNOptionsList/types';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import {useIsCurrentReportID} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import {useReportAttributesByID} from '@hooks/useReportAttributes';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions as ReportActionsType} from '@src/types/onyx';
-import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributesDerivedValue, SortedReportActionsDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -122,13 +122,14 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
 function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const isCurrentReport = useIsCurrentReportID(reportID);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const reportAttributes = useReportAttributesByID(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [lastOriginalAction] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: (data: SortedReportActionsDerivedValue | undefined) => data?.lastActions?.[reportID]});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: optionRowReportMetadataSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -227,7 +228,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
         chatReport: chatReportForIOU,
     });
 
-    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
+    const isReportFocused = isOptionFocused && isCurrentReport;
     const hasDraftComment = !!draftComment && !draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     const lastMessageTextFromReport = whisperTransactionID && !whisperTransaction ? '' : undefined;
     const hasPendingJoinRequest = Object.values(reportActions ?? {}).some(isActionableJoinRequestPendingReportAction);
@@ -254,6 +255,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 invoiceReceiverPolicy,
                 card,
                 lastAction,
+                lastOriginalAction,
                 translate,
                 convertToDisplayString,
                 convertToDisplayStringWithoutCurrency,

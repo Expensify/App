@@ -1,0 +1,126 @@
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -119,6 +119,8 @@ export default class Pdf extends Component {
+         };
+ 
+         this.lastRNBFTask = null;
++        // Goes up whenever a download starts or is canceled, so a download can tell it was replaced
++        this._downloadId = 0;
+ 
+     }
+ 
+@@ -128,15 +130,11 @@ export default class Pdf extends Component {
+         const curSource = Image.resolveAssetSource(prevProps.source);
+ 
+         if ((nextSource.uri !== curSource.uri)) {
+-            // if has download task, then cancel it.
+-            if (this.lastRNBFTask && this.lastRNBFTask.cancel) {
+-                this.lastRNBFTask.cancel(err => {
+-                    this._loadFromSource(this.props.source);
+-                });
+-                this.lastRNBFTask = null;
+-            } else {
+-                this._loadFromSource(this.props.source);
+-            }
++            // Cancel the download of the previous source and load the new one right away. The canceled download
++            // ignores its result, so there's no need to wait for the cancel callback, which react-native-blob-util
++            // doesn't call when the request has already finished.
++            this._cancelDownload();
++            this._loadFromSource(this.props.source);
+         }
+     }
+ 
+@@ -167,10 +165,16 @@ export default class Pdf extends Component {
+         const filename = source.cacheFileName || SHA1(uri) + '.pdf';
+         const cacheFile = ReactNativeBlobUtil.fs.dirs.CacheDir + '/' + filename;
+ 
++        // The cache check is async, so the source can change before it ends. Only the latest source may load.
++        const isCurrentSource = () => (Image.resolveAssetSource(this.props.source) || {}).uri === source.uri;
++
+         if (source.cache) {
+             ReactNativeBlobUtil.fs
+                 .stat(cacheFile)
+                 .then(stats => {
++                    if (!isCurrentSource()) {
++                        return;
++                    }
+                     if (!Boolean(source.expiration) || (source.expiration * 1000 + stats.lastModified) > (new Date().getTime())) {
+                         if (this._mounted) {
+                             this.setState({path: cacheFile, isDownloaded: true});
+@@ -181,6 +185,9 @@ export default class Pdf extends Component {
+                     }
+                 })
+                 .catch(() => {
++                    if (!isCurrentSource()) {
++                        return;
++                    }
+                     this._prepareFile(source);
+                 })
+ 
+@@ -250,17 +257,30 @@ export default class Pdf extends Component {
+ 
+     };
+ 
+-    _downloadFile = async (source, cacheFile) => {
+-
+-        if (this.lastRNBFTask) {
+-            this.lastRNBFTask.cancel(err => {
++    _cancelDownload = () => {
++        // A download that is still running belongs to a source that is no longer wanted
++        this._downloadId += 1;
++        const task = this.lastRNBFTask;
++        this.lastRNBFTask = null;
++        if (task && typeof task.cancel === 'function') {
++            task.cancel(err => {
+             });
+-            this.lastRNBFTask = null;
+         }
++    };
++
++    _downloadFile = async (source, cacheFile) => {
++
++        // Only one download runs at a time
++        this._cancelDownload();
++        const downloadId = this._downloadId;
++        // False once this download was canceled or a newer one started. Its result is then ignored: canceling
++        // rejects the task, which isn't an error to report, and a replaced download must not show its file.
++        const isCurrentDownload = () => this._downloadId === downloadId;
+ 
+         const tempCacheFile = cacheFile + '.tmp';
+         this._unlinkFile(tempCacheFile);
+ 
++        // Store the task itself, which has cancel(). The promise that catch() returned, stored here before, doesn't.
+         this.lastRNBFTask = ReactNativeBlobUtil.config({
+             // response data will be saved to this path if it has access right.
+             path: tempCacheFile,
+@@ -278,9 +298,6 @@ export default class Pdf extends Component {
+                 if (this._mounted) {
+                     this.setState({progress: received / total});
+                 }
+-            })
+-            .catch(async (error) => {
+-                this._onError(error);
+             });
+ 
+         this.lastRNBFTask
+@@ -313,6 +330,9 @@ export default class Pdf extends Component {
+                 ReactNativeBlobUtil.fs
+                     .cp(tempCacheFile, cacheFile)
+                     .then(() => {
++                        if (!isCurrentDownload()) {
++                            return;
++                        }
+                         if (this._mounted) {
+                             this.setState({path: cacheFile, isDownloaded: true, progress: 1});
+                         }
+@@ -323,6 +343,9 @@ export default class Pdf extends Component {
+                     });
+             })
+             .catch(async (error) => {
++                if (!isCurrentDownload()) {
++                    return;
++                }
+                 this._unlinkFile(tempCacheFile);
+                 this._unlinkFile(cacheFile);
+                 this._onError(error);

@@ -370,8 +370,23 @@ describe('getDynamicFieldErrors', () => {
         // When the form is validated
         const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
 
-        // Then nothing is flagged, since the picker only lists US states and Canadian provinces
+        // Then nothing is flagged, since the picker lists no UK states
         expect(errors).toEqual({});
+    });
+
+    it('asks again for a state the picker of the country does not list', () => {
+        // Given a required Australian address whose state holds the full name an older draft saved, which the picker cannot show
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const values = {homeAddress: '1 George Street', [addressKeys.city]: 'Sydney', [addressKeys.zipCode]: '2000', [addressKeys.country]: CONST.COUNTRY.AU};
+
+        // When the form is validated with that full name and with the state code the picker lists
+        const fullNameErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.state]: 'New South Wales'}, translateLocal);
+        const codeErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.state]: 'NSW'}, translateLocal);
+
+        // Then the full name is flagged as missing, so the user picks a state instead of submitting a name the server rejects
+        expect(fullNameErrors).toEqual({[addressKeys.state]: translateLocal('common.error.fieldRequired')});
+        expect(codeErrors).toEqual({});
     });
 
     it('accepts US and international phone numbers and rejects incomplete ones', () => {
@@ -452,5 +467,64 @@ describe('getDynamicFieldErrors', () => {
         // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane and the SSN so the user knows what to fix, so a director is never submitted without one
         expect(keptErrors).toEqual({});
         expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', field: 'ssn', error: translateLocal('common.error.fieldRequired')})});
+    });
+});
+
+describe('getDynamicFieldErrors with an answer the server holds', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+    });
+
+    it('accepts a blank sensitive field the server already has an answer for', () => {
+        // Given a required SSN the server returned as provided instead of sending it back
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the field is left blank
+        const errors = getDynamicFieldErrors([ssn], {ssnProvided: true}, translateLocal);
+
+        // Then it counts as answered, so the stored SSN is kept
+        expect(errors).toEqual({});
+    });
+
+    it('requires a new answer once the user clears the mask', () => {
+        // Given a required SSN the server holds, whose mask the user cleared, so the input holds an empty answer
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the page is validated with the input left empty
+        const errors = getDynamicFieldErrors([ssn], {ssnProvided: true, ssn: ''}, translateLocal);
+
+        // Then a new SSN is required, as for anyone who has one, since clearing the mask means replacing the saved one
+        expect(errors).toEqual({ssn: translateLocal('common.error.fieldRequired')});
+    });
+
+    it('still requires a field that is not sensitive', () => {
+        // Given a required plain field with a stray provided flag
+        const firstName: DynamicFormField = {key: 'firstName', type: 'text', required: true};
+
+        // When the field is left blank
+        const errors = getDynamicFieldErrors([firstName], {firstNameProvided: true}, translateLocal);
+
+        // Then the flag is ignored, since only sensitive answers are held back by the server
+        expect(errors).toEqual({firstName: translateLocal('common.error.fieldRequired')});
+    });
+
+    it('requires a file on every upload button of a required file field', () => {
+        // Given a loan's documents, with one button for the loan agreement and one for the bank statement
+        const loanDocuments: DynamicFormField = {
+            key: 'proofFile-BUSINESS_LOAN',
+            type: 'file',
+            required: true,
+            uploads: [{fileTypes: [{key: 'LOAN_AGREEMENT'}]}, {fileTypes: [{key: 'BANK_STATEMENT'}]}],
+        };
+        const loanAgreement = {id: 'LOAN_AGREEMENT', fileType: 'LOAN_AGREEMENT', files: [{name: 'loan.pdf', uri: 'file://loan.pdf'}]};
+        const bankStatement = {id: 'BANK_STATEMENT', fileType: 'BANK_STATEMENT', files: [{name: 'statement.pdf', uri: 'file://statement.pdf'}]};
+
+        // When only the loan agreement is uploaded, then both documents
+        const partialErrors = getDynamicFieldErrors([loanDocuments], {[loanDocuments.key]: [loanAgreement]}, translateLocal);
+        const completeErrors = getDynamicFieldErrors([loanDocuments], {[loanDocuments.key]: [loanAgreement, bankStatement]}, translateLocal);
+
+        // Then the field stays required until the bank statement is uploaded too, since each button asks for its own document
+        expect(partialErrors).toEqual({[loanDocuments.key]: translateLocal('common.error.fieldRequired')});
+        expect(completeErrors).toEqual({});
     });
 });

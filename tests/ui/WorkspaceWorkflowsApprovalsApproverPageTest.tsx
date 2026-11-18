@@ -5,6 +5,7 @@ import ApproverSelectionList from '@components/ApproverSelectionList';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
@@ -115,12 +116,15 @@ async function editWorkflowWithRemovedApprover() {
     await waitForBatchedUpdatesWithAct();
 }
 
-async function renderPage(approverIndex: number) {
+async function renderPage(
+    approverIndex: number,
+    routeName: typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE = SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE,
+) {
     const result = render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider]}>
             <WorkspaceWorkflowsApprovalsApproverPage
                 // @ts-expect-error - the page only reads route.name and route.params
-                route={{name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE, params: {policyID: POLICY_ID, approverIndex}}}
+                route={{name: routeName, params: {policyID: POLICY_ID, approverIndex}}}
             />
         </ComposeProviders>,
     );
@@ -158,6 +162,7 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
     beforeEach(async () => {
         jest.mocked(ApproverSelectionList).mockClear();
         jest.mocked(Navigation.goBack).mockClear();
+        jest.mocked(Navigation.navigate).mockClear();
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
@@ -211,6 +216,25 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         expect(getRows().some((row) => row.login === REMOVED_EMAIL)).toBe(false);
     });
 
+    it('keeps the reports a place in the workflow gets when its approver is picked again', async () => {
+        // Given Erin only gets the reports over 1,000.00
+        await act(async () => {
+            const approvalWorkflow = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
+                approvers: approvalWorkflow?.approvers.map((approver, index) => (approver && index === 1 ? {...approver, overLimitAmount: 100000} : approver)),
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens her place from the workflow and picks the admin instead
+        await renderPage(1, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        await tapRow(ADMIN_EMAIL);
+
+        // Then the admin only gets the reports over 1,000.00, since that belongs to the place rather than to Erin
+        const approvalWorkflow = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(approvalWorkflow?.approvers.at(1)).toEqual(expect.objectContaining({email: ADMIN_EMAIL, overLimitAmount: 100000}));
+    });
+
     it('lists a flagged approver only once when they are back on the workspace', async () => {
         // Given the approver who left was invited back while the edited workflow still has them flagged
         await act(async () => {
@@ -227,5 +251,25 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         const removedRows = getRows().filter((row) => row.login === REMOVED_EMAIL);
         expect(removedRows).toHaveLength(1);
         expect(removedRows.at(0)?.isSelected).toBe(true);
+    });
+
+    it('takes the admin back to the workflow after picking a new first approver', async () => {
+        // Given the edited workflow Bob > Erin > an approver who left the workspace, on a workspace Frank just joined
+        const frankEmail = 'frank@example.com';
+        const frankAccountID = 6;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[frankEmail]: {email: frankEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ADMIN_EMAIL}}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[frankAccountID]: buildPersonalDetails(frankEmail, frankAccountID, 'frank')});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens Bob's place from the workflow and picks Frank instead
+        await renderPage(0, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        await tapRow(frankEmail);
+
+        // Then Frank becomes the first approver and the admin goes straight back to the workflow, since every report reaches the first approver and there's nothing more to set
+        expect((await getApproverEmails())?.at(0)).toBe(frankEmail);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalled();
     });
 });

@@ -22,6 +22,9 @@ import type {
 } from '@src/types/onyx';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
+    SearchApproverGroup,
+    SearchViolationGroup,
+    SearchWorkflowStageGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -123,6 +126,11 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /**
+         * Violation messages sorted alphabetically for the Violations column.
+         */
+        formattedViolations?: string;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -222,6 +230,15 @@ type TransactionGroupListItemType = ListItem & {
     isOneTransactionReport?: boolean;
 
     transactionsQueryJSON?: SearchQueryJSON;
+
+    /** Expenses the group's own search returned that the list no longer shows, because they stopped matching it after it ran */
+    hiddenTransactionIDs?: string[];
+
+    /** Whether the group's own search has expenses it has not returned yet, which its Show more link loads */
+    hasMoreTransactions?: boolean;
+
+    /** Where the group's own search last started reading, which only its Show more link moves past the first page */
+    transactionsOffset?: number;
 
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
@@ -504,6 +521,9 @@ type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {grou
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
+
+        /** Selected-level display name without dependent parents; absent on legacy full-tag rows. */
+        formattedTagName?: string;
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
@@ -528,6 +548,28 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         shortFormattedQuarter: string;
 
         sortKey: number;
+    };
+
+type TransactionApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER} & PersonalDetails &
+    SearchApproverGroup & {
+        /** Final and formatted approver name used for displaying and sorting */
+        formattedApprover?: string;
+    };
+
+type TransactionViolationGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.VIOLATION} & SearchViolationGroup & {
+        /** Violation name translated for display and sorting */
+        formattedViolation: string;
+    };
+
+type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.PAID_BY} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted name of the member who paid the reports, used for displaying and sorting */
+        formattedPaidBy?: string;
+    };
+
+type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE} & SearchWorkflowStageGroup & {
+        /** Stage name translated for display */
+        formattedWorkflowStage: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -602,6 +644,10 @@ type GroupHeaderItemType =
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
+    | (TransactionViolationGroupListItemType & GroupHeaderListItemType)
+    | (TransactionPaidByGroupListItemType & GroupHeaderListItemType)
+    | (TransactionWorkflowStageGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -661,6 +707,10 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
+    TransactionApproverGroupListItemType,
+    TransactionViolationGroupListItemType,
+    TransactionPaidByGroupListItemType,
+    TransactionWorkflowStageGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

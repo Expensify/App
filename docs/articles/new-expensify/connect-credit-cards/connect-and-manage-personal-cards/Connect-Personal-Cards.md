@@ -20,13 +20,14 @@ Anyone with an Expensify account can connect up to two personal cards for free. 
 
 ## How to connect a personal card
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then go to **Account > Wallet**.
-2. Tap **Add personal card**.
-3. Select your country from the country selector.
-4. If you selected **United States**, choose your bank from the bank selector.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Tap **Add personal card**.
+3. Select **Add personal card**.
+5. If you selected **United States**, choose your bank from the bank selector.
    - If your bank is listed, you'll be prompted to directly connect via your bank's secure login.
    - If your bank is not listed, select **Other** to connect via Plaid.
-5. Follow the prompts to log into your bank and authorize the connection.
+6. Follow the prompts to log into your bank and authorize the connection.
 
 Once your card is connected, it will appear under **Cards** in the **Wallet**, and transactions will begin importing automatically.
 

@@ -122,6 +122,7 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePre
 
 const FILTER_COMPONENT_MAP: Partial<Record<SearchFilter['key'], React.ComponentType<DropdownProps>>> = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: UserDropdown,

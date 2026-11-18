@@ -1,7 +1,6 @@
 import {render} from '@testing-library/react-native';
 
 import {openPolicyAccountingPage, openPolicyHRPage} from '@libs/actions/PolicyConnections';
-import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceConnectionsPage from '@pages/workspace/connections/WorkspaceConnectionsPage';
 
@@ -23,11 +22,21 @@ type RouteParams = {
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
+    tab?: string;
 };
 
 let mockRouteParams: RouteParams = {};
+let mockActiveTabKey: string | undefined;
 
 const mockStartIntegrationFlow = jest.fn();
+
+// The screen's `setParams` clears `newConnectionName` and `tab` through react-navigation's state update, which lands in a later
+// render than the synchronous call. The mock therefore only records the requested params. Each test applies them when
+// it wants that state update to land, which is what lets the two orderings below be told apart.
+let mockPendingParams: RouteParams | undefined;
+const mockScreenSetParams = jest.fn((params: RouteParams) => {
+    mockPendingParams = params;
+});
 
 // The real `useFocusEffect` re-runs its callback whenever the callback's identity changes while the screen is focused.
 // `useEffect(cb, [cb])` reproduces exactly that, which is the behaviour the guard under test has to survive.
@@ -40,28 +49,21 @@ jest.mock('@react-navigation/native', () => {
             mockUseEffect(callback, [callback]);
         },
         useRoute: () => ({params: mockRouteParams}),
-        useNavigation: () => ({}),
+        useNavigation: () => ({setParams: mockScreenSetParams}),
         useIsFocused: () => true,
     };
 });
 
-// `Navigation.setParams` clears `newConnectionName` through react-navigation's state update, which lands in a later
-// render than the synchronous call. The mock therefore only records the requested params; each test applies them when
-// it wants that state update to land, which is what lets the two orderings below be told apart.
-let mockPendingParams: RouteParams | undefined;
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        setParams: jest.fn((params: RouteParams) => {
-            mockPendingParams = params;
-        }),
         navigate: jest.fn(),
         goBack: jest.fn(),
         isNavigationReady: () => Promise.resolve(),
     },
 }));
 
-/** Lands the pending `Navigation.setParams` update, as a real navigation state change eventually would. */
+/** Lands the pending `setParams` update, as a real navigation state change eventually would. */
 function landPendingParamsUpdate() {
     mockRouteParams = {...mockRouteParams, ...mockPendingParams};
     mockPendingParams = undefined;
@@ -95,7 +97,13 @@ jest.mock('@components/ScrollView', () => ({
 }));
 
 jest.mock('@components/SidePanel/SidePanelButton', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/TabSelector/TabSelectorBase', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/TabSelector/TabSelectorBase', () => ({
+    __esModule: true,
+    default: ({activeTabKey}: {activeTabKey?: string}) => {
+        mockActiveTabKey = activeTabKey;
+        return null;
+    },
+}));
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/ConnectionsGrid', () => ({__esModule: true, default: () => null}));
 jest.mock('@pages/workspace/connections/useAccountingConnectionListings', () => ({__esModule: true, default: () => []}));
@@ -146,7 +154,7 @@ describe('WorkspaceConnectionsPage auto-started connect flow', () => {
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
-        expect(Navigation.setParams).toHaveBeenCalled();
+        expect(mockScreenSetParams).toHaveBeenCalled();
 
         // When anything re-creates `startIntegrationFlow` and re-runs the effect before that clear has landed, which a
         // policy update does. This is the window the guard exists for: `newConnectionName` is still set here.
@@ -186,6 +194,50 @@ describe('WorkspaceConnectionsPage auto-started connect flow', () => {
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(2);
     });
 });
+
+describe('WorkspaceConnectionsPage tab from the route', () => {
+    it('should open on the tab the link asks for', async () => {
+        // Given a link to Connections that asks for the Accounting tab, like the onboarding accounting task
+        mockRouteParams = {tab: CONST.TAB.CONNECTIONS.ACCOUNTING};
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the Accounting tab is selected, so the user lands on the integrations the link was about
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
+    });
+
+    it('should clear the tab from the route and stay on it', async () => {
+        // Given a link to Connections that asks for the Accounting tab
+        mockRouteParams = {tab: CONST.TAB.CONNECTIONS.ACCOUNTING};
+        const {rerender} = render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // When the page clears the tab from its params and re-renders without it
+        landPendingParamsUpdate();
+        rerender(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the param is gone, so Back from a panel finds this page, and the Accounting tab is still selected
+        expect(mockScreenSetParams).toHaveBeenCalledWith({tab: undefined});
+        expect(mockRouteParams.tab).toBeUndefined();
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
+    });
+
+    it('should fall back to All for a tab it does not know', async () => {
+        // Given a link with a tab value that is not one of the page's tabs
+        mockRouteParams = {tab: 'unknown'};
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the page opens on All instead of an empty selection
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ALL);
+    });
+});
+
 describe('WorkspaceConnectionsPage data fetched on open', () => {
     beforeEach(() => {
         jest.clearAllMocks();

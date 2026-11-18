@@ -1,10 +1,10 @@
-import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/WorkspaceCompanyCardsTable';
 
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -30,9 +30,8 @@ import {clearBulkUpdateTransactionStartDateSuccess, clearBulkUpdateTransactionSt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -49,15 +48,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = useCompanyCards({policyID});
-    const {
-        allCardFeeds,
-        feedName,
-        selectedFeed,
-        bankName,
-        isFeedPending,
-        isFeedAdded,
-        onyxMetadata: {cardListMetadata},
-    } = companyCards;
+    const {allCardFeeds, feedName, selectedFeed, bankName, isFeedPending} = companyCards;
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
@@ -103,7 +94,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     // Offline that response can never arrive, so we consider the policy loaded to avoid showing a spinner that would never resolve.
     const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
 
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
+    const isLoading = !isOffline && !allCardFeeds;
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
 
@@ -133,8 +124,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         loadPolicyCompanyCardsFeed();
     }, [loadPolicyCompanyCardsFeed]);
 
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
+    const {showDecisionModal} = useDecisionModal();
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, onOfflineAssign: showOfflineModal});
     const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -179,16 +177,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
-
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={shouldShowOfflineModal}
-                onClose={() => setShouldShowOfflineModal(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }

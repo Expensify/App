@@ -5,7 +5,6 @@
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartTooltipSummary from '@components/Charts/components/ChartTooltipSummary';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
-import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import useVictoryBarInteractions from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryBarInteractions';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 
@@ -30,9 +29,18 @@ function VictoryChartCartesianInteractive() {
     const {chartContentStyles} = useVictoryChartContext();
     const designWidth = getChartDesignWidth(undefined, chartContentStyles.width);
     const [chartWidth, setChartWidth] = useState(designWidth ?? 0);
-    const coordinateScale = useVictoryChartLayoutScale();
-    const {customGestures, syncBarPositions, activeTooltipData, hasInteractiveBars, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} =
-        useVictoryBarInteractions();
+    const {
+        customGestures,
+        syncBarPositions,
+        activeTooltipData,
+        hasInteractiveBars,
+        hasTooltipLabels,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        onChartMoved,
+        dismissTooltip,
+    } = useVictoryBarInteractions();
 
     const updateChartWidth = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
@@ -56,13 +64,14 @@ function VictoryChartCartesianInteractive() {
                 {!!activeTooltipData && hasTooltipLabels && chartWidth > 0 && (
                     <ChartTooltip
                         label={activeTooltipData.label}
-                        chartWidth={chartWidth * coordinateScale}
+                        chartWidth={chartWidth}
                         initialTooltipPosition={initialTooltipPosition}
                         isVisible={isTooltipActive}
                         onChartMoved={onChartMoved}
+                        onDismiss={dismissTooltip}
                     >
                         <ChartTooltipSummary
-                            amount={activeTooltipData.amount}
+                            value={activeTooltipData.amount}
                             percentage={activeTooltipData.percentage}
                         />
                     </ChartTooltip>

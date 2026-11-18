@@ -101,6 +101,7 @@ autocompleteKey "key"
       / receiptType
       / travelType
       / travelPlatform
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -121,6 +122,7 @@ autocompleteKey "key"
       / date
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo
@@ -143,6 +145,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / reportFieldDynamic
       / columns
       / limit

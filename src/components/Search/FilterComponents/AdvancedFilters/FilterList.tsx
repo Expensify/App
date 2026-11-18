@@ -1,12 +1,11 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
+import ListSearchBar from '@components/SearchBar/ListSearchBar';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -54,11 +53,17 @@ type FilterListProps = FilterItemCallbacks & {
     /** Content at the top of the list, scrolled with its rows. Pass a falsy value when the search hides it, so the list knows nothing is listed. */
     headerContent?: ReactNode;
 
+    /** Content below the rows, scrolled with them. */
+    children?: ReactNode;
+
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
 
-    /** Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only. */
-    onPointerLeave?: (event: {clientX: number}) => void;
+    /**
+     * Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only.
+     * It gets the list's mouse leave event, which keeps the position in `nativeEvent`.
+     */
+    onPointerLeave?: (event: {nativeEvent: {clientX: number}}) => void;
 };
 
 type FilterItemProps = FilterItemCallbacks & {
@@ -97,7 +102,7 @@ function FilterItem({filterKey, isSelected, type, onPress, onHoverIn, onFocus}: 
             onHoverIn={() => onHoverIn?.(filterKey)}
             onFocus={() => onFocus?.(filterKey)}
             onPress={() => onPress?.(filterKey)}
-            sentryLabel={`Search-Advanced-Filter-${filterKey}`}
+            sentryLabel={FILTER_VIEW_MAP[filterKey].advancedFilterSentryLabel}
         >
             {({pressed}) => (
                 <>
@@ -135,6 +140,7 @@ function FilterList({
     onSearchValueChange,
     searchInputRef,
     headerContent,
+    children,
     onHoverIn,
     onFocus,
     onPress,
@@ -143,30 +149,17 @@ function FilterList({
 }: FilterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const noResultsFoundText = translate('common.noResultsFound');
     const shouldShowNoResultsFound = filters.length === 0 && !headerContent;
-
-    useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
     return (
         <View style={[styles.flex1, style]}>
-            <CompactSearchBar
+            <ListSearchBar
                 label={translate('search.filters.searchFilters')}
-                inputValue={searchValue}
+                searchValue={searchValue}
                 onChangeText={onSearchValueChange}
-                style={[styles.mb3, styles.mw100]}
+                shouldShowNoResultsFound={shouldShowNoResultsFound}
                 ref={searchInputRef}
             />
-            {shouldShowNoResultsFound && (
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Text
-                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        aria-hidden
-                    >
-                        {noResultsFoundText}
-                    </Text>
-                </View>
-            )}
             <ScrollView
                 contentContainerStyle={[contentContainerStyle]}
                 showsVerticalScrollIndicator={false}
@@ -196,6 +189,7 @@ function FilterList({
                         ))}
                     </View>
                 ))}
+                {children}
             </ScrollView>
         </View>
     );

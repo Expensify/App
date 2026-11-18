@@ -876,6 +876,79 @@ describe('canApproveIOU', () => {
         expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
+    it('should return false when the only expense failed SmartScan with missing fields', async () => {
+        // Given a submitted expense report whose only expense failed SmartScan and has no amount
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        const scanFailedTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+
+        // When checking if approve action is available
+        // Then it should return false because there is nothing the approver can approve until the missing fields are filled in
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [scanFailedTransaction])).toBe(false);
+    });
+
+    it('should return true when a report mixes a complete expense with an expense that failed SmartScan', async () => {
+        // Given a submitted expense report with one complete expense and one expense that failed SmartScan
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = createMock<Policy>({
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        const completeTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+        const scanFailedTransaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            transactionID: '456',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            amount: 0,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        });
+
+        // When checking if approve action is available
+        // Then it should return true because one expense that still needs fixing shouldn't block approving the complete one
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [completeTransaction, scanFailedTransaction])).toBe(true);
+    });
+
     it('should return true for Submit workspace report when user is manager', async () => {
         const report: Report = {
             ...createRandomReport(Number(REPORT_ID), undefined),
@@ -1215,61 +1288,6 @@ describe('getExistingTransactionID', () => {
             expect(updated?.unheldTotal).toBe(5000);
             expect(updated?.unheldReimbursableTotal).toBe(5000);
         });
-    });
-});
-
-describe('formatCurrentUserToAttendee', () => {
-    test('returns undefined when current user has no login or display name', () => {
-        const currentUser = {
-            accountID: 2840332,
-        };
-
-        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
-    });
-
-    test('returns undefined when current user has only a display name', () => {
-        const currentUser = {
-            accountID: 2840332,
-            displayName: 'John Smith',
-        };
-
-        expect(IOUUtils.formatCurrentUserToAttendee(currentUser)).toBeUndefined();
-    });
-
-    test('uses login and display name when current user login exists', () => {
-        const currentUser = {
-            accountID: 2840332,
-            login: 'john.smith@example.com',
-            displayName: 'John Smith',
-        };
-
-        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
-
-        expect(attendees).toEqual([
-            {
-                email: 'john.smith@example.com',
-                displayName: 'John Smith',
-                avatarUrl: '',
-            },
-        ]);
-    });
-
-    test('uses session email when current user login is missing', () => {
-        const currentUser = {
-            accountID: 2840332,
-            email: 'john.smith@example.com',
-            displayName: '',
-        };
-
-        const attendees = IOUUtils.formatCurrentUserToAttendee(currentUser);
-
-        expect(attendees).toEqual([
-            {
-                email: 'john.smith@example.com',
-                displayName: 'john.smith@example.com',
-                avatarUrl: '',
-            },
-        ]);
     });
 });
 

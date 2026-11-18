@@ -1,4 +1,5 @@
 import DecisionModal from '@components/DecisionModal';
+import type {PaymentMethod} from '@components/KYCWall/types';
 
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
@@ -20,6 +21,7 @@ type HoldMenuModalWrapperProps = ModalProps & {
      *  dropdown, so it defaults to the pay copy when omitted. */
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     nonHeldAmount?: string;
     fullAmount: string;
@@ -34,6 +36,7 @@ function HoldMenuModalWrapper({
     chatReportID,
     requestType,
     paymentType,
+    paymentMethod,
     methodID,
     nonHeldAmount,
     fullAmount,
@@ -42,6 +45,8 @@ function HoldMenuModalWrapper({
     onConfirm,
 }: HoldMenuModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
+    // The choice runs once this modal has hidden, so a modal it opens, like the Wise quote, doesn't stack on top of it
+    const [chosenFull, setChosenFull] = useState<boolean | undefined>(undefined);
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -55,10 +60,16 @@ function HoldMenuModalWrapper({
         chatReport,
         requestType,
         paymentType,
+        paymentMethod,
         methodID,
         onClose: () => setIsVisible(false),
         onConfirm,
     });
+
+    const choose = (full: boolean) => {
+        setChosenFull(full);
+        setIsVisible(false);
+    };
 
     let approvalPrompt: string;
     if (isApprove) {
@@ -77,14 +88,17 @@ function HoldMenuModalWrapper({
             // Callers pass undefined when there is no meaningful partial amount to offer.
             firstOptionText={nonHeldAmount !== undefined ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
-            onFirstOptionSubmit={() => onSubmit(false)}
-            onSecondOptionSubmit={() => onSubmit(true)}
+            onFirstOptionSubmit={() => choose(false)}
+            onSecondOptionSubmit={() => choose(true)}
             isSmallScreenWidth={isSmallScreenWidth}
             onModalHide={() => {
                 if (isVisible) {
                     return;
                 }
                 closeModal({action: 'CLOSE'});
+                if (chosenFull !== undefined) {
+                    onSubmit(chosenFull);
+                }
             }}
         />
     );

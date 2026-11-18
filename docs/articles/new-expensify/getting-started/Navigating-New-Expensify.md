@@ -35,9 +35,11 @@ The navigation tabs include:
 - **Home**
 - **Inbox**
 - **Spend**
-- **Insights** (web only)
+- **Insights**
 - **Workspaces**
-- **Account**
+- **Account** (web only)
+
+On mobile, **Account** isn't in the navigation tabs. Select your profile icon to open it.
 
 ---
 
@@ -90,7 +92,7 @@ From **Spend**, you can:
 
 ---
 
-## What the Insights tab on web is used for
+## What the Insights tab is used for
 
 **Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
 
@@ -112,7 +114,7 @@ From **Workspaces**, workspace admins can:
 - Manage members under **Members**
 - Enable features under **More features**
 - Configure workflows
-- Connect accounting integrations under **Accounting**
+- Connect accounting integrations under **Connections**
 - Manage categories and tags
 
 Learn how to [create and set up a company workspace](/articles/new-expensify/getting-started/Create-a-company-workspace). 
@@ -121,7 +123,7 @@ Learn how to [create and set up a company workspace](/articles/new-expensify/get
 
 ## What Account is used for
 
-**Account** contains personal and account-level settings. Select **Account** to open it.
+**Account** contains personal and account-level settings. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 From **Account**, you can manage:
 
@@ -136,7 +138,7 @@ You can also access:
  - **Help** to access help and support resources, including support contacts
  - **What's new** to view product updates
  - **About** to see app details
- - **Troubleshoot** to run diagnostics or switch to Expensify Classic
+ - **Troubleshoot** to run diagnostics or select **Switch to Expensify Classic** if you're eligible. [Learn who can switch to Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#who-can-switch-between-new-expensify-and-expensify-classic).
  - **Save the world** to explore Expensify.org campaigns
  - **Sign out** to log out of your account
 
@@ -148,9 +150,10 @@ Use Account for personal settings and billing.
 
 Workspace admins on a paid plan may have dedicated support contacts assigned to their account, such as an account manager, partner manager, or account executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
 
-1. Select **Account > Help**.
-2. Below **Concierge**, look for your assigned support contacts.
-3. Select a contact to open a direct message with them.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Help**.
+3. Below **Concierge**, look for your assigned support contacts.
+4. Select a contact to open a direct message with them.
 
 If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your account manager, partner manager, and guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
@@ -162,9 +165,8 @@ If your account manager, partner manager, or guide has a scheduling link set up,
 
 - On the **Help** page, next to each support contact that has a scheduling link (account manager, partner manager, or guide).
 - In the header of your direct message with that support contact.
-- In the header of your **Concierge** chat.
 
-In **Concierge**, only one **Book a call** button appears at a time, even if more than one of your support contacts has a scheduling link.
+In your **Concierge** chat, select **Talk to a human** in the header to request support instead.
 
 The **Book a call** button only appears if the support contact has a scheduling link configured. If you don't see it, you can still message the support contact directly or ask **Concierge** to help schedule a call.
 
@@ -269,9 +271,13 @@ In the navigation tabs (on the left on web, on the bottom on mobile), select **W
 
 ## Where do I update my personal profile or billing information?
 
-Personal information is managed under **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+Personal information is managed under **Account**. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 Then select **Profile** to update your personal information, or **Subscription** to manage billing.
+
+## Where did Account go on mobile?
+
+On mobile, **Account** is no longer in the navigation tabs. Select your profile icon to open it.
 
 ## What does the green Scan button do?
 
@@ -292,7 +298,7 @@ If no contacts are assigned, these options will not appear on the **Help** page.
 
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned support contact (account manager, partner manager, or guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
+You'll only see the **Book a call** button if you have an assigned support contact (account manager, partner manager, or guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In your **Concierge** chat, the header shows **Talk to a human** instead.
 
 ## Are there keyboard shortcuts for opening reports or workspaces?
 

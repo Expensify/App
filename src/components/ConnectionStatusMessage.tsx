@@ -4,6 +4,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentProps} from 'react';
 
@@ -14,7 +15,7 @@ import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
-type ConnectionStatusMessageProps = {
+type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress', 'actionSentryLabel'> & {
     message?: string;
     actionText?: string;
     onActionPress?: () => void;
@@ -38,6 +39,7 @@ function ConnectionStatusMessage({
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
     actionAccessibilityLabel,
+    actionSentryLabel,
 }: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
@@ -91,6 +93,7 @@ function ConnectionStatusMessage({
             onPress={onActionPress}
             isDisabled={isActionDisabled}
             accessibilityLabel={actionAccessibilityLabel}
+            sentryLabel={actionSentryLabel}
         >
             <Button.Text>{actionText}</Button.Text>
         </Button>
