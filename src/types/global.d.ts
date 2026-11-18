@@ -1,5 +1,3 @@
-// `SingleImageSource` from src/types/utils/ReactNativeCompat.ts: an imported image is one image, not a list of sources. It is
-// spelled out because an ambient module declaration can't import from a relative path.
 declare module '*.png' {
     import type {ImageRequireSource, ImageURISource} from 'react-native';
 

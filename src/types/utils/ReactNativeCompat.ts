@@ -19,10 +19,6 @@ type TextInputScrollEvent = Parameters<NonNullable<TextInputProps['onScroll']>>[
 /** Only reachable through `react-native/Libraries/Utilities/BackHandler`, which the Strict API blocks */
 type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventListener>[1]>[0];
 
-/**
- * One image, as `ImageSourcePropType` minus its list of sources. The Strict API types that list as readonly, which expo-image's
- * `source` prop does not accept, and an imported or icon image is never a list anyway.
- */
 type SingleImageSource = ImageURISource | ImageRequireSource;
 
 export type {CellRendererProps, HardwareBackPressEvent, SingleImageSource, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewToken};

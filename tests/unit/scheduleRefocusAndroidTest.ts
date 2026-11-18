@@ -9,7 +9,6 @@ jest.mock('@libs/Accessibility/fireFocusEvent', () => ({
 const FAKE_IDLE_ID = 4242;
 let capturedIdleCallback: (() => void) | null = null;
 let capturedIdleOptions: {timeout?: number} | undefined;
-// The React Native globals also accept a missing handle, so the mock takes one to fit either signature
 const mockCancelIdleCallback = jest.fn<void, [number | null | undefined]>();
 
 const originalRequestIdleCallback = global.requestIdleCallback;
