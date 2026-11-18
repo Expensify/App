@@ -287,6 +287,7 @@ function CreateDistanceRatePage({
                         enabledWhenOffline
                         style={[styles.mh5, styles.flex1]}
                         submitButtonStyles={shouldShowCountryAndKind ? undefined : [styles.mt0]}
+                        shouldValidateOnBlur={!shouldShowCountryAndKind}
                         addBottomSafeAreaPadding
                     >
                         {shouldShowCountryAndKind ? (
