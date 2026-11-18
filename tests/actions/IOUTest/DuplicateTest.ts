@@ -3001,6 +3001,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated in New Expensify
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: classicPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
@@ -3083,6 +3084,7 @@ describe('actions/Duplicate', () => {
             // When the expense is duplicated
             duplicateExpenseTransaction({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transaction: perDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
