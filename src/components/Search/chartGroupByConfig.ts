@@ -1,8 +1,19 @@
 import DateUtils from '@libs/DateUtils';
+import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import type {SearchTagGroup} from '@src/types/onyx/SearchResults';
 
 import type {GroupedItem, SearchGroupBy} from './types';
+
+/** Builds the query fragment narrowing a query to a tag group's expenses. */
+function buildTagFilterQuery({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>): string {
+    if (tagLevel !== undefined) {
+        return `tag:${sanitizeSearchValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeSearchValue(parentTagPath ?? '') || '""'}`;
+    }
+    // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
+    return `tag:${sanitizeSearchValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+}
 
 /** The dates a time bucket covers */
 type ChartBucketRange = {start: string; end: string};
@@ -64,7 +75,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? (item.formattedTag ?? '') : ''),
-        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? `tag:"${item.tag}"` : ''),
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? item.formattedTagName : undefined),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? buildTagFilterQuery(item) : ''),
     },
     [CONST.SEARCH.GROUP_BY.DAY]: {
         titleIconName: 'Calendar',
@@ -139,8 +151,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.VIOLATION]: {
         titleIconName: 'Exclamation',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? item.formattedViolation : ''),
-        // Search has no violation type filter, so a clicked violation opens the chart's whole query
-        getFilterQuery: () => '',
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.VIOLATION ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${item.violation}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.PAID_BY]: {
         titleIconName: 'Users',
@@ -155,4 +166,5 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
 };
 
 export default CHART_GROUP_BY_CONFIG;
+export {buildTagFilterQuery};
 export type {ChartBucketRange};

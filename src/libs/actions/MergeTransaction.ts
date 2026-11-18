@@ -465,6 +465,7 @@ type MergeTransactionRequestParams = {
     sourceActionChatReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isSourceActionIOUReportArchived: boolean;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -505,6 +506,7 @@ function mergeTransactionRequest({
     sourceActionChatReport,
     rules,
     isVendorMatchingBetaEnabled,
+    isSourceActionIOUReportArchived,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -680,6 +682,7 @@ function mergeTransactionRequest({
                 currentUserAccountID: currentUserAccountIDParam,
                 iouReport: sourceActionIOUReport,
                 chatReport: sourceActionChatReport,
+                isArchivedIOUReport: isSourceActionIOUReportArchived,
                 transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });

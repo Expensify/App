@@ -1,3 +1,5 @@
+import {useHorizontalSafeAreaClipBleed} from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
+
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
 
@@ -11,8 +13,10 @@ type CollapsibleHeaderViewProps = {
 };
 
 function CollapsibleHeaderView({children, collapsibleHeader}: CollapsibleHeaderViewProps) {
+    const horizontalSafeAreaClipBleedStyle = useHorizontalSafeAreaClipBleed();
+
     return (
-        <Reanimated.View style={collapsibleHeader.outerStyle}>
+        <Reanimated.View style={[horizontalSafeAreaClipBleedStyle, collapsibleHeader.outerStyle]}>
             <Reanimated.View
                 onLayout={collapsibleHeader.onLayout}
                 style={collapsibleHeader.innerStyle}

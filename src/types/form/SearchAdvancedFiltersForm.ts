@@ -18,6 +18,7 @@ import type {
 
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {ViolationName} from '@src/types/onyx/TransactionViolation';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
@@ -68,6 +69,7 @@ const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
 ] as const;
 
 type SearchNegatableFilterKeys = TupleToUnion<typeof NEGATABLE_FILTER_KEYS>;
@@ -209,11 +211,16 @@ const FILTER_KEYS = {
     RECEIPT_TYPE_NOT: 'receiptTypeNot',
     RECEIPT_TYPE: 'receiptType',
 
+    VIOLATION_NOT: 'violationNameNot',
+    VIOLATION: 'violationName',
+
     TRANSACTION_STATUS: 'transactionStatus',
     TRANSACTION_STATUS_NOT: 'transactionStatusNot',
 
     TAG_NOT: 'tagNot',
     TAG: 'tag',
+    TAG_LEVEL: 'tagLevel',
+    TAG_PARENT: 'tagParent',
 
     KEYWORD: 'keyword',
 
@@ -321,6 +328,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.EXPENSE_TYPE_NOT,
         FILTER_KEYS.RECEIPT_TYPE,
         FILTER_KEYS.RECEIPT_TYPE_NOT,
+        FILTER_KEYS.VIOLATION,
+        FILTER_KEYS.VIOLATION_NOT,
         FILTER_KEYS.TRANSACTION_STATUS,
         FILTER_KEYS.TRANSACTION_STATUS_NOT,
         FILTER_KEYS.MERCHANT,
@@ -350,6 +359,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CATEGORY_NOT,
         FILTER_KEYS.TAG,
         FILTER_KEYS.TAG_NOT,
+        FILTER_KEYS.TAG_LEVEL,
+        FILTER_KEYS.TAG_PARENT,
         FILTER_KEYS.VENDOR,
         FILTER_KEYS.VENDOR_NOT,
         FILTER_KEYS.PAYER,
@@ -949,6 +960,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
         [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
 
+        [FILTER_KEYS.VIOLATION]: ViolationName[];
+        [FILTER_KEYS.VIOLATION_NOT]: ViolationName[];
+
         [FILTER_KEYS.TRANSACTION_STATUS]: TransactionStatusValue;
         [FILTER_KEYS.TRANSACTION_STATUS_NOT]: TransactionStatusValue;
 
@@ -1032,6 +1046,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
+        [FILTER_KEYS.TAG_LEVEL]: string;
+        [FILTER_KEYS.TAG_PARENT]: string;
 
         [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;
         [FILTER_KEYS.FOOTER_TOTAL]: SearchFooterTotal;

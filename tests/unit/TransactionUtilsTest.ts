@@ -3186,6 +3186,79 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasViolation', () => {
+        const futureDateViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            },
+        ];
+        const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true for a futureDate violation when the date and time are beyond the +14 hour window', () => {
+            // Given a futureDate violation on an expense that SmartScan dated today at UTC+14, with a time that hasn't happened yet at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28', modifiedCreated: '2026-10-28 18:11:40'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation counts, because the backend still returns it and it is shown on the expense
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
+            // Given a futureDate violation saved earlier on a date-only expense dated the current UTC+14 date
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a missingAttendees violation when attendee tracking is off', () => {
+            // Given a missingAttendees violation on a Control workspace that has attendee tracking turned off, so the violation is hidden
+            const missingAttendeesViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const trackingOffPolicy: Policy = {...policy, isAttendeeTrackingEnabled: false};
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(
+                generateTransaction(),
+                missingAttendeesViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                openReport,
+                CURRENT_USER_EMAIL,
+                trackingOffPolicy,
+            );
+
+            // Then the violation doesn't count, because the user can't see it and has nothing to fix before submitting
+            expect(result).toBe(false);
+        });
+
+        it('should return true for a missingCategory violation while Concierge AI picks a category', () => {
+            // Given a missingCategory violation on a new expense that is still being created, so it is hidden while Concierge AI picks a category
+            const missingCategoryViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const transaction = generateTransaction({category: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation still counts, so the report can't be submitted before the category is set
+            expect(result).toBe(true);
+        });
+    });
+
     describe('hasNoticeTypeViolation', () => {
         const noticeViolations: TransactionViolation[] = [
             {
@@ -4421,6 +4494,13 @@ describe('TransactionUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // Duplicates are compared only when their report is loaded, and generateTransaction defaults to report '1'.
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {...fakeReport, reportID: '1'});
+            await waitForBatchedUpdates();
+        });
+
         it('should return empty keep and change when reviewingTransaction or reportID is missing', () => {
             const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
             expect(result.keep).toEqual({});
@@ -5624,6 +5704,29 @@ describe('TransactionUtils', () => {
 
             expect(params.transactionList).toEqual([]);
         });
+
+        it('excludes a duplicate whose report is not loaded but keeps an unreported one', () => {
+            // Given one duplicate on a report missing from Onyx, whose state could be approved or paid,
+            // and one unreported duplicate that has no report at all
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const unloadedDuplicate = generateTransaction({reportID: 'unloadedDuplicateReport'});
+            const unreportedDuplicate = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            const duplicates = [unloadedDuplicate, unreportedDuplicate];
+
+            // When building the merge params
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+                keptTransaction,
+            );
+
+            // Then only the unreported duplicate is sent, so Auth never receives a transaction it would reject
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([unreportedDuplicate.transactionID]);
+        });
     });
 
     describe('canMergeDuplicates', () => {
@@ -5635,31 +5738,51 @@ describe('TransactionUtils', () => {
 
         it('allows merging when the kept report is open and there are duplicates', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept report is awaiting first approval', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense is unreported (no resolvable report)', () => {
-            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense has no report ID at all', () => {
+            // Given a legacy unreported expense that carries no report ID instead of the unreported sentinel
+            // When checking whether the merge can be sent
+            const canMerge = TransactionUtils.canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
+
+            // Then it is treated like an unreported expense, which Auth still lets you merge
+            expect(canMerge).toBe(true);
+        });
+
+        it('blocks merging when the kept report is not loaded', () => {
+            // Given a kept expense that sits on a report missing from Onyx, so its state is unknown
+            const unloadedReportID = 'unloadedKeptReport';
+
+            // When checking whether the merge can be sent
+            const canMerge = TransactionUtils.canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
+
+            // Then it is blocked, because the report may be approved or paid and Auth would reject the merge
+            expect(canMerge).toBe(false);
         });
 
         it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when the kept report is reimbursed', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, [])).toBe(false);
         });
     });
 
@@ -7022,13 +7145,13 @@ describe('removeSettledAndApprovedTransactions', () => {
     afterAll(() => Onyx.clear());
 
     it('ignores the REPORT_DRAFT collection when deciding whether an expense is still mergeable', async () => {
-        // Given an approved report that exists only in REPORT_DRAFT, and an expense pointing at it. Expense reports are
+        // Given an open report that exists only in REPORT_DRAFT, and an expense pointing at it. Expense reports are
         // never drafts, so reading one here would mean the resolution went to the collection behind the caller's back.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${DRAFT_ONLY_REPORT_ID}`, {
             reportID: DRAFT_ONLY_REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         });
         await waitForBatchedUpdates();
 
@@ -7036,8 +7159,8 @@ describe('removeSettledAndApprovedTransactions', () => {
         const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: DRAFT_ONLY_REPORT_ID};
         const mergeable = TransactionUtils.removeSettledAndApprovedTransactions([transaction]);
 
-        // Then the draft's approved status is not applied, so a duplicate merge is no longer blocked by REPORT_DRAFT
-        // (https://github.com/Expensify/App/issues/66414)
-        expect(mergeable).toEqual([transaction]);
+        // Then the draft's open status does not make the expense mergeable: the report counts as not loaded, which Auth
+        // would reject anyway, so REPORT_DRAFT can no longer let a merge through (https://github.com/Expensify/App/issues/66414)
+        expect(mergeable).toEqual([]);
     });
 });

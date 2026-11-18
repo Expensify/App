@@ -44,6 +44,7 @@ function Row({link}: {link?: string}) {
             <MenuItem.Root
                 onPress={() => {}}
                 testID={ROW_TEST_ID}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <MenuItem.Row>
                     <MenuItem.Leading>

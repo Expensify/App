@@ -582,6 +582,7 @@ function getDisplayValue(
     localeCompare: LocaleContextProps['localeCompare'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reports?: Array<OnyxEntry<Report>>,
+    accountIDToName?: Record<string, string>,
 ): string {
     const fieldValue = getMergeFieldValue(transactionDetails, transaction, field);
 
@@ -595,7 +596,7 @@ function getDisplayValue(
         return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
     }
     if (field === 'description') {
-        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
+        return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue), {accountIDToName}));
     }
     if (field === 'tag') {
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
@@ -649,6 +650,7 @@ function buildMergeFieldsData({
     localeCompare,
     formatPhoneNumber,
     reports,
+    accountIDToName,
 }: {
     conflictFields: MergeFieldKey[];
     targetTransaction: Transaction | undefined;
@@ -663,6 +665,7 @@ function buildMergeFieldsData({
     localeCompare: LocaleContextProps['localeCompare'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reports: Array<OnyxEntry<Report>>;
+    accountIDToName: Record<string, string>;
 }): MergeFieldData[] {
     const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, undefined, targetReportOwnerAsAttendee);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, undefined, sourceReportOwnerAsAttendee);
@@ -690,6 +693,7 @@ function buildMergeFieldsData({
                     localeCompare,
                     formatPhoneNumber,
                     reports,
+                    accountIDToName,
                 ),
                 isSelected: selectedTransactionId === targetTransaction.transactionID,
             },
@@ -706,6 +710,7 @@ function buildMergeFieldsData({
                     localeCompare,
                     formatPhoneNumber,
                     reports,
+                    accountIDToName,
                 ),
                 isSelected: selectedTransactionId === sourceTransaction.transactionID,
             },
