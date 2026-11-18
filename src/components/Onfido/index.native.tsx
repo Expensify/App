@@ -49,8 +49,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
-        // The SDK follows the device's light or dark mode, not the app's, so both modes get the same brand colours.
-        // Our success colours are identical in the light and dark app themes, which keeps this correct whichever one is active.
+        // The SDK follows the device's light or dark mode, not the app's, so both modes get the same brand colors.
+        // Our success colors are identical in the light and dark app themes, which keeps this correct whichever one is active.
         const brandColors: ThemeColors = {
             backgroundColorBrandDefault: theme.success,
             backgroundColorBrandHover: theme.successHover,
@@ -159,7 +159,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
             sdkToken,
             steps: [
                 Welcome(),
-                // Matches the documents the web flow accepts: US driving licences and passports from any country
+                // Matches the documents the web flow accepts: US driving licenses and passports from any country
                 Document({
                     nfcPolicy: 'Disabled',
                     documentFiltering: {
