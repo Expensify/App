@@ -7,6 +7,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 
 import useNetwork from '@hooks/useNetwork';
+import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
+
+import Accessibility from '@libs/Accessibility';
 
 import InsightsAICardRow from '@pages/Insights/ai/InsightsAICardRow';
 
@@ -18,6 +21,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
+import createMock from '../utils/createMock';
+import findAncestorWithStyle from '../utils/findAncestorWithStyle';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -81,7 +86,10 @@ describe('InsightsAICardRow', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    afterEach(() => Onyx.clear());
+    afterEach(async () => {
+        await Onyx.clear();
+        jest.restoreAllMocks();
+    });
 
     it('shows one generation message while the insights have not arrived', async () => {
         // Given the dashboard has no insights yet and nothing went wrong
@@ -162,6 +170,36 @@ describe('InsightsAICardRow', () => {
         expect(screen.queryByText(LOADING_SUBTITLE)).toBeNull();
         expect(screen.queryByText('Reading Spend over time')).toBeNull();
         expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
+    });
+
+    it('reveals cards one at a time across tablet rows', async () => {
+        // Given four insights in the two-column tablet layout
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout: false, isMediumScreenWidth: true}),
+        );
+        const insights = [SPIKE, TREND, {...SPIKE, id: 'second-spike', title: 'Another spike'}, {...TREND, id: 'second-trend', title: 'Another trend'}];
+
+        // When the cards replace the loader
+        await renderRow(insights);
+
+        // Then the second row continues the sequence instead of restarting with the first row
+        for (const [index, insight] of insights.entries()) {
+            expect(findAncestorWithStyle(screen.getByText(insight.title), 'animationDelay', index * 120)).toBeDefined();
+        }
+    });
+
+    it('shows cards immediately when reduced motion is enabled', async () => {
+        // Given the user has requested less motion
+        jest.spyOn(Accessibility, 'useReducedMotion').mockReturnValue(true);
+
+        // When generated insights are available
+        await renderRow([SPIKE, TREND]);
+
+        // Then no delayed entrances run and every card remains readable
+        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'animationDelay', 0)).toBeUndefined();
+        expect(findAncestorWithStyle(screen.getByText(TREND.title), 'animationDelay', 120)).toBeUndefined();
+        expect(screen.getByText(SPIKE.title)).toBeOnTheScreen();
+        expect(screen.getByText(TREND.title)).toBeOnTheScreen();
     });
 
     it('renders nothing when the backend found no insights', async () => {
