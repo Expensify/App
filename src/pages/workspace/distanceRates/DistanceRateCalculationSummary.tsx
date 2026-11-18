@@ -48,7 +48,7 @@ function SummaryLine({icon, children}: SummaryLineProps) {
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View style={[styles.flexRow, styles.alignItemsStart, styles.gap3]}>
             <Icon
                 src={icon}
                 fill={theme.icon}
@@ -71,14 +71,14 @@ function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, 
     return (
         <View style={[styles.mb4, styles.gap3]}>
             <SummaryLine icon={icons.Car}>
-                <Text style={styles.textLabelSupporting}>
+                <Text style={[styles.textLabel, styles.textSupporting]}>
                     {translate('workspace.distanceRates.addRatePage.unitPaidIn', Str.recapitalize(translate(getUnitTranslationKey(unit))), currency)}
                 </Text>
             </SummaryLine>
             {shouldShowNote && (
                 <SummaryLine icon={icons.Info}>
                     {note ? (
-                        <Text style={styles.textLabelSupporting}>{note}</Text>
+                        <Text style={[styles.textLabel, styles.textSupporting]}>{note}</Text>
                     ) : (
                         <SkeletonTextLine
                             lineHeight={lineHeightScale.label}
