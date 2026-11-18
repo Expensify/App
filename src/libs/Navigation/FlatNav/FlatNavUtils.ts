@@ -224,9 +224,8 @@ type BuildFlatNavSubnavGroupsParams = {
 function buildFlatNavSubnavGroups({sections, isOffline}: BuildFlatNavSubnavGroupsParams): FlatNavSubnavGroup[] {
     const groups: FlatNavSubnavGroup[] = [];
     for (const definition of FLAT_NAV_SUBNAV_GROUP_DEFINITIONS) {
-        const items = sections
-            .filter((section) => definition.sectionIDs.some((sectionID) => sectionID === section.id))
-            .flatMap((section) => section.items)
+        const items = definition.sectionIDs
+            .flatMap((sectionID) => sections.find((section) => section.id === sectionID)?.items ?? [])
             .filter((item) => item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH || isOffline || !item.isDisabled)
             .map((item): FlatNavItem => {
                 const translationPath = item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH ? definition.itemTranslationPaths?.[item.key] : undefined;

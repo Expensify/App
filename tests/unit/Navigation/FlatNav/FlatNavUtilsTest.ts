@@ -551,6 +551,17 @@ describe('FlatNavUtils', () => {
             expect(groups.at(0)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
         });
 
+        it('should list the sections in the order their header names them', () => {
+            // Given the visible sections in reverse, so Reports comes before Expenses
+            const sections = buildSections().reverse();
+
+            // When they are arranged under the subnav headers
+            const groups = buildFlatNavSubnavGroups({sections, isOffline: false});
+
+            // Then Expenses still comes first, because the header decides the order and not the caller
+            expect(groups.at(0)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
+        });
+
         it('should label the reports search as the list of reports next to Expenses', () => {
             // Given Reports, whose section labels it "My reports"
             const sections = buildSections();
