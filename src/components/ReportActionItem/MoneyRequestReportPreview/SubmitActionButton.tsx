@@ -130,6 +130,8 @@ function SubmitActionButtonContent() {
         currentUserAccountID,
         currentUserEmail,
         transactions,
+        iouReport,
+        policy,
     );
     const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
