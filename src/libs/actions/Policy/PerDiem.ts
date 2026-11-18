@@ -229,7 +229,7 @@ function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: Sub
  * Builds the targeted updates for deleting a subset of subrates: the changed parent rates to send, the destination IDs
  * to remove, and the matching optimistic and failure Onyx data.
  */
-function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error: Errors) {
+function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error?: Errors) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
         (acc, subRate) => {
             if (subRate.rateID in acc) {
@@ -260,9 +260,13 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
 
         failureRates[rateID] = {
             ...currentRate,
-            errors: null,
-            errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
-            pendingAction: null,
+            ...(error
+                ? {
+                      errors: null,
+                      errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
+                      pendingAction: null,
+                  }
+                : {}),
         };
         if (affectedSubRateIDs.length === currentSubRates.length) {
             customUnitRateIDs.push(rateID);
@@ -299,7 +303,14 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
-    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    const selectedSubRateKeys = new Set(
+        subRatesToBeDeleted
+            .filter((subRate) => customUnit.rates[subRate.rateID]?.subRates?.some((currentSubRate) => currentSubRate.id === subRate.subRateID))
+            .map((subRate) => getPerDiemRowKey(subRate.rateID, subRate.subRateID)),
+    );
+    // Deleting the last remaining row uses delete-all too, but should keep single-row feedback.
+    const isBulkDeletion = selectedSubRateKeys.size > 1;
+    const error = getMicroSecondOnyxErrorWithTranslationKey(isBulkDeletion ? 'workspace.perDiem.deleteRatesError' : 'common.genericErrorMessage');
     let parameters: UpdateWorkspaceCustomUnitParams;
     let optimisticRates: Record<string, NullishDeep<Rate> | null>;
     let failureRates: Record<string, NullishDeep<Rate>>;
@@ -312,9 +323,8 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
 
         const firstSelectedSubRate = subRatesToBeDeleted.at(0);
         const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
-        // Restore every rate on failure, but attach one row error to avoid duplicating the same error across the full selection.
         failureRates = {...customUnit.rates};
-        if (firstSelectedSubRate && firstSelectedRate) {
+        if (!isBulkDeletion && firstSelectedSubRate && firstSelectedRate) {
             failureRates[firstSelectedSubRate.rateID] = {
                 ...firstSelectedRate,
                 errors: null,
@@ -323,7 +333,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
             };
         }
     } else {
-        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, error);
+        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, isBulkDeletion ? undefined : error);
         if (!Object.keys(targetedUpdates.optimisticRates).length) {
             return;
         }
@@ -352,6 +362,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                     customUnits: {
                         [customUnit.customUnitID]: {
                             rates: optimisticRates,
+                            ...(isBulkDeletion ? {errorFields: {deleteRates: null}} : {}),
                         },
                     },
                 },
@@ -365,6 +376,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                     customUnits: {
                         [customUnit.customUnitID]: {
                             rates: failureRates,
+                            ...(isBulkDeletion ? {errorFields: {deleteRates: error}} : {}),
                         },
                     },
                 },

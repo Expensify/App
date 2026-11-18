@@ -5680,6 +5680,7 @@ ${amount} pour ${merchant} - ${date}`,
                 other: 'Supprimer les taux',
             }),
             deletePerDiemRate: 'Supprimer le taux de per diem',
+            deleteRatesError: 'Nous n’avons pas pu supprimer vos taux de per diem. Veuillez réessayer.',
             findPerDiemRate: 'Trouver le taux de per diem',
             areYouSureDelete: () => ({
                 one: 'Voulez-vous vraiment supprimer ce taux ?',

@@ -5636,6 +5636,7 @@ ${amount} voor ${merchant} - ${date}`,
                 other: 'Tarieven verwijderen',
             }),
             deletePerDiemRate: 'Dagvergoeding verwijderen',
+            deleteRatesError: 'We konden je dagvergoedingen niet verwijderen. Probeer het opnieuw.',
             findPerDiemRate: 'Vind dagvergoedingstarief',
             areYouSureDelete: () => ({
                 one: 'Weet je zeker dat je dit tarief wilt verwijderen?',
