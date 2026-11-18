@@ -123,6 +123,7 @@ type WorkflowRowProps = {
     hrFinalApproverEmail?: string;
 };
 
+// Its own component so each workflow keeps the same press handlers while the admin types in Find workflow.
 function WorkflowRow({
     workflow,
     onEdit,
