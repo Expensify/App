@@ -8456,7 +8456,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             timezoneErrorMessage: 'Impossibile modificare il fuso orario. Riprova o contatta l’assistenza.',
             directReimbursementCurrencyTitle: 'Valuta non disponibile con il rimborso diretto',
             directReimbursementCurrencyPrompt: (currency: string) =>
-                `Questo spazio di lavoro rimborsa i membri direttamente tramite Expensify, cosa non disponibile in ${currency}. Per usare ${currency}, disattiva prima il rimborso diretto in Flussi di lavoro.`,
+                `Questo spazio di lavoro rimborsa i membri direttamente tramite Expensify, cosa non disponibile in ${currency}. Per usare ${currency}, vai su Flussi di lavoro e disattiva e riattiva Pagamenti, così i pagamenti vengono effettuati al di fuori di Expensify.`,
             goToWorkflows: 'Vai ai flussi di lavoro',
         },
         officeLocations: {

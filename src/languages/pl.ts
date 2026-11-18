@@ -8471,7 +8471,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             timezoneErrorMessage: 'Nie udało się zmienić strefy czasowej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
             directReimbursementCurrencyTitle: 'Waluta niedostępna przy bezpośrednim zwrocie',
             directReimbursementCurrencyPrompt: (currency: string) =>
-                `Ta przestrzeń robocza zwraca koszty członkom bezpośrednio przez Expensify, co nie jest dostępne w ${currency}. Aby używać ${currency}, najpierw wyłącz bezpośredni zwrot w Przepływach pracy.`,
+                `Ta przestrzeń robocza zwraca koszty członkom bezpośrednio przez Expensify, co nie jest dostępne w ${currency}. Aby używać ${currency}, przejdź do Przepływów pracy i wyłącz, a następnie ponownie włącz Płatności, aby płatności były realizowane poza Expensify.`,
             goToWorkflows: 'Przejdź do przepływów pracy',
         },
         officeLocations: {
