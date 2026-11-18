@@ -57,3 +57,17 @@ test('Enhance parameters adds correct parameters for a command that requires aut
         });
     });
 });
+
+test('Enhance parameters keeps the authToken a caller passes instead of the session one', () => {
+    // Given a session token, and a caller that sends a different token, as LogOut and the 2FA flows do
+    const command = 'Report_AddComment';
+    const callerAuthToken = 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIyIn0.Y2FsbGVy';
+    Onyx.merge(ONYXKEYS.SESSION, {email: 'test-user@test.com', authToken: 'eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxIn0.c2Vzc2lvbg'});
+    return waitForBatchedUpdates().then(() => {
+        // When the parameters are enhanced
+        const finalParameters = enhanceParameters(command, {authToken: callerAuthToken});
+
+        // Then the caller's token wins, so HttpUtils builds the Authorization header from the same token the server receives
+        expect(finalParameters.authToken).toBe(callerAuthToken);
+    });
+});
