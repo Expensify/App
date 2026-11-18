@@ -7941,6 +7941,11 @@ const translations = {
                 disableTravelTitle: 'Turn off Consolidated Travel Billing first',
                 disableTravelPrompt: 'Consolidated Travel Billing is enabled for this workspace. Turn it off before you can disable Travel.',
                 disableTravelButton: 'Go to Travel settings',
+                flagOffPlatformTravelBanner: {
+                    title: 'Flag travel booked outside Expensify Travel',
+                    subtitle: (rulesLink: string) => `Use <a href="${rulesLink}">Rules</a> to flag travel booked outside of the platform.`,
+                    tryIt: 'Try it',
+                },
                 getStarted: {
                     title: 'Get started with Expensify Travel',
                     subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",
