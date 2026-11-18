@@ -244,6 +244,8 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
             isVisible
             onClose={isRunning ? () => {} : onClose}
             onBackdropPress={isRunning ? () => {} : undefined}
+            // A click outside doesn't close a running job's modal, so it shouldn't let Tab reach the page behind it either.
+            shouldDeactivateFocusTrapOnClickOutside={!isRunning}
             shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}

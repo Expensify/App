@@ -82,6 +82,7 @@ function BaseModal({
     swipeThreshold = 150,
     swipeDirection,
     shouldPreventScrollOnFocus = false,
+    shouldDeactivateFocusTrapOnClickOutside = true,
     enableEdgeToEdgeBottomSafeAreaPadding,
     shouldApplySidePanelOffset: shouldApplySidePanelOffsetProp,
     hasBackdrop,
@@ -382,6 +383,7 @@ function BaseModal({
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
+                        shouldDeactivateFocusTrapOnClickOutside={shouldDeactivateFocusTrapOnClickOutside}
                         initialFocus={modalInitialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
