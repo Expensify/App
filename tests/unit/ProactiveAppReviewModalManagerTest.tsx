@@ -170,7 +170,7 @@ describe('ProactiveAppReviewModalManager', () => {
         });
 
         // Then the record is scoped to the session's account, not the CONST.DEFAULT_NUMBER_ID placeholder,
-        // so the gate can still recognise it after the next sign-in
+        // so the gate can still recognize it after the next sign-in
         const record = await new Promise<{accountID: number; lastPrompt: string} | undefined>((resolve) => {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.APP_REVIEW_LAST_PROMPT,
