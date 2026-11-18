@@ -57,6 +57,27 @@ describe('useReportColumnEditing', () => {
         );
     });
 
+    it('keeps a saved column the table drops when another column is hidden', async () => {
+        // Given the account saved Vendor for its report tables, which this table drops since its workspace has no vendors
+        const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, savedColumns);
+        });
+        const shownColumns = savedColumns.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        const {result} = renderHook(() => useReportColumnEditing(REPORT_ID, shownColumns));
+        await waitForBatchedUpdates();
+
+        // When Merchant is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.MERCHANT));
+
+        // Then hiding starts from the saved columns rather than the shown ones, so Vendor stays saved and shows on
+        // report tables whose workspace has vendors
+        expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith(
+            [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT],
+            savedColumns,
+        );
+    });
+
     it('offers no hide for Amount when only Merchant and Amount are saved', async () => {
         // Given the account saved only Merchant and Amount for its report tables
         const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
