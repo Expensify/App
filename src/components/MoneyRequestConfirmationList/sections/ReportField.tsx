@@ -98,14 +98,11 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     );
 
     // Match the save path's automatic destination before checking eligibility, rather than falling back to a report it would not use.
-    const defaultReport = (() => {
-        if (iouReport) {
-            return iouReport;
-        }
-        return isCreatingExpense || isMovingTrackedExpense
+    const defaultReport =
+        iouReport ??
+        (isCreatingExpense || isMovingTrackedExpense
             ? getNewestOutstandingReportForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {})
-            : availableOutstandingReports.at(0);
-    })();
+            : availableOutstandingReports.at(0));
     const defaultReportID = getDefaultMoneyRequestReport(defaultReport, mainReport, isScanRequest, isBetaEnabled(CONST.BETAS.ASAP_SUBMIT), rules, action)?.reportID;
 
     const outstandingReportID = isPolicyExpenseChat ? defaultReportID : reportID;
