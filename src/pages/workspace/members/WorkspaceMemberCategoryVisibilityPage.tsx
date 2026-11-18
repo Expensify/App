@@ -18,7 +18,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOverridableSelection from '@hooks/useOverridableSelection';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -62,7 +61,6 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const {isBetaEnabled} = usePermissions();
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -139,7 +137,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories || !memberLogin}
+            shouldBeBlocked={!isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories || !memberLogin}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCategoryVisibilityPage"

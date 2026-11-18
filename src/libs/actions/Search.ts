@@ -40,6 +40,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
@@ -70,7 +71,14 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getSearchColumnResizingID, isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFooterSelectionFromQuery,
+    isGroupBySupportedBySearch,
+    normalizeDatePresetsInQuery,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -260,6 +268,7 @@ type HandleActionButtonPressParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     submitterLogin: string | undefined;
@@ -269,6 +278,8 @@ type HandleActionButtonPressParams = {
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
+    isAccountLocked?: boolean;
+    onAccountLocked?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -308,6 +319,7 @@ function handleActionButtonPress({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     submitterLogin,
@@ -317,6 +329,8 @@ function handleActionButtonPress({
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
+    isAccountLocked,
+    onAccountLocked,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
     onPendingCardTransactionsBlock,
@@ -370,6 +384,7 @@ function handleActionButtonPress({
                 hash,
                 item,
                 goToItem,
+                policyID,
                 snapshotReport,
                 snapshotPolicy,
                 lastPaymentMethod,
@@ -402,6 +417,10 @@ function handleActionButtonPress({
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (isAccountLocked) {
+                onAccountLocked?.();
                 return;
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
@@ -496,7 +515,7 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
-                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID});
                 return;
             }
 
@@ -616,6 +635,7 @@ type GetPayActionCallbackParams = {
     hash: number;
     item: TransactionListItemType | TransactionReportGroupListItemType;
     goToItem: () => void;
+    policyID: string | undefined;
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
@@ -649,6 +669,7 @@ function getPayActionCallback({
     hash,
     item,
     goToItem,
+    policyID,
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
@@ -681,7 +702,7 @@ function getPayActionCallback({
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -1279,6 +1300,25 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+/**
+ * True when a running first-page request already returns what the caller wants, so the caller can skip its own request.
+ * Background refreshes (auto-refetch, post-action refresh, Home) may differ in totals, footer breakdown or trip rooms.
+ * A caller that needs any of those must still fire, or search() never re-fires the running request and that data never arrives.
+ */
+function isFirstPageSearchInFlight(queryJSON: Readonly<SearchQueryJSON>, shouldCalculateTotals: boolean, shouldReturnTripRooms: boolean) {
+    const inFlightRequest = inFlightSearchRequests.get(`${queryJSON.hash}_0`);
+    if (!inFlightRequest) {
+        return false;
+    }
+
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+    const isMissingTotals = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+    const hasDifferentFooterTotal = getFooterSelectionFromQuery(queryJSON).footerTotal !== inFlightRequest.footerTotal;
+    const hasDifferentTripRooms = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+
+    return !isMissingTotals && !hasDifferentFooterTotal && !hasDifferentTripRooms;
+}
+
 // Search mounts only after the page's request has finished, so the map above no longer holds it.
 // One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
 let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
@@ -1326,7 +1366,11 @@ function handlePreventSearchAPI(hash: number | undefined) {
  * Builds the backend-facing query from a client queryJSON: strips client-only fields and rewrites client-side-sorted
  * columns to a backend-supported date sort.
  */
-function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
+function getBackendQueryJSON(searchQueryJSON: Readonly<SearchQueryJSON>) {
+    // The Search command rejects Insights-only group-bys as invalid, so they're left out
+    const queryJSON = isGroupBySupportedBySearch(searchQueryJSON.groupBy)
+        ? searchQueryJSON
+        : {...searchQueryJSON, groupBy: undefined, inputQuery: buildSearchQueryString({...searchQueryJSON, groupBy: undefined})};
     const {flatFilters, limit, ...queryJSONWithoutFlatFilters} = queryJSON;
     const backendQueryJSON = shouldUseBackendDateSortFallback(queryJSON.sortBy)
         ? {
@@ -1399,6 +1443,9 @@ function search({
         return;
     }
 
+    // The backend saves a flagged search as the account's recent search and its last filters and columns. Support agents
+    // search a customer's account to troubleshoot, which must not change what the customer sees when they log in.
+    const shouldSaveSearchToAccount = shouldSaveRecentSearch && !isSupportAuthToken();
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
@@ -1410,7 +1457,7 @@ function search({
         const needsTotalsUpgrade = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
         // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
-        const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
+        const needsSaveRecentSearchUpgrade = shouldSaveSearchToAccount && !inFlightRequest.shouldSaveRecentSearch;
         // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
         // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
         const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
@@ -1420,7 +1467,7 @@ function search({
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
-            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveSearchToAccount;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
@@ -1440,7 +1487,7 @@ function search({
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch: shouldSaveSearchToAccount, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
@@ -1451,7 +1498,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        shouldSaveRecentSearch,
+        shouldSaveRecentSearch: shouldSaveSearchToAccount,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
         ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
@@ -2749,7 +2796,8 @@ function setOptimisticDataForTransactionThreadPreview(
     delegateAccountID: number | undefined,
     IOUTransactionID?: string,
 ) {
-    const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
+    const {reportID, report, amount, currency, transactionID, created, from} = item;
+    const policyID = report?.policyID;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
@@ -2858,6 +2906,7 @@ export {
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
+    isFirstPageSearchInFlight,
     consumePageRequestedSearch,
     clearPageRequestedSearch,
 };

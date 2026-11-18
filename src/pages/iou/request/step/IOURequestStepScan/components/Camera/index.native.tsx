@@ -3,7 +3,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
-import usePermissions from '@hooks/usePermissions';
 import useReceiptPhotoOutput from '@hooks/useReceiptPhotoOutput';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +21,6 @@ import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOUReques
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
-import MultiScanEducationalModal from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal';
 import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
@@ -57,7 +55,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
     const navigation = useNavigation();
-    const {isBetaEnabled} = usePermissions();
 
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
@@ -93,7 +90,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         flash,
         hasFlash,
         hasTorch: !!device?.hasTorch,
-        isBetaEnabled: isBetaEnabled(CONST.BETAS.SCAN_FLASH_TORCH),
         isMultiScanEnabled,
         canUpgradeReceiptQuality,
     });
@@ -374,7 +370,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     isCapturingPhoto={didCapturePhoto}
                 />
             )}
-            <MultiScanEducationalModal />
         </View>
     );
 }
