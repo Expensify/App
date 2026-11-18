@@ -88,8 +88,6 @@ To clear your selection on web, click the **X** on the right side of the selecti
 
 ## How to merge reports
 
-**Note:** Merge reports is currently available only to accounts with the report merging beta enabled.
-
 Use **Merge reports** to consolidate all expenses from two or more reports into one of the selected reports. This combines reports, not duplicate expenses.
 
 The reports must belong to the same submitter and workspace and be at the same point in the approval workflow. Outstanding and Approved reports must also have the same approver. You need edit access to every selected report:
