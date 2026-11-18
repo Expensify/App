@@ -36,6 +36,7 @@ type MockFocusableMenuItemProps = {
     title: string;
     pressableTestID?: string;
     onPress?: (event: GestureResponderEvent) => void;
+    onFocus?: () => void;
     focused?: boolean;
     shouldSyncFocus?: boolean;
 };
@@ -81,14 +82,7 @@ jest.mock('@components/ScrollView', () => {
 });
 
 describe('PopoverMenu utils', () => {
-    const menuItems: PopoverMenuItem[] = [
-        {text: 'Item 1'},
-        {
-            text: 'Item 2',
-            subMenuItems: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
-        },
-        {text: 'Item 3'},
-    ];
+    const menuItems: PopoverMenuItem[] = [{text: 'Item 1'}, {text: 'Item 2', subMenuItems: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}]}, {text: 'Item 3'}];
 
     describe('getItemKey', () => {
         test('returns explicit key if defined', () => {
@@ -137,20 +131,12 @@ describe('PopoverMenu utils', () => {
     describe('resolveIndexPathByKeyPath', () => {
         test('resolves deep nested key path correctly', () => {
             const result = resolveIndexPathByKeyPath(menuItems, ['Item 2', 'Sub 2', 'Deep 1']);
-            expect(result).toEqual({
-                found: true,
-                indexes: [1, 1, 0],
-                itemsAtLeaf: [],
-            });
+            expect(result).toEqual({found: true, indexes: [1, 1, 0], itemsAtLeaf: []});
         });
 
         test('returns itemsAtLeaf containing subMenuItems at the last valid node', () => {
             const result = resolveIndexPathByKeyPath(menuItems, ['Item 2']);
-            expect(result).toEqual({
-                found: true,
-                indexes: [1],
-                itemsAtLeaf: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}],
-            });
+            expect(result).toEqual({found: true, indexes: [1], itemsAtLeaf: [{text: 'Sub 1'}, {text: 'Sub 2', subMenuItems: [{text: 'Deep 1'}]}]});
         });
 
         test('returns not found if path partially invalid', () => {
@@ -165,11 +151,7 @@ describe('PopoverMenu utils', () => {
 
         test('handles empty key path and returns empty indexes', () => {
             const result = resolveIndexPathByKeyPath(menuItems, []);
-            expect(result).toEqual({
-                found: true,
-                indexes: [],
-                itemsAtLeaf: menuItems,
-            });
+            expect(result).toEqual({found: true, indexes: [], itemsAtLeaf: menuItems});
         });
 
         test('returns not found if same text keys appear in different levels but mismatch path', () => {
@@ -204,11 +186,7 @@ describe('PopoverMenu utils', () => {
             const keyPath = buildKeyPathFromIndexPath(menuItems, [5, 0]);
             expect(keyPath).toEqual([]);
             const result = resolveIndexPathByKeyPath(menuItems, keyPath);
-            expect(result).toEqual({
-                found: true,
-                indexes: [],
-                itemsAtLeaf: menuItems,
-            });
+            expect(result).toEqual({found: true, indexes: [], itemsAtLeaf: menuItems});
         });
     });
 });
@@ -382,10 +360,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         // Add new item to submenu of Item B
         const newMenu = baseMenu.map((item) => {
             if (item.key === 'B' && item.subMenuItems) {
-                return {
-                    ...item,
-                    subMenuItems: [...item.subMenuItems, {text: 'Sub B3', key: 'B3'}],
-                };
+                return {...item, subMenuItems: [...item.subMenuItems, {text: 'Sub B3', key: 'B3'}]};
             }
             return item;
         });
@@ -579,15 +554,47 @@ describe('PopoverMenu integration — optional search', () => {
         act(() => arrowDownShortcut?.callback());
 
         // Then no live announcement is emitted because real row focus provides the accessibility feedback
-        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('', false, {
-            shouldAnnounceOnNative: false,
-            shouldAnnounceOnWeb: true,
-            announcementKey: 0,
-            politeness: 'polite',
-        });
+        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('', false, {shouldAnnounceOnNative: false, shouldAnnounceOnWeb: true, announcementKey: 0, politeness: 'polite'});
     });
 
-    it('lets a focused interactive control handle Enter in a searchable popover', () => {
+    it.each([
+        {platform: CONST.PLATFORM.WEB, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 1},
+        {platform: CONST.PLATFORM.IOS, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 0},
+        {platform: CONST.PLATFORM.ANDROID, shouldUpdateFocusedIndex: false, expectedSelectedIndex: 0},
+        {platform: CONST.PLATFORM.IOS, shouldUpdateFocusedIndex: true, expectedSelectedIndex: 1},
+    ])('respects the searchable row focus policy on $platform with shouldUpdateFocusedIndex=$shouldUpdateFocusedIndex', ({platform, shouldUpdateFocusedIndex, expectedSelectedIndex}) => {
+        // Given a searchable radio menu with a caller-controlled native focus policy
+        mockGetPlatform.mockReturnValue(platform);
+        const selectFirstItem = jest.fn();
+        const selectSecondItem = jest.fn();
+        render(
+            <PopoverMenu
+                isVisible
+                shouldShowRadioButton
+                shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                menuItems={[
+                    {text: 'Item 1', isSelected: true, onSelected: selectFirstItem},
+                    {text: 'Item 2', onSelected: selectSecondItem},
+                ]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // When the second row receives focus, exercise logical selection without a focused control intercepting Enter
+        const secondItemProps = mockFocusableMenuItem.mock.calls.findLast(([props]) => props.title === 'Item 2')?.[0];
+        expect(secondItemProps?.onFocus).toBeDefined();
+        act(() => secondItemProps?.onFocus?.());
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.callback());
+
+        // Then web tracks the focused row, while native honors the caller's opt-out
+        expect(selectFirstItem).toHaveBeenCalledTimes(expectedSelectedIndex === 0 ? 1 : 0);
+        expect(selectSecondItem).toHaveBeenCalledTimes(expectedSelectedIndex === 1 ? 1 : 0);
+    });
+
+    it.each([true, false])('lets a focused interactive control handle Enter in a searchable popover with shouldUpdateFocusedIndex=%s', (shouldUpdateFocusedIndex) => {
         // Given a searchable popover whose Clear button or account row has actual focus
         mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
 
@@ -596,6 +603,7 @@ describe('PopoverMenu integration — optional search', () => {
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
+                shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                 menuItems={[{text: 'Item'}]}
                 searchInputOptions={{label: 'Find a member', value: 'query', onChangeText: () => {}}}
                 onClose={() => {}}
@@ -710,20 +718,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
             expect(shouldCloseAllModals).toBe(true);
         });
 
-        renderLifecycleMenu(
-            [
-                {
-                    text: 'Delete',
-                    shouldCallAfterModalHide: true,
-                    shouldCloseAllModals: true,
-                    shouldSkipFocusRestore: true,
-                    onSelected,
-                },
-            ],
-            jest.fn(),
-            undefined,
-            onItemSelected,
-        );
+        renderLifecycleMenu([{text: 'Delete', shouldCallAfterModalHide: true, shouldCloseAllModals: true, shouldSkipFocusRestore: true, onSelected}], jest.fn(), undefined, onItemSelected);
 
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Delete'));
 
@@ -747,17 +742,8 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     it('preserves default focus policy for ordinary selection and dismissal', () => {
         const onSelected = jest.fn();
         const onClose = renderLifecycleMenu([
-            {
-                text: 'Delete marked',
-                shouldCallAfterModalHide: true,
-                shouldSkipFocusRestore: true,
-                onSelected: jest.fn(),
-            },
-            {
-                text: 'Ordinary',
-                shouldCallAfterModalHide: true,
-                onSelected,
-            },
+            {text: 'Delete marked', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()},
+            {text: 'Ordinary', shouldCallAfterModalHide: true, onSelected},
         ]);
 
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Ordinary'));
@@ -815,14 +801,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     );
 
     it('clears a stale marked override on modal hide and restores the caller policy', () => {
-        const menuItems: PopoverMenuItem[] = [
-            {
-                text: 'Delete',
-                shouldCallAfterModalHide: true,
-                shouldSkipFocusRestore: true,
-                onSelected: jest.fn(),
-            },
-        ];
+        const menuItems: PopoverMenuItem[] = [{text: 'Delete', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()}];
         const {rerender} = render(
             <PopoverMenu
                 isVisible
@@ -854,14 +833,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     it('does not close or override focus for a keep-open selection', () => {
         const onSelected = jest.fn();
 
-        renderLifecycleMenu([
-            {
-                text: 'Keep open',
-                shouldCloseModalOnSelect: false,
-                shouldSkipFocusRestore: true,
-                onSelected,
-            },
-        ]);
+        renderLifecycleMenu([{text: 'Keep open', shouldCloseModalOnSelect: false, shouldSkipFocusRestore: true, onSelected}]);
 
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Keep open'));
 
@@ -871,14 +843,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     });
 
     it('releases only its acquired suppression after the marked modal really hides', () => {
-        const menuItems: PopoverMenuItem[] = [
-            {
-                text: 'Delete',
-                shouldCallAfterModalHide: true,
-                shouldSkipFocusRestore: true,
-                onSelected: jest.fn(),
-            },
-        ];
+        const menuItems: PopoverMenuItem[] = [{text: 'Delete', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()}];
         const {rerender} = render(
             <PopoverMenu
                 isVisible
@@ -909,14 +874,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     });
 
     it('keeps suppression through a stale hide after reopen and releases it after the real hide', () => {
-        const menuItems: PopoverMenuItem[] = [
-            {
-                text: 'Delete',
-                shouldCallAfterModalHide: true,
-                shouldSkipFocusRestore: true,
-                onSelected: jest.fn(),
-            },
-        ];
+        const menuItems: PopoverMenuItem[] = [{text: 'Delete', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()}];
         const renderMenu = (isVisible: boolean) => (
             <PopoverMenu
                 isVisible={isVisible}
@@ -946,14 +904,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const {unmount} = render(
             <PopoverMenu
                 isVisible
-                menuItems={[
-                    {
-                        text: 'Delete',
-                        shouldCallAfterModalHide: true,
-                        shouldSkipFocusRestore: true,
-                        onSelected: jest.fn(),
-                    },
-                ]}
+                menuItems={[{text: 'Delete', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()}]}
                 onClose={() => {}}
                 onItemSelected={() => {}}
                 anchorPosition={anchorPosition}
@@ -969,18 +920,8 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     });
 
     it('keeps legacy focus management for a marked option in the non-iOS hook', () => {
-        const menuItem = {
-            text: 'Delete',
-            shouldCallAfterModalHide: true,
-            shouldSkipFocusRestore: true,
-            onSelected: jest.fn(),
-        };
-        const {result} = renderHook(() =>
-            useNoopPopoverMenuFocusManagement({
-                isVisible: true,
-                menuItems: [menuItem],
-            }),
-        );
+        const menuItem = {text: 'Delete', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()};
+        const {result} = renderHook(() => useNoopPopoverMenuFocusManagement({isVisible: true, menuItems: [menuItem]}));
 
         expect(result.current.effectiveRestoreFocusType).toBeUndefined();
         expect(result.current.shouldUseNewFocusManagement).toBe(false);
@@ -990,19 +931,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
     it('applies DELETE focus policy to a marked nested submenu item', () => {
         mockClose.mockImplementation(() => {});
 
-        renderLifecycleMenu([
-            {
-                text: 'Actions',
-                subMenuItems: [
-                    {
-                        text: 'Delete nested',
-                        shouldCallAfterModalHide: true,
-                        shouldSkipFocusRestore: true,
-                        onSelected: jest.fn(),
-                    },
-                ],
-            },
-        ]);
+        renderLifecycleMenu([{text: 'Actions', subMenuItems: [{text: 'Delete nested', shouldCallAfterModalHide: true, shouldSkipFocusRestore: true, onSelected: jest.fn()}]}]);
 
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Actions'));
         fireEvent.press(screen.getByTestId('PopoverMenuItem-Delete nested'));
