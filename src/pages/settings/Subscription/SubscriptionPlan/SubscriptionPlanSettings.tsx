@@ -15,7 +15,7 @@ import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useAnchoredInfoPopover from '@hooks/useAnchoredInfoPopover';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -25,23 +25,19 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
-import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPolicyIDOrDefault, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {formatSubscriptionEndDate, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+import {formatSubscriptionEndDate, getExpensifyCodeDiscountMessage, getPrivatePromoDiscountInfo, openSubscriptionDescriptionLink} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {menuItemHorizontalPadding} from '@styles/layoutSpacing';
@@ -61,7 +57,7 @@ import type {GestureResponderEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -103,43 +99,19 @@ function getSubscriptionSizeHint(html: string): SubscriptionSizeHint | undefined
     };
 }
 
-// Matches the card-label info popover so the anchor sits just below the icon.
-const SAVINGS_POPOVER_ANCHOR_OFFSET = 3;
-
 function AnnualSavingsInfo() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const {windowWidth} = useWindowDimensions();
-    // Must match Popover, which bottom-docks only for isSmallScreenWidth.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const activePolicy = usePolicy(activePolicyID);
-    const adminsChatReportID = isPolicyAdmin(activePolicy) && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: isSmallScreenWidth,
-        addOfflineIndicatorBottomSafeAreaPadding: false,
-        style: [styles.p4, styles.pb4],
+    const [adminsChatReportID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`, {
+        selector: (policy) => (isPolicyAdmin(policy) && policy?.chatReportIDAdmins ? policy.chatReportIDAdmins.toString() : undefined),
     });
     const [isVisible, setVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
-    const anchorRef = useRef(null);
-
-    useEffect(() => {
-        if (!anchorRef.current || !isVisible) {
-            return;
-        }
-
-        const position = getClickedTargetLocation(anchorRef.current);
-        setAnchorPosition({
-            top: position.top + position.height + SAVINGS_POPOVER_ANCHOR_OFFSET,
-            left: position.left,
-        });
-    }, [isVisible, windowWidth]);
+    const {anchorRef, anchorPosition, contentPaddingStyle, outerStyle, innerContainerStyle} = useAnchoredInfoPopover(isVisible);
 
     const openSavingsInfo = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (event && 'stopPropagation' in event) {
@@ -150,15 +122,7 @@ function AnnualSavingsInfo() {
 
     const openSavingsLink = (href: string) => {
         setVisible(false);
-        if (href.endsWith(CONST.SUBSCRIPTION.ADMINS_ROOM_LINK)) {
-            if (adminsChatReportID) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-            }
-            return;
-        }
-        if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL, false, session);
-        }
+        openSubscriptionDescriptionLink(href, adminsChatReportID, environmentURL, session);
     };
 
     return (
@@ -184,13 +148,13 @@ function AnnualSavingsInfo() {
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}
-                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
-                innerContainerStyle={!shouldUseNarrowLayout ? styles.cardLabelTooltipContainer : undefined}
+                outerStyle={outerStyle}
+                innerContainerStyle={innerContainerStyle}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={bottomSafeAreaPaddingStyle}>
+                <View style={contentPaddingStyle}>
                     <Text
                         numberOfLines={2}
                         style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
@@ -253,9 +217,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
     const discountMessage =
-        cardView.showExpensifyCodeBadge && promoDiscountValue !== undefined
-            ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
-            : undefined;
+        cardView.showExpensifyCodeBadge && promoDiscountValue !== undefined ? getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles) : undefined;
 
     const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
@@ -506,7 +468,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                 </>
             )}
             {/* Figma leaves 20px around this line, so a hovered row does not sit on it. */}
-            <View style={[styles.sectionDividerLine, styles.mv5, {marginHorizontal: menuItemHorizontalPadding}]} />
+            <View style={[styles.sectionDividerLine, styles.mv5, styles.mh5]} />
             <SaveWithExpensifyRow />
         </View>
     );

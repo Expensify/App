@@ -19,7 +19,6 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI} from '@libs/SubscriptionUtils';
@@ -27,12 +26,12 @@ import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing, shouldUseSimplified
 import Navigation from '@navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {openSubscriptionDescriptionLink} from '@pages/settings/Subscription/utils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
@@ -64,18 +63,8 @@ function SubscriptionSettings() {
     const shouldUseSimplifiedCollectUI = shouldUseSimplifiedCollectSubscriptionUI(subscriptionPlan, hasTeam2025Pricing);
     const collectPriceDisplay = convertToShortDisplayString(subscriptionPrice, preferredCurrency);
 
-    const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-    };
-
-    const handleLinkPress = (href: string) => {
-        if (href.endsWith('adminsRoom')) {
-            if (adminsChatReportID) {
-                openAdminsRoom();
-            }
-        } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL, false, session);
-        }
+    const openDescriptionLink = (href: string) => {
+        openSubscriptionDescriptionLink(href, adminsChatReportID, environmentURL, session);
     };
 
     if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
@@ -103,7 +92,7 @@ function SubscriptionSettings() {
                         <View style={[styles.renderHTML, styles.mb5]}>
                             <RenderHTML
                                 html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                                onLinkPress={(_evt, href) => openDescriptionLink(href)}
                             />
                         </View>
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
@@ -121,7 +110,7 @@ function SubscriptionSettings() {
                         <View style={[styles.renderHTML, styles.mb5]}>
                             <RenderHTML
                                 html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
-                                onLinkPress={(_evt, href) => handleLinkPress(href)}
+                                onLinkPress={(_evt, href) => openDescriptionLink(href)}
                             />
                         </View>
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>

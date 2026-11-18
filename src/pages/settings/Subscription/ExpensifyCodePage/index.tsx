@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+import {getExpensifyCodeDiscountMessage, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 
 import {applyExpensifyCode} from '@userActions/Subscription';
 
@@ -96,9 +96,7 @@ function ExpensifyCodePage() {
                 >
                     <View>
                         {isExpensifyCodeApplied && promoDiscountValue !== undefined && (
-                            <Text style={[styles.textNormalThemeText, styles.mb5]}>
-                                {translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue}`, `${privatePromoCodeValidBillingCycles ?? ''}`)}
-                            </Text>
+                            <Text style={[styles.textNormalThemeText, styles.mb5]}>{getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles)}</Text>
                         )}
                         {!isExpensifyCodeApplied && <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>}
                         <InputWrapper
