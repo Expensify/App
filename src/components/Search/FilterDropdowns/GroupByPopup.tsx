@@ -24,12 +24,13 @@ type GroupByPopupItem = {
 type GroupByPopupProps = {
     sections: GroupBySection[];
     value: GroupByPopupItem | null;
+    defaultValue?: SearchGroupBy;
     onBackButtonPress: () => void;
     closeOverlay: () => void;
-    onChange: (item: GroupByPopupItem | null) => void;
+    onChange: (value: SearchGroupBy | undefined) => void;
 };
 
-function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({value, defaultValue, sections, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -58,12 +59,12 @@ function GroupByPopup({value, sections, onBackButtonPress, closeOverlay, onChang
     };
 
     const applyChanges = () => {
-        onChange(selectedItem);
+        onChange(selectedItem?.value);
         closeOverlay();
     };
 
     const resetChanges = () => {
-        onChange(null);
+        onChange(defaultValue);
         closeOverlay();
     };
 

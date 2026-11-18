@@ -21,6 +21,7 @@ import {
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
     getDisplayDefaultQueryJSON,
+    getGroupCurrencyValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getFilterFormValues,
@@ -4074,6 +4075,36 @@ describe('SearchQueryUtils', () => {
             expect(result?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(result?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
             expect(result?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+    });
+
+    describe('getGroupCurrencyValue', () => {
+        it('returns the group currency of the query', () => {
+            // Given a grouped query with a group currency
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category group-currency:USD');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the group currency value
+            const result = getGroupCurrencyValue(queryJSON);
+
+            // Then the currency is returned, so the group currency picker can reset to it
+            expect(result).toBe('USD');
+        });
+
+        it('returns undefined when the query has no group currency', () => {
+            // Given a query without a group currency
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the group currency value
+            const result = getGroupCurrencyValue(queryJSON);
+
+            // Then nothing is returned, so resetting the group currency clears it
+            expect(result).toBeUndefined();
         });
     });
 

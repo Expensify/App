@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount, getDisplayDefaultQueryJSON, getGroupCurrencyValue} from '@libs/SearchQueryUtils';
 import {canEditSearchColumns, getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
 import {callIfAuthenticated} from '@userActions/Session';
@@ -176,6 +176,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         );
     }
 
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(queryJSON, currentDefaultSearchQueryJSON);
+
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         close(() => updateFilterQueryParams(values));
     };
@@ -215,10 +217,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 <GroupByPopup
                     sections={groupBySections}
                     value={groupBy}
+                    defaultValue={defaultQueryJSON?.groupBy}
                     closeOverlay={closeOverlay}
                     onBackButtonPress={goBack}
-                    onChange={(item) => {
-                        const newValue = item?.value;
+                    onChange={(newValue) => {
                         if (newValue !== queryJSON.groupBy) {
                             clearSelectedText();
                         }
@@ -234,6 +236,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             return (
                 <CurrencyPopup
                     value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
+                    defaultValue={defaultQueryJSON ? getGroupCurrencyValue(defaultQueryJSON) : undefined}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
                     label={translate('common.groupCurrency')}
                     onBackButtonPress={goBack}
@@ -248,6 +251,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 <SingleSelectPopup
                     items={viewOptions}
                     value={view}
+                    defaultValue={defaultQueryJSON?.view}
                     label={translate('search.view.label')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
@@ -260,7 +264,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             return (
                 <TextInputPopup
                     placeholder={translate('search.filters.limit')}
-                    defaultValue={limitValue}
+                    initialValue={limitValue}
+                    defaultValue={defaultQueryJSON?.limit?.toString()}
                     label={translate('search.display.limitResults')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}

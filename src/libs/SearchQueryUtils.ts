@@ -3591,6 +3591,7 @@ export {
     buildQueryStringWithResetFilters,
     buildQueryStringWithResetDisplay,
     getDisplayDefaultQueryJSON,
+    getGroupCurrencyValue,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,
