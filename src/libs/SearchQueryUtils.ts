@@ -3590,6 +3590,7 @@ export {
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
     buildQueryStringWithResetDisplay,
+    getDisplayDefaultQueryJSON,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,

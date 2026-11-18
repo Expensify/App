@@ -20,6 +20,7 @@ import {
     getConnectedIntegrationNamesForPolicies,
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
+    getDisplayDefaultQueryJSON,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getFilterFormValues,
@@ -4040,6 +4041,39 @@ describe('SearchQueryUtils', () => {
             // When counting the changed display options
             // Then the currency and the view each count once
             expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
+        });
+    });
+
+    describe('getDisplayDefaultQueryJSON', () => {
+        it('returns the provided default query', () => {
+            // Given a current query with a custom sort and a default query with its own sort
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:merchant sortOrder:asc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:desc');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the display default query
+            const result = getDisplayDefaultQueryJSON(currentQueryJSON, defaultQueryJSON);
+
+            // Then the provided default is used as is, since it reflects the default of the current search
+            expect(result).toBe(defaultQueryJSON);
+        });
+
+        it('falls back to the default query of the current type when no default query is provided', () => {
+            // Given a current query with a custom sort order and no default query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc');
+            if (!currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When getting the display default query
+            const result = getDisplayDefaultQueryJSON(currentQueryJSON, undefined);
+
+            // Then the default display options of the type are used, so resetting the sort order restores descending instead of the first option
+            expect(result?.type).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            expect(result?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(result?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
