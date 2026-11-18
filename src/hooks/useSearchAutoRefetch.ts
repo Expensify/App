@@ -4,7 +4,6 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {search} from '@libs/actions/Search';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isApprovedAction, isForwardedAction, isSubmittedAction, isSubmittedAndClosedAction} from '@libs/ReportActionsUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {shouldRefetchSearchOnReportActionChange} from '@libs/SearchQueryUtils';
 import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
@@ -358,8 +357,10 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
+const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);
+
 /**
- * Whether a submitted, approved or forwarded report action was added, which changes the report's approver and its submitted or approved violations.
+ * Whether a workflow report action was added, which can change the report's approver, workflow dates and its submitted or approved violations.
  *
  * Onyx only replaces the report action maps it writes, so maps with an unchanged reference are skipped, and the walk stops at the first match.
  */
@@ -373,7 +374,7 @@ function hasAddedWorkflowReportAction(reportActions: OnyxCollection<ReportAction
             if (previousActions?.[reportActionID]) {
                 continue;
             }
-            if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction) || isApprovedAction(reportAction) || isForwardedAction(reportAction)) {
+            if (reportAction && WORKFLOW_ACTION_TYPES.has(reportAction.actionName)) {
                 return true;
             }
         }

@@ -2,13 +2,15 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ActiveHoverable from '@components/Hoverable/ActiveHoverable';
 
+import type {ComponentRef} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
 
 describe('ActiveHoverable', () => {
     it('should keep the child props and refs while adding hover handling', () => {
         // Given a child with its own ref and mouse handler, and a ref passed to the hoverable
-        let childElement: View | null = null;
+        let childElement: ComponentRef<typeof View> | null = null;
         const hoverableRef = React.createRef<HTMLElement>();
         const onChildMouseEnter = jest.fn();
         const onHoverIn = jest.fn();
@@ -19,7 +21,7 @@ describe('ActiveHoverable', () => {
             >
                 {(isHovered) => (
                     <View
-                        ref={(element: View | null) => {
+                        ref={(element: ComponentRef<typeof View> | null) => {
                             childElement = element;
                         }}
                         testID={isHovered ? 'hovered' : 'idle'}

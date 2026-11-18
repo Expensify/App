@@ -4,6 +4,7 @@ import {hasFieldErrors} from '@components/MoneyRequestConfirmationList/getConfir
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import {isErrorShownOnItsOwnField} from '@components/MoneyRequestConfirmationList/hooks/useFormErrorManagement';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
+import SplitCategoryTaxController from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
@@ -73,6 +74,7 @@ function ScanConfirmationList(props: MoneyRequestConfirmationListProps) {
         >
             <TaxController {...data.taxControllerProps} />
             <SplitBillController {...data.splitBillControllerProps} />
+            <SplitCategoryTaxController {...data.splitCategoryTaxControllerProps} />
             <FieldAutoSelector {...data.fieldAutoSelectProps} />
         </ConfirmationListLayout>
     );
