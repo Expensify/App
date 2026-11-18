@@ -3373,9 +3373,19 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): Selec
     }
 }
 
+/**
+ * Narrows a query to the given values of one filter key. Only the key's included values are replaced: exclusions such as
+ * `-violation:missingCategory` are kept, because groups can overlap (an expense can be in several violation groups) and
+ * dropping the exclusion would bring back expenses the parent query hides.
+ */
+function replaceIncludedFilterValues(flatFilters: QueryFilters, filterKey: QueryFilterKey, filterValues: Array<string | number>): QueryFilters {
+    const newFlatFilters = flatFilters.filter((filter) => filter.key !== filterKey || filter.filters.every((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    newFlatFilters.push({key: filterKey, filters: filterValues.map((value) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}))});
+    return newFlatFilters;
+}
+
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
-    newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
+    const newFlatFilters = replaceIncludedFilterValues(queryJSON.flatFilters, filterKey, [filterValue]);
     // `limit` caps the number of groups on the parent query. Once `groupBy` is dropped it would cap the rows inside this
     // group instead, so it must not be carried over to the drill-down query.
     const newQueryJSON: SearchQueryJSON = {
@@ -8544,6 +8554,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    replaceIncludedFilterValues,
     getTagGroupLabel,
     getSearchTypeMenuItemSentryLabel,
     getSearchTypeMenuTabSentryLabel,

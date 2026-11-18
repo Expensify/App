@@ -225,7 +225,8 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 }));
 
 jest.mock('@libs/SearchUIUtils', () => {
-    const {canChangeWorkspaceOfSearchReport, getColumnsToShow, getTransactionsByReportID} = jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
+    const {canChangeWorkspaceOfSearchReport, getColumnsToShow, getTransactionsByReportID, replaceIncludedFilterValues} =
+        jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils');
     const actualCONSTForSearchUIUtils = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         shouldShowDeleteOption: () => false,
@@ -237,6 +238,7 @@ jest.mock('@libs/SearchUIUtils', () => {
         getSearchColumnTranslationKey: jest.fn((column: string) => column),
         canChangeWorkspaceOfSearchReport,
         getColumnsToShow,
+        replaceIncludedFilterValues,
         // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
         getTransactionsByReportID,
         insertColumnBeforeTotalAmount: (columns: string[], columnId: string) => {
@@ -1898,6 +1900,33 @@ describe('useSearchBulkActions - export options', () => {
                     {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.MISSING_CATEGORY},
                     {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.OVER_LIMIT},
                 ],
+            });
+        });
+
+        it('keeps a violation exclusion from the parent query', () => {
+            // Given a violation grouping that hides Missing category, with the Over limit group ticked. An expense can
+            // have both violations, so the exclusion still matters inside the Over limit group
+            const queryJSON = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -violation:${CONST.VIOLATIONS.MISSING_CATEGORY}`);
+            if (!queryJSON) {
+                throw new Error('Failed to parse violation grouped search query');
+            }
+            const overLimitKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`;
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {
+                [overLimitKey]: {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 1, currency: 'USD', total: 100},
+            });
+
+            // When the template export query is built
+            const templateQuery = getTemplateGroupExportQuery(queryJSON, {[overLimitKey]: makeSelectedTransaction()}, searchResults.data);
+
+            // Then the export asks for Over limit and still leaves out expenses with Missing category
+            expect(templateQuery?.flatFilters).toContainEqual({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.VIOLATIONS.MISSING_CATEGORY}],
+            });
+            expect(templateQuery?.flatFilters).toContainEqual({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.OVER_LIMIT}],
             });
         });
     });

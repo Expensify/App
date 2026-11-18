@@ -92,6 +92,20 @@ describe('group-by:violation', () => {
         });
     });
 
+    it('keeps a violation exclusion from the parent query when drilling into a group', () => {
+        // Given a violation grouping that hides Missing category. An expense with both Over limit and Missing category
+        // is in the Over limit group's results only if the exclusion is dropped
+        const queryJSON = getQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:approved-violation -violation:${CONST.VIOLATIONS.MISSING_CATEGORY}`);
+
+        // When the Over limit group is opened
+        const section = getViolationSection(queryJSON, CONST.VIOLATIONS.OVER_LIMIT);
+        const drillDownQuery = section.transactionsQueryJSON && buildSearchQueryString(section.transactionsQueryJSON);
+
+        // Then the drill-down asks for Over limit and still leaves out expenses with Missing category
+        expect(drillDownQuery).toContain(`-${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${CONST.VIOLATIONS.MISSING_CATEGORY}`);
+        expect(drillDownQuery).toContain(` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${CONST.VIOLATIONS.OVER_LIMIT}`);
+    });
+
     it('sorts groups by translated label, ascending by default', () => {
         // Given a group-by:violation query, which defaults to sorting by the violation column
         const queryJSON = getQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
