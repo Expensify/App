@@ -185,7 +185,7 @@ function ParticipantSearchResults({
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
-    // Policy data, owned here and used for getValidOptionsConfig and the billing gate in onSelectRow
+    // Policy data, owned here and used for getValidOptionsConfig and the billing gate in addParticipant
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -497,7 +497,7 @@ function ParticipantSearchResults({
             />
         );
 
-    const onSelectRow = async (option: Participant) => {
+    const addParticipant = async (option: Participant) => {
         const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
@@ -525,7 +525,7 @@ function ParticipantSearchResults({
     };
 
     const selectParticipant = (option: Participant) => {
-        onSelectRow(option);
+        addParticipant(option);
     };
 
     // Android picks contacts with the system picker. Elsewhere, importing needs the contact permission, which is granted in the app's settings.

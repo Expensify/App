@@ -134,7 +134,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const delegateAccountID = useDelegateAccountID();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const onConfirm = async () => {
+    const completeSplit = async () => {
         setIsConfirmed(true);
         const [quickAction, introSelected, reportTransactionsAndViolations] = await Onyx.multiGet([
             ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
@@ -166,7 +166,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     };
 
     const confirmSplitBill = () => {
-        onConfirm();
+        completeSplit();
     };
 
     return (

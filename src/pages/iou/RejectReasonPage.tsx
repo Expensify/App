@@ -50,7 +50,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const submitRejection = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
@@ -84,7 +84,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     };
 
     const rejectExpense = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        onSubmit(values);
+        submitRejection(values);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
