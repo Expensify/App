@@ -1,6 +1,9 @@
 import type {OdometerResyncState} from '@libs/OdometerUtils';
 import {getOdometerTotalDistance, isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
 
+import CONST from '@src/CONST';
+import type {Comment} from '@src/types/onyx/Transaction';
+
 // A steady state: initialized, transaction and local readings match, nothing being typed.
 const STEADY_STATE: OdometerResyncState = {
     transactionStartValue: '100',
@@ -130,6 +133,70 @@ describe('getOdometerTotalDistance', () => {
 
         // Then the new total uses the same conversion instead of treating kilometers as miles
         expect(distance).toBe(124.27);
+    });
+
+    it('does not accumulate rounding errors when converted readings are saved and edited again', () => {
+        // Given kilometer readings moved to a miles workspace without changing their original unit
+        const comment: Comment = {
+            odometerStart: 1000,
+            odometerEnd: 1000.1,
+            odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 0.0621371},
+        };
+
+        // When a small edit is saved and its rounded quantity becomes the next edit's saved value
+        const firstEditDistance = getOdometerTotalDistance(1000, 1000.2, comment);
+        const savedComment: Comment = {...comment, odometerEnd: 1000.2, customUnit: {...comment.customUnit, quantity: firstEditDistance}};
+        const secondEditDistance = getOdometerTotalDistance(1000, 1100, savedComment);
+
+        // Then the original unit determines the conversion instead of the rounded saved quantity
+        expect(firstEditDistance).toBe(0.12);
+        expect(secondEditDistance).toBe(62.14);
+    });
+
+    it.each([
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, 0.32, 160.93],
+        [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 0.12, 100],
+    ])('converts changed readings from %s to %s independently of the saved quantity', (odometerUnit, distanceUnit, quantity, expected) => {
+        // Given explicit units and a saved quantity that cannot supply an exact conversion factor
+        const comment: Comment = {odometerStart: 1000, odometerEnd: 1000.2, odometerUnit, customUnit: {distanceUnit, quantity}};
+
+        // When the readings are edited after saving
+        const distance = getOdometerTotalDistance(1000, 1100, comment);
+
+        // Then reverse conversions and unchanged units both use the units rather than an inferred ratio
+        expect(distance).toBe(expected);
+    });
+
+    it('preserves the exact saved quantity for unchanged readings with explicit units', () => {
+        // Given a converted quantity with more precision than the displayed total
+        const comment: Comment = {
+            ...CONVERTED_COMMENT,
+            odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            customUnit: {...CONVERTED_COMMENT.customUnit, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+        };
+
+        // When the readings are saved without edits
+        const distance = getOdometerTotalDistance(1000, 1100, comment);
+
+        // Then simply reopening the page does not round the stored quantity
+        expect(distance).toBe(62.1371);
+    });
+
+    it('uses explicit units even when no saved quantity is available', () => {
+        // Given original and current units but no usable saved conversion
+        const comment: Comment = {
+            odometerStart: 1000,
+            odometerEnd: 1000,
+            odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            customUnit: {distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+        };
+
+        // When new readings supply a valid distance
+        const distance = getOdometerTotalDistance(1000, 1100, comment);
+
+        // Then conversion does not depend on a previous nonzero distance or quantity
+        expect(distance).toBe(62.14);
     });
 
     it('returns the difference between the readings when the saved readings are not usable', () => {
