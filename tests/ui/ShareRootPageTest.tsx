@@ -10,12 +10,13 @@ import ShareRootPage from '@pages/Share/ShareRootPage';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {SharedFile} from '@expensify/nitro-utils';
 import type {AppStateStatus} from 'react-native';
 
 import React from 'react';
-import {Alert, AppState} from 'react-native';
+import {Alert, AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -45,6 +46,8 @@ jest.mock('@libs/Navigation/OnyxTabNavigator', () => ({__esModule: true, default
 jest.mock('@pages/Share/ShareTab', () => () => null);
 jest.mock('@pages/Share/SubmitTab', () => () => null);
 
+const SHARE_ROOT_DEEP_LINK = `new-expensify://${ROUTES.SHARE_ROOT}`;
+
 const SHARED_IMAGE: SharedFile = {id: '1700000000000_receipt.jpg', content: 'file:///shared/receipt.jpg', mimeType: 'image/jpeg', processedAt: '1700000000000', aspectRatio: 1.5};
 const SHARED_PDF: SharedFile = {id: 'invoice.pdf', content: 'file:///shared/invoice.pdf', mimeType: 'application/pdf', processedAt: '1700000000001', aspectRatio: 1};
 const SHARED_TEXT: SharedFile = {id: 'text', content: 'https://expensify.com', mimeType: 'txt', processedAt: '1700000000002', aspectRatio: 1};
@@ -60,21 +63,38 @@ async function renderShareRootPage() {
     return screen;
 }
 
-function captureAppStateListener(): (state: AppStateStatus) => void {
-    let listener: ((state: AppStateStatus) => void) | undefined;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((type, handler) => {
-        listener = handler;
-        return {remove: jest.fn()};
-    });
-    return (state) => listener?.(state);
+function captureLinkingListener(): (url: string) => void {
+    const addEventListenerSpy = jest.spyOn(Linking, 'addEventListener');
+    return (url) => {
+        // The page subscribes again whenever its handler changes, so only the most recent listener is still subscribed.
+        const urlChangeHandler = addEventListenerSpy.mock.calls.findLast(([eventType]) => eventType === 'url')?.[1];
+        urlChangeHandler?.({url});
+    };
 }
 
-async function bringAppToForeground(emitAppStateChange: (state: AppStateStatus) => void) {
+async function openDeepLink(emitUrl: (url: string) => void, url: string) {
     await act(async () => {
-        emitAppStateChange('background');
-        emitAppStateChange('active');
+        emitUrl(url);
     });
     await waitForBatchedUpdatesWithAct();
+}
+
+function captureAppStateListeners(): (states: AppStateStatus[]) => Promise<void> {
+    const listeners: Array<(state: AppStateStatus) => void> = [];
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((type, handler) => {
+        listeners.push(handler);
+        return {remove: jest.fn()};
+    });
+    return async (states) => {
+        await act(async () => {
+            for (const state of states) {
+                for (const listener of listeners) {
+                    listener(state);
+                }
+            }
+        });
+        await waitForBatchedUpdatesWithAct();
+    };
 }
 
 /** A promise the test settles by hand, to control the order in which overlapping native reads finish. */
@@ -169,22 +189,49 @@ describe('ShareRootPage', () => {
         expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.wrongFileType'), translateLocal('attachmentPicker.notAllowedExtension'), expect.any(Array));
     });
 
-    it('replaces the stored share when a new one arrives while the Share screen is open', async () => {
-        // Given an image was shared and stored while the Share screen stays open
-        const emitAppStateChange = captureAppStateListener();
-        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_IMAGE]);
+    it.each([
+        ['standalone app', SHARE_ROOT_DEEP_LINK],
+        ['HybridApp', `${CONST.NEW_EXPENSIFY_URL}${ROUTES.SHARE_ROOT}`],
+    ])('processes a new share when the %s opens the share root deep link', async (_, url) => {
+        // Given a share root screen that has already processed the first share
+        const emitUrl = captureLinkingListener();
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValueOnce([SHARED_IMAGE]).mockResolvedValueOnce([SHARED_PDF]);
         await renderShareRootPage();
 
-        // When the user shares a PDF from another app and comes back to the app
-        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_PDF]);
-        await act(async () => {
-            emitAppStateChange('background');
-            emitAppStateChange('active');
-        });
-        await waitForBatchedUpdatesWithAct();
+        // When the user shares another file while the app is running, which opens the share root deep link without remounting the page
+        await openDeepLink(emitUrl, url);
 
-        // Then the PDF replaces the image, including its aspect ratio, because every native record carries every field and merging it overwrites them all
+        // Then the second share replaces the first one, including its aspect ratio, because every native record carries every field
+        expect(ShareActionHandler.processFiles).toHaveBeenCalledTimes(2);
         expect(await Onyx.get(ONYXKEYS.SHARE_TEMP_FILE)).toEqual(SHARED_PDF);
+    });
+
+    it('does not re-process share files for deep links to other routes', async () => {
+        // Given a share root screen that has processed the initial share files
+        const emitUrl = captureLinkingListener();
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_IMAGE]);
+        await renderShareRootPage();
+        expect(ShareActionHandler.processFiles).toHaveBeenCalledTimes(1);
+
+        // When a deep link to an unrelated route arrives
+        await openDeepLink(emitUrl, `new-expensify://${ROUTES.HOME}`);
+
+        // Then the share files are not read again, because no new share was made
+        expect(ShareActionHandler.processFiles).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not re-process share files when the app state changes', async () => {
+        // Given a share root screen that has processed the initial share files, which used to be re-processed on every return to the foreground and raced with the receipt being moved after submission
+        const emitAppStates = captureAppStateListeners();
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_IMAGE]);
+        await renderShareRootPage();
+        expect(ShareActionHandler.processFiles).toHaveBeenCalledTimes(1);
+
+        // When a permission dialog or moving the app to the background toggles the app state without a new share
+        await emitAppStates(['inactive', 'active', 'background', 'active']);
+
+        // Then the share files are not read again, so they cannot race with the receipt being moved after submission
+        expect(ShareActionHandler.processFiles).toHaveBeenCalledTimes(1);
     });
 
     it('validates a shared HEIC photo even when the previous share was text', async () => {
@@ -202,14 +249,14 @@ describe('ShareRootPage', () => {
 
     it('shows only one error when a later read fails while an error is already showing', async () => {
         // Given the first share was rejected as the wrong file type, so its error is showing
-        const emitAppStateChange = captureAppStateListener();
+        const emitUrl = captureLinkingListener();
         jest.mocked(ShareActionHandler.processFiles)
             .mockResolvedValueOnce([{...SHARED_PDF, mimeType: 'application/x-unsupported'}])
             .mockRejectedValueOnce(new Error('The shared file is missing or unreadable'));
         await renderShareRootPage();
 
-        // When the app returns to the foreground and the next read fails
-        await bringAppToForeground(emitAppStateChange);
+        // When the user shares again and the next read fails
+        await openDeepLink(emitUrl, SHARE_ROOT_DEEP_LINK);
 
         // Then the user still sees only the first error, not a second alert on top of it
         expect(Alert.alert).toHaveBeenCalledTimes(1);
@@ -217,14 +264,14 @@ describe('ShareRootPage', () => {
     });
 
     it('keeps the newest share when an older native read finishes last', async () => {
-        // Given the read started when the Share screen opened is still running when the user returns with a new share,
+        // Given the read started when the Share screen opened is still running when the user shares again,
         // since native reads run concurrently and can finish in any order
-        const emitAppStateChange = captureAppStateListener();
+        const emitUrl = captureLinkingListener();
         const olderRead = createDeferred<SharedFile[]>();
         const newerRead = createDeferred<SharedFile[]>();
         jest.mocked(ShareActionHandler.processFiles).mockReturnValueOnce(olderRead.promise).mockReturnValueOnce(newerRead.promise);
         await renderShareRootPage();
-        await bringAppToForeground(emitAppStateChange);
+        await openDeepLink(emitUrl, SHARE_ROOT_DEEP_LINK);
 
         // When the newer read finishes first and the older one finishes afterwards
         await settle(() => newerRead.resolve([SHARED_PDF]));
@@ -236,12 +283,12 @@ describe('ShareRootPage', () => {
     });
 
     it('ignores the failure of an older native read once a newer read has started', async () => {
-        // Given the read started when the Share screen opened is still running when the user returns with a new share
-        const emitAppStateChange = captureAppStateListener();
+        // Given the read started when the Share screen opened is still running when the user shares again
+        const emitUrl = captureLinkingListener();
         const olderRead = createDeferred<SharedFile[]>();
         jest.mocked(ShareActionHandler.processFiles).mockReturnValueOnce(olderRead.promise).mockResolvedValueOnce([SHARED_PDF]);
         await renderShareRootPage();
-        await bringAppToForeground(emitAppStateChange);
+        await openDeepLink(emitUrl, SHARE_ROOT_DEEP_LINK);
 
         // When the older read fails afterwards, for example because the new share replaced the files it was reading
         await settle(() => olderRead.reject(new Error('The shared file is missing or unreadable')));
@@ -252,13 +299,13 @@ describe('ShareRootPage', () => {
     });
 
     it('ignores the size check of an older share once a newer share has been read', async () => {
-        // Given a shared PDF whose size check is still running when the user returns with a new share
-        const emitAppStateChange = captureAppStateListener();
+        // Given a shared PDF whose size check is still running when the user shares again
+        const emitUrl = captureLinkingListener();
         const olderSizeCheck = createDeferred<number>();
         jest.mocked(getFileSize).mockReturnValueOnce(olderSizeCheck.promise);
         jest.mocked(ShareActionHandler.processFiles).mockResolvedValueOnce([SHARED_PDF]).mockResolvedValueOnce([SHARED_IMAGE]);
         await renderShareRootPage();
-        await bringAppToForeground(emitAppStateChange);
+        await openDeepLink(emitUrl, SHARE_ROOT_DEEP_LINK);
 
         // When the older PDF's size check finishes and reports that it is too large
         await settle(() => olderSizeCheck.resolve(CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1));
@@ -269,14 +316,14 @@ describe('ShareRootPage', () => {
     });
 
     it('does not validate an older HEIC photo once a newer share has been read', async () => {
-        // Given a shared HEIC photo whose size lookup, which runs before validation, is still running when the user returns with another HEIC photo
-        const emitAppStateChange = captureAppStateListener();
+        // Given a shared HEIC photo whose size lookup, which runs before validation, is still running when the user shares another HEIC photo
+        const emitUrl = captureLinkingListener();
         const newerHeic: SharedFile = {...SHARED_HEIC, id: 'second.heic', content: 'file:///shared/second.heic'};
         const olderSizeLookup = createDeferred<number>();
         jest.mocked(getFileSize).mockReturnValueOnce(olderSizeLookup.promise);
         jest.mocked(ShareActionHandler.processFiles).mockResolvedValueOnce([SHARED_HEIC]).mockResolvedValueOnce([newerHeic]);
         await renderShareRootPage();
-        await bringAppToForeground(emitAppStateChange);
+        await openDeepLink(emitUrl, SHARE_ROOT_DEEP_LINK);
 
         // When the older photo's size lookup finishes after the newer photo started validating
         await settle(() => olderSizeLookup.resolve(10000));

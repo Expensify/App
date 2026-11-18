@@ -25,7 +25,7 @@ import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
@@ -74,7 +74,6 @@ function ShareRootPage() {
             });
     };
 
-    const appState = useRef(AppState.currentState);
     // Native reads run concurrently and can finish in any order, so only the most recent read may update the screen, and none may once it unmounts.
     const latestShareReadIDRef = useRef(0);
     const [isFileReady, setIsFileReady] = useState(false);
@@ -177,12 +176,13 @@ function ShareRootPage() {
     };
 
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                handleProcessFiles();
+        // Re-read only on a new share. Foreground events also fire after permission dialogs, when the file may already be moved.
+        const subscription = Linking.addEventListener('url', ({url}) => {
+            if (!url.includes(ROUTES.SHARE_ROOT)) {
+                return;
             }
 
-            appState.current = nextAppState;
+            handleProcessFiles();
         });
 
         return () => {

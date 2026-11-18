@@ -21,6 +21,7 @@ const SENTRY_LABEL = {
         TABS_ITEM: 'DynamicForm-TabsItem',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
+        FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
     },
     APPROVE_MENU: {
         OPTION: {
@@ -2353,6 +2354,10 @@ const SENTRY_LABEL = {
                 ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-AccountsSwitch',
                 ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-EnableNewAccountsSwitch',
                 DEPARTMENTS_SWITCH: 'WorkspaceAccountingDigits-DepartmentsSwitch',
+                PREFERRED_EXPORTER: 'WorkspaceAccountingDigits-PreferredExporter',
+                EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
+                DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
+                COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
@@ -3325,6 +3330,7 @@ const SENTRY_LABEL = {
         ADD_COPILOT_ACCESS_LEVEL: 'SettingsSecurity-AddCopilotAccessLevel',
         ADD_COPILOT_CONFIRM: 'SettingsSecurity-AddCopilotConfirm',
         DEVICE_REVOKE: 'SettingsSecurity-DeviceRevoke',
+        SIGN_OUT_ALL_DEVICES: 'SettingsSecurity-SignOutAllDevices',
         LOCK_ACCOUNT_SUBMIT: 'SettingsSecurity-LockAccountSubmit',
         UNLOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-UnlockAccountChatWithConcierge',
         FAILED_TO_LOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-FailedToLockAccountChatWithConcierge',
