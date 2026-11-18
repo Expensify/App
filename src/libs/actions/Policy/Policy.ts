@@ -24,6 +24,7 @@ import type {
     EnablePolicyAutoApprovalOptionsParams,
     EnablePolicyAutoReimbursementLimitParams,
     EnablePolicyCompanyCardsParams,
+    EnableDistanceRequestTaxParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyHRParams,
@@ -123,7 +124,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import {getIntroSelectedCompanySize, getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
@@ -160,6 +161,7 @@ import type {
     AutoReportingOffset,
     CompanyAddress,
     CreatableWorkspaceType,
+    CustomUnit,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
     PolicyReportField,
@@ -3462,7 +3464,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             adminsChatReportID,
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
-            companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            companySize: companySize ?? getIntroSelectedCompanySize(introSelected),
             isSelfTourViewed,
             conciergeChat,
             delegateAccountID,
@@ -5615,15 +5617,48 @@ function enablePolicyInvoiceFields(policyID: string, enabled: boolean) {
     enablePolicyFields(policyID, enabled, WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS);
 }
 
-function enablePolicyTaxes(
-    policyID: string,
-    enabled: true,
-    isVendorMatchingBetaEnabled: boolean | undefined,
-    currentTaxRates: TaxRatesWithDefault | undefined,
-    policyData?: PolicyData,
-): void;
-function enablePolicyTaxes(policyID: string, enabled: false, isVendorMatchingBetaEnabled: boolean | undefined, currentTaxRates?: undefined, policyData?: PolicyData): void;
-function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, currentTaxRates?: TaxRatesWithDefault, policyData?: PolicyData) {
+/** Copy newly eligible UK rates only when cached references can match the server's optimistic IDs. */
+function buildGovernmentRatesOnTaxEnable(policy: OnyxEntry<Policy>, updatedPolicy: OnyxEntry<Policy>, governmentMileageRates: GovernmentMileageRate[] | undefined) {
+    if (
+        !policy?.shouldAutoUpdateGovernmentDistanceRates ||
+        policy.outputCurrency !== CONST.CURRENCY.GBP ||
+        !updatedPolicy ||
+        PolicyUtils.isTaxTrackingEnabled(true, policy, true) ||
+        !PolicyUtils.isTaxTrackingEnabled(true, updatedPolicy, true)
+    ) {
+        return;
+    }
+
+    // A prerequisite can fail before this queued tax request succeeds, leaving rates the server never created.
+    if (
+        policy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates ||
+        policy.pendingFields?.outputCurrency ||
+        policy.pendingFields?.tax ||
+        PolicyUtils.getDistanceRateCustomUnit(policy)?.pendingFields?.taxEnabled
+    ) {
+        return;
+    }
+
+    // This key is shared by workspaces, so cached rates can belong to a different country or currency.
+    const referenceRates = governmentMileageRates?.filter(
+        (rate) => rate.currency === CONST.CURRENCY.GBP && rate.sourceRateID.split('_').at(0) === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY,
+    );
+    if (!referenceRates?.length) {
+        return;
+    }
+
+    return buildOnyxDataForGovernmentRateAutoUpdate(updatedPolicy, true, referenceRates, policy.outputCurrency, undefined, {shouldUpdateSettings: false});
+}
+
+type EnablePolicyTaxesOptions = {
+    policy?: OnyxEntry<Policy>;
+    governmentMileageRates?: GovernmentMileageRate[];
+    policyData?: PolicyData;
+};
+
+function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingBetaEnabled: boolean | undefined, {policy, governmentMileageRates, policyData}: EnablePolicyTaxesOptions) {
+    const currentTaxRates = policy?.taxRates;
+    const governmentRateData = buildGovernmentRatesOnTaxEnable(policy, policy ? {...policy, tax: {...policy.tax, trackingEnabled: enabled}} : undefined, governmentMileageRates);
     const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
     const taxRatesData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -5695,6 +5730,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     optimisticData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.optimisticData ?? []) : []));
+    optimisticData.push(...(governmentRateData?.onyxData.optimisticData ?? []));
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -5708,6 +5744,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     successData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.successData ?? []) : []));
+    successData.push(...(governmentRateData?.onyxData.successData ?? []));
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -5724,6 +5761,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
         },
     ];
     failureData.push(...(shouldAddDefaultTaxRatesData ? (taxRatesData.failureData ?? []) : []));
+    failureData.push(...(governmentRateData?.onyxData.failureData ?? []));
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData,
@@ -5747,7 +5785,11 @@ function enablePolicyTaxes(policyID: string, enabled: boolean, isVendorMatchingB
     if (shouldAddDefaultTaxRatesData) {
         parameters.taxFields = JSON.stringify(defaultTaxRates);
     }
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+    if (governmentRateData && Object.keys(governmentRateData.optimisticRateIDs).length > 0) {
+        parameters.optimisticRateIDs = JSON.stringify(governmentRateData.optimisticRateIDs);
+    }
+    // Opposite toggles must keep their completion data because enabling taxes can also add tax and distance rates.
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature();
@@ -5943,7 +5985,93 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, isVendor
     }
 }
 
-function enableDistanceRequestTax(policyID: string, customUnitName: string, customUnitID: string, attributes: Attributes, currentAttributes: Attributes | undefined) {
+/** Clears a failed dismissal first; otherwise dismisses the warning without changing any rate's tax mapping. */
+function dismissUKFuelRateTaxError(policyID: string, customUnit: CustomUnit) {
+    const field = 'isUKFuelRateTaxErrorDismissed';
+    const customUnitID = customUnit.customUnitID;
+    // The warning and request failure share an X. Let admins clear the failure without resubmitting it.
+    if (Object.keys(customUnit.errorFields?.[field] ?? {}).length > 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            customUnits: {[customUnitID]: {errorFields: {[field]: null}}},
+        });
+        return;
+    }
+    const attributes = {...customUnit.attributes, isUKFuelRateTaxErrorDismissed: true};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {isUKFuelRateTaxErrorDismissed: true},
+                            pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[field]: null},
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {customUnits: {[customUnitID]: {pendingFields: {[field]: null}}}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {isUKFuelRateTaxErrorDismissed: customUnit.attributes?.isUKFuelRateTaxErrorDismissed ?? null},
+                            pendingFields: {[field]: null},
+                            errorFields: {[field]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                        },
+                    },
+                },
+            },
+        ],
+    };
+    API.write(
+        WRITE_COMMANDS.DISMISS_UK_FUEL_RATE_TAX_ERROR,
+        {
+            policyID,
+            customUnit: JSON.stringify({customUnitName: customUnit.name, customUnitID, attributes}),
+        },
+        onyxData,
+    );
+}
+
+function enableDistanceRequestTax(
+    policy: Policy,
+    customUnitName: string,
+    customUnitID: string,
+    attributes: Attributes,
+    currentAttributes: Attributes | undefined,
+    governmentMileageRates: GovernmentMileageRate[] | undefined,
+) {
+    const policyID = policy.id;
+    const customUnit = policy.customUnits?.[customUnitID];
+    const governmentRateData = customUnit
+        ? buildGovernmentRatesOnTaxEnable(
+              policy,
+              {
+                  ...policy,
+                  customUnits: {
+                      ...policy.customUnits,
+                      [customUnitID]: {
+                          ...customUnit,
+                          attributes: {...currentAttributes, ...attributes},
+                      },
+                  },
+              },
+              governmentMileageRates,
+          )
+        : undefined;
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5994,13 +6122,18 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
         ],
     };
 
-    const params = {
+    onyxData.optimisticData?.push(...(governmentRateData?.onyxData.optimisticData ?? []));
+    onyxData.successData?.push(...(governmentRateData?.onyxData.successData ?? []));
+    onyxData.failureData?.push(...(governmentRateData?.onyxData.failureData ?? []));
+
+    const params: EnableDistanceRequestTaxParams = {
         policyID,
         customUnit: JSON.stringify({
             customUnitName,
             customUnitID,
             attributes,
         }),
+        ...(governmentRateData && Object.keys(governmentRateData.optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(governmentRateData.optimisticRateIDs)} : {}),
     };
     API.write(WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX, params, onyxData);
 }
@@ -8548,6 +8681,7 @@ export {
     enablePolicyTimeTracking,
     changePolicyUberBillingAccount,
     enableDistanceRequestTax,
+    dismissUKFuelRateTaxError,
     enablePolicyInvoicing,
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,

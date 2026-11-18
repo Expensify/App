@@ -3,6 +3,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {SetNameValuePairsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,6 +75,12 @@ function setReportLayout(selection: ReportLayoutSelection, currentLayoutOption?:
         });
     }
 
+    // Support agents change the layout to troubleshoot, which must not change how the customer sees their reports
+    if (isSupportAuthToken()) {
+        Onyx.update(optimisticData);
+        return;
+    }
+
     const parameters: SetNameValuePairsParams = {};
     for (const [nvpName, nvpValue] of Object.entries(nameValuePairs)) {
         parameters[`nameValuePairs[${nvpName}]`] = nvpValue;
@@ -129,6 +136,12 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
             value: previousValue ?? null,
         },
     ];
+
+    // Support agents change the columns to troubleshoot, which must not change how the customer sees their reports
+    if (isSupportAuthToken()) {
+        Onyx.update(optimisticData);
+        return;
+    }
 
     const parameters = {
         columns: JSON.stringify(columns),

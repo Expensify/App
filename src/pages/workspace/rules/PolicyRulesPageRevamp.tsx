@@ -211,6 +211,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     count: selectedRuleKeys.length,
                 }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.BULK_ACTIONS_DELETE,
                 shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
@@ -234,31 +235,37 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const tabs: TabSelectorBaseItem[] = [
         {
             key: RULES_TAB.GENERAL,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.GENERAL,
             title: translate('workspace.rules.tabs.general'),
             icon: icons.Feed,
         },
         {
             key: RULES_TAB.CARD_RESTRICTIONS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.CARD_RESTRICTIONS,
             title: translate('workspace.rules.tabs.cardRestrictions'),
             icon: icons.CreditCardExclamation,
         },
         {
             key: RULES_TAB.EXPENSE_DEFAULTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.EXPENSE_DEFAULTS,
             title: translate('workspace.rules.tabs.expenseDefaults'),
             icon: icons.DocumentMagicWand,
         },
         {
             key: RULES_TAB.REQUIRE_FIELDS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.REQUIRE_FIELDS,
             title: translate('workspace.rules.tabs.requireFields'),
             icon: icons.Task,
         },
         {
             key: RULES_TAB.FLAG_FOR_REVIEW,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.FLAG_FOR_REVIEW,
             title: translate('workspace.rules.tabs.flagForReview'),
             icon: icons.Flag,
         },
         {
             key: RULES_TAB.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.TAB.AGENTS,
             title: translate('workspace.rules.tabs.agents'),
             icon: icons.Bot,
         },

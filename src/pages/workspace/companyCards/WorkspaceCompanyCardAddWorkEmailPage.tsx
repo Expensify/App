@@ -55,7 +55,10 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.companyCards.addWorkEmail')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.companyCards.addWorkEmail')}
+                    onBackButtonPress={() => Navigation.goBack(feedSelectorRoute)}
+                />
                 <View style={styles.flex1}>
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('workspace.companyCards.addWorkEmail')}</Text>
                     <Text style={[styles.mt2, styles.mb4, styles.ph5, styles.textSupporting]}>{translate('workspace.companyCards.addWorkEmailDescription')}</Text>

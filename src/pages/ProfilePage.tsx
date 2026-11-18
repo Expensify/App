@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {PromotedAction} from '@components/PromotedActionsBar';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
@@ -104,7 +105,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
-    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
+    const reportKey = isAnonymousUserSession(session) || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -207,7 +208,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+    if ((!isCurrentUser || report) && !isAnonymousUserSession(session)) {
         promotedActions.push(
             PromotedActions.message({
                 reportID: report?.reportID,
@@ -274,7 +275,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
 
                         {/* Don't display email if current user is anonymous */}
-                        {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                        {!(isCurrentUser && isAnonymousUserSession(session)) && login ? (
                             <MenuItemField
                                 name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 value={formattedLogin}
@@ -302,15 +303,11 @@ function ProfilePage({route}: ProfilePageProps) {
                                 errors={agentPrompt?.promptErrors}
                                 errorRowStyles={[styles.mh5, styles.mb2]}
                             >
-                                <MenuItemWithTopDescription
+                                <MenuItemFieldHTML
                                     sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CUSTOM_INSTRUCTIONS}
-                                    description={translate('profilePage.customInstructions')}
-                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
-                                    shouldParseTitle
-                                    excludedMarkdownRules={['reportMentions']}
-                                    shouldTruncateTitle
+                                    name={translate('profilePage.customInstructions')}
+                                    value={Parser.replace(Str.htmlDecode(agentPrompt?.prompt?.trim() ?? ''), {disabledRules: ['reportMentions']})}
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
-                                    shouldShowRightIcon
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
                                 />
                             </OfflineWithFeedback>
@@ -324,7 +321,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
-                        {!!accountID && !isAnonymousUserSession() && (
+                        {!!accountID && !isAnonymousUserSession(session) && (
                             <MenuItemNavigation
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CHAT_HISTORY}
                                 title={translate(getChatHistoryTranslationKey(isCustomAgent, login))}
