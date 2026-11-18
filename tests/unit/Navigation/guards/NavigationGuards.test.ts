@@ -1,4 +1,4 @@
-import {clearGuards, createGuardContext, evaluateGuards, getRegisteredGuards, registerGuard} from '@libs/Navigation/guards';
+import {clearGuards, createGuardContext, evaluateGuards, registerGuard} from '@libs/Navigation/guards';
 import type {GuardContext, NavigationGuard} from '@libs/Navigation/guards/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,51 +18,21 @@ describe('Navigation Guard System', () => {
         clearGuards();
     });
 
-    describe('registerGuard', () => {
-        it('should register a guard', () => {
-            const mockGuard: NavigationGuard = {
-                name: 'TestGuard',
-                evaluate: () => ({type: 'ALLOW'}),
-            };
-
-            registerGuard(mockGuard);
-
-            expect(getRegisteredGuards()).toHaveLength(1);
-            expect(getRegisteredGuards().at(0)).toBe(mockGuard);
-        });
-
-        it('should register multiple guards in order', () => {
-            const guard1: NavigationGuard = {
-                name: 'Guard1',
-                evaluate: () => ({type: 'ALLOW'}),
-            };
-            const guard2: NavigationGuard = {
-                name: 'Guard2',
-                evaluate: () => ({type: 'ALLOW'}),
-            };
-
-            registerGuard(guard1);
-            registerGuard(guard2);
-
-            const guards = getRegisteredGuards();
-            expect(guards).toHaveLength(2);
-            expect(guards.at(0)?.name).toBe('Guard1');
-            expect(guards.at(1)?.name).toBe('Guard2');
-        });
-    });
-
     describe('clearGuards', () => {
         it('should remove all registered guards', () => {
-            const mockGuard: NavigationGuard = {
-                name: 'TestGuard',
-                evaluate: () => ({type: 'ALLOW'}),
-            };
+            // Given a registered guard that would block navigation
+            const evaluateFn = jest.fn(() => ({type: 'BLOCK' as const, reason: 'Blocked'}));
+            registerGuard({name: 'TestGuard', evaluate: evaluateFn});
+            const state = {key: 'test-key', index: 0, routeNames: [], routes: [], type: 'test', stale: false} as NavigationState;
+            const action = {type: 'NAVIGATE', payload: {name: 'TestScreen'}} as const;
+            const context: GuardContext = {isAuthenticated: true, isLoading: false, currentUrl: '', isSupportalSession: false, isDelegateSession: false};
 
-            registerGuard(mockGuard);
-            expect(getRegisteredGuards()).toHaveLength(1);
-
+            // When the guards are cleared
             clearGuards();
-            expect(getRegisteredGuards()).toHaveLength(0);
+
+            // Then navigation is allowed and the cleared guard is never evaluated
+            expect(evaluateGuards(state, action, context)).toEqual({type: 'ALLOW'});
+            expect(evaluateFn).not.toHaveBeenCalled();
         });
     });
 

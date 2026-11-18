@@ -29,11 +29,6 @@ type AgentZeroStatusState = {
     candidateAgentIDs: number[];
 };
 
-type AgentZeroStatusActions = {
-    /** Optimistically show the current AgentZero persona's thinking indicator. */
-    kickoffWaitingIndicator: () => void;
-};
-
 type ReportMeta = {
     chatType: Report['chatType'];
     isDM: boolean;
@@ -54,12 +49,7 @@ const defaultState: AgentZeroStatusState = {
     candidateAgentIDs: [],
 };
 
-const defaultActions: AgentZeroStatusActions = {
-    kickoffWaitingIndicator: () => {},
-};
-
 const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultState);
-const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
  * Cheap outer guard — subscribes to the scalar CONCIERGE_REPORT_ID, the report's chat metadata,
@@ -150,7 +140,7 @@ function AgentZeroStatusGate({
 
     const optimisticAgentAccountID = includeConcierge ? CONST.ACCOUNT_ID.CONCIERGE : customAgentDMAccountID;
 
-    // The composer calls this before the server's processing-indicator NVP lands. Concierge and
+    // Called on the CONCIERGE_THINKING_KICKOFF flag, before the server's processing-indicator NVP lands. Concierge and
     // custom-agent DMs both use the same per-agent optimistic store; other custom-agent contexts
     // remain server-driven so report-activity agents don't appear before Auth decides to run them.
     const kickoffWaitingIndicator = () => {
@@ -197,22 +187,13 @@ function AgentZeroStatusGate({
     });
 
     const stateValue = {candidateAgentIDs};
-    const actionsValue = {kickoffWaitingIndicator};
 
-    return (
-        <AgentZeroStatusActionsContext.Provider value={actionsValue}>
-            <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>
-        </AgentZeroStatusActionsContext.Provider>
-    );
+    return <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>;
 }
 
 function useAgentZeroStatus(): AgentZeroStatusState {
     return useContext(AgentZeroStatusStateContext);
 }
 
-function useAgentZeroStatusActions(): AgentZeroStatusActions {
-    return useContext(AgentZeroStatusActionsContext);
-}
-
-export {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions};
+export {AgentZeroStatusProvider, useAgentZeroStatus};
 export type {ReasoningEntry};
