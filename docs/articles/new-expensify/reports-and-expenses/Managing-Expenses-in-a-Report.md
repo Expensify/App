@@ -100,22 +100,17 @@ The reports must belong to the same submitter and workspace and be at the same p
 
 Paid/reimbursed and Done/closed reports cannot be merged. You cannot mix Draft, Outstanding, and Approved reports in one merge.
 
-**On web:**
+You can merge reports on both web and mobile:
 
-1. In the navigation tabs on the left, select **Spend > Reports**.
-3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More (⋮)**, then **Merge reports**.
-3. Select **Merge reports** from the selection bar. If it is not shown directly, select **More**, then **Merge reports**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Reports**.
+2. Select the specific reports you want to merge rather than all matching search results:
+   - **On web:** Select the checkbox beside each report.
+   - **On mobile:** Press and hold a report, then select **Select**. Select the checkboxes beside the other reports you want to merge.
+3. Open the merge action:
+   - **On web:** Select **Merge reports** from the selection bar. If it is not shown directly, select **More**, then **Merge reports**.
+   - **On mobile:** Select **X selected** (where X is the number of selected reports), then select **Merge reports**.
 4. Choose the report you want to keep.
 5. Select **Confirm**.
-
-**On mobile:**
-
-1. In the navigation tabs on the bottom, select **Spend > Reports**.
-2. Press and hold a report, then select **Select**.
-3. Select each other report you want to merge. Select specific reports rather than all matching search results.
-4. Select **X selected** (where X is the number of selected reports), then select **Merge reports**.
-5. Choose the report you want to keep.
-6. Select **Confirm**.
 
 If an error says the reports have different report field values, **Confirm** is disabled. Open each report and make the editable report fields match before merging. Formula fields do not need to match. Workspace admins can update report fields on Approved reports without unapproving them. This field check applies to all report merges, not only Approved reports.
 
