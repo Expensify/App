@@ -11636,7 +11636,7 @@ const translations = {
             },
             travelType: {
                 label: 'Travel type',
-                [CONST.SEARCH.TRAVEL_TYPE.AIR]: 'Air',
+                [CONST.SEARCH.TRAVEL_TYPE.AIR]: 'Flight',
                 [CONST.SEARCH.TRAVEL_TYPE.HOTEL]: 'Hotel',
                 [CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL]: 'Car rental',
                 [CONST.SEARCH.TRAVEL_TYPE.RAIL]: 'Rail',
@@ -11645,6 +11645,13 @@ const translations = {
             travelPlatform: {
                 label: 'Travel platform',
                 [CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL]: 'Expensify Travel',
+                [CONST.SEARCH.TRAVEL_PLATFORM.AMEX_GBT]: 'Amex GBT/Egencia',
+                [CONST.SEARCH.TRAVEL_PLATFORM.SAP_CONCUR]: 'SAP Concur',
+                [CONST.SEARCH.TRAVEL_PLATFORM.NAVAN]: 'Navan',
+                [CONST.SEARCH.TRAVEL_PLATFORM.FCM]: 'FCM',
+                [CONST.SEARCH.TRAVEL_PLATFORM.FLIGHT_CENTRE]: 'Flight Centre',
+                [CONST.SEARCH.TRAVEL_PLATFORM.SERKO]: 'Serko',
+                [CONST.SEARCH.TRAVEL_PLATFORM.CTM]: 'CTM',
                 [CONST.SEARCH.TRAVEL_PLATFORM.OTHER]: 'Other',
             },
             withdrawalType: {
