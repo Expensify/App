@@ -8,20 +8,21 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import useAlertModals from './useAlertModals';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+
+const tripDataSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => reportNameValuePairs?.tripData;
 
 /**
  * Approve and Reject for a trip room's bookings. Offline they show the Spend offline message and send nothing,
  * because Spotnana may approve or cancel the booking at its deadline before a queued decision would reach it.
  */
-
-const tripDataSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => reportNameValuePairs?.tripData;
-
 function useTravelBookingDecision(tripRoomReport: OnyxEntry<Report>) {
     const {isOffline} = useNetwork();
     const {showOfflineModal} = useAlertModals();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [tripData] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`, {selector: tripDataSelector});
 
     const approveBookings = (pnrIDs: string[]) => {
@@ -37,7 +38,7 @@ function useTravelBookingDecision(tripRoomReport: OnyxEntry<Report>) {
             showOfflineModal();
             return;
         }
-        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID}, pnrID, reason);
+        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID, delegateAccountID}, pnrID, reason);
     };
 
     return {approveBookings, rejectBooking};

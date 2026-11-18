@@ -2,6 +2,7 @@ import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams, ApproveTravelBookingsParams, RejectTravelBookingParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildOptimisticRejectReportActionComment} from '@libs/ReportUtils';
 import type {TripRoomData} from '@libs/TravelApprovalUtils';
 import {canApproveAnyBooking, getTripStatusFromBookings} from '@libs/TravelApprovalUtils';
 
@@ -135,9 +136,16 @@ type TravelBookingDecisionParams = {
     tripData: TripRoomData;
 
     currentUserAccountID: number;
+
+    /** The copilot deciding on the user's behalf, if any */
+    delegateAccountID?: number;
 };
 
-type TravelBookingDecisionOnyxKeys = typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
+type TravelBookingDecisionOnyxKeys =
+    | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
 
 type BookingDecisionOnyxData = {
     optimisticData: Array<OnyxUpdate<TravelBookingDecisionOnyxKeys>>;
@@ -267,8 +275,20 @@ function rejectTravelBooking(decisionParams: TravelBookingDecisionParams, pnrID:
         return;
     }
 
-    const params: RejectTravelBookingParams = {reportID, pnrID, ...(reason ? {reason} : {})};
-    API.write(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, params, buildBookingDecisionOnyxData(decisionParams, [pnrID], CONST.TRAVEL.BOOKING_APPROVAL.STATUS.REJECTED));
+    const params: RejectTravelBookingParams = {reportID, pnrID};
+    const onyxData = buildBookingDecisionOnyxData(decisionParams, [pnrID], CONST.TRAVEL.BOOKING_APPROVAL.STATUS.REJECTED);
+    if (reason) {
+        // The backend posts the reason as a comment in the trip room under this ID, so it shows right away like a reject expense comment
+        const reasonReportAction = buildOptimisticRejectReportActionComment(reason, decisionParams.delegateAccountID);
+        params.reason = reason;
+        params.reasonReportActionID = reasonReportAction.reportActionID;
+
+        const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        onyxData.optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {[reasonReportAction.reportActionID]: reasonReportAction}});
+        onyxData.successData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {[reasonReportAction.reportActionID]: {pendingAction: null}}});
+        onyxData.failureData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {[reasonReportAction.reportActionID]: null}});
+    }
+    API.write(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, params, onyxData);
 }
 
 /** Dismisses the error a failed approval decision left on a booking */

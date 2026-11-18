@@ -122,7 +122,11 @@ describe('Travel booking decisions', () => {
         await applyOnyxData('optimisticData');
 
         // Then the rejection is sent with its reason and shows right away
-        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, {reportID: TRIP_ROOM_ID, pnrID: HOTEL_PNR_ID, reason: 'Too expensive'}, expect.anything());
+        expect(mockWrite).toHaveBeenCalledWith(
+            WRITE_COMMANDS.REJECT_TRAVEL_BOOKING,
+            expect.objectContaining({reportID: TRIP_ROOM_ID, pnrID: HOTEL_PNR_ID, reason: 'Too expensive'}),
+            expect.anything(),
+        );
         const reportNameValuePairs = await getOnyxValue(reportNameValuePairsKey);
         expect(reportNameValuePairs?.tripData?.bookingApprovalState?.[HOTEL_PNR_ID]).toMatchObject({status: 'rejected', pendingAction: 'update'});
 
@@ -137,6 +141,46 @@ describe('Travel booking decisions', () => {
         // Then the booking stops showing as pending
         const confirmed = await getOnyxValue(reportNameValuePairsKey);
         expect(confirmed?.tripData?.bookingApprovalState?.[HOTEL_PNR_ID]?.pendingAction).toBeFalsy();
+    });
+
+    it('shows the reject reason as a comment right away, under the ID the backend posts it with', async () => {
+        // Given an approver with an outstanding hotel
+        const tripData = buildTripData(CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING);
+        await setUpTrip(tripData);
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRIP_ROOM_ID}` as const;
+
+        // When they reject it with a reason
+        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID, 'Too expensive');
+        await applyOnyxData('optimisticData');
+
+        // Then the reason shows in the trip room as a pending comment with the ID that was sent, so the backend's comment replaces it
+        const [reasonReportActionID = ''] = Object.keys((await getOnyxValue(reportActionsKey)) ?? {});
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, expect.objectContaining({reasonReportActionID}), expect.anything());
+        expect((await getOnyxValue(reportActionsKey))?.[reasonReportActionID]).toMatchObject({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            message: [expect.objectContaining({text: 'Too expensive'})],
+        });
+
+        // When the rejection fails
+        await applyOnyxData('failureData');
+
+        // Then the comment goes away with it, since the booking is outstanding again
+        expect((await getOnyxValue(reportActionsKey))?.[reasonReportActionID]).toBeUndefined();
+    });
+
+    it('adds no comment when the booking is rejected without a reason', async () => {
+        // Given an approver with an outstanding hotel
+        const tripData = buildTripData(CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING, CONST.TRAVEL.BOOKING_APPROVAL.STATUS.OUTSTANDING);
+        await setUpTrip(tripData);
+
+        // When they reject it without a reason
+        rejectTravelBooking({tripRoomReport, tripData, currentUserAccountID: APPROVER_ACCOUNT_ID}, HOTEL_PNR_ID);
+        await applyOnyxData('optimisticData');
+
+        // Then nothing is posted, so no comment ID is sent and the trip room has no comment
+        expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.REJECT_TRAVEL_BOOKING, {reportID: TRIP_ROOM_ID, pnrID: HOTEL_PNR_ID}, expect.anything());
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRIP_ROOM_ID}`)).toBeUndefined();
     });
 
     it('puts the trip back to outstanding when the first of two back-to-back approvals fails', async () => {
