@@ -319,8 +319,12 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // Memoize so a stable reference reaches the render below; otherwise the slice() allocates a new array each render.
     const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
-    // Defer the list so each key updates the input before the matching workflows render.
-    const deferredDisplayedWorkflows = useDeferredValue(displayedWorkflows);
+    // Defer these together so each key updates the input first, and the list, Load more and no results always agree.
+    const deferredWorkflowList = useDeferredValue({
+        workflows: displayedWorkflows,
+        hiddenCount: hiddenWorkflowsCount,
+        hasNoMatches: searchFilteredWorkflows.length === 0,
+    });
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     // A loaded non-Submit group workspace with no stored mode uses the app's ADVANCED default. Keep this separate from
@@ -440,10 +444,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                             )}
                             <WorkflowNoResultsView
                                 message={translate('common.noResultsFoundMatching', workflowSearchInput)}
-                                shouldShow={searchFilteredWorkflows.length === 0 && workflowSearchInput.length > 0}
+                                shouldShow={deferredWorkflowList.hasNoMatches && workflowSearchInput.length > 0}
                                 searchValue={workflowSearchInput}
                             />
-                            {deferredDisplayedWorkflows.map((workflow) => {
+                            {deferredWorkflowList.workflows.map((workflow) => {
                                 const firstApproverEmail = workflow.approvers.at(0)?.email ?? '';
                                 // The first approver isn't unique once rule-based chains diverge, so anchor the key/edit route
                                 // on a member too (each member belongs to exactly one workflow).
@@ -464,9 +468,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                     />
                                 );
                             })}
-                            {hiddenWorkflowsCount > 0 && (
+                            {deferredWorkflowList.hiddenCount > 0 && (
                                 <WorkflowsLoadMoreCard
-                                    count={hiddenWorkflowsCount}
+                                    count={deferredWorkflowList.hiddenCount}
                                     onPress={() => setIsWorkflowListExpanded(true)}
                                 />
                             )}
