@@ -6,6 +6,7 @@ import {AUTHENTICATION_COMMAND} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import {getBaseRequestParameters} from '@libs/Network/enhanceParameters';
+import isJWTAuthToken from '@libs/Network/isJWTAuthToken';
 import {getCredentials} from '@libs/Network/NetworkStore';
 import {getPartnerCredentials} from '@libs/SessionUtils';
 
@@ -76,7 +77,20 @@ function removeAppVersionFromPrefetchBody(body: RequestInit['body']): RequestIni
     return prefetchBody;
 }
 
-function registerPrefetchTokenRefresh(): void {
+function getPrefetchAuthToken(body: RequestInit['body']): string | undefined {
+    if (!isPrefetchFormData(body)) {
+        return undefined;
+    }
+
+    const prefetchFormData: PrefetchFormData = body;
+    return prefetchFormData.getParts().find((part) => part.fieldName === CONST.HTTP_HEADER_NAMES.AUTH_TOKEN)?.string;
+}
+
+/**
+ * Nitro maps every refreshed token into the header without looking at it, so the Authorization mapping is only registered when the saved request
+ * carries a JWT. If Auth refreshes it to a hex token, the prefetch sends that as a Bearer header until the app saves a ReconnectApp sent with a hex token.
+ */
+function registerPrefetchTokenRefresh(shouldMapAuthorizationHeader: boolean): void {
     const credentials = getCredentials();
 
     clearTokenRefresh(NITRO_FETCH_TARGET);
@@ -96,6 +110,9 @@ function registerPrefetchTokenRefresh(): void {
         },
         body: buildAuthenticateBody(credentials),
         responseType: 'json',
+        mappings: shouldMapAuthorizationHeader
+            ? [{jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN, header: CONST.HTTP_HEADER_NAMES.AUTHORIZATION, valueTemplate: 'Bearer {{value}}'}]
+            : undefined,
         formDataMappings: [{jsonPath: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN, field: CONST.HTTP_HEADER_NAMES.AUTH_TOKEN}],
         onFailure: 'useStoredHeaders',
     });
@@ -108,7 +125,7 @@ const registerPrefetchOnAppStart: RegisterPrefetchOnAppStart = ({prefetchKey, fe
         return;
     }
 
-    registerPrefetchTokenRefresh();
+    registerPrefetchTokenRefresh(isJWTAuthToken(getPrefetchAuthToken(fetchParams.body)));
     prefetchOnAppStart(url, {...fetchParams, body: removeAppVersionFromPrefetchBody(fetchParams.body)}).catch((error) => {
         Log.warn(`[NitroFetch] prefetchOnAppStart failed for ${command}`, {error, fetchParams, url});
     });
