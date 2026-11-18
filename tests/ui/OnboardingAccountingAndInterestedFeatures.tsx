@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import Icon from '@components/Icon';
@@ -13,9 +13,15 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import AccountingOptionRow from '@pages/OnboardingAccounting/AccountingOptionRow';
 import accountingOptions from '@pages/OnboardingAccounting/accountingOptions';
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
 import BaseOnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures';
+import AccountingIntegrationWaitlistCard from '@pages/workspace/connections/AccountingIntegrationWaitlistCard';
+import ConnectionCard from '@pages/workspace/connections/ConnectionCard';
+import ConnectionsGrid from '@pages/workspace/connections/ConnectionsGrid';
+import IntegrationWaitlistCard from '@pages/workspace/connections/IntegrationWaitlistCard';
+import useAccountingConnectionListings from '@pages/workspace/connections/useAccountingConnectionListings';
 
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
@@ -23,12 +29,18 @@ import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
+
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -40,8 +52,17 @@ type MockCompleteOnboardingParams = {
 
 const mockCompleteOnboardingFlow = jest.fn<void, [MockCompleteOnboardingParams]>();
 jest.mock('@hooks/useCompleteOnboarding', () => () => ({completeOnboardingFlow: mockCompleteOnboardingFlow, isLoading: false}));
-const mockIsBetaEnabled = jest.fn(() => true);
+const mockIsBetaEnabled = jest.fn<boolean, [Beta]>(() => true);
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: mockIsBetaEnabled}));
+jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: true, showReadOnlyModal: jest.fn()}));
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
+jest.mock('@pages/workspace/accounting/AccountingContext', () => ({
+    useAccountingActions: () => ({startIntegrationFlow: jest.fn()}),
+    useAccountingState: () => ({activeIntegration: undefined, popoverAnchorRefs: {current: {}}}),
+}));
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
@@ -94,6 +115,10 @@ function searchFor(query: string) {
 
 function continueOnboarding() {
     fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+}
+
+function ConnectionsTestWrapper({children}: ChildrenProps) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
 describe('Onboarding interested features and accounting pages', () => {
@@ -295,6 +320,73 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Dynamics 365 Business Central'})).not.toBeOnTheScreen();
         expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(14);
         expect(screen.getAllByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toHaveLength(3);
+    });
+
+    it.each([
+        {betas: [], connected: undefined, digits: false, businessCentral: false},
+        {betas: [CONST.BETAS.DIGITS], connected: undefined, digits: true, businessCentral: false},
+        {betas: [CONST.BETAS.BUSINESS_CENTRAL], connected: undefined, digits: false, businessCentral: true},
+        {betas: [CONST.BETAS.DIGITS, CONST.BETAS.BUSINESS_CENTRAL], connected: undefined, digits: true, businessCentral: true},
+        {betas: [], connected: CONST.POLICY.CONNECTIONS.NAME.DIGITS, digits: true, businessCentral: false},
+        {betas: [], connected: CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL, digits: false, businessCentral: true},
+        {betas: [CONST.BETAS.ODOO, CONST.BETAS.EXACT_ONLINE, CONST.BETAS.SAGE_ACCOUNTING], connected: undefined, digits: false, businessCentral: false},
+    ])('matches every Connections listing and badge with betas $betas and connection $connected', async ({betas, connected, digits, businessCentral}) => {
+        // Given both surfaces use the same workspace and beta enrollment, without any saved custom onboarding answer
+        mockIsBetaEnabled.mockImplementation((beta) => betas.some((enabledBeta) => enabledBeta === beta));
+        const policy = createMock<Policy>({id: 'parity-policy', type: CONST.POLICY.TYPE.CORPORATE, connections: connected ? {[connected]: {}} : {}});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policy.id);
+        });
+
+        // When real Connections listings and cards render, including any already-connected integration
+        const hook = renderHook(() => useAccountingConnectionListings(policy), {wrapper: ConnectionsTestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        const listings = hook.result.current;
+        const connections = render(
+            <ConnectionsGrid
+                listings={listings}
+                policyID={policy.id}
+            />,
+            {wrapper: ConnectionsTestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const cards = [
+            ...connections.UNSAFE_getAllByType(ConnectionCard),
+            ...connections.UNSAFE_getAllByType(IntegrationWaitlistCard),
+            ...connections.UNSAFE_getAllByType(AccountingIntegrationWaitlistCard),
+        ];
+        const comingSoon = TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon');
+        const expectedChoices = listings.map((listing) => {
+            const title = listing.title;
+            if (!title) {
+                throw new Error(`Missing accounting listing title for ${listing.key}`);
+            }
+            const card = cards.find((candidate) => within(candidate).queryByText(title));
+            if (!card) {
+                throw new Error(`Missing Connections card for ${title}`);
+            }
+            return {title, isComingSoon: !!within(card).queryByText(comingSoon)};
+        });
+        expect(listings.some((listing) => listing.key === CONST.POLICY.CONNECTIONS.NAME.DIGITS)).toBe(digits);
+        expect(listings.some((listing) => listing.key === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe(businessCentral);
+        connections.unmount();
+        hook.unmount();
+
+        const onboarding = renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then every visible listing, including IES and all waitlist choices, has the same name and badge in onboarding
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(expectedChoices.length);
+        const rows = onboarding.UNSAFE_getAllByType(AccountingOptionRow);
+        for (const choice of expectedChoices) {
+            expect(screen.getByRole(CONST.ROLE.RADIO, {name: choice.title})).toBeOnTheScreen();
+            const row = rows.find((candidate) => within(candidate).queryByText(choice.title));
+            if (!row) {
+                throw new Error(`Missing onboarding row for ${choice.title}`);
+            }
+            expect(!!within(row).queryByText(comingSoon)).toBe(choice.isComingSoon);
+        }
     });
 
     it('preserves mobile Safari viewport handling', async () => {

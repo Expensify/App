@@ -78,9 +78,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     }, [groupPolicy, onboardingPolicyID]);
 
     const onboardingPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`];
-    const canUseBusinessCentral = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!onboardingPolicy?.connections?.businessCentral;
-    const canUseDigits = isBetaEnabled(CONST.BETAS.DIGITS) || !!onboardingPolicy?.connections?.digits;
-    const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, canUseBusinessCentral, canUseDigits));
+    const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, onboardingPolicy, isBetaEnabled));
 
     const savedIntegration = draft ? draft.integration : onboardingUserReportedIntegration;
     const selectedAnswer: {integration: OnboardingAccountingOption; name?: string} | undefined = savedIntegration

@@ -48,11 +48,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         return [];
     }
 
-    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
-    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) =>
-        isAccountingConnectionAvailable(name, canUseBusinessCentralIntegration, canUseDigitsIntegration),
-    );
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => isAccountingConnectionAvailable(name, policy, isBetaEnabled));
 
     const syncingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     // HR providers write to the same sync progress key, so only an accounting sync counts here
