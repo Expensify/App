@@ -42,19 +42,21 @@ To change their role, first go to **Workspaces > [workspace name] > Workflows > 
 
 ## How to set a member’s Category visibility
 
-Workspace admins on the Control plan can choose which enabled categories each member can use. Categories must be enabled on the workspace.
+On the Control plan, workspace admins can use **Category visibility** to choose which enabled categories a member can use for their expenses. Categories must be enabled in the workspace before they can be assigned to a member.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
 2. Select the member’s name.
 3. Select **Category visibility**.
-4. Select the categories the member can use. Use the search field to find a category.
+4. Select the categories the member can use. Use the search field to find specific categories.
 5. Select **Save**.
 
-The member’s details show **All categories** when unrestricted, or a category count when restricted. To remove the restriction, select every category and save. Every member must retain at least one enabled category.
+The member’s details show **All categories** when access is unrestricted, or the number of available categories when restricted. To remove restrictions, select all enabled categories and save. Each member must have access to at least one enabled category.
 
-Restrictions apply when members categorize their own expenses, including admins’ own expenses. Admins and approvers can still select any enabled category when editing someone else’s expense. Visibility changes are recorded in the workspace’s **#admins** room.
+Category visibility restrictions apply when members categorize their own expenses, including workspace admins. However, admins and approvers can still select any enabled category when editing another member’s expense.
 
-Learn how [category visibility affects automatic categorization and expense violations](/articles/new-expensify/workspaces/Create-expense-categories#how-to-control-which-categories-a-member-can-use).
+Changes to Category visibility are recorded in the workspace’s **#admins** room.
+
+Learn how [Category visibility affects automatic categorization and expense violations](/articles/new-expensify/workspaces/Create-expense-categories#how-to-control-which-categories-a-member-can-use).
 
 ## How to remove a workspace member
 
