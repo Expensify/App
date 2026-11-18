@@ -66,12 +66,13 @@ describe('workflow stage grouping', () => {
         // When its rows are built
         const sections = buildWorkflowStageSections();
 
-        // Then every stage gets a row with its label, and the stage nobody completed keeps a null duration rather than a zero
+        // Then every stage gets a row with its label and the compact label chart axes use, and the stage nobody completed keeps a null duration rather than a zero
         const rowsByStage = Object.fromEntries(sections.map((section) => [section.workflowStage, section]));
         expect(sections).toHaveLength(3);
         expect(rowsByStage[CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]).toMatchObject({
             groupedBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
             formattedWorkflowStage: translateLocal('search.workflowStages.created-submitted'),
+            formattedWorkflowStageShort: translateLocal('search.workflowStageChartLabels.created-submitted'),
             averageDuration: 86400,
             count: 9,
         });
