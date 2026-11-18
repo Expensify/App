@@ -40,7 +40,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getEnabledCategoriesCount, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -268,6 +268,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
 
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
     const categoryRows: WorkspaceCategoryTableRowData[] = categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
         const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -291,7 +293,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             enabled: value.enabled,
             errors: value.errors ?? undefined,
             pendingAction: value.pendingAction,
-            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value], enabledCategoriesCount) || !canWriteCategories || isDisabled,
             canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
             action: () => navigateToCategory(value),
             onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
