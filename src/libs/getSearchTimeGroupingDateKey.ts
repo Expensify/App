@@ -1,8 +1,10 @@
 /** Keeps Search and Insights time buckets tied to the same positive date filter. */
-import type {ASTNode, SearchDateFilterKeys, SearchQueryJSON} from '@components/Search/types';
+import type {ASTNode, SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+
+import type {TupleToUnion} from 'type-fest';
 
 const GROUPING_DATE_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
@@ -11,7 +13,10 @@ const GROUPING_DATE_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
 ] as const;
 
-function getDateKeyFromNode(node: ASTNode | string | string[] | null | undefined): SearchDateFilterKeys | undefined {
+/** A date the time buckets can follow: the expense date or one of the grouping action dates */
+type SearchTimeGroupingDateKey = TupleToUnion<typeof GROUPING_DATE_KEYS> | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+
+function getDateKeyFromNode(node: ASTNode | string | string[] | null | undefined): SearchTimeGroupingDateKey | undefined {
     if (!node || typeof node !== 'object' || Array.isArray(node)) {
         return undefined;
     }
@@ -44,7 +49,7 @@ function getDateKeyFromNode(node: ASTNode | string | string[] | null | undefined
 }
 
 /** Returns the date an expense query's time buckets cover: the single action date its filters narrow by, or the expense date. */
-function getSearchTimeGroupingDateKey(query: Pick<SearchQueryJSON, 'filters' | 'type'> | undefined): SearchDateFilterKeys {
+function getSearchTimeGroupingDateKey(query: Pick<SearchQueryJSON, 'filters' | 'type'> | undefined): SearchTimeGroupingDateKey {
     if (query?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
         return CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
     }
