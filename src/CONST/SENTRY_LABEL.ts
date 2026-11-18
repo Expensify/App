@@ -21,6 +21,7 @@ const SENTRY_LABEL = {
         TABS_ITEM: 'DynamicForm-TabsItem',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
+        FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
     },
     APPROVE_MENU: {
         OPTION: {
@@ -573,6 +574,7 @@ const SENTRY_LABEL = {
             APPROVED: 'Search-Filter-Approved',
             ANY_APPROVAL: 'Search-Filter-AnyApproval',
             SUBMITTED: 'Search-Filter-Submitted',
+            ANY_SUBMISSION: 'Search-Filter-AnySubmission',
             PAID: 'Search-Filter-Paid',
             EXPORTED: 'Search-Filter-Exported',
             POSTED: 'Search-Filter-Posted',
@@ -631,6 +633,7 @@ const SENTRY_LABEL = {
             APPROVED: 'Search-AdvancedFilter-Approved',
             ANY_APPROVAL: 'Search-AdvancedFilter-AnyApproval',
             SUBMITTED: 'Search-AdvancedFilter-Submitted',
+            ANY_SUBMISSION: 'Search-AdvancedFilter-AnySubmission',
             PAID: 'Search-AdvancedFilter-Paid',
             EXPORTED: 'Search-AdvancedFilter-Exported',
             POSTED: 'Search-AdvancedFilter-Posted',
@@ -689,6 +692,7 @@ const SENTRY_LABEL = {
             APPROVED: 'Search-FilterPopupApply-Approved',
             ANY_APPROVAL: 'Search-FilterPopupApply-AnyApproval',
             SUBMITTED: 'Search-FilterPopupApply-Submitted',
+            ANY_SUBMISSION: 'Search-FilterPopupApply-AnySubmission',
             PAID: 'Search-FilterPopupApply-Paid',
             EXPORTED: 'Search-FilterPopupApply-Exported',
             POSTED: 'Search-FilterPopupApply-Posted',
@@ -884,6 +888,9 @@ const SENTRY_LABEL = {
         CONTROL_DATE: 'Insights-ControlDate',
         CHART_MENU_VIEW_ON_SPEND: 'Insights-ChartMenuViewOnSpend',
         CHART_MENU_DOWNLOAD_CSV: 'Insights-ChartMenuDownloadCSV',
+        CHART_MENU_VIOLATION_STAGE: 'Insights-ChartMenuViolationStage',
+        CHART_MENU_VIOLATION_STAGE_APPLY: 'Insights-ChartMenuViolationStageApply',
+        CHART_MENU_VIOLATION_STAGE_RESET: 'Insights-ChartMenuViolationStageReset',
         NO_EXPENSES_CREATE_EXPENSE: 'Insights-NoExpensesCreateExpense',
         UPSELL_UPGRADE: 'Insights-UpsellUpgrade',
         CONTROL_EXPORT: 'Insights-ControlExport',
@@ -1555,6 +1562,12 @@ const SENTRY_LABEL = {
     },
     TAX_PICKER_MODAL: {
         BACK_BUTTON: 'TaxPickerModal-BackButton',
+    },
+    CREATE_DISTANCE_RATE: {
+        COUNTRY_FIELD: 'CreateDistanceRate-CountryField',
+        COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
+        KIND_GOVERNMENT_TAB: 'CreateDistanceRate-KindTab-Government',
+        KIND_CUSTOM_TAB: 'CreateDistanceRate-KindTab-Custom',
     },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',
@@ -2353,6 +2366,10 @@ const SENTRY_LABEL = {
                 ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-AccountsSwitch',
                 ENABLE_NEW_ACCOUNTS_SWITCH: 'WorkspaceAccountingDigits-EnableNewAccountsSwitch',
                 DEPARTMENTS_SWITCH: 'WorkspaceAccountingDigits-DepartmentsSwitch',
+                PREFERRED_EXPORTER: 'WorkspaceAccountingDigits-PreferredExporter',
+                EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
+                DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
+                COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
@@ -3325,6 +3342,7 @@ const SENTRY_LABEL = {
         ADD_COPILOT_ACCESS_LEVEL: 'SettingsSecurity-AddCopilotAccessLevel',
         ADD_COPILOT_CONFIRM: 'SettingsSecurity-AddCopilotConfirm',
         DEVICE_REVOKE: 'SettingsSecurity-DeviceRevoke',
+        SIGN_OUT_ALL_DEVICES: 'SettingsSecurity-SignOutAllDevices',
         LOCK_ACCOUNT_SUBMIT: 'SettingsSecurity-LockAccountSubmit',
         UNLOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-UnlockAccountChatWithConcierge',
         FAILED_TO_LOCK_ACCOUNT_CHAT_WITH_CONCIERGE: 'SettingsSecurity-FailedToLockAccountChatWithConcierge',
