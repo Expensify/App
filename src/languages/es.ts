@@ -7107,8 +7107,8 @@ ${amount} para ${merchant} - ${date}`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',
-                removeAccessTitle: ({categoryName}: {categoryName: string}) => `No se puede quitar el acceso a ${categoryName}`,
-                bulkRemoveAccessTitle: 'No se puede quitar el acceso a estas categorías',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `No se puede eliminar el acceso a ${categoryName}`,
+                bulkRemoveAccessTitle: 'No se puede eliminar el acceso a estas categorías',
                 description: ({count}: {count: number}) => ({
                     one: '1 miembro se quedaría sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:',
                     other: `${count} miembros se quedarían sin categorías para elegir. Actualiza la visibilidad de sus categorías y vuelve a intentarlo:`,

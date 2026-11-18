@@ -7143,12 +7143,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
-            visibleTo: 'Widoczna dla',
+            visibleTo: 'Widoczne dla',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 członek',
-                few: `${count} członkowie`,
-                many: `${count} członków`,
-                other: `${count} członka`,
+                other: `${count} członków`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Wybierz, którzy członkowie mogą używać kategorii ${categoryName} podczas przesyłania wydatków.`,
             cannotDisableCategoryForMembers: {

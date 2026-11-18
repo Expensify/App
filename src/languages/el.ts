@@ -7279,12 +7279,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 one: '1 μέλος',
                 other: `${count} μέλη`,
             }),
-            visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} κατά την υποβολή εξόδων.`,
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
-                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η κατάργηση της πρόσβασης στο ${categoryName}`,
-                bulkRemoveAccessTitle: 'Δεν είναι δυνατή η κατάργηση της πρόσβασης σε αυτές τις κατηγορίες',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η κατάργηση πρόσβασης στην κατηγορία ${categoryName}`,
+                bulkRemoveAccessTitle: 'Δεν είναι δυνατή η κατάργηση πρόσβασης σε αυτές τις κατηγορίες',
                 description: ({count}: {count: number}) => ({
                     one: '1 μέλος θα μείνει χωρίς κατηγορίες για να διαλέξει. Ενημερώστε την ορατότητα των κατηγοριών του και δοκιμάστε ξανά:',
                     other: `${count} μέλη θα μείνουν χωρίς κατηγορίες για να επιλέξουν. Ενημερώστε την ορατότητα των κατηγοριών τους και δοκιμάστε ξανά:`,
