@@ -1,12 +1,15 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberDefaultCategory,
+    getMemberVisibleCategoryNames,
+    getMembersWithoutVisibleCategories,
+    getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -17,12 +20,14 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
@@ -622,29 +627,146 @@ describe('getCategoryNameError', () => {
     });
 });
 
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
+describe('getMemberVisibleCategoryNames', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false},
+    };
+
+    it('returns the enabled categories open to everyone or to the member', () => {
+        // Given a member who is listed on one restricted category but not another
+        // When we get the categories they can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(policyCategories, 1);
+
+        // Then the unrestricted category and the one listing them are returned, and the disabled one is not
+        expect(visibleCategoryNames).toEqual(['Travel', 'Meals']);
     });
 
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
+    it('returns nothing when there are no categories', () => {
+        // Given a workspace whose categories haven't loaded
+        // When we get the categories a member can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(undefined, 1);
+
+        // Then there are none, rather than a crash
+        expect(visibleCategoryNames).toEqual([]);
+    });
+});
+
+describe('getMembersWithoutVisibleCategories', () => {
+    // Alice (1) is unrestricted, Bob (2) can only use Fuel, and Carol (3) can use Fuel and Meals.
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: buildVisibleTo(1)},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 3)},
+        Fuel: {name: 'Fuel', enabled: true, visibleTo: buildVisibleTo(1, 2, 3)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(1, 2)},
+    };
+
+    it('returns only the members left without an enabled category', () => {
+        // Given Fuel is Bob's only enabled category, while Carol also has Meals and Alice can use everything
+        // When Fuel is about to be disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel'], [1, 2, 3]);
+
+        // Then only Bob is blocked; his disabled Office category doesn't count as one he can still use
+        expect(members).toEqual([2]);
     });
 
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    it('counts every category being disabled at once', () => {
+        // Given Carol can only use Fuel and Meals
+        // When both are disabled together in bulk
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel', 'Meals'], [1, 2, 3]);
+
+        // Then Bob and Carol are both blocked
+        expect(members).toEqual([2, 3]);
     });
 
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
+    it("leaves out members who can't use any of the categories being disabled", () => {
+        // Given Dave (4) can't use any enabled category, for example because he was invited after the restrictions were set
+        // When Travel is disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Travel'], [4]);
+
+        // Then he isn't blocked, since disabling Travel takes nothing away from him
+        expect(members).toEqual([]);
+    });
+
+    it('returns nothing when no category is restricted', () => {
+        // Given every category is open to everyone, as it is before any admin sets a restriction
+        const unrestrictedCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true},
         };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+
+        // When one is disabled
+        const members = getMembersWithoutVisibleCategories(unrestrictedCategories, ['Travel'], [1, 2]);
+
+        // Then no one is blocked, so the check needs no beta
+        expect(members).toEqual([]);
+    });
+});
+
+describe('getVisibleCategories', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+    };
+
+    it("keeps only the categories the expense's owner can use", () => {
+        // Given an owner who is on Meals' list but not on Software's or Office's
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 1);
+
+        // Then the category open to everyone and the one listing them are kept, keyed as before
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals']);
+    });
+
+    it('keeps disabled categories the owner can use, since the picker filters those out itself', () => {
+        // Given an owner who is on the list of a disabled category
+        // When the picker's categories are filtered for them
+        const visibleCategories = getVisibleCategories(policyCategories, 2);
+
+        // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
+        expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
+    });
+});
+
+describe('getMemberDefaultCategory', () => {
+    const policyCategories: PolicyCategories = {
+        Car: {name: 'Car', enabled: true, visibleTo: buildVisibleTo(2)},
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+    };
+
+    it('drops a default category hidden from the member', () => {
+        // Given a distance default of Car, which only member 2 can use
+        // When the default is resolved for member 1
+        const defaultCategory = getMemberDefaultCategory('Car', policyCategories, 1);
+
+        // Then no category is applied, so the expense isn't coded to a category the member can't pick
+        expect(defaultCategory).toBe('');
+    });
+
+    it('keeps a default category the member can use', () => {
+        // Given defaults that member 2 can use, one listing them and one open to everyone
+        // When the defaults are resolved for member 2
+        // Then both are applied as before
+        expect(getMemberDefaultCategory('Car', policyCategories, 2)).toBe('Car');
+        expect(getMemberDefaultCategory('Travel', policyCategories, 1)).toBe('Travel');
+    });
+
+    it("keeps the default while the category isn't loaded, since its visibility isn't known yet", () => {
+        // Given a default category that isn't in the loaded categories
+        // When the default is resolved
+        // Then it's kept, as it was before visibility existed
+        expect(getMemberDefaultCategory('Fuel', policyCategories, 1)).toBe('Fuel');
+        expect(getMemberDefaultCategory('Fuel', undefined, 1)).toBe('Fuel');
+    });
+
+    it('returns an empty category when the workspace has no default', () => {
+        // Given no default category
+        // When it's resolved
+        // Then nothing is applied
+        expect(getMemberDefaultCategory(undefined, policyCategories, 1)).toBe('');
     });
 });

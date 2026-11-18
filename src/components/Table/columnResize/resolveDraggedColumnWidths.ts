@@ -21,6 +21,9 @@ type ResizableColumn = {
     /** The layout's minimum, which absorbing never goes below. */
     minWidth: number;
 
+    /** Narrowest width a drag may give this column. Omitted to use the usual drag bound. */
+    dragMinWidth?: number;
+
     /** Width absorbing another column's resize never grows it past. `Infinity` when uncapped. */
     maxWidth: number;
 };

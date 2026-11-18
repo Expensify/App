@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -23,7 +24,7 @@ type CameraPermissionPromptProps = {
     subtitle?: string;
 
     /** Sentry label for the continue button */
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
 };
 
 function CameraPermissionPrompt({isInLandscapeMode, onPress, subtitle, sentryLabel = CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_CAMERA_PERMISSION_PROMPT_BUTTON}: CameraPermissionPromptProps) {

@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import goToSettings from '@libs/goToSettings';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,6 +35,7 @@ function ImportContactButton({showImportContacts, inputHelperText, isInSearch = 
                 <Text
                     style={[styles.textLabel, styles.minHeight5, styles.link]}
                     onPress={onPress}
+                    sentryLabel={CONST.SENTRY_LABEL.IMPORT_CONTACT_BUTTON.LINK}
                 >
                     {translate('contact.importContactsTitle')}
                 </Text>{' '}

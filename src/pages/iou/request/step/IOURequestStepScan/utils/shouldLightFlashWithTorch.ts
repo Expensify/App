@@ -12,13 +12,12 @@ type TorchForFlashConditions = {
     flash: boolean;
     hasFlash: boolean;
     hasTorch: boolean;
-    isBetaEnabled: boolean;
     isMultiScanEnabled: boolean;
     canUpgradeReceiptQuality: boolean;
 };
 
-function shouldLightFlashWithTorch({flash, hasFlash, hasTorch, isBetaEnabled, isMultiScanEnabled, canUpgradeReceiptQuality}: TorchForFlashConditions): boolean {
-    return cameraPlatformConfig.canLightFlashWithTorch && isBetaEnabled && flash && hasFlash && hasTorch && canUpgradeReceiptQuality && !isMultiScanEnabled;
+function shouldLightFlashWithTorch({flash, hasFlash, hasTorch, isMultiScanEnabled, canUpgradeReceiptQuality}: TorchForFlashConditions): boolean {
+    return cameraPlatformConfig.canLightFlashWithTorch && flash && hasFlash && hasTorch && canUpgradeReceiptQuality && !isMultiScanEnabled;
 }
 
 /** What the camera reports at shutter time about a torch that was asked to light the capture */

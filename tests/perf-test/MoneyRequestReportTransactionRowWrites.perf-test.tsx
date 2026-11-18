@@ -26,6 +26,7 @@ import type React from 'react';
 
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
 
 import * as ReportTestUtils from '../utils/ReportTestUtils';
@@ -105,7 +106,15 @@ beforeAll(() => {
 
 const mockOnLayout = jest.fn();
 function buildActionListContextValue() {
-    return {scrollOffsetRef: {current: 0}, getScrollOffset: () => 0, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: {current: 0},
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => 0,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 const actionListContextValue = buildActionListContextValue();
 const mockReactionListContextValue = {
@@ -166,6 +175,8 @@ function buildTransaction(index: number): Transaction {
 const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => buildTransaction(index));
 
 beforeEach(async () => {
+    // The list marks the report as read, which sends an API request. A real request finishes at a random time and adds renders to some runs only.
+    global.fetch = TestHelper.getGlobalFetchMock();
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     await act(async () => {

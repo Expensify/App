@@ -110,7 +110,12 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 prompt: (
                     <Text>
                         {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptStart')}
-                        <TextLink onPress={goToWorkspaceOverview}>{translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}</TextLink>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORKSPACE_ADDRESS_LINK}
+                            onPress={goToWorkspaceOverview}
+                        >
+                            {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.linkText')}
+                        </TextLink>
                         {translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.promptEnd')}
                     </Text>
                 ),
@@ -225,6 +230,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_SAVE}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={onSave}
@@ -238,6 +244,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
 
     const workArrangementFooter = (
         <MenuItemField
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COMMUTER_EXCLUSIONS_WORK_ARRANGEMENT}
             name={translate('workspace.distanceRates.commuterExclusions.workArrangement.title')}
             value={translate(
                 hasOfficeWorkArrangement(existingCommuterExclusions)

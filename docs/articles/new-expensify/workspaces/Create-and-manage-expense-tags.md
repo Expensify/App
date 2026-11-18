@@ -82,7 +82,7 @@ The linked templates can be used to import multi-level tags:
 - [Independent tags without GL codes](https://help.expensify.com/assets/Files/Independent+without+GL+codes+format.csv)
 
 **Notes:**
- - Only CSV and TSV files are supported for multi-level tag imports. A single file can include up to 50,000 tags.
+ - Only CSV and TSV files are supported for multi-level tag imports.
 
 ---
 

@@ -2,6 +2,7 @@ import {addMiddleware} from '@libs/Request';
 
 import {
     DiscardStaleSearchSnapshot,
+    MembersNeedCategoryError,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -57,6 +58,9 @@ function registerMiddlewares() {
 
     // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
     addMiddleware(GlobalReimbursementPayError);
+
+    // Show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without.
+    addMiddleware(MembersNeedCategoryError);
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);

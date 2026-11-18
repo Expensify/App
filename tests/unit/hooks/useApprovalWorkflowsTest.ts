@@ -124,6 +124,37 @@ describe('useApprovalWorkflows', () => {
         });
     });
 
+    it('keeps deriving workflows from employeeList under MULTIPLE_APPROVERS while a policy without rules has an over-limit approver', async () => {
+        // Given the beta is on, and an advanced policy without rules whose approver sends reports over their limit to the admin
+        mockIsBetaEnabled([CONST.BETAS.MULTIPLE_APPROVERS]);
+        const policy = {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            approver: APPROVER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL},
+                [APPROVER_EMAIL]: {email: APPROVER_EMAIL, approvalLimit: 10000, overLimitForwardsTo: CURRENT_USER_LOGIN},
+            },
+        };
+
+        // When the workflows are derived, before and after the policy gets rules
+        const {result} = renderHook(() => useApprovalWorkflows(policy));
+        await waitFor(() => {
+            expect(result.current.approvalWorkflows).toHaveLength(1);
+        });
+        const shouldUseRulesWithoutRules = result.current.shouldUseApprovalWorkflowRules;
+        await seedForwardApproveRules(POLICY_ID, SUBMITTER_EMAIL, APPROVER_EMAIL, 'rule');
+
+        // Then the policy stays on employeeList until it has rules, since writing rules would change where reports over
+        // the limit go, and the rules take over once they exist
+        expect(shouldUseRulesWithoutRules).toBe(false);
+        await waitFor(() => {
+            expect(result.current.shouldUseApprovalWorkflowRules).toBe(true);
+        });
+    });
+
     it('ignores rules belonging to another policy', async () => {
         mockIsBetaEnabled([CONST.BETAS.MULTIPLE_APPROVERS]);
         await seedForwardApproveRules(OTHER_POLICY_ID, SUBMITTER_EMAIL, APPROVER_EMAIL, 'otherPolicyRule');
