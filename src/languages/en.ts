@@ -523,8 +523,13 @@ const translations = {
         // @context Used in date or calendar contexts to refer to a calendar day, not a duration (“daytime”).
         day: 'day',
         days: 'days',
+        dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} day`,
+            other: (count: number) => `${formattedCount ?? count} days`,
+        }),
         rename: 'Rename',
         address: 'Address',
+        dayAbbreviation: 'd',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
         secondAbbreviation: 's',
@@ -733,6 +738,7 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         imageDimensionsTooLarge: 'Image dimensions are too large to process. Please use a smaller image.',
         tooManyFiles: (fileLimit: number) => `You can only upload up to ${fileLimit} files at a time.`,
+        fileAlreadyAdded: 'A file with the same name is already added.',
         sizeExceededWithValue: (maxUploadSizeInMB: number) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
         someFilesCantBeUploaded: "Some files can't be uploaded",
         sizeLimitExceeded: (maxUploadSizeInMB: number) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
@@ -1338,6 +1344,10 @@ const translations = {
             addFirstReceiptSubText: 'Scan or manually enter a receipt',
             linkPersonalCard: 'Link personal card',
             linkPersonalCardSubText: 'Import expenses automatically',
+            addName: 'Add your name',
+            addNameSubText: 'Help your teammates recognize you in Expensify.',
+            downloadApp: 'Download the app',
+            downloadAppSubText: 'Scan receipts, submit expenses, and approve reports on the go.',
             setupRulesSubText: 'Require receipts, flag high spend, and more',
             needHelp: 'Need help?',
             talkToConcierge: 'Talk to Concierge',
@@ -1363,6 +1373,10 @@ const translations = {
         },
     },
     insightsPage: {
+        tagLevel: (level: string) => `Tag level ${level}`,
+        tagLevelLabel: 'Tag level',
+        parent: 'Parent',
+        shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
@@ -1375,13 +1389,23 @@ const translations = {
         topViolations: 'Top violations',
         violationsBySubmitter: 'Violations by submitter',
         violationsByApprover: 'Violations by approver',
+        // @context Column header for each group's portion of the total, as a percentage. A noun, not the verb "to share".
+        share: 'Share',
         efficiency: 'Efficiency',
         workflowEfficiency: 'Workflow efficiency',
         averageProcessingTime: 'Average processing time',
         longestToSubmit: 'Longest to submit',
         slowestToApprove: 'Slowest to approve',
         mostTimeToPay: 'Most time to pay',
+        averageDays: 'Average days',
         runningTotal: 'Running total',
+        futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
+        violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
+        violationStage: {
+            label: 'Violations by',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -1394,12 +1418,16 @@ const translations = {
             allSpenderAverage: 'All-spender average',
             allMerchantAverage: 'All-merchant average',
             allCategoryAverage: 'All-category average',
+            tagAverage: 'Tag average',
+            allViolationAverage: 'All-violation average',
             averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
             monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
             quarterLabel: (quarter?: number) => (quarter === undefined ? 'Quarter' : `Quarter ${quarter}`),
             yearLabel: (year?: number) => (year === undefined ? 'Year' : `Year ${year}`),
+            noChange: 'No change',
+            percentChange: '% change',
             increase: (percentage: string) => `Up ${percentage}`,
             decrease: (percentage: string) => `Down ${percentage}`,
         },
@@ -1773,6 +1801,9 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        payViaABA: 'Pay via ABA',
+        missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
+        submittersMissingABADepositAccount: "One or more submitters don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,
@@ -1992,6 +2023,7 @@ const translations = {
         expensesOnHold: 'All expenses were put on hold. Please review the comments for next steps.',
         expenseDuplicate: 'This expense has similar details to another one. Please review the duplicates to continue.',
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
+        someDuplicatesAreUnavailable: "Some of these duplicates couldn't be loaded, so you can only keep all of them.",
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
         keepSelected: 'Keep selected',
@@ -2559,6 +2591,13 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
+        },
     },
     // cspell:disable
     pronouns: {
@@ -2833,6 +2872,10 @@ const translations = {
             'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
+        signOutAllDevices: 'Sign out on all devices',
+        signOutAllDevicesConfirmation: 'You’ll be signed out on all devices, including this one. You’ll need to sign in again to use Expensify.',
+        signOutAllDevicesError: 'We couldn’t sign you out on all devices. Please try again.',
+        signOutAllDevicesSuccess: 'You’ve been signed out on all devices.',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -3204,6 +3247,90 @@ const translations = {
                 },
                 description: 'Business description',
                 descriptionHint: 'Briefly describe what your company does.',
+            },
+            sourceOfWealth: {
+                label: "Where does your company's money come from?",
+                description: 'Our payments partner needs to verify any sources of wealth. Select all that apply.',
+                options: {
+                    REVENUE: 'Business revenue',
+                    PERSONAL_FUNDING: 'Personal funding',
+                    BUSINESS_LOAN: 'Business loan',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Funding & shareholder investments',
+                    INVESTMENT_INCOME: 'Investment income',
+                    DONATIONS: 'Donations',
+                    GRANTS: 'Grants',
+                    LEGAL: 'Legal settlement',
+                },
+            },
+            sourceOfFunds: {
+                label: 'Which sources fund your daily operations?',
+                description: 'Our payments partner needs to know which sources fund your operations. Select all that apply.',
+            },
+            sourceOfWealthProof: {
+                title: 'Source of wealth documents',
+                description: 'Upload the required documents for each source listed below.',
+                hints: {
+                    REVENUE: 'Upload a tax return, audited financial statements, or business bank statements.',
+                    PERSONAL_FUNDING: 'Upload a personal tax declaration, savings or bank statements, or payslips.',
+                    BUSINESS_LOAN: 'Upload a loan agreement and a bank statement.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Upload an equity agreement, subscription agreement, or share sale certificate, plus a bank statement.',
+                    INVESTMENT_INCOME: 'Upload a personal investment statement, share sale certificate, or asset sale agreement, plus a bank statement.',
+                    DONATIONS: 'Upload a donation receipt, written confirmation, or contract, plus a bank statement.',
+                    GRANTS: 'Upload a grant approval letter, written confirmation, or contract, plus a bank statement.',
+                    LEGAL: 'Upload a contract, written confirmation, or asset sale agreement.',
+                },
+                bankStatementHints: {
+                    REVENUE: 'Must show the revenue received.',
+                    PERSONAL_FUNDING: 'Must show the funds you put in.',
+                    BUSINESS_LOAN: 'Must show the loan funds received.',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Must show the investment funds received.',
+                    INVESTMENT_INCOME: 'Must show the investment income received.',
+                    DONATIONS: 'Must show the donation received.',
+                    GRANTS: 'Must show the grant funds received.',
+                    LEGAL: 'Must show the settlement funds received.',
+                },
+                uploadButtons: {
+                    TAX_DOCUMENTS: 'Upload tax return',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Upload audited financial statements',
+                    BANK_STATEMENT: 'Upload bank statement',
+                    E_COMMERCE_STATEMENTS: 'Upload e-commerce statements',
+                    INVOICES: 'Upload invoices',
+                    CONTRACTS: 'Upload contracts',
+                    PERSONAL_TAX_DECLARATION: 'Upload personal tax declaration',
+                    SAVINGS_STATEMENT: 'Upload savings statement',
+                    PAYSLIP: 'Upload payslip',
+                    PERSONAL_LOAN_AGREEMENT: 'Upload personal loan agreement',
+                    PERSONAL_INVESTMENT: 'Upload personal investment statement',
+                    ASSET_SALE_AGREEMENT: 'Upload asset sale agreement',
+                    LOAN_AGREEMENT: 'Upload loan agreement',
+                    EQUITY_AGREEMENT: 'Upload equity agreement',
+                    SUBSCRIPTION_AGREEMENT: 'Upload subscription agreement',
+                    SHARE_SALE_CERTIFICATE: 'Upload share sale certificate',
+                    DONATION_RECEIPTS: 'Upload donation receipts',
+                    WRITTEN_CONFIRMATION: 'Upload written confirmation',
+                    GRANT_APPROVAL_LETTER: 'Upload grant approval letter',
+                },
+                documentTypes: {
+                    TAX_DOCUMENTS: 'Tax return',
+                    AUDITED_FINANCIAL_STATEMENTS: 'Audited financial statements',
+                    BANK_STATEMENT: 'Bank statement',
+                    E_COMMERCE_STATEMENTS: 'E-commerce statements',
+                    INVOICES: 'Invoices',
+                    CONTRACTS: 'Contracts',
+                    PERSONAL_TAX_DECLARATION: 'Personal tax declaration',
+                    SAVINGS_STATEMENT: 'Savings statement',
+                    PAYSLIP: 'Payslip',
+                    PERSONAL_LOAN_AGREEMENT: 'Personal loan agreement',
+                    PERSONAL_INVESTMENT: 'Personal investment statement',
+                    ASSET_SALE_AGREEMENT: 'Asset sale agreement',
+                    LOAN_AGREEMENT: 'Loan agreement',
+                    EQUITY_AGREEMENT: 'Equity agreement',
+                    SUBSCRIPTION_AGREEMENT: 'Subscription agreement',
+                    SHARE_SALE_CERTIFICATE: 'Share sale certificate',
+                    DONATION_RECEIPTS: 'Donation receipts',
+                    WRITTEN_CONFIRMATION: 'Written confirmation',
+                    GRANT_APPROVAL_LETTER: 'Grant approval letter',
+                },
             },
             terms: {
                 title: 'Accept terms',
@@ -4465,7 +4592,6 @@ const translations = {
         error: {
             dateShouldBeBefore: (dateString: string) => `Date should be before ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Date should be after ${dateString}`,
-            hasInvalidCharacter: 'Name can only include Latin characters',
             cannotIncludeCommaOrSemicolon: 'Name cannot contain a comma or semicolon',
             incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Please ensure the phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
@@ -4677,7 +4803,6 @@ const translations = {
             lastName: 'Please enter a valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit account or debit card',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double check your bank statement and try again.',
-            fullName: 'Please enter a valid full name',
             ownershipPercentage: 'Please enter a valid percentage number',
             deletePaymentBankAccount:
                 "This bank account can't be deleted because it is used for Expensify Card payments. If you would still like to delete this account, please reach out to Concierge.",
@@ -4704,6 +4829,8 @@ const translations = {
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
             itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
+        uploadFile: 'Upload file',
+        selectDocumentToUpload: 'Select document to upload',
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
@@ -5527,6 +5654,7 @@ const translations = {
             settings: 'Settings',
             categories: 'Categories',
             vendors: 'Vendors',
+            noVendorsFound: 'No vendors found',
             tags: 'Tags',
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
@@ -5876,6 +6004,7 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in QuickBooks Desktop and sync the connection again',
+            noVendorsFoundDescription: 'Please add vendors in QuickBooks Desktop and sync the connection again',
             qbdSetup: 'QuickBooks Desktop setup',
             requiredSetupDevice: {
                 title: "Can't connect from this device",
@@ -6137,7 +6266,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Xero and sync the connection again',
             accountingMethods: {
                 label: 'When to Export',
@@ -6274,7 +6402,6 @@ const translations = {
             exportNonReimbursableExpenseReports: {
                 helperText: 'Expenses marked as non-reimbursable will be exported as Expense Reports made out to the employee.',
             },
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please sync the connection again after vendors are added in Certinia.',
             fxExpenseAccount: 'Currency conversion fee account',
             fxExpenseAccountDescription:
@@ -6505,7 +6632,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in NetSuite and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in NetSuite and sync the connection again',
             noItemsFound: 'No invoice items found',
             noItemsFoundDescription: 'Please add invoice items in NetSuite and sync the connection again',
@@ -6733,7 +6859,6 @@ const translations = {
             entitySelectDescription: "Choose the entity in Rillet that you'd like to import data from.",
             noEntitiesFound: 'No entities found',
             noEntitiesFoundDescription: 'Please add an entity in Rillet and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Rillet and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Rillet and sync the connection again',
@@ -6868,7 +6993,6 @@ const translations = {
             companySelectDescription: "Choose the company in DualEntry that you'd like to import data from.",
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in DualEntry and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in DualEntry and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in DualEntry and sync the connection again',
@@ -6995,7 +7119,6 @@ const translations = {
             entitySelectDescription: "Choose the entity in Campfire that you'd like to import data from.",
             noEntitiesFound: 'No entities found',
             noEntitiesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
             accountTypesDescription: 'Your Campfire accounts will import as categories.',
@@ -7119,6 +7242,53 @@ const translations = {
             enableNewAccountsDescription: 'New Digits accounts will be available as categories.',
             dimensionsImport: 'All Digits dimensions import as tags.',
             departments: 'Departments',
+            exportDescription: 'Configure how Expensify data exports to Digits.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    VENDOR_BILL: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Digits.',
+                values: {
+                    LAST_EXPENSE: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Digits.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    TRANSACTION: {
+                        label: 'Transactions',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Digits vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -7203,7 +7373,6 @@ const translations = {
                     };
                 },
             },
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
@@ -7250,7 +7419,6 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
-            noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
             accountsDescription: 'Your Dynamics 365 Business Central accounts will import as categories.',
@@ -7689,6 +7857,7 @@ const translations = {
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
@@ -7893,6 +8062,7 @@ const translations = {
                 allCards: 'All cards',
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
+                matchesLastFourDigitsOnly: 'Matches last 4 digits only',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
@@ -8585,16 +8755,11 @@ const translations = {
             errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `There's an error with a connection that's been set up in Expensify Classic. [Go to Expensify Classic to fix this issue.](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
-            exactOnline: {
-                comingSoon: 'Coming soon',
-                joinWaitlist: 'Join waitlist',
-                onWaitlist: 'You’re on the waitlist',
-                waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
-            },
             integrationWaitlist: {
                 comingSoon: 'Coming soon',
                 joinWaitlist: 'Join waitlist',
                 onWaitlist: 'You’re on the waitlist',
+                onWaitlistButton: 'On waitlist',
                 onTheList: 'You’re on the list!',
                 waitlistDescription: 'Concierge will send you a message to let you know when this integration is ready and how to connect.',
             },
@@ -9637,6 +9802,7 @@ const translations = {
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
                 upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                createWorkspaceWarning: `Can't create workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
@@ -11163,6 +11329,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            topTags: 'Top tags',
             violationsBySubmitter: 'Violations by submitter',
             travel: 'Travel',
             trips: 'Trips',
@@ -11260,6 +11427,8 @@ const translations = {
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        chartValueUnavailable: 'Unavailable',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
         weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -11376,6 +11545,7 @@ const translations = {
             submitted: 'Submitted',
             approved: 'Approved',
             anyApproval: 'Any approval',
+            anySubmission: 'Any submission',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
             paidBy: 'Paid by',
@@ -11482,9 +11652,9 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Created → Submitted',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Submitted → Approved',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approved → Paid',
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Paid',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -11496,6 +11666,7 @@ const translations = {
         noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
+        violation: 'Violation',
         receiptTypeValues: {
             ereceipt: 'eReceipt',
             itemized: 'Itemized',
@@ -11727,6 +11898,29 @@ const translations = {
                     workspaceCompanyCardSettingsRoute: string;
                 }) =>
                     `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
+                companyCardConsentExpiring: ({
+                    feedName,
+                    warningDaysBeforeExpiry,
+                    workspaceCompanyCardRoute,
+                    mentionedAccountID,
+                }: {
+                    feedName: string;
+                    warningDaysBeforeExpiry: number;
+                    workspaceCompanyCardRoute: string;
+                    mentionedAccountID?: number;
+                }) => {
+                    let warningTime = 'soon';
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                        warningTime = 'in two weeks';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
+                        warningTime = 'in one week';
+                    }
+                    const reconnectMessage = workspaceCompanyCardRoute
+                        ? `<a href='${workspaceCompanyCardRoute}'>Reconnect the card connection before consent expires</a>.`
+                        : 'Reconnect the card connection before consent expires.';
+                    const intro = mentionedAccountID ? `<mention-user accountID="${mentionedAccountID}"/>, your ` : 'Your ';
+                    return `${intro}<strong>${feedName}</strong> card connection will need renewed consent ${warningTime}. Transactions are still syncing now, but may stop importing if the connection isn't renewed. ${reconnectMessage}`;
+                },
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -12423,6 +12617,7 @@ const translations = {
             tagOutOfPolicy: 'Tag no longer valid',
             overLimitAttendee: 'Over person limit',
             customRules: 'Custom rule violation',
+            ruleViolation: 'Rule violation',
             taxAmountChanged: 'Tax amount modified',
             taxOutOfPolicy: 'Tax rate no longer valid',
             taxRateChanged: 'Tax rate modified',

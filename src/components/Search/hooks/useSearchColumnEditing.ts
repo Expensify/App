@@ -4,7 +4,7 @@ import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@co
 
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnHiding, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
+import {getColumnHiding, getCustomColumnDefault, getCustomColumns, getRequiredSearchColumns, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -12,14 +12,25 @@ import ROUTES from '@src/ROUTES';
 function useSearchColumnEditing(queryJSON: SearchQueryJSON, columns: SearchColumnType[]): ColumnEditing {
     const {currentSearchKey} = useSearchQueryContext();
 
-    const selectableColumns = new Set<SearchColumnType>(getCustomColumns(queryJSON.type));
-    const shownColumns = columns.filter((column): column is SearchCustomColumnIds => selectableColumns.has(column));
+    // A grouped search saves its group columns and the expense columns its groups expand to in the same list, the way the Columns page does.
+    const groupBy = getValidGroupBy(queryJSON.groupBy);
+    const tableLevelColumns = new Set<SearchColumnType>(getCustomColumns(groupBy ?? queryJSON.type));
+    const selectableColumns = new Set<SearchColumnType>([...tableLevelColumns, ...(groupBy ? getCustomColumns(queryJSON.type) : [])]);
+    const shownColumns = columns.filter((column): column is SearchCustomColumnIds => tableLevelColumns.has(column));
     // The table drops some saved columns, e.g. Amount debited when no row has one.
     const savedColumns = [queryJSON.columns ?? []].flat().filter((column) => selectableColumns.has(column));
-    const {hidableColumns, getColumnsWithout} = getColumnHiding(shownColumns, savedColumns, getRequiredSearchColumns(queryHasViolationFilter(queryJSON)));
-
-    // A grouped table shows only its group columns, so saving what it shows would drop the expense columns its groups expand to.
-    const isGrouped = !!getValidGroupBy(queryJSON.groupBy);
+    // A grouped table with none saved shows its default group columns minus the ones it drops, e.g. Amount debited when no group has one.
+    // Starting from the defaults keeps those, the way the Columns page does.
+    const defaultGroupColumns = groupBy ? getCustomColumnDefault(groupBy) : [];
+    // Expense columns are never added here: with none saved, expanded groups derive them from their data.
+    const unsavedColumns = [...shownColumns.filter((column) => !defaultGroupColumns.includes(column)), ...defaultGroupColumns];
+    const {hidableColumns, getColumnsWithout} = getColumnHiding({
+        shownColumns,
+        savedColumns,
+        requiredColumns: getRequiredSearchColumns(queryHasViolationFilter(queryJSON)),
+        unsavedColumns,
+        isTableColumn: (column) => tableLevelColumns.has(column),
+    });
 
     const hideColumn = (column: SearchColumnType) => {
         const query = buildSearchQueryString({...queryJSON, columns: getColumnsWithout(column)});
@@ -30,7 +41,7 @@ function useSearchColumnEditing(queryJSON: SearchQueryJSON, columns: SearchColum
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
 
-    return {hidableColumns: isGrouped ? new Set<SearchColumnType>() : hidableColumns, hideColumn, editColumns};
+    return {hidableColumns, hideColumn, editColumns};
 }
 
 export default useSearchColumnEditing;

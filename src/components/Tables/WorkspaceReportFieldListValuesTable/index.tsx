@@ -134,4 +134,4 @@ export default function WorkspaceReportFieldListValuesTable({
     );
 }
 
-export type {ReportFieldListValueColumnKey, ReportFieldListValueRowData};
+export type {ReportFieldListValueRowData};

@@ -83,11 +83,10 @@ function ColumnHeaderMenuTrigger({columnLabel, alignment, hasResizeHandle, label
     };
 
     return (
-        <PopoverMenu.Trigger>
+        <PopoverMenu.Trigger sentryLabel={sentryLabel}>
             <PressableWithFeedback
                 accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: columnLabel})}
                 role={CONST.ROLE.BUTTON}
-                sentryLabel={sentryLabel}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 onWrapperLayout={updateHeadingWidth}
                 // Fills the cell, so the whole heading opens the menu.

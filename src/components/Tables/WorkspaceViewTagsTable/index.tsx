@@ -147,5 +147,3 @@ export default function WorkspaceViewTagsTable({tags, hasDependentTags, selectio
         </Table>
     );
 }
-
-export type {WorkspaceViewTagColumnKey};

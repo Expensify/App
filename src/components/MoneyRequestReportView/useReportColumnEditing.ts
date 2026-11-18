@@ -18,7 +18,7 @@ function useReportColumnEditing(reportID: string, columns: SearchColumnType[]): 
     const shownColumns = columns.filter((column): column is SearchCustomColumnIds => isReportDetailsCustomColumn(column));
     // The saved columns are account-wide, and the table drops some of them, e.g. Vendor on a workspace without vendors.
     const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-    const {hidableColumns, getColumnsWithout} = getColumnHiding(shownColumns, savedColumns, getRequiredReportDetailsColumns());
+    const {hidableColumns, getColumnsWithout} = getColumnHiding({shownColumns, savedColumns, requiredColumns: getRequiredReportDetailsColumns()});
 
     const hideColumn = (column: SearchColumnType) => {
         setReportDetailsColumns(getColumnsWithout(column), reportDetailsColumns);

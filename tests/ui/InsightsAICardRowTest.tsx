@@ -158,4 +158,32 @@ describe('InsightsAICardRow', () => {
         expect(screen.getByLabelText(/Up 400%/)).toBeOnTheScreen();
         expect(screen.getByLabelText(/Down .*30,318/)).toBeOnTheScreen();
     });
+
+    it('formats a neutral duration chip in days instead of money or a percentage', async () => {
+        // Given an Efficiency duration in seconds
+        const insight: AIInsight = {...SPIKE, chip: {type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL, unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION, value: 216000}};
+
+        // When the structured card renders
+        await renderRow([insight]);
+
+        // Then the chip uses compact days and keeps the card's title and summary
+        expect(screen.getByText('2.5d')).toBeOnTheScreen();
+        expect(screen.getByText(insight.title)).toBeOnTheScreen();
+        expect(screen.getByText(insight.summary)).toBeOnTheScreen();
+        expect(screen.queryByText(/%/)).toBeNull();
+    });
+
+    it('formats a neutral count chip without money or a percentage', async () => {
+        // Given a Compliance count
+        const insight: AIInsight = {...SPIKE, chip: {type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL, unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT, value: 1234}};
+
+        // When the structured card renders
+        await renderRow([insight]);
+
+        // Then the chip uses the count and keeps the card's title and summary
+        expect(screen.getByText('1,234')).toBeOnTheScreen();
+        expect(screen.getByText(insight.title)).toBeOnTheScreen();
+        expect(screen.getByText(insight.summary)).toBeOnTheScreen();
+        expect(screen.queryByText(/%/)).toBeNull();
+    });
 });
