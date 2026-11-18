@@ -80,7 +80,19 @@ jest.mock('@libs/isHTMLElement', () => ({
         return true;
     },
 }));
-jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
+type MockSupportalItemProps = {
+    isCollapsed?: boolean;
+    isSupportAgent?: boolean;
+    isSwitcherVisible?: boolean;
+    showSwitcher?: () => void;
+    hideSwitcher?: () => void;
+    onSwitcherHidden?: () => void;
+};
+let mockSupportalItemProps: MockSupportalItemProps | undefined;
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSupportalItem', () => (props: MockSupportalItemProps) => {
+    mockSupportalItemProps = props;
+    return null;
+});
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -137,6 +149,7 @@ describe('FlatNavigationBar', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockCreateButtonProps = undefined;
+        mockSupportalItemProps = undefined;
         mockIsElementHovered = false;
         mockIsFocusMovingInside = false;
         mockHasKeyboardFocusInside = false;
@@ -429,6 +442,73 @@ describe('FlatNavigationBar', () => {
 
             // Then the peek ends and the bar collapses back to a rail
             expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking when hovering out while the supportal switcher is open', async () => {
+            // Given a support agent and a collapsed bar that is peeking
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher opens and its overlay takes the hover away from the bar
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isSwitcherVisible).toBe(true);
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so it does not narrow under the open switcher
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher closes and its modal is gone with the pointer and focus outside the bar
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the peek ends and the bar collapses back to a rail
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking after the supportal switcher closes if the pointer is still hovering the bar', async () => {
+            // Given a peeking bar with the supportal switcher open
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the switcher closes with the pointer still over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so it does not flicker narrow and wide again
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
         });
 
         it('keeps the bar peeking after the create menu closes if the pointer is still hovering the bar', async () => {
