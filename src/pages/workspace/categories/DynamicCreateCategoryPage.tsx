@@ -3,7 +3,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFormChanges from '@hooks/useFormChanges';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -59,6 +61,8 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
 
     const policyHasTags = hasTags(policyTags);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {recordChange, getHasUnsavedChanges} = useFormChanges({categoryName: ''});
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({getHasUnsavedChanges, shouldCloseRHPOnDiscard: true});
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
         createPolicyCategory({
@@ -78,6 +82,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
             policyHasTags,
             reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
+        suppressDiscardPrompt();
         Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
     };
 
@@ -99,6 +104,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
                 />
                 <CategoryForm
                     onSubmit={createCategory}
+                    onValueChange={recordChange}
                     policyCategories={policyCategories}
                 />
             </ScreenWrapper>

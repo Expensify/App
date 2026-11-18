@@ -12,9 +12,9 @@ import {useEffect, useRef} from 'react';
 
 import type UseDiscardChangesConfirmationOptions from './types';
 
-type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldCloseRHPOnDiscard' | 'shouldPromptWhenUnfocused'>;
+type UseDiscardPromptGateParams = Pick<UseDiscardChangesConfirmationOptions, 'getHasUnsavedChanges' | 'shouldCloseRHPOnDiscard' | 'shouldPromptWhenUnfocused' | 'isNavigationInsideFlow'>;
 
-function useDiscardPromptGate({getHasUnsavedChanges, shouldCloseRHPOnDiscard = false, shouldPromptWhenUnfocused = false}: UseDiscardPromptGateParams) {
+function useDiscardPromptGate({getHasUnsavedChanges, shouldCloseRHPOnDiscard = false, shouldPromptWhenUnfocused = false, isNavigationInsideFlow: isInsideFlow}: UseDiscardPromptGateParams) {
     const route = useRoute();
     const navigation = useNavigation();
 
@@ -49,7 +49,7 @@ function useDiscardPromptGate({getHasUnsavedChanges, shouldCloseRHPOnDiscard = f
     const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
 
     // Some navigations remove the flow's first screen but keep the user in the flow, so they don't prompt
-    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !isNavigationInsideFlow(action, route, navigation.getState());
+    const shouldPromptFor = (action: NavigationAction) => !shouldPromptWhenUnfocused || !(isInsideFlow?.(action) ?? isNavigationInsideFlow(action, route, navigation.getState()));
 
     // The first screen of a flow guards the whole flow, so Discard after a click outside always closes the whole RHP
     const shouldReplayAtRoot = shouldCloseRHPOnDiscard || shouldPromptWhenUnfocused;

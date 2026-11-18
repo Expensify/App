@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalBankAccountDiscardConfirmation from '@hooks/usePersonalBankAccountDiscardConfirmation';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ import type {BankAccountList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
@@ -117,28 +118,31 @@ function UpdatePersonalBankAccountPage() {
     const bankAccountID = personalBankAccount?.bankAccountID;
     const isPersonalBankAccountLoaded = personalBankAccountResult.status === 'loaded';
 
-    // Clear PERSONAL_BANK_ACCOUNT (bankAccountID, shouldShowSuccess, updateError) when the page unmounts.
-    useEffect(
-        () => () => {
-            clearPersonalBankAccount();
-        },
-        [],
-    );
+    const hasCheckedBankAccount = useRef(false);
+    const clearAbandonedBankAccount = () => {
+        clearPersonalBankAccount();
+        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+    };
+    usePersonalBankAccountDiscardConfirmation({isUpdating: true, onDiscard: clearAbandonedBankAccount});
 
     useEffect(() => {
-        if (!isPersonalBankAccountLoaded || bankAccountID) {
+        if (!isPersonalBankAccountLoaded || hasCheckedBankAccount.current) {
             return;
         }
-
+        // Check direct entry once. Confirmed cleanup must not trigger another exit from each retained substep.
+        hasCheckedBankAccount.current = true;
+        if (bankAccountID) {
+            return;
+        }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     }, [isPersonalBankAccountLoaded, bankAccountID]);
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
     const exitFlow = () => {
-        clearPersonalBankAccount();
-        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM);
+        if (shouldShowSuccess) {
+            clearAbandonedBankAccount();
+        }
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
 

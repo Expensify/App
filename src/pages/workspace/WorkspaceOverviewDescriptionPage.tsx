@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
@@ -40,6 +41,11 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const isInputInitializedRef = useRef(false);
     const reportIDToName = useReportIDToNameMap();
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription'), {reportIDToName}));
+    const [initialDescription] = useState(description);
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => description.trim() !== initialDescription.trim(),
+        shouldCloseRHPOnDiscard: true,
+    });
 
     /**
      * @param values - form input values passed by the Form component
@@ -61,7 +67,10 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
 
         updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
         Keyboard.dismiss();
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            suppressDiscardPrompt();
+            Navigation.goBack();
+        });
     };
 
     return (

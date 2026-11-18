@@ -132,6 +132,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
     submitButtonInnerStyles?: StyleProp<ViewStyle>;
+
+    /** Reports input edits, including address-search updates to other fields, but not input registration. */
+    onValueChange?: (value: unknown, inputID: string) => void;
 };
 
 function FormProvider({
@@ -154,6 +157,7 @@ function FormProvider({
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
     shouldShowLoadingImmediatelyOnPress = true,
+    onValueChange,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -547,6 +551,7 @@ function FormProvider({
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
+                    onValueChange?.(value, inputKey);
                     setInputValues((prevState) => {
                         const newState = {
                             ...prevState,
@@ -580,6 +585,7 @@ function FormProvider({
             formID,
             shouldValidateOnChange,
             isFocusedRef,
+            onValueChange,
         ],
     );
     const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';

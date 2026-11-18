@@ -3,12 +3,14 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
+import usePrivatePersonalDetailsDiscardConfirmation from '@hooks/usePrivatePersonalDetailsDiscardConfirmation';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors, updatePrivatePersonalDetails} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestErrorField, getLatestErrorMessageField} from '@libs/ErrorUtils';
+import {suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPrivatePersonalDetailsFormValues} from '@libs/PersonalDetailsUtils';
 
@@ -26,6 +28,7 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const primaryLogin = usePrimaryContactMethod();
+    usePrivatePersonalDetailsDiscardConfirmation();
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
@@ -51,17 +54,12 @@ function PrivatePersonalDetailsConfirmValidateCodePage() {
         }
         if (wasLoading.current && !hasErrors) {
             wasLoading.current = false;
+            suppressFlowDiscardPrompt();
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack(ROUTES.SETTINGS_PROFILE.route);
         }
         wasLoading.current = false;
     }, [privatePersonalDetails?.isLoading, hasErrors]);
-
-    // The parent page defers clearing the form draft to this page so the submission payload survives navigating
-    // to the validateCode RHP. Clear it whenever we leave this page without validating, so an unvalidated edit
-    // doesn't reappear in the RHP form on remount. This covers the header back arrow, swipe-back, and hardware
-    // back, and is idempotent with the success path above (which already clears the draft before navigating away).
-    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM), []);
 
     const values = normalizeCountryCode(getPrivatePersonalDetailsFormValues(privatePersonalDetails, draftValues));
 

@@ -72,6 +72,9 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
         }
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
             setAddressEdits((previousEdits) => ({...previousEdits, country: addressPart as Country | '', state: '', city: '', zip: ''}));
+            if (shouldSaveDraft) {
+                setDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM, {[INPUT_IDS.STATE]: ''});
+            }
             return;
         }
         if (addressPartKey === INPUT_IDS.STATE) {

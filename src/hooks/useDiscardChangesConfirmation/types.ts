@@ -1,3 +1,5 @@
+import type {NavigationAction} from '@react-navigation/native';
+
 type UseDiscardChangesConfirmationOptions = {
     /** Returns whether the screen has unsaved changes. The hook already gates on focus and an in-progress save, so this should report only real dirtiness. */
     getHasUnsavedChanges: () => boolean;
@@ -18,6 +20,9 @@ type UseDiscardChangesConfirmationOptions = {
      * It also acts as `shouldCloseRHPOnDiscard`, so Discard after a click outside closes the whole flow.
      */
     shouldPromptWhenUnfocused?: boolean;
+
+    /** Override the default same-stack boundary when the navigator also hosts unrelated screens. */
+    isNavigationInsideFlow?: (action: NavigationAction) => boolean;
 };
 
 type DiscardChangesConfirmation = {

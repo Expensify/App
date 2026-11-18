@@ -28,6 +28,7 @@ function useDiscardChangesConfirmation({
     onTabSwitchDiscard,
     shouldCloseRHPOnDiscard = false,
     shouldPromptWhenUnfocused = false,
+    isNavigationInsideFlow,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -37,6 +38,7 @@ function useDiscardChangesConfirmation({
         getHasUnsavedChanges,
         shouldCloseRHPOnDiscard,
         shouldPromptWhenUnfocused,
+        isNavigationInsideFlow,
     });
 
     // Callers derive dirtiness from current values and baselines, so this is safe to read during render.

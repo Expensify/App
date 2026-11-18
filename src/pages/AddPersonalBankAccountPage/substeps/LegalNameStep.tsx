@@ -49,6 +49,7 @@ function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNam
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
             enabledWhenOffline={enabledWhenOffline}
+            shouldSaveDraft
         />
     );
 }
