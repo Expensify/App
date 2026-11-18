@@ -1,2 +1,3 @@
-export {default as PressResponder} from './PressResponder';
-export type {PressResponderProps} from './PressResponder';
+import PressResponder from './PressResponder';
+
+export default PressResponder;

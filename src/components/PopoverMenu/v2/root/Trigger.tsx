@@ -1,6 +1,7 @@
-import {PressResponder} from '@components/Pressable/PressResponder';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import CONST from '@src/CONST';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
@@ -9,12 +10,12 @@ import React from 'react';
 import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
-type TriggerProps = {
+type TriggerProps = WithRequiredSentryLabel & {
     children: ReactNode;
 };
 
 /** Consumer's `onPress` can call `event.preventDefault()` to gate the open (mirrors `<Item onSelect>`'s keep-open contract). */
-function Trigger({children}: TriggerProps): React.ReactElement {
+function Trigger({children, sentryLabel}: TriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(Trigger.displayName);
     const {isVisible} = useRootVisibility(Trigger.displayName);
     const {triggerID, contentID} = useRootMeta(Trigger.displayName);
@@ -22,6 +23,7 @@ function Trigger({children}: TriggerProps): React.ReactElement {
     return (
         <PressResponder
             ref={ref}
+            sentryLabel={sentryLabel}
             onPress={(event) => {
                 if (event?.defaultPrevented) {
                     return;
@@ -41,4 +43,3 @@ function Trigger({children}: TriggerProps): React.ReactElement {
 Trigger.displayName = 'PopoverMenu.Trigger';
 
 export default Trigger;
-export type {TriggerProps};
