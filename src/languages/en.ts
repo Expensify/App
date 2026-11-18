@@ -1373,7 +1373,7 @@ const translations = {
         },
     },
     insightsPage: {
-        generatingAIInsights: 'Generating AI Insights...',
+        generatingAIInsights: 'Generating AI insights...',
         generatingAIInsightsSubtitle: "This shouldn't take more than a minute",
         readingChart: (chartTitle: string) => `Reading ${chartTitle}`,
         comparingWithYourAverage: 'Comparing with your average',
