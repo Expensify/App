@@ -33,21 +33,21 @@ describe('getPersistedColumnLayout', () => {
     });
 
     it('keeps a resized column at its width when the table narrows, with the other free-text columns absorbing the change', () => {
-        // Given a save where merchant was dragged to 300px in a table whose columns had 600px
+        // Given a save where merchant was dragged to 300px in a table whose columns had 1000px
         const columns = [getFixedColumn('date', 62), freeTextColumn('merchant', 100, 60), freeTextColumn('description', 100, 60), freeTextColumn('category', 100, 60)];
-        const storedTableColumnWidths = {availableColumnsWidth: 600, columnWidths: {date: 62, merchant: 300, description: 119, category: 119}, resizedColumnKeys: ['merchant']};
+        const storedTableColumnWidths = {availableColumnsWidth: 1000, columnWidths: {date: 62, merchant: 300, description: 319, category: 319}, resizedColumnKeys: ['merchant']};
 
         // When the table loses 100px
         const layout = getPersistedColumnLayout({
             columns,
-            freshColumnWidths: {date: 62, merchant: 179, description: 179, category: 180},
+            freshColumnWidths: {date: 62, merchant: 312, description: 313, category: 313},
             storedTableColumnWidths,
-            tableWidth: 500,
+            tableWidth: 900,
             rowChromeWidths: NO_ROW_CHROME,
         });
 
         // Then merchant keeps the width the user gave it and the untouched columns split the lost room
-        expect(layout.resolvedColumnWidths).toEqual({date: 62, merchant: 300, description: 69, category: 69});
+        expect(layout.resolvedColumnWidths).toEqual({date: 62, merchant: 300, description: 269, category: 269});
     });
 
     it('starts a column added since the save at its content width and hands a hidden column’s width to the others', () => {
@@ -59,7 +59,7 @@ describe('getPersistedColumnLayout', () => {
         // When the layout is built with the columns given the same 600px
         const layout = getPersistedColumnLayout({
             columns,
-            freshColumnWidths: {merchant: 200, description: 200, tag: 200},
+            freshColumnWidths: {merchant: 200, description: 310, tag: 90},
             storedTableColumnWidths,
             tableWidth: 600,
             rowChromeWidths: NO_ROW_CHROME,

@@ -10552,6 +10552,9 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
+            /** Narrowest width a `Table` column gets from a drag, so some of its content stays readable. A column whose content is narrower stops at its content width. */
+            TABLE_MIN_WIDTH: 180,
+
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
 

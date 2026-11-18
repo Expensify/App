@@ -5,8 +5,6 @@ import type {ResizableColumn} from '@components/Table/columnResize/resolveDragge
 
 import CONST from '@src/CONST';
 
-const {MIN_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
-
 /** No selection, gaps, margin or padding, so the row is exactly the column sum. */
 const rowChromeWidths = {selectionColumnWidth: 0, totalGapWidth: 0, rowMarginWidth: 0, rowPaddingWidth: 0};
 
@@ -50,8 +48,9 @@ describe('getResizableColumnLayout', () => {
             rowChromeWidths,
         });
 
-        // Then the last column can't shrink, since that would pull the row in from the table's right edge
-        expect(dragMinWidths).toEqual({role: 200});
+        // Then the last column can't shrink, since that would pull the row in from the table's right edge, and the others
+        // stop at the readable width
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, email: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, role: 200});
     });
 
     it('lets the last column shrink only by the width that overflows the table', () => {
@@ -69,10 +68,10 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then the last column can give back the overflow and no more, so the row ends exactly at the table's edge
-        expect(dragMinWidths).toEqual({role: 200});
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, email: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, role: 200});
     });
 
-    it('falls back to the default drag bound once the overflow is larger than the column', () => {
+    it('falls back to the readable width once the overflow is larger than the column', () => {
         // Given columns far wider than the table
         const columns = [column('name'), column('email'), column('role')];
 
@@ -86,8 +85,12 @@ describe('getResizableColumnLayout', () => {
             rowChromeWidths,
         });
 
-        // Then the last column shrinks as far as any other, so its edge stays reachable
-        expect(dragMinWidths).toEqual({role: MIN_WIDTH});
+        // Then the last column shrinks as far as any other, so some of its content stays readable
+        expect(dragMinWidths).toEqual({
+            name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH,
+            email: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH,
+            role: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH,
+        });
     });
 
     it('grows the last headed column into leftover room, not the trailing headless column', () => {
@@ -109,7 +112,7 @@ describe('getResizableColumnLayout', () => {
 
         // And a drag on it starts from the 360px it's painted at, and can't shrink it, so the arrow never stretches
         expect(resolvedColumnWidths.role).toBe(360);
-        expect(dragMinWidths).toEqual({role: 360});
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, role: 360});
     });
 
     it('takes a drag out of the leftover the last headed column paints', () => {
@@ -159,21 +162,21 @@ describe('getResizableColumnLayout', () => {
     });
 
     it('squeezes a column after the dragged one to the minimum the layout uses, not its content, before the row overflows', () => {
-        // Given a 600px table whose free-text column shows 200px of content but the layout may squeeze it to 120px
-        const columns = [column('name', {minWidth: 120}), column('taxCode', {minWidth: 120, contentWidth: 200})];
+        // Given a 700px table whose free-text column shows 300px of content but the layout may squeeze it to 200px
+        const columns = [column('name', {minWidth: 200}), column('taxCode', {minWidth: 200, contentWidth: 300})];
 
-        // When the first column is dragged 100px wider
+        // When the first column is dragged 150px wider
         const {getResizedColumnWidths} = getResizableColumnLayout({
             columns,
-            resolvedColumnWidths: {name: 400, taxCode: 200},
-            freshColumnWidths: {name: 400, taxCode: 200},
+            resolvedColumnWidths: {name: 400, taxCode: 300},
+            freshColumnWidths: {name: 400, taxCode: 300},
             resizedColumnKeys: [],
-            tableWidth: 600,
+            tableWidth: 700,
             rowChromeWidths,
         });
 
-        // Then the free-text column truncates to 120px before the row overflows, matching what a reload lays out
-        expect(getResizedColumnWidths('name', 500)).toEqual({name: 500, taxCode: 120});
+        // Then the free-text column truncates to 200px before the row overflows, matching what a reload lays out
+        expect(getResizedColumnWidths('name', 550)).toEqual({name: 550, taxCode: 200});
     });
 
     it('gives an edge only to headed columns sized from their content', () => {
@@ -209,7 +212,7 @@ describe('getResizableColumnLayout', () => {
         });
 
         // Then a drag can't take it below its 40px, so pressing its edge doesn't make it jump out to the drag bound
-        expect(dragMinWidths).toEqual({role: 40});
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, role: 40});
     });
 
     it('leaves the columns the table width minus every piece of row chrome, floored to whole px', () => {
@@ -240,12 +243,12 @@ describe('getResizableColumnLayout', () => {
         // Then the last column grows into the 520px a save measures and no further, so a reload at the same width repaints
         // the row as it was dragged and the last column still can't shrink away from the table's edge
         expect(resolvedColumnWidths).toEqual({name: 200, role: 320});
-        expect(dragMinWidths).toEqual({role: 320});
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, role: 320});
     });
 
-    it('fits a column to its content, no narrower than the default drag bound', () => {
-        // Given an overflowing row whose name column's content needs 120px and email column's content only 10px
-        const columns = [column('name', {contentWidth: 120}), column('email', {contentWidth: 10}), column('role')];
+    it('fits a column to its content, no narrower than the readable width', () => {
+        // Given an overflowing row whose name column's content needs 220px and email column's content only 10px
+        const columns = [column('name', {contentWidth: 220}), column('email', {contentWidth: 10}), column('role')];
 
         // When the layout is built
         const {getTargetColumnWidth} = getResizableColumnLayout({
@@ -257,9 +260,9 @@ describe('getResizableColumnLayout', () => {
             rowChromeWidths,
         });
 
-        // Then a click fits the name column to its content, and the email column only down to the drag bound, so its edge stays reachable
-        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(120);
-        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(MIN_WIDTH);
+        // Then a click fits the name column to its content, and the email column only down to the readable width
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(220);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH);
     });
 
     it('fits the last column no narrower than a drag could take it', () => {
@@ -365,5 +368,60 @@ describe('getFreshColumnWidths', () => {
 
         // Then the 438px left beside the fixed column is split equally, as a fresh load paints it
         expect(freshColumnWidths).toEqual({merchant: 219, date: 62, description: 219});
+    });
+    it('stops a drag at the readable width, or at the content width of a column whose content is narrower', () => {
+        // Given an overflowing row with a wide name column and a type column whose content needs only 90px
+        const columns = [column('name'), column('type'), column('role')];
+
+        // When the layout is built
+        const {dragMinWidths} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 400, type: 90, role: 400},
+            freshColumnWidths: {name: 400, type: 90, role: 400},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then the name column can't be dragged under the readable width, and the type column under its content,
+        // so no drag cuts a column down to a few letters
+        expect(dragMinWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, type: 90, role: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH});
+    });
+
+    it('stops a column absorbing a drag at the readable width, so the row overflows instead', () => {
+        // Given two 300px columns filling a 600px table, whose layout would squeeze the second one to 60px
+        const columns = [column('name', {minWidth: 60}), column('email', {minWidth: 60})];
+
+        // When the first column is dragged 200px wider
+        const {getResizedColumnWidths} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, email: 300},
+            freshColumnWidths: {name: 300, email: 300},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then the second column gives only the 120px above the readable width, and the row scrolls for the rest
+        expect(getResizedColumnWidths('name', 500)).toEqual({name: 500, email: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH});
+    });
+
+    it('raises a width saved under the readable width, taking the room from the columns after it', () => {
+        // Given a saved layout with the name column dragged to 60px, from before columns had a readable width
+        const columns = [column('name'), column('email'), column('role')];
+
+        // When the layout is built
+        const {resolvedColumnWidths} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 60, email: 340, role: 200},
+            freshColumnWidths: {name: 200, email: 200, role: 200},
+            resizedColumnKeys: ['name'],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then the name column comes back to the readable width, and the next columns give the 120px back without going
+        // under it themselves, so the row still fits
+        expect(resolvedColumnWidths).toEqual({name: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH, email: 240, role: CONST.TABLES.COLUMN_RESIZE.TABLE_MIN_WIDTH});
     });
 });
