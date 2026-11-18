@@ -2883,6 +2883,7 @@ const SENTRY_LABEL = {
         TRAVEL: {
             RETRY_CARDS_PROVISIONING: 'WorkspaceTravel-RetryCardsProvisioning',
             BOOK_TRAVEL_BUTTON: 'WorkspaceTravel-BookTravelButton',
+            FLAG_OFF_PLATFORM_TRAVEL_TRY_IT: 'WorkspaceTravel-FlagOffPlatformTravelTryIt',
             BILLING_EXPORT_CSV: 'WorkspaceTravel-BillingExportCSV',
             BILLING_EXPORT_PDF: 'WorkspaceTravel-BillingExportPDF',
             BILLING_MONTHLY_LIMIT: 'WorkspaceTravel-BillingMonthlyLimit',

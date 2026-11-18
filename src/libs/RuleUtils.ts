@@ -120,6 +120,18 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
 }
 
 /**
+ * Whether any of the policy's rules has a travel type or travel platform condition, which is how a flag for travel booked
+ * outside Expensify Travel is set up.
+ */
+function hasTravelConditionRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return Object.values(filterRulesForPolicy(rulesCollection, policyID)).some(
+        (rule) =>
+            rule?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            getRuleFilterLeaves(rule?.filters).some((leaf) => leaf.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE || leaf.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM),
+    );
+}
+
+/**
  * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
  * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
  */
@@ -147,6 +159,7 @@ export {
     fromIndexMap,
     getApprovalWorkflowRulesForPolicy,
     getRuleFilterLeaves,
+    hasTravelConditionRule,
     isApprovalWorkflowRule,
     isExpenseDefaultRule,
     isRuleFilterComparison,

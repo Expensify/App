@@ -34,6 +34,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import BookOrManageYourTrip from './BookOrManageYourTrip';
+import FlagOffPlatformTravelBanner from './FlagOffPlatformTravelBanner';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
 
@@ -80,6 +81,9 @@ function WorkspaceTravelPage({
     );
 
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
+
+    // The banner sends admins to Rules, which only opens once the workspace has the Rules feature turned on
+    const shouldShowFlagOffPlatformTravelBanner = step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && !!policy?.areRulesEnabled;
 
     const mainContent = (() => {
         switch (step) {
@@ -142,7 +146,10 @@ function WorkspaceTravelPage({
                     )}
                 </HeaderWithBackButton>
                 <ScrollViewWithContext addBottomSafeAreaPadding>
-                    <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
+                    <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {shouldShowFlagOffPlatformTravelBanner && <FlagOffPlatformTravelBanner policyID={policyID} />}
+                        {mainContent}
+                    </View>
                 </ScrollViewWithContext>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
