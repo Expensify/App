@@ -8,6 +8,7 @@ import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
+    getExportIntegrationLastMessageText,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSortedReportActions,
@@ -99,7 +100,7 @@ function getCompletedStep(
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
     }
     if (isExportedToIntegrationAction(reportAction)) {
-        return {...step, icon: 'Export', label: translate('report.actions.type.exportedToIntegration.automatic', getOriginalMessage(reportAction)?.label ?? '')};
+        return {...step, icon: 'Export', label: getExportIntegrationLastMessageText(translate, reportAction, getOriginalMessage(reportAction)?.label).trim()};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
         return {...step, icon: 'Clear', label: translate('iou.adminCanceledRequest')};

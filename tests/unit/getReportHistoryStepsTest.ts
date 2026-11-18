@@ -435,6 +435,20 @@ describe('getReportHistorySteps', () => {
         expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.automatic', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
     });
 
+    it('shows a report marked as exported as a manual export', () => {
+        // Given an approved report an admin marked as exported to QuickBooks Online
+        const exportedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.QBO, markedManually: true, lastModified: '2026-01-01 10:00:00.000'},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([exportedAction]);
+
+        // Then the history says it was marked manually, like the report conversation does, rather than claiming the integration exported it
+        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.manual', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
     it.each([
         [true, 'reportHistoryPage.receivedPayment'],
         [false, 'reportHistoryPage.paid'],
