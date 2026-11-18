@@ -142,6 +142,10 @@ export default function () {
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
+    // Imports are evaluated lazily on native and no component mounts in a headless start, so nothing else would
+    // load this module there. Load it here so the Sentry user is set in every JS runtime.
+    import('@libs/telemetry/TelemetrySynchronizer');
+
     // Must run after Onyx.init(): a completed exchange persists the session
     finishCloudflareSignInFromURL();
 
