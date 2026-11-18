@@ -307,30 +307,22 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
  */
 function openPublicProfilePage(accountID: number) {
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}` as const;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
+            key: loadingStateKey,
             value: {
                 isLoading: true,
             },
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`,
+            key: loadingStateKey,
             value: {
                 isLoading: false,
             },
@@ -341,8 +333,7 @@ function openPublicProfilePage(accountID: number) {
 
     API.read(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, parameters, {
         optimisticData,
-        successData,
-        failureData,
+        finallyData,
     });
 }
 

@@ -879,7 +879,7 @@ describe('actions/PersonalDetails', () => {
         const accountID = 123;
         const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`;
 
-        it.each(['successData', 'failureData'] as const)('sets the account loading state to true, then to false on %s', (responseDataType) => {
+        it('sets the account loading state to true, then to false once the request finishes', () => {
             // When the public profile of an account is opened
             PersonalDetailsActions.openPublicProfilePage(accountID);
             const [command, parameters, onyxData] = getRequiredWriteCall(mockAPI.read.mock.calls);
@@ -893,8 +893,10 @@ describe('actions/PersonalDetails', () => {
             expect(getRequiredOnyxUpdate(onyxData, 'optimisticData', loadingStateKey, Onyx.METHOD.MERGE).value).toEqual({isLoading: true});
 
             // And the response clears it, whether the request succeeds or fails, so the page never stays on a loader
-            expect(getRequiredOnyxUpdates(onyxData, responseDataType)).toHaveLength(1);
-            expect(getRequiredOnyxUpdate(onyxData, responseDataType, loadingStateKey, Onyx.METHOD.MERGE).value).toEqual({isLoading: false});
+            expect(onyxData).not.toHaveProperty('successData');
+            expect(onyxData).not.toHaveProperty('failureData');
+            expect(getRequiredOnyxUpdates(onyxData, 'finallyData')).toHaveLength(1);
+            expect(getRequiredOnyxUpdate(onyxData, 'finallyData', loadingStateKey, Onyx.METHOD.MERGE).value).toEqual({isLoading: false});
         });
     });
 

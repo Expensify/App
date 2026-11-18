@@ -1083,8 +1083,6 @@ const ONYXKEYS = {
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
         /** Session-scoped loading flags for a user's public profile, keyed by accountID.
-         *  Kept apart from PERSONAL_DETAILS_LIST so its many subscribers don't re-render on loading changes,
-         *  and keyed per account so a profile only re-renders when its own flag changes.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE: 'personalDetailsLoadingState_',
         /** Pagination state for tag filter search, keyed by policyIDs.

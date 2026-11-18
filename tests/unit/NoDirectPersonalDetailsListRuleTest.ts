@@ -47,7 +47,7 @@ describe('no-direct-personal-details-list', () => {
             // Type positions parse as TSTypeQuery, not MemberExpression.
             'type Update = OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>;',
             'type Data = Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, PersonalDetailsList>>;',
-            'const [loadingState] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE);',
+            'const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);',
             'const [list] = useOnyx(ONYXKEYS.COLLECTION.REPORT);',
             'const key = SOME_OTHER_KEYS.PERSONAL_DETAILS_LIST;',
             // Only known at runtime, so there is nothing to resolve statically.
