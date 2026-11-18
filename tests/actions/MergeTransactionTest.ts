@@ -682,6 +682,7 @@ describe('mergeTransactionRequest', () => {
     it('should restore original state when API returns error', async () => {
         // Given:
         // - Target transaction with original data that should be restored on failure
+        // - A merge that replaces the target's receipt with the source's receipt
         // - Source transaction that should be restored if merge fails (only transaction in its report)
         // - Source report that should be restored if merge fails
         // - Transaction violations are set up in Onyx for both transactions
@@ -695,6 +696,7 @@ describe('mergeTransactionRequest', () => {
             merchant: 'Original Merchant',
             category: 'Original Category',
             reportID: 'target-report-456',
+            receipt: {source: 'target-receipt.jpg', filename: 'target-receipt.jpg'},
         };
         const sourceTransaction = {
             ...createRandomTransaction(2),
@@ -709,6 +711,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionID: 'source456',
             merchant: 'Updated Merchant',
             category: 'Updated Category',
+            receipt: {source: 'source-receipt.jpg', filename: 'source-receipt.jpg'},
         };
         const mergeTransactionID = 'merge789';
 
@@ -798,9 +801,11 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
-        // Verify target transaction is restored to original state
+        // Verify target transaction is restored to original state, including the receipt the merge replaced
         expect(restoredTargetTransaction?.merchant).toBe('Original Merchant');
         expect(restoredTargetTransaction?.category).toBe('Original Category');
+        expect(restoredTargetTransaction?.receipt?.source).toBe('target-receipt.jpg');
+        expect(restoredTargetTransaction?.receipt?.filename).toBe('target-receipt.jpg');
 
         // Verify source transaction is restored (not deleted)
         expect(restoredSourceTransaction?.transactionID).toBe('source456');

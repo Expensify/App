@@ -1,3 +1,7 @@
+/**
+ * Builds the failure data that undoes only what one optimistic transaction MERGE wrote, so changes made while the
+ * request was queued survive when it fails. Request state (pending fields, errors) is left for the caller to set.
+ */
 import type {Transaction} from '@src/types/onyx';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
@@ -18,21 +22,27 @@ function getRevertValues(before: PlainObject, written: PlainObject, shouldSkipRe
     for (const [key, writtenValue] of Object.entries(written)) {
         const beforeValue = before[key];
 
+        // MERGE skips undefined, so the write never touched this key. Request state keys are skipped only at the top
+        // level, because the caller sets them there. Nested keys with these names are compared as data.
         if (writtenValue === undefined || (shouldSkipRequestStateKeys && REQUEST_STATE_KEYS.has(key)) || deepEqual(beforeValue, writtenValue)) {
             continue;
         }
 
+        // Recurse so reverting `comment.attendees` keeps a newer `comment.comment`.
         if (isPlainObject(writtenValue) && isPlainObject(beforeValue)) {
             revertValues[key] = getRevertValues(beforeValue, writtenValue, false);
             continue;
         }
 
+        // Only null removes a key the write added. An object the write created is removed whole, because an empty one
+        // left behind is read as set, e.g. `modifiedWaypoints ?? comment.waypoints` would return no waypoints.
         revertValues[key] = beforeValue ?? null;
     }
     return revertValues;
 }
 
 function getTransactionRevertValues(transaction: OnyxEntry<Transaction>, optimisticTransaction: OnyxEntry<NullishDeep<Transaction>>): NullishDeep<Transaction> {
+    // Without the queue-time transaction every written field would look added and get removed on failure.
     if (!transaction || !optimisticTransaction) {
         return {};
     }
