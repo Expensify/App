@@ -108,7 +108,7 @@ function buildOffsetToPoint(source) {
     const lineBytes = [0];
     const lineUnits = [0];
     let byte = 0;
-    for (let unit = 0; unit < source.length;) {
+    for (let unit = 0; unit < source.length; ) {
         const code = source.codePointAt(unit);
         byte += utf8Length(code);
         unit += code > 0xffff ? 2 : 1;

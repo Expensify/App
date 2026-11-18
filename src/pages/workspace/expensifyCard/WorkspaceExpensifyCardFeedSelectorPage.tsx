@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -328,7 +328,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />

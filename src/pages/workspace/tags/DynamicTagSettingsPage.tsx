@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -179,9 +179,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                 style={[styles.defaultModalContainer]}
                 testID="DynamicTagSettingsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={getCleanedTagName(tagName)}
-                    shouldSetModalVisibility={false}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
 
