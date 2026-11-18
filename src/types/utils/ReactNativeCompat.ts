@@ -19,4 +19,4 @@ type TextInputScrollEvent = Parameters<NonNullable<TextInputProps['onScroll']>>[
 /** Only reachable through `react-native/Libraries/Utilities/BackHandler`, which the Strict API blocks */
 type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventListener>[1]>[0];
 
-export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewableItemsChanged, ViewToken};
+export type {CellRendererProps, HardwareBackPressEvent, TextInputScrollEvent, ViewabilityConfig, ViewToken};
