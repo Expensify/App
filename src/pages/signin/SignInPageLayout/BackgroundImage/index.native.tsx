@@ -10,8 +10,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
-
-import type {ImageSourcePropType} from 'react-native';
+import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 
 import {Image} from 'expo-image';
 import React, {useEffect, useState} from 'react';
@@ -64,7 +63,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
                 accessibilityIgnoresInvertColors
-                source={MobileBackgroundImage as ImageSourcePropType}
+                source={MobileBackgroundImage as SingleImageSource}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
                 style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}

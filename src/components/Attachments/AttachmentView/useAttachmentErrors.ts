@@ -1,5 +1,7 @@
 import type {AttachmentSource} from '@components/Attachments/types';
 
+import type {ImageURISource} from 'react-native';
+
 import {useState} from 'react';
 
 function convertSourceToString(source: AttachmentSource) {
@@ -7,7 +9,7 @@ function convertSourceToString(source: AttachmentSource) {
         return source.toString();
     }
     if (source instanceof Array) {
-        return source.map((src) => src.uri).join(', ');
+        return source.map((src: ImageURISource) => src.uri).join(', ');
     }
     if ('uri' in source) {
         return source.uri ?? '';

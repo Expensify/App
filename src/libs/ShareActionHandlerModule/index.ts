@@ -14,8 +14,9 @@ type ShareActionContent = {
 // Type for the ShareActionHandler module
 type ShareActionHandlerModule = {
     // Method to process files, which takes a callback function
-    processFiles(callback: (array: ShareActionContent[]) => void): void;
+    // iOS passes the processed files as an array, Android as a JSON string
+    processFiles(callback: (processedFiles: ShareActionContent[] | string) => void): void;
 };
 
 export default ShareActionHandler;
-export type {ShareActionHandlerModule};
+export type {ShareActionContent, ShareActionHandlerModule};

@@ -24,7 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import React from 'react';
-import {AppState, DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -34,6 +34,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
+import {emitAppState} from '../utils/ReactNativeMockUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -653,8 +654,8 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Trigger the app going inactive and active again
-                AppState.emitCurrentTestState('background');
-                AppState.emitCurrentTestState('active');
+                emitAppState('background');
+                emitAppState('active');
 
                 // Verify the new line is still present
                 unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);

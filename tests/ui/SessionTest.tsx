@@ -15,12 +15,12 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
+import {setInitialURL} from '../utils/ReactNativeMockUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -156,7 +156,7 @@ describe('Deep linking', () => {
         PusherHelper.teardown();
         jest.clearAllMocks();
         lastVisitedPath = undefined;
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 
@@ -169,7 +169,7 @@ describe('Deep linking', () => {
 
             const url = getInitialURL();
             // User signs in automatically when the app is rendered because of the deep link
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -222,7 +222,7 @@ describe('Deep linking', () => {
             const url = getInitialURL();
             // User signs in automatically when the app is remounted because of the deep link.
             // This overrides the previous sign-in.
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -280,7 +280,7 @@ describe('Support auth token login', () => {
         await waitForNetworkPromises();
         PusherHelper.teardown();
         jest.clearAllMocks();
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 
@@ -307,7 +307,7 @@ describe('Support auth token login', () => {
             // LogOutPreviousUserPage. It must skip the duplicate sign-in; before the fix it fired
             // unconditionally and tripped the support-token rate limit.
             setLastShortAuthToken(TEST_SUPPORT_AUTH_TOKEN);
-            Linking.setInitialURL(getSupportAuthURL());
+            setInitialURL(getSupportAuthURL());
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -337,7 +337,7 @@ describe('SAML re-fire loop guard', () => {
         await waitForNetworkPromises();
         PusherHelper.teardown();
         jest.clearAllMocks();
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 
