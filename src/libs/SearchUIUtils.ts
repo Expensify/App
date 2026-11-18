@@ -2582,15 +2582,9 @@ function getRowCapabilities(allActions: SearchTransactionAction[]): RowCapabilit
  * Whether a report opened from Spend shows the read-only trip summary instead of the trip room. Admins see trips in their workspaces
  * that they aren't in, and the room would fail its access check for them.
  */
-function shouldShowReadOnlyTripSummary(
-    searchTripRoom: Pick<SearchTrip, 'chatType' | 'travelerAccountID'> | undefined,
-    isTripRoomParticipant: boolean,
-    currentUserAccountID: number,
-): boolean {
-    if (searchTripRoom?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
-        return false;
-    }
-    return !isTripRoomParticipant && searchTripRoom.travelerAccountID !== currentUserAccountID;
+function shouldShowReadOnlyTripSummary(searchTripRoom: Pick<SearchTrip, 'chatType' | 'isTripRoomMember'> | undefined): boolean {
+    // Older results don't say, so the room opens as before
+    return searchTripRoom?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM && searchTripRoom.isTripRoomMember === false;
 }
 
 /**

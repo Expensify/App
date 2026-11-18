@@ -18031,22 +18031,20 @@ describe('Trip search', () => {
     });
 
     it('shows the read-only trip summary only to people outside the trip room', () => {
-        // Given a trip room from the trip search, traveled by 629 and seen by admin 628
-        const tripRoom = buildTrip('1');
-
-        // When the admin isn't in the room, the room would fail its access check
+        // Given a trip room from the trip search, which says whether the current user is in it
+        // When they aren't in the room, the room would fail its access check
         // Then the read-only summary opens instead of the room
-        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(tripRoom, false, 628)).toBe(true);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1', {isTripRoomMember: false}))).toBe(true);
 
-        // When the admin is in the room, or the traveler opens their own trip
+        // When they are in the room, even as a hidden participant who has to join, or the result doesn't say
         // Then the room opens as usual
-        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(tripRoom, true, 628)).toBe(false);
-        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(tripRoom, false, 629)).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1', {isTripRoomMember: true}))).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(buildTrip('1'))).toBe(false);
 
         // When the report isn't a trip room from the search results, such as a chat or an expense report
         // Then the report screen opens as usual
-        expect(SearchUIUtils.shouldShowReadOnlyTripSummary({chatType: undefined}, false, 628)).toBe(false);
-        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(undefined, false, 628)).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary({chatType: undefined, isTripRoomMember: false})).toBe(false);
+        expect(SearchUIUtils.shouldShowReadOnlyTripSummary(undefined)).toBe(false);
     });
 
     it('keeps the expense rows for a trip search without the beta', () => {

@@ -126,6 +126,9 @@ type SearchTrip = Report & {
 
     /** The account ID of the traveler, who created the trip room */
     travelerAccountID?: number;
+
+    /** Whether the current user is in the trip room, hidden participants included */
+    isTripRoomMember?: boolean;
 };
 
 /** Model of tasks search result */

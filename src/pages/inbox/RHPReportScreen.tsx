@@ -1,19 +1,11 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useOnyx from '@hooks/useOnyx';
-
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isReportParticipant} from '@libs/ReportUtils';
 import {shouldShowReadOnlyTripSummary} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -26,14 +18,10 @@ type PageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof S
 // It's suggested to refactor hooks in ReportScreen to remove this file and perform SET_PARAMS without the report screen remount.
 export default function RHPReportScreen({route, navigation}: PageProps) {
     const reportID = route.params?.reportID;
-    const {accountID} = useCurrentUserPersonalDetails();
     const {currentSearchResults} = useSearchResultsContext();
-    const [isTripRoomParticipant = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {
-        selector: (report: OnyxEntry<Report>) => isReportParticipant(accountID, report),
-    });
     const searchTripRoom = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-    if (reportID && shouldShowReadOnlyTripSummary(searchTripRoom, isTripRoomParticipant, accountID)) {
+    if (reportID && shouldShowReadOnlyTripSummary(searchTripRoom)) {
         return (
             <ReadOnlyTripSummaryPage
                 key={reportID}
