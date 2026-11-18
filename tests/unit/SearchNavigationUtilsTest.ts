@@ -33,6 +33,7 @@ const expensesItem: FlatNavCannedSearchItem = {
     key: SEARCH_KEYS.EXPENSES,
     sectionID: FLAT_NAV.SECTION.EXPENSES,
     translationPath: 'search.tabs.expenses',
+    spendColumnTranslationPath: 'search.tabs.expenses',
     iconName: 'Receipt',
     searchQuery: EXPENSES_QUERY,
 };

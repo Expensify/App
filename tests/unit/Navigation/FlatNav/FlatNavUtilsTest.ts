@@ -327,6 +327,7 @@ describe('FlatNavUtils', () => {
                 sectionID: FLAT_NAV.SECTION.EXPENSES,
                 searchQuery: suggestedSearches[SEARCH_KEYS.EXPENSES].searchQuery,
                 iconName: suggestedSearches[SEARCH_KEYS.EXPENSES].icon,
+                spendColumnTranslationPath: suggestedSearches[SEARCH_KEYS.EXPENSES].translationPath,
             });
         });
     });

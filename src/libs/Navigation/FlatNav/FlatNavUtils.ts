@@ -117,6 +117,7 @@ function buildCannedSearchItem(searchKey: FlatNavCannedSearchKey, menuItem: Sear
         key: searchKey,
         sectionID,
         translationPath: IN_SECTION_TRANSLATION_PATH_OVERRIDES[searchKey] ?? menuItem.translationPath,
+        spendColumnTranslationPath: menuItem.translationPath,
         iconName: menuItem.icon,
         searchQuery: menuItem.searchQuery,
         badgeText: getItemBadgeText(searchKey, todoCounts) || undefined,
@@ -192,9 +193,7 @@ const FLAT_NAV_SUBNAV_GROUP_DEFINITIONS: readonly FlatNavSubnavGroupDefinition[]
         translationPath: 'search.tabs.expenseReports',
         sectionIDs: [FLAT_NAV.SECTION.EXPENSES, FLAT_NAV.SECTION.REPORTS],
         // Under its own section Reports reads "My reports". Next to Expenses it is the whole list of reports.
-        itemTranslationPaths: {
-            [CONST.SEARCH.SEARCH_KEYS.REPORTS]: 'search.tabs.reports',
-        },
+        shouldUseSpendColumnLabels: true,
     },
     {
         id: FLAT_NAV.SUBNAV_GROUP.ACCOUNTING,
@@ -227,10 +226,9 @@ function buildFlatNavSubnavGroups({sections, isOffline}: BuildFlatNavSubnavGroup
         const items = definition.sectionIDs
             .flatMap((sectionID) => sections.find((section) => section.id === sectionID)?.items ?? [])
             .filter((item) => item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH || isOffline || !item.isDisabled)
-            .map((item): FlatNavItem => {
-                const translationPath = item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH ? definition.itemTranslationPaths?.[item.key] : undefined;
-                return item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && translationPath ? {...item, translationPath} : item;
-            });
+            .map((item): FlatNavItem =>
+                item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && definition.shouldUseSpendColumnLabels ? {...item, translationPath: item.spendColumnTranslationPath} : item,
+            );
 
         if (items.length > 0) {
             groups.push({

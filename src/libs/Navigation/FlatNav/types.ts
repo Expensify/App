@@ -41,6 +41,9 @@ type FlatNavCannedSearchItem = {
 
     /** Label as it reads inside its section, e.g. `reports` reads "My reports" under Reports */
     translationPath: TranslationPaths;
+
+    /** Label as the Spend column reads it, for lists that mirror the column */
+    spendColumnTranslationPath: TranslationPaths;
     iconName: SearchTypeMenuItem['icon'];
 
     /** Default query. Navigation prefers the last valid query the user left this search with. */
@@ -105,8 +108,8 @@ type FlatNavSubnavGroupDefinition = {
     /** Sections whose items are listed under the header, in render order */
     sectionIDs: readonly FlatNavSectionID[];
 
-    /** Labels a canned search as it reads under this header, where the section's own wording would not fit */
-    itemTranslationPaths?: Partial<Record<SearchKey, TranslationPaths>>;
+    /** Whether canned searches read as in the Spend column, where the wording of their own section would not fit */
+    shouldUseSpendColumnLabels?: boolean;
 };
 
 /** A header with the searches under it, as the subnav draws them */

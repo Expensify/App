@@ -48,6 +48,7 @@ function createCannedItem(key: FlatNavCannedSearchItem['key'], sectionID: FlatNa
         key,
         sectionID,
         translationPath: 'search.tabs.expenses',
+        spendColumnTranslationPath: 'search.tabs.expenses',
         iconName: 'Receipt',
         searchQuery: `type:expense ${key}`,
         ...overrides,
