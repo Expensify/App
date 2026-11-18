@@ -19,14 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canReassignAsApprover,
-    hasViolations as hasViolationsReportUtils,
-    isAllowedToApproveExpenseReport,
-    isMoneyRequestReport,
-    isMoneyRequestReportPendingDeletion,
-    isProcessingReport,
-} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,14 +67,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     // Members only have the reassignment action, so its destination must still be available.
     const canMemberReassignApprover =
-        canReassignAsApprover({
-            report,
-            currentUserAccountID: currentUserDetails.accountID,
-            isLoadingSecurityGroup,
-            areStrictPolicyRulesEnabled,
-        }) &&
-        isProcessingReport(report) &&
-        isApprovalEnabled;
+        !isLoadingSecurityGroup && !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID && isProcessingReport(report) && isApprovalEnabled;
     const hasAdminPermission = isPolicyAdmin(policy);
     const approverType = hasAdminPermission ? selectedApproverType : APPROVER_TYPE.REASSIGN_APPROVER;
 
@@ -146,8 +132,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report);
-
-    console.log('shouldShowNotFoundView', shouldShowNotFoundView);
 
     const confirmButtonOptions = {
         showButton: true,
