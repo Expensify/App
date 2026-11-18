@@ -9984,7 +9984,7 @@ ${reportName}`,
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Digits θα είναι διαθέσιμοι ως κατηγορίες.',
             dimensionsImport: 'Όλες οι διαστάσεις Digits εισάγονται ως ετικέτες.',
             departments: 'Τμήματα',
-            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξαφέρονται στο Digits.',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Digits.',
             exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
             exportDate: {
                 label: 'Ημερομηνία τιμολογίου προμηθευτή',
