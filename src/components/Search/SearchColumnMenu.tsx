@@ -62,6 +62,15 @@ function SearchColumnMenuTrigger() {
     const layoutAlignment = alignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END && !hasRoomForCaretBeforeLabel ? CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.START : alignment;
     // The caret goes on the side away from the edge the label is pinned to, so revealing it on hover doesn't move the label.
     const isCaretBeforeLabel = layoutAlignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
+    const isIconOnly = !labelProps.text && !!labelProps.icon;
+    const caretIcon = (
+        <Icon
+            src={icons.DownArrow}
+            fill={theme.icon}
+            width={variables.iconSizeExtraSmall}
+            height={variables.iconSizeExtraSmall}
+        />
+    );
 
     return (
         <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}>
@@ -75,16 +84,21 @@ function SearchColumnMenuTrigger() {
             >
                 {({hovered}) => {
                     const isCaretVisible = hovered && !isMenuVisible;
-                    const caret = isCaretVisible && (
-                        <View style={isCaretBeforeLabel ? styles.mr1 : styles.ml1}>
-                            <Icon
-                                src={icons.DownArrow}
-                                fill={theme.icon}
-                                width={variables.iconSizeExtraSmall}
-                                height={variables.iconSizeExtraSmall}
-                            />
-                        </View>
-                    );
+
+                    // An icon-only heading has no room for a caret beside its icon, so the caret takes the icon's place.
+                    if (isIconOnly) {
+                        return (
+                            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                                {isCaretVisible ? (
+                                    <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeSmall), styles.alignItemsCenter, styles.justifyContentCenter]}>{caretIcon}</View>
+                                ) : (
+                                    <SortableHeaderLabel {...labelProps} />
+                                )}
+                            </View>
+                        );
+                    }
+
+                    const caret = isCaretVisible && <View style={isCaretBeforeLabel ? styles.mr1 : styles.ml1}>{caretIcon}</View>;
                     const labelRow = (
                         <View
                             style={[
