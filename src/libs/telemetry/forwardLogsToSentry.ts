@@ -90,6 +90,8 @@ const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyA
             'isBillHidden',
             'isParentActionDeleted',
             'isParentActionMissingAfterLoad',
+            'transactionIDs',
+            'transactionCount',
         ],
     ],
     ['[PDFStall]', ['reportID']],

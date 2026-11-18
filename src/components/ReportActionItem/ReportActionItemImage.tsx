@@ -229,7 +229,8 @@ function ReportActionItemImage({
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
     const logShownAndForwardLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
-        logReceiptShown({receiptTraceId: transaction?.receipt?.receiptTraceId, transactionID: transaction?.transactionID, source: transaction?.receipt?.source});
+        // The retained local file wins over the server URL above, so report the source that is actually on screen
+        logReceiptShown({receiptTraceId: transaction?.receipt?.receiptTraceId, transactionID: transaction?.transactionID, source: localSource ?? transaction?.receipt?.source});
         onLoad?.(event);
     };
 

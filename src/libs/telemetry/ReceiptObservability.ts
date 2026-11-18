@@ -110,23 +110,46 @@ const RECEIPT_TRAIL_COMMANDS = new Set<string>([...RECEIPT_BEARING_COMMANDS, ...
 type ReceiptServerResultClass = 'success' | 'alreadyCreated' | 'transient' | 'permanent' | 'cancelled';
 
 /** The trail fields read from a request's params. The receipt fields are absent for commands that carry no receipt. */
+/** The trail fields read from a request's params. ChangeTransactionsReport sends `transactionList`, a comma-separated list, instead of `transactionID`. */
 type ReceiptTrailRequestData = {
     transactionID?: unknown;
+    transactionList?: unknown;
     receipt?: {receiptTraceId?: unknown; receiptEnqueuedAt?: unknown};
 };
 
 type ReceiptTrailFields = {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
+
+    /** Set only when a move carries more than one transaction, capped at MAX_LOGGED_TRANSACTION_IDS. */
+    transactionIDs: string | undefined;
+
+    /** How many transactions a move carries. 0 for a move of every expense matching a search, which sends no list. */
+    transactionCount: number | undefined;
+
     hasReceipt: boolean;
     receiptEnqueuedAt: number | undefined;
 };
 
+/** A bulk move can carry hundreds of expenses, so only the first ones are logged to keep the line small. */
+const MAX_LOGGED_TRANSACTION_IDS = 20;
+
 function getReceiptTrailFields(data: ReceiptTrailRequestData | undefined): ReceiptTrailFields {
     const receipt = data?.receipt;
+    const hasTransactionList = typeof data?.transactionList === 'string';
+    const listedTransactionIDs = typeof data?.transactionList === 'string' ? data.transactionList.split(',').filter(Boolean) : [];
+
+    // A single-expense move joins the trail by transactionID like every other command
+    let transactionID = typeof data?.transactionID === 'string' ? data.transactionID : undefined;
+    if (!transactionID && listedTransactionIDs.length === 1) {
+        transactionID = listedTransactionIDs.at(0);
+    }
+
     return {
         receiptTraceId: typeof receipt?.receiptTraceId === 'string' ? receipt.receiptTraceId : undefined,
-        transactionID: typeof data?.transactionID === 'string' ? data.transactionID : undefined,
+        transactionID,
+        transactionIDs: listedTransactionIDs.length > 1 ? listedTransactionIDs.slice(0, MAX_LOGGED_TRANSACTION_IDS).join(',') : undefined,
+        transactionCount: hasTransactionList ? listedTransactionIDs.length : undefined,
         hasReceipt: !!receipt,
         receiptEnqueuedAt: typeof receipt?.receiptEnqueuedAt === 'number' ? receipt.receiptEnqueuedAt : undefined,
     };
@@ -196,6 +219,8 @@ function logReceiptServerResult({
         event: 'serverResult',
         receiptTraceId: fields.receiptTraceId,
         transactionID: fields.transactionID,
+        transactionIDs: fields.transactionIDs,
+        transactionCount: fields.transactionCount,
         hasReceipt: String(fields.hasReceipt),
         command,
         resultClass,
@@ -251,6 +276,8 @@ function logReceiptRolledBack({
         event: 'rolledBack',
         receiptTraceId: fields.receiptTraceId,
         transactionID: fields.transactionID,
+        transactionIDs: fields.transactionIDs,
+        transactionCount: fields.transactionCount,
         hasReceipt: String(fields.hasReceipt),
         command,
         trigger,

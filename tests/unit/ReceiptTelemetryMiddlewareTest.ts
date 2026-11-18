@@ -121,6 +121,45 @@ describe('ReceiptTelemetry middleware', () => {
         expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({hasReceipt: 'false', transactionID: TRANSACTION_ID, resultClass: 'success'});
     });
 
+    it('joins a single-expense move by its transaction id', async () => {
+        // Given a move of one expense, which sends a transaction list instead of a transaction id
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, data: {transactionList: TRANSACTION_ID, reportID: '7'}};
+
+        // When the server rejects the move
+        await ReceiptTelemetry(Promise.resolve({jsonCode: 404}), request, true);
+
+        // Then the result still carries the transaction id, so it joins the receipt trail like any other command
+        const result = getLines(lines, 'serverResult').at(0);
+        expect(result?.params).toMatchObject({transactionID: TRANSACTION_ID, transactionCount: 1, resultClass: 'permanent'});
+        expect(result?.params.transactionIDs).toBeUndefined();
+    });
+
+    it('lists the moved ids for a multi-expense move and caps the list', async () => {
+        // Given a bulk move of 25 expenses
+        const ids = Array.from({length: 25}, (_, index) => String(index + 1));
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, data: {transactionList: ids.join(','), reportID: '7'}};
+
+        // When the move succeeds
+        await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}), request, true);
+
+        // Then all 25 are counted but only the first 20 ids are logged, which keeps the line small
+        const result = getLines(lines, 'serverResult').at(0);
+        expect(result?.params.transactionCount).toBe(25);
+        expect(result?.params.transactionIDs).toBe(ids.slice(0, 20).join(','));
+        expect(result?.params.transactionID).toBeUndefined();
+    });
+
+    it('counts zero for a move of every expense matching a search', async () => {
+        // Given a move driven by a search query, which sends an empty transaction list
+        const request: Request<OnyxKey> = {command: WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, data: {transactionList: '', reportID: '7'}};
+
+        // When the move succeeds
+        await ReceiptTelemetry(Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS}), request, true);
+
+        // Then the line says no list was sent, instead of looking like a command without transactions
+        expect(getLines(lines, 'serverResult').at(0)?.params).toMatchObject({transactionCount: 0});
+    });
+
     it('stays silent for commands outside the receipt trail', async () => {
         // Given a command unrelated to expenses
         const request: Request<OnyxKey> = {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}};
