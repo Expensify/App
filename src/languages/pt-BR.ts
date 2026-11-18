@@ -11245,11 +11245,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Etapas do fluxo de trabalho',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Criado → Enviado',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Enviado → Aprovado',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Aprovado → Pago',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Enviado',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Aprovado',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Pago',

@@ -3690,7 +3690,6 @@ function getWorkflowStageSections(data: OnyxTypes.SearchResults['data'], transla
                 transactions: [],
                 ...workflowStageGroup,
                 formattedWorkflowStage: translate(`search.workflowStages.${workflowStageGroup.workflowStage}`),
-                formattedWorkflowStageShort: translate(`search.workflowStageChartLabels.${workflowStageGroup.workflowStage}`),
                 keyForList: key,
             });
         }

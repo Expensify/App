@@ -11039,11 +11039,6 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'ワークフローの段階',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: '作成済み → 提出済み',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: '提出済み → 承認済み',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: '承認済み → 支払済み',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: '提出済み',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: '承認済み',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: '支払済み',

@@ -11195,11 +11195,6 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Fases del flujo de trabajo',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Creado → Enviado',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Enviado → Aprobado',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Aprobado → Pagado',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Enviado',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Aprobado',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Pagado',

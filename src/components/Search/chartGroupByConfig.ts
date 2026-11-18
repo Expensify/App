@@ -161,7 +161,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? item.formattedWorkflowStage : ''),
-        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? item.formattedWorkflowStageShort : undefined),
         getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE ? `${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${item.workflowStage}` : ''),
     },
 };

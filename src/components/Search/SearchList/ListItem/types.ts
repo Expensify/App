@@ -565,9 +565,6 @@ type TransactionPaidByGroupListItemType = TransactionGroupListItemType & {groupe
 type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE} & SearchWorkflowStageGroup & {
         /** Stage name translated for display */
         formattedWorkflowStage: string;
-
-        /** Compact stage name for chart axes, naming the step the stage ends on */
-        formattedWorkflowStageShort: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &

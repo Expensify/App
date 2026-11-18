@@ -10753,11 +10753,6 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: '工作流阶段',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: '已创建 → 已提交',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: '已提交 → 已批准',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: '已批准 → 已支付',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: '已提交',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: '已批准',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: '已支付',

@@ -11494,11 +11494,6 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Στάδια ροής εργασιών',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Δημιουργήθηκε → Υποβλήθηκε',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Υποβλήθηκε → Εγκρίθηκε',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Εγκρίθηκε → Πληρώθηκε',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Υποβλήθηκε',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Εγκρίθηκε',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Πληρώθηκε',

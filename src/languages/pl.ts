@@ -11233,11 +11233,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Etapy przepływu pracy',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Utworzone → Wysłane',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Wysłane → Zatwierdzone',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Zatwierdzone → Opłacone',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Wysłane',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Zatwierdzone',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Opłacone',

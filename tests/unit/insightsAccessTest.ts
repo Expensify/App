@@ -357,7 +357,6 @@ describe('insightsAccess', () => {
                 workflowStage,
                 averageDuration: 1,
                 formattedWorkflowStage: workflowStage,
-                formattedWorkflowStageShort: workflowStage,
                 keyForList: workflowStage,
                 count: 1,
                 total: 0,

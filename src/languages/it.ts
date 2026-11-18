@@ -11225,11 +11225,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Fasi del flusso di lavoro',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Creato → Inviato',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Inviato → Approvato',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approvato → Pagato',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Inviato',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approvato',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Pagato',

@@ -11307,11 +11307,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étapes du workflow',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Créé → Soumis',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Soumis → Approuvé',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approuvé → Payé',
-        },
-        workflowStageChartLabels: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Soumis',
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approuvé',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Payé',
