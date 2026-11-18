@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import ProactiveAppReviewModalManager from '@components/ProactiveAppReviewModalManager';
 
+import {KEYS_TO_PRESERVE_ON_SIGN_OUT} from '@libs/actions/SignInRedirect';
 import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 
@@ -200,10 +201,12 @@ describe('ProactiveAppReviewModalManager', () => {
         expect(getModalProps()?.isVisible).toBe(false);
         firstRender.unmount();
 
-        // When the user signs out (Onyx.clear keeps only KEYS_TO_PRESERVE) and signs back in,
-        // so the server's untouched copy is all that is left of nvp_appReview
+        // When the user signs out and signs back in, so the server's untouched copy is all that is
+        // left of nvp_appReview. Clear with the real sign-out list rather than a hand-written one:
+        // passing [APP_REVIEW_LAST_PROMPT] here would assert the gate while assuming the very thing
+        // under test, and would stay green if the key were dropped from the sign-out path.
         await act(async () => {
-            await Onyx.clear([ONYXKEYS.APP_REVIEW_LAST_PROMPT]);
+            await Onyx.clear(KEYS_TO_PRESERVE_ON_SIGN_OUT);
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'test@expensify.com'});
             await Onyx.set(ONYXKEYS.NVP_APP_REVIEW, STALE_SERVER_NVP);
             await waitForBatchedUpdates();
