@@ -481,8 +481,9 @@ describe('SuggestionMention', () => {
 
         it('never weights a detail with a zero account ID as a participant', async () => {
             // Given a group chat whose participants list has a 0 key, and a detail whose account ID is 0
+            const ZERO_ACCOUNT_ID = 0;
             mockPersonalDetails = {
-                0: {accountID: 0, login: 'ua@example.com'},
+                [ZERO_ACCOUNT_ID]: {accountID: ZERO_ACCOUNT_ID, login: 'ua@example.com'},
                 [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'uc@example.com'},
                 [POLICY_EMPLOYEE_ACCOUNT_ID]: {accountID: POLICY_EMPLOYEE_ACCOUNT_ID, login: 'ub@example.com'},
             };
@@ -492,7 +493,7 @@ describe('SuggestionMention', () => {
                 reportID: 'group2',
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 participants: {
-                    0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [ZERO_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             });

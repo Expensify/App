@@ -38,6 +38,8 @@ const POLICY_ID = 'policyID';
 const REPORT_ID = 'room1';
 const CURRENT_USER_ACCOUNT_ID = 1;
 const FIRST_DETAIL_ACCOUNT_ID = 1000;
+const RUNS = 10;
+const WARMUP_RUNS = 1;
 
 // One first name in ten contains "al", so a stable tenth of the personal details match the `@al` search.
 const FIRST_NAMES = ['Alice', 'Bob', 'Chris', 'Dana', 'Evan', 'Fiona', 'Greg', 'Hugo', 'Ivy', 'Jon'];
@@ -51,7 +53,14 @@ let mockPolicy: Policy | undefined;
 let mockLastMentions: Mention[] = [];
 
 const mockCollator = getCollator(CONST.LOCALES.EN);
-const mockTranslate: ReturnType<typeof useLocalize>['translate'] = (key) => String(key);
+const mockTranslate: ReturnType<typeof useLocalize>['translate'] = (key, ...parameters) => {
+    for (const parameter of parameters) {
+        if (parameter) {
+            return String(key);
+        }
+    }
+    return String(key);
+};
 const mockLocalize = createMock<ReturnType<typeof useLocalize>>({
     translate: mockTranslate,
     formatPhoneNumber: (value: string) => value,
@@ -138,12 +147,12 @@ function renderComposer(value: string) {
     );
 }
 
-function writeResult(label: string, result: {meanDuration: number; stdevDuration: number; durations: number[]; runs: number; outlierDurations?: number[]}) {
+function writeResult(label: string, result: {meanDuration: number; stdevDuration: number; durations: number[]; outlierDurations?: number[]}) {
     // Written to stdout directly so the numbers reach the CI log even when Jest runs with --silent.
     const durations = result.durations.map((duration) => duration.toFixed(1)).join(', ');
     const outliers = (result.outlierDurations ?? []).map((duration) => duration.toFixed(1)).join(', ');
     process.stdout.write(
-        `[SuggestionMentionBench] ${label} mean=${result.meanDuration.toFixed(1)}ms stdev=${result.stdevDuration.toFixed(1)}ms runs=${result.runs} durations=[${durations}] outliers=[${outliers}]\n`,
+        `[SuggestionMentionBench] ${label} mean=${result.meanDuration.toFixed(1)}ms stdev=${result.stdevDuration.toFixed(1)}ms runs=${RUNS} durations=[${durations}] outliers=[${outliers}]\n`,
     );
 }
 
@@ -191,20 +200,18 @@ describe('SuggestionMention @mention lookup in a workspace room', () => {
 
         const result = await measureFunction(
             () => {
-                act(() => {
-                    rerender(renderComposer('@al'));
-                });
+                rerender(renderComposer('@al'));
                 if (mockLastMentions.length > 0) {
                     completedLookups++;
                 }
             },
             {
+                runs: RUNS,
+                warmupRuns: WARMUP_RUNS,
                 // The numbers are written to stdout below, so this also runs under plain Jest, which has no .reassure output folder
                 writeFile: false,
                 beforeEach: () => {
-                    act(() => {
-                        rerender(renderComposer(''));
-                    });
+                    rerender(renderComposer(''));
                     mockLastMentions = [];
                 },
             },
@@ -214,7 +221,7 @@ describe('SuggestionMention @mention lookup in a workspace room', () => {
         unmount();
 
         // Every measured run (plus the warmup run) produced the suggestion list, so the timing covers a real lookup.
-        expect(completedLookups).toBe(result.runs + result.warmupDurations.length);
+        expect(completedLookups).toBe(RUNS + WARMUP_RUNS);
         expect(mockLastMentions).toHaveLength(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
     });
 });
