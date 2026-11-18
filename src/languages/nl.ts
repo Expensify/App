@@ -1288,6 +1288,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Meeste tijd om te betalen',
         share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
+        violationStage: {
+            label: 'Overtredingen van',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -11161,6 +11166,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
             searchFilters: 'Zoekfilters',
             noFiltersSelected: 'Geen filters geselecteerd',
+            anySubmission: 'Iedere inzending',
         },
         display: {
             label: 'Weergave',

@@ -1277,6 +1277,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        violationStage: {
+            label: '違反対象',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -11010,6 +11015,7 @@ ${reportName}`,
             },
             searchFilters: '検索フィルター',
             noFiltersSelected: 'フィルターが選択されていません',
+            anySubmission: 'すべての申請',
         },
         display: {
             label: '表示',

@@ -1238,6 +1238,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '最长付款时间',
         share: '占比',
         averageDays: '平均天数',
+        violationStage: {
+            label: '违规事项',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -10724,6 +10729,7 @@ ${reportName}`,
             },
             searchFilters: '搜索筛选条件',
             noFiltersSelected: '未选择任何筛选器',
+            anySubmission: '任何提交',
         },
         display: {
             label: '显示',
