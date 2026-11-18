@@ -11,7 +11,6 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed, {hasDismissalExpired} from '@libs/TooltipUtils';
 
 import variables from '@styles/variables';
@@ -23,6 +22,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {activeModalKindSelector} from '@selectors/Modal';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {productTrainingPolicyFlagsSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -78,11 +78,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
 
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [policyFlags, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies) => ({
-            isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
-            isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
-            isUserInPaidPolicy: hasAnyPaidPolicy(policies),
-        }),
+        selector: (policies) => productTrainingPolicyFlagsSelector(policies, currentUserLogin),
     });
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
