@@ -205,7 +205,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.goBack();
             return;
         }
-        startWithLoading(() => shareBankAccountAndSetPayer(policyBankAccountID, accountID, policyID));
+        startWithLoading(() => shareBankAccountAndSetPayer(policyBankAccountID, accountID, policyID, policyAchAccountState));
     };
 
     const onButtonPress = () => {

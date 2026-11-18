@@ -1916,14 +1916,18 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
     API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: number, policyID: string) {
+/**
+ * @param bankAccountID - the current user's own copy of the workspace bank account, the one they share
+ * @param bankAccountState - the state of that copy, kept after a successful share
+ */
+function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: number, policyID: string, bankAccountState: string | undefined) {
     const parameters: ShareBankAccountAndSetPayerParams = {
         bankAccountID,
         shareeAccountID,
         policyID,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1943,6 +1947,15 @@ function shareBankAccountAndSetPayer(bankAccountID: number, shareeAccountID: num
                     errors: null,
                     admins: null,
                     shouldShowSuccess: true,
+                },
+            },
+            // The server sends every member the new payer's copy of the bank account, which the current user doesn't own, so a later share
+            // from this user would fail. Keep their own copy until the next fetch of the workspace resolves it for them again.
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    achAccount: {bankAccountID, state: bankAccountState},
                 },
             },
         ],

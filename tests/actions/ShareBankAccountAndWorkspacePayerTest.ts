@@ -35,8 +35,9 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
             const bankAccountID = 123;
             const shareeAccountID = 456;
             const policyID = 'policy_789';
+            const bankAccountState = CONST.BANK_ACCOUNT.STATE.OPEN;
 
-            shareBankAccountAndSetPayer(bankAccountID, shareeAccountID, policyID);
+            shareBankAccountAndSetPayer(bankAccountID, shareeAccountID, policyID, bankAccountState);
             await waitForBatchedUpdates();
 
             expect(write).toHaveBeenCalledWith(
