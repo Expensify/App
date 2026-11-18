@@ -171,6 +171,19 @@ describe('useCreateReport domain preferred workspace (real Onyx)', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('falls back to the active workspace when the preferred workspace is archived', async () => {
+        // Given the restriction points at a workspace that has since been archived, so nothing can be created there
+        await setSecurityGroup({membershipShape: 'sharedNVP', isRestrictionEnabled: true});
+        await setWorkspaces({...makeTeamPolicy(PREFERRED_POLICY_ID), archivedDate: '2024-01-01'});
+
+        // When they press "Create report"
+        const onCreateReport = await renderAndPress();
+
+        // Then the lock cannot be honoured and the normal rules apply, the same as useDefaultExpensePolicy does
+        expect(onCreateReport).toHaveBeenCalledWith(expect.objectContaining({id: ACTIVE_POLICY_ID}), false);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('creates on the preferred workspace when rendered inside the Search scope whose snapshot lacks it', async () => {
         // Given a domain-locked user, and a Search snapshot (what the Reports empty view reads from) that only holds the active
         // workspace, so a snapshot-backed read would miss the preferred workspace and silently drop the lock
