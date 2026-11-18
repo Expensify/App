@@ -180,7 +180,7 @@ function useReportActionsScroll({
     const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
 
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
-    const hasMessages = hasNewerActions || sortedVisibleReportActions.some((action) => !isCreatedAction(action));
+    const hasMessages = hasNewerActions || renderedVisibleReportActions.some((action) => !isCreatedAction(action));
 
     // A report opened from the "X Replies" link should land on the latest message, which is the opposite of the
     // align-to-top mount that money-request and invoice reports normally get. Multi-expense reports get this from
