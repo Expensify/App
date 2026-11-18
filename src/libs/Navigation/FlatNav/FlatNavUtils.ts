@@ -226,9 +226,8 @@ function buildFlatNavSubnavGroups({sections, isOffline}: BuildFlatNavSubnavGroup
         const items = definition.sectionIDs
             .flatMap((sectionID) => sections.find((section) => section.id === sectionID)?.items ?? [])
             .filter((item) => item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH || isOffline || !item.isDisabled)
-            .map(
-                (item): FlatNavItem =>
-                    item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && definition.shouldUseSpendColumnLabels ? {...item, translationPath: item.spendColumnTranslationPath} : item,
+            .map((item): FlatNavItem =>
+                item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && definition.shouldUseSpendColumnLabels ? {...item, translationPath: item.spendColumnTranslationPath} : item,
             );
 
         if (items.length > 0) {
