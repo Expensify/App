@@ -4,6 +4,8 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {WorkspaceCompanyCardBulkActionType} from '@components/Tables/WorkspaceCompanyCardsTable/useWorkspaceCompanyCardsBulkActions';
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 type MockButtonProps = {
@@ -16,7 +18,9 @@ const mockButtonProps: {current?: MockButtonProps} = {};
 let mockShouldUseNarrowLayout = true;
 
 /** The one action every selection offers, which is enough to tell an enabled dropdown from a disabled one. */
-const bulkActionOptions: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [{text: 'workspace.expensifyCard.exportAsCSV', value: 'exportCSV'}];
+const bulkActionOptions: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [
+    {text: 'workspace.expensifyCard.exportAsCSV', value: 'exportCSV', sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL},
+];
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
