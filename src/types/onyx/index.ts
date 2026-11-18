@@ -78,6 +78,7 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
+import type DomainAccountMergeRequest from './DomainAccountMergeRequest';
 import type DomainErrors from './DomainErrors';
 import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
@@ -90,6 +91,7 @@ import type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
@@ -510,6 +512,7 @@ export type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
@@ -554,6 +557,7 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
+    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,
