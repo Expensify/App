@@ -210,7 +210,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID},
         );
-        selectReport(
+        await selectReport(
             {
                 value: optimisticReport.reportID,
                 keyForList: optimisticReport.reportID,
