@@ -1094,10 +1094,11 @@ type DuplicateReportTotals = {
  * currency, so as long as the copy lands in that same currency we can express every expense in the copy's currency
  * without an FX table. This is the rule `calculateGroupTotal` already applies when totalling a mixed-currency group.
  *
- * `undefined` means "don't guess". That covers three cases: the copy's currency differs from the source report's (a
+ * `undefined` means "don't guess". That covers four cases: the copy's currency differs from the source report's (a
  * cross-workspace duplicate into another output currency, where the stored conversion is for the wrong currency), an
- * expense needs a conversion it doesn't carry, or an expense has an unsynced amount or currency edit. Only the server
- * recomputes `convertedAmount`, so while such an edit is still pending the stored conversion describes the old amount.
+ * expense needs a conversion it doesn't carry, an expense has an unsynced amount or currency edit, or a converted per
+ * diem's copy is priced differently from its source. Only the server recomputes `convertedAmount`, so in the last two
+ * cases the stored conversion describes the source's old amount rather than the copy's.
  * The caller then leaves the totals as the server will send them rather than writing a fabricated number.
  */
 function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Transaction[], sourceReport: OnyxEntry<OnyxTypes.Report>, targetPolicy: OnyxTypes.Policy): number[] | undefined {
