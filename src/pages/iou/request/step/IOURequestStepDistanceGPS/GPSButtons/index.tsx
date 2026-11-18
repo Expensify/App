@@ -23,7 +23,7 @@ import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {Linking, View} from 'react-native';
 
 import GPSTooltip from './GPSTooltip';
@@ -58,6 +58,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [startStopButtonWidth, setStartStopButtonWidth] = useState<number>();
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
 
@@ -214,9 +215,10 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             </Button>
         </View>
     ) : (
-        <GPSTooltip>
+        <GPSTooltip maxWidth={startStopButtonWidth}>
             <View>
                 <Button
+                    onLayout={(event) => setStartStopButtonWidth(event.nativeEvent.layout.width)}
                     onPress={gpsDraftDetails?.isTracking ? stopGpsTrip : checkSettingsAndPermissions}
                     variant={gpsDraftDetails?.isTracking ? undefined : CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
