@@ -55,7 +55,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
@@ -71,13 +71,42 @@ import type {CreateTrackExpenseParams} from './TrackExpense';
 import {getCurrentUserAccountIDFromSession, getIOUAndChatReportForIOUAction} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {submitPerDiemExpense} from './PerDiem';
+import {computePerDiemExpenseAmount, submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 // Captures the date and the time of day from a per diem date saved by Expensify Classic, like 2026-07-31T05:30:00.000+02:00
 const CLASSIC_PER_DIEM_DATE_REGEX = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}).*$/;
+
+/**
+ * Builds the custom unit a duplicated per diem expense is created with. Expensify Classic saves per diem dates with a time
+ * zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates without their price and with the quantity as a
+ * string ("12"). CreatePerDiemRequest rejects those dates and string quantities, so the copy keeps the time the user entered
+ * (2026-07-31 05:30:00) and sends the quantity as a number. A sub-rate without a price takes the workspace's current price,
+ * so duplicateReport totals the copy from this custom unit rather than from the source expense's amount.
+ */
+function buildDuplicatePerDiemCustomUnit(sourceCustomUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>): TransactionCustomUnit {
+    const sourceDates = sourceCustomUnit.attributes?.dates;
+    const policySubRates = sourceCustomUnit.customUnitRateID ? (getPerDiemRateCustomUnitRate(policy, sourceCustomUnit.customUnitRateID)?.subRates ?? []) : [];
+    return {
+        ...sourceCustomUnit,
+        attributes: sourceDates
+            ? {
+                  ...sourceCustomUnit.attributes,
+                  dates: {
+                      start: sourceDates.start.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
+                      end: sourceDates.end.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
+                  },
+              }
+            : sourceCustomUnit.attributes,
+        subRates: sourceCustomUnit.subRates?.map((subRate) => ({
+            ...subRate,
+            quantity: Number(subRate.quantity),
+            rate: subRate.rate ?? policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate,
+        })),
+    };
+}
 
 function getIOUActionForTransactions(
     transactionIDList: Array<string | undefined>,
@@ -778,38 +807,12 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const sourceCustomUnit = transaction.comment?.customUnit ?? {};
-            const sourceDates = sourceCustomUnit.attributes?.dates;
-            const policySubRates = sourceCustomUnit.customUnitRateID ? (getPerDiemRateCustomUnitRate(params.policyParams?.policy, sourceCustomUnit.customUnitRateID)?.subRates ?? []) : [];
-
-            // Expensify Classic saves per diem dates with a time zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates
-            // without their price and with the quantity as a string ("12"). CreatePerDiemRequest rejects those dates and string
-            // quantities, so the copy keeps the time the user entered (2026-07-31 05:30:00) and sends the quantity as a number.
-            // A sub-rate without a price takes it from the workspace. One with a price keeps it, because duplicateReport sets
-            // the report total from the source expenses' amounts.
-            const customUnit = {
-                ...sourceCustomUnit,
-                attributes: sourceDates
-                    ? {
-                          ...sourceCustomUnit.attributes,
-                          dates: {
-                              start: sourceDates.start.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
-                              end: sourceDates.end.replace(CLASSIC_PER_DIEM_DATE_REGEX, '$1 $2'),
-                          },
-                      }
-                    : sourceCustomUnit.attributes,
-                subRates: sourceCustomUnit.subRates?.map((subRate) => ({
-                    ...subRate,
-                    quantity: Number(subRate.quantity),
-                    rate: subRate.rate ?? policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate,
-                })),
-            };
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
-                    customUnit,
+                    customUnit: buildDuplicatePerDiemCustomUnit(transaction.comment?.customUnit ?? {}, params.policyParams?.policy),
                 },
                 hasViolations: false,
                 customUnitPolicyID,
@@ -1091,15 +1094,21 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
     for (const transaction of eligibleTransactions) {
         // getCurrency/getAmount read the modified values first, so an expense whose currency was edited after it was
         // created is measured by what it is now, not by what it was created as.
+        const sourceAmount = getAmount(transaction, true);
+
+        // A per diem copy is priced from its sub-rates, which can differ from the source amount when Expensify Classic
+        // didn't save a sub-rate's price and the workspace's price has changed since.
+        const copyAmount = isPerDiemRequest(transaction) ? computePerDiemExpenseAmount(buildDuplicatePerDiemCustomUnit(transaction.comment?.customUnit ?? {}, targetPolicy)) : sourceAmount;
         if (getCurrency(transaction) === reportCurrency) {
-            amounts.push(getAmount(transaction, true));
+            amounts.push(copyAmount);
             continue;
         }
 
         // An amount or currency edit that hasn't reached the server yet leaves `convertedAmount` describing the value
-        // before the edit, so it can't stand in for the expense here.
+        // before the edit, so it can't stand in for the expense here. The same goes for a copy priced differently from
+        // its source, since `convertedAmount` is the conversion of the source amount.
         const hasUnsyncedAmountEdit = !!transaction.pendingFields?.amount || !!transaction.pendingFields?.currency;
-        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit) {
+        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit || copyAmount !== sourceAmount) {
             return undefined;
         }
 
