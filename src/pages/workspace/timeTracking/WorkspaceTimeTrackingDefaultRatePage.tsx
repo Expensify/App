@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -57,7 +57,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
             featureName={CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED}
         >
             <ScreenWrapper testID="WorkspaceTimeTrackingDefaultRatePage">
-                <HeaderWithBackButton title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM}
                     submitButtonText={translate('common.save')}
