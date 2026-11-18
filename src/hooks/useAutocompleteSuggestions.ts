@@ -19,7 +19,16 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, getViolationDisplayName, isFilterSupported, VIOLATION_FILTER_VALUES, isGroupBySupportedBySearch} from '@libs/SearchQueryUtils';
+import {
+    getTravelPlatformDisplayName,
+    getTravelTypeDisplayName,
+    getUserFriendlyKey,
+    getUserFriendlyValue,
+    getViolationDisplayName,
+    isFilterSupported,
+    VIOLATION_FILTER_VALUES,
+    isGroupBySupportedBySearch,
+} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptionAvailability, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -106,6 +115,33 @@ const DEFAULT_STATUS_VALUES = Object.values({
     ...CONST.SEARCH.STATUS.TRIP,
     ...CONST.SEARCH.STATUS.TASK,
 });
+const TRAVEL_TYPE_VALUES = Object.values(CONST.SEARCH.TRAVEL_TYPE);
+const TRAVEL_PLATFORM_VALUES = Object.values(CONST.SEARCH.TRAVEL_PLATFORM);
+
+/**
+ * Suggests values from a fixed list by their display names, matching what the user typed against either the name or the stored value.
+ * Values already in the query are skipped, and each suggestion carries its stored value so the query searches on it rather than on the name.
+ */
+function getNamedValueSuggestions(
+    values: readonly string[],
+    getDisplayName: (value: string) => string,
+    filterKey: UserFriendlyKey,
+    mapKey: SearchFilterKey,
+    autocompleteValue: string,
+    alreadyAutocompletedKeys: Set<string>,
+): AutocompleteItemData[] {
+    const searchValue = autocompleteValue.toLowerCase();
+
+    return values
+        .map((value) => ({value, displayName: getDisplayName(value)}))
+        .filter(
+            ({value, displayName}) =>
+                (displayName.toLowerCase().includes(searchValue) || value.toLowerCase().includes(searchValue)) &&
+                !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
+                !alreadyAutocompletedKeys.has(value.toLowerCase()),
+        )
+        .map(({value, displayName}) => ({filterKey, text: displayName, autocompleteID: value, mapKey}));
+}
 
 /**
  * Computes autocomplete suggestions for the search router.
@@ -466,22 +502,36 @@ function useAutocompleteSuggestions({
                 return getEmptyArray<AutocompleteItemData>();
             }
 
-            const searchValue = autocompleteValue.toLowerCase();
-            const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
-                .filter(
-                    ({violationName, displayName}) =>
-                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) &&
-                        !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
-                        !alreadyAutocompletedKeys.has(violationName.toLowerCase()),
-                )
-                .sort((first, second) => localeCompare(first.displayName, second.displayName));
-
-            return filteredViolations.map(({violationName, displayName}) => ({
-                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
-                text: displayName,
-                autocompleteID: violationName,
-                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
-            }));
+            const getViolationName = (violationName: string) => getViolationDisplayName(violationName, translate);
+            const violationNamesInOrder = [...VIOLATION_FILTER_VALUES].sort((first, second) => localeCompare(getViolationName(first), getViolationName(second)));
+            return getNamedValueSuggestions(
+                violationNamesInOrder,
+                getViolationName,
+                CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                autocompleteValue,
+                alreadyAutocompletedKeys,
+            );
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE: {
+            return getNamedValueSuggestions(
+                TRAVEL_TYPE_VALUES,
+                (travelType) => getTravelTypeDisplayName(travelType, translate),
+                CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE,
+                autocompleteValue,
+                alreadyAutocompletedKeys,
+            );
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM: {
+            return getNamedValueSuggestions(
+                TRAVEL_PLATFORM_VALUES,
+                (travelPlatform) => getTravelPlatformDisplayName(travelPlatform, translate),
+                CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_PLATFORM,
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM,
+                autocompleteValue,
+                alreadyAutocompletedKeys,
+            );
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
             const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
