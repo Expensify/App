@@ -696,6 +696,7 @@ describe('ReportAlternateTextUtils', () => {
             const expenseAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
                 reportActionID: '2',
                 created: '2024-01-01 00:00:00.000',
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- the fixture must carry an IOU CREATE originalMessage so the one-expense filter swaps in the parent's action
                 originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
             });
             const parentComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
