@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {PromotedAction} from '@components/PromotedActionsBar';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
@@ -302,15 +303,11 @@ function ProfilePage({route}: ProfilePageProps) {
                                 errors={agentPrompt?.promptErrors}
                                 errorRowStyles={[styles.mh5, styles.mb2]}
                             >
-                                <MenuItemWithTopDescription
+                                <MenuItemFieldHTML
                                     sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.CUSTOM_INSTRUCTIONS}
-                                    description={translate('profilePage.customInstructions')}
-                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
-                                    shouldParseTitle
-                                    excludedMarkdownRules={['reportMentions']}
-                                    shouldTruncateTitle
+                                    name={translate('profilePage.customInstructions')}
+                                    value={Parser.replace(Str.htmlDecode(agentPrompt?.prompt?.trim() ?? ''), {disabledRules: ['reportMentions']})}
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
-                                    shouldShowRightIcon
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
                                 />
                             </OfflineWithFeedback>

@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectedReports} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -75,7 +76,7 @@ import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
-import {createDistanceRequest} from './Split';
+import {commitDistanceRequest, planDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(
@@ -716,6 +717,7 @@ function createExpenseByType({
     participantsPolicyTags,
     policyTags,
     rules,
+    personalDetailsByLogins,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -733,14 +735,16 @@ function createExpenseByType({
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const duplicateRequestType = getDuplicateRequestType(transaction);
+            const {writeBarrier, ...distanceBaseParams} = params;
             const distanceParams: CreateDistanceRequestInformation = {
-                ...params,
+                ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so createDistanceRequest's
+                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
                 // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
                 moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
@@ -777,7 +781,9 @@ function createExpenseByType({
                 participantsPolicyTags,
                 rules,
             };
-            return createDistanceRequest(distanceParams);
+            const distanceRequestPlan = planDistanceRequest(distanceParams);
+            commitDistanceRequest(distanceRequestPlan, writeBarrier);
+            return {iouReport: distanceRequestPlan.iouReport, transactionID: distanceRequestPlan.transactionID};
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
@@ -793,6 +799,7 @@ function createExpenseByType({
                 formatPhoneNumber,
                 policyTags,
                 rules,
+                personalDetailsByLogins,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -835,6 +842,7 @@ type DuplicateExpenseTransactionParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function duplicateExpenseTransaction({
@@ -869,6 +877,7 @@ function duplicateExpenseTransaction({
     targetPolicyTags,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -996,6 +1005,7 @@ function duplicateExpenseTransaction({
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
         rules,
+        personalDetailsByLogins,
     });
 }
 
@@ -1027,6 +1037,7 @@ type DuplicateReportParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 /**
@@ -1113,6 +1124,7 @@ function duplicateReport({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1267,6 +1279,7 @@ function duplicateReport({
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
             rules,
+            personalDetailsByLogins,
         });
 
         if (result?.iouReport) {
@@ -1306,6 +1319,7 @@ type BulkDuplicateExpensesParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function bulkDuplicateExpenses({
@@ -1335,6 +1349,7 @@ function bulkDuplicateExpenses({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1422,6 +1437,7 @@ function bulkDuplicateExpenses({
 
         const result = duplicateExpenseTransaction({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             transaction: item,
             optimisticChatReportID,
             optimisticIOUReportID: currentOptimisticIOUReportID,
@@ -1500,6 +1516,7 @@ type BulkDuplicateReportsParams = {
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 async function bulkDuplicateReports({
@@ -1530,6 +1547,7 @@ async function bulkDuplicateReports({
     conciergeChat,
     rules,
     isVendorMatchingBetaEnabled,
+    personalDetailsByLogins,
 }: BulkDuplicateReportsParams) {
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
 
@@ -1605,6 +1623,7 @@ async function bulkDuplicateReports({
 
         duplicateReport({
             isVendorMatchingBetaEnabled,
+            personalDetailsByLogins,
             sourceReport: report,
             sourceReportTransactions: reportTransactions,
             sourceReportName: report.reportName ?? '',

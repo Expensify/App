@@ -10,6 +10,7 @@ import {
     SearchSelectionClearGenerationContext,
     SearchSelectionContext,
     SearchShiftRangeGroupsContext,
+    SearchShouldUseLiveDataContext,
 } from './SearchContextDefinitions';
 
 // Lightweight public surface for search contexts.
@@ -58,6 +59,7 @@ export {
     SearchQueryActionsContext,
     SearchResultsContext,
     SearchResultsActionsContext,
+    SearchShouldUseLiveDataContext,
     SearchSelectionContext,
     SearchSelectionActionsContext,
     useSearchQueryContext,

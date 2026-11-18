@@ -195,4 +195,87 @@ describe('usePaymentOptions', () => {
             expect(payViaABAOption?.disabled).toBe(true);
         });
     });
+
+    describe('Invoice bank accounts', () => {
+        const INVOICE_CHAT_REPORT_ID = '300';
+        const INVOICE_RECEIVER_ACCOUNT_ID = 1;
+        const PERSONAL_BANK_ACCOUNT_ID = 1;
+        const BUSINESS_BANK_ACCOUNT_ID = 2;
+        const SETUP_BANK_ACCOUNT_ID = 3;
+        const VERIFYING_BANK_ACCOUNT_ID = 4;
+        const PENDING_BANK_ACCOUNT_ID = 5;
+        const DEBIT_CARD_FUND_ID = 6;
+
+        // Expensify can only pay invoices in the direct reimbursement currencies, which don't include JPY
+        const UNSUPPORTED_INVOICE_CURRENCY = 'JPY';
+
+        const invoiceReport: Report = {reportID: '200', type: CONST.REPORT.TYPE.INVOICE, chatReportID: INVOICE_CHAT_REPORT_ID};
+
+        async function renderInvoicePaymentOptions(currency: string) {
+            const {result} = renderHook(() => usePaymentOptions({iouReport: invoiceReport, chatReportID: INVOICE_CHAT_REPORT_ID, policyID: undefined, currency, onPress: jest.fn()}), {
+                wrapper: Wrapper,
+            });
+            await waitForBatchedUpdatesWithAct();
+            return result.current;
+        }
+
+        function getSubMenuItemTexts(paymentOptions: ReturnType<typeof usePaymentOptions>, index: number): string[] {
+            return paymentOptions.at(index)?.subMenuItems?.map((item) => item.text) ?? [];
+        }
+
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${INVOICE_CHAT_REPORT_ID}`, {
+                    reportID: INVOICE_CHAT_REPORT_ID,
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: INVOICE_RECEIVER_ACCOUNT_ID},
+                });
+                await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    [PERSONAL_BANK_ACCOUNT_ID]: {methodID: PERSONAL_BANK_ACCOUNT_ID, title: 'Personal ready', accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}},
+                    [BUSINESS_BANK_ACCOUNT_ID]: {methodID: BUSINESS_BANK_ACCOUNT_ID, title: 'Business ready', accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS}},
+                    [SETUP_BANK_ACCOUNT_ID]: {
+                        methodID: SETUP_BANK_ACCOUNT_ID,
+                        title: 'Setup',
+                        accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                    },
+                    [VERIFYING_BANK_ACCOUNT_ID]: {
+                        methodID: VERIFYING_BANK_ACCOUNT_ID,
+                        title: 'Verifying',
+                        accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING},
+                    },
+                    [PENDING_BANK_ACCOUNT_ID]: {
+                        methodID: PENDING_BANK_ACCOUNT_ID,
+                        title: 'Pending',
+                        accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.PENDING},
+                    },
+                });
+                await Onyx.merge(ONYXKEYS.FUND_LIST, {[DEBIT_CARD_FUND_ID]: {methodID: DEBIT_CARD_FUND_ID, title: 'Debit card', accountData: {fundID: DEBIT_CARD_FUND_ID}}});
+                await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY]);
+            });
+        });
+
+        it('offers only the ready bank account of each type when paying an invoice', async () => {
+            // Given an individual invoice room whose payer has ready, partially set up and debit card payment methods
+            // When the invoice payment menus are built for a currency Expensify can pay in
+            const paymentOptions = await renderInvoicePaymentOptions(CONST.CURRENCY.USD);
+
+            // Then each menu lists only the ready bank account of its type, because partially set up accounts and cards cannot pay an invoice
+            expect(getSubMenuItemTexts(paymentOptions, 0)).toEqual(['Personal ready', translateLocal('iou.payElsewhere'), translateLocal('bankAccount.addBankAccount')]);
+            expect(getSubMenuItemTexts(paymentOptions, 1)).toEqual(['Business ready', translateLocal('bankAccount.addBankAccount'), translateLocal('iou.payElsewhere')]);
+        });
+
+        it('offers no bank account when the invoice currency cannot be paid through Expensify', async () => {
+            // Given the same payment methods, on an invoice in a currency Expensify cannot pay in
+            // When the invoice payment menus are built
+            const paymentOptions = await renderInvoicePaymentOptions(UNSUPPORTED_INVOICE_CURRENCY);
+
+            // Then no bank account is offered, so the user is not shown a payment that would fail
+            expect(getSubMenuItemTexts(paymentOptions, 0)).not.toContain('Personal ready');
+            expect(getSubMenuItemTexts(paymentOptions, 1)).not.toContain('Business ready');
+        });
+    });
 });

@@ -1,3 +1,5 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import useOnyx from '@hooks/useOnyx';
 
 import type {FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
@@ -24,10 +26,12 @@ import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
+import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
 import {findSearchTabRoute, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useIsNativeFlatNavTabBarEnabled from './NativeTabNavigator/useIsNativeFlatNavTabBarEnabled';
+import useIsTabBarVertical from './NativeTabNavigator/useIsTabBarVertical';
 import useNativeFlatNavSearchSection from './NativeTabNavigator/useNativeFlatNavSearchSection';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -62,8 +66,9 @@ type NativeTabNavigatorProps = {
 
 function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled = false}: NativeTabNavigatorProps) {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator({isFlatNavTabBarEnabled});
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const isTabBarVertical = useIsTabBarVertical();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     // The search key is read from the navigator's current state, as the route given here has no nested state, so the bar
     // selects the new item in the same commit as Search moves.
     const getSearchSectionID = (navigation: {getState: () => NavigationState}) => getFlatNavSearchSectionID?.(getSearchTabSearchKey(findSearchTabRoute(navigation.getState())));
@@ -78,7 +83,7 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
               }
             : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(navigation))};
 
-    return (
+    const tabNavigator = (
         <>
             <TabRootGestureController />
             <Tab.Navigator
@@ -135,6 +140,8 @@ function NativeTabNavigator({getFlatNavSearchSectionID, isFlatNavTabBarEnabled =
             </Tab.Navigator>
         </>
     );
+
+    return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;
 }
 
 /** The tab navigator with the flat nav bar, which reads where Search is so the bar can highlight its item. */
