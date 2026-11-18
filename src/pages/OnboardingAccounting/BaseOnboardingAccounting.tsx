@@ -100,13 +100,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const trimmedQuery = searchQuery.trim();
     const normalizedQuery = trimmedQuery.toLocaleLowerCase();
     const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));
+    const isSelectedOptionHidden = !!selectedAnswer && !filteredOptions.some((option) => option.name === (selectedOption?.name ?? customOption?.name));
 
     const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
     const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
     const confirmSoftwareLabel = translate('onboarding.accounting.confirmSoftware', trimmedQuery);
 
     const submitAccounting = async () => {
-        if (!selectedAnswer) {
+        if (!selectedAnswer || isSelectedOptionHidden) {
             setError(translate('onboarding.errorSelection'));
             return;
         }
@@ -140,6 +141,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitAccounting}
+                isDisabled={isSelectedOptionHidden}
                 isLoading={isCompletingOnboarding}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             >

@@ -1,5 +1,7 @@
 import {act, fireEvent, render, renderHook, screen, waitFor, within} from '@testing-library/react-native';
 
+import type {ButtonProps} from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import ComposeProviders from '@components/ComposeProviders';
 import Icon from '@components/Icon';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -259,6 +261,89 @@ describe('Onboarding interested features and accounting pages', () => {
         await waitFor(() =>
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'quickbooksOnline', userReportedIntegrationName: undefined})),
         );
+    });
+
+    it('blocks a hidden selection on the unsupported screen and restores it when search is cleared', async () => {
+        // Given Xero is selected before searching for unsupported software
+        const result = renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Xero'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the search hides Xero, neither a button press nor direct submission may send it
+        searchFor('Wave');
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.accounting.unsupportedTitle', 'Wave'))).toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
+        continueOnboarding();
+        const {onPress}: Pick<ButtonProps, 'onPress'> = result.UNSAFE_getByType(ButtonDisabledWhenOffline).props;
+        await act(async () => onPress?.());
+
+        // Then the draft is preserved without completing onboarding, and clearing search makes it usable again
+        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+        expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toEqual({integration: 'xero'});
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Xero'})).toBeChecked();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'xero'})));
+    });
+
+    it('enables Continue for an explicitly confirmed replacement instead of submitting the hidden selection', async () => {
+        // Given Xero is selected but hidden by an unmatched search
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Xero'));
+        await waitForBatchedUpdatesWithAct();
+        searchFor('Wave');
+
+        // When the searched software is explicitly confirmed
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.accounting.confirmSoftware', 'Wave')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the visible custom answer enables Continue and supplies the replacement payload
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Wave'})).toBeChecked();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: 'Wave'})));
+    });
+
+    it('also blocks hidden selections when the search matches other supported products', async () => {
+        // Given Xero is selected
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Xero'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the results show other products but not the selected one
+        searchFor('QuickBooks');
+        continueOnboarding();
+
+        // Then submission is blocked until a visible replacement is selected
+        expect(screen.getAllByRole(CONST.ROLE.RADIO).length).toBeGreaterThan(0);
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
+        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByText('QuickBooks Online'));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'quickbooksOnline'})));
+    });
+
+    it('keeps Continue enabled when the selected row matches a search alias', async () => {
+        // Given QuickBooks Online is selected
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('QuickBooks Online'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When searching its alias instead of the display name
+        searchFor('  QBO  ');
+
+        // Then the selected row remains visible and can still be submitted
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'QuickBooks Online'})).toBeChecked();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.continue')})).toBeEnabled();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'quickbooksOnline'})));
     });
 
     it.each(['Digits', 'DualEntry', 'Campfire', 'Dynamics 365 Business Central', 'Odoo', 'Exact Online', 'Sage Accounting'])('submits %s using the existing Other contract', async (name) => {
