@@ -97,6 +97,13 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
      * screens too, so the user sees why. Off by default, so only the last page waits for a connection.
      */
     shouldDisableNextWhenOffline?: boolean;
+
+    /**
+     * Keeps Next and Confirm enabled offline, and a press offline opens a modal that offers to leave the flow, as Back from the first page does, or to try
+     * again. For flows that save each page to the server as the user leaves it, so the answers are kept for a later visit. Shows the offline indicator on
+     * wide screens too. Off by default.
+     */
+    shouldOfferToContinueLaterWhenOffline?: boolean;
 };
 
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */
@@ -140,6 +147,9 @@ type DynamicFormSubPageProps = SubPageProps &
 
         /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
         onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
+
+        /** Leaves the flow when the user presses Next or Confirm offline and picks to fill the form out later. Only set when the flow offers it, and its presence keeps those buttons enabled offline. */
+        onSaveForLater?: () => void;
     };
 
 export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};

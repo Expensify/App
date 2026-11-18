@@ -4832,6 +4832,12 @@ const translations = {
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'The questions on this page changed',
+        continueOffline: {
+            title: "You can't continue offline",
+            prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            saveForLater: 'Save and fill out later',
+            progressSaved: 'Your progress has been saved',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',

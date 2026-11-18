@@ -14,6 +14,7 @@ import {isSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 
@@ -124,6 +125,13 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
+    /**
+     * Called instead of validating and submitting when the user presses submit offline, such as to explain why the form cannot go on. Passing it keeps the
+     * submit button enabled offline. The connection is read at press time, so a submit right after the connection returns goes through. It receives
+     * `submitNow`, which submits again without the press debounce, such as once the user asks to try again.
+     */
+    onSubmitWhenOffline?: (submitNow: () => void) => void;
+
     /** Whether the confirm button should show a spinner immediately on press */
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
@@ -153,6 +161,7 @@ function FormProvider({
     shouldHideServerError = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    onSubmitWhenOffline,
     shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
@@ -305,14 +314,24 @@ function FormProvider({
     const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
     const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
-    const submit = useDebounceNonReactive(
-        useCallback(() => {
+    // A named function, so the offline branch can hand itself over as the undebounced retry
+    // eslint-disable-next-line prefer-arrow-callback
+    const submitNow = useCallback(
+        function submitWithoutDebounce() {
             // Return early if the form is already submitting to avoid duplicate submission
             if (isLoading) {
                 return;
             }
 
             onBeforeSubmit?.();
+
+            // Checked before validation, so an unfinished page offline explains the connection instead of marking its fields. The render's isOffline can
+            // lag behind a connection that just came back, so the current state is read. The handler gets the undebounced submit, so a retry right
+            // after the press is not dropped by the debounce below.
+            if (onSubmitWhenOffline && getIsOffline()) {
+                onSubmitWhenOffline(submitWithoutDebounce);
+                return;
+            }
 
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
@@ -333,7 +352,7 @@ function FormProvider({
             }
 
             // Do not submit form if network is offline and the form is not enabled when offline
-            if (isOffline && !enabledWhenOffline) {
+            if (isOffline && !enabledWhenOffline && !onSubmitWhenOffline) {
                 return;
             }
 
@@ -353,7 +372,8 @@ function FormProvider({
             }
 
             startWithLoading(runSubmit);
-        }, [
+        },
+        [
             enabledWhenOffline,
             isLoading,
             inputValues,
@@ -364,12 +384,13 @@ function FormProvider({
             hasServerError,
             keyboardSubmitBehavior,
             onBeforeSubmit,
+            onSubmitWhenOffline,
             shouldShowLoadingImmediatelyOnPress,
             startWithLoading,
-        ]),
-        1000,
-        {leading: true, trailing: false},
+        ],
     );
+
+    const submit = useDebounceNonReactive(submitNow, 1000, {leading: true, trailing: false});
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.
@@ -606,7 +627,7 @@ function FormProvider({
                 serverErrorFields={formState?.errorFields}
                 serverErrorMessage={errorMessage}
                 isLoading={isLoading}
-                enabledWhenOffline={enabledWhenOffline}
+                enabledWhenOffline={enabledWhenOffline || !!onSubmitWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}

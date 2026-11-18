@@ -34,6 +34,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,6 +150,7 @@ function WalletPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const network = useNetwork();
+    const runWhenOnline = useRunWhenOnline();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
@@ -545,7 +547,8 @@ function WalletPage() {
                                       Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID));
                                       return;
                                   }
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)));
+                                  // The intro leads into a form that saves each page to the server, so it opens only online
+                                  runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))));
                               });
                               return;
                           }

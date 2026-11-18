@@ -5,6 +5,7 @@ import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useRunWhenOnline from '@hooks/useRunWhenOnline';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,6 +42,7 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitt
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
+    const runWhenOnline = useRunWhenOnline();
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, style]}>
@@ -62,10 +64,11 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitt
                         <TextLink
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_SETUP_IN_PROGRESS_CONTINUE_LINK}
                             variant="label"
+                            // The status page shows what the device holds, so only the way into the onboarding form waits for a connection
                             onPress={() =>
                                 isOnboardingSubmitted
                                     ? Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))
-                                    : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)))
+                                    : runWhenOnline(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID))))
                             }
                         >
                             {translate('walletPage.wiseSetupInProgress.continue')}

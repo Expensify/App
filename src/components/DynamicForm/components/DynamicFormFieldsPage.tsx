@@ -1,3 +1,4 @@
+import useContinueOfflineModal from '@components/DynamicForm/hooks/useContinueOfflineModal';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
@@ -39,10 +40,12 @@ function DynamicFormFieldsPage({
     isRefreshingRequirements,
     refreshError,
     shouldDisableNextWhenOffline,
+    onSaveForLater,
     validatePage,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showContinueOfflineModal} = useContinueOfflineModal();
     const page = pages.find((candidate) => candidate.key === currentPageName);
     const pageError = (isLastPage ? submitError : undefined) ?? refreshError;
     if (!page) {
@@ -74,6 +77,8 @@ function DynamicFormFieldsPage({
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
             enabledWhenOffline={!isLastPage && !shouldDisableNextWhenOffline}
+            // Try again submits again once the connection is back, so the page is checked and saved as usual
+            onSubmitWhenOffline={onSaveForLater ? (submitNow) => showContinueOfflineModal({onSaveForLater, onContinue: submitNow}) : undefined}
             // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does.
             // A refresh can change the fields on any page, so Next waits for it everywhere.
             isLoading={(isLastPage && !!isSubmitting) || !!isRefreshingRequirements}
