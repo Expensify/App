@@ -54,6 +54,7 @@ function TaxIDStep({onNext}: EnableTravelSubPageProps) {
                 aria-label={translate('travel.taxID.inputLabel')}
                 role={CONST.ROLE.PRESENTATION}
                 ref={inputCallbackRef}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
         </FormProvider>
     );

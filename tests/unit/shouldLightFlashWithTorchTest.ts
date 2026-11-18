@@ -9,7 +9,7 @@ jest.mock('@libs/cameraCapture/platformConfig', () => ({
     },
 }));
 
-const ALL_MET = {flash: true, hasFlash: true, hasTorch: true, isBetaEnabled: true, isMultiScanEnabled: false, canUpgradeReceiptQuality: true};
+const ALL_MET = {flash: true, hasFlash: true, hasTorch: true, isMultiScanEnabled: false, canUpgradeReceiptQuality: true};
 
 describe('shouldLightFlashWithTorch', () => {
     beforeEach(() => {
@@ -17,7 +17,7 @@ describe('shouldLightFlashWithTorch', () => {
     });
 
     it('lights a single flash scan with the torch on a platform that can take snapshots', () => {
-        // Given flash on, a phone with a torch, the beta on and a scan that gets the photo upgrade
+        // Given flash on, a phone with a torch and a scan that gets the photo upgrade
         // When the capture mode is decided
         // Then the torch lights it, so the capture can be a fast snapshot
         expect(shouldLightFlashWithTorch(ALL_MET)).toBe(true);
@@ -27,7 +27,6 @@ describe('shouldLightFlashWithTorch', () => {
         ['flash is off', {flash: false}],
         ['the phone has no flash', {hasFlash: false}],
         ['the phone has no torch', {hasTorch: false}],
-        ['the beta is off', {isBetaEnabled: false}],
         ['multi-scan is on, which skips the photo upgrade', {isMultiScanEnabled: true}],
         ['the screen has no photo upgrade', {canUpgradeReceiptQuality: false}],
     ])('keeps the flash photo when %s', (_, override) => {

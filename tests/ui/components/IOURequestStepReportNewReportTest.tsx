@@ -213,7 +213,7 @@ describe('IOURequestStepReport with a generated New report ID', () => {
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_1}`)).toBeNull();
     });
 
-    it('should list the member reports when an admin creates an expense in the member workspace chat', async () => {
+    it('should fetch member reports without offering creation-ineligible reports to an admin in the member workspace chat', async () => {
         // Given an admin creating an expense for a member whose chat no longer points to a report
         await givenExpenseInWorkspaceChatWithSubmittedReport();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: APPROVER_ACCOUNT_ID, email: APPROVER_LOGIN});
@@ -231,8 +231,8 @@ describe('IOURequestStepReport with a generated New report ID', () => {
         // When the picker opens from New report without an existing report to supply the owner
         await renderReportPickerForNewReport();
 
-        // Then it fetches and lists the member reports, not the signed-in admin reports in the same workspace
-        expect(await screen.findByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MEMBER_OPEN_REPORT_ID}`)).toBeTruthy();
+        // Then fetching remains scoped to the member, while creation eligibility excludes reports the admin does not own.
+        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${MEMBER_OPEN_REPORT_ID}`)).toBeNull();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${REPORT_ID_1}`)).toBeNull();
         expect(fetchOutstandingReports).toHaveBeenCalledWith(ACCOUNT_ID, POLICY_ID_2, 0);
         expect(fetchOutstandingReports).not.toHaveBeenCalledWith(APPROVER_ACCOUNT_ID, POLICY_ID_2, 0);

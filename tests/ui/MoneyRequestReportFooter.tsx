@@ -152,6 +152,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
         return waitForBatchedUpdatesWithAct();
     });
 
+    beforeEach(async () => {
+        // The report owner must be signed in so creation eligibility retains the existing report as the default.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: FAKE_ACCOUNT_ID, email: 'reportfooter@example.com'});
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -199,9 +207,8 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should allow editing report field when the only outstanding report is picked and creating from policy chat', async () => {
-        // Given the expense is on the only outstanding report, while saving would create a new report by default
-        // because the current user is not that report's submitter
+    it('should disable report field when the only eligible report is already selected and creating from policy chat', async () => {
+        // Given the submitter's only eligible report is already selected, so there is no alternative destination
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: false,
@@ -229,9 +236,9 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then the field stays editable, so the user can switch back to a new report
+        // Then the field is read-only because the selected report is the only eligible destination
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -256,9 +263,8 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
-    it('should allow editing report field when transaction has the only outstanding report and creating from FAB', async () => {
-        // Given the expense is on the only outstanding report, while saving would create a new report by default
-        // because the current user is not that report's submitter
+    it('should disable report field when the only eligible report is already selected and creating from FAB', async () => {
+        // Given the submitter's only eligible report is already selected, so there is no alternative destination
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: true,
@@ -286,9 +292,9 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Then the field stays editable, so the user can switch back to a new report
+        // Then the field is read-only because the selected report is the only eligible destination
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {

@@ -607,7 +607,10 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                         : 'workspace.accounting.qboConnectionExpiring',
                     {date: formattedExpiryDate},
                 )}{' '}
-                <TextLink onPress={() => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite})}>
+                <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.QBO_RECONNECT_LINK}
+                    onPress={() => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite})}
+                >
                     {translate('workspace.accounting.reconnect')}
                 </TextLink>
             </>
@@ -622,6 +625,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             <>
                 {translate(severity === 'danger' ? 'workspace.accounting.netSuiteOAuthMigrationRequiredUrgent' : 'workspace.accounting.netSuiteOAuthMigrationRequired')}{' '}
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.NETSUITE_OAUTH_UPGRADE_LINK}
                     style={styles.label}
                     onPress={() =>
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, undefined, true))

@@ -84,6 +84,7 @@ function getAlternateText({
     currentUserAccountID = CURRENT_USER_ACCOUNT_ID,
 }: Case): string | undefined {
     const result = SidebarUtils.getOptionData({
+        lastOriginalAction: undefined,
         report,
         reportAttributes: undefined,
         oneTransactionThreadReport: undefined,
@@ -132,6 +133,7 @@ const SIMPLE_CHAIN_ACTIONS: Array<ReportAction['actionName']> = [
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
