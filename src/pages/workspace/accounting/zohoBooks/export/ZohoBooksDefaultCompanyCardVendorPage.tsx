@@ -74,7 +74,7 @@ function ZohoBooksDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.zohoBooks.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.zohoBooks.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />

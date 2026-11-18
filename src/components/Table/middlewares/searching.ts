@@ -80,6 +80,16 @@ type SearchingMiddlewareParams<T> = {
     isItemInSearch?: IsItemInSearchCallback<T>;
 };
 
+type SearchedDataCacheEntry = {
+    searchString: string;
+    isItemInSearch: unknown;
+    searchedData: unknown[];
+};
+
+// A search builds a new array on every render, which would defeat the sort and selection caches that are keyed by the array.
+// The last result is kept per data array so those caches still hit when only the selection changed.
+const searchedDataCache = new WeakMap<WeakKey, SearchedDataCacheEntry>();
+
 /**
  * Searches table data based on a search string.
  *
@@ -102,7 +112,16 @@ function search<T>({data, activeSearchString, isItemInSearch}: SearchingMiddlewa
         return data;
     }
 
-    return data.filter((item) => isItemInSearch(item, trimmedSearchString));
+    const cachedEntry = searchedDataCache.get(data);
+    if (cachedEntry && cachedEntry.searchString === trimmedSearchString && cachedEntry.isItemInSearch === isItemInSearch) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its items have the same type
+        return cachedEntry.searchedData as T[];
+    }
+
+    const searchedData = data.filter((item) => isItemInSearch(item, trimmedSearchString));
+    searchedDataCache.set(data, {searchString: trimmedSearchString, isItemInSearch, searchedData});
+
+    return searchedData;
 }
 
 export default useSearching;
