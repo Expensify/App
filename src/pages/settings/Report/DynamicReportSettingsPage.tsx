@@ -20,6 +20,7 @@ import {
     getReportNotificationPreferenceForSettings,
     isAdminRoom,
     isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
@@ -59,7 +60,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const shouldAllowWriteCapabilityEditing = canEditWriteCapability(report, linkedWorkspace, isReportArchived);
     const shouldAllowChangeVisibility = canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
+    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant && !isHiddenForCurrentUser(notificationPreferenceValue);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
