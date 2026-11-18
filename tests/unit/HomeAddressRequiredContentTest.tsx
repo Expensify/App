@@ -90,24 +90,21 @@ describe('HomeAddressRequiredContent', () => {
         expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });
 
-    it('focuses the home address from either supported message-link path', () => {
-        // Given the backend may still send the old private-details path, or the new address-only path
+    it('focuses the home address from the private-details message link', () => {
+        // Given a home-address message links to private personal details
         render(
             <HomeAddressRequiredContent
                 action={mockReportAction}
                 reportID="1"
             />,
         );
-        const paths = [ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route, ROUTES.SETTINGS_HOME_ADDRESS.route];
 
-        for (const path of paths) {
-            // When a message link is pressed, ignoring any existing query or fragment
-            const press = mockGetAnchorPressOverride(`${CONST.NEW_EXPENSIFY_URL}${path}?existing=value#address`);
-            press?.();
-        }
+        // When a message link is pressed, ignoring any existing query or fragment
+        const press = mockGetAnchorPressOverride(`${CONST.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route}?existing=value#address`);
+        press?.();
 
-        // Then both supported destinations open the address-only page with opt-in focus
-        expect(openHomeAddressPageWithFocus).toHaveBeenCalledTimes(2);
+        // Then the message destination opens the address-only page with opt-in focus
+        expect(openHomeAddressPageWithFocus).toHaveBeenCalledTimes(1);
     });
 
     it('leaves an unrelated internal link to the shared renderer', () => {

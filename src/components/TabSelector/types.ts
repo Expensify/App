@@ -5,7 +5,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import type CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import type {ComponentRef, Ref} from 'react';
@@ -27,7 +27,7 @@ type TabSelectorProps = MaterialTopTabBarProps & {
     equalWidth?: boolean;
 };
 
-type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
+type TabSelectorBaseItem<K extends string = string> = WithRequiredSentryLabel & {
     /** Stable key for the tab. */
     key: K;
 
@@ -108,7 +108,8 @@ type TabSelectorBaseProps<K extends string = string> = {
     itemGroupAccessibilityLabel?: string;
 };
 
-type TabSelectorItemProps = WithSentryLabel & {
+// A tab is always pressable, so it always needs a label.
+type TabSelectorItemProps = WithRequiredSentryLabel & {
     tabKey: string;
 
     /** Function to call when onPress */

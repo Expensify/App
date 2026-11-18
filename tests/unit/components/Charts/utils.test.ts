@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getSteppedLabelLayout,
     getSteppedYAxisTicks,
     getYAxisTickLayout,
     getCartesianPlotBounds,
@@ -282,6 +283,37 @@ describe('findSliceAtPosition', () => {
 });
 
 describe('processDataIntoSlices', () => {
+    it('keeps meaningful slices when reported shares round to zero and removes actual slivers', () => {
+        // Given two visible tag groups dwarfed by spend outside the chart, plus a genuinely thin slice
+        const data: ChartDataPoint[] = [
+            {
+                label: 'Small',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 10000},
+                percentOfTotal: 0,
+            },
+            {
+                label: 'Large',
+                values: {[CHART_SERIES_KEY.PRIMARY]: 30000},
+                percentOfTotal: 0,
+            },
+            {label: 'Sliver', values: {[CHART_SERIES_KEY.PRIMARY]: 1}},
+        ];
+
+        // When visible slices are sized from the values actually plotted
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {
+            centerX: 0,
+            centerY: 0,
+            radius: 100,
+            innerRadius: 50,
+        });
+
+        // Then original indices survive sorting and the two surviving slices cover the donut
+        expect(slices.map((slice) => slice.label)).toEqual(['Large', 'Small']);
+        expect(slices.map((slice) => slice.originalIndex)).toEqual([1, 0]);
+        expect(slices.map((slice) => slice.percentage)).toEqual([75, 25]);
+        expect(slices.at(-1)?.endAngle).toBeCloseTo(VictoryTheme.pie.startAngle + 360);
+    });
+
     it('returns empty array for empty data', () => {
         expect(processDataIntoSlices([], CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
@@ -1061,5 +1093,22 @@ describe('getAxisLabelStep', () => {
 
         // Then the smallest step is used and the point stays labeled
         expect(step).toBe(1);
+    });
+});
+
+describe('getSteppedLabelLayout', () => {
+    it('keeps bar labels horizontal and untruncated, labeling every Nth bar so they do not overlap', () => {
+        // Given 31 daily bars whose 40px labels are wider than the space between neighboring bars
+        const {barWidth, gap, edgeSpace} = getBarLayout(600, 31);
+        const pointXs = Array.from({length: 31}, (_, index) => edgeSpace + index * (barWidth + gap));
+
+        // When laying out the labels with the daily steps
+        const layout = getSteppedLabelLayout({labelWidths: Array<number>(31).fill(40), pointXs, steps: [1, 2, 7, 14], lineHeight: LINE_HEIGHT, ellipsisWidth: 0});
+
+        // Then the labels stay horizontal at full width on one line, and only every 7th bar is labeled because a smaller step would overlap
+        expect(layout.labelRotation).toBe(LABEL_ROTATIONS.HORIZONTAL);
+        expect(layout.labelSkipInterval).toBe(7);
+        expect(layout.regularLabelMaxWidth).toBe(Infinity);
+        expect(layout.xAxisLabelHeight).toBe(LINE_HEIGHT);
     });
 });

@@ -40,8 +40,7 @@ const createIsCommuteStillMeasuredSelector = (currentUserEmail: string | undefin
 
 function getHomeAddressPressOverride(href: string) {
     const path = getInternalNewExpensifyPath(href).split(/[?#]/).at(0);
-    // The backend may still send the legacy private-details path instead of the address-only path, so accept both.
-    if (path !== ROUTES.SETTINGS_HOME_ADDRESS.route && path !== ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route) {
+    if (path !== ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route) {
         return undefined;
     }
     return openHomeAddressPageWithFocus;

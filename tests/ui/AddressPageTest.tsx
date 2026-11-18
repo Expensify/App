@@ -33,7 +33,7 @@ jest.mock('@rnmapbox/maps', () => {
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS | typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, fieldToFocus?: string) => {
+const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, fieldToFocus?: string) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
@@ -42,10 +42,6 @@ const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ADDRESS | 
                     initialState={{routes: [{name: initialRouteName, params: {fieldToFocus}}]}}
                 >
                     <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.SETTINGS.PROFILE.ADDRESS}
-                            component={PersonalAddressPage}
-                        />
                         <Stack.Screen
                             name={SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS}
                             component={PersonalAddressPage}
@@ -72,9 +68,8 @@ describe('AddressPageTest', () => {
         [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'addressLine1', true],
         [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, undefined, false],
         [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'city', false],
-        [SCREENS.SETTINGS.PROFILE.ADDRESS, 'addressLine1', false],
     ] as const)('only focuses the requested home address input: %s / %s', async (route, fieldToFocus, shouldAutoFocus) => {
-        // Given message links opt in to focus, unlike ordinary Preferences and Profile navigation
+        // Given message links opt in to focus, unlike ordinary Preferences navigation
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: []});
@@ -110,7 +105,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         const stateInput = screen.getByLabelText('State / Province');
@@ -140,7 +135,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
@@ -162,7 +157,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Legacy Suite')).toBeDefined();
@@ -178,7 +173,7 @@ describe('AddressPageTest', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the page mounts
-        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
         await waitForBatchedUpdatesWithAct();
 
         // Then the detected country is preselected
@@ -195,7 +190,7 @@ describe('AddressPageTest', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the page mounts
-        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
         await waitForBatchedUpdatesWithAct();
 
         // Then no country is preselected and the raw value is not shown

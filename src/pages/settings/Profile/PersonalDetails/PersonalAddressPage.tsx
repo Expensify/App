@@ -40,9 +40,7 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 
 function PersonalAddressPage() {
     const {translate} = useLocalize();
-    const route = useRoute<
-        RouteProp<AccountSettingsParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> | RouteProp<AccountSettingsParamList, typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS>
-    >();
+    const route = useRoute<RouteProp<AccountSettingsParamList, typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS>>();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);

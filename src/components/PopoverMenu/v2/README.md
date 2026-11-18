@@ -6,7 +6,7 @@ Compound popover-menu primitives. Inspired by Radix DropdownMenu, adapted for Re
 
 - **Uncontrolled.** Visibility lives inside `<Root>`; seed the initial state with `<Root defaultOpen?>`. Triggers open it; item selection (unless its handler calls `event.preventDefault()`), screen blur, or modal-stack cover close it. Observe via `useIsPopoverVisible()`.
 - **Hierarchy enforced at render.** Misuse throws synchronously in dev *and* staging — e.g. `<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`.
-- **Triggers publish via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their handler plus shared accessibility metadata into `PressResponderContext` (a project-level primitive at `src/components/Pressable/PressResponder/`) — see the [pressable consumption table](#pressables-that-consume-pressrespondercontext).
+- **Triggers publish via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their handler, its `sentryLabel` and shared accessibility metadata into `PressResponderContext` (a project-level primitive at `src/components/Pressable/PressResponder/`) — see the [pressable consumption table](#pressables-that-consume-pressrespondercontext).
 - **Sub-level: wrapper + hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship both layers — opinionated `MenuItem` for the canonical row, hook for non-`MenuItem` shapes.
 
 ## Usage
@@ -15,26 +15,22 @@ Compound popover-menu primitives. Inspired by Radix DropdownMenu, adapted for Re
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 
 <PopoverMenu.Root>
-    <PopoverMenu.Trigger>
-        <PressableWithFeedback
-            onPress={() => {}}
-            accessibilityLabel="Open menu"
-            sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}
-        >
+    <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU_TRIGGER}>
+        <PressableWithFeedback accessibilityLabel="Open menu">
             <Icon />
         </PressableWithFeedback>
     </PopoverMenu.Trigger>
 
     <PopoverMenu.Content>
         <PopoverMenu.Header>Menu title</PopoverMenu.Header>
-        <PopoverMenu.Item text="Edit" onSelect={...} />
+        <PopoverMenu.Item text="Edit" onSelect={...} sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.EDIT} />
         <PopoverMenu.Separator />
 
         <PopoverMenu.Sub id="more">
-            <PopoverMenu.Sub.Trigger text="More" />
+            <PopoverMenu.Sub.Trigger text="More" sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.MORE} />
             <PopoverMenu.Sub.Content>
                 <PopoverMenu.Sub.BackButton />
-                <PopoverMenu.Item text="Archive" onSelect={...} />
+                <PopoverMenu.Item text="Archive" onSelect={...} sentryLabel={CONST.SENTRY_LABEL.MY_FEATURE.MENU.ARCHIVE} />
             </PopoverMenu.Sub.Content>
         </PopoverMenu.Sub>
     </PopoverMenu.Content>
@@ -47,17 +43,17 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 
 ### Triggers
 
-- **`<Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
-- **`<SecondaryInteractionTrigger>`** — long-press (native) / right-click (web). Always opens; the framework reserves `event.preventDefault()` for OS-level long-press / context-menu suppression so it cannot double as a consumer gate. Conditional opening means conditionally rendering the trigger or doing the work inside the consumer's `onSecondaryInteraction`. Web anchors at a 1×1 rect at the cursor; native at the pressable's bounding rect.
-- **`<Sub.Trigger>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+- **`<Trigger sentryLabel>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
+- **`<SecondaryInteractionTrigger sentryLabel>`** — long-press (native) / right-click (web). Always opens; the framework reserves `event.preventDefault()` for OS-level long-press / context-menu suppression so it cannot double as a consumer gate. Conditional opening means conditionally rendering the trigger or doing the work inside the consumer's `onSecondaryInteraction`. Web anchors at a 1×1 rect at the cursor; native at the pressable's bounding rect.
+- **`<Sub.Trigger text sentryLabel>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
 - **`<Sub.BackButton text?>` / `useSubBackButton()`** — back row inside `<Sub.Content>`. The wrapper's `text` prop defaults to a localized "Go back" and drives the rendered row label. Self-gates to the active sub-level. The hook takes no params (back buttons stay out of typeahead so a "g" keypress doesn't focus the back button on every drilled-in level) and returns the same shape as `useSubTrigger`.
 
 #### Pressables that consume `PressResponderContext`
 
 | Pressable | Consumes |
 |---|---|
-| `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
-| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
+| `<PressableWithFeedback>` | `onPress`, `sentryLabel`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
+| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction`, `sentryLabel` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
 
 Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call `usePressResponderProps` / `useResponderRef` (import them from `@components/Pressable/PressResponder/usePressResponderProps` and `@components/Pressable/PressResponder/useResponderRef`) directly in a custom pressable. Without a consumer, the trigger renders but pressing does nothing (the published `onPress` reaches no descendant).
 
@@ -65,8 +61,8 @@ Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder —
 
 All rows except `<Group>` auto-hide outside the active sub-level.
 
-- **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` — synchronous-only).
-- **`<RadioItem text isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
+- **`<Item text sentryLabel onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` — synchronous-only).
+- **`<RadioItem text sentryLabel isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
 - **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
 - **`<Label text>`** — non-interactive labelled row.
 - **`<Separator />`** — horizontal divider.
