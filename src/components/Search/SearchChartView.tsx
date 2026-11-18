@@ -260,6 +260,7 @@ function SearchChartView({
                 yAxisTickStep={yAxisTickStep}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
+                labelSteps={labelSteps}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]:

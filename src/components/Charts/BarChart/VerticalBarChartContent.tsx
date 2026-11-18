@@ -16,7 +16,7 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
-import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth, getYAxisTickLayout} from '@components/Charts/utils';
+import {getBarLayout, getCartesianPlotBounds, getSteppedLabelLayout, getXAxisLabel, getYAxisLabelWidth, getYAxisTickLayout} from '@components/Charts/utils';
 import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import {getSeriesStacks, getStackTotalsData, getStackTotalSeries} from '@components/Charts/utils/stackedBars';
 import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
@@ -56,6 +56,7 @@ function VerticalBarChartCanvas({
     tooltipFooter,
     shouldShowLabels = true,
     shouldWrapLabels = false,
+    labelSteps,
     chartWidth,
     fontManager,
 }: VerticalBarChartCanvasProps) {
@@ -114,18 +115,32 @@ function VerticalBarChartCanvas({
 
     const measurements = useChartLabelMeasurements(labelData, fontManager, variables.iconSizeExtraSmall);
 
-    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} = useChartLabelLayout({
+    const steppedLabelLayout =
+        labelSteps && !shouldWrapLabels && plotBounds.width > 0
+            ? getSteppedLabelLayout({
+                  labelWidths: measurements.labelWidths,
+                  pointXs: labelData.map((_, index) => plotBounds.left + barLayout.edgeSpace + index * (barLayout.barWidth + barLayout.gap)),
+                  steps: labelSteps,
+                  lineHeight: measurements.lineHeight,
+                  ellipsisWidth: measurements.ellipsisWidth,
+              })
+            : undefined;
+
+    const rotatingLabelLayout = useChartLabelLayout({
         data: labelData,
         fontManager,
         fontSize: variables.iconSizeExtraSmall,
         measurements,
         tickSpacing: shouldShowLabels && plotBounds.width > 0 ? barLayout.barWidth + barLayout.gap : 0,
-        // Wrapped labels are always horizontal, never skipped, and sized from wrapConfig, so the rotation/skip/truncation
+        // Wrapped and stepped labels are always horizontal and never truncated, so the rotation/skip/truncation
         // pass is discarded. Pass 0 to short-circuit the hook, matching how the line chart skips it via labelAreaWidth.
-        labelAreaWidth: shouldWrapLabels ? 0 : plotBounds.width,
+        labelAreaWidth: shouldWrapLabels || steppedLabelLayout ? 0 : plotBounds.width,
         firstTickLeftSpace: plotBounds.left + barLayout.edgeSpace,
         lastTickRightSpace: chartWidth - plotBounds.right + barLayout.edgeSpace,
     });
+
+    const {labelRotation, labelSkipInterval, truncatedLabelWidths, xAxisLabelHeight, regularLabelMaxWidth, firstLabelMaxWidth, lastLabelMaxWidth, ellipsisWidth} =
+        steppedLabelLayout ?? rotatingLabelLayout;
 
     // Named bar labels wrap to two centered lines in the full column width, always horizontal and
     // never skipped, so they bypass the rotation/skip/single-line treatment the axis labels use.
@@ -137,7 +152,6 @@ function VerticalBarChartCanvas({
                   maxLines: MAX_BAR_LABEL_LINES,
                   lineHeight: measurements.lineHeight,
                   hasLabel: originalLabels.map((label) => label.length > 0),
-                  canvasWidth: chartWidth,
               }
             : undefined;
     // `getBarChartLoadingHeight` reserves the same lines while the chart loads, so update the two together.
@@ -294,6 +308,7 @@ function VerticalBarChartCanvas({
                         labelColor={theme.icon}
                         xScale={args.xScale}
                         chartBoundsBottom={chartBoundsBottom}
+                        canvasWidth={args.canvasSize.width}
                         wrapConfig={wrapConfig}
                     />
                 )}

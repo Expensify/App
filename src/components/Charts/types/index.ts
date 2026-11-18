@@ -106,6 +106,9 @@ type CartesianChartProps = ChartProps & {
 
     /** Keeps the Y-axis ticks on whole multiples of this step, in plotted units, e.g. 1 for a count of expenses. */
     yAxisTickStep?: number;
+
+    /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
+    labelSteps?: readonly number[];
 };
 
 type PieSlice = {
@@ -154,9 +157,6 @@ type WrappedLabelConfig = {
 
     /** Whether each label has text, so empty labels stay non-interactive in hit testing. */
     hasLabel: boolean[];
-
-    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
-    canvasWidth: number;
 };
 
 export type {
