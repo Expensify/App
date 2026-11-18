@@ -181,6 +181,11 @@ function withSnapshotReports(onyxReports: OnyxCollection<Report> | undefined, sn
     return merged;
 }
 
+/** The money request report an expense is on. A chat report stands in for the money request report it belongs to. */
+function getBulkEditMoneyRequestReport(report: OnyxEntry<Report>, reports: OnyxCollection<Report>): OnyxEntry<Report> {
+    return report?.type === CONST.REPORT.TYPE.CHAT && report.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : report;
+}
+
 /**
  * Whether the amount typed on the bulk edit form may be negative: only when every selected expense allows it.
  * An unreported expense always does; a reported one follows its report and workspace.
@@ -197,13 +202,23 @@ function isBulkEditNegativeAmountAllowed(
         if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             return true;
         }
-        // A chat report stands in for the money request report it belongs to.
-        const iouReport = report?.type === CONST.REPORT.TYPE.CHAT && report.parentReportID ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : report;
+        const iouReport = getBulkEditMoneyRequestReport(report, reports);
         if (!iouReport) {
             return false;
         }
         const iouType = isInvoiceReport(iouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
         return shouldEnableNegative(iouReport, policies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`], iouType);
+    });
+}
+
+/**
+ * Whether the amount typed on the bulk edit form may be zero: not when any selected expense is on an IOU or invoice
+ * report, since their own amount pages reject zero.
+ */
+function isBulkEditZeroAmountAllowed(selectedTransactionContexts: Array<{report: OnyxEntry<Report>}>, reports: OnyxCollection<Report>): boolean {
+    return !selectedTransactionContexts.some(({report}) => {
+        const moneyRequestReport = getBulkEditMoneyRequestReport(report, reports);
+        return isIOUReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport);
     });
 }
 
@@ -282,6 +297,7 @@ export {
     isBulkEditTaxTrackingEnabled,
     isBulkEditAttendeeTrackingEnabled,
     isBulkEditNegativeAmountAllowed,
+    isBulkEditZeroAmountAllowed,
     getBulkEditCategoryChange,
     getBulkEditTaxCodeChange,
     getBulkEditTagChange,

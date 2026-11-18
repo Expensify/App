@@ -12,6 +12,7 @@ import {
     hasCustomUnitMerchantInSelection,
     isBulkEditNegativeAmountAllowed,
     isBulkEditTaxTrackingEnabled,
+    isBulkEditZeroAmountAllowed,
     withSnapshotReports,
     withSnapshotTransactions,
 } from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
@@ -382,6 +383,40 @@ describe('SearchEditMultipleUtils', () => {
             // When the selection is checked
             // Then there is nothing to flip
             expect(isBulkEditNegativeAmountAllowed([], reports, policies)).toBe(false);
+        });
+    });
+
+    describe('isBulkEditZeroAmountAllowed', () => {
+        const IOU_REPORT_ID = 'iouReport1';
+        const INVOICE_REPORT_ID = 'invoiceReport1';
+        const THREAD_REPORT_ID = 'thread1';
+        const expenseReport = makeReport(REPORT_ID, POLICY_A);
+        const iouReport = createMock<Report>({reportID: IOU_REPORT_ID, type: CONST.REPORT.TYPE.IOU});
+        const invoiceReport = createMock<Report>({reportID: INVOICE_REPORT_ID, type: CONST.REPORT.TYPE.INVOICE});
+        const reports = {[`${ONYXKEYS.COLLECTION.REPORT}${INVOICE_REPORT_ID}`]: invoiceReport};
+
+        it('allows zero for expenses on an expense report or unreported', () => {
+            // Given expenses on a workspace expense report and one that is unreported
+            // When the selection is checked
+            // Then zero is accepted, as their own amount pages accept it
+            expect(isBulkEditZeroAmountAllowed([{report: expenseReport}, {report: undefined}], reports)).toBe(true);
+        });
+
+        it('rules out zero when an IOU or invoice expense is selected', () => {
+            // Given a selection that includes an IOU expense, or an invoice
+            // When the selection is checked
+            // Then zero is rejected, as the IOU and invoice amount pages reject it
+            expect(isBulkEditZeroAmountAllowed([{report: expenseReport}, {report: iouReport}], reports)).toBe(false);
+            expect(isBulkEditZeroAmountAllowed([{report: expenseReport}, {report: invoiceReport}], reports)).toBe(false);
+        });
+
+        it('follows the invoice a chat report belongs to', () => {
+            // Given an expense whose report is a chat that hangs off an invoice
+            const threadReport = createMock<Report>({reportID: THREAD_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: INVOICE_REPORT_ID});
+
+            // When the selection is checked
+            // Then the invoice decides, so zero is rejected
+            expect(isBulkEditZeroAmountAllowed([{report: threadReport}], reports)).toBe(false);
         });
     });
 });

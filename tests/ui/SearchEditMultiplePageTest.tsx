@@ -591,6 +591,35 @@ describe('SearchEditMultiplePage', () => {
         expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
     });
 
+    it('does not save a zero amount when an invoice is selected', async () => {
+        // Given a selection with an invoice the current user sent, which its own amount page never lets go to zero
+        const INVOICE_REPORT_ID = 'invoiceReport';
+        const INVOICE_TRANSACTION_ID = 'invoiceTransaction';
+        const INVOICE_RECEIVER_ACCOUNT_ID = 6;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${INVOICE_REPORT_ID}`, {
+            ...buildReport(INVOICE_REPORT_ID, CONST.REPORT.STATUS_NUM.OPEN, CONST.REPORT.STATE_NUM.OPEN),
+            type: CONST.REPORT.TYPE.INVOICE,
+            managerID: INVOICE_RECEIVER_ACCOUNT_ID,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${INVOICE_TRANSACTION_ID}`, buildTransaction(INVOICE_TRANSACTION_ID, INVOICE_REPORT_ID));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${INVOICE_REPORT_ID}`, {
+            [`action-${INVOICE_TRANSACTION_ID}`]: buildIOUAction(INVOICE_REPORT_ID, INVOICE_TRANSACTION_ID),
+        });
+        await selectTransactions([OPEN_TRANSACTION_ID, INVOICE_TRANSACTION_ID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the amount is set to zero and Save is pressed
+        fireEvent.changeText(screen.getByLabelText('Amount'), '0');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the amount is flagged and nothing is applied, as editing the invoice on its own would not allow it either
+        expect(screen.getByText('Invalid amount')).toBeTruthy();
+        expect(updateMultipleMoneyRequests).not.toHaveBeenCalled();
+    });
+
     it('opens the category list in place', async () => {
         // Given a workspace with categories
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true});

@@ -62,7 +62,6 @@ import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import type {GestureResponderEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import noop from 'lodash/noop';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -78,6 +77,7 @@ import {
     hasCustomUnitMerchantInSelection,
     isBulkEditAttendeeTrackingEnabled,
     isBulkEditNegativeAmountAllowed,
+    isBulkEditZeroAmountAllowed,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
@@ -246,10 +246,9 @@ function SearchEditMultiplePage() {
         }
     }
 
-    // A P2P expense can't be set to zero, as its own amount page rules.
-    const hasP2PTransaction = selectedTransactionContexts.some(({report}) => isIOUReport(report));
     const allowNegative = isBulkEditNegativeAmountAllowed(selectedTransactionContexts, mergedReports, policies);
-    const amountErrorText = hasP2PTransaction && draftAmount === 0 ? translate('common.error.invalidAmount') : '';
+    const isZeroAmountAllowed = isBulkEditZeroAmountAllowed(selectedTransactionContexts, mergedReports);
+    const amountErrorText = !isZeroAmountAllowed && draftAmount === 0 ? translate('common.error.invalidAmount') : '';
 
     const merchantErrorText = (() => {
         const trimmedMerchant = merchantInput.trim();
@@ -620,8 +619,6 @@ function SearchEditMultiplePage() {
                         <ExpenseFieldDropdown
                             name={translate('common.reimbursable')}
                             value={getPendingBooleanTitle(draftTransaction?.reimbursable)}
-                            // The list needs no workspace, so it always opens in place and there is no page to fall back to
-                            onPress={noop}
                             shouldOpenInDropdown={!hasPartiallyEditableReimbursableTransaction}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
@@ -639,8 +636,6 @@ function SearchEditMultiplePage() {
                         <ExpenseFieldDropdown
                             name={translate('common.billable')}
                             value={getPendingBooleanTitle(draftTransaction?.billable)}
-                            // The list needs no workspace, so it always opens in place and there is no page to fall back to
-                            onPress={noop}
                             shouldOpenInDropdown={!isBillableDisabled}
                             renderDropdown={(dropdownProps) => (
                                 <SearchEditMultipleBooleanDropdown
