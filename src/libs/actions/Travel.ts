@@ -5,6 +5,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {TravelTypeValue} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -13,7 +14,7 @@ import Onyx from 'react-native-onyx';
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
-function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string) {
+function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string, flaggedTravelTypes?: TravelTypeValue[]) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
@@ -69,7 +70,12 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string)
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domainName: domain, policyID, taxID};
+    const params: AcceptSpotnanaTermsParams = {
+        domainName: domain,
+        policyID,
+        taxID,
+        flaggedTravelTypes: flaggedTravelTypes?.length ? JSON.stringify(flaggedTravelTypes) : undefined,
+    };
 
     // We need to call this API immediately to get the response and open the travel page.
     // See https://github.com/Expensify/App/pull/69769#discussion_r2368967354 for more info.
@@ -106,6 +112,10 @@ function setTravelProvisioningDomain(domain: string) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {domain});
 }
 
+function setTravelProvisioningFlaggedTravelTypes(flaggedTravelTypes: TravelTypeValue[]) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {flaggedTravelTypes});
+}
+
 function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
@@ -124,6 +134,7 @@ export {
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,
+    setTravelProvisioningFlaggedTravelTypes,
     setTravelProvisioningNextStep,
     setTravelProvisioningTaxID,
 };

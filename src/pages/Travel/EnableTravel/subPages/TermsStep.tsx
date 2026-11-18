@@ -97,7 +97,7 @@ function TermsStep({policyID, resolvedDomain, firstIncompletePrerequisitePageNam
             resetToPage?.(firstIncompletePrerequisitePageName);
             return;
         }
-        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID)
+        acceptSpotnanaTerms(domain, policyID, travelProvisioning?.taxID, travelProvisioning?.flaggedTravelTypes)
             .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);

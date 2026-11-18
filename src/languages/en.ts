@@ -5523,6 +5523,13 @@ const translations = {
         workspaceAddress: {
             headline: "What's your business address?",
         },
+        flagOffPlatformTravel: {
+            headline: 'Flag non-Expensify travel?',
+            subtitle: 'Choose whether or not you want to flag travel that has been booked outside of the Expensify Travel platform.',
+            flag: 'Flag non-Expensify booking',
+            selectBookings: 'Select which bookings to flag',
+            dontFlag: "Don't flag",
+        },
         taxID: {
             headline: "What's your business tax ID?",
             title: 'Tax ID',

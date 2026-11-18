@@ -1,4 +1,5 @@
 import type {Route} from '@src/ROUTES';
+import type {TravelTypeValue} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import type {Errors} from './OnyxCommon';
 
@@ -27,6 +28,9 @@ type TravelProvisioning = {
 
     /** Booking domain selected during the enable-travel flow when the admin belongs to multiple private domains */
     domain?: string;
+
+    /** Travel types the admin chose to flag when they're booked outside Expensify Travel, sent with AcceptSpotnanaTerms. An empty list means they chose not to flag. */
+    flaggedTravelTypes?: TravelTypeValue[];
 
     /**
      * Ordered list of step names the enablement stepper decided this workspace needs, frozen at flow entry.

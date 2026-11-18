@@ -3166,6 +3166,7 @@ const SENTRY_LABEL = {
     TRAVEL: {
         DOMAIN_PERMISSION_INFO_CONFIRM: 'Travel-DomainPermissionInfoConfirm',
         ENABLE_DOMAIN_SELECTOR_NEXT: 'Travel-EnableDomainSelectorNext',
+        ENABLE_FLAG_OFF_PLATFORM_TRAVEL_NEXT: 'Travel-EnableFlagOffPlatformTravelNext',
         ENABLE_TERMS_CONFIRM: 'Travel-EnableTermsConfirm',
         MANAGE_TRIPS_BOOK_DEMO: 'Travel-ManageTripsBookDemo',
         MANAGE_TRIPS_BOOK_TRAVEL: 'Travel-ManageTripsBookTravel',

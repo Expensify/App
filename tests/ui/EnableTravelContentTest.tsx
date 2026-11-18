@@ -165,8 +165,32 @@ describe('EnableTravelContent', () => {
         renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, {});
         await waitForBatchedUpdatesWithAct();
 
-        // legal name, domain selector, workspace address, tax ID, terms (verify account is a pre-stepper gate, not a numbered step)
-        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(5);
+        // legal name, domain selector, workspace address, tax ID, flag non-Expensify travel, terms (verify account is a pre-stepper gate, not a numbered step)
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON, {name: /^Step \d+ of \d+/})).toHaveLength(6);
+    });
+
+    it('asks about flagging non-Expensify travel right before terms when the workspace is being set up for travel', async () => {
+        // Given a USD workspace with an address and one admin domain that isn't set up for travel yet, so only the flagging question and terms are needed
+        const policy: Policy = {
+            ...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE),
+            id: POLICY_ID,
+            outputCurrency: CONST.CURRENCY.USD,
+            travelSettings: {},
+            address: {addressStreet: '1 Main St', city: 'Portland', state: 'OR', zipCode: '97201', country: 'US'},
+            owner: ADMIN_DOMAIN_A_EMAIL,
+            employeeList: {[ADMIN_DOMAIN_A_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN}},
+        };
+        mockRouteParams = {};
+
+        // When the flow is entered
+        renderContent(policy, {validated: true, primaryLogin: ADMIN_DOMAIN_A_EMAIL}, COMPLETE_PERSONAL_DETAILS);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the flagging question comes just before terms, so the answer is ready to send when terms are accepted
+        await waitFor(async () => {
+            const travelProvisioning = await getTravelProvisioning();
+            expect(travelProvisioning?.enabledSteps).toEqual([CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.FLAG_OFF_PLATFORM_TRAVEL, CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]);
+        });
     });
 
     it('freezes the step count across remounts within the same flow session, even after an earlier step is completed', async () => {
