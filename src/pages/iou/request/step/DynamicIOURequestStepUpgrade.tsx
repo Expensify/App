@@ -132,7 +132,7 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const afterUpgradeAcknowledged = async () => {
+    const continueAfterUpgrade = async () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
@@ -272,7 +272,7 @@ function DynamicIOURequestStepUpgrade({
     };
 
     const finishUpgrade = () => {
-        afterUpgradeAcknowledged();
+        continueAfterUpgrade();
     };
 
     const participant = transaction?.participants?.[0];
@@ -291,7 +291,7 @@ function DynamicIOURequestStepUpgrade({
         return {introSelected, onboardingPurposeSelected, isSelfTourViewed: hasSeenTourSelector(onboarding), conciergeChat};
     };
 
-    const onUpgrade = async () => {
+    const createWorkspaceForUpgrade = async () => {
         if (isRestrictedPolicyCreation) {
             showConfirmModal({
                 title: translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning'),
@@ -344,10 +344,10 @@ function DynamicIOURequestStepUpgrade({
     };
 
     const upgradeWorkspace = () => {
-        onUpgrade();
+        createWorkspaceForUpgrade();
     };
 
-    const onWorkspaceConfirmationSubmit = async (params: WorkspaceConfirmationSubmitFunctionParams) => {
+    const createWorkspaceFromForm = async (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const {introSelected, onboardingPurposeSelected, isSelfTourViewed, conciergeChat} = await getWorkspaceCreationOnyxData();
         const policyData = Policy.createWorkspace({
             policyOwner: params.owner,
@@ -375,7 +375,7 @@ function DynamicIOURequestStepUpgrade({
     };
 
     const createConfirmedWorkspace = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        onWorkspaceConfirmationSubmit(params);
+        createWorkspaceFromForm(params);
     };
 
     return (

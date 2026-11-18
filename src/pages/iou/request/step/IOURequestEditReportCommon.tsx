@@ -324,7 +324,7 @@ function IOURequestEditReportCommon({
         return true;
     };
 
-    const handleSelectReport = async (item: TransactionGroupListItem) => {
+    const moveExpenseToSelectedReport = async (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
             dismiss();
             return;
@@ -374,7 +374,7 @@ function IOURequestEditReportCommon({
     };
 
     const moveExpenseToReport = (item: TransactionGroupListItem) => {
-        handleSelectReport(item);
+        moveExpenseToSelectedReport(item);
     };
 
     const handleCreateReport = () => {
