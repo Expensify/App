@@ -581,6 +581,8 @@ const SENTRY_LABEL = {
             WITHDRAWN: 'Search-Filter-Withdrawn',
             REPORT_FIELD: 'Search-Filter-ReportField',
             VIOLATION: 'Search-Filter-Violation',
+            TRAVEL_TYPE: 'Search-Filter-TravelType',
+            TRAVEL_PLATFORM: 'Search-Filter-TravelPlatform',
         },
         ADVANCED_FILTER: {
             ASSIGNEE: 'Search-AdvancedFilter-Assignee',
@@ -640,6 +642,8 @@ const SENTRY_LABEL = {
             WITHDRAWN: 'Search-AdvancedFilter-Withdrawn',
             REPORT_FIELD: 'Search-AdvancedFilter-ReportField',
             VIOLATION: 'Search-AdvancedFilter-Violation',
+            TRAVEL_TYPE: 'Search-AdvancedFilter-TravelType',
+            TRAVEL_PLATFORM: 'Search-AdvancedFilter-TravelPlatform',
         },
         FILTER_POPUP_APPLY: {
             ASSIGNEE: 'Search-FilterPopupApply-Assignee',
@@ -699,6 +703,8 @@ const SENTRY_LABEL = {
             WITHDRAWN: 'Search-FilterPopupApply-Withdrawn',
             REPORT_FIELD: 'Search-FilterPopupApply-ReportField',
             VIOLATION: 'Search-FilterPopupApply-Violation',
+            TRAVEL_TYPE: 'Search-FilterPopupApply-TravelType',
+            TRAVEL_PLATFORM: 'Search-FilterPopupApply-TravelPlatform',
         },
         FILTER_POPUP_APPLY_VALUE: {
             AMOUNT: 'Search-FilterPopupApplyValue-Amount',

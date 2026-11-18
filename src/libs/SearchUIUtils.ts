@@ -238,6 +238,8 @@ import {
     getFilterFromQuery,
     getPositiveHasFilterValues,
     getQueryHashes,
+    getTravelPlatformDisplayName,
+    getTravelTypeDisplayName,
     getViolationDisplayName,
     hasValuesIncludeViolationFilter,
     isFilterSupported,
@@ -6487,6 +6489,20 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.VIOLATION,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.VIOLATION,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE]: {
+        labelKey: 'search.filters.travelType.label',
+        icon: 'Plane',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRAVEL_TYPE,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRAVEL_TYPE,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRAVEL_TYPE,
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM]: {
+        labelKey: 'search.filters.travelPlatform.label',
+        icon: 'Monitor',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRAVEL_PLATFORM,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRAVEL_PLATFORM,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRAVEL_PLATFORM,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS]: {
         labelKey: 'search.filters.transactionStatus.label',
         icon: 'CreditCardHourglass',
@@ -7054,6 +7070,14 @@ function getDisplayValue(
         return form[key]?.map((violationName) => getViolationDisplayName(violationName, translate)).join(', ');
     }
 
+    if (key === FILTER_KEYS.TRAVEL_TYPE || key === FILTER_KEYS.TRAVEL_TYPE_NOT) {
+        return form[key]?.map((travelType) => getTravelTypeDisplayName(travelType, translate)).join(', ');
+    }
+
+    if (key === FILTER_KEYS.TRAVEL_PLATFORM || key === FILTER_KEYS.TRAVEL_PLATFORM_NOT) {
+        return form[key]?.map((travelPlatform) => getTravelPlatformDisplayName(travelPlatform, translate)).join(', ');
+    }
+
     if (key === FILTER_KEYS.MERCHANT) {
         const merchant = form[key];
         if (!merchant) {
@@ -7351,6 +7375,14 @@ function getMultiSelectFilterOptions(
 
     if (filterKey === FILTER_KEYS.IS) {
         return Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
+    }
+
+    if (filterKey === FILTER_KEYS.TRAVEL_TYPE) {
+        return Object.values(CONST.SEARCH.TRAVEL_TYPE).map((travelType) => ({text: getTravelTypeDisplayName(travelType, translate), value: travelType}));
+    }
+
+    if (filterKey === FILTER_KEYS.TRAVEL_PLATFORM) {
+        return Object.values(CONST.SEARCH.TRAVEL_PLATFORM).map((travelPlatform) => ({text: getTravelPlatformDisplayName(travelPlatform, translate), value: travelPlatform}));
     }
 
     if (filterKey === FILTER_KEYS.EXPENSE_TYPE) {
