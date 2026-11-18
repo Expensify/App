@@ -50,7 +50,7 @@ On the Control plan, workspace admins can use **Category visibility** to choose 
 4. Select the categories the member can use. Use the search field to find specific categories.
 5. Select **Save**.
 
-The member’s details show **All categories** when access is unrestricted, or the number of available categories when restricted. To remove restrictions, select all enabled categories and save. Each member must have access to at least one enabled category.
+The member’s details show **All categories** when access is unrestricted, or the number of available categories when restricted. To remove restrictions, select all enabled categories, then select **Save**. Each member must have access to at least one enabled category.
 
 Category visibility restrictions apply when members categorize their own expenses, including workspace admins. However, admins and approvers can still select any enabled category when editing another member’s expense.
 
