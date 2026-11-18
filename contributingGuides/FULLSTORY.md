@@ -7,7 +7,7 @@ FullStory records sessions on web and native. Everything it records is readable 
 Masked:
 
 - Self DMs
-- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible)
+- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms and threads of expenses, reports and invoices stay unmasked. See `getChatFSClass` below
 - Bank account, wallet and payment card flows: the fields with sensitive or personal data, both the inputs and the screens that show the values back
 - Personal details: legal name, date of birth, phone number and address
 - Business and identity data: tax IDs, registration numbers, beneficial owners and signers, ID documents
@@ -60,7 +60,7 @@ import FSClassView from '@components/FSClassView';
 </FSClassView>;
 ```
 
-`FSClassView` is a `View` that sets the class and hands it to the text inputs inside through `FSClassContext`, so they can't unmask themselves. Use it instead of `<View fsClass>` around anything that contains an input. `FormProvider`, `ScreenWrapper`, `Modal` and `PopoverWithoutOverlay` provide the same context when you pass them `forwardedFSClass`, so masking a whole form is one prop:
+`FSClassView` is a `View` that sets the class and hands it to the text inputs inside through `FSClassContext`, so they follow it instead of unmasking themselves by default. Use it instead of `<View fsClass>` around anything that contains an input. `FormProvider`, `ScreenWrapper`, `Modal` and `PopoverWithoutOverlay` provide the same context when you pass them `forwardedFSClass`, so masking a whole form is one prop:
 
 ```tsx
 <FormProvider
@@ -69,6 +69,12 @@ import FSClassView from '@components/FSClassView';
     // ...
 >
 ```
+
+Limits:
+
+- An input that is passed its own `forwardedFSClass` keeps it, whatever the container says.
+- A `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` inside a masked container starts a new context that defaults to `UNMASK`, so a picker modal opened from a masked form isn't masked unless it's given the class too.
+- `FormProvider` with `shouldUseScrollView={false}` drops `forwardedFSClass`: wrap its content in `FSClassView` instead.
 
 ### How a text input picks its class
 
@@ -83,7 +89,7 @@ So give inputs the right `autoComplete` value. It helps autofill and masks the i
 
 ### Pass the class through custom components
 
-The `fsClass` prop only works on React Native's `View`, `Text` (plain or Animated) and `Pressable`; lint rejects it on anything else. A custom component that shows sensitive data takes `ForwardedFSClassProps` and passes `forwardedFSClass` down to one of those:
+Lint only allows the `fsClass` prop on React Native's `View` and `Text` (plain or Animated) and `Pressable`. A custom component that shows sensitive data takes `ForwardedFSClassProps` and passes `forwardedFSClass` down to one of those:
 
 ```tsx
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -97,7 +103,7 @@ function CardHolder({name, forwardedFSClass}: CardHolderProps) {
 }
 ```
 
-Most shared components already do: `TextInput`, `InputWrapper`, `MenuItem` (title), `MenuItemField`, `AddressForm`, `AddressSearch`, `StatePicker`, `StateSelector`, `DatePicker`, `ValuePicker`, `RadioButtons` and the sub-step forms listed below.
+Most shared components already do: `TextInput`, `InputWrapper`, `MenuItem` (the whole row, apart from a top description), `MenuItemField`, `AddressForm`, `AddressSearch`, `StatePicker`, `StateSelector`, `DatePicker`, `ValuePicker`, `RadioButtons` and the sub-step forms listed below.
 
 ### Sub-step forms
 
@@ -133,9 +139,9 @@ The classes render even when FullStory isn't running.
 
 - **AdHoc build:** open a draft PR and ask for an AdHoc build. Test on the web URL the build posts on the PR and on the AdHoc native apps. Check with an FS admin that the AdHoc web domain is on in "Capture data by domain" first.
 - **Local web**, with a hostname the capture settings allow:
-    1. Add `127.0.0.1 local.pr-testing.expensify.com` to `/etc/hosts`.
-    2. Regenerate the dev certificate with that name: `mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com local.pr-testing.expensify.com localhost 127.0.0.1`.
-    3. Restart `npm run web` and open `https://local.pr-testing.expensify.com:8082`.
+    1. Add `127.0.0.1 local.pr-testing.expensify.com` to `/etc/hosts`. `*.pr-testing.expensify.com` is on in "Capture data by domain".
+    2. Regenerate the dev certificate with that name: `mkcert -cert-file config/rsbuild/certificate.pem -key-file config/rsbuild/key.pem dev.new.expensify.com local.pr-testing.expensify.com localhost 127.0.0.1`. Run `mkcert -install` first if you never set up HTTPS for the App.
+    3. Restart `npm run web` and open the URL it prints, with `dev.new.expensify.com` swapped for `local.pr-testing.expensify.com` (the port is 8082 unless another session took it).
 
 To record with any other account, make `shouldInitializeFullstory` return `true` temporarily. Never merge that change.
 
