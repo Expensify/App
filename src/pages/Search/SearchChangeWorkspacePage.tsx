@@ -100,6 +100,7 @@ function SearchChangeWorkspacePage() {
     const firstPolicyID = currentPolicyIDs.at(0);
     const sharedPolicyID = !areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === firstPolicyID) ? firstPolicyID : undefined;
     const currentSelection = policyID ?? sharedPolicyID;
+    const isSaveDisabled = !policyID || (!areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === policyID));
     // Only the workspace checked when the page opened is pinned, so picking another one doesn't reorder the list.
     const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
 
@@ -186,7 +187,7 @@ function SearchChangeWorkspacePage() {
                             showButton: true,
                             text: translate('common.save'),
                             onConfirm: changeWorkspace,
-                            isDisabled: !policyID || (!areAllMatchingItemsSelected && currentPolicyIDs.every((currentPolicyID) => currentPolicyID === policyID)),
+                            isDisabled: isSaveDisabled,
                         }}
                         initiallyFocusedItemKey={initialSelection}
                         shouldUpdateFocusedIndex
