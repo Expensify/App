@@ -104,7 +104,7 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     status?: Status;
 }>;
 
-/** Session-scoped loading state of a user's public profile, keyed by accountID */
+/** Session-scoped loading state of one user's public profile */
 type PersonalDetailsLoadingState = {
     /** Whether we are waiting for the data to load via the API */
     isLoading?: boolean;

@@ -876,11 +876,12 @@ describe('actions/PersonalDetails', () => {
     });
 
     describe('openPublicProfilePage', () => {
-        const accountID = 123;
-        const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`;
-
         it('sets the account loading state to true, then to false once the request finishes', () => {
-            // When the public profile of an account is opened
+            // Given an account whose public profile has not been requested yet, so it has no loading state
+            const accountID = 123;
+            const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE}${accountID}`;
+
+            // When the public profile of that account is opened
             PersonalDetailsActions.openPublicProfilePage(accountID);
             const [command, parameters, onyxData] = getRequiredWriteCall(mockAPI.read.mock.calls);
 
