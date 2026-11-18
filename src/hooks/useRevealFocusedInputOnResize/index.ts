@@ -1,11 +1,11 @@
-import isEditableElement from '@libs/isEditableElement';
-
-import {useEffect} from 'react';
-
 /**
  * Android Chrome scrolls the focused input into view while the keyboard is still animating in, so in landscape the
  * input can end up partly outside the space that's left. This scrolls it fully into view once the viewport settles.
  */
+import isEditableElement from '@libs/isEditableElement';
+
+import {useEffect} from 'react';
+
 function useRevealFocusedInputOnResize(isEnabled: boolean) {
     useEffect(() => {
         if (!isEnabled) {

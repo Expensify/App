@@ -8,14 +8,12 @@ import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROU
 import {COLLAPSE_SURFACE, layoutTransitionStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
-import useHeightWithoutKeyboard from '@hooks/useHeightWithoutKeyboard';
 import useIsLandscapeKeyboardOpen from '@hooks/useIsLandscapeKeyboardOpen';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry/cancelTabNavigationSpans';
@@ -23,10 +21,11 @@ import cancelTabNavigationSpans, {NAVIGATION_TAB_TO_SPANS} from '@libs/telemetry
 import variables from '@styles/variables';
 
 import SCREENS from '@src/SCREENS';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useState, useSyncExternalStore} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -84,12 +83,12 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     }, [isHidden, setIsNavigatorTabBarVisible]);
 
     // On browsers that resize the page for the keyboard, the bar docks above it and covers the focused input in
-    // landscape. The height check brings the bar back when the keyboard closes while the input keeps focus. The
-    // context isn't updated, so the tab root's copy stays hidden too.
+    // landscape. The keyboard check brings the bar back when the keyboard closes while the input keeps focus. A plain
+    // height check can't tell the keyboard from the browser toolbar showing. The context isn't updated, so the tab
+    // root's copy stays hidden too.
     const isLandscapeInputFocused = useIsLandscapeKeyboardOpen();
-    const {windowHeight} = useWindowDimensions();
-    const heightWithoutKeyboard = useHeightWithoutKeyboard();
-    const shouldHideNarrowBar = isHidden || (isLandscapeInputFocused && windowHeight < heightWithoutKeyboard);
+    const isKeyboardVisible = useSyncExternalStore(KeyboardUtils.subscribeKeyboardVisibilityChange, KeyboardUtils.isKeyboardVisible);
+    const shouldHideNarrowBar = isHidden || (isLandscapeInputFocused && isKeyboardVisible);
 
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.

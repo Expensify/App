@@ -1,3 +1,8 @@
+/**
+ * Whether an input that opens the soft keyboard is focused on a phone browser in landscape. Focus counts as open, so
+ * the layout is ready before the keyboard comes up. The keyboard can close while the input keeps focus, so check the
+ * keyboard visibility too where that matters.
+ */
 import isEditableElement from '@libs/isEditableElement';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 
@@ -34,11 +39,6 @@ function getSnapshot() {
     return isInputFocused && isInLandscapeMode(window.innerWidth);
 }
 
-/**
- * Whether an input that opens the soft keyboard is focused on a phone browser in landscape. Focus counts as open, so
- * the layout is ready before the keyboard comes up. The keyboard can close while the input keeps focus, so check the
- * window height too where that matters.
- */
 function useIsLandscapeKeyboardOpen(): boolean {
     return useSyncExternalStore(subscribe, getSnapshot);
 }
