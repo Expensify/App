@@ -18,7 +18,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeInDown, FadeOutUp} from 'react-native-reanimated';
 
-const ANIMATION_SIZE = 60;
+const ANIMATION_SIZE = 40;
 const MESSAGE_INTERVAL_MS = 2000;
 const MESSAGE_TRANSITION_DURATION_MS = 200;
 const ENTERING_MESSAGE = FadeInDown.duration(MESSAGE_TRANSITION_DURATION_MS);

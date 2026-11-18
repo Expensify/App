@@ -99,7 +99,7 @@ describe('InsightsAICardRow', () => {
         // Then it explains what is loading and how long the user should expect to wait
         expect(screen.getAllByText(LOADING_TITLE)).toHaveLength(1);
         expect(screen.getByText(LOADING_SUBTITLE)).toBeOnTheScreen();
-        expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toHaveStyle({width: 60, height: 60});
+        expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toHaveStyle({width: 40, height: 40});
     });
 
     it('advances through the loading hints and waits on the last one until insights arrive', async () => {
