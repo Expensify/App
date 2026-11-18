@@ -11433,6 +11433,8 @@ const translations = {
         urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         periodSoFar: ({period}: {period: string}) => `${period} so far`,
+        chartValueUnavailable: 'Unavailable',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
         weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -11656,9 +11658,9 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Created → Submitted',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Submitted → Approved',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approved → Paid',
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Paid',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

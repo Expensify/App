@@ -11282,9 +11282,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow-Stufen',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Erstellt → Eingereicht',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Eingereicht → Genehmigt',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Genehmigt → Bezahlt',
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Eingereicht',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Genehmigt',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Bezahlt',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
@@ -11384,6 +11384,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             createNew: 'Neu erstellen',
             updateExisting: 'Vorhandene aktualisieren',
         },
+        chartValueUnavailable: 'Nicht verfügbar',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

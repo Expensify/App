@@ -11313,9 +11313,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Étapes du workflow',
         },
         workflowStages: {
-            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Créé → Soumis',
-            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Soumis → Approuvé',
-            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approuvé → Payé',
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Soumis',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approuvé',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Payé',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -11415,6 +11415,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             createNew: 'Créer nouveau',
             updateExisting: 'Mettre à jour l’existant',
         },
+        chartValueUnavailable: 'Indisponible',
+        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',

@@ -56,6 +56,7 @@ import InsightsPageControls from './controls/InsightsPageControls';
 import InsightsTagLevelControl from './controls/InsightsTagLevelControl';
 import INSIGHTS_DASHBOARD_SPECS, {
     applyViolationStage,
+    getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
     getViolationStage,
@@ -269,7 +270,7 @@ function InsightsDashboardContent({
     }
 
     const renderChart = (
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded}: InsightsDashboardChart,
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
         isHeadline = false,
     ) => (
         <InsightsChartWidget
@@ -284,6 +285,7 @@ function InsightsDashboardContent({
             averageSnapshot={averageSnapshot}
             average={average}
             isDashboardLoaded={isDashboardLoaded}
+            stages={stages}
             filters={filters}
             insightsScope={insightsScope}
             countDimension={countDimension}
@@ -461,6 +463,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
             average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
             isDashboardLoaded: hasDashboardResponse(dashboard),
+            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
     const [headlineChart, ...supportingCharts] = charts;
