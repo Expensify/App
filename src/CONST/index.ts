@@ -107,7 +107,7 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
-// Options on the onboarding accounting step, in display order. BaseOnboardingAccounting needs an icon and label for each key.
+// Canonical onboarding answer values. Additional catalog products report interest using Other and a software name.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
     intuitEnterpriseSuite: 'Intuit Enterprise Suite',
@@ -125,7 +125,7 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
 
 type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
 
-/** Accounting connections not offered on the onboarding accounting step. Remove one from this union to offer it. */
+/** Accounting connections without their own canonical onboarding answer value. */
 type UnofferedOnboardingAccountingConnection =
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE

@@ -1,10 +1,10 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import Icon from '@components/Icon';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TextInput from '@components/TextInput';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -13,10 +13,12 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import accountingOptions from '@pages/OnboardingAccounting/accountingOptions';
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
 import BaseOnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures';
 
 import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,8 +27,6 @@ import SCREENS from '@src/SCREENS';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports -- React Native primitives are imported directly to inspect their test instances
-import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -39,12 +39,7 @@ type MockCompleteOnboardingParams = {
 };
 
 const mockCompleteOnboardingFlow = jest.fn<void, [MockCompleteOnboardingParams]>();
-
-jest.mock('@hooks/useCompleteOnboarding', () => () => ({
-    completeOnboardingFlow: mockCompleteOnboardingFlow,
-    isLoading: false,
-}));
-
+jest.mock('@hooks/useCompleteOnboarding', () => () => ({completeOnboardingFlow: mockCompleteOnboardingFlow, isLoading: false}));
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
@@ -58,14 +53,7 @@ function renderInterestedFeaturesPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                        {(props) => (
-                            <BaseOnboardingInterestedFeatures
-                                {...props}
-                                shouldUseNativeStyles={false}
-                            />
-                        )}
-                    </Stack.Screen>
+                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>{() => <BaseOnboardingInterestedFeatures shouldUseNativeStyles={false} />}</Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
@@ -77,27 +65,23 @@ function renderAccountingPage() {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>
-                        {(props) => (
-                            <BaseOnboardingAccounting
-                                {...props}
-                                shouldUseNativeStyles={false}
-                            />
-                        )}
-                    </Stack.Screen>
+                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>{() => <BaseOnboardingAccounting shouldUseNativeStyles={false} />}</Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         </ComposeProviders>,
     );
 }
 
-describe('Onboarding interested features and accounting pages', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-    });
+function searchFor(query: string) {
+    fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.search')), query);
+}
 
+function continueOnboarding() {
+    fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+}
+
+describe('Onboarding interested features and accounting pages', () => {
+    beforeAll(() => Onyx.init({keys: ONYXKEYS}));
     beforeEach(() => {
         isMobileSafari.mockReturnValue(false);
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
@@ -114,208 +98,166 @@ describe('Onboarding interested features and accounting pages', () => {
             isInLandscapeMode: false,
         } satisfies ResponsiveLayoutResult);
     });
-
     afterEach(async () => {
-        await act(async () => {
-            await Onyx.clear();
-        });
+        await act(async () => Onyx.clear());
         jest.clearAllMocks();
     });
 
     it('navigates to accounting when accounting remains enabled', async () => {
+        // Given the default feature selection
         renderInterestedFeaturesPage();
-
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-        });
+        // When continuing
+        continueOnboarding();
+        // Then accounting is shown before onboarding completes
+        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
     });
 
-    it('completes onboarding immediately when accounting is disabled', async () => {
+    it('clears the accounting draft and completes immediately when accounting is disabled', async () => {
+        // Given a draft from a previous visit
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'other', name: 'Acme Books'}));
         renderInterestedFeaturesPage();
-
         await waitForBatchedUpdatesWithAct();
-        const accountingCheckbox = screen.getAllByLabelText(TestHelper.translateLocal('workspace.moreFeatures.connections.title')).at(0);
-        if (!accountingCheckbox) {
-            throw new Error('Accounting checkbox not found');
+        // When accounting is disabled
+        fireEvent.press(screen.getByRole(CONST.ROLE.CHECKBOX, {name: TestHelper.translateLocal('workspace.moreFeatures.connections.title')}));
+        continueOnboarding();
+        // Then it is not submitted as a selected integration
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledTimes(1));
+        expect(mockCompleteOnboardingFlow.mock.calls.at(0)?.at(0)?.userReportedIntegration).toBeUndefined();
+        expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeNull();
+    });
+
+    it('renders all mocked products in order with 28px icons and no tabs', async () => {
+        // Given the expanded catalog
+        const result = renderAccountingPage();
+        // When it renders
+        await waitForBatchedUpdatesWithAct();
+        // Then every canonical answer remains represented and each product has a compact selector
+        const radios = screen.getAllByRole(CONST.ROLE.RADIO);
+        expect(radios).toHaveLength(31);
+        expect(new Set(accountingOptions.map((option) => option.integration))).toEqual(new Set(Object.keys(CONST.ONBOARDING_ACCOUNTING_MAPPING)));
+        for (const [index, option] of accountingOptions.entries()) {
+            expect(radios.at(index)).toHaveProp('accessibilityLabel', option.name);
         }
-        fireEvent.press(accountingCheckbox);
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledTimes(1);
-        });
-        const featuresMap = mockCompleteOnboardingFlow.mock.calls.at(0)?.at(0)?.featuresMap;
-        expect(featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)?.enabled).toBe(false);
-        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(31);
+        expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
     });
 
-    it('auto-focuses the Other input and completes with a trimmed integration name', async () => {
-        const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
-        const renderResult = renderAccountingPage();
-
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-        const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
-        const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);
-        expect(otherAccountingSoftwareInput.props.autoFocus).toBe(true);
-        expect(renderResult.UNSAFE_getByType(TextInput).props.forceActiveLabel).toBeFalsy();
-        const accountingScrollView = renderResult.UNSAFE_getByType(ScrollView);
-        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
-        expect(scrollToEndSpy).toHaveBeenCalledWith({animated: false});
-        fireEvent(accountingScrollView, 'onContentSizeChange', 0, 0);
-        expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
-        fireEvent.changeText(otherAccountingSoftwareInput, '  Acme Books  ');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-        expect(screen.getByLabelText(otherAccountingSoftwareLabel).props.value).toBe('  Acme Books  ');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: 'other',
-                userReportedIntegrationName: 'Acme Books',
-            });
-        });
-    });
-
-    it('disables max-height and virtual-viewport scroll suppression on mobile Safari', async () => {
-        isMobileSafari.mockReturnValue(true);
-        const renderResult = renderAccountingPage();
-
-        await waitForBatchedUpdatesWithAct();
-        const screenWrapper = renderResult.UNSAFE_getByType(ScreenWrapper);
-        expect(screenWrapper.props.shouldEnableMaxHeight).toBe(false);
-        expect(screenWrapper.props.shouldAvoidScrollOnVirtualViewport).toBe(false);
-    });
-
-    it('omits a whitespace-only Other integration name', async () => {
+    it('filters by legacy aliases and restores all products with Clear', async () => {
+        // Given the full catalog
         renderAccountingPage();
-
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware')), '   ');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: 'other',
-                userReportedIntegrationName: undefined,
-            });
-        });
+        // When searching a product alias
+        searchFor('financialforce');
+        // Then only Certinia matches, and Clear restores the catalog
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(1);
+        expect(screen.getByText('Certinia')).toBeOnTheScreen();
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(31);
     });
 
-    it('clears the Other integration name when a supported integration is selected', async () => {
-        renderAccountingPage();
-
+    it('retains a confirmed custom name independently of search and navigation', async () => {
+        // Given an unmatched search
+        const firstVisit = renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
-        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware')), 'Acme Books');
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.qbo')));
-
-        expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
-
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: 'quickbooksOnline',
-                userReportedIntegrationName: undefined,
-            });
-        });
+        searchFor('  Acme Books  ');
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.accounting.unsupportedTitle', 'Acme Books'))).toBeOnTheScreen();
+        // When the name is confirmed and the user returns through interested features
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.accounting.confirmSoftware', 'Acme Books')));
+        await waitForBatchedUpdatesWithAct();
+        searchFor('');
+        firstVisit.unmount();
+        const features = renderInterestedFeaturesPage();
+        await waitForBatchedUpdatesWithAct();
+        continueOnboarding();
+        features.unmount();
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        // Then remounting restores both the selection and the trimmed custom name
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Acme Books'})).toBeChecked();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: 'Acme Books'})));
     });
 
-    it('renders one tile per option in the accounting mapping', async () => {
-        // Given the onboarding accounting step, whose tiles come from CONST.ONBOARDING_ACCOUNTING_MAPPING
+    it('requires an explicit selection rather than submitting an unconfirmed search', async () => {
+        // Given an unanswered accounting step
         renderAccountingPage();
-
-        // When the step has rendered
         await waitForBatchedUpdatesWithAct();
+        // When only whitespace is searched and Continue is pressed
+        searchFor('   ');
+        continueOnboarding();
+        // Then validation prevents submission and whitespace does not hide the catalog
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(31);
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.errorSelection'))).toBeOnTheScreen();
+        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+        searchFor('Unconfirmed Books');
+        continueOnboarding();
+        expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
+    });
 
-        // Then every key in the mapping has exactly one tile
-        const tiles = screen.getAllByRole(CONST.ROLE.RADIO);
-        expect(tiles).toHaveLength(Object.keys(CONST.ONBOARDING_ACCOUNTING_MAPPING).length);
-
-        // Then the tiles follow the mapping's order, with Other last
-        const expectedLabels = [
-            'workspace.accounting.qbo',
-            'workspace.accounting.intuitEnterpriseSuite',
-            'workspace.accounting.qbd',
-            'workspace.accounting.xero',
-            'workspace.accounting.netsuite',
-            'workspace.accounting.intacct',
-            'workspace.certinia.title',
-            'workspace.accounting.rillet',
-            'workspace.accounting.sap',
-            'workspace.accounting.oracle',
-            'workspace.accounting.microsoftDynamics',
-            'workspace.accounting.other',
-        ] as const;
-        expect(expectedLabels.map((label) => tiles.indexOf(screen.getByRole(CONST.ROLE.RADIO, {name: TestHelper.translateLocal(label)})))).toEqual(
-            expectedLabels.map((label, index) => index),
+    it('does not leak a custom name after replacing it with a supported integration', async () => {
+        // Given a custom answer
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, {integration: 'other', name: 'Acme Books'}));
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        // When the user selects QuickBooks Online instead
+        fireEvent.press(screen.getByText('QuickBooks Online'));
+        await waitForBatchedUpdatesWithAct();
+        continueOnboarding();
+        // Then the previous name is absent from the payload
+        await waitFor(() =>
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'quickbooksOnline', userReportedIntegrationName: undefined})),
         );
-
-        // Then the new integrations reuse existing labels
-        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.intuitEnterpriseSuite'))).toBeOnTheScreen();
-        expect(screen.getByText(TestHelper.translateLocal('workspace.certinia.title'))).toBeOnTheScreen();
-        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.rillet'))).toBeOnTheScreen();
     });
 
-    it('reports the connection name rather than the label for a newly added integration', async () => {
-        // Given the onboarding accounting step showing the Certinia tile
+    it.each(['Digits', 'DualEntry', 'Campfire', 'Sage 50'])('records %s as interest without requesting a connection', async (name) => {
+        // Given a new catalog product without a canonical onboarding value
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
-
-        // When Certinia is selected and the step is submitted
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.certinia.title')));
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-
-        // Then the connection name is reported rather than the label, since downstream consumers key off it
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
-                userReportedIntegrationName: undefined,
-            });
-        });
+        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toBeOnTheScreen();
+        // When it is selected and submitted
+        fireEvent.press(screen.getByText(name));
+        await waitForBatchedUpdatesWithAct();
+        continueOnboarding();
+        // Then the existing Other contract captures its name without creating a connection
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: name})));
     });
 
-    it('restores a previously reported integration instead of falling back to Other', async () => {
-        // Given a user who already chose Certinia on an earlier visit to this step
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
-        });
-
-        // When the step is opened again
+    it.each<[OnboardingAccounting, string]>([
+        ['sap', 'SAP S/4HANA'],
+        ['oracle', 'Oracle Fusion Cloud'],
+        ['financialforce', 'Certinia'],
+    ])('preserves the saved %s value with the current product label', async (integration, label) => {
+        // Given a previously saved integration
+        await act(async () => Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, integration));
+        // When resuming the step
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
+        // Then the selection and canonical payload remain compatible
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: label})).toBeChecked();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: integration, userReportedIntegrationName: undefined})));
+    });
 
-        // Then the saved choice is recognized, so the Other input stays hidden
-        expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
-
-        // Then submitting keeps that choice
-        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
-        await waitFor(() => {
-            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
-                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
-                userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
-                userReportedIntegrationName: undefined,
-            });
-        });
+    it('preserves mobile Safari viewport handling', async () => {
+        // Given a mobile Safari browser
+        isMobileSafari.mockReturnValue(true);
+        // When accounting renders
+        const result = renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        // Then native viewport adjustments do not fight Safari scrolling
+        expect(result.UNSAFE_getByType(ScreenWrapper).props.shouldEnableMaxHeight).toBe(false);
+        expect(result.UNSAFE_getByType(ScreenWrapper).props.shouldAvoidScrollOnVirtualViewport).toBe(false);
     });
 
     it('returns to interested features from accounting', async () => {
+        // Given the accounting step
         renderAccountingPage();
-
         await waitForBatchedUpdatesWithAct();
+        // When Back is pressed
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.back')));
-
+        // Then the previous onboarding step is used
         expect(goBack).toHaveBeenCalledWith(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
     });
 });

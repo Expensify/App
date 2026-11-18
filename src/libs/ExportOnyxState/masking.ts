@@ -49,6 +49,11 @@ const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXK
 // 2. KEYS WITH EXPORT RULES - keep some fields, mask the rest
 // ============================================================
 const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
+    // Software names are free text and can contain private information.
+    [ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT]: {
+        allowList: ['integration'],
+        maskList: ['name'],
+    },
     [ONYXKEYS.SESSION]: {
         allowList: ['email', 'accountID', 'loading', 'creationDate', 'errors'],
         maskList: [],
