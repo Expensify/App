@@ -149,6 +149,50 @@ describe('getSecondaryAction', () => {
         Onyx.clear();
     });
 
+    it.each([
+        [false, false, MANAGER_ACCOUNT_ID, true],
+        [false, true, MANAGER_ACCOUNT_ID, false],
+        [false, false, APPROVER_ACCOUNT_ID, false],
+        [true, true, APPROVER_ACCOUNT_ID, true],
+        [false, false, MANAGER_ACCOUNT_ID, false, true],
+        [true, false, MANAGER_ACCOUNT_ID, true, true],
+    ])('change approver visibility: admin=%s, enforcement=%s, manager=%s', (isAdmin, areStrictPolicyRulesEnabled, managerID, expected, isLoadingSecurityGroup = false) => {
+        // Given an outstanding report and the caller's workspace enforcement setting.
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(isAdmin);
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID,
+        });
+        const policy = createMock<Policy>({
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+
+        // When the caller opens the report menu.
+        const actions = getSecondaryReportActions({
+            currentUserLogin: MANAGER_EMAIL,
+            currentUserAccountID: MANAGER_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: undefined,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+            areStrictPolicyRulesEnabled,
+            isLoadingSecurityGroup,
+        });
+
+        // Then only admins and eligible current approvers can change the approver.
+        expect(actions.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER)).toBe(expected);
+        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin).mockReturnValue(true);
+    });
+
     it('should always return default options', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});

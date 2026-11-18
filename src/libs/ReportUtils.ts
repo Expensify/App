@@ -2584,16 +2584,6 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>, isParticipantOptimis
 }
 
 /**
- * Returns true if this report has only one participant and it's an Expensify account.
- */
-function isExpensifyOnlyParticipantInReport(report: OnyxEntry<Report>): boolean {
-    const otherParticipants = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
-    return otherParticipants.length === 1 && otherParticipants.some((accountID) => CONST.EXPENSIFY_ACCOUNT_IDS.includes(accountID));
-}
-
-/**
  * Returns whether a given report can have tasks created in it.
  * We only prevent the task option if it's a DM/group-DM and the other users are all special Expensify accounts
  *
@@ -13278,6 +13268,20 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
     return !(policy?.preventSelfApproval && isOwner);
 }
 
+function canReassignAsApprover({
+    report,
+    currentUserAccountID,
+    isLoadingSecurityGroup,
+    areStrictPolicyRulesEnabled,
+}: {
+    report: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    isLoadingSecurityGroup: boolean;
+    areStrictPolicyRulesEnabled: boolean;
+}): boolean {
+    return !isLoadingSecurityGroup && report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+}
+
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -16022,6 +16026,7 @@ export {
     canJoinChat,
     canLeaveChat,
     canRequestMoney,
+    canReassignAsApprover,
     canReportBeMentionedWithinPolicy,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,
@@ -16172,7 +16177,6 @@ export {
     isExpenseReport,
     isExpenseRequest,
     isFinancialReportsForBusinesses,
-    isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
