@@ -7465,6 +7465,46 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.achAccount?.reimburser).toBe('payer@manual.com');
             expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
         });
+
+        it('should keep the bank account copy the current user sees when the server sends the new payer copy', async () => {
+            // Given a workspace whose bank account the current user sees as their own open copy
+            const currentUserBankAccountID = 1;
+            const newPayerBankAccountID = 2;
+            const policy = {
+                ...createRandomPolicy(0),
+                reimburser: 'old@test.com',
+                achAccount: {
+                    bankAccountID: currentUserBankAccountID,
+                    reimburser: 'old@test.com',
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // And a server response that, like production, sends every member the new payer's pending copy of the bank account
+            mockFetch.mockAPICommand(WRITE_COMMANDS.SET_WORKSPACE_PAYER, () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                        value: {achAccount: {bankAccountID: newPayerBankAccountID, reimburser: 'new@test.com', state: CONST.BANK_ACCOUNT.STATE.PENDING}},
+                    },
+                ],
+            }));
+            mockFetch.pause();
+
+            // When the current user sets new@test.com as the payer
+            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser, policy.achAccount);
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the current user keeps their own open copy, so their next share sends a bank account they own, and the new payer is saved
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.achAccount?.bankAccountID).toBe(currentUserBankAccountID);
+            expect(updatedPolicy?.achAccount?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('new@test.com');
+        });
     });
 
     describe('isPolicyPayer', () => {
