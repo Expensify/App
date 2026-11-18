@@ -110,7 +110,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
 
     // Tapping a row used to create the report immediately, which closed the page on input (WCAG 3.2.2 On Input).
     // The tap now only stages the workspace, and the report is created from an explicit Create button.
-    const [draftPolicy, setDraftPolicy] = useState<WorkspaceListItem>();
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -265,7 +265,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
-                isSelected: draftPolicy?.policyID === policy.id,
+                isSelected: draftPolicyID === policy.id,
             });
             index++;
         }
@@ -284,12 +284,13 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     };
 
     const confirmWorkspace = () => {
-        if (!draftPolicy) {
+        const selectedPolicy = usersWorkspaces.find((policy) => policy.policyID === draftPolicyID);
+        if (!selectedPolicy) {
             setShouldShowError(true);
             return;
         }
 
-        selectPolicy(draftPolicy);
+        selectPolicy(selectedPolicy);
     };
 
     return (
@@ -315,7 +316,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                                 data={filteredAndSortedUserWorkspaces}
                                 ListItem={UserListItem}
                                 onSelectRow={(policy) => {
-                                    setDraftPolicy(policy);
+                                    setDraftPolicyID(policy.policyID);
                                     setShouldShowError(false);
                                 }}
                                 titleNumberOfLines={2}
