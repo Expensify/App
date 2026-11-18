@@ -257,20 +257,20 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
  * Keeps a target country that already has its own bank account.
  */
 function buildReimbursementCountriesPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'reimbursement'> | undefined {
-    const sourceCountries = sourcePolicy.reimbursement?.countries ?? {};
-    const targetCountries = targetPolicy.reimbursement?.countries ?? {};
-    if (Object.keys(sourceCountries).length === 0 && Object.keys(targetCountries).length === 0) {
+    const sourceCountryEntries = Object.entries(sourcePolicy.reimbursement?.countries ?? {});
+    const targetCountryEntries = Object.entries(targetPolicy.reimbursement?.countries ?? {});
+    if (sourceCountryEntries.length === 0 && targetCountryEntries.length === 0) {
         return undefined;
     }
 
     const result: Record<string, ReimbursementCountryInfo> = {};
-    for (const [countryISO, info] of Object.entries(targetCountries)) {
+    for (const [countryISO, info] of targetCountryEntries) {
         if (info?.bankAccountID) {
             result[countryISO] = info;
         }
     }
 
-    for (const [countryISO, info] of Object.entries(sourceCountries)) {
+    for (const [countryISO, info] of sourceCountryEntries) {
         if (info?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
