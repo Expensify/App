@@ -6,7 +6,7 @@ Scope: [Show “Discard changes” confirmation whenever leaving a form with uns
 
 - Separate Home address editor, including address search and country/state pickers.
 - Private details together with its verification screen, including direct-linked verification.
-- Manual personal bank setup through confirmation and magic-code verification, from Wallet and standalone entry points.
+- Manual personal bank setup through confirmation and security code verification, from Wallet and standalone entry points.
 - Existing personal-bank information editing, including skipped initial steps.
 - Workspace description.
 - Category creation from workspace settings and quick Settings. Other category consumers are not implicitly enabled.
