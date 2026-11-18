@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -55,7 +55,7 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="SpendRuleMaxAmountPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.spendRules.maxAmount')}
                     onBackButtonPress={goBack}
                 />

@@ -255,7 +255,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                 when the arrows are hidden, since standaloneReports is what decides whether to show them. */}
             {!shouldUseContextReports && <MoneyRequestReportNavigationStandalone onReportsChange={setStandaloneReports} />}
             {shouldDisplayNavigationArrows && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.pr2]}>
                     {!shouldDisplayNarrowVersion && (
                         <MoneyRequestReportNavigationCounter
                             current={currentIndex + 1}

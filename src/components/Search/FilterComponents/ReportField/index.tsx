@@ -1,5 +1,5 @@
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
@@ -155,7 +155,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
     return (
         <>
             {!!selectedDateModifier && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     style={[styles.h10]}
                     subtitle={selectedDateModifier ? getDateModifierTitle(selectedDateModifier, '', translate) : ''}
                     onBackButtonPress={() => dateFilterRef.current?.goBack()}
@@ -252,7 +252,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
         return (
             <>
                 {!selectedDateModifier && (
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         style={[styles.h10]}
                         subtitle={selectedField.name}
                         onBackButtonPress={() => onFieldSelected(null)}

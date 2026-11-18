@@ -19,7 +19,7 @@ import type {ListItem} from './SelectionList/types';
 
 import Button from './Button';
 import DraggableList from './DraggableList';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
@@ -278,16 +278,17 @@ function ColumnsSettingsList({
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton title={translate('search.columns')}>
+            <HeaderWithBackButtonAndTitle title={translate('search.columns')}>
                 {isResetColumnsVisible && (
                     <TextLink
                         onPress={resetColumns}
+                        style={styles.pr2}
                         sentryLabel={CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.RESET_COLUMNS_LINK}
                     >
                         {translate('search.resetColumns')}
                     </TextLink>
                 )}
-            </HeaderWithBackButton>
+            </HeaderWithBackButtonAndTitle>
             <ListSearchBar
                 label={translate('common.search')}
                 searchValue={searchValue}

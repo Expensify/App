@@ -5,7 +5,7 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import ScreenWrapper from './ScreenWrapper';
@@ -26,7 +26,7 @@ function ReimbursementAccountLoadingIndicator({onBackButtonPress}: Reimbursement
             style={[StyleSheet.absoluteFill, styles.reimbursementAccountFullScreenLoading]}
             testID="ReimbursementAccountLoadingIndicator"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
                 onBackButtonPress={onBackButtonPress}
             />

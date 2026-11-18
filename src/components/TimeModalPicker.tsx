@@ -15,7 +15,7 @@ import type {View} from 'react-native';
 
 import React, {useState} from 'react';
 
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from './MenuItem';
 import MenuItemField from './MenuItem/presets/MenuItemField';
 import Modal from './Modal';
@@ -89,7 +89,7 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref
                     includeSafeAreaPaddingBottom
                     testID="TimeModalPicker"
                 >
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={label}
                         onBackButtonPress={hidePickerModal}
                     />
