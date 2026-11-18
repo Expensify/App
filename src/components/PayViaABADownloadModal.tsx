@@ -1,3 +1,7 @@
+/**
+ * Waits for the ABA file to generate when reports are paid via ABA, then downloads it. There is also a Download button
+ * so that the user can manually download the file in case the automatic download didn't work.
+ */
 import useLocalize from '@hooks/useLocalize';
 
 import HttpsError from '@libs/Errors/HttpsError';
@@ -21,10 +25,6 @@ type PayViaABADownloadModalProps = ModalProps & {
     getDownloadFailedMessage: (error?: HttpsError) => string;
 };
 
-/**
- * Waits for the ABA file to generate when reports are paid via ABA, then downloads it. There is also a Download button
- * so that the user can manually download the file in case the automatic download didn't work.
- */
 function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, closeModal, resolveModal}: PayViaABADownloadModalProps) {
     const {translate} = useLocalize();
     const [abaFile, setABAFile] = useState<ABAFile>();
