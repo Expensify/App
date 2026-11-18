@@ -60,6 +60,8 @@ import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
 
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './getNonDefaultViolationTranslation';
+
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
@@ -1246,6 +1248,10 @@ const ViolationsUtils = {
             errorIndexes = [],
             missingFields = [],
         } = violation.data ?? {};
+
+        if (isNonDefaultViolationName(violation.name)) {
+            return getNonDefaultViolationTranslation(violation.name, translate);
+        }
 
         switch (violation.name) {
             case 'allTagLevelsRequired':
