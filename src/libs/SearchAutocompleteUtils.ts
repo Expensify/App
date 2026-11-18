@@ -326,9 +326,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE:
-            return travelTypeList.includes(range.value);
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || travelTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM:
-            return travelPlatformList.includes(range.value);
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || travelPlatformList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:

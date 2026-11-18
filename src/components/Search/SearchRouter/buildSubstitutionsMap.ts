@@ -89,7 +89,9 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM
         ) {
             const displayValue = getFilterDisplayValue({
                 filterName: filterKey,

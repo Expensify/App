@@ -213,6 +213,28 @@ function getViolationDisplayName(violationName: string, translate: LocalizedTran
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_TRAVEL_TYPES = new Set<string>(Object.values(CONST.SEARCH.TRAVEL_TYPE));
 const VALID_TRAVEL_PLATFORMS = new Set<string>(Object.values(CONST.SEARCH.TRAVEL_PLATFORM));
+
+function isTravelTypeValue(value: string): value is TravelTypeValue {
+    return VALID_TRAVEL_TYPES.has(value);
+}
+
+function isTravelPlatformValue(value: string): value is TravelPlatformValue {
+    return VALID_TRAVEL_PLATFORMS.has(value);
+}
+
+/**
+ * Returns the display label for a travel type, or the raw value when it isn't a known travel type.
+ */
+function getTravelTypeDisplayName(travelType: string, translate: LocalizedTranslate): string {
+    return isTravelTypeValue(travelType) ? translate(`search.filters.travelType.${travelType}`) : travelType;
+}
+
+/**
+ * Returns the display label for a travel platform, or the raw value when it isn't a known travel platform.
+ */
+function getTravelPlatformDisplayName(travelPlatform: string, translate: LocalizedTranslate): string {
+    return isTravelPlatformValue(travelPlatform) ? translate(`search.filters.travelPlatform.${travelPlatform}`) : travelPlatform;
+}
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -2190,10 +2212,10 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE) {
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((travelType): travelType is TravelTypeValue => VALID_TRAVEL_TYPES.has(travelType));
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter(isTravelTypeValue);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM) {
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((travelPlatform): travelPlatform is TravelPlatformValue => VALID_TRAVEL_PLATFORMS.has(travelPlatform));
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter(isTravelPlatformValue);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
             const violationNames = filterValues.filter(isViolationName);
@@ -2658,6 +2680,12 @@ function getFilterDisplayValue({
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
         return getViolationDisplayName(filterValue, translate);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE) {
+        return getTravelTypeDisplayName(filterValue, translate);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM) {
+        return getTravelPlatformDisplayName(filterValue, translate);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
         // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
@@ -3730,6 +3758,8 @@ export {
     getEffectiveSortBy,
     shouldRefetchSearchOnReportActionChange,
     getViolationDisplayName,
+    getTravelTypeDisplayName,
+    getTravelPlatformDisplayName,
     VIOLATION_FILTER_VALUES,
 };
 
