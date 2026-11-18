@@ -51,7 +51,7 @@ To disconnect one of these tools from your account, click **Revoke** next to it.
 
 ## What happens after you revoke device access
 
-The selected device is immediately signed out of your Expensify account. Anyone using that device must sign in again to restore access.
+The selected device is immediately signed out of your Expensify account. Anyone using that device or connection must sign in again to restore access.
 
 Revoking a device does not:
 - Reset your password
@@ -73,7 +73,7 @@ Each browser, mobile app, or device creates a separate login session. You may se
 
 ## Can I revoke all devices at once?
 
-No, devices must be revoked individually.
+Yes. Open **Device management** and click **Sign out on all devices**.
 
 ## What information can I see for each device?
 
