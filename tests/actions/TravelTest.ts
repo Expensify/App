@@ -2,6 +2,7 @@ import {acceptSpotnanaTerms, requestTravelAccess, setTravelProvisioningTaxID} fr
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TravelProvisioning, TravelSettings} from '@src/types/onyx';
 
@@ -44,6 +45,23 @@ describe('actions/Travel', () => {
                         },
                     ]),
                 }),
+            );
+        });
+
+        it.each([
+            [[CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.HOTEL], JSON.stringify([CONST.SEARCH.TRAVEL_TYPE.AIR, CONST.SEARCH.TRAVEL_TYPE.HOTEL])],
+            [[], undefined],
+            [undefined, undefined],
+        ])('sends the travel types to flag as %p only when the admin picked some', (flaggedTravelTypes, expectedParam) => {
+            // Given the admin's answer to the flagging step: some types, "Don't flag", or a flow that never asked
+            // When terms are accepted
+            acceptSpotnanaTerms(DOMAIN, POLICY_ID, TAX_ID, flaggedTravelTypes);
+
+            // Then the types go to the server as a JSON list, since the request is sent as form data, and nothing is sent when there's nothing to flag
+            expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS,
+                {domainName: DOMAIN, policyID: POLICY_ID, taxID: TAX_ID, flaggedTravelTypes: expectedParam},
+                expect.anything(),
             );
         });
 
