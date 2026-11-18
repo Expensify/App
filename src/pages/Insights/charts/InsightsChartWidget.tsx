@@ -141,7 +141,7 @@ function InsightsChartWidget({
     const [firstStackStage, ...otherStackStages] = isStackedChart(chart)
         ? (stages ?? []).map(({workflowStage, durationField, color, comparisonColor}): ChartStackStage => ({
               key: workflowStage,
-              label: translate(`search.workflowStages.${workflowStage}`),
+              label: translate(`search.workflowStageChartLabels.${workflowStage}`),
               color,
               comparisonColor,
               getValue: (item) => getStageDuration(item, durationField),

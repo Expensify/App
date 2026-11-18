@@ -11504,6 +11504,11 @@ const translations = {
             [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Submitted → Approved',
             [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Approved → Paid',
         },
+        workflowStageChartLabels: {
+            [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Submitted',
+            [CONST.SEARCH.WORKFLOW_STAGES.SUBMITTED_APPROVED]: 'Approved',
+            [CONST.SEARCH.WORKFLOW_STAGES.APPROVED_PAID]: 'Paid',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
             accessPlaceHolder: 'Open for details',
