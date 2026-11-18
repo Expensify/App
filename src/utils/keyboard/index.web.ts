@@ -130,6 +130,8 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     return Promise.resolve().then(cb);
 };
 
-const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
+const isKeyboardVisible = () => isVisible;
+
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange, isKeyboardVisible};
 
 export default utils;

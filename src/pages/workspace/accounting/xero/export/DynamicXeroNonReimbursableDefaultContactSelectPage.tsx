@@ -4,9 +4,9 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
@@ -14,8 +14,6 @@ import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -25,7 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 // Empty string persisted to defaultVendor when the admin wants to disable the fallback
@@ -52,7 +50,6 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
 
     const suppliers = getXeroSuppliers(policy);
     const sortedSuppliers = sortVendors(suppliers, localeCompare);
-    const [searchText, setSearchText] = useState('');
 
     // Prepend a "None" row so an admin can persist an empty default — without it the picker has
     // no way to remove a stale or deleted supplier and the optional setting becomes sticky.
@@ -70,27 +67,12 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
         isSelected: supplier.id === currentContactID,
     }));
 
-    // Match the threshold the Company Cards export picker uses for its search input — Xero
-    // tenants with hundreds or thousands of contacts need filtering, but a 5-supplier workspace
-    // doesn't need the extra search row.
-    const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     // Only include the clear row when there's a default to clear or there are suppliers to choose between. Without this
     // guard, an unsynced workspace with no defaultVendor set would render `[None]` and never show the noVendorsFound
     // BlockingView (SelectionScreen only renders listEmptyContent when data is empty).
     const shouldShowClearOption = !!currentContactID || supplierOptions.length > 0;
-
-    // Keep the clear row inside the ordered list so a pinned selection sits above it (matching the other account
-    // pickers, where "Default"/"None" shows below the selected item). Freeze the pinned value at mount so the optimistic
-    // update on select doesn't reorder the list for a frame before the page navigates back.
-    const initialContactID = useInitialValue(() => currentContactID);
     const allOptions = shouldShowClearOption ? [clearOption, ...supplierOptions] : supplierOptions;
-    const orderedOptions = shouldShowTextInput ? moveInitialSelectionToTop(allOptions, initialContactID ? [initialContactID] : []) : allOptions;
-
-    // Keep the clear row visible regardless of the search term so it stays reachable while filtering.
-    const data: SelectorType[] = shouldShowTextInput
-        ? orderedOptions.filter((option) => option.value === CLEAR_DEFAULT_VENDOR_VALUE || tokenizedSearch([option], searchText, (item) => [item.text ?? '']).length > 0)
-        : orderedOptions;
+    const {filteredData: data, textInputOptions} = useSelectionListSearch(allOptions, translate('common.noResultsFound'), true);
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path);
 
@@ -152,14 +134,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             data={data}
             onSelectRow={selectSupplier}
             shouldSingleExecuteRowSelect
-            shouldShowTextInput={shouldShowTextInput}
-            textInputOptions={{
-                label: translate('common.search'),
-                value: searchText,
-                onChangeText: setSearchText,
-            }}
-            initiallyFocusedOptionKey={data.find((item) => item.isSelected)?.keyForList}
+            textInputOptions={textInputOptions}
+            initiallyFocusedOptionKey={allOptions.find((item) => item.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={goBack}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.DEFAULT_VENDOR], xeroConfig?.pendingFields)}

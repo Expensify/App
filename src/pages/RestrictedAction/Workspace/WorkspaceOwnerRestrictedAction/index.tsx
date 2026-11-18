@@ -60,6 +60,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.RESTRICTED_ACTION.OWNER_ADD_PAYMENT_CARD}
                         onPress={addPaymentCard}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}

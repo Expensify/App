@@ -73,6 +73,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
                 <View style={[styles.flex1, styles.justifyContentBetween]}>
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
                     <FormAlertWithSubmitButton
+                        sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.REPORT_FRAUD_DEACTIVATE}
                         isAlertVisible={!!virtualCardError}
                         onSubmit={handleSubmit}
                         message={virtualCardError}

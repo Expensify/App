@@ -1,11 +1,11 @@
 /** Converts a clicked chart group to the URL params the Details panel names it by, and back to its title and Spend filter. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import CHART_GROUP_BY_CONFIG, {buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
 import type {GroupedItem, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
-import {adjustTimeRangeToDateFilters} from '@libs/SearchUIUtils';
+import {adjustTimeRangeToDateFilters, getTagGroupLabel} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue, isValidDate} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -25,11 +25,17 @@ type InsightsDetailsItem = {
 };
 
 type InsightsDetailsItemParams = {
-    /** The member's account ID, the merchant, the category, or the first day of the period */
+    /** The member's account ID, the merchant, the category, the tag, or the first day of the period */
     itemKey: string;
 
     /** Last day of the period, trimmed to the date range like the chart's label */
     periodEnd?: string;
+
+    /** Tag level of a tag, undefined when the chart groups by every level of the tag together */
+    tagLevel?: number;
+
+    /** Encoded parent tags of a dependent tag */
+    parentTagPath?: string;
 };
 
 type ResolveInsightsDetailsItemParams = InsightsDetailsItemParams & {
@@ -50,6 +56,8 @@ function getInsightsDetailsItemParams(item: GroupedItem, queryJSON: Readonly<Sea
             return {itemKey: item.merchant};
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return {itemKey: item.category};
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return {itemKey: item.tag, tagLevel: item.tagLevel, parentTagPath: item.parentTagPath};
         default:
             break;
     }
@@ -83,7 +91,16 @@ function getPeriodTitle(groupBy: SearchGroupBy, range: {start: string; end: stri
 }
 
 /** Resolves the key in the Details panel's URL to the item's title and the filter narrowing the chart's query to it. */
-function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFnsLocale, translate}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
+function resolveInsightsDetailsItem({
+    groupBy,
+    itemKey,
+    periodEnd,
+    parentTagPath,
+    tagLevel,
+    member,
+    dateFnsLocale,
+    translate,
+}: ResolveInsightsDetailsItemParams): InsightsDetailsItem | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM: {
             const name = member?.displayName ?? member?.login;
@@ -101,6 +118,13 @@ function resolveInsightsDetailsItem({groupBy, itemKey, periodEnd, member, dateFn
                 title: !itemKey || itemKey === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? itemKey : getDecodedCategoryName(itemKey),
                 filterQuery: `category:"${itemKey}"`,
             };
+        case CONST.SEARCH.GROUP_BY.TAG: {
+            if (tagLevel !== undefined && (!Number.isSafeInteger(tagLevel) || tagLevel < 1)) {
+                return undefined;
+            }
+            const tagGroup = {tag: itemKey, tagLevel, parentTagPath};
+            return {title: getTagGroupLabel(tagGroup, translate), filterQuery: buildTagFilterQuery(tagGroup)};
+        }
         default: {
             if (!periodEnd || !isValidDate(itemKey) || !isValidDate(periodEnd)) {
                 return undefined;

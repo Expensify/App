@@ -5,7 +5,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import DateUtils from '@libs/DateUtils';
 import {hashText} from '@libs/UserUtils';
 
-import {getDateFilterRange} from '@pages/Insights/insightsCompare';
+import getInsightsDateRange from '@pages/Insights/getInsightsDateRange';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {buildDashboardQueryJSON} from '@pages/Insights/insightsQueries';
@@ -78,7 +78,7 @@ function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGrou
         return params.periodEnd ? {start: params.itemKey, end: params.periodEnd} : undefined;
     }
 
-    const range = getDateFilterRange(params.filters.date);
+    const range = getInsightsDateRange(params.filters.date);
     if (!range.end) {
         return undefined;
     }
@@ -91,7 +91,7 @@ function buildInsightsDetailsQuery(params: BuildInsightsDetailsQueryParams): Ins
     const {graphKey, filters, itemGroupBy, itemKey, topExpensesSnapshotHash} = params;
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
     const period = getSummarizedPeriod(params, periodGroupBy);
-    const filtersQueryJSON = buildDashboardQueryJSON(filters);
+    const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
     if (!period || !filtersQueryJSON) {
         return undefined;
     }

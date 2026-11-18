@@ -22,6 +22,7 @@ import {
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
+    shouldShowUKFuelRateTaxError,
 } from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
 
@@ -37,7 +38,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -73,7 +74,7 @@ type WorkspaceMenuIconMap = Record<
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
 /** Data needed to render and navigate from a Workspace menu item. */
-type WorkspaceMenuItem = WithSentryLabel & {
+type WorkspaceMenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     getRoute: () => Route;
@@ -322,11 +323,13 @@ function getWorkspaceMenuItems({
         }
 
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.WORKFLOWS)) {
+            const hasWorkflowsError =
+                !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || !isEmptyObject(policy?.errorFields?.reimbursementCountries ?? {}) || hasApprovalWorkflowWithNonMemberApprover;
             items.push({
                 translationKey: 'workspace.common.workflows',
                 icon: icons.Workflows,
                 getRoute: () => ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID),
-                brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) || hasApprovalWorkflowWithNonMemberApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasWorkflowsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 screenName: SCREENS.WORKSPACE.WORKFLOWS,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.WORKFLOWS,
                 highlighted: highlightedPolicyFeature === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED,
@@ -348,6 +351,7 @@ function getWorkspaceMenuItems({
         if (policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES)) {
             items.push({
                 translationKey: 'workspace.common.distanceRates',
+                brickRoadIndicator: shouldShowUKFuelRateTaxError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 icon: icons.Car,
                 getRoute: () => ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,

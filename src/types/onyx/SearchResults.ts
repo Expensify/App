@@ -179,6 +179,9 @@ type SearchGroupBase = {
 type SearchMemberGroup = SearchGroupBase & {
     /** Account ID */
     accountID: number;
+
+    /** Average time the member's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
 };
 
 /** Model of card grouped search result */
@@ -265,6 +268,12 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
 };
 
 /** Model of day grouped search result */
@@ -307,12 +316,24 @@ type SearchQuarterGroup = SearchGroupBase & {
 type SearchApproverGroup = SearchGroupBase & {
     /** Account ID of the approver */
     accountID: number;
+
+    /** Average time the approver's reports spent in the charted workflow stage, in seconds. Only Insights returns it, and it is null when no report completed the stage. */
+    averageDuration?: number | null;
 };
 
 /** Model of violation type grouped search result */
 type SearchViolationGroup = SearchGroupBase & {
     /** Violation name, e.g. `missingComment` */
     violation: string;
+};
+
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
 };
 
 /** Model of an expense in the search results */
@@ -353,6 +374,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchQuarterGroup
         | SearchApproverGroup
         | SearchViolationGroup
+        | SearchWorkflowStageGroup
     >;
 
 /** Model of search results */
@@ -393,4 +415,5 @@ export type {
     SearchQuarterGroup,
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

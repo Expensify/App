@@ -61,6 +61,7 @@ function LockAccountPage() {
             confirmModalPrompt={confirmModalPrompt}
             lockAccountPagePrompt={lockAccountPagePrompt}
             lockButtonText={translate('lockAccountPage.lockMyAccount')}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_ACCOUNT_SUBMIT}
             handleLockRequestFinish={handleLockRequestFinish}
         />
     );

@@ -2,6 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
+import type {UpdateWorkspaceCustomUnitParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -9,6 +10,7 @@ import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 
@@ -16,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {QuickAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
-import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -206,11 +208,28 @@ function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: s
     });
 }
 
-type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
-    rates: Record<string, NullishDeep<Rate> | null>;
-};
+/**
+ * Returns whether the selection covers every subrate of the custom unit, so the whole rate list can be cleared at once.
+ */
+function isEverySubRateSelected(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]): boolean {
+    const selectedSubRateKeys = new Set(subRatesToBeDeleted.map((subRate) => getPerDiemRowKey(subRate.rateID, subRate.subRateID)));
+    let subRateCount = 0;
+    for (const rate of Object.values(customUnit.rates)) {
+        for (const subRate of rate.subRates ?? []) {
+            if (!selectedSubRateKeys.has(getPerDiemRowKey(rate.customUnitRateID, subRate.id))) {
+                return false;
+            }
+            subRateCount++;
+        }
+    }
+    return subRateCount > 0;
+}
 
-function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
+/**
+ * Builds the targeted updates for deleting a subset of subrates: the changed parent rates to send, the destination IDs
+ * to remove, and the matching optimistic and failure Onyx data.
+ */
+function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[], error: Errors) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
         (acc, subRate) => {
             if (subRate.rateID in acc) {
@@ -223,31 +242,107 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
         {} as Record<string, SubRateData[]>,
     );
 
-    // Copy the custom unit and remove the sub rates that are to be deleted
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    const customUnitOnyxUpdate: DeletePerDiemCustomUnitOnyxType = lodashDeepClone(customUnit);
-    for (const rateID in mappedDeletedSubRatesToRate) {
-        if (!(rateID in newCustomUnit.rates)) {
+    const optimisticRates: Record<string, NullishDeep<Rate> | null> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
+    const customUnitRateUpdates: Record<string, Rate> = {};
+    const customUnitRateIDs: string[] = [];
+    for (const [rateID, subRates] of Object.entries(mappedDeletedSubRatesToRate)) {
+        const currentRate = customUnit.rates[rateID];
+        if (!currentRate) {
             continue;
         }
-        const subRates = mappedDeletedSubRatesToRate[rateID];
-        if (subRates.length === newCustomUnit.rates[rateID].subRates?.length) {
-            delete newCustomUnit.rates[rateID];
-            customUnitOnyxUpdate.rates[rateID] = null;
+        const selectedSubRateIDs = new Set(subRates.map((subRate) => subRate.subRateID));
+        const currentSubRates = currentRate.subRates ?? [];
+        const affectedSubRateIDs = currentSubRates.filter((subRate) => selectedSubRateIDs.has(subRate.id)).map((subRate) => subRate.id);
+        if (!affectedSubRateIDs.length) {
+            continue;
+        }
+
+        failureRates[rateID] = {
+            ...currentRate,
+            errors: null,
+            errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
+            pendingAction: null,
+        };
+        if (affectedSubRateIDs.length === currentSubRates.length) {
+            customUnitRateIDs.push(rateID);
+            optimisticRates[rateID] = null;
         } else {
-            const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
-            newCustomUnit.rates[rateID].subRates = newSubRates;
-            customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
+            const updatedRate = lodashDeepClone(currentRate);
+            updatedRate.subRates = currentSubRates.filter((subRate) => !selectedSubRateIDs.has(subRate.id));
+            customUnitRateUpdates[rateID] = updatedRate;
+            optimisticRates[rateID] = updatedRate;
         }
     }
-    return {newCustomUnit, customUnitOnyxUpdate};
+
+    return {
+        optimisticRates,
+        failureRates,
+        customUnitRateUpdates,
+        customUnitRateIDs,
+    };
+}
+
+/**
+ * Returns a copy of the rate without the client-only Onyx fields, which the API does not accept.
+ */
+function getCustomUnitRateForAPI(rate: Rate): Rate {
+    const customUnitRate = lodashDeepClone(rate);
+    delete customUnitRate.pendingAction;
+    delete customUnitRate.pendingFields;
+    delete customUnitRate.errors;
+    delete customUnitRate.errorFields;
+    return customUnitRate;
 }
 
 function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | undefined, subRatesToBeDeleted: SubRateData[]) {
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
-    const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    let parameters: UpdateWorkspaceCustomUnitParams;
+    let optimisticRates: Record<string, NullishDeep<Rate> | null>;
+    let failureRates: Record<string, NullishDeep<Rate>>;
+    // Auth clears every destination when deleteAllRates is set, so filtered selections must use targeted mutations instead.
+    if (isEverySubRateSelected(customUnit, subRatesToBeDeleted)) {
+        parameters = {policyID, customUnitID: customUnit.customUnitID, deleteAllRates: true};
+        // Match the server's empty array while keeping the dictionary type used for populated rates.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Empty API dictionaries use arrays, but no rate entries are read from this value.
+        optimisticRates = [] as unknown as CustomUnit['rates'];
+
+        const firstSelectedSubRate = subRatesToBeDeleted.at(0);
+        const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
+        // Restore every rate on failure, but attach one row error to avoid duplicating the same error across the full selection.
+        failureRates = {...customUnit.rates};
+        if (firstSelectedSubRate && firstSelectedRate) {
+            failureRates[firstSelectedSubRate.rateID] = {
+                ...firstSelectedRate,
+                errors: null,
+                errorFields: {[firstSelectedSubRate.subRateID]: error},
+                pendingAction: null,
+            };
+        }
+    } else {
+        const targetedUpdates = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted, error);
+        if (!Object.keys(targetedUpdates.optimisticRates).length) {
+            return;
+        }
+        optimisticRates = targetedUpdates.optimisticRates;
+        failureRates = targetedUpdates.failureRates;
+
+        const sanitizedRateUpdates = Object.values(targetedUpdates.customUnitRateUpdates).map(getCustomUnitRateForAPI);
+        if (targetedUpdates.customUnitRateIDs.length) {
+            parameters = {
+                policyID,
+                customUnitID: customUnit.customUnitID,
+                customUnitRateIDs: JSON.stringify(targetedUpdates.customUnitRateIDs),
+                ...(sanitizedRateUpdates.length ? {customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)} : {}),
+            };
+        } else {
+            parameters = {policyID, customUnitID: customUnit.customUnitID, customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)};
+        }
+    }
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -255,16 +350,26 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customUnits: {
-                        [customUnit.customUnitID]: customUnitOnyxUpdate,
+                        [customUnit.customUnitID]: {
+                            rates: optimisticRates,
+                        },
                     },
                 },
             },
         ],
-    };
-
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: failureRates,
+                        },
+                    },
+                },
+            },
+        ],
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
@@ -335,16 +440,10 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
         ],
     };
 
-    const customUnitRate = lodashDeepClone(updatedRate);
-    delete customUnitRate.pendingAction;
-    delete customUnitRate.pendingFields;
-    delete customUnitRate.errors;
-    delete customUnitRate.errorFields;
-
     const parameters = {
         policyID,
         customUnitID,
-        customUnitRate: JSON.stringify(customUnitRate),
+        customUnitRate: JSON.stringify(getCustomUnitRateForAPI(updatedRate)),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);

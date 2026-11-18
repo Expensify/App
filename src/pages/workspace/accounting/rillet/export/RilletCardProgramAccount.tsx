@@ -18,7 +18,7 @@ import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,9 +77,9 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                             pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.pendingFields)}
                         >
                             <MenuItem.Root
-                                onPress={callFunctionIfActionIsAllowed(
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RILLET.CARD_PROGRAM_ACCOUNT_FEED_ROW}
+                                onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

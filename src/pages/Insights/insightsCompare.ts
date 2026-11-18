@@ -1,12 +1,12 @@
 import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/comparisonBuckets';
 
-import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
-
 import CONST from '@src/CONST';
 
 import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, subDays, subMonths} from 'date-fns';
 
 import type {InsightsFilters} from './insightsFilters';
+
+import getInsightsDateRange from './getInsightsDateRange';
 
 /** Presets that span a fixed number of days rather than whole months */
 const DAY_LENGTH_PRESETS = new Set<string>([
@@ -24,17 +24,9 @@ function formatPeriod(start: Date, end: Date): ChartPeriod {
     };
 }
 
-/** Returns the first and last day the Date filter covers, empty for presets without a fixed range. */
-function getDateFilterRange(dateFilter: InsightsFilters['date']): ChartPeriod {
-    if ('preset' in dateFilter) {
-        return getDateRangeForPreset(dateFilter.preset);
-    }
-    return 'on' in dateFilter ? {start: dateFilter.on, end: dateFilter.on} : {start: dateFilter.from, end: dateFilter.to};
-}
-
 /** Resolves the period the Date filter covers and the one before it, which decide how buckets pair up and what each series is named. The backend picks the compared rows itself. */
 function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartComparisonPeriods | undefined {
-    const primary = getDateFilterRange(dateFilter);
+    const primary = getInsightsDateRange(dateFilter);
     if (!primary.start || !primary.end) {
         return undefined;
     }
@@ -51,5 +43,4 @@ function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartCom
     return {primary, comparison: formatPeriod(subDays(start, differenceInCalendarDays(end, start) + 1), subDays(start, 1))};
 }
 
-export {getDateFilterRange};
 export default resolveComparisonPeriods;

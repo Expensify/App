@@ -1,11 +1,10 @@
 /**
  * Resolves an invoice report's avatars and layout, shared by InvoiceReportAvatar and the invoice preview rows in a chat.
  */
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
-
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPreviewSenderID from '@hooks/useReportPreviewSenderID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 

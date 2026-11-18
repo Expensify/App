@@ -283,6 +283,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONTINUE_WITH_SETUP}
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
@@ -290,6 +291,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 {shouldShowChangeBankAccount && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CHANGE_BANK_ACCOUNT}
                                         title={translate('workspace.bankAccount.changeBankAccount')}
                                         icon={expensifyIcons.Bank}
                                         onPress={handleChangeBankAccount}
@@ -297,6 +299,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_START_OVER}
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
@@ -307,6 +310,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItemNavigation
+                                        sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_WITH_PLAID}
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
                                         isDisabled={!!isPlaidDisabled}
@@ -314,6 +318,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     />
                                 )}
                                 <MenuItemNavigation
+                                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.ENTRY_POINT_CONNECT_MANUALLY}
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
@@ -323,14 +328,24 @@ function VerifiedBankAccountFlowEntryPoint({
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
+                        href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                    >
+                        {translate('common.privacy')}
+                    </TextLink>
                     <PressableWithoutFeedback
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
-                        <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
+                            href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
+                        >
+                            {translate('bankAccount.yourDataIsSecure')}
+                        </TextLink>
                         <View style={styles.ml1}>
                             <Icon
                                 src={expensifyIcons.Lock}

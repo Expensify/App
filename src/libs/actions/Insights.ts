@@ -8,6 +8,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -42,7 +43,7 @@ function requestInsights(command: InsightsCommand, jsonQuery: string, key: Insig
     );
 }
 
-function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[]) {
+function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -79,7 +80,7 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
         value: {
-            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: snapshotHash},
+            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryType, hash: snapshotHash},
         },
     }));
 
