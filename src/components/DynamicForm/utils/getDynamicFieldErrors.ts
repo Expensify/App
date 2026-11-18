@@ -279,3 +279,4 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
 }
 
 export default getDynamicFieldErrors;
+export {matchesRegex};

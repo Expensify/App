@@ -15,6 +15,7 @@ import type ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAda
 import type TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import type ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import type YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
+import type DynamicFormFormattedTextInput from '@components/DynamicForm/components/DynamicFormFormattedTextInput';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
@@ -103,7 +104,8 @@ type ValidInputs =
     | typeof YesNoAdapter
     | typeof TabsAdapter
     | typeof ToggleLinkAdapter
-    | typeof ListFieldAdapter;
+    | typeof ListFieldAdapter
+    | typeof DynamicFormFormattedTextInput;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'stringList' | 'disabledListValues' | 'files' | 'listItems';
 type ValueTypeMap = {
