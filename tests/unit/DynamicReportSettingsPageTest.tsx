@@ -48,14 +48,16 @@ jest.mock('@components/MenuItem/presets/MenuItemField', () => ({name, value}: {n
 ));
 
 function buildReport(
-    notificationPreference: NonNullable<Report['participants']>[number]['notificationPreference'],
+    notificationPreference: NonNullable<Report['participants']>[number]['notificationPreference'] | '',
     chatType: Report['chatType'] = CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
 ): Report {
     return {
         reportID: '123',
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
-        participants: {[ACCOUNT_ID]: {notificationPreference}},
+        // Legacy fixtures can contain an empty preference outside the current Report type.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        participants: {[ACCOUNT_ID]: {notificationPreference: notificationPreference as NonNullable<Report['participants']>[number]['notificationPreference']}},
     };
 }
 
@@ -84,8 +86,7 @@ describe('DynamicReportSettingsPage', () => {
 
         it('preserves the legacy admins-room default without exposing explicitly hidden notifications', () => {
             // Given an admins room with a legacy empty preference
-            const report = buildReport(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
-            Object.defineProperty(report.participants?.[ACCOUNT_ID], 'notificationPreference', {value: '', configurable: true});
+            const report = buildReport('', CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
             const {rerender} = render(page(report));
             expect(screen.getByText(`${NOTIFICATION_LABEL}: notificationPreferencesPage.notificationPreferences.always`)).toBeTruthy();
 
