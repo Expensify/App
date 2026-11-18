@@ -10125,9 +10125,9 @@ ${reportName}`,
             `añadió el campo de informe ${fieldType} "${fieldName}"${defaultValue ? ` con el valor predeterminado "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
-        updatedCustomUnitTaxRateExternalID: (customUnitRateName, newTaxRate, oldTaxRate) => {
+        updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `cambió la tasa de impuesto en la tasa por distancia "${customUnitRateName}" a "${newTaxRate}" (previamente "${oldTaxRate}")`;
+                return `cambió la tasa de impuestos en la tasa de distancia «${customUnitRateName}» a «${newTaxRate}» (previamente «${oldTaxRate}»)`;
             }
             return `añadió la tasa de impuesto "${newTaxRate}" a la tasa de distancia "${customUnitRateName}"`;
         },

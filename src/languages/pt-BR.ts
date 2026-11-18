@@ -10156,7 +10156,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `alterou a taxa de ${customUnitName} ${updatedField} "${customUnitRateName}" para "${newValue}" (antes "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `alterou a alíquota de imposto na tarifa de distância "${customUnitRateName}" para "${newTaxRate}" (anteriormente "${oldTaxRate}")`;
+                return `alterou a taxa de imposto na taxa de distância "${customUnitRateName}" para "${newTaxRate}" (antes "${oldTaxRate}")`;
             }
             return `adicionou a alíquota de imposto "${newTaxRate}" à tarifa de distância "${customUnitRateName}"`;
         },

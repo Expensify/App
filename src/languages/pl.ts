@@ -10179,9 +10179,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił(a) stawkę ${customUnitName} ${updatedField} „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `zmienił(a) stawkę podatku w stawce za dystans „${customUnitRateName}” na „${newTaxRate}” (poprzednio „${oldTaxRate}”)`;
+                return `zmienił(a) stawkę podatku w stawce za dystans „${customUnitRateName}” na „${newTaxRate}” (wcześniej „${oldTaxRate}”)`;
             }
-            return `dodano stawkę podatku „${newTaxRate}” do stawki za dystans „${customUnitRateName}”`;
+            return `dodał(a) stawkę podatku „${newTaxRate}” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

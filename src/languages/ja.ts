@@ -10006,7 +10006,7 @@ ${reportName}`,
             if (oldTaxRate) {
                 return `距離レート「${customUnitRateName}」の税率を「${oldTaxRate}」から「${newTaxRate}」に変更しました`;
             }
-            return `距離レート「${customUnitRateName}」に税率「${newTaxRate}」を追加しました`;
+            return `税率「${newTaxRate}」を距離単価「${customUnitRateName}」に追加しました`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

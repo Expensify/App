@@ -10143,7 +10143,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `heeft het belastingtarief van het kilometertarief "${customUnitRateName}" gewijzigd naar "${newTaxRate}" (voorheen "${oldTaxRate}")`;
+                return `heeft het belastingtarief van het afstandstarief "${customUnitRateName}" gewijzigd naar "${newTaxRate}" (voorheen "${oldTaxRate}")`;
             }
             return `heeft het belastingtarief "${newTaxRate}" toegevoegd aan het afstandstarief "${customUnitRateName}"`;
         },

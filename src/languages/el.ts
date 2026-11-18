@@ -10406,7 +10406,7 @@ ${reportName}`,
             if (oldTaxRate) {
                 return `άλλαξε τον φορολογικό συντελεστή στο χιλιομετρικό κόστος «${customUnitRateName}» σε «${newTaxRate}» (προηγουμένως «${oldTaxRate}»)`;
             }
-            return `πρόσθεσε τον φορολογικό συντελεστή «${newTaxRate}» στον συντελεστή απόστασης «${customUnitRateName}»`;
+            return `προστέθηκε ο φορολογικός συντελεστής «${newTaxRate}» στον συντελεστή απόστασης «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

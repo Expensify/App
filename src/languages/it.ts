@@ -10164,9 +10164,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato il valore di ${customUnitName} ${updatedField} "${customUnitRateName}" in "${newValue}" (in precedenza "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `ha modificato l’aliquota fiscale sulla tariffa distanza "${customUnitRateName}" in "${newTaxRate}" (precedentemente "${oldTaxRate}")`;
+                return `ha modificato l’aliquota fiscale sulla tariffa chilometrica "${customUnitRateName}" a "${newTaxRate}" (in precedenza "${oldTaxRate}")`;
             }
-            return `ha aggiunto l’aliquota fiscale "${newTaxRate}" alla tariffa distanza "${customUnitRateName}"`;
+            return `ha aggiunto l’aliquota fiscale «${newTaxRate}» alla tariffa chilometrica «${customUnitRateName}»`;
         },
         updatedCustomUnitTaxClaimablePercentage: (customUnitRateName: string, newValue: number, oldValue?: number) => {
             if (oldValue !== undefined) {

@@ -10252,7 +10252,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName: string, newTaxRate: string, oldTaxRate?: string) => {
             if (oldTaxRate) {
-                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newTaxRate} » (auparavant « ${oldTaxRate} »)`;
+                return `a modifié le taux de taxe du taux de distance « ${customUnitRateName} » à « ${newTaxRate} » (précédemment « ${oldTaxRate} »)`;
             }
             return `a ajouté le taux de taxe « ${newTaxRate} » au taux de distance « ${customUnitRateName} »`;
         },
