@@ -88,7 +88,7 @@ function getEmojiReplacementText(image: HTMLImageElement): string {
         return metadataText;
     }
 
-    // Discord's alt already includes the skin tone; its shortcode may not be recognized by the Composer.
+    // Prefer Discord's alt text, which already contains the skin tone, over a shortcode the Composer may not recognize.
     if (dataset.type === 'emoji') {
         return image.alt || dataset.name || '';
     }
