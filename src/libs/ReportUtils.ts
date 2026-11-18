@@ -13278,6 +13278,20 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
     return !(policy?.preventSelfApproval && isOwner);
 }
 
+function canReassignAsApprover({
+    report,
+    currentUserAccountID,
+    isLoadingSecurityGroup,
+    areStrictPolicyRulesEnabled,
+}: {
+    report: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    isLoadingSecurityGroup: boolean;
+    areStrictPolicyRulesEnabled: boolean;
+}): boolean {
+    return !isLoadingSecurityGroup && report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+}
+
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -16022,6 +16036,7 @@ export {
     canJoinChat,
     canLeaveChat,
     canRequestMoney,
+    canReassignAsApprover,
     canReportBeMentionedWithinPolicy,
     canSeeDefaultRoom,
     canShowReportRecipientLocalTime,

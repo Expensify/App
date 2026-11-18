@@ -22,7 +22,14 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
+import {
+    canReassignAsApprover,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
+} from '@libs/ReportUtils';
 
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
@@ -96,12 +103,17 @@ function canReassignAllReports({
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
             const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-            const canReassignAsApprover = !isLoadingSecurityGroup && report?.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
+            const canReassignReportAsApprover = canReassignAsApprover({
+                report,
+                currentUserAccountID,
+                isLoadingSecurityGroup,
+                areStrictPolicyRulesEnabled,
+            });
 
             return (
                 !!policy &&
                 !!report &&
-                (isPolicyAdmin(policy) || canReassignAsApprover) &&
+                (isPolicyAdmin(policy) || canReassignReportAsApprover) &&
                 !isPendingDeletePolicy(policy) &&
                 isMoneyRequestReport(report) &&
                 !isMoneyRequestReportPendingDeletion(report) &&

@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
+import {canReassignAsApprover, getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,8 +141,13 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const canReassignAllReports = selectedReports.every((selectedReport) => {
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-        const canReassignAsApprover = !isLoadingSecurityGroup && report?.managerID === currentUserDetails.accountID && !areStrictPolicyRulesEnabled;
-        return !!policy && (isPolicyAdmin(policy) || canReassignAsApprover) && !isPendingDeletePolicy(policy);
+        const canReassignCurrentReport = canReassignAsApprover({
+            report,
+            currentUserAccountID: currentUserDetails.accountID,
+            isLoadingSecurityGroup,
+            areStrictPolicyRulesEnabled,
+        });
+        return !!policy && (isPolicyAdmin(policy) || canReassignCurrentReport) && !isPendingDeletePolicy(policy);
     });
 
     const addApprover = () => {

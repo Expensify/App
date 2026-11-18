@@ -20,6 +20,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canDuplicateExpenseIntoSourceReport,
     canEditFieldOfMoneyRequest,
+    canReassignAsApprover,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     isDM,
@@ -550,7 +551,14 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
                     return;
                 }
-                const canMemberReassignApprover = !isLoadingSecurityGroup && !isPolicyAdmin(policy) && moneyRequestReport.managerID === accountID && !areStrictPolicyRulesEnabled;
+                const canMemberReassignApprover =
+                    !isPolicyAdmin(policy) &&
+                    canReassignAsApprover({
+                        report: moneyRequestReport,
+                        currentUserAccountID: accountID,
+                        isLoadingSecurityGroup,
+                        areStrictPolicyRulesEnabled,
+                    });
                 if (canMemberReassignApprover) {
                     Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(moneyRequestReport.reportID));
                     return;

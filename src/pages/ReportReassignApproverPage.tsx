@@ -24,6 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
+    canReassignAsApprover,
     getDisplayNameForParticipant,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -62,7 +63,12 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
     const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
-    const canMemberReassignApprover = !isLoadingSecurityGroup && currentUserDetails.accountID === report.managerID && !areStrictPolicyRulesEnabled;
+    const canMemberReassignApprover = canReassignAsApprover({
+        report,
+        currentUserAccountID: currentUserDetails.accountID,
+        isLoadingSecurityGroup,
+        areStrictPolicyRulesEnabled,
+    });
 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const shouldShowNotFoundView =

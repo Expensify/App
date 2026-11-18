@@ -69,6 +69,7 @@ import {
     canEditMultipleTransactions,
     canIOUBePaid,
     canMergeReports,
+    canReassignAsApprover,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
     getReportOrDraftReport,
@@ -3335,14 +3336,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
                 const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
                 // Current approvers can reassign without workspace admin access when strict policy rules are off.
-                const canReassignAsApprover =
-                    !isLoadingSecurityGroup &&
-                    !areStrictPolicyRulesEnabled &&
-                    report?.managerID === accountID &&
-                    isExpenseReportUtil(report) &&
-                    isProcessingReport(report) &&
-                    !isMoneyRequestReportPendingDeletion(report);
-                if (!canReassignAsApprover) {
+                const canReassignCurrentReport = canReassignAsApprover({
+                    report,
+                    currentUserAccountID: accountID,
+                    isLoadingSecurityGroup,
+                    areStrictPolicyRulesEnabled,
+                });
+                if (!canReassignCurrentReport || !isExpenseReportUtil(report) || !isProcessingReport(report) || isMoneyRequestReportPendingDeletion(report)) {
                     return false;
                 }
                 const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);

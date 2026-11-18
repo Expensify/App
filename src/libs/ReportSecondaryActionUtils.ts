@@ -62,6 +62,7 @@ import {
     canEditReportPolicy,
     canHoldUnholdReportAction,
     canRejectReportAction,
+    canReassignAsApprover,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
@@ -1241,8 +1242,13 @@ function getSecondaryReportActions({
     }
 
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-    const canReassignAsApprover = !isLoadingSecurityGroup && report.managerID === currentUserAccountID && !areStrictPolicyRulesEnabled;
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignAsApprover) && isApprovalEnabled) {
+    const canReassignReportAsApprover = canReassignAsApprover({
+        report,
+        currentUserAccountID,
+        isLoadingSecurityGroup,
+        areStrictPolicyRulesEnabled,
+    });
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && (isPolicyAdmin(policy) || canReassignReportAsApprover) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 

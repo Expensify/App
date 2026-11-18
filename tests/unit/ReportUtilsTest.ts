@@ -86,6 +86,7 @@ import {
     canMergeReports,
     canModifyHoldStatus,
     canRejectReportAction,
+    canReassignAsApprover,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -12048,6 +12049,83 @@ describe('ReportUtils', () => {
                 preventSelfApproval: false,
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID + 1, submitPolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canReassignAsApprover', () => {
+        const report: Report = {
+            ...createRandomReport(6, undefined),
+            managerID: currentUserAccountID,
+        };
+
+        it('should return true when the current user is the report manager and strict rules are disabled', () => {
+            // Given the report manager matches the current user and security group loading is complete
+            // When strict policy rules are disabled
+            // Then the user can reassign as approver
+            expect(
+                canReassignAsApprover({
+                    report,
+                    currentUserAccountID,
+                    isLoadingSecurityGroup: false,
+                    areStrictPolicyRulesEnabled: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('should return false while security group information is loading', () => {
+            // Given the current user is the report manager and strict policy rules are disabled
+            // When security group information is still loading
+            // Then reassignment is denied until the permission state is known
+            expect(
+                canReassignAsApprover({
+                    report,
+                    currentUserAccountID,
+                    isLoadingSecurityGroup: true,
+                    areStrictPolicyRulesEnabled: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when strict policy rules are enabled', () => {
+            // Given the current user is the report manager and security group loading is complete
+            // When strict policy rules are enabled
+            // Then the user cannot reassign as approver
+            expect(
+                canReassignAsApprover({
+                    report,
+                    currentUserAccountID,
+                    isLoadingSecurityGroup: false,
+                    areStrictPolicyRulesEnabled: true,
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when the current user is not the report manager', () => {
+            // Given the report belongs to a different manager
+            // When the current user checks reassignment eligibility with strict rules disabled
+            // Then the user cannot reassign as approver
+            expect(
+                canReassignAsApprover({
+                    report: {...report, managerID: currentUserAccountID + 1},
+                    currentUserAccountID,
+                    isLoadingSecurityGroup: false,
+                    areStrictPolicyRulesEnabled: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when the report is unavailable', () => {
+            // Given report data is unavailable
+            // When the current user checks reassignment eligibility
+            // Then the user cannot reassign as approver
+            expect(
+                canReassignAsApprover({
+                    report: undefined,
+                    currentUserAccountID,
+                    isLoadingSecurityGroup: false,
+                    areStrictPolicyRulesEnabled: false,
+                }),
+            ).toBe(false);
         });
     });
 
