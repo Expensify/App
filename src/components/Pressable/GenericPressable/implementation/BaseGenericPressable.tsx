@@ -13,14 +13,18 @@ import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusRetu
 
 import CONST from '@src/CONST';
 import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {DistributedOmit, ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+
+/** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
+type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
 
 function GenericPressable({
     children,
@@ -52,7 +56,7 @@ function GenericPressable({
     forwardedFSClass,
     accessibilityState,
     ...rest
-}: PressableProps) {
+}: BaseGenericPressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();

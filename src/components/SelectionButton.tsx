@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef, MouseEventHandler} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -21,8 +21,9 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
+// `onPress` is required, so every selection button needs a label. `RadioButton` passes a default one.
 type BaseSelectionButtonProps = Partial<ChildrenProps> &
-    WithSentryLabel & {
+    WithRequiredSentryLabel & {
         /** A function that is called when the button is pressed */
         onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 

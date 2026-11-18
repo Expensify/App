@@ -275,7 +275,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -403,6 +403,7 @@ type ContextMenuActionPayload = {
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
     iouTransactionReport: OnyxEntry<ReportType>;
     moneyRequestActionChildReport: OnyxEntry<ReportType>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -872,6 +873,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransactionViolations,
                 iouTransactionReport,
                 moneyRequestActionChildReport,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -886,41 +888,28 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
+            const performHold = () =>
+                changeMoneyRequestHoldStatus({
+                    reportAction: moneyRequestAction,
+                    iouTransaction,
+                    iouTransactionReport,
+                    reportActionChildReport: moneyRequestActionChildReport,
+                    policy: moneyRequestPolicy,
+                    isOffline,
+                    currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionViolations: iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
+                });
+
             if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus({
-                        reportAction: moneyRequestAction,
-                        iouTransaction,
-                        iouTransactionReport,
-                        reportActionChildReport: moneyRequestActionChildReport,
-                        policy: moneyRequestPolicy,
-                        isOffline,
-                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        transactionViolations: iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                        rules,
-                    }),
-                );
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus({
-                reportAction: moneyRequestAction,
-                iouTransaction,
-                iouTransactionReport,
-                reportActionChildReport: moneyRequestActionChildReport,
-                policy: moneyRequestPolicy,
-                isOffline,
-                currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                transactionViolations: iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            });
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

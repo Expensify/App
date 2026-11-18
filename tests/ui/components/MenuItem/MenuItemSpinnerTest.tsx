@@ -63,7 +63,10 @@ describe.each(spinnerLeaves)('MenuItem.$name', ({IconLeaf, Spinner, isNarrow}) =
         const onPress = jest.fn();
         const row = (isLoading: boolean) => (
             <Wrapper>
-                <MenuItem.Root onPress={onPress}>
+                <MenuItem.Root
+                    onPress={onPress}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
                     <MenuItem.Row>
                         <MenuItem.Leading>{isLoading ? <Spinner /> : <IconLeaf src={MockIcon} />}</MenuItem.Leading>
                         <MenuItem.Content>

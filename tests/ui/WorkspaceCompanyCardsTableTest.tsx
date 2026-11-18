@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 
+import * as CompanyCardNumberSearch from '@hooks/useCompanyCardNumberSearch';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 
 import CONST from '@src/CONST';
@@ -25,6 +26,9 @@ const FEED_NAME = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${DOMAIN_OR_WORKSP
 const BANK_NAME = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE as CompanyCardFeedWithNumber;
 
 const LOADED_METADATA = {status: 'loaded'} as const;
+
+type NoResultsProps = {title?: string; buttons?: Array<{buttonText?: string; buttonAction?: () => void}>};
+const mockNoResultsState = jest.fn<void, [NoResultsProps]>();
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({}),
@@ -78,7 +82,10 @@ jest.mock('@components/Table', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.EmptyState = () => <View testID="WorkspaceCompanyCardsTableEmptyState" />;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    MockTable.NoResultsState = () => <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
+    MockTable.NoResultsState = (props: NoResultsProps) => {
+        mockNoResultsState({title: props.title, buttons: props.buttons});
+        return <View testID="WorkspaceCompanyCardsTableNoResultsState" />;
+    };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     MockTable.LoadingState = () => <View testID="WorkspaceCompanyCardsTableLoadingIndicator" />;
     return {
@@ -329,5 +336,49 @@ describe('WorkspaceCompanyCardsTable selection mode', () => {
         await waitForBatchedUpdates();
 
         expect(screen.queryByTestId('WorkspaceCompanyCardsTableHeaderButtons')).toBeNull();
+    });
+});
+
+describe('WorkspaceCompanyCardsTable failed number search', () => {
+    it('renders error feedback and retry through the no-results slot rather than the ignored list-empty fallback', async () => {
+        // Given a failed full-number query on an otherwise loaded feed
+        await Onyx.clear();
+        const retrySearch = jest.fn();
+        const searchSpy = jest.spyOn(CompanyCardNumberSearch, 'default').mockReturnValue({
+            setSearchValue: jest.fn(),
+            matchedCardIDs: new Set(),
+            matchedEncryptedNumbers: new Set(),
+            lastFourCardIDs: new Set(),
+            lastFourEncryptedNumbers: new Set(),
+            resultsQuery: undefined,
+            isSearching: false,
+            isFullNumberQuery: true,
+            hasError: true,
+            retrySearch,
+        });
+        mockNoResultsState.mockClear();
+
+        try {
+            // When the table renders the failed search
+            renderTable(
+                buildCompanyCards({
+                    workspaceCardFeedsStatus: {},
+                    isNoFeed: false,
+                    feedName: FEED_NAME,
+                    bankName: BANK_NAME,
+                }),
+            );
+            await waitForBatchedUpdates();
+
+            // Then the slot used by TableBody contains error copy and a working retry action
+            expect(screen.getByTestId('WorkspaceCompanyCardsTableNoResultsState')).toBeTruthy();
+            const errorProps = mockNoResultsState.mock.calls.at(-1)?.[0];
+            expect(errorProps?.title).toBe(TestHelper.translateLocal('common.genericErrorMessage'));
+            expect(errorProps?.buttons?.[0]?.buttonText).toBe(TestHelper.translateLocal('common.tryAgain'));
+            errorProps?.buttons?.[0]?.buttonAction?.();
+            expect(retrySearch).toHaveBeenCalledTimes(1);
+        } finally {
+            searchSpy.mockRestore();
+        }
     });
 });

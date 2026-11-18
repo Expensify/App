@@ -14,6 +14,7 @@ const mockGetTabBarIcon = jest.mocked(getTabBarIcon);
 
 const PARAMS: NativeTabBarOptionsParams = {
     shouldShowNativeTabBar: true,
+    isTabBarVertical: false,
     dotColors: {[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: '#ff0000'},
     tabLabels: {
         [SCREENS.HOME]: 'Home',
