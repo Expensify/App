@@ -944,7 +944,15 @@ function ComposerWithSuggestions({
     const handleFocus = () => {
         handleSidePanelFocus();
         setUpComposeFocusManager(!isInSidePanel);
+        // Suggestions are recalculated when the composer regains focus, so a menu that was reset on blur comes back. On Android
+        // a rotation can blur the composer and re-focus it right away without moving the cursor, which would otherwise lose the menu.
+        setIsComposerFocused(true);
         onFocus();
+    };
+
+    const handleBlur = (event: BlurEvent) => {
+        setIsComposerFocused(false);
+        onBlur(event);
     };
 
     // When using the suggestions box (Suggestions) we need to imperatively
@@ -994,7 +1002,7 @@ function ComposerWithSuggestions({
                     ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
-                    onBlur={onBlur}
+                    onBlur={handleBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {
                         composerRef.current?.blur();
