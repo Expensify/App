@@ -8638,6 +8638,9 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getAllMatchingExpenseActionQuery,
+    getAllMatchingExportQueryAndExclusions,
+    replaceIncludedFilterValues,
     getTagGroupLabel,
     getSearchTypeMenuItemSentryLabel,
     getSearchTypeMenuTabSentryLabel,
