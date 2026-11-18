@@ -1460,7 +1460,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
     });
 
     it('sends the bank payment to the backend under Select all', async () => {
-        // Given "Select all" is checked, so the backend pays the matching reports itself and skips the ones with nothing owed
+        // Given "Select all" is checked, so the backend pays the matching reports itself and only skips the ones with a negative total
         mockAreAllMatchingItemsSelected = true;
         const {result} = await renderBulkActions();
 
