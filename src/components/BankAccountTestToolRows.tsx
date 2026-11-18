@@ -1,4 +1,4 @@
-// Rows that add a test bank account to the signed-in user. Shown to anyone on dev and to expensifail.com accounts on other builds, never on production.
+// Rows that add a test bank account to the signed-in user. Shown to anyone on dev and to internal test accounts on other builds, never on production.
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,9 +35,9 @@ function BankAccountTestToolRows() {
 
     const {isDevelopment, isProduction} = useEnvironment();
     const [email = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const isExpensifailAccount = Str.extractEmailDomain(email).toLowerCase() === CONST.TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN;
+    const isOnAllowedEmailDomain = Str.extractEmailDomain(email).toLowerCase() === CONST.TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN;
 
-    if (isProduction || (!isDevelopment && !isExpensifailAccount)) {
+    if (isProduction || (!isDevelopment && !isOnAllowedEmailDomain)) {
         return null;
     }
 
