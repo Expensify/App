@@ -87,7 +87,7 @@ describe('actions/ShareBankAccountAndWorkspacePayer', () => {
             const policyID = 'policy_abc';
             const reimburserEmail = 'payer@example.com';
 
-            setWorkspacePayer(policyID, reimburserEmail, undefined);
+            setWorkspacePayer(policyID, reimburserEmail, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(write).toHaveBeenCalledWith(

@@ -7396,7 +7396,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting workspace payer to new@test.com
-            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser);
+            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser, undefined);
 
             // Then optimistic data should be set in Onyx
             await waitForBatchedUpdates();
@@ -7424,7 +7424,7 @@ describe('actions/Policy', () => {
 
             // When setting workspace payer to new@test.com but fail
             mockFetch.fail();
-            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser);
+            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser, undefined);
             await waitForBatchedUpdates();
 
             // Then the payer should be reverted
@@ -7447,7 +7447,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting a designated payer in manual mode
-            Policy.setWorkspacePayer(policy.id, 'payer@manual.com', policy.reimburser);
+            Policy.setWorkspacePayer(policy.id, 'payer@manual.com', policy.reimburser, undefined);
 
             // Then optimistic data should set the reimburser
             await waitForBatchedUpdates();

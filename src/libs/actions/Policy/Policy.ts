@@ -157,6 +157,7 @@ import type {CompanyCardFeedWithDomainID, FundID} from '@src/types/onyx/CardFeed
 import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
+    ACHAccount,
     Attributes,
     AutoReportingOffset,
     CompanyAddress,
@@ -1436,7 +1437,10 @@ function setWorkspaceApprovalMode(
     }
 }
 
-function setWorkspacePayer(policyID: string, reimburserEmail: string, currentReimburser: string | undefined) {
+/**
+ * @param currentBankAccount - the copy of the workspace bank account the current user sees, kept after a successful change
+ */
+function setWorkspacePayer(policyID: string, reimburserEmail: string, currentReimburser: string | undefined, currentBankAccount: Pick<ACHAccount, 'bankAccountID' | 'state'> | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1460,6 +1464,18 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, currentRei
             },
         },
     ];
+
+    // The server sends every member the new payer's copy of the bank account, which the current user may not own, so a later share
+    // from this user would fail. Keep the copy they see until the next fetch of the workspace resolves it for them again.
+    if (currentBankAccount?.bankAccountID) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                achAccount: {bankAccountID: currentBankAccount.bankAccountID, state: currentBankAccount.state},
+            },
+        });
+    }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
