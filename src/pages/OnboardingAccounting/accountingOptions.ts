@@ -1,51 +1,67 @@
-/** The onboarding catalog is independent of the integrations that support direct connection setup. */
+/** Onboarding offers the accounting connectors and waitlist choices listed on workspace Connections. */
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 
+import {getIntegrationWaitlistNames} from '@libs/IntegrationWaitlistUtils';
+
+import CONST from '@src/CONST';
 import type {OnboardingAccountingOption} from '@src/CONST';
+
+import type {TupleToUnion} from 'type-fest';
 
 type AccountingOption = {
     name: string;
     iconName: ExpensifyIconName;
     integration: OnboardingAccountingOption;
+    connectionName?: string;
     aliases?: string;
     isComingSoon?: boolean;
 };
 
-// New products use the existing Other payload until their canonical onboarding values are supported.
-const accountingOptions: AccountingOption[] = [
-    {name: 'QuickBooks Online', iconName: 'QBOCircle', integration: 'quickbooksOnline', aliases: 'QBO'},
-    {name: 'Intuit Enterprise Suite', iconName: 'IntuitSquare', integration: 'intuitEnterpriseSuite', aliases: 'IES'},
-    {name: 'QuickBooks Desktop', iconName: 'QBDSquare', integration: 'quickbooksDesktop', aliases: 'QBD'},
-    {name: 'Xero', iconName: 'XeroCircle', integration: 'xero'},
-    {name: 'NetSuite', iconName: 'NetSuiteSquare', integration: 'netsuite'},
-    {name: 'DualEntry', iconName: 'DualEntrySquare', integration: 'other'},
-    {name: 'Campfire', iconName: 'CampfireSquare', integration: 'other'},
-    {name: 'Odoo', iconName: 'OdooSquare', integration: 'other'},
-    {name: 'Exact Online', iconName: 'ExactOnlineSquare', integration: 'other'},
-    {name: 'Digits', iconName: 'DigitsSquare', integration: 'other', isComingSoon: true},
-    {name: 'Zoho Books', iconName: 'ZohoBooksSquare', integration: 'other'},
-    // These products have no bundled brand artwork, so use the generic icon.
-    {name: 'Acumatica', iconName: 'Building', integration: 'other'},
-    {name: 'Qanta', iconName: 'Building', integration: 'other'},
-    {name: 'Lensing.ai', iconName: 'Building', integration: 'other'},
-    {name: 'Holded', iconName: 'Building', integration: 'other'},
-    {name: 'MYOB Business', iconName: 'Building', integration: 'other'},
-    {name: 'Pennylane', iconName: 'Building', integration: 'other'},
-    {name: 'DATEV', iconName: 'Building', integration: 'other'},
-    {name: 'Workday', iconName: 'Building', integration: 'other'},
-    {name: 'Sage Intacct', iconName: 'IntacctSquare', integration: 'intacct'},
-    {name: 'Sage Accounting', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Sage Intacct CRE', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Sage 50', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Sage 100', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Sage 300', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Sage X3', iconName: 'IntacctSquare', integration: 'other'},
-    {name: 'Certinia', iconName: 'CertiniaSquare', integration: 'financialforce', aliases: 'FinancialForce'},
-    {name: 'Rillet', iconName: 'RilletSquare', integration: 'rillet'},
-    {name: 'SAP S/4HANA', iconName: 'SapSquare', integration: 'sap', aliases: 'SAP S4 HANA'},
-    {name: 'Oracle Fusion Cloud', iconName: 'OracleSquare', integration: 'oracle'},
-    {name: 'Dynamics', iconName: 'MicrosoftDynamicsSquare', integration: 'microsoftDynamics', aliases: 'Microsoft Dynamics 365 Business Central'},
-];
+const waitlistNames = [...CONST.POLICY.CONNECTIONS.WAITLIST_CONNECTION_NAMES, ...getIntegrationWaitlistNames()];
+const connectionNames = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES, ...waitlistNames];
+const iconNames: Partial<Record<TupleToUnion<typeof connectionNames>, ExpensifyIconName>> = {
+    quickbooksOnline: 'QBOCircle',
+    quickbooksDesktop: 'QBDSquare',
+    xero: 'XeroCircle',
+    netsuite: 'NetSuiteSquare',
+    intacct: 'IntacctSquare',
+    financialforce: 'CertiniaSquare',
+    rillet: 'RilletSquare',
+    dualEntry: 'DualEntrySquare',
+    campfire: 'CampfireSquare',
+    digits: 'DigitsSquare',
+    zohoBooks: 'ZohoBooksSquare',
+    businessCentral: 'BusinessCentralSquare',
+    sageAccounting: 'IntacctSquare',
+    odoo: 'OdooSquare',
+    exactOnline: 'ExactOnlineSquare',
+};
+const aliases: Partial<Record<TupleToUnion<typeof connectionNames>, string>> = {
+    quickbooksOnline: 'QBO',
+    quickbooksDesktop: 'QBD',
+    financialforce: 'FinancialForce',
+};
+
+function isOnboardingAccountingOption(name: string): name is OnboardingAccountingOption {
+    return Object.hasOwn(CONST.ONBOARDING_ACCOUNTING_MAPPING, name);
+}
+
+const accountingOptions: AccountingOption[] = connectionNames.flatMap((connectionName): AccountingOption[] => {
+    const option: AccountingOption = {
+        connectionName,
+        name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+        iconName: iconNames[connectionName] ?? 'Building',
+        // Preserve the onboarding API contract for connections without a canonical onboarding answer.
+        integration: isOnboardingAccountingOption(connectionName) ? connectionName : 'other',
+        aliases: aliases[connectionName],
+        isComingSoon: waitlistNames.some((name) => name === connectionName),
+    };
+    // Connections exposes Intuit Enterprise Suite as a separate choice backed by the QBO connector.
+    return connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO
+        ? [option, {name: 'Intuit Enterprise Suite', iconName: 'IntuitSquare', integration: 'intuitEnterpriseSuite', aliases: 'IES'}]
+        : [option];
+});
 
 export default accountingOptions;
+export {isOnboardingAccountingOption};
 export type {AccountingOption};

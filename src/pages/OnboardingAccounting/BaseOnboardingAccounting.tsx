@@ -15,10 +15,12 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isAccountingConnectionAvailable} from '@libs/AccountingUtils';
 import {
     setOnboardingAccountingDraft,
     setOnboardingAccountingEnabled,
@@ -33,7 +35,7 @@ import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
-import type {OnboardingAccounting} from '@src/CONST';
+import type {OnboardingAccounting, OnboardingAccountingOption} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +47,7 @@ import type {AccountingOption} from './accountingOptions';
 import type {BaseOnboardingAccountingProps} from './types';
 
 import AccountingOptionRow from './AccountingOptionRow';
-import accountingOptions from './accountingOptions';
+import accountingOptions, {isOnboardingAccountingOption} from './accountingOptions';
 
 function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
@@ -62,15 +64,29 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [onboardingFeaturesMap] = useOnyx(ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
+    const {isBetaEnabled} = usePermissions();
+    const onboardingPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`];
+    const canUseBusinessCentral = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!onboardingPolicy?.connections?.businessCentral;
+    const canUseDigits = isBetaEnabled(CONST.BETAS.DIGITS) || !!onboardingPolicy?.connections?.digits;
+    const availableOptions = accountingOptions.filter((option) => !option.connectionName || isAccountingConnectionAvailable(option.connectionName, canUseBusinessCentral, canUseDigits));
 
-    const savedOption = accountingOptions.find((option) => option.integration === onboardingUserReportedIntegration && option.integration !== 'other');
-    const selectedAnswer = draft ?? (onboardingUserReportedIntegration ? {integration: savedOption?.integration ?? 'other', name: undefined} : undefined);
-    const selectedOption = accountingOptions.find((option) =>
+    const savedIntegration = draft ? draft.integration : onboardingUserReportedIntegration;
+    const selectedAnswer: {integration: OnboardingAccountingOption; name?: string} | undefined = savedIntegration
+        ? {integration: isOnboardingAccountingOption(savedIntegration) ? savedIntegration : 'other', name: draft?.name}
+        : undefined;
+    const selectedOption = availableOptions.find((option) =>
         option.integration === 'other' ? selectedAnswer?.integration === 'other' && selectedAnswer.name === option.name : selectedAnswer?.integration === option.integration,
     );
+    // Saved answers may refer to a legacy product or a connection whose beta is no longer enabled.
     const customOption: AccountingOption | undefined =
-        selectedAnswer?.integration === 'other' && selectedAnswer.name && !selectedOption ? {name: selectedAnswer.name, integration: 'other', iconName: 'Building'} : undefined;
-    const options = customOption ? [...accountingOptions, customOption] : accountingOptions;
+        selectedAnswer?.integration && !selectedOption && (selectedAnswer.integration !== 'other' || selectedAnswer.name)
+            ? {
+                  name: selectedAnswer.name ?? CONST.ONBOARDING_ACCOUNTING_MAPPING[selectedAnswer.integration],
+                  integration: selectedAnswer.integration,
+                  iconName: 'Building',
+              }
+            : undefined;
+    const options = customOption ? [...availableOptions, customOption] : availableOptions;
     const trimmedQuery = searchQuery.trim();
     const normalizedQuery = trimmedQuery.toLocaleLowerCase();
     const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));

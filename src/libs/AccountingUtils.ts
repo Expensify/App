@@ -56,6 +56,17 @@ const STANDARD_EXPORT_TEMPLATE_NAME_MAPPING = {
 
 const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_EXPORT_TEMPLATE_NAME_MAPPING));
 
+/** Keep onboarding choices and Connections listings behind the same connector beta gates. */
+function isAccountingConnectionAvailable(connectionName: string, canUseBusinessCentral: boolean, canUseDigits: boolean): boolean {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+        return canUseBusinessCentral;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+        return canUseDigits;
+    }
+    return true;
+}
+
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
     return ROUTE_NAME_MAPPING[routeParam];
 }
@@ -145,6 +156,7 @@ function isStandardExportTemplateLabel(label: string): boolean {
 }
 
 export {
+    isAccountingConnectionAvailable,
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,

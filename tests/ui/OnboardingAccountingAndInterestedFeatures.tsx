@@ -40,6 +40,8 @@ type MockCompleteOnboardingParams = {
 
 const mockCompleteOnboardingFlow = jest.fn<void, [MockCompleteOnboardingParams]>();
 jest.mock('@hooks/useCompleteOnboarding', () => () => ({completeOnboardingFlow: mockCompleteOnboardingFlow, isLoading: false}));
+const mockIsBetaEnabled = jest.fn(() => true);
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: mockIsBetaEnabled}));
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
@@ -97,6 +99,7 @@ function continueOnboarding() {
 describe('Onboarding interested features and accounting pages', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
     beforeEach(() => {
+        mockIsBetaEnabled.mockReturnValue(true);
         isMobileSafari.mockReturnValue(false);
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
@@ -142,19 +145,27 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(await Onyx.get(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT)).toBeUndefined();
     });
 
-    it('renders all mocked products in order with 28px icons and no tabs', async () => {
-        // Given the expanded catalog
+    it('renders the Connections catalog in order with 28px icons and no tabs', async () => {
+        // Given access to all accounting connection betas
         const result = renderAccountingPage();
         // When it renders
         await waitForBatchedUpdatesWithAct();
-        // Then every canonical answer remains represented and each product has a compact selector
+        // Then the catalog contains only connections, their waitlist choices, and the IES alias
         const radios = screen.getAllByRole(CONST.ROLE.RADIO);
-        expect(radios).toHaveLength(31);
-        expect(new Set(accountingOptions.map((option) => option.integration))).toEqual(new Set(Object.keys(CONST.ONBOARDING_ACCOUNTING_MAPPING)));
+        expect(radios).toHaveLength(16);
+        expect(accountingOptions.filter((option) => !option.isComingSoon && option.connectionName).map((option) => option.connectionName)).toEqual(
+            CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES,
+        );
+        expect(
+            accountingOptions
+                .filter((option) => option.isComingSoon)
+                .map((option) => option.name)
+                .sort(),
+        ).toEqual(['Exact Online', 'Odoo', 'Sage Accounting']);
         for (const [index, option] of accountingOptions.entries()) {
             expect(radios.at(index)).toHaveProp('accessibilityLabel', option.name);
         }
-        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(31);
+        expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(16);
         expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
     });
 
@@ -168,7 +179,7 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(1);
         expect(screen.getByText('Certinia')).toBeOnTheScreen();
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.clear')));
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(31);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(16);
     });
 
     it('retains a confirmed custom name independently of search and navigation', async () => {
@@ -202,7 +213,7 @@ describe('Onboarding interested features and accounting pages', () => {
         searchFor('   ');
         continueOnboarding();
         // Then validation prevents submission and whitespace does not hide the catalog
-        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(31);
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(16);
         expect(screen.getByText(TestHelper.translateLocal('onboarding.errorSelection'))).toBeOnTheScreen();
         expect(mockCompleteOnboardingFlow).not.toHaveBeenCalled();
         searchFor('Unconfirmed Books');
@@ -225,22 +236,25 @@ describe('Onboarding interested features and accounting pages', () => {
         );
     });
 
-    it.each(['Digits', 'DualEntry', 'Campfire', 'Sage 50'])('records %s as interest without requesting a connection', async (name) => {
+    it.each(['Digits', 'DualEntry', 'Campfire', 'Dynamics 365 Business Central', 'Odoo', 'Exact Online', 'Sage Accounting'])('submits %s using the existing Other contract', async (name) => {
         // Given a new catalog product without a canonical onboarding value
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toBeOnTheScreen();
+        searchFor(name);
+        const badge = screen.queryByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'));
+        expect(!!badge).toBe(['Odoo', 'Exact Online', 'Sage Accounting'].includes(name));
         // When it is selected and submitted
         fireEvent.press(screen.getByText(name));
         await waitForBatchedUpdatesWithAct();
         continueOnboarding();
-        // Then the existing Other contract captures its name without creating a connection
+        // Then the name is forwarded without inventing a backend integration value
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: name})));
     });
 
     it.each<[OnboardingAccounting, string]>([
-        ['sap', 'SAP S/4HANA'],
-        ['oracle', 'Oracle Fusion Cloud'],
+        ['sap', 'SAP'],
+        ['oracle', 'Oracle'],
+        ['microsoftDynamics', 'Microsoft Dynamics'],
         ['financialforce', 'Certinia'],
     ])('preserves the saved %s value with the current product label', async (integration, label) => {
         // Given a previously saved integration
@@ -252,6 +266,35 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.getByRole(CONST.ROLE.RADIO, {name: label})).toBeChecked();
         continueOnboarding();
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: integration, userReportedIntegrationName: undefined})));
+    });
+
+    it.each(['DATEV', 'Lensing.ai', 'Workday', 'Sage 50', 'SAP S/4HANA', 'Oracle Fusion Cloud'])('offers %s only through unmatched-search confirmation', async (name) => {
+        // Given a fresh accounting step without a saved legacy answer
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByRole(CONST.ROLE.RADIO, {name})).not.toBeOnTheScreen();
+        // When searching for unsupported software
+        searchFor(name);
+        // Then the unsupported empty state requires confirmation before saving the name
+        expect(screen.queryAllByRole(CONST.ROLE.RADIO)).toHaveLength(0);
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.accounting.confirmSoftware', name)));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name})).toBeChecked();
+        continueOnboarding();
+        await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: name})));
+    });
+
+    it('matches Connections beta visibility without marking released connectors coming soon', async () => {
+        // Given an account without the Digits or Business Central beta
+        mockIsBetaEnabled.mockReturnValue(false);
+        // When opening accounting onboarding
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        // Then gated connectors are hidden, while the three waitlist choices remain available
+        expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Digits'})).not.toBeOnTheScreen();
+        expect(screen.queryByRole(CONST.ROLE.RADIO, {name: 'Dynamics 365 Business Central'})).not.toBeOnTheScreen();
+        expect(screen.getAllByRole(CONST.ROLE.RADIO)).toHaveLength(14);
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'))).toHaveLength(3);
     });
 
     it('preserves mobile Safari viewport handling', async () => {
