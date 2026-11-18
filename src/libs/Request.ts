@@ -66,7 +66,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 const endApplyPhase = () => {
                     endSpanWithAttributes(applySpanId, {
                         [CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID,
-                        ...getRequestPhaseApplyAttributes(request.command, request.data, response),
+                        ...getRequestPhaseApplyAttributes(request.command, request.data),
                     });
                     // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
                     if (!isStartupNetworkRequest(request.command)) {

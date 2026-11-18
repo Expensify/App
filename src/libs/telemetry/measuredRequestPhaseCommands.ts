@@ -3,10 +3,8 @@ import isStartupNetworkRequest from '@libs/AppStartupNetworkRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type Response from '@src/types/onyx/Response';
 
-import type {OnyxKey} from 'react-native-onyx';
-
+import OnyxCache from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 
 /**
@@ -23,12 +21,13 @@ function getRequestPhaseSpanNames(command?: string) {
     return undefined;
 }
 
-function getRequestPhaseApplyAttributes<TKey extends OnyxKey>(command: string, requestData: Record<string, unknown> | undefined, response: Response<TKey> | void) {
+function getRequestPhaseApplyAttributes(command: string, requestData: Record<string, unknown> | undefined) {
     if (command !== READ_COMMANDS.SEARCH) {
         return {};
     }
-    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${String(requestData?.hash)}`;
-    const snapshot = response?.onyxData?.find((update) => update.key === snapshotKey)?.value;
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${String(requestData?.hash)}` as const;
+    // Reads apply the response before this runs, so the cache holds the merged snapshot with every page loaded so far.
+    const snapshot = OnyxCache.get(snapshotKey);
     const snapshotData = snapshot && typeof snapshot === 'object' && 'data' in snapshot ? snapshot.data : undefined;
     return {
         [CONST.TELEMETRY.ATTRIBUTE_SEARCH_SNAPSHOT_COUNT]: OnyxKeys.getMembersOfCollection(ONYXKEYS.COLLECTION.SNAPSHOT)?.size ?? 0,
