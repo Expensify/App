@@ -2,8 +2,10 @@ import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/c
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
+import suppressNextEscapeKeyup from '@components/MultifactorAuthentication/suppressNextEscapeKeyup';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
@@ -13,6 +15,7 @@ import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
+import {setIsMfaModalVisible} from '@libs/Navigation/helpers/mfaModalVisibility';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -98,6 +101,34 @@ function MultifactorAuthenticationModalNavigator() {
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     const isStackReadyToMount = useAwaitSidePanelClose(modalState !== MFA_STATE.CLOSED);
+
+    const isModalVisible = modalState !== MFA_STATE.CLOSED;
+    useEffect(() => {
+        if (!isModalVisible) {
+            return;
+        }
+        setIsMfaModalVisible(true);
+        return () => setIsMfaModalVisible(false);
+    }, [isModalVisible]);
+
+    // One shortcut for every MFA screen, including the transparent initial screen and the outcome screens.
+    // It owns Escape until the modal is gone, so nothing underneath reacts to it while the modal is on screen.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            // The confirmation modal dismisses itself on the Escape keyup, and a closing modal has nothing left to cancel.
+            if (modalState !== MFA_STATE.OPEN || isCancelConfirmVisible) {
+                return;
+            }
+            suppressNextEscapeKeyup();
+            requestCancel();
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: false,
+            isActive: modalState !== MFA_STATE.CLOSED,
+        },
+    );
 
     const navigationThemeBase = getNavigationBaseTheme(themePreference);
     const navigationTheme = {

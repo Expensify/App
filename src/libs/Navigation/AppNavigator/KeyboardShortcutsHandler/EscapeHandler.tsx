@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {getIsMfaModalVisible} from '@libs/Navigation/helpers/mfaModalVisibility';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
@@ -59,6 +60,11 @@ function EscapeHandler() {
                 }
 
                 if (modal?.disableDismissOnEscape) {
+                    return;
+                }
+
+                // The MFA modal handles Escape with its own shortcut.
+                if (getIsMfaModalVisible()) {
                     return;
                 }
 

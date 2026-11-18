@@ -4,7 +4,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useMultifactorAuthenticationInternal} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationInternalApiContext';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
-import useMFACancelOnEscape from '@components/MultifactorAuthentication/useMFACancelOnEscape';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -186,8 +185,6 @@ function MultifactorAuthenticationValidateCodePage() {
         submitValidateCode(inputCode);
     };
 
-    const interceptFocusTrapEscape = useMFACancelOnEscape();
-
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
@@ -196,7 +193,8 @@ function MultifactorAuthenticationValidateCodePage() {
                 // the modal's clicks, and back on when it closes. See https://github.com/Expensify/App/issues/93193
                 active: isCancelConfirmVisible ? false : undefined,
                 focusTrapOptions: {
-                    escapeDeactivates: interceptFocusTrapEscape,
+                    // Escape is handled by the MFA modal's own shortcut.
+                    escapeDeactivates: false,
                 },
             }}
         >

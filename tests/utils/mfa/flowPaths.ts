@@ -198,6 +198,56 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
+    // The flow reaches authorization on its own while the dialog is up, so the platform prompt waits for
+    // the answer instead of covering the dialog. Dismissing starts it and the flow still succeeds.
+    {
+        description: 'the dismiss journey holds the ceremony behind the cancel confirmation and starts it once dismissed',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            {type: 'REQUEST_CANCEL'},
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            {type: 'DISMISS_CANCEL'},
+            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
+    },
+    // The dialog opens while the ceremony runs, so the ceremony stops instead of prompting over it.
+    // Dismissing restarts it and the flow still reaches the success outcome.
+    {
+        description: 'the dismiss journey stops the ceremony behind the cancel confirmation and restarts it once dismissed',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+            {type: 'REQUEST_CANCEL'},
+            {type: 'DISMISS_CANCEL'},
+            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
+            createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
+    },
+    // The dialog opens while the credential ceremony runs, so the ceremony stops instead of prompting over
+    // it. Dismissing restarts it with the same registration challenge and registration carries on.
+    {
+        description: 'the dismiss journey stops the credential ceremony behind the cancel confirmation and restarts it once dismissed',
+        events: [
+            createInitEvent(),
+            createActorDoneEvent('validateDevice', {success: true}),
+            createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false}),
+            {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
+            createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            {type: 'SOFT_PROMPT_APPROVED'},
+            {type: 'REQUEST_CANCEL'},
+            {type: 'DISMISS_CANCEL'},
+            createActorDoneEvent('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}),
+            createActorDoneEvent('registerCredential', {success: true}),
+        ],
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`,
+    },
     {
         description: 'the confirm journey runs the scenario cancel and lands on the failure outcome',
         events: [

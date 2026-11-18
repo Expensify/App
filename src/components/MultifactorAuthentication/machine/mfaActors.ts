@@ -99,8 +99,8 @@ const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({inpu
     }
     addMFABreadcrumb('Authorization challenge received');
 
-    // The flow may have been cancelled while the challenge request was in flight. Skip opening the
-    // platform dialog rather than prompting for a ceremony nobody asked for anymore.
+    // The flow may have been cancelled, or the cancel confirmation opened, while the challenge request was
+    // in flight. Skip opening the platform dialog rather than prompting for a ceremony nobody is waiting on.
     if (signal.aborted) {
         return createCanceledMFAResult('MFA flow canceled before the authorization ceremony');
     }

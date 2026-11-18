@@ -6,11 +6,17 @@ import type {
     AuthorizeOutput,
     CancelScenarioInput,
     CancelScenarioOutput,
+    CreateCredentialInput,
+    CreateCredentialOutput,
     ExecuteScenarioActionInput,
     ExecuteScenarioActionOutput,
     FinalizeOutcomeInput,
     FinalizeOutcomeOutput,
+    LoadRegistrationStateInput,
+    LoadRegistrationStateOutput,
     MfaContext,
+    RegisterCredentialInput,
+    RegisterCredentialOutput,
     RequestRegistrationChallengeInput,
     RequestRegistrationChallengeOutput,
     ValidateDeviceInput,
@@ -24,17 +30,18 @@ import CONST from '@src/CONST';
 
 import type {StateValue} from 'xstate';
 
-import {createActorAtState, createFlowContext, sendExecuteScenarioActionDone, sendRequestRegistrationChallengeDone} from 'tests/utils/mfa/flowActors';
+import {createActorAtState, createFlowContext, sendExecuteScenarioActionDone, sendRegisterCredentialDone, sendRequestRegistrationChallengeDone} from 'tests/utils/mfa/flowActors';
 import createInitEvent, {
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_CANCEL_ERROR,
+    MFA_TEST_KEY_INFO,
     MFA_TEST_REGISTRATION_CHALLENGE,
     MFA_TEST_SCENARIO_RESPONSE,
     MFA_TEST_SIGNED_CHALLENGE,
 } from 'tests/utils/mfa/flowFixtures';
 import {createActorDoneEvent} from 'tests/utils/mfa/flowPaths';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
-import {createActor, fromPromise, matchesState, SimulatedClock} from 'xstate';
+import {createActor, fromPromise, matchesState, SimulatedClock, waitFor} from 'xstate';
 
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 
@@ -57,10 +64,14 @@ const STEP_STATES: Array<{description: string; flow: StateValue}> = [
 ];
 
 const FINALIZING_OUTCOME = {[MFA_STATE.OUTCOME]: MFA_STATE.FINALIZING_OUTCOME};
+const EXECUTING_SCENARIO_ACTION = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}};
+const WAITING_TO_SIGN = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.WAITING_TO_SIGN}};
 // Pinned to the leaf: `matchesState` accepts a shorter expected value, so `authorizing` alone would also
 // match a flow that moved to another child.
-const AUTHORIZING = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}};
-const EXECUTING_SCENARIO_ACTION = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}};
+const SIGNING_CHALLENGE = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}};
+const WAITING_TO_CREATE = {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.WAITING_TO_CREATE}};
+const CREATING_KEY = {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.CREATING_KEY}};
+const REGISTERING_KEY = {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.REGISTERING_KEY}};
 
 const CANCEL_TIMEOUT_MS = CONST.MULTIFACTOR_AUTHENTICATION.CANCEL_TIMEOUT_MS;
 
@@ -138,14 +149,14 @@ describe('MFA cancel', () => {
     describe('while the dialog is visible', () => {
         it('hides the dialog on DISMISS_CANCEL without touching the flow step', () => {
             // Given the dialog is open over the authorizing step
-            const actor = createActorAtState(openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
+            const actor = createActorAtState(openAt(SIGNING_CHALLENGE, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
 
             // When the user chooses to keep going
             actor.start();
             actor.send({type: 'DISMISS_CANCEL'});
 
             // Then the dialog hides and the flow stays on its step, so the user continues without redoing any work
-            expect(matchesState(openAt(AUTHORIZING), actor.getSnapshot().value)).toBe(true);
+            expect(matchesState(openAt(SIGNING_CHALLENGE), actor.getSnapshot().value)).toBe(true);
 
             actor.stop();
         });
@@ -166,16 +177,32 @@ describe('MFA cancel', () => {
             actor.stop();
         });
 
+        it('holds a registration that finishes behind the dialog before the ceremony, so the scenario action never starts', () => {
+            // Given the dialog is open while the backend registration of a new key runs behind it
+            const actor = createActorAtState(openAt(REGISTERING_KEY, MFA_STATE.CANCEL_CONFIRM_VISIBLE), {registrationKeyInfo: MFA_TEST_KEY_INFO});
+
+            // When the registration finishes before the user answers
+            actor.start();
+            sendRegisterCredentialDone(actor, {success: true});
+
+            // Then the flow waits before the signing ceremony, because its platform prompt would cover the dialog and the user may still confirm the cancel
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.children).not.toHaveProperty('authorize');
+
+            actor.stop();
+        });
+
         it('ignores a second REQUEST_CANCEL', () => {
-            // Given the dialog is already open
-            const actor = createActorAtState(openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
+            // Given the dialog is already open, with signing paused behind it
+            const actor = createActorAtState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
 
             // When another cancel request arrives, e.g. from a repeated back press
             actor.start();
             actor.send({type: 'REQUEST_CANCEL'});
 
             // Then the dialog stays as is, so repeated presses never stack dialogs or skip the confirmation
-            expect(matchesState(openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE), actor.getSnapshot().value)).toBe(true);
+            expect(matchesState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE), actor.getSnapshot().value)).toBe(true);
 
             actor.stop();
         });
@@ -200,7 +227,7 @@ describe('MFA cancel', () => {
 
         it('closes the modal and hides the dialog on CLOSE_MODAL', () => {
             // Given the dialog is open over the authorizing step
-            const actor = createActorAtState(openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
+            const actor = createActorAtState(openAt(SIGNING_CHALLENGE, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
 
             // When the modal is closed from outside the dialog, e.g. because the account changed
             actor.start();
@@ -221,7 +248,7 @@ describe('MFA cancel', () => {
             const machine = mfaMachine.provide({
                 actors: {validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => new Promise(() => {}))},
             });
-            const snapshot = machine.resolveState({value: openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE), context: createFlowContext()});
+            const snapshot = machine.resolveState({value: openAt(SIGNING_CHALLENGE, MFA_STATE.CANCEL_CONFIRM_VISIBLE), context: createFlowContext()});
             const actor = createActor(machine, {snapshot});
             actor.start();
             actor.send({type: 'CONFIRM_CANCEL'});
@@ -244,7 +271,7 @@ describe('MFA cancel', () => {
     describe('confirming the cancel', () => {
         it('moves the flow to cancelling and hides the dialog', () => {
             // Given the dialog is open over the authorizing step
-            const actor = createActorAtState(openAt(AUTHORIZING, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
+            const actor = createActorAtState(openAt(SIGNING_CHALLENGE, MFA_STATE.CANCEL_CONFIRM_VISIBLE));
 
             // When the user confirms they want to leave
             actor.start();
@@ -260,14 +287,14 @@ describe('MFA cancel', () => {
 
         it('is ignored while the dialog is hidden', () => {
             // Given no dialog is shown
-            const actor = createActorAtState(openAt(AUTHORIZING));
+            const actor = createActorAtState(openAt(SIGNING_CHALLENGE));
 
             // When a confirm arrives anyway, e.g. a stale tap from a dialog that already closed
             actor.start();
             actor.send({type: 'CONFIRM_CANCEL'});
 
             // Then it is ignored, because a cancel must always be confirmed through a visible dialog
-            expect(matchesState(openAt(AUTHORIZING), actor.getSnapshot().value)).toBe(true);
+            expect(matchesState(openAt(SIGNING_CHALLENGE), actor.getSnapshot().value)).toBe(true);
 
             actor.stop();
         });
@@ -464,6 +491,394 @@ describe('MFA cancel', () => {
 
             // Then the machine closes, because closing the modal always wins over waiting for the cancel
             expect(actor.getSnapshot().matches(MFA_STATE.CLOSING)).toBe(true);
+
+            actor.stop();
+        });
+    });
+
+    /** Starts a live actor at the soft prompt with the given actors and approves it, so the ceremony begins. */
+    function startFromSoftPrompt(actors: Parameters<typeof mfaMachine.provide>[0]['actors'], context: ReturnType<typeof createFlowContext>) {
+        const machine = mfaMachine.provide({actors});
+        const actor = createActor(machine, {snapshot: machine.resolveState({value: openAt({[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}), context})});
+        actor.start();
+        actor.send({type: 'SOFT_PROMPT_APPROVED'});
+        return actor;
+    }
+
+    describe('stopping the credential ceremony when the dialog opens', () => {
+        /**
+         * Starts a live actor that enters credential creation with controllable actors. Each ceremony run settles
+         * only when the spec resolves it, and the backend registration records each run and never settles.
+         */
+        function startCreatingKey() {
+            let resolveCreateCredential: (output: CreateCredentialOutput) => void = () => {};
+            const createCredentialInputs: Array<{input: CreateCredentialInput; signal: AbortSignal}> = [];
+            const registerCredentialInputs: RegisterCredentialInput[] = [];
+            const actor = startFromSoftPrompt(
+                {
+                    createCredential: fromPromise<CreateCredentialOutput, CreateCredentialInput>(({input, signal}) => {
+                        createCredentialInputs.push({input, signal});
+                        return new Promise((resolve) => {
+                            resolveCreateCredential = resolve;
+                        });
+                    }),
+                    registerCredential: fromPromise<RegisterCredentialOutput, RegisterCredentialInput>(({input}) => {
+                        registerCredentialInputs.push(input);
+                        return new Promise(() => {});
+                    }),
+                    cancelScenario: pendingCancelScenario,
+                },
+                createFlowContext({registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE}),
+            );
+            const finishCreatingKey = async () => {
+                resolveCreateCredential({success: true, keyInfo: MFA_TEST_KEY_INFO});
+                await waitForBatchedUpdates();
+            };
+            return {actor, createCredentialInputs, registerCredentialInputs, finishCreatingKey};
+        }
+
+        it('registers the key straight away when no dialog is up', async () => {
+            // Given the platform ceremony to create a key is running with no dialog up
+            const {actor, registerCredentialInputs, finishCreatingKey} = startCreatingKey();
+
+            // When the ceremony returns a new key
+            await finishCreatingKey();
+
+            // Then the key is registered with the backend right away, because nothing is waiting on the user
+            expect(matchesState(openAt(REGISTERING_KEY), actor.getSnapshot().value)).toBe(true);
+            expect(registerCredentialInputs).toEqual([{keyInfo: MFA_TEST_KEY_INFO}]);
+
+            actor.stop();
+        });
+
+        it('stops the ceremony and aborts its signal, so the platform prompt never opens over the dialog', () => {
+            // Given the platform ceremony to create a key is running
+            const {actor, createCredentialInputs} = startCreatingKey();
+            expect(createCredentialInputs.at(0)?.signal.aborted).toBe(false);
+
+            // When the user asks to cancel
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // Then the ceremony is stopped, because the platform prompt would cover the dialog and the user couldn't answer it
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(WAITING_TO_CREATE, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.children).not.toHaveProperty('createCredential');
+            expect(createCredentialInputs.at(0)?.signal.aborted).toBe(true);
+
+            actor.stop();
+        });
+
+        it('drops a ceremony that finishes after the dialog opened and never registers its key', async () => {
+            // Given the dialog opened while the key ceremony was running
+            const {actor, registerCredentialInputs, finishCreatingKey} = startCreatingKey();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the stopped ceremony still returns a key afterwards
+            await finishCreatingKey();
+
+            // Then the key is ignored, so no credential is registered while the user may be about to cancel
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(WAITING_TO_CREATE, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.context.registrationKeyInfo).toBeUndefined();
+            expect(registerCredentialInputs).toHaveLength(0);
+
+            actor.stop();
+        });
+
+        it('restarts the ceremony with the same registration challenge once the dialog is dismissed', async () => {
+            // Given the dialog stopped the key ceremony
+            const {actor, createCredentialInputs, registerCredentialInputs, finishCreatingKey} = startCreatingKey();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the user dismisses the dialog to continue
+            actor.send({type: 'DISMISS_CANCEL'});
+
+            // Then the ceremony restarts with the same challenge, so the user can finish creating the key without requesting a new one
+            expect(matchesState(openAt(CREATING_KEY), actor.getSnapshot().value)).toBe(true);
+            expect(createCredentialInputs).toHaveLength(2);
+            expect(createCredentialInputs.at(1)?.input.registrationChallenge).toBe(MFA_TEST_REGISTRATION_CHALLENGE);
+            expect(createCredentialInputs.at(1)?.signal.aborted).toBe(false);
+
+            // When the restarted ceremony returns a key
+            await finishCreatingKey();
+
+            // Then the key is registered as usual, so dismissing the dialog leaves the flow working normally
+            expect(matchesState(openAt(REGISTERING_KEY), actor.getSnapshot().value)).toBe(true);
+            expect(registerCredentialInputs).toEqual([{keyInfo: MFA_TEST_KEY_INFO}]);
+
+            actor.stop();
+        });
+
+        it('never restarts the ceremony once the cancel is confirmed', () => {
+            // Given the dialog stopped the key ceremony
+            const {actor, createCredentialInputs, registerCredentialInputs} = startCreatingKey();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the user confirms the cancel
+            actor.send({type: 'CONFIRM_CANCEL'});
+
+            // Then no new ceremony starts, so the platform prompt never appears after the user chose to leave
+            expect(matchesState(openAt(MFA_STATE.CANCELLING), actor.getSnapshot().value)).toBe(true);
+            expect(createCredentialInputs).toHaveLength(1);
+            expect(registerCredentialInputs).toHaveLength(0);
+
+            actor.stop();
+        });
+
+        it('keeps the backend registration running behind the dialog', async () => {
+            // Given a key was created and its backend registration is in flight
+            const {actor, registerCredentialInputs, finishCreatingKey} = startCreatingKey();
+            await finishCreatingKey();
+
+            // When the user asks to cancel
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // Then the registration keeps running, because a sent request can't be taken back and a registered key is harmless if the user cancels
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(REGISTERING_KEY, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.children).toHaveProperty('registerCredential');
+            expect(registerCredentialInputs).toHaveLength(1);
+
+            actor.stop();
+        });
+
+        it('drops the key info when the flow leaves credential creation', async () => {
+            // Given a key was created and stored in the context
+            const {actor, finishCreatingKey} = startCreatingKey();
+            await finishCreatingKey();
+            expect(actor.getSnapshot().context.registrationKeyInfo).toBe(MFA_TEST_KEY_INFO);
+
+            // When the modal closes before the key is registered
+            actor.send({type: 'CLOSE_MODAL'});
+
+            // Then the key info is cleared, so a later flow can't register a stale key
+            const result = actor.getSnapshot();
+            expect(result.matches(MFA_STATE.CLOSING)).toBe(true);
+            expect(result.context.registrationKeyInfo).toBeUndefined();
+
+            actor.stop();
+        });
+    });
+
+    describe('stopping the ceremony when the dialog opens', () => {
+        /**
+         * Starts a live actor that enters `authorizing` with controllable actors. Each ceremony run settles only
+         * when the spec resolves it, and the scenario action records each run and never settles.
+         */
+        function startSigning() {
+            let resolveAuthorize: (output: AuthorizeOutput) => void = () => {};
+            const authorizeSignals: AbortSignal[] = [];
+            const scenarioActionInputs: ExecuteScenarioActionInput[] = [];
+            const context = createFlowContext();
+            const actor = startFromSoftPrompt(
+                {
+                    authorize: fromPromise<AuthorizeOutput, AuthorizeInput>(({signal}) => {
+                        authorizeSignals.push(signal);
+                        return new Promise((resolve) => {
+                            resolveAuthorize = resolve;
+                        });
+                    }),
+                    executeScenarioAction: fromPromise<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>(({input}) => {
+                        scenarioActionInputs.push(input);
+                        return new Promise(() => {});
+                    }),
+                    cancelScenario: pendingCancelScenario,
+                    finalizeOutcome: fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(() => new Promise(() => {})),
+                },
+                context,
+            );
+            const finishSigning = async () => {
+                resolveAuthorize({success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
+                await waitForBatchedUpdates();
+            };
+            return {actor, context, authorizeSignals, scenarioActionInputs, finishSigning};
+        }
+
+        it('sends the scenario action straight away when no dialog is up', async () => {
+            // Given the signing ceremony is running with no dialog up
+            const {actor, scenarioActionInputs, finishSigning} = startSigning();
+
+            // When the ceremony returns a signed challenge
+            await finishSigning();
+
+            // Then the scenario action is sent right away, because nothing is waiting on the user
+            expect(matchesState(openAt(EXECUTING_SCENARIO_ACTION), actor.getSnapshot().value)).toBe(true);
+            expect(scenarioActionInputs).toHaveLength(1);
+
+            actor.stop();
+        });
+
+        it('stops the ceremony and aborts its signal, so the platform prompt never opens over the dialog', () => {
+            // Given the signing ceremony is running
+            const {actor, authorizeSignals} = startSigning();
+            expect(authorizeSignals.at(0)?.aborted).toBe(false);
+
+            // When the user asks to cancel
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // Then the ceremony is stopped, because the platform prompt would cover the dialog and the user couldn't answer it
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.children).not.toHaveProperty('authorize');
+            expect(authorizeSignals.at(0)?.aborted).toBe(true);
+
+            actor.stop();
+        });
+
+        it('drops a ceremony that finishes after the dialog opened and never sends the scenario action', async () => {
+            // Given the dialog opened while the signing ceremony was running
+            const {actor, scenarioActionInputs, finishSigning} = startSigning();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the stopped ceremony still returns a signed challenge
+            await finishSigning();
+
+            // Then the challenge is dropped and the scenario action never sent, so e.g. a payment isn't approved while the user may be cancelling
+            const result = actor.getSnapshot();
+            expect(matchesState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE), result.value)).toBe(true);
+            expect(result.context.signedChallenge).toBeUndefined();
+            expect(scenarioActionInputs).toHaveLength(0);
+
+            actor.stop();
+        });
+
+        it('starts a fresh ceremony run once the dialog is dismissed and sends the scenario action with its signed challenge', async () => {
+            // Given the dialog stopped the signing ceremony
+            const {actor, context, authorizeSignals, scenarioActionInputs, finishSigning} = startSigning();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the user dismisses the dialog to continue
+            actor.send({type: 'DISMISS_CANCEL'});
+
+            // Then a new ceremony run starts, so the user gets the platform prompt again
+            expect(matchesState(openAt(SIGNING_CHALLENGE), actor.getSnapshot().value)).toBe(true);
+            expect(authorizeSignals).toHaveLength(2);
+            expect(authorizeSignals.at(1)?.aborted).toBe(false);
+
+            // When the restarted ceremony returns a signed challenge
+            await finishSigning();
+
+            // Then the scenario action is sent with that challenge, so dismissing the dialog leaves the flow working normally
+            expect(matchesState(openAt(EXECUTING_SCENARIO_ACTION), actor.getSnapshot().value)).toBe(true);
+            expect(scenarioActionInputs).toEqual([{runScenarioAction: context.runScenarioAction, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}]);
+
+            actor.stop();
+        });
+
+        it('never restarts the ceremony once the cancel is confirmed', () => {
+            // Given the dialog stopped the signing ceremony
+            const {actor, authorizeSignals, scenarioActionInputs} = startSigning();
+            actor.send({type: 'REQUEST_CANCEL'});
+
+            // When the user confirms the cancel
+            actor.send({type: 'CONFIRM_CANCEL'});
+
+            // Then no new ceremony runs and nothing is sent, so e.g. a payment is never approved after the user chose to leave
+            expect(matchesState(openAt(MFA_STATE.CANCELLING), actor.getSnapshot().value)).toBe(true);
+            expect(authorizeSignals).toHaveLength(1);
+            expect(scenarioActionInputs).toHaveLength(0);
+
+            actor.stop();
+        });
+
+        it('drops the signed challenge when the flow leaves authorizing', async () => {
+            // Given a signed challenge was stored in the context
+            const {actor, finishSigning} = startSigning();
+            await finishSigning();
+            expect(actor.getSnapshot().context.signedChallenge).toBe(MFA_TEST_SIGNED_CHALLENGE);
+
+            // When the modal closes before the scenario action runs
+            actor.send({type: 'CLOSE_MODAL'});
+
+            // Then the signed challenge is cleared, so a later flow can't reuse it
+            const result = actor.getSnapshot();
+            expect(result.matches(MFA_STATE.CLOSING)).toBe(true);
+            expect(result.context.signedChallenge).toBeUndefined();
+
+            actor.stop();
+        });
+    });
+
+    describe('when the flow reaches signing behind the dialog', () => {
+        /**
+         * Starts a live flow for a returning user, optionally opening the dialog during the device check.
+         * The preparing steps resolve on their own, so the flow reaches `authorizing` without a user action,
+         * the way a credential registration finishing behind the dialog does.
+         */
+        async function reachAuthorizing({isDialogUp}: {isDialogUp: boolean}) {
+            let authorizeRuns = 0;
+            const machine = mfaMachine.provide({
+                actors: {
+                    validateDevice: fromPromise<MFAResult, ValidateDeviceInput>(() => Promise.resolve({success: true})),
+                    loadRegistrationState: fromPromise<LoadRegistrationStateOutput, LoadRegistrationStateInput>(() =>
+                        Promise.resolve({hasServerCredentials: true, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
+                    ),
+                    authorize: fromPromise<AuthorizeOutput, AuthorizeInput>(() => {
+                        authorizeRuns += 1;
+                        return new Promise(() => {});
+                    }),
+                    cancelScenario: pendingCancelScenario,
+                },
+            });
+            const actor = createActor(machine);
+            actor.start();
+            actor.send(createInitEvent());
+            if (isDialogUp) {
+                actor.send({type: 'REQUEST_CANCEL'});
+            }
+            await waitFor(actor, (snapshot) => snapshot.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}}));
+            return {actor, getAuthorizeRuns: () => authorizeRuns};
+        }
+
+        it('starts the ceremony straight away when no dialog is up', async () => {
+            // Given a returning user with no dialog up
+            // When the flow reaches the signing step on its own
+            const {actor, getAuthorizeRuns} = await reachAuthorizing({isDialogUp: false});
+
+            // Then the ceremony starts right away, because nothing is waiting on the user
+            expect(matchesState(openAt(SIGNING_CHALLENGE), actor.getSnapshot().value)).toBe(true);
+            expect(getAuthorizeRuns()).toBe(1);
+
+            actor.stop();
+        });
+
+        it('holds the ceremony while the dialog is up, so the platform prompt never covers it', async () => {
+            // Given a returning user who opened the dialog during the device check
+            // When the flow reaches the signing step on its own behind the dialog
+            const {actor, getAuthorizeRuns} = await reachAuthorizing({isDialogUp: true});
+
+            // Then the ceremony is held, because the platform prompt would cover the dialog and the user couldn't answer it
+            expect(matchesState(openAt(WAITING_TO_SIGN, MFA_STATE.CANCEL_CONFIRM_VISIBLE), actor.getSnapshot().value)).toBe(true);
+            expect(actor.getSnapshot().children).not.toHaveProperty('authorize');
+            expect(getAuthorizeRuns()).toBe(0);
+
+            actor.stop();
+        });
+
+        it('starts the held ceremony once the dialog is dismissed', async () => {
+            // Given the ceremony is held behind the dialog
+            const {actor, getAuthorizeRuns} = await reachAuthorizing({isDialogUp: true});
+
+            // When the user dismisses the dialog
+            actor.send({type: 'DISMISS_CANCEL'});
+
+            // Then the held ceremony starts, so the flow continues where it paused
+            expect(matchesState(openAt(SIGNING_CHALLENGE), actor.getSnapshot().value)).toBe(true);
+            expect(getAuthorizeRuns()).toBe(1);
+
+            actor.stop();
+        });
+
+        it('never starts the held ceremony once the cancel is confirmed', async () => {
+            // Given the ceremony is held behind the dialog
+            const {actor, getAuthorizeRuns} = await reachAuthorizing({isDialogUp: true});
+
+            // When the user confirms the cancel
+            actor.send({type: 'CONFIRM_CANCEL'});
+
+            // Then the ceremony never starts, so the platform prompt never appears after the user chose to leave
+            expect(matchesState(openAt(MFA_STATE.CANCELLING), actor.getSnapshot().value)).toBe(true);
+            expect(getAuthorizeRuns()).toBe(0);
 
             actor.stop();
         });

@@ -123,6 +123,7 @@ const MFAMachine = setup({
     guards: {
         hasError: ({context}) => context.error !== undefined,
         hasRegistrationChallenge: ({context}) => context.registrationChallenge !== undefined,
+        isCancelConfirmVisible: stateIn(CANCEL_CONFIRM_VISIBLE_TARGET),
         // Back asks for confirmation until the outcome. From there it closes the modal right away. While the
         // cancel itself runs (`cancelling`, or `cancellingInFlight` next to the scenario action), there is nothing left to ask.
         shouldConfirmCancel: and([not(stateIn(OUTCOME_TARGET)), not(stateIn(CANCELLING_TARGET)), not(stateIn(CANCELLING_IN_FLIGHT_TARGET))]),
@@ -368,9 +369,19 @@ const MFAMachine = setup({
                                 [MFA_STATE.CREATING_CREDENTIAL]: {
                                     entry: assign({promptPresentationPhase: MFA_STATE.CREATING_CREDENTIAL}),
                                     exit: assign({registrationKeyInfo: undefined}),
-                                    initial: MFA_STATE.CREATING_KEY,
+                                    initial: MFA_STATE.WAITING_TO_CREATE,
                                     states: {
+                                        // The platform prompt would cover the cancel confirmation, so the ceremony runs only while
+                                        // no cancel is pending: dismissing starts it, confirming leaves for `cancelling`. With no
+                                        // dialog up, this passes straight through. It is a separate state because `invoke` only
+                                        // starts on entry, and opening the dialog stops the ceremony by leaving `creatingKey`.
+                                        [MFA_STATE.WAITING_TO_CREATE]: {
+                                            always: {guard: not('isCancelConfirmVisible'), target: MFA_STATE.CREATING_KEY},
+                                        },
                                         [MFA_STATE.CREATING_KEY]: {
+                                            // Nothing has reached the backend yet, so dismissing restarts it with the same registration
+                                            // challenge. A browser that ignores the abort can still leave an extra passkey behind.
+                                            always: {guard: 'isCancelConfirmVisible', target: MFA_STATE.WAITING_TO_CREATE},
                                             invoke: {
                                                 id: 'createCredential',
                                                 src: 'createCredential',
@@ -397,8 +408,8 @@ const MFAMachine = setup({
                                                 },
                                             },
                                         },
-                                        // A registration request can't be taken back once sent, so a confirmed cancel leaves and drops
-                                        // its result; the server keeps the key, which is harmless.
+                                        // A registration request can't be taken back once sent, so opening the dialog doesn't stop
+                                        // it. A confirmed cancel still leaves and drops its result; the server keeps the key, which is harmless.
                                         [MFA_STATE.REGISTERING_KEY]: {
                                             invoke: {
                                                 id: 'registerCredential',
@@ -430,9 +441,18 @@ const MFAMachine = setup({
                                 [MFA_STATE.AUTHORIZING]: {
                                     entry: assign({promptPresentationPhase: MFA_STATE.AUTHORIZING}),
                                     exit: assign({signedChallenge: undefined}),
-                                    initial: MFA_STATE.SIGNING_CHALLENGE,
+                                    initial: MFA_STATE.WAITING_TO_SIGN,
                                     states: {
+                                        // Same hold as `waitingToCreate`: the ceremony runs only while no cancel dialog is up.
+                                        [MFA_STATE.WAITING_TO_SIGN]: {
+                                            always: {guard: not('isCancelConfirmVisible'), target: MFA_STATE.SIGNING_CHALLENGE},
+                                        },
                                         [MFA_STATE.SIGNING_CHALLENGE]: {
+                                            // The scenario action never goes out while the dialog is up. Dismissing restarts with a fresh
+                                            // challenge: requests are cheap, which beats keeping one in context and handling its expiry.
+                                            // A native prompt that is already open can't be dismissed, so its signature is dropped
+                                            // and the prompt shows again after the dismiss.
+                                            always: {guard: 'isCancelConfirmVisible', target: MFA_STATE.WAITING_TO_SIGN},
                                             invoke: {
                                                 id: 'authorize',
                                                 src: 'authorize',
