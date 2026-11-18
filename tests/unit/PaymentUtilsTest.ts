@@ -656,6 +656,7 @@ describe('PaymentUtils', () => {
         const createBankAccount = (bankAccountID: number, {type, state = CONST.BANK_ACCOUNT.STATE.OPEN, country = CONST.COUNTRY.US, pendingAction}: BankAccountOptions): BankAccount => ({
             accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
             methodID: bankAccountID,
             pendingAction,
             accountData: {bankAccountID, type, state, additionalData: {country}},
