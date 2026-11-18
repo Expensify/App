@@ -98,7 +98,6 @@ function ReportPickerWithActions({action, transaction}: {action: IOUAction; tran
         action,
         transaction,
         transactionID: transaction.transactionID,
-        iouType: CONST.IOU.TYPE.SUBMIT,
         reportIDFromRoute: FAKE_REPORT_ID,
         goBack: jest.fn(),
     });

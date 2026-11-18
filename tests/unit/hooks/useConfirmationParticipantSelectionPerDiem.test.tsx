@@ -131,7 +131,7 @@ describe('useConfirmationParticipantSelection for per diem', () => {
         // Then the draft moves to the new workspace's per diem unit, which clears the destination and subrates the old
         // workspace's rates were picked from, and the category becomes the new unit's default
         expect(resetPerDiemCustomUnit).toHaveBeenCalledWith(TRANSACTION_ID, DESTINATION_UNIT_ID);
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, DESTINATION_CATEGORY, undefined, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, DESTINATION_CATEGORY, undefined);
     });
 
     it('keeps the per diem form when the same workspace is picked again', async () => {

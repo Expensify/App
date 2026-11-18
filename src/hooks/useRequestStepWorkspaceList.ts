@@ -86,4 +86,3 @@ function useRequestStepWorkspaceList({transaction, getPolicies, onSelectWorkspac
 }
 
 export default useRequestStepWorkspaceList;
-export type {WorkspaceListItem};
