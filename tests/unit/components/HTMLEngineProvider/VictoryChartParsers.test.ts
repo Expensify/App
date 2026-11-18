@@ -137,6 +137,28 @@ describe('victoryAxisParser', () => {
         expect(() => formatLabel?.('Jan')).not.toThrow();
         expect(formatLabel?.('Jan')).toBe('Jan');
     });
+
+    it('caps an oversized tickcount', () => {
+        // Given an axis that asks for a billion ticks
+        const node = createNode('victoryaxis', {dependentaxis: '', tickcount: '1000000000'});
+
+        // When the axis is parsed
+        const result = parseVictoryAxisNode(node, null, null);
+
+        // Then the tick count is capped so victory-native does not try to generate every tick
+        expect(result.yAxis?.at(0)?.tickCount).toBe(100);
+    });
+
+    it('keeps a tickcount within the cap', () => {
+        // Given an axis that asks for a normal number of ticks
+        const node = createNode('victoryaxis', {tickcount: '5'});
+
+        // When the axis is parsed
+        const result = parseVictoryAxisNode(node, null, null);
+
+        // Then the requested tick count is used as is
+        expect(result.xAxis?.tickCount).toBe(5);
+    });
 });
 
 describe('processVictoryChartTree', () => {

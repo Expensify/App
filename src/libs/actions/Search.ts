@@ -1300,6 +1300,25 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+/**
+ * True when a running first-page request already returns what the caller wants, so the caller can skip its own request.
+ * Background refreshes (auto-refetch, post-action refresh, Home) may differ in totals, footer breakdown or trip rooms.
+ * A caller that needs any of those must still fire, or search() never re-fires the running request and that data never arrives.
+ */
+function isFirstPageSearchInFlight(queryJSON: Readonly<SearchQueryJSON>, shouldCalculateTotals: boolean, shouldReturnTripRooms: boolean) {
+    const inFlightRequest = inFlightSearchRequests.get(`${queryJSON.hash}_0`);
+    if (!inFlightRequest) {
+        return false;
+    }
+
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+    const isMissingTotals = shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+    const hasDifferentFooterTotal = getFooterSelectionFromQuery(queryJSON).footerTotal !== inFlightRequest.footerTotal;
+    const hasDifferentTripRooms = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+
+    return !isMissingTotals && !hasDifferentFooterTotal && !hasDifferentTripRooms;
+}
+
 // Search mounts only after the page's request has finished, so the map above no longer holds it.
 // One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
 let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
@@ -2372,6 +2391,38 @@ function queueBulkPayReports(jsonQuery: string) {
     write(WRITE_COMMANDS.QUEUE_BULK_PAY_REPORTS, {jsonQuery, bulkActionID}, onyxData);
 }
 
+type BulkExpenseActionType = typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD | typeof CONST.SEARCH.BULK_ACTION_TYPES.REJECT;
+
+/**
+ * Queues a Hold, Unhold or Reject, with the reason for Hold and Reject, for every expense matching a Select all search that the user can act on.
+ * The expenses checked again inside a deselected group are sent too, since the search leaves out their whole group.
+ */
+function queueBulkExpenseAction(
+    action: BulkExpenseActionType,
+    allMatchingQuery: {jsonQuery: string; excludedTransactionIDList: string[]} | undefined,
+    rowsCheckedInExcludedGroups: SelectedTransactions,
+    comment = '',
+) {
+    if (!allMatchingQuery) {
+        Log.info(`[BulkExpenseAction] Dropping bulk ${action}: an excluded row could not be resolved`);
+        return;
+    }
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(action);
+    const jsonQuery = allMatchingQuery.jsonQuery;
+    const excludedTransactionIDList = allMatchingQuery.excludedTransactionIDList.join(',');
+    const transactionIDList = Object.keys(rowsCheckedInExcludedGroups).join(',');
+    switch (action) {
+        case CONST.SEARCH.BULK_ACTION_TYPES.HOLD:
+            write(WRITE_COMMANDS.QUEUE_BULK_HOLD_EXPENSES, {jsonQuery, comment, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        case CONST.SEARCH.BULK_ACTION_TYPES.REJECT:
+            write(WRITE_COMMANDS.QUEUE_BULK_REJECT_EXPENSES, {jsonQuery, comment: getParsedComment(comment), bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+            break;
+        default:
+            write(WRITE_COMMANDS.QUEUE_BULK_UNHOLD_EXPENSES, {jsonQuery, bulkActionID, excludedTransactionIDList, transactionIDList}, onyxData);
+    }
+}
+
 /** Moves every report matching the search query that the user can move to the given workspace. */
 function queueBulkChangeReportPolicy(jsonQuery: string, policyID: string) {
     const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE);
@@ -2837,6 +2888,7 @@ function setOptimisticDataForTransactionThreadPreview(
 }
 
 export {
+    queueBulkExpenseAction,
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
@@ -2887,6 +2939,7 @@ export {
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
+    isFirstPageSearchInFlight,
     consumePageRequestedSearch,
     clearPageRequestedSearch,
 };

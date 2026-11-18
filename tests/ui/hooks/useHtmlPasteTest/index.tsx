@@ -5,7 +5,7 @@ import useHtmlPaste from '@hooks/useHtmlPaste';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput} from 'react-native';
 
 import Onyx from 'react-native-onyx';
@@ -60,7 +60,7 @@ afterAll(() => {
 });
 
 describe('useHtmlPaste - handlePastePlainText', () => {
-    let textInputRef: RefObject<(HTMLDivElement & Pick<TextInput, 'isFocused'>) | null>;
+    let textInputRef: RefObject<(HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'isFocused'>) | null>;
     let textInputElement: HTMLDivElement;
 
     /**
@@ -328,7 +328,7 @@ describe('useHtmlPaste - handlePastedHTML', () => {
     const ROOM_NAME = '#general';
     const PASTED_HTML = `Hey <mention-report reportID="${MENTIONED_REPORT_ID}"/> team`;
 
-    let textInputRef: RefObject<(HTMLDivElement & Pick<TextInput, 'isFocused'>) | null>;
+    let textInputRef: RefObject<(HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'isFocused'>) | null>;
     let textInputElement: HTMLDivElement;
 
     /** The HTML flavour of the clipboard, which is what Clipboard.setHtml writes when copying a message. */
@@ -482,7 +482,7 @@ describe('useHtmlPaste DOM insertion boundaries', () => {
 
     it('does not attempt DOM insertion for absent, native or non-editable div refs', () => {
         // Given a native partial provides focus but does not have DOM identity.
-        const nativeInput = createMock<TextInput>({isFocused: () => true});
+        const nativeInput = createMock<ComponentRef<typeof TextInput>>({isFocused: () => true});
         const input = Object.assign(document.createElement('div'), {isFocused: () => true});
         const frames = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(() => 1);
         const ref: Parameters<typeof useHtmlPaste>[0] = {current: null};
