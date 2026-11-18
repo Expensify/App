@@ -489,6 +489,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
+        case 'isHiddenForBillReceiver':
         case 'isAwaitingActionFromCurrentUser':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
@@ -693,6 +694,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,

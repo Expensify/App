@@ -3506,7 +3506,8 @@ function canIOUBePaid(
 ) {
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement) {
+    // The receiver of an invoice with a linked bill pays the bill, as in Classic, so the invoice offers no Pay.
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || iouReport.isHiddenForBillReceiver) {
         return false;
     }
 
@@ -15163,9 +15164,12 @@ function isPayBlockedByArchivedState(report: OnyxInputOrEntry<Report>, policy: O
     return isExpenseReport(report) ? isArchivedOrPendingDeletePolicy(policy) : isReportOrChatArchived;
 }
 
-/** Whether Pay is blocked, either by archived state or by a cancelled payment that is still going back to the payer. */
+/**
+ * Whether Pay is blocked by archived state, by a cancelled payment that is still going back to the payer, or by a linked
+ * bill. The receiver of an invoice with a linked bill pays the bill, as in Classic, so the invoice offers no Pay.
+ */
 function isPayBlocked(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, isReportOrChatArchived: boolean): boolean {
-    return isPayBlockedByArchivedState(report, policy, isReportOrChatArchived) || !!report?.isWaitingForCancelledReimbursement;
+    return isPayBlockedByArchivedState(report, policy, isReportOrChatArchived) || !!report?.isWaitingForCancelledReimbursement || !!report?.isHiddenForBillReceiver;
 }
 
 function hasReportBeenReopened(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]): boolean {
