@@ -34,6 +34,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
@@ -65,10 +66,6 @@ type SubRateData = {
     rateID: string;
     subRateID: string;
 };
-
-function getPerDiemRowKey(rateID: string, subRateID: string) {
-    return `${rateID}:${subRateID}`;
-}
 
 // The page renders on every selection change, and a workspace can have over a hundred thousand subrates, so each step
 // below keeps its last result per source object instead of rebuilding every row.

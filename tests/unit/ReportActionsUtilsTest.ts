@@ -19,6 +19,7 @@ import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
@@ -8595,6 +8596,66 @@ describe('ReportActionsUtils', () => {
             isReversed: false,
         };
 
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}, expected: null},
+            {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+                expected: 'system-action',
+            },
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [currentUserAccountID]}, expected: 'system-action'},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}, expected: null},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {}, expected: 'system-action'},
+        ])('limits automatic markers for $actionName with $originalMessage', ({actionName, originalMessage, expected}) => {
+            // Given an unread system action, including legacy reimbursements without recipient metadata
+            const action = makeAction({reportActionID: 'system-action', actionName, originalMessage});
+
+            // When scanning online or offline in either list direction
+            for (const isOffline of [false, true]) {
+                for (const isReversed of [false, true]) {
+                    // Then only NetSuite exports and reimbursements targeted to someone else are suppressed
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], isOffline, isReversed})).toEqual([expected, expected ? 0 : -1]);
+                }
+            }
+        });
+
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}},
+        ])('skips informational $actionName without hiding a real unread message', ({actionName, originalMessage}) => {
+            // Given a real unread comment next to a filtered informational action
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const informational = makeAction({reportActionID: 'informational', actionName, originalMessage});
+            const read = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+
+            // When the informational action falls before or after the comment in either list direction
+            for (const informationalIsNewer of [false, true]) {
+                const filtered = {...informational, created: informationalIsNewer ? '2023-01-01 13:00:00.000' : informational.created};
+                const newestFirst = informationalIsNewer ? [filtered, comment, read] : [comment, filtered, read];
+                for (const isReversed of [false, true]) {
+                    const actions = isReversed ? [...newestFirst].reverse() : newestFirst;
+                    // Then the real comment keeps the divider at its original list index
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['comment', actions.indexOf(comment)]);
+                }
+            }
+        });
+
+        it('preserves the existing explicit message-level unread override for a NetSuite export', () => {
+            // Given a NetSuite export explicitly marked unread by the user
+            const action = makeAction({
+                reportActionID: 'manual-export',
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+
+            // When scanning with the manual anchor main already stores
+            // Then automatic filtering must not change that explicit message-level command
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], manuallyMarkedUnreadReportActionID: action.reportActionID})).toEqual([
+                action.reportActionID,
+                0,
+            ]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(
@@ -8700,6 +8761,65 @@ describe('ReportActionsUtils', () => {
                     prevSortedVisibleReportActionsObjects: {},
                 }),
             ).toEqual([null, -1]);
+        });
+    });
+
+    describe('getCompanyCardConsentExpiringMessage', () => {
+        const amexFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001` as CompanyCardFeedWithNumber;
+        const buildConsentExpiringAction = (originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING>['originalMessage']) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                reportActionID: 'consent-expiring-1',
+                actorAccountID: 1,
+                created: '2026-11-04',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('shows the bank name when the feed has no custom name', () => {
+            // Given a warning for a feed without a custom name, so Auth sends the internal feed name as the feed name
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: amexFeed, warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the feed the way the Company cards page does instead of showing the internal feed name
+            expect(result).toContain('<strong>American Express</strong>');
+            expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
+        });
+
+        it('keeps the custom feed name', () => {
+            // Given a warning for a feed the admin renamed
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the admin's custom name is shown
+            expect(result).toContain('<strong>Travel cards</strong>');
+        });
+
+        it('mentions the admin who can renew consent', () => {
+            // Given a warning addressed to the admin who can renew consent
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7, mentionedAccountIDs: [12]});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts by mentioning that admin so the room knows who should act
+            expect(result.startsWith('<mention-user accountID="12"/>, your <strong>Travel cards</strong>')).toBe(true);
+        });
+
+        it('addresses the room when no admin is mentioned', () => {
+            // Given a warning with no admin to mention
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts without a mention
+            expect(result.startsWith('Your <strong>Travel cards</strong>')).toBe(true);
+            expect(result).not.toContain('<mention-user');
         });
     });
 
