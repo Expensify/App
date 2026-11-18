@@ -21,6 +21,7 @@ const SENTRY_LABEL = {
         TABS_ITEM: 'DynamicForm-TabsItem',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
+        FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
     },
     APPROVE_MENU: {
         OPTION: {
