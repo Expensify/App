@@ -70,11 +70,9 @@ jobs:
           key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
           restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
 
+      # On PRs, only the tests that import a changed file. Pushes to main and deploys run everything.
       - name: Jest tests
-        env:
-          # On PRs, only the tests that import a changed file. Pushes to main and deploys run everything.
-          SELECT_TESTS: ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} $SELECT_TESTS
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
