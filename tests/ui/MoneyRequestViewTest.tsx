@@ -39,11 +39,14 @@ type MockMenuItemWithTopDescriptionProps = {
 };
 
 const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, errorText, brickRoadIndicator}: MockMenuItemWithTopDescriptionProps) => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; accessibilityLabel?: string; children?: React.ReactNode}>>>('react-native');
 
     return (
         <>
-            <RN.View testID={`menu-item-${description}`}>
+            <RN.View
+                testID={`menu-item-${description}`}
+                accessibilityLabel={description}
+            >
                 <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
             </RN.View>
             {title !== undefined && (
@@ -267,37 +270,35 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
     });
 
-    it('shows additional fields in the saved column order and updates them when the preference changes', async () => {
-        // Given an expense whose report column preference puts Exchange rate before MCC and omits Merchant.
+    it('orders editable and read-only fields together and updates them when the preference changes', async () => {
+        // Given a saved order that moves Amount between two read-only fields and omits Merchant.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: CONST.CURRENCY.USD});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {mcc: '0012', currency: CONST.CURRENCY.EUR, currencyConversionRate: '1.2345'});
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
         });
 
         // When the expense detail view renders the configured columns.
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
-        // Then it shows the new rows in preference order and keeps the existing Merchant and Amount editors available.
-        const additionalFields = screen.getAllByLabelText(/^(common\.exchangeRate|common\.mcc),/);
-        expect(additionalFields).toHaveLength(2);
-        expect(additionalFields.at(0)).toBe(screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'));
-        expect(additionalFields.at(1)).toBe(screen.getByLabelText('common.mcc, 0012'));
+        // Then the fields follow that order and Merchant remains editable.
+        const visibleFields = /^(common\.exchangeRate|common\.mcc|iou\.amount)/;
+        const amountEditor = screen.getByTestId(/^menu-item-iou\.amount/);
+        expect(screen.getAllByLabelText(visibleFields)).toEqual([screen.getByLabelText('common.exchangeRate, 1.2345 EUR/USD'), amountEditor, screen.getByLabelText('common.mcc, 0012')]);
         expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
-        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+        expect(amountEditor).toHaveTextContent('editable');
 
-        // When the user turns off Exchange rate in the report's column settings.
+        // When the user puts Amount after MCC and turns off Exchange rate.
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.MCC, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then Exchange rate disappears even though the transaction still has conversion data.
-        expect(screen.queryByLabelText(fieldLabel('common.exchangeRate'))).not.toBeOnTheScreen();
-        expect(screen.getByLabelText('common.mcc, 0012')).toBeOnTheScreen();
+        // Then Amount moves and Exchange rate disappears even though the transaction still has conversion data.
+        expect(screen.getAllByLabelText(visibleFields)).toEqual([screen.getByLabelText('common.mcc, 0012'), screen.getByTestId(/^menu-item-iou\.amount/)]);
     });
 
     it('keeps workspace column preferences out of personal IOUs', async () => {

@@ -173,7 +173,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
-import MoneyRequestViewAdditionalFields from './MoneyRequestViewAdditionalFields';
+import MoneyRequestViewFields from './MoneyRequestViewFields';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -1051,7 +1051,7 @@ function MoneyRequestView({
     const taxAmountCopyValue = taxAmountTitle || undefined;
 
     const distanceRequestFields = (
-        <>
+        <React.Fragment key={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
                 <MenuItem.Root
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DISTANCE_FIELD}
@@ -1187,7 +1187,7 @@ function MoneyRequestView({
                     )}
                 </MenuItem.Root>
             </OfflineWithFeedback>
-        </>
+        </React.Fragment>
     );
 
     const hasDependentTags = !shouldShowFullTransactionTag && hasDependentTagsPolicyUtils(policy, policyTagList);
@@ -1297,89 +1297,104 @@ function MoneyRequestView({
             dataSet={COPYABLE_ROW_DATA_SET}
         >
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
-            <>
+            <MoneyRequestViewFields
+                transaction={transaction}
+                report={isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction ? parentReport : undefined}
+                reportActions={parentReportActions}
+                policy={policy}
+                policyCategories={policyCategories}
+                policyTags={reportPolicyTags}
+                visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
+                isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
+            >
                 {(!isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
                     <MoneyRequestReceiptView
+                        key={CONST.SEARCH.TABLE_COLUMNS.RECEIPT}
                         report={transactionThreadReport ?? parentReport}
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
                         mergeTransactionID={mergeTransactionID}
                     />
                 )}
-                {isCustomUnitOutOfPolicy && isPerDiemRequest && (
-                    <View
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                    >
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.danger}
-                            height={16}
-                            width={16}
-                        />
-                        <Text
-                            numberOfLines={1}
-                            style={[StyleUtils.getDotIndicatorTextStyles(true), styles.pre, styles.flexShrink1]}
+                <React.Fragment key={CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}>
+                    {isCustomUnitOutOfPolicy && isPerDiemRequest && (
+                        <View
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            {translate('violations.customUnitOutOfPolicy')}
-                        </Text>
-                    </View>
-                )}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
-                    <MenuItemWithTopDescription
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
-                        title={amountTitle}
-                        shouldShowTitleIcon={shouldShowPaid}
-                        titleIcon={icons.Checkmark}
-                        description={amountDescription}
-                        descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
-                        hintText={amountHintText}
-                        hintTextStyle={styles.userSelectNone}
-                        titleStyle={styles.textHeadlineH2}
-                        numberOfLinesTitle={2}
-                        interactive={canEditAmount}
-                        shouldShowRightIcon={canEditAmount}
-                        onPress={() => {
-                            if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                                return;
-                            }
+                            <Icon
+                                src={icons.DotIndicator}
+                                fill={theme.danger}
+                                height={16}
+                                width={16}
+                            />
+                            <Text
+                                numberOfLines={1}
+                                style={[StyleUtils.getDotIndicatorTextStyles(true), styles.pre, styles.flexShrink1]}
+                            >
+                                {translate('violations.customUnitOutOfPolicy')}
+                            </Text>
+                        </View>
+                    )}
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
+                        <MenuItemWithTopDescription
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
+                            title={amountTitle}
+                            shouldShowTitleIcon={shouldShowPaid}
+                            titleIcon={icons.Checkmark}
+                            description={amountDescription}
+                            descriptionTextStyle={[styles.breakWord, styles.userSelectNone]}
+                            hintText={amountHintText}
+                            hintTextStyle={styles.userSelectNone}
+                            titleStyle={styles.textHeadlineH2}
+                            numberOfLinesTitle={2}
+                            interactive={canEditAmount}
+                            shouldShowRightIcon={canEditAmount}
+                            onPress={() => {
+                                if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                                    return;
+                                }
 
-                            if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(
-                                    transaction,
-                                    transactionThreadReport,
-                                    splitEffectivePolicy,
-                                    selfDMReportID,
-                                    restrictedActionPolicyID,
-                                    personalPolicy?.outputCurrency,
-                                    getCurrencyDecimals,
-                                    getCurrencySymbol,
+                                if (shouldShowSplitIndicator && isSplitAvailable) {
+                                    initSplitExpense(
+                                        transaction,
+                                        transactionThreadReport,
+                                        splitEffectivePolicy,
+                                        selfDMReportID,
+                                        restrictedActionPolicyID,
+                                        personalPolicy?.outputCurrency,
+                                        getCurrencyDecimals,
+                                        getCurrencySymbol,
+                                    );
+                                    return;
+                                }
+
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
+                                        CONST.IOU.ACTION.EDIT,
+                                        iouType,
+                                        transaction.transactionID,
+                                        transactionThreadReport.reportID,
+                                        '',
+                                        '',
+                                        getReportRHPActiveRoute(),
+                                    ),
                                 );
-                                return;
-                            }
-
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport.reportID,
-                                    '',
-                                    '',
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
-                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('amount')}
-                        errorTextStyle={styles.userSelectNone}
-                        copyValue={amountCopyValue}
-                        copyable={!canEditAmount && !!amountCopyValue}
-                        isTitleSelectable={!!amountCopyValue}
-                    />
-                </OfflineWithFeedback>
+                            }}
+                            brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('amount')}
+                            errorTextStyle={styles.userSelectNone}
+                            copyValue={amountCopyValue}
+                            copyable={!canEditAmount && !!amountCopyValue}
+                            isTitleSelectable={!!amountCopyValue}
+                        />
+                    </OfflineWithFeedback>
+                </React.Fragment>
                 {!shouldHideEmptyDescription && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION}
+                        pendingAction={getPendingFieldAction('comment')}
+                    >
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
                             description={translate('common.description')}
@@ -1410,7 +1425,10 @@ function MoneyRequestView({
                 {isManualDistanceRequest || isGPSDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
+                        pendingAction={getPendingFieldAction('merchant')}
+                    >
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
                             description={translate('common.merchant')}
@@ -1438,7 +1456,10 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
+                <OfflineWithFeedback
+                    key={CONST.SEARCH.TABLE_COLUMNS.DATE}
+                    pendingAction={getPendingFieldAction('created')}
+                >
                     <MenuItem.Root
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
                         shouldAllowTextSelection={!!dateCopyValue}
@@ -1473,7 +1494,10 @@ function MoneyRequestView({
                     </MenuItem.Root>
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
+                        pendingAction={getPendingFieldAction('category')}
+                    >
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
                             shouldAllowTextSelection={!!categoryCopyValue}
@@ -1556,7 +1580,10 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowVendor && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.VENDOR}
+                        pendingAction={getPendingFieldAction('vendor')}
+                    >
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
                             shouldAllowTextSelection={!!vendorCopyValue}
@@ -1598,9 +1625,12 @@ function MoneyRequestView({
                         </MenuItem.Root>
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag && tagList}
+                <React.Fragment key={CONST.SEARCH.TABLE_COLUMNS.TAG}>{shouldShowTag && tagList}</React.Fragment>
                 {!!shouldShowCard && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.CARD}
+                        pendingAction={getPendingFieldAction('cardID')}
+                    >
                         <MenuItem.Root shouldAllowTextSelection={!!cardCopyValue}>
                             <MenuItemField.Row
                                 name={translate('iou.card')}
@@ -1614,7 +1644,10 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
+                        pendingAction={getPendingFieldAction('taxCode')}
+                    >
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
                             shouldAllowTextSelection={!!taxRateCopyValue}
@@ -1660,7 +1693,10 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTax && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
+                        pendingAction={getPendingFieldAction('taxAmount')}
+                    >
                         <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
                             shouldAllowTextSelection={!!taxAmountCopyValue}
@@ -1699,7 +1735,10 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowAttendees && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.ATTENDEES}
+                        pendingAction={getPendingFieldAction('attendees')}
+                    >
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
                             key="attendees"
@@ -1746,6 +1785,7 @@ function MoneyRequestView({
                 )}
                 {shouldShowReimbursable && (
                     <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
                         pendingAction={getPendingFieldAction('reimbursable')}
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
@@ -1769,6 +1809,7 @@ function MoneyRequestView({
                 )}
                 {shouldShowBillable && (
                     <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.BILLABLE}
                         pendingAction={getPendingFieldAction('billable')}
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mh5]}
                     >
@@ -1809,7 +1850,10 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReport && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                    <OfflineWithFeedback
+                        key={CONST.SEARCH.TABLE_COLUMNS.REPORT_ID}
+                        pendingAction={getPendingFieldAction('reportID')}
+                    >
                         <MenuItemWithTopDescription
                             sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.REPORT_FIELD}
                             shouldShowRightIcon={canEditReport}
@@ -1850,18 +1894,8 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
-                    <MoneyRequestViewAdditionalFields
-                        transaction={transaction}
-                        report={parentReport}
-                        reportActions={parentReportActions}
-                        policy={policy}
-                        policyCategories={policyCategories}
-                        policyTags={reportPolicyTags}
-                        visibleAttendeeCount={shouldShowAttendees ? transactionAttendees.length : 0}
-                        isVendorColumnAvailable={hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING))}
-                    />
-                )}
+            </MoneyRequestViewFields>
+            <>
                 {shouldShowTripRoomLink && (
                     <>
                         <MenuItemField

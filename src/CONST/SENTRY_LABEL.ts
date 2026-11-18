@@ -3709,6 +3709,7 @@ const SENTRY_LABEL = {
     COLUMNS_SETTINGS_LIST: {
         SAVE_BUTTON: 'ColumnsSettingsList-SaveButton',
         RESET: 'ColumnsSettingsList-Reset',
+        REORDER: 'ColumnsSettingsList-Reorder',
     },
     COUNTRY_SELECTOR: {
         OPEN: 'CountrySelector-Open',

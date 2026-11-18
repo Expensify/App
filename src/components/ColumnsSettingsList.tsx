@@ -14,17 +14,18 @@ import type {ComponentRef} from 'react';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {DraggableListRenderItemParams} from './DraggableList/types';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
 import Button from './Button';
+import ColumnsSettingsListItem from './ColumnsSettingsListItem';
 import DraggableList from './DraggableList';
+import DraggableListScrollView from './DraggableList/DraggableListScrollView';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
-import ScrollView from './ScrollView';
 import ListSearchBar from './SearchBar/ListSearchBar';
-import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -260,17 +261,35 @@ function ColumnsSettingsList({
 
     const isResetColumnsVisible = shouldShowResetColumns ?? !isDefaultState;
 
-    const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
+    const renderColumn = ({item, isFocused, getIndex, drag}: DraggableListRenderItemParams<ColumnItem>, data: ColumnItem[], reorder: (params: {data: ColumnItem[]}) => void) => {
+        const index = getIndex() ?? -1;
+        const canMoveUp = index > 0 && data.at(index - 1)?.isSelected === true;
+        const canMoveDown = index >= 0 && data.at(index + 1)?.isSelected === true;
+
+        const moveColumn = (direction: -1 | 1) => {
+            const nextIndex = index + direction;
+            const reorderedColumns = data.slice();
+            reorderedColumns.splice(index, 1);
+            reorderedColumns.splice(nextIndex, 0, item);
+            reorder({data: reorderedColumns});
+            return nextIndex + 1;
+        };
+
         return (
-            <MultiSelectListItem
+            <ColumnsSettingsListItem
                 item={item}
                 isFocused={isFocused}
-                showTooltip={false}
                 onSelectRow={onSelectItem}
-                isDisabled={item.isDisabled}
+                drag={item.isDragDisabled || (!canMoveUp && !canMoveDown) ? undefined : drag}
+                position={index + 1}
+                selectedCount={data.findLastIndex((column) => column.isSelected) + 1}
+                moveUp={canMoveUp ? () => moveColumn(-1) : undefined}
+                moveDown={canMoveDown ? () => moveColumn(1) : undefined}
             />
         );
     };
+    const renderGroupColumn = (params: DraggableListRenderItemParams<ColumnItem>) => renderColumn(params, visibleGroupColumnsList, onGroupDragEnd);
+    const renderTypeColumn = (params: DraggableListRenderItemParams<ColumnItem>) => renderColumn(params, visibleTypeColumnsList, onTypeDragEnd);
 
     return (
         <ScreenWrapper
@@ -297,9 +316,9 @@ function ColumnsSettingsList({
             />
             <View style={styles.flex1}>
                 {/* The list stays mounted when nothing matches because useListKeyboardNav attaches its focus listeners to containerRef only once. */}
-                <ScrollView
+                <DraggableListScrollView
                     style={styles.flex1}
-                    contentContainerStyle={styles.flex1}
+                    contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
                 >
                     {isGrouped ? (
@@ -318,7 +337,7 @@ function ColumnsSettingsList({
                                         onSelectRow={onSelectItem}
                                         isItemDragDisabled={(item) => item.isDragDisabled}
                                         isItemDisabled={(item) => item.isDisabled}
-                                        renderItem={renderItem}
+                                        renderItem={renderGroupColumn}
                                         focusedIndex={groupFocusedIndex}
                                     />
                                 </>
@@ -340,7 +359,7 @@ function ColumnsSettingsList({
                                         onSelectRow={onSelectItem}
                                         isItemDragDisabled={(item) => item.isDragDisabled}
                                         isItemDisabled={(item) => item.isDisabled}
-                                        renderItem={renderItem}
+                                        renderItem={renderTypeColumn}
                                         focusedIndex={typeFocusedIndex}
                                     />
                                 </>
@@ -355,10 +374,10 @@ function ColumnsSettingsList({
                             onSelectRow={onSelectItem}
                             isItemDragDisabled={(item) => item.isDragDisabled}
                             isItemDisabled={(item) => item.isDisabled}
-                            renderItem={renderItem}
+                            renderItem={renderTypeColumn}
                         />
                     )}
-                </ScrollView>
+                </DraggableListScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button

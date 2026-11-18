@@ -6,10 +6,18 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
+import type * as DraggableFlatList from 'react-native-draggable-flatlist';
+
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 
 import type * as TestHelper from '../utils/TestHelper';
+
+// Reanimated's Jest mock recreates shared values, which loops the nested list's animation setup.
+jest.mock('react-native-draggable-flatlist', () => {
+    const draggableFlatList = jest.requireActual<typeof DraggableFlatList>('react-native-draggable-flatlist');
+    return {...draggableFlatList, NestableDraggableFlatList: draggableFlatList.default};
+});
 
 // The default locale context translates every label to an empty string, and the search matches labels.
 jest.mock('@hooks/useLocalize', () => {
@@ -52,6 +60,20 @@ function search(text: string) {
 
 beforeAll(async () => {
     await IntlStore.load('en');
+});
+
+it('offers reorder actions only for selected fields and saves the new order', () => {
+    // Given Date and Amount are selected and Merchant is unchecked.
+    const onSave = renderColumnsList();
+    expect(screen.queryByRole('adjustable', {name: 'Merchant'})).toBeNull();
+    expect(screen.getByText('Merchant')).toBeOnTheScreen();
+
+    // When Amount moves up through its accessibility action.
+    fireEvent(screen.getByRole('adjustable', {name: 'Amount'}), 'accessibilityAction', {nativeEvent: {actionName: 'decrement'}});
+    fireEvent.press(screen.getByText('Save'));
+
+    // Then only the selected fields are saved, with Amount first.
+    expect(onSave).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.DATE]);
 });
 
 it('uses a saved selection that arrives while the picker is open', () => {

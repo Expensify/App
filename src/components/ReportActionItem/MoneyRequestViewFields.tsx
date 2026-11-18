@@ -1,4 +1,4 @@
-/** Shows the report's configured extra columns in both expense detail views. */
+/** Applies the saved column order to the fields in an expense. */
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {getMoneyRequestReportTransactions} from '@components/MoneyRequestReportView/useMoneyRequestReportData';
 
@@ -18,18 +18,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction} from '@src/types/onyx';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import React from 'react';
+import type {ReactElement, ReactNode} from 'react';
 
-type MoneyRequestViewAdditionalFieldsProps = {
+import React, {Children, isValidElement} from 'react';
+
+type MoneyRequestViewFieldsProps = {
     transaction: Transaction;
-    report: Report;
+    report: Report | undefined;
     reportActions: ReportActions | undefined;
     policy: Policy | undefined;
     policyCategories: PolicyCategories | undefined;
     policyTags: PolicyTagLists | undefined;
     visibleAttendeeCount: number;
     isVendorColumnAvailable: boolean;
+    children: ReactNode;
 };
+
+type OrderedMoneyRequestViewFieldsProps = MoneyRequestViewFieldsProps & {report: Report};
 
 const additionalFieldLabels = CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ADDITIONAL_FIELD;
 const sentryLabelByColumn: Record<MoneyRequestAdditionalField['column'], SentryLabel> = {
@@ -49,7 +54,7 @@ const sentryLabelByColumn: Record<MoneyRequestAdditionalField['column'], SentryL
     [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: additionalFieldLabels.ORDER_DEAL_NUMBERS,
 };
 
-function MoneyRequestViewAdditionalFields({
+function OrderedMoneyRequestViewFields({
     transaction,
     report,
     reportActions,
@@ -58,7 +63,8 @@ function MoneyRequestViewAdditionalFields({
     policyTags,
     visibleAttendeeCount,
     isVendorColumnAvailable,
-}: MoneyRequestViewAdditionalFieldsProps) {
+    children,
+}: OrderedMoneyRequestViewFieldsProps) {
     const [savedColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const {translate, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
@@ -82,7 +88,7 @@ function MoneyRequestViewAdditionalFields({
         dateFnsLocale,
     });
 
-    return fields.map(({column, value}) => (
+    const additionalFields = fields.map(({column, value}) => (
         <MenuItemField
             key={column}
             name={translate(getSearchColumnTranslationKey(column))}
@@ -92,6 +98,33 @@ function MoneyRequestViewAdditionalFields({
             sentryLabel={sentryLabelByColumn[column]}
         />
     ));
+
+    const standardFields: ReactElement[] = [];
+    Children.forEach(children, (field) => {
+        if (!isValidElement(field)) {
+            return;
+        }
+
+        standardFields.push(field);
+    });
+
+    // Keep editors for columns missing from the saved selection available in their usual order.
+    const positions = new Map<string, number>(configuredColumns.map((column, index) => [column, index]));
+    const getPosition = (key: string | null) => (key === null ? undefined : positions.get(key)) ?? configuredColumns.length;
+    return [...standardFields, ...additionalFields].sort((first, second) => getPosition(first.key) - getPosition(second.key));
 }
 
-export default MoneyRequestViewAdditionalFields;
+function MoneyRequestViewFields({report, ...props}: MoneyRequestViewFieldsProps) {
+    if (!report) {
+        return props.children;
+    }
+
+    return (
+        <OrderedMoneyRequestViewFields
+            {...props}
+            report={report}
+        />
+    );
+}
+
+export default MoneyRequestViewFields;
