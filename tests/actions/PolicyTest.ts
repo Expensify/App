@@ -794,6 +794,31 @@ describe('actions/Policy', () => {
             });
         });
 
+        it.each([false, true])('duplicate workspace preserves source card toggles when settings are copied: %s', async (shouldCopySettings) => {
+            // Given source card toggles that differ from fresh workspace defaults.
+            const source: PolicyType = {...createRandomPolicy(37, CONST.POLICY.TYPE.TEAM), areExpensifyCardsEnabled: true, areCompanyCardsEnabled: false};
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When duplication either copies Overview through Auth or keeps creation defaults without calling Auth.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Card settings duplicate',
+                localCurrency: 'USD',
+                parts: shouldCopySettings ? ['overview'] : [],
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic toggles match the corresponding backend path.
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
+            expect(duplicate?.areExpensifyCardsEnabled).toBe(shouldCopySettings);
+            expect(duplicate?.areCompanyCardsEnabled).toBe(!shouldCopySettings);
+        });
+
         it('duplicate workspace retains backend creation defaults before the response', () => {
             // Given a source with defaults that must not leak into an empty selection.
             const source = {...createRandomPolicy(33, CONST.POLICY.TYPE.TEAM), requiresCategory: false, defaultBillable: true, defaultReimbursable: false};

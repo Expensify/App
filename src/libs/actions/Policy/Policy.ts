@@ -3733,7 +3733,9 @@ function buildOptimisticDuplicatePolicy(
         // These amounts match Policy_Generator defaults.
         invoice: {markUp: 0},
         units: {time: {enabled: false, rate: 50}},
-        areCompanyCardsEnabled: sourcePolicy.type !== CONST.POLICY.TYPE.SUBMIT,
+        // Auth preserves the source card toggles whenever settings are copied; an empty selection skips Auth.
+        areExpensifyCardsEnabled: parts.length > 0 && !!sourcePolicy.areExpensifyCardsEnabled,
+        areCompanyCardsEnabled: parts.length > 0 ? !!sourcePolicy.areCompanyCardsEnabled : sourcePolicy.type !== CONST.POLICY.TYPE.SUBMIT,
         areTagsEnabled: sourcePolicy.type === CONST.POLICY.TYPE.SUBMIT,
         areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
