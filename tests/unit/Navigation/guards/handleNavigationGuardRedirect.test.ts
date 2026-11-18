@@ -37,6 +37,7 @@ jest.mock('@libs/Navigation/guards', () => ({
     evaluateGuards: jest.fn(() => ({type: 'ALLOW'})),
     registerGuard: jest.fn(),
     clearGuards: jest.fn(),
+    getRegisteredGuards: jest.fn(() => []),
 }));
 
 jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => ({

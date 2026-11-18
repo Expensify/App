@@ -94,6 +94,13 @@ function evaluateGuards(state: NavigationState, action: NavigationAction, contex
 }
 
 /**
+ * Gets all registered guards (useful for testing)
+ */
+function getRegisteredGuards(): readonly NavigationGuard[] {
+    return guards;
+}
+
+/**
  * Clears all registered guards (useful for testing)
  */
 function clearGuards(): void {
@@ -107,4 +114,4 @@ registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
 registerGuard(SubmitPlanWelcomeModalGuard);
 
-export {registerGuard, createGuardContext, evaluateGuards, clearGuards};
+export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};
