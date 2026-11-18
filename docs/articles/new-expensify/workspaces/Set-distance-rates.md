@@ -142,7 +142,9 @@ To prevent members from using a distance rate, you can either disable it or dele
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Distance rates**.
 3. Select each rate you want to disable or delete.
-4. Choose **Selected**.
+4. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On mobile or a narrow screen: Select the button showing the number of rates selected (for example, **2 selected**).
 5. Choose **Disable rates** or **Delete rates**.
 
 ---

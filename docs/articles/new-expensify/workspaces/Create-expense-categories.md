@@ -88,7 +88,9 @@ Once categories are added (manually or via import), they can be toggled on or of
 3. Click a category.
 4. Use the toggle to enable or disable it.
 
-Bulk actions are available using the checkboxes and **Selected** menu.
+Select the checkboxes next to the categories you want to update, then access bulk actions:
+- On web with a wide screen: Use the selection bar.
+- On mobile or a narrow screen: Select the button showing the number of categories selected (for example, **2 selected**).
 
 **Note:** GL and payroll code import is available on the Control plan only.
 

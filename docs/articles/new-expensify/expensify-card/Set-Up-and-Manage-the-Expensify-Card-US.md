@@ -166,7 +166,9 @@ You can bulk-select cards and export their details to a CSV file for reporting o
 
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
 2. Select the checkboxes next to the cards you want to export. Use the checkbox in the header row to select all cards at once.
-3. Click the **selected** dropdown that appears.
+3. Access the actions for your selection:
+   - On web with a wide screen: Use the selection bar.
+   - On mobile or a narrow screen: Select the button showing the number of cards selected (for example, **2 selected**).
 4. Select **Export as CSV**.
 
 The downloaded CSV file includes the following columns for each selected card: email, name, last four digits, type (virtual or physical), limit type, and limit amount.
