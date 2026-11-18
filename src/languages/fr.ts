@@ -9942,6 +9942,27 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enableNewAccountsDescription: 'Les nouveaux comptes Digits seront disponibles en tant que catégories.',
             dimensionsImport: 'Toutes les dimensions Digits sont importées en tant que tags.',
             departments: 'Services',
+            exportDescription: 'Configurer l’exportation des données Expensify vers Digits.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables en tant que', values: {VENDOR_BILL: {label: 'Factures fournisseurs'}}},
+            exportDate: {
+                label: 'Date de facture fournisseur',
+                description: 'Utiliser cette date lors de l’exportation des notes de frais vers Digits.',
+                values: {
+                    LAST_EXPENSE: {label: 'Date de la dernière dépense', description: 'Date de la dépense la plus récente sur la note de frais.'},
+                    REPORT_EXPORTED: {label: 'Date d’exportation', description: 'Date d’exportation de la note de frais vers Digits.'},
+                    REPORT_SUBMITTED: {label: 'Date de soumission', description: 'Date à laquelle la note de frais a été soumise pour approbation.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses de carte d’entreprise au format', values: {TRANSACTION: {label: 'Transactions'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes de l’entreprise',
+                description: 'Choisissez un fournisseur Digits par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: "Compte de carte d'entreprise", description: 'Choisissez où exporter les transactions de carte de société.'},
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Digits et synchroniser à nouveau la connexion',
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes bancaires ou de cartes de crédit dans Digits, puis synchroniser à nouveau la connexion',
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',

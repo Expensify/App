@@ -9917,6 +9917,27 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             enableNewAccountsDescription: 'Neue Digits-Konten werden als Kategorien verfügbar sein.',
             dimensionsImport: 'Alle Digits-Dimensionen werden als Tags importiert.',
             departments: 'Abteilungen',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Digits exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {VENDOR_BILL: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten zu Digits.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum der letzten Ausgabe', description: 'Datum der letzten Ausgabe im Bericht.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum, an dem der Bericht nach Digits exportiert wurde.'},
+                    REPORT_SUBMITTED: {label: 'Übermittlungsdatum', description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Firmenkartenausgaben exportieren als', values: {TRANSACTION: {label: 'Transaktionen'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für alle Firmenkarten',
+                description: 'Wählen Sie einen Standard-Digits-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin die Firmenkartentransaktionen exportiert werden sollen.'},
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Bank- oder Kreditkartenkonten in Digits hinzu und synchronisieren Sie die Verbindung erneut.',
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
