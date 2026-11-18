@@ -449,6 +449,21 @@ describe('getReportHistorySteps', () => {
         expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.manual', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
     });
 
+    it('leaves out an export that has only started', () => {
+        // Given an export this client started, which stays pending if the integration rejects it
+        const startedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.XERO, lastModified: '2026-01-01 10:00:00.000'},
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([startedAction]);
+
+        // Then history waits for the server's outcome instead of listing every attempt
+        expect(steps).toEqual([]);
+    });
+
     it.each([
         [true, 'reportHistoryPage.receivedPayment'],
         [false, 'reportHistoryPage.paid'],

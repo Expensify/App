@@ -100,6 +100,10 @@ function getCompletedStep(
         return {...step, icon: 'MoneyBag', label: translate('reportHistoryPage.paid')};
     }
     if (isExportedToIntegrationAction(reportAction)) {
+        // A started export stays pending on this client until reload when the export fails, so only the server's outcome counts as a step
+        if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !getOriginalMessage(reportAction)?.markedManually) {
+            return undefined;
+        }
         return {...step, icon: 'Export', label: getExportIntegrationLastMessageText(translate, reportAction, getOriginalMessage(reportAction)?.label).trim()};
     }
     if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED)) {
