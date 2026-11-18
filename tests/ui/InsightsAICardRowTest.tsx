@@ -29,7 +29,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@components/Search/SearchRouter/useAskConcierge', () => jest.fn());
-const LOADING_TITLE = 'Generating AI insights...';
+const LOADING_TITLE = 'Generating AI Insights...';
 const LOADING_SUBTITLE = "This shouldn't take more than a minute";
 
 const INSIGHTS_SCOPE: InsightsScope = {
