@@ -12683,6 +12683,7 @@ ${reportName}`,
             sizeNotSet: `<muted-text>Αν δεν ορίσετε τώρα το μέγεθος της συνδρομής σας, θα το ορίσουμε αυτόματα με βάση τον αριθμό ενεργών μελών του πρώτου σας μήνα. <a href="${CONST.PRICING}">Μάθετε περισσότερα</a></muted-text>`,
             expensifyCodeApplied: 'Ο κωδικός Expensify εφαρμόστηκε',
             addExpensifyCode: 'Προσθήκη κωδικού Expensify',
+            editExpensifyCode: 'Επεξεργασία κωδικού Expensify',
             saveWithAnnualSubscription: 'Εξοικονομήστε με ετήσια συνδρομή',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Εξοικονομήστε έως ${amountWithCurrency}/μήνα για κάθε ενεργό μέλος. Επιπλέον θέσεις προστίθενται αυτόματα όταν οι ενεργοί χρήστες υπερβούν τη συνδρομή σας, παρατείνοντας την ετήσια ημερομηνία λήξης σας.`,

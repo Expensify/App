@@ -12418,6 +12418,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             sizeNotSet: `<muted-text>Se non imposti ora la dimensione del tuo abbonamento, la imposteremo automaticamente in base al numero di membri attivi del tuo primo mese. <a href="${CONST.PRICING}">Scopri di più</a></muted-text>`,
             expensifyCodeApplied: 'Codice Expensify applicato',
             addExpensifyCode: 'Aggiungi codice Expensify',
+            editExpensifyCode: 'Modifica codice Expensify',
             saveWithAnnualSubscription: 'Risparmia con un abbonamento annuale',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Risparmia fino a ${amountWithCurrency}/mese per ogni membro attivo. I posti extra vengono aggiunti automaticamente quando gli utenti attivi superano il tuo abbonamento, estendendo la data di fine annuale.`,

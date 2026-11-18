@@ -12431,6 +12431,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             sizeNotSet: `<muted-text>Jeśli teraz nie ustawisz rozmiaru swojej subskrypcji, ustawimy go automatycznie na podstawie liczby aktywnych członków w pierwszym miesiącu. <a href="${CONST.PRICING}">Dowiedz się więcej</a></muted-text>`,
             expensifyCodeApplied: 'Kod Expensify zastosowany',
             addExpensifyCode: 'Dodaj kod Expensify',
+            editExpensifyCode: 'Edytuj kod Expensify',
             saveWithAnnualSubscription: 'Oszczędzaj z roczną subskrypcją',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Oszczędzaj do ${amountWithCurrency}/miesiąc na każdego aktywnego członka. Dodatkowe miejsca są dodawane automatycznie, gdy liczba aktywnych użytkowników przekroczy twoją subskrypcję, co wydłuża datę zakończenia okresu rocznego.`,

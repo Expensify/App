@@ -12732,6 +12732,7 @@ ${reportName}`,
             sizeNotSet: `<muted-text>Si no estableces ahora el tamaño de tu suscripción, lo configuraremos automáticamente en función del número de miembros activos de tu primer mes. <a href="${CONST.PRICING}">Más información</a></muted-text>`,
             expensifyCodeApplied: 'Código de Expensify aplicado',
             addExpensifyCode: 'Añadir código de Expensify',
+            editExpensifyCode: 'Editar código de Expensify',
             saveWithAnnualSubscription: 'Ahorra con una suscripción anual',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Ahorra hasta ${amountWithCurrency}/mes por miembro activo. Los asientos adicionales se añaden automáticamente cuando los usuarios activos superan tu suscripción, ampliando tu fecha de finalización anual.`,

@@ -12504,6 +12504,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             sizeNotSet: `<muted-text>Si vous ne définissez pas la taille de votre abonnement maintenant, nous la définirons automatiquement en fonction du nombre de membres actifs de votre premier mois. <a href="${CONST.PRICING}">En savoir plus</a></muted-text>`,
             expensifyCodeApplied: 'Code Expensify appliqué',
             addExpensifyCode: 'Ajouter le code Expensify',
+            editExpensifyCode: 'Modifier le code Expensify',
             saveWithAnnualSubscription: 'Économisez avec un abonnement annuel',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Économisez jusqu’à ${amountWithCurrency}/mois par membre actif. Des places supplémentaires sont ajoutées automatiquement lorsque les utilisateurs actifs dépassent votre abonnement, prolongeant ainsi votre date de fin annuelle.`,

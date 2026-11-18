@@ -12384,6 +12384,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             sizeNotSet: `<muted-text>Als je je abonnementsomvang nu niet instelt, stellen we die automatisch in op basis van het aantal actieve leden in je eerste maand. <a href="${CONST.PRICING}">Meer informatie</a></muted-text>`,
             expensifyCodeApplied: 'Expensify-code toegepast',
             addExpensifyCode: 'Expensify-code toevoegen',
+            editExpensifyCode: 'Expensify-code bewerken',
             saveWithAnnualSubscription: 'Bespaar met een jaarlijks abonnement',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Bespaar tot ${amountWithCurrency}/maand per actief lid. Extra plaatsen worden automatisch toegevoegd wanneer actieve gebruikers je abonnement overschrijden, waardoor je jaarlijkse einddatum wordt verlengd.`,

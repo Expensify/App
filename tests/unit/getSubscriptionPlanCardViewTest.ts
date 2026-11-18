@@ -8,7 +8,6 @@ const collectPlan = CONST.POLICY.TYPE.TEAM;
 
 const editableWeb = {
     canEditInApp: true,
-    isTouchDevice: false,
 };
 
 describe('getSubscriptionPlanCardView', () => {
@@ -35,13 +34,12 @@ describe('getSubscriptionPlanCardView', () => {
         expect(view.memberCount).toBe(12);
         expect(view.showAnnualControls).toBe(true);
         expect(view.showSizeNotSetHelper).toBe(false);
-        expect(view.showAnnualSavingsTooltip).toBe(false);
-        expect(view.showAnnualSavingsHint).toBe(false);
+        expect(view.showAnnualSavingsInfo).toBe(false);
         expect(view.canEditSize).toBe(true);
         expect(view.canToggleAnnualSettings).toBe(true);
         expect(en.subscription.subscriptionSettings.memberCount({count: view.memberCount}).other).toBe('12 members');
         expect(en.subscription.subscriptionSettings).not.toHaveProperty('summary');
-        expect(en.subscription.subscriptionSettings).not.toHaveProperty('editExpensifyCode');
+        expect(en.subscription.subscriptionSettings.editExpensifyCode).toBe('Edit Expensify code');
     });
 
     it('pluralizes one member and shows the size helper for a missing or zero size', () => {
@@ -96,33 +94,11 @@ describe('getSubscriptionPlanCardView', () => {
             ...editableWeb,
         });
 
-        // Then size and toggles stay hidden and the desktop savings tooltip stays available, because a leftover count is not an annual plan
+        // Then size and toggles stay hidden and the savings info stays available, because a leftover count is not an annual plan
         expect(view.subscriptionTypeLabel).toBe('payPerUse');
         expect(view.showAnnualControls).toBe(false);
         expect(view.showSizeNotSetHelper).toBe(false);
-        expect(view.showAnnualSavingsTooltip).toBe(true);
-        expect(view.showAnnualSavingsHint).toBe(false);
-    });
-
-    it('shows the savings hint instead of the tooltip on a touch device', () => {
-        // Given a Control pay-per-use plan on a touch device, because there is no hover target for an info icon
-        // When the plan card view is built
-        const view = getSubscriptionPlanCardView({
-            subscriptionPlan: controlPlan,
-            hasTeam2025Pricing: false,
-            subscriptionType: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE,
-            userCount: 12,
-            promoCode: undefined,
-            isSecretPromoCode: false,
-            isTaxExempt: false,
-            isFromComparisonModal: false,
-            canEditInApp: true,
-            isTouchDevice: true,
-        });
-
-        // Then the savings sentence replaces the tooltip, because touch devices cannot hover the info icon
-        expect(view.showAnnualSavingsTooltip).toBe(false);
-        expect(view.showAnnualSavingsHint).toBe(true);
+        expect(view.showAnnualSavingsInfo).toBe(true);
     });
 
     it('shows only pay-per-use for New Collect, including when the stored type is still annual', () => {
@@ -143,11 +119,10 @@ describe('getSubscriptionPlanCardView', () => {
         // Then the card is pay-per-use only, because New Collect cannot buy an annual subscription
         expect(view.subscriptionTypeLabel).toBe('payPerUse');
         expect(view.showAnnualControls).toBe(false);
-        expect(view.showAnnualSavingsTooltip).toBe(false);
-        expect(view.showAnnualSavingsHint).toBe(false);
+        expect(view.showAnnualSavingsInfo).toBe(false);
     });
 
-    it('offers Add only when no code is applied, and keeps the badge and tax-exempt request', () => {
+    it('offers Add with no code and Edit when a visible code is applied', () => {
         // Given annual Control plans with no code, a visible code, and a secret code
         const base = {
             subscriptionPlan: controlPlan,
@@ -163,11 +138,11 @@ describe('getSubscriptionPlanCardView', () => {
         const visibleCode = getSubscriptionPlanCardView({...base, promoCode: 'SAVE20', isSecretPromoCode: false, isTaxExempt: true});
         const secretCode = getSubscriptionPlanCardView({...base, promoCode: 'SECRET', isSecretPromoCode: true, isTaxExempt: false});
 
-        // Then Add is offered only with no code, because the code page cannot edit a code that is already applied
+        // Then a visible code offers Edit, because the discount sentence is on the card and the code stays hidden
         expect(noCode.expensifyCodeMenu).toBe('add');
         expect(noCode.showExpensifyCodeBadge).toBe(false);
 
-        expect(visibleCode.expensifyCodeMenu).toBe('hidden');
+        expect(visibleCode.expensifyCodeMenu).toBe('edit');
         expect(visibleCode.showExpensifyCodeBadge).toBe(true);
         expect(visibleCode.showTaxExemptBadge).toBe(true);
         expect(visibleCode.includeRequestTaxExempt).toBe(true);
@@ -190,7 +165,6 @@ describe('getSubscriptionPlanCardView', () => {
             isTaxExempt: false,
             isFromComparisonModal: false,
             canEditInApp: false,
-            isTouchDevice: true,
         });
 
         // Then size, toggles, and Add code stay locked, because native cannot open those pages

@@ -12386,6 +12386,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             sizeNotSet: `<muted-text>Se você não definir o tamanho da sua assinatura agora, nós vamos defini-lo automaticamente com base no número de membros ativos do seu primeiro mês. <a href="${CONST.PRICING}">Saiba mais</a></muted-text>`,
             expensifyCodeApplied: 'Código Expensify aplicado',
             addExpensifyCode: 'Adicionar código Expensify',
+            editExpensifyCode: 'Editar código Expensify',
             saveWithAnnualSubscription: 'Economize com uma assinatura anual',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `Economize até ${amountWithCurrency}/mês por membro ativo. Assentos extras são adicionados automaticamente quando usuários ativos excedem sua assinatura, estendendo sua data final anual.`,

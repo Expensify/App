@@ -7,13 +7,15 @@ import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Popover from '@components/Popover';
+import {PressableWithFeedback} from '@components/Pressable';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import Tooltip from '@components/Tooltip';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -23,15 +25,19 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -55,6 +61,7 @@ import type {GestureResponderEvent} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
+import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -96,40 +103,108 @@ function getSubscriptionSizeHint(html: string): SubscriptionSizeHint | undefined
     };
 }
 
-function AnnualSavingsTooltip() {
+// Matches the card-label info popover so the anchor sits just below the icon.
+const SAVINGS_POPOVER_ANCHOR_OFFSET = 3;
+
+function AnnualSavingsInfo() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const {windowWidth} = useWindowDimensions();
+    // Must match Popover, which bottom-docks only for isSmallScreenWidth.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const activePolicy = usePolicy(activePolicyID);
+    const adminsChatReportID = isPolicyAdmin(activePolicy) && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
+        style: [styles.p4, styles.pb4],
+    });
+    const [isVisible, setVisible] = useState(false);
+    const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
+    const anchorRef = useRef(null);
 
-    const stopRowPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (!event || !('stopPropagation' in event)) {
+    useEffect(() => {
+        if (!anchorRef.current || !isVisible) {
             return;
         }
-        event.stopPropagation();
+
+        const position = getClickedTargetLocation(anchorRef.current);
+        setAnchorPosition({
+            top: position.top + position.height + SAVINGS_POPOVER_ANCHOR_OFFSET,
+            left: position.left,
+        });
+    }, [isVisible, windowWidth]);
+
+    const openSavingsInfo = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        if (event && 'stopPropagation' in event) {
+            event.stopPropagation();
+        }
+        setVisible(true);
     };
 
-    // A regular tooltip cannot receive clicks, and the shared tooltip API should not grow for this icon.
+    const openSavingsLink = (href: string) => {
+        setVisible(false);
+        if (href.endsWith(CONST.SUBSCRIPTION.ADMINS_ROOM_LINK)) {
+            if (adminsChatReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+            }
+            return;
+        }
+        if (href.endsWith(CONST.PRICING)) {
+            openLink(CONST.PRICING, environmentURL, false, session);
+        }
+    };
+
     return (
-        <Tooltip
-            text={translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
-            shouldForceRenderingBelow
-        >
-            <PressableWithoutFeedback
-                onPress={stopRowPress}
-                accessibilityLabel={translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
-                role={CONST.ROLE.BUTTON}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.ANNUAL_SAVINGS}
+        <>
+            <View
+                ref={anchorRef}
+                style={styles.ml2}
             >
-                <Icon
-                    src={icons.Info}
-                    width={variables.iconSizeExtraSmall}
-                    height={variables.iconSizeExtraSmall}
-                    fill={theme.icon}
-                    additionalStyles={styles.ml2}
-                />
-            </PressableWithoutFeedback>
-        </Tooltip>
+                <PressableWithFeedback
+                    onPress={openSavingsInfo}
+                    accessibilityLabel={translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
+                    role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.ANNUAL_SAVINGS}
+                >
+                    <Icon
+                        src={icons.Info}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
+                        fill={theme.icon}
+                    />
+                </PressableWithFeedback>
+            </View>
+            <Popover
+                onClose={() => setVisible(false)}
+                isVisible={isVisible}
+                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
+                innerContainerStyle={!shouldUseNarrowLayout ? styles.cardLabelTooltipContainer : undefined}
+                anchorRef={anchorRef}
+                anchorPosition={anchorPosition}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <View style={bottomSafeAreaPaddingStyle}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
+                    >
+                        {translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}
+                    </Text>
+                    {/* A tooltip cannot hold these anchors. The popover is the pressable surface the card-label info icon uses. */}
+                    <RenderHTML
+                        html={translate('subscription.subscriptionSettings.annualSavingsDescription', !!adminsChatReportID)}
+                        onLinkPress={(_event, href) => openSavingsLink(href)}
+                    />
+                </View>
+            </Popover>
+        </>
     );
 }
 
@@ -151,6 +226,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
     const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
+    const [privatePromoCodeValidBillingCycles] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES);
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -160,7 +236,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
+    const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
     const cardView = getSubscriptionPlanCardView({
         subscriptionPlan,
         hasTeam2025Pricing,
@@ -171,12 +247,15 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         isTaxExempt: !!privateTaxExempt,
         isFromComparisonModal: false,
         canEditInApp: canEditSubscriptionSettingsInApp,
-        isTouchDevice: canUseTouchScreen(),
     });
 
     const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
+    const discountMessage =
+        cardView.showExpensifyCodeBadge && promoDiscountValue !== undefined
+            ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
+            : undefined;
 
     const navigateToSubscriptionDetails = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
@@ -257,10 +336,10 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [];
 
-    if (cardView.expensifyCodeMenu === 'add') {
+    if (cardView.expensifyCodeMenu !== 'hidden') {
         overflowMenu.push({
             icon: icons.Tag,
-            text: translate('subscription.subscriptionSettings.addExpensifyCode'),
+            text: translate(cardView.expensifyCodeMenu === 'edit' ? 'subscription.subscriptionSettings.editExpensifyCode' : 'subscription.subscriptionSettings.addExpensifyCode'),
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPENSIFY_CODE,
             onSelected: navigateToExpensifyCode,
         });
@@ -326,6 +405,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         )}
                     </View>
                 )}
+                {!!discountMessage && <Text style={[styles.textLabelSupporting, styles.mt2]}>{discountMessage}</Text>}
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
                 <MenuItem.Root
@@ -338,12 +418,9 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         <MenuItem.Content>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <MenuItem.FieldName>{translate('subscription.subscriptionSettings.subscriptionType')}</MenuItem.FieldName>
-                                {cardView.showAnnualSavingsTooltip && <AnnualSavingsTooltip />}
+                                {cardView.showAnnualSavingsInfo && <AnnualSavingsInfo />}
                             </View>
                             <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
-                            {cardView.showAnnualSavingsHint && (
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate('subscription.subscriptionSettings.saveWithAnnualSubscription')}</Text>
-                            )}
                         </MenuItem.Content>
                         <MenuItem.Trailing>
                             <MenuItem.Chevron />
@@ -395,7 +472,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         </MenuItem.Root>
                     </OfflineWithFeedback>
                     <View
-                        style={settingsRowHorizontalPadding}
+                        style={[settingsRowHorizontalPadding, styles.pv3]}
                         testID="SubscriptionPlanSettings-autoRenew"
                     >
                         <ToggleSettingOptionRow
@@ -411,7 +488,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </View>
                     <View
-                        style={[settingsRowHorizontalPadding, styles.mt3, {marginBottom: values.cardPadding}]}
+                        style={[settingsRowHorizontalPadding, styles.pv3]}
                         testID="SubscriptionPlanSettings-autoIncrease"
                     >
                         <ToggleSettingOptionRow
@@ -428,7 +505,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     </View>
                 </>
             )}
-            <View style={[styles.sectionDividerLine, {marginHorizontal: menuItemHorizontalPadding}]} />
+            {/* Figma leaves 20px around this line, so a hovered row does not sit on it. */}
+            <View style={[styles.sectionDividerLine, styles.mv5, {marginHorizontal: menuItemHorizontalPadding}]} />
             <SaveWithExpensifyRow />
         </View>
     );

@@ -12217,6 +12217,7 @@ ${reportName}`,
             sizeNotSet: `<muted-text>今すぐサブスクリプションの人数を設定しない場合、最初の1か月目のアクティブメンバー数に基づいて自動的に設定されます。<a href="${CONST.PRICING}">詳しくはこちら</a></muted-text>`,
             expensifyCodeApplied: 'Expensify コードを適用しました',
             addExpensifyCode: 'Expensify コードを追加',
+            editExpensifyCode: 'Expensify コードを編集',
             saveWithAnnualSubscription: '年間サブスクリプションでお得に利用年間サブスクリプションでお得に利用',
             autoIncreaseDescription: (amountWithCurrency: string) =>
                 `アクティブメンバー1人あたり月額最大 ${amountWithCurrency} を節約できます。アクティブユーザー数がご契約の人数を超えた場合は、追加の席が自動的に追加され、その分だけ契約期間の終了日が延長されます。`,
