@@ -184,7 +184,7 @@ function DynamicIOURequestStepDestination({
         }
     };
 
-    const handleUpdateDestination = (destination: ListItem & {currency: string}) => {
+    const submitDestination = (destination: ListItem & {currency: string}) => {
         updateDestination(destination);
     };
 
@@ -299,7 +299,7 @@ function DynamicIOURequestStepDestination({
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
-                        onSubmit={handleUpdateDestination}
+                        onSubmit={submitDestination}
                     />
                 )}
             </StepScreenWrapper>

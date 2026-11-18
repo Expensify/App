@@ -193,7 +193,7 @@ function DynamicIOURequestStepWaypoint({
         goBack();
     };
 
-    const handleSelectWaypoint = (values: Waypoint) => {
+    const selectWaypointRow = (values: Waypoint) => {
         selectWaypoint(values);
     };
 
@@ -269,7 +269,7 @@ function DynamicIOURequestStepWaypoint({
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
-                            onPress={handleSelectWaypoint}
+                            onPress={selectWaypointRow}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             renamedInputKeys={{
                                 address: `waypoint${pageIndex}`,
