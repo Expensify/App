@@ -31,7 +31,7 @@ describe('pinned columns in the search query', () => {
         expect(parsedAgain?.rightPinnedColumns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.DATE]);
     });
 
-    it('leaves the search hashes alone, so pinning never fetches the search again or forks its snapshot', () => {
+    it('leaves the search hashes alone, so a pinned search keeps reading the same snapshot', () => {
         // Given the same search with and without pins
         const unpinned = buildSearchQueryJSON('type:expense columns:merchant,date,total');
         const pinned = buildSearchQueryJSON('type:expense columns:merchant,date,total left-pinned-columns:merchant right-pinned-columns:total');
