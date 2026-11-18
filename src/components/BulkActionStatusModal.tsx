@@ -228,7 +228,8 @@ function BulkActionStatusModal({bulkActionID, onClose}: BulkActionStatusModalPro
 
     const [bulkAction] = useOnyx(`${ONYXKEYS.COLLECTION.BULK_ACTION}${bulkActionID}`);
     const displayedBulkAction = usePreviousDefined(bulkAction);
-    if (!bulkAction && !!displayedBulkAction) {
+    // A result Concierge messaged stays until it's dismissed, though its record is already gone.
+    if (!bulkAction && !displayedBulkAction?.shouldSendFromConcierge) {
         return null;
     }
 

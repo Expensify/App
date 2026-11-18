@@ -84,6 +84,42 @@ describe('BulkActionStatusManager', () => {
         expect(mockClearBulkAction).not.toHaveBeenCalled();
     });
 
+    it('keeps the result Concierge messaged open until it is dismissed', async () => {
+        // Given a running bulk approval the user handed to Concierge while the modal was open
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE});
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.merge(BULK_ACTION_KEY, {shouldSendFromConcierge: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // When it finishes, and the record is deleted once Concierge sends the summary
+        await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 2, failedReportIDs: []});
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.set(BULK_ACTION_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the result stays until the user closes it
+        expect(screen.getByText('bulkAction.approvedTitle')).toBeTruthy();
+        fireEvent.press(screen.getByText('common.close'));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText('bulkAction.approvedTitle')).toBeNull();
+    });
+
+    it('closes a result that was cleared somewhere else', async () => {
+        // Given a finished bulk submit on screen
+        await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, action: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT, total: 3, failedReportIDs: []});
+        render(<BulkActionStatusManager />);
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('bulkAction.submittedTitle')).toBeTruthy();
+
+        // When it's closed in another tab, which clears the record
+        await Onyx.set(BULK_ACTION_KEY, null);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it closes here too
+        expect(screen.queryByText('bulkAction.submittedTitle')).toBeNull();
+    });
+
     it('does not show a bulk action Concierge will message about', async () => {
         // Given a running bulk action the user already handed to Concierge
         await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.PAY, shouldSendFromConcierge: true});
