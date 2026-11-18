@@ -3185,6 +3185,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
 
+        it('leaves the report unpaid when the ABA file request fails', async () => {
+            // Given an approved report whose ABA file request fails before reaching the API, e.g. on a server error
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            mockPayViaABAResponse({ok: false, headers: new Headers([['content-type', 'text/html']])});
+            const onPaid = jest.fn();
+
+            // When it's paid via ABA
+            const abaFileRequest = payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+
+            // Then it fails, so the download modal can say so, and the report isn't shown as paid
+            await expect(abaFileRequest).rejects.toThrow();
+            await waitForBatchedUpdates();
+            expect(onPaid).not.toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
         it('returns one ABA file for several reports, named with the date', async () => {
             // Given several reports to pay, leaving their held expenses for later
             const reportIDs = ['123', '456'];

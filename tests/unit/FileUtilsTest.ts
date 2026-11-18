@@ -14,6 +14,7 @@ import {
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
+    isErrorResponseForFileDownload,
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
@@ -151,6 +152,24 @@ describe('FileUtils', () => {
 
         it('honors a custom extension', () => {
             expect(getExportFileName('Current view', 'abc', 'xlsx')).toEqual('expensify_current_view_abc.xlsx');
+        });
+    });
+
+    describe('isErrorResponseForFileDownload', () => {
+        it('treats a JSON response to a CSV download as an API error', () => {
+            expect(isErrorResponseForFileDownload('application/json', 'expensify_export.csv')).toBe(true);
+        });
+
+        it('accepts the response when it is the CSV file', () => {
+            expect(isErrorResponseForFileDownload('text/csv', 'expensify_export.csv')).toBe(false);
+        });
+
+        it('accepts a JSON response to a download that is not a CSV', () => {
+            expect(isErrorResponseForFileDownload('application/json', 'data.json')).toBe(false);
+        });
+
+        it('accepts the response when there is no file name to check', () => {
+            expect(isErrorResponseForFileDownload('application/json')).toBe(false);
         });
     });
 

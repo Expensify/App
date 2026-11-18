@@ -11,6 +11,7 @@ import type {PayViaABADownloadModalProps} from '@components/PayViaABADownloadMod
 import usePayViaABA from '@hooks/usePayViaABA';
 
 import HttpsError from '@libs/Errors/HttpsError';
+import saveTextFile from '@libs/saveTextFile';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
@@ -59,6 +60,11 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
     payViaABA: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@libs/saveTextFile', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve()),
 }));
 
 const ACCOUNT_ID = 1;
@@ -120,6 +126,37 @@ describe('usePayViaABA', () => {
 
         // Then the download modal waits for the file, so it can save it once the report is paid
         expect(mockShowModal).toHaveBeenCalledWith({component: PayViaABADownloadModal, props: expect.objectContaining({abaFileRequest})});
+    });
+
+    it('still saves the ABA file when the download modal is closed before the file is ready', async () => {
+        // Given a payment via ABA whose download modal the user closes while the file is still generating
+        const abaFile = {fileName: 'ABA_Report_123.aba', content: 'ABA file'};
+        jest.mocked(payViaABA).mockReturnValueOnce(Promise.resolve(abaFile));
+        mockShowModal.mockResolvedValueOnce({action: 'CLOSE'});
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the file is still saved, because closing the modal doesn't stop the report being paid
+        expect(saveTextFile).toHaveBeenCalledWith(abaFile);
+    });
+
+    it("doesn't save the ABA file again when the download modal is closed after it was ready", async () => {
+        // Given a payment via ABA whose download modal already downloaded the file before the user closed it
+        jest.mocked(payViaABA).mockReturnValueOnce(Promise.resolve({fileName: 'ABA_Report_123.aba', content: 'ABA file'}));
+        mockShowModal.mockResolvedValueOnce({action: 'CONFIRM'});
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the file isn't saved a second time
+        expect(saveTextFile).not.toHaveBeenCalled();
     });
 
     it('tells the user when the ABA file fails to download', async () => {
