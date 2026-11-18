@@ -319,6 +319,7 @@ key "key"
       / withdrawalID
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo

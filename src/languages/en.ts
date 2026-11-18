@@ -1401,6 +1401,11 @@ const translations = {
         runningTotal: 'Running total',
         futureExpensesNotShown: (amount: string) => `Not shown: ${amount} in future expenses.`,
         violationsTrackedFrom: (date: string) => `Violations are tracked from ${date}.`,
+        violationStage: {
+            label: 'Violations by',
+            [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
+            [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -11544,6 +11549,7 @@ const translations = {
             submitted: 'Submitted',
             approved: 'Approved',
             anyApproval: 'Any approval',
+            anySubmission: 'Any submission',
             firstApprover: 'First approver',
             firstApproved: 'First approved',
             paidBy: 'Paid by',
