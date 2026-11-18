@@ -398,6 +398,9 @@ const CONST = {
 
     // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
     ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
+
+    // Rows built from buttons, like "Custom range", sit inside an element with this data attribute, so the arrow keys move through them too
+    ADVANCED_FILTERS_ARROW_ROWS_ELEMENT: 'advanced-filters-arrow-rows',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
