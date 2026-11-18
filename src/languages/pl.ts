@@ -2324,8 +2324,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) =>
-                `Płatność jest wstrzymana, dopóki nasz partner płatniczy nie zakończy weryfikacji.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Płatność wstrzymana, poczekaj na kolejną aktualizację.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twoim workspace. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {

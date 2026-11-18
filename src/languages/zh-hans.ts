@@ -2194,7 +2194,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `正在等待已取消的付款完成处理${formattedETA}。`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `我们的支付合作伙伴正在完成审核，付款已被暂挂。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `付款已暂停，请等待后续更新。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，<strong>禁止</strong>自己审批自己的报销单。请将此报销单提交给其他人，或联系管理员更改你的提交对象。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {

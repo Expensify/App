@@ -1556,7 +1556,7 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe('<next-step>No further action required!</next-step>');
         });
 
-        it('says a payment is waiting for our payments partner without a delivery date', () => {
+        it('says a payment is on hold without a delivery date', () => {
             // Given a paid report whose payment Wise is reviewing, with a delivery date still in its next step
             const nextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW,
@@ -1567,8 +1567,8 @@ describe('libs/NextStepUtils', () => {
             // When the message is built
             const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
 
-            // Then it explains the review and leaves the date out
-            expect(message).toBe('<next-step>Payment is on hold while our payments partner completes a review.</next-step>');
+            // Then it says the payment is on hold and leaves the date out
+            expect(message).toBe('<next-step>Payment on hold, look for another update.</next-step>');
         });
 
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
