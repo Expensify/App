@@ -599,7 +599,7 @@ describe('OnyxUpdatesTest', () => {
         await waitForBatchedUpdates();
 
         // Then Search is told that transaction changed, so it can refetch values only the server computes
-        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs).toEqual(['7']);
+        expect(Object.keys((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs ?? {})).toEqual(['7']);
     });
 
     it('tells Search which transactions an Airship push changed', async () => {
@@ -624,7 +624,48 @@ describe('OnyxUpdatesTest', () => {
         await waitForBatchedUpdates();
 
         // Then Search is told that transaction changed, like it is for the same update over Pusher
-        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs).toEqual(['9']);
+        expect(Object.keys((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs ?? {})).toEqual(['9']);
+    });
+
+    it.each([
+        ['GetMissingOnyxMessages', SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {}],
+        ['an incremental ReconnectApp', SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {updateIDFrom: 1}],
+    ])('tells Search which transactions the catch-up response of %s changed', async (_name, command, data) => {
+        // Given a catch-up response carrying a missed Pusher edit of a transaction and a report
+        // When it is applied
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 2,
+            request: {command, data},
+            response: {
+                jsonCode: 200,
+                onyxData: [
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}5`, value: {amount: 250}},
+                    {onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}8`, value: {}},
+                ],
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Then Search is told that transaction changed, as it would have been had the Pusher update arrived
+        expect(Object.keys((await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES))?.transactionIDs ?? {})).toEqual(['5']);
+    });
+
+    it('does not tell Search about transactions a read response changed', async () => {
+        // Given an OpenReport response that writes a transaction
+        // When it is applied
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 2,
+            request: {command: 'OpenReport', data: {}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.TRANSACTION}5`, value: {amount: 250}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // Then Search is not told anything changed, because reading a report is not an edit
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES)).toBeUndefined();
     });
 
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {

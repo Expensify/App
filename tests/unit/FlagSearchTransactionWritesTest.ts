@@ -12,10 +12,10 @@ import Onyx from 'react-native-onyx';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const transactionUpdate = (transactionID: string): OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`> => ({
+const transactionUpdate = (transactionID: string, reportID?: string): OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`> => ({
     onyxMethod: Onyx.METHOD.MERGE,
     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    value: {},
+    value: reportID ? {reportID} : {},
 });
 
 async function runMiddleware(request: Partial<Request<OnyxKey>>, jsonCode: number = CONST.JSON_CODE.SUCCESS) {
@@ -40,7 +40,16 @@ describe('FlagSearchTransactionWrites', () => {
         });
 
         // Then Search is told only that transaction changed
-        expect(signal?.transactionIDs).toEqual(['1']);
+        expect(Object.keys(signal?.transactionIDs ?? {})).toEqual(['1']);
+    });
+
+    it('flags the report a moved transaction left', async () => {
+        // Given a successful move whose rollback puts the transaction back in report 5
+        // When it passes through the middleware
+        const signal = await runMiddleware({failureData: [transactionUpdate('1', '5')]});
+
+        // Then Search is told report 5 changed too, because it just lost an expense it may not show as a row
+        expect(Object.keys(signal?.reportIDs ?? {})).toEqual(['5']);
     });
 
     it('does not flag a read that writes transactions without rolling them back', async () => {
@@ -61,15 +70,18 @@ describe('FlagSearchTransactionWrites', () => {
         expect(signal).toBeUndefined();
     });
 
-    it('flags a repeated write to the same transaction again', async () => {
-        // Given two successful edits of the same transaction
-        const failureData = [transactionUpdate('1')];
-
+    it('keeps earlier writes when a later one changes other transactions', async () => {
+        // Given two successful edits of different transactions before Search renders, as when its tab is frozen
         // When both pass through the middleware
-        const first = await runMiddleware({failureData});
-        const second = await runMiddleware({failureData});
+        const first = await runMiddleware({failureData: [transactionUpdate('1')]});
+        const second = await runMiddleware({failureData: [transactionUpdate('2')]});
 
-        // Then the second one raises a new signal, because Onyx would skip a set with an unchanged value
-        expect(second?.writeID).not.toBe(first?.writeID);
+        // Then both transactions are still flagged, each with the write that changed it, so Search can check every one
+        expect(second?.transactionIDs).toEqual(
+            Object.fromEntries([
+                ['1', first?.writeID],
+                ['2', second?.writeID],
+            ]),
+        );
     });
 });

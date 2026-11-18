@@ -42,9 +42,14 @@ jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab
 let lastWriteID = 0;
 
 /** Raises the signal FlagSearchTransactionWrites sends once a user write to these transactions succeeds. */
-async function signalTransactionWrite(transactionIDs: string[]) {
+async function signalTransactionWrite(transactionIDs: string[], reportIDs: string[] = []) {
     lastWriteID += 1;
-    await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {transactionIDs, writeID: lastWriteID});
+    const writeID = lastWriteID;
+    await Onyx.merge(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES, {
+        writeID,
+        transactionIDs: Object.fromEntries(transactionIDs.map((id) => [id, writeID])),
+        reportIDs: Object.fromEntries(reportIDs.map((id) => [id, writeID])),
+    });
     await waitForBatchedUpdatesWithAct();
 }
 
@@ -389,6 +394,36 @@ describe('useSearchAutoRefetch', () => {
 
         // Then Search does not refetch
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger search when a written transaction leaves a report the results display', async () => {
+        // Given Search showing report 2, but not its expense 99, which the query filters out
+        const {rerender} = renderWithResults({report_2: {reportID: '2'}}, {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '2'})});
+
+        // When the user moves the expense to a report the results do not show, and the write succeeds
+        rerender({transactions: {transactions_99: createMock<Transaction>({transactionID: '99', reportID: '7'})}});
+        await signalTransactionWrite(['99'], ['2']);
+
+        // Then Search requests the results again, because report 2 lost an expense from its count and total
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search for an earlier write when a later one lands before the hook handles it', async () => {
+        // Given Search showing expense 1 while Onyx also holds expense 99, which the query filters out, and the hook skipping its checks for now, as a frozen tab does
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderWithResults(
+            {transactions_1: row('1')},
+            {transactions_1: createMock<Transaction>({transactionID: '1'}), transactions_99: createMock<Transaction>({transactionID: '99'})},
+        );
+
+        // When writes to expense 1 and then expense 99 both succeed before the hook checks the signal
+        await signalTransactionWrite(['1']);
+        await signalTransactionWrite(['99']);
+        mockIsInPreloadedTab = false;
+        rerender({});
+
+        // Then Search still requests the results again, because the edit to expense 1 was not lost behind the later one
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('should trigger the deferred search once Search is active again, after previousTransactions caught up', async () => {

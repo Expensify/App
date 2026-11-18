@@ -291,7 +291,13 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         // them in server order instead of rewinding keys the catch-up already moved forward.
         const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
         const shouldQueueUpdates = request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites;
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates);
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates).then((appliedResponse) => {
+            // Catch-up requests deliver the Pusher updates this client missed, so they tell Search about them like Pusher would.
+            if (isCatchUpRequest) {
+                notifySearchOfTransactionWrites(response.onyxData);
+            }
+            return appliedResponse;
+        });
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:

@@ -81,7 +81,7 @@ function useSearchAutoRefetch({
     const searchTriggeredRef = useRef(false);
     const [transactionWrites] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES);
     // A write from before this Search mounted is not refetched here, the same as any other change made while it was unmounted.
-    const handledTransactionWriteIDRef = useRef(transactionWrites?.writeID);
+    const handledTransactionWriteIDRef = useRef(transactionWrites?.writeID ?? CONST.DEFAULT_NUMBER_ID);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
     const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
@@ -124,7 +124,7 @@ function useSearchAutoRefetch({
             return;
         }
 
-        const newTransactionWrite = transactionWrites && transactionWrites.writeID !== handledTransactionWriteIDRef.current ? transactionWrites : undefined;
+        const newTransactionWrite = transactionWrites && transactionWrites.writeID > handledTransactionWriteIDRef.current ? transactionWrites : undefined;
 
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
         if (
@@ -160,7 +160,15 @@ function useSearchAutoRefetch({
         // and filter membership are computed by the server, so a user write to a transaction the results depend on
         // needs a refetch. Reads that rewrite transactions, like OpenReport, never raise this signal.
         const hasWrittenResultTransaction =
-            !isChat && !!newTransactionWrite && hasWrittenTransactionInSearchResults(newTransactionWrite.transactionIDs, transactions, searchResultsData, isGroupedSearch);
+            !isChat &&
+            !!newTransactionWrite &&
+            hasWrittenTransactionInSearchResults(
+                getIDsWrittenSince(newTransactionWrite.transactionIDs, handledTransactionWriteIDRef.current),
+                getIDsWrittenSince(newTransactionWrite.reportIDs, handledTransactionWriteIDRef.current),
+                transactions,
+                searchResultsData,
+                isGroupedSearch,
+            );
         if (newTransactionWrite) {
             handledTransactionWriteIDRef.current = newTransactionWrite.writeID;
         }
@@ -324,15 +332,20 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
         .flat();
 }
 
+function getIDsWrittenSince(writeIDs: Record<string, number> | undefined, handledWriteID: number): string[] {
+    return Object.keys(writeIDs ?? {}).filter((id) => (writeIDs?.[id] ?? 0) > handledWriteID);
+}
+
 /**
- * Whether a transaction a user write just changed affects the current results: it is on screen, or it now belongs
- * to a report on screen, whose row owes its count and total to the server.
+ * Whether a transaction a user write just changed affects the current results: it is on screen, or it belongs to,
+ * or just left, a report on screen, whose row owes its count and total to the server.
  *
  * Grouped results only hold the groups. Their transactions and reports live in each group's child snapshot, so neither
  * check can tell whether a write touches a group, and any written transaction counts.
  */
 function hasWrittenTransactionInSearchResults(
     writtenTransactionIDs: string[],
+    writtenReportIDs: string[],
     transactions: OnyxCollection<Transaction>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
     isGroupedSearch: boolean,
@@ -345,14 +358,14 @@ function hasWrittenTransactionInSearchResults(
         return true;
     }
 
+    const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (writtenReportIDs.some(isReportInSearchResults)) {
+        return true;
+    }
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
-    return writtenTransactionIDs.some((transactionID) => {
-        if (searchResultIDs.has(transactionID)) {
-            return true;
-        }
-        const reportID = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
-        return !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    });
+    return writtenTransactionIDs.some(
+        (transactionID) => searchResultIDs.has(transactionID) || isReportInSearchResults(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
+    );
 }
 
 const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);
