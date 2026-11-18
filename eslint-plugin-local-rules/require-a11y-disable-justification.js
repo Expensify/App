@@ -3,6 +3,7 @@ const name = 'require-a11y-disable-justification';
 const ISSUE_URL_REGEX = /https?:\/\/github\.com\/(?:Expensify\/App|FormidableLabs\/eslint-plugin-react-native-a11y)\/(?:issues|pull)\/\d+/i;
 const ISSUE_URL_GLOBAL_REGEX = /https?:\/\/github\.com\/(?:Expensify\/App|FormidableLabs\/eslint-plugin-react-native-a11y)\/(?:issues|pull)\/\d+/gi;
 const DISABLE_A11Y_REGEX = /eslint-disable(?:-next-line|-line)?\s+[\s\S]*?react-native-a11y\//i;
+const A11Y_RULE_REFERENCE_REGEX = /react-native-a11y\//i;
 const MIN_RATIONALE_LENGTH = 12;
 
 const meta = {
@@ -45,6 +46,11 @@ function create(context) {
     return {
         Program() {
             for (const comment of sourceCode.getAllComments()) {
+                // Normalization cannot create this prefix, so unrelated comments need no further processing.
+                if (!A11Y_RULE_REFERENCE_REGEX.test(comment.value)) {
+                    continue;
+                }
+
                 const commentText = normalizeComment(comment);
                 if (!DISABLE_A11Y_REGEX.test(commentText)) {
                     continue;

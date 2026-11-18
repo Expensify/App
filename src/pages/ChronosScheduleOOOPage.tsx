@@ -319,6 +319,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 <View style={styles.mb4}>
                     <View style={styles.mhn5}>
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.CHRONOS_OOO_LEAVE_TYPE_FIELD}
                             name={translate('chronos.leaveType')}
                             value={selectedLeaveTypeItem?.label ?? ''}
                             onPress={() => setIsLeaveTypeModalVisible(true)}

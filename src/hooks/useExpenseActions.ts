@@ -74,6 +74,7 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
@@ -101,13 +102,14 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplicateReset}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const theme = useTheme();
-    const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
@@ -283,7 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
-                dateFnsLocale,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -386,7 +388,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!currentTransaction) {
                     return;
                 }
-                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, getCurrencyDecimals);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, translate, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
@@ -394,6 +396,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
@@ -472,7 +475,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
-                    dateFnsLocale,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',

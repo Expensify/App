@@ -5,6 +5,7 @@
  */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -74,7 +75,12 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
                                         fill={theme.text}
                                     />
                                 </View>
-                                <Text style={styles.flex1}>{item}</Text>
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    style={styles.flex1}
+                                    text={item}
+                                    numberOfLines={1}
+                                />
                             </View>
                         ))}
                     </View>

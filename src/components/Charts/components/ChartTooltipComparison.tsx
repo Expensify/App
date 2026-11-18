@@ -1,5 +1,5 @@
 import type {TooltipChange, TooltipRow} from '@components/Charts/utils/formatTooltipComparison';
-import formatValueWithNote from '@components/Charts/utils/formatValueWithNote';
+import formatTooltipValue from '@components/Charts/utils/formatTooltipValue';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -30,7 +30,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
     return (
         <>
             {rows.map((row) => {
-                const content = formatValueWithNote(row.value, row.note);
+                const content = formatTooltipValue(row);
                 return (
                     <View
                         key={row.key}
@@ -49,7 +49,7 @@ function ChartTooltipComparison({rows, change}: ChartTooltipComparisonProps) {
                         width={variables.iconSizeXXSmall}
                         height={variables.iconSizeXXSmall}
                     />
-                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatValueWithNote(change.value, change.percentage)}</Text>
+                    <Text style={[styles.chartTooltipText, StyleUtils.getColorStyle(changeColor)]}>{formatTooltipValue(change)}</Text>
                 </View>
             )}
         </>
