@@ -2706,6 +2706,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Gerencie todos os dispositivos nos quais você fez login com sua conta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Saiba mais</a>.',
         revoke: 'Revogar',
         unknownDevice: 'Dispositivo Desconhecido',
+        signOutAllDevices: 'Sair em todos os dispositivos',
+        signOutAllDevicesConfirmation: 'Você sairá da sua conta em todos os dispositivos, incluindo este. Será necessário entrar novamente para usar o Expensify.',
+        signOutAllDevicesError: 'Não foi possível sair da sua conta em todos os dispositivos. Tente novamente.',
+        signOutAllDevicesSuccess: 'Você saiu da sua conta em todos os dispositivos.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticação de dois fatores',
@@ -7293,6 +7297,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 allCards: 'Todos os cartões',
                 assignedCards: 'Atribuído',
                 unassignedCards: 'Não atribuído',
+                matchesLastFourDigitsOnly: 'Corresponde apenas aos últimos 4 dígitos',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `exportação ${integration} ${type.toLowerCase()}` : `Exportação do ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Escolha a conta do ${integration} para a qual as transações devem ser exportadas.${exportPageLink ? ` Selecione uma <a href="${exportPageLink}">opção de exportação</a> diferente para alterar as contas disponíveis.` : ''}`,

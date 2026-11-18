@@ -2748,6 +2748,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Zarządzaj wszystkimi urządzeniami, na które zalogowałeś(-aś) się za pomocą konta Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Dowiedz się więcej</a>.',
         revoke: 'Cofnąć',
         unknownDevice: 'Nieznane Urządzenie',
+        signOutAllDevices: 'Wyloguj się ze wszystkich urządzeń',
+        signOutAllDevicesConfirmation: 'Wylogujesz się ze wszystkich urządzeń, w tym z tego. Aby korzystać z Expensify, trzeba będzie zalogować się ponownie.',
+        signOutAllDevicesError: 'Nie udało się wylogować Cię ze wszystkich urządzeń. Spróbuj ponownie.',
+        signOutAllDevicesSuccess: 'Wylogowano Cię ze wszystkich urządzeń.',
     },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',
@@ -7313,6 +7317,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 allCards: 'Wszystkie karty',
                 assignedCards: 'Przypisano',
                 unassignedCards: 'Nieprzypisane',
+                matchesLastFourDigitsOnly: 'Pasuje tylko do ostatnich 4 cyfr',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `eksport ${integration} ${type.toLowerCase()}` : `Eksport z ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.${exportPageLink ? ` Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.` : ''}`,

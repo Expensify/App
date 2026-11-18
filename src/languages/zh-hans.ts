@@ -2606,6 +2606,10 @@ const translations: TranslationDeepObject<typeof en> = {
         description: '管理所有已使用你的 Expensify 账户登录的设备。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">了解详情</a>.',
         revoke: '撤销',
         unknownDevice: '未知设备',
+        signOutAllDevices: '退出所有设备上的登录',
+        signOutAllDevicesConfirmation: '你将退出所有设备上的登录，包括此设备。你需要重新登录才能使用 Expensify。',
+        signOutAllDevicesError: '我们无法退出你在所有设备上的登录。请重试。',
+        signOutAllDevicesSuccess: '你已退出所有设备上的登录。',
     },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
@@ -6999,6 +7003,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 allCards: '所有卡片',
                 assignedCards: '已分配',
                 unassignedCards: '未分配',
+                matchesLastFourDigitsOnly: '仅匹配最后 4 位数字',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,

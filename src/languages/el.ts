@@ -2768,6 +2768,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Διαχειριστείτε όλες τις συσκευές στις οποίες έχετε συνδεθεί με τον λογαριασμό σας Expensify. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Μάθετε περισσότερα</a>.',
         revoke: 'Ανακαλέστε',
         unknownDevice: 'Άγνωστη συσκευή',
+        signOutAllDevices: 'Αποσύνδεση από όλες τις συσκευές',
+        signOutAllDevicesConfirmation: 'Θα αποσυνδεθείτε από όλες τις συσκευές, συμπεριλαμβανομένης αυτής. Θα χρειαστεί να συνδεθείτε ξανά για να χρησιμοποιήσετε το Expensify.',
+        signOutAllDevicesError: 'Δεν μπορέσαμε να σας αποσυνδέσουμε από όλες τις συσκευές. Δοκιμάστε ξανά.',
+        signOutAllDevicesSuccess: 'Αποσυνδεθήκατε από όλες τις συσκευές.',
     },
     twoFactorAuth: {
         headerTitle: 'Έλεγχος ταυτότητας δύο παραγόντων',
@@ -7452,6 +7456,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 allCards: 'Όλες οι κάρτες',
                 assignedCards: 'Έχει ανατεθεί',
                 unassignedCards: 'Μη εκχωρημένο',
+                matchesLastFourDigitsOnly: 'Ταιριάζει μόνο στα τελευταία 4 ψηφία',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `εξαγωγή ${integration} ${type.toLowerCase()}` : `εξαγωγή ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές.${exportPageLink ? `Επιλέξτε μια διαφορετική <a href="${exportPageLink}">επιλογή εξαγωγής</a> για να αλλάξετε τους διαθέσιμους λογαριασμούς.` : ''}`,

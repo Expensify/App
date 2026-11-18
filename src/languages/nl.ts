@@ -2701,6 +2701,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Beheer alle apparaten waarop je bent ingelogd met je Expensify-account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Meer informatie</a>.',
         revoke: 'Intrekken',
         unknownDevice: 'Onbekend Apparaat',
+        signOutAllDevices: 'Uitloggen op alle apparaten',
+        signOutAllDevicesConfirmation: 'Je wordt uitgelogd op alle apparaten, inclusief dit apparaat. Je moet opnieuw inloggen om Expensify te gebruiken.',
+        signOutAllDevicesError: 'We konden je niet op alle apparaten uitloggen. Probeer het opnieuw.',
+        signOutAllDevicesSuccess: 'Je bent uitgelogd op alle apparaten.',
     },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',
@@ -7279,6 +7283,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 allCards: 'Alle kaarten',
                 assignedCards: 'Toegewezen',
                 unassignedCards: 'Niet toegewezen',
+                matchesLastFourDigitsOnly: 'Komt alleen overeen met de laatste 4 cijfers',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,

@@ -2866,6 +2866,10 @@ const translations = {
             'Manage all the devices that you have logged into with your Expensify Account. <a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">Learn more</a>.',
         revoke: 'Revoke',
         unknownDevice: 'Unknown Device',
+        signOutAllDevices: 'Sign out on all devices',
+        signOutAllDevicesConfirmation: 'You’ll be signed out on all devices, including this one. You’ll need to sign in again to use Expensify.',
+        signOutAllDevicesError: 'We couldn’t sign you out on all devices. Please try again.',
+        signOutAllDevicesSuccess: 'You’ve been signed out on all devices.',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -7925,6 +7929,7 @@ const translations = {
                 allCards: 'All cards',
                 assignedCards: 'Assigned',
                 unassignedCards: 'Unassigned',
+                matchesLastFourDigitsOnly: 'Matches last 4 digits only',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,

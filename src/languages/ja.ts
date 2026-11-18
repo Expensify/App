@@ -2685,6 +2685,10 @@ const translations: TranslationDeepObject<typeof en> = {
             'Expensify アカウントでログインしているすべてのデバイスを管理できます。<a href="https://help.expensify.com/articles/new-expensify/settings/Manage-Logged-in-Devices">詳しくはこちら</a>.',
         revoke: '取り消す',
         unknownDevice: '不明なデバイス',
+        signOutAllDevices: 'すべてのデバイスからログアウト',
+        signOutAllDevicesConfirmation: 'このデバイスを含むすべてのデバイスからログアウトします。Expensifyを使用するには、再度ログインする必要があります。',
+        signOutAllDevicesError: 'すべてのデバイスからログアウトできませんでした。もう一度お試しください。',
+        signOutAllDevicesSuccess: 'すべてのデバイスからログアウトしました。',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',
@@ -7181,6 +7185,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 allCards: 'すべてのカード',
                 assignedCards: '割り当て済み',
                 unassignedCards: '未割り当て',
+                matchesLastFourDigitsOnly: '下4桁のみ一致',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
