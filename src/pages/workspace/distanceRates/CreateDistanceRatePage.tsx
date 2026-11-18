@@ -70,6 +70,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import DistanceRateCalculationSummary from './DistanceRateCalculationSummary';
 import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
@@ -433,6 +434,14 @@ function CreateDistanceRatePage({
                                             )}
                                         </View>
                                     </>
+                                )}
+                                {!isGovernmentRateTaken && (
+                                    <DistanceRateCalculationSummary
+                                        unit={isGovernmentKind ? governmentRateUnit : distanceUnit}
+                                        currency={currency}
+                                        governmentRateCountry={isGovernmentKind ? governmentRateCountry : undefined}
+                                        governmentRate={currentGovernmentRate}
+                                    />
                                 )}
                             </>
                         ) : (
