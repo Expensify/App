@@ -1,3 +1,4 @@
+import {getHighestPointPositions} from '@components/Charts/hooks/useSyncPointPositions';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipStacks from '@components/Charts/utils/formatTooltipStacks';
 import {getSeriesStacks, getStackTotalsData, getStackTotalSeries} from '@components/Charts/utils/stackedBars';
@@ -105,6 +106,30 @@ describe('stackedBars', () => {
 
             // Then only the previous stack has a total, so the tooltip anchor isn't pulled down to a current stack of 0
             expect(Object.values(totalled?.values ?? {})).toEqual([2]);
+        });
+    });
+
+    describe('getHighestPointPositions', () => {
+        it('anchors the tooltip of a bucket whose stages are all unavailable at zero', () => {
+            // Given a bucket with a 1 + 2 day stack and a bucket none of whose stages has a value, measured as stack totals
+            const stacks = getSeriesStacks([CURRENT_SUBMIT, CURRENT_PAY]);
+            const data = getStackTotalsData(
+                [
+                    {label: 'January', values: {[CURRENT_SUBMIT.key]: 1, [CURRENT_PAY.key]: 2}},
+                    {label: 'February', values: {}, unavailableSeriesKeys: [CURRENT_SUBMIT.key, CURRENT_PAY.key]},
+                ],
+                stacks,
+                undefined,
+            );
+            const xScale = (value: number) => value * 100;
+            const yScale = (value: number) => 300 - value * 10;
+
+            // When the tooltip positions are computed
+            const [xPositions, yPositions] = getHighestPointPositions(data, getStackTotalSeries(stacks), xScale, yScale);
+
+            // Then the empty bucket sits at zero instead of NaN, so its tooltip can still show the stages as unavailable
+            expect(xPositions).toEqual([0, 100]);
+            expect(yPositions).toEqual([270, 300]);
         });
     });
 
