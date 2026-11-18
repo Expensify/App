@@ -34,6 +34,7 @@ import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
@@ -3250,7 +3251,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         };
         const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), id: '1'};
 
-        async function seedTransaction(): Promise<Transaction> {
+        async function seedTransaction(receiptState: ValueOf<typeof CONST.IOU.RECEIPT_STATE> = CONST.IOU.RECEIPT_STATE.OPEN): Promise<Transaction> {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 transactionID,
@@ -3259,7 +3260,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 currency: CONST.CURRENCY.USD,
                 modifiedAmount: '',
                 comment: {comment: ORIGINAL_DESCRIPTION},
-                receipt: {source: ORIGINAL_RECEIPT_SOURCE, state: CONST.IOU.RECEIPT_STATE.OPEN},
+                receipt: {source: ORIGINAL_RECEIPT_SOURCE, state: receiptState},
             };
             await Onyx.set(transactionKey, transaction);
             await waitForBatchedUpdates();
@@ -3345,8 +3346,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         });
 
         it('keeps a newer description and receipt when an earlier edit fails', async () => {
-            // Given an expense
-            const transaction = await seedTransaction();
+            // Given an expense whose receipt was SmartScanned
+            const transaction = await seedTransaction(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
 
             // When the description and receipt change while the amount edit is pending, and only the amount edit fails
             mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, () => ({jsonCode: 400}));
@@ -3371,11 +3372,12 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            // Then only the amount is reverted
+            // Then only the amount is reverted and the new receipt doesn't get the old receipt's SmartScan state
             const storedTransaction = await getOnyxValue(transactionKey);
             expect(storedTransaction?.modifiedAmount).toBe(transaction.modifiedAmount);
             expect(storedTransaction?.comment?.comment).toBe('New description');
             expect(storedTransaction?.receipt?.source).toBe('new-receipt.jpg');
+            expect(storedTransaction?.receipt?.state).not.toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
         });
     });
 });
