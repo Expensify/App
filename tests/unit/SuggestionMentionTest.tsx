@@ -447,6 +447,71 @@ describe('SuggestionMention', () => {
             expect(mentions.map((mention) => mention.handle)).toEqual(['uc@example.com', 'ub@example.com', 'ua@example.com']);
         });
 
+        it('weights the report owner and manager as participants even when they are not in the participants list', async () => {
+            // Given a workspace room whose owner and manager are missing from its participants list
+            setupPersonalDetails();
+            const OWNER_ACCOUNT_ID = 5;
+            const MANAGER_ACCOUNT_ID = 6;
+            mockPersonalDetails[OWNER_ACCOUNT_ID] = {accountID: OWNER_ACCOUNT_ID, login: 'ud@example.com'};
+            mockPersonalDetails[MANAGER_ACCOUNT_ID] = {accountID: MANAGER_ACCOUNT_ID, login: 'ue@example.com'};
+            const currentReportID = 'room1';
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID});
+            const report = buildReportWithParticipant({
+                reportID: 'room1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID: 'policyID',
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+            });
+            mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
+            });
+
+            // When matching mention suggestions are rendered
+            renderSuggestionMention('@u');
+
+            // Then the owner and manager are listed with the participants, before the policy employee and everyone else
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            const {mentions} = getLastMentionSuggestionsProps();
+
+            expect(mentions.map((mention) => mention.handle)).toEqual(['uc@example.com', 'ud@example.com', 'ue@example.com', 'ub@example.com', 'ua@example.com']);
+        });
+
+        it('never weights a detail with a zero account ID as a participant', async () => {
+            // Given a group chat whose participants list has a 0 key, and a detail whose account ID is 0
+            mockPersonalDetails = {
+                0: {accountID: 0, login: 'ua@example.com'},
+                [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: 'uc@example.com'},
+                [POLICY_EMPLOYEE_ACCOUNT_ID]: {accountID: POLICY_EMPLOYEE_ACCOUNT_ID, login: 'ub@example.com'},
+            };
+            const currentReportID = 'group2';
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID});
+            const report = createMock<Report>({
+                reportID: 'group2',
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [PARTICIPANT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+            mockUsePolicy.mockReturnValue(policyWithEmployeeUb);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`, report);
+            });
+
+            // When matching mention suggestions are rendered
+            renderSuggestionMention('@u');
+
+            // Then the zero account ID detail stays in the last group
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            const {mentions} = getLastMentionSuggestionsProps();
+
+            expect(mentions.map((mention) => mention.handle)).toEqual(['uc@example.com', 'ub@example.com', 'ua@example.com']);
+        });
+
         it('skips weighting for a 1:1 DM and falls back to alphabetical order', async () => {
             // Given a one-to-one direct message
             setupPersonalDetails();

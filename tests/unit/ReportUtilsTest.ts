@@ -216,6 +216,7 @@ import {
     isReportFieldDisabledForUser,
     isReportManager,
     isReportOutstanding,
+    isReportParticipant,
     isReportPendingDelete,
     isReportTransactionThreadNew,
     isResolvedSupportTicket,
@@ -13679,6 +13680,42 @@ describe('ReportUtils', () => {
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
+        });
+    });
+
+    describe('isReportParticipant', () => {
+        const report: Report = {
+            ...createRandomReport(1, undefined),
+            ownerAccountID: 3,
+            managerID: 4,
+            participants: {
+                0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+        };
+
+        it('returns true for account IDs in the participants list', () => {
+            expect(isReportParticipant(1, report)).toBe(true);
+            expect(isReportParticipant(2, report)).toBe(true);
+        });
+
+        it('returns true for the owner and manager even when they are not in the participants list', () => {
+            expect(isReportParticipant(3, report)).toBe(true);
+            expect(isReportParticipant(4, report)).toBe(true);
+        });
+
+        it('returns false for an account ID that is not a participant, owner or manager', () => {
+            expect(isReportParticipant(5, report)).toBe(false);
+        });
+
+        it('returns false for a missing or zero account ID even when the participants list has a 0 key', () => {
+            expect(isReportParticipant(0, report)).toBe(false);
+            expect(isReportParticipant(undefined, report)).toBe(false);
+        });
+
+        it('returns false when there is no report', () => {
+            expect(isReportParticipant(1, undefined)).toBe(false);
         });
     });
 
