@@ -398,6 +398,9 @@ const CONST = {
 
     // The "Is" and "Is not" buttons of a filter carry this data attribute, so moving into the filter skips past them
     ADVANCED_FILTERS_NEGATION_TOGGLE_ELEMENT: 'advanced-filters-negation-toggle',
+
+    // Rows built from buttons, like "Custom range", sit inside an element with this data attribute, so the arrow keys move through them too
+    ADVANCED_FILTERS_ARROW_ROWS_ELEMENT: 'advanced-filters-arrow-rows',
     TOOLTIP_ANIMATION_DURATION: 500,
     DROPDOWN_SCROLL_THRESHOLD: 5,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
@@ -1127,6 +1130,8 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** How long the terms page waits after Submit for Wise to decide whether it needs more info */
+        ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS: 8000,
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',
@@ -1148,6 +1153,51 @@ const CONST = {
         /** Wise's KYC requirement types we collect */
         KYC_REQUIREMENT: {
             ID_DOCUMENT: 'ID_DOCUMENT',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
+        /** The source of funds page's answer key, which is Wise's field */
+        SOURCE_OF_WEALTH_INFO_KEY: 'businessSourceOfWealthInfo',
+        /** The key Wise takes the picked sources under, one `{businessSourceOfWealthInfo, isSourceOfFund}` entry per source */
+        SOURCE_OF_WEALTH_LIST_KEY: 'sourceOfWealthList',
+        /** The daily operations page's answer key: the picked sources that fund the business's daily operations, saved as each entry's `isSourceOfFund` */
+        SOURCE_OF_FUNDS_KEY: 'sourceOfFunds',
+        /** Drafted as true while a newly picked source waits for the daily operations page, since the new source can fund daily operations too */
+        SOURCE_OF_FUNDS_REVIEW_KEY: 'shouldReviewSourceOfFunds',
+        /** The server takes up to this many files in one save and drops the rest without an error */
+        MAX_NEW_FILES_PER_SAVE: 20,
+        /** Wise's businessSourceOfWealthInfo values, in Wise's order */
+        SOURCE_OF_WEALTH: {
+            REVENUE: 'REVENUE',
+            PERSONAL_FUNDING: 'PERSONAL_FUNDING',
+            BUSINESS_LOAN: 'BUSINESS_LOAN',
+            FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'FUNDING_AND_SHAREHOLDER_INVESTMENTS',
+            INVESTMENT_INCOME: 'INVESTMENT_INCOME',
+            DONATIONS: 'DONATIONS',
+            GRANTS: 'GRANTS',
+            LEGAL: 'LEGAL',
+        },
+        /** Wise's documentType values for a BUSINESS_SOURCE_OF_WEALTH_PROOF document */
+        SOURCE_OF_WEALTH_DOCUMENT_TYPE: {
+            TAX_DOCUMENTS: 'TAX_DOCUMENTS',
+            AUDITED_FINANCIAL_STATEMENTS: 'AUDITED_FINANCIAL_STATEMENTS',
+            BANK_STATEMENT: 'BANK_STATEMENT',
+            E_COMMERCE_STATEMENTS: 'E_COMMERCE_STATEMENTS',
+            INVOICES: 'INVOICES',
+            CONTRACTS: 'CONTRACTS',
+            PERSONAL_TAX_DECLARATION: 'PERSONAL_TAX_DECLARATION',
+            SAVINGS_STATEMENT: 'SAVINGS_STATEMENT',
+            PAYSLIP: 'PAYSLIP',
+            PERSONAL_LOAN_AGREEMENT: 'PERSONAL_LOAN_AGREEMENT',
+            PERSONAL_INVESTMENT: 'PERSONAL_INVESTMENT',
+            ASSET_SALE_AGREEMENT: 'ASSET_SALE_AGREEMENT',
+            LOAN_AGREEMENT: 'LOAN_AGREEMENT',
+            EQUITY_AGREEMENT: 'EQUITY_AGREEMENT',
+            SUBSCRIPTION_AGREEMENT: 'SUBSCRIPTION_AGREEMENT',
+            SHARE_SALE_CERTIFICATE: 'SHARE_SALE_CERTIFICATE',
+            DONATION_RECEIPTS: 'DONATION_RECEIPTS',
+            WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
+            GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
         },
         /** Wise's companyType values, the legal form */
         COMPANY_TYPE: {
@@ -1606,6 +1656,7 @@ const CONST = {
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
+        MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1993,8 +2044,8 @@ const CONST = {
         ADMIN_TOUR_MOBILE: 'https://expensify.storylane.io/share/7t9urrrcqk5k',
         ADMIN_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         ADMIN_MIGRATED_MOBILE: 'https://app.storylane.io/share/fgireksbt2oh',
-        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
-        TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://expensify.storylane.io/share/rbncowjn0nav?embed=inline',
+        TRACK_WORKSPACE_TOUR_MOBILE: 'https://expensify.storylane.io/share/em54uaq7wbgk?embed=inline',
         EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
         EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
@@ -3851,6 +3902,9 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         ACCOUNTING_METHOD: 'accountingMethod',
         FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
+        API_PROVIDER: {
+            CODAT: 'codat',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -4459,6 +4513,8 @@ const CONST = {
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
     },
+
+    QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME: 'Credit Card Misc.',
 
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
@@ -5992,6 +6048,15 @@ const CONST = {
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
+        // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for
+        DISTANCE_RATE_EURO_COUNTRIES: ['AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES'] as const,
+        DISTANCE_RATE_DEFAULT_EURO_COUNTRY: 'AT',
+        // Countries without a government rate whose reason is explained on the Add rate page
+        DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE: ['FR', 'IT', 'GR', 'BG', 'SK', 'CZ', 'HU', 'RO', 'SG', 'HK'] as const,
+        DISTANCE_RATE_KIND: {
+            GOVERNMENT: 'government',
+            CUSTOM: 'custom',
+        },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
             US: 'mi',
@@ -8059,6 +8124,7 @@ const CONST = {
      * Constant for prefix of violations.
      */
     VIOLATIONS_PREFIX: 'violations.',
+    NONDEFAULT_VIOLATION_PREFIX: 'nonDefault',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -8092,6 +8158,14 @@ const CONST = {
         MISSING_CATEGORY: 'missingCategory',
         MISSING_COMMENT: 'missingComment',
         MISSING_TAG: 'missingTag',
+        NONDEFAULT_AMOUNT: 'nonDefaultAmount',
+        NONDEFAULT_BILLABLE: 'nonDefaultBillable',
+        NONDEFAULT_CATEGORY: 'nonDefaultCategory',
+        NONDEFAULT_COMMENT: 'nonDefaultComment',
+        NONDEFAULT_MERCHANT: 'nonDefaultMerchant',
+        NONDEFAULT_REIMBURSABLE: 'nonDefaultReimbursable',
+        NONDEFAULT_TAG: 'nonDefaultTag',
+        NONDEFAULT_TAX: 'nonDefaultTax',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',
@@ -9143,6 +9217,8 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
             COMPARE: 'compare',
+            TAG_LEVEL: 'tagLevel',
+            TAG_PARENT: 'tagParent',
         },
         VIEW: {
             TABLE: 'table',
@@ -9210,6 +9286,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'anyApproval',
+            ANY_SUBMISSION: 'anySubmission',
             PAID: 'paid',
             WORKFLOW_STAGE: 'workflowStage',
             EXPORTED: 'exported',
@@ -9260,6 +9337,7 @@ const CONST = {
         },
         NONE_OPTION_KEY: '\x00__none__',
         TAG_EMPTY_VALUE: 'none',
+        TAG_UNTAGGED_GROUP_VALUE: '(untagged)',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
         VENDOR_EMPTY_VALUE: 'none',
@@ -9311,6 +9389,7 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             ANY_APPROVAL: 'any-approval',
+            ANY_SUBMISSION: 'any-submission',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
@@ -9469,6 +9548,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_TAGS: 'topTags',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
@@ -10638,6 +10718,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        DEFAULT_TAG_LEVEL: 1,
         DASHBOARD: {
             SPEND: 'spend',
             EFFICIENCY: 'efficiency',
@@ -10655,6 +10736,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
             TOP_VIOLATIONS: 'topViolations',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
             VIOLATIONS_BY_APPROVER: 'violationsByApprover',
@@ -10686,6 +10768,10 @@ const CONST = {
                 COUNT: 'count',
                 DURATION: 'duration',
             },
+        },
+        VIOLATION_STAGE: {
+            SUBMITTED: 'submitted',
+            APPROVED: 'approved',
         },
     },
 

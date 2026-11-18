@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 import type ReactNative from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -55,12 +56,20 @@ jest.mock('@components/ScreenWrapper', () => {
     return {__esModule: true, default: ({children}: {children: React.ReactNode}) => <reactNative.View>{children}</reactNative.View>};
 });
 jest.mock('@components/Header', () => {
+    const reactNative = jest.requireActual<typeof ReactNative>('react-native');
     const Header = ({children}: {children: React.ReactNode}) => children;
-    Header.BackButton = () => null;
+    Header.BackButton = ({onPress}: {onPress: () => void}) => (
+        <reactNative.Pressable
+            accessibilityLabel="Back"
+            onPress={onPress}
+        />
+    );
     Header.Title = () => null;
     return {__esModule: true, default: Header};
 });
 jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
+// useThemeStyles returns empty styles, which Lottie cannot size itself with
+jest.mock('@components/Lottie', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/CheckboxWithLabel', () => {
     const reactNative = jest.requireActual<typeof ReactNative>('react-native');
     return {
@@ -78,6 +87,8 @@ const BANK_ACCOUNT_ID = 1;
 const ERROR_TIMESTAMP = '1793657199501652';
 const ERROR = mockTranslate('walletPage.wiseOnboarding.terms.error');
 const CONFIRM = mockTranslate('common.confirm');
+const ONE_MOMENT = mockTranslate('reimbursementAccountLoadingAnimation.oneMoment');
+const STATUS_PATH = 'settings/wallet/global-reimbursements/1/status';
 const TERM_LABELS = [
     mockTranslate('walletPage.wiseOnboarding.terms.certify'),
     mockTranslate('walletPage.wiseOnboarding.terms.expensifyTermsAccessibilityLabel'),
@@ -114,6 +125,10 @@ function tickEveryBox() {
     for (const label of TERM_LABELS) {
         fireEvent.press(screen.getByLabelText(label));
     }
+}
+
+function setWiseStatus(status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>) {
+    mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status}}}}};
 }
 
 /** Plays the request's loading, as the action's Onyx data would, then its answer */
@@ -175,14 +190,15 @@ describe('WiseAcceptTermsPage', () => {
         tickEveryBox();
         pressConfirm();
 
-        // When the request succeeds
+        // When the request succeeds and Wise has already asked for more info
+        setWiseStatus(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
         answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
         // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the status page replaces the terms
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
     });
 
     it('opens the status page only once while the terms page is still mounted under it', () => {
@@ -190,6 +206,7 @@ describe('WiseAcceptTermsPage', () => {
         const {rerender} = renderPage();
         tickEveryBox();
         pressConfirm();
+        setWiseStatus(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
         answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
         // When the terms page renders again with the status page focused, as it does until the replace finishes
@@ -269,7 +286,7 @@ describe('WiseAcceptTermsPage', () => {
         // Then nothing is sent again, the answers left on the device go and the status page replaces the terms
         expect(submitWiseBusinessOnboarding).not.toHaveBeenCalled();
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
     });
 
     it('waits for the intro path before opening the status page from a deep link', () => {
@@ -287,22 +304,134 @@ describe('WiseAcceptTermsPage', () => {
 
         // Then the status page replaces the terms over the intro
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/status', {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
     });
 
-    it('opens the status page only once when the server sends the submitted business after the submission succeeded', () => {
-        // Given a submission that succeeded and opened the status page
+    describe('after a successful submission', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        function submitSuccessfully() {
+            const page = renderPage();
+            tickEveryBox();
+            pressConfirm();
+            setWiseStatus(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
+            answerSubmission(page.rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
+            return page;
+        }
+
+        it('shows the reviewing animation instead of the status page while Wise decides', () => {
+            // Given a submission sent from the terms page
+            // When the request succeeds and the bank account still says in review, as it does for a few seconds while Wise decides whether it needs more info
+            submitSuccessfully();
+
+            // Then the page waits on the reviewing animation, so the admin does not read that the setup is in review just before Wise asks for more
+            expect(screen.getByText(ONE_MOMENT)).toBeOnTheScreen();
+            expect(screen.queryByText(CONFIRM)).not.toBeOnTheScreen();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        it('drops the onboarding answers as soon as the submission succeeds', () => {
+            // Given a submission sent from the terms page
+            // When the request succeeds and the page starts waiting for Wise
+            submitSuccessfully();
+
+            // Then the answers go right away, since the admin can leave the wait in ways that skip the page's own navigation, such as the browser's back
+            expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+            expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+            expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
+        });
+
+        it('opens the status page as soon as Wise asks for more info', () => {
+            // Given a successful submission waiting for Wise's decision
+            const {rerender} = submitSuccessfully();
+
+            // When Wise asks for more info within the wait
+            act(() => {
+                jest.advanceTimersByTime(CONST.WISE.ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS - 1);
+            });
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+            setWiseStatus(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+            rerender();
+
+            // Then the status page replaces the terms right away, so its first content is the request for more info
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
+        });
+
+        it('opens the status page once the wait runs out with no decision from Wise', () => {
+            // Given a successful submission waiting for Wise's decision
+            submitSuccessfully();
+
+            // When the wait runs out and the bank account still says in review
+            act(() => {
+                jest.advanceTimersByTime(CONST.WISE.ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS);
+            });
+
+            // Then the status page replaces the terms, so a slow decision from Wise does not keep the admin waiting
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
+        });
+
+        it('keeps the reviewing animation until the status page replaces the terms', () => {
+            // Given a successful submission waiting for Wise's decision
+            submitSuccessfully();
+
+            // When the wait runs out and the page asks for the status page, which takes a moment to replace it
+            act(() => {
+                jest.advanceTimersByTime(CONST.WISE.ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS);
+            });
+
+            // Then the animation stays, so the terms do not show again between the wait and the status page
+            expect(screen.getByText(ONE_MOMENT)).toBeOnTheScreen();
+            expect(screen.queryByText(CONFIRM)).not.toBeOnTheScreen();
+        });
+
+        it('opens the status page only once when Wise decides after the wait ran out', () => {
+            // Given a submission whose wait ran out and opened the status page while the terms page is still mounted under it
+            const {rerender} = submitSuccessfully();
+            act(() => {
+                jest.advanceTimersByTime(CONST.WISE.ONBOARDING_STATUS_WAIT_AFTER_SUBMIT_MS);
+            });
+            mockFocusedPath = `${INTRO_PATH}/status`;
+
+            // When Wise asks for more info late, which happened on dev when the update was slow to arrive
+            setWiseStatus(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+            rerender();
+
+            // Then the terms page does not navigate again, since the status page already shows the new status on its own
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        });
+
+        it('goes back to the intro when the admin presses back during the wait', () => {
+            // Given a successful submission waiting for Wise's decision
+            submitSuccessfully();
+
+            // When the admin presses back
+            fireEvent.press(screen.getByLabelText('Back'));
+
+            // Then the intro shows instead of the terms, which have nothing left to submit
+            expect(Navigation.goBack).toHaveBeenCalledWith(INTRO_PATH);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+    });
+
+    it('opens the status page when a failed submission finds the business already submitted', () => {
+        // Given a submission sent from the terms page
         const {rerender} = renderPage();
         tickEveryBox();
         pressConfirm();
-        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
-        // When the bank account with Wise's status arrives while the terms page is still mounted
-        mockOnyxValues[ONYXKEYS.BANK_ACCOUNT_LIST] = {[BANK_ACCOUNT_ID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}}};
-        mockFocusedPath = `${INTRO_PATH}/status`;
-        rerender();
+        // When the request fails and the bank account comes back with a Wise status, as when another admin submitted the business first
+        setWiseStatus(CONST.WISE.ONBOARDING_STATUS.IN_REVIEW);
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Already submitted'}});
 
-        // Then it does not navigate again, since the status page is already open
-        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        // Then the status page replaces the terms without the wait, since this submission did not reach Wise
+        expect(Navigation.navigate).toHaveBeenCalledWith(STATUS_PATH, {forceReplace: true});
     });
 });
