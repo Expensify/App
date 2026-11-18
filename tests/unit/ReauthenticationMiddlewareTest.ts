@@ -1,3 +1,5 @@
+import * as Reconnect from '@libs/actions/Reconnect';
+import redirectToSignIn from '@libs/actions/SignInRedirect';
 import Reauthentication, {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
@@ -301,6 +303,43 @@ describe('Reauthentication middleware', () => {
                 expect(resolve).toHaveBeenCalledWith({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
             })
             .finally(() => setHasRadio(true));
+    });
+
+    test('should give each reauthentication flow a fresh retry budget', async () => {
+        // Given three separate expired-session flows where each Authenticate fails 4 times before it succeeds,
+        // so the failures add up to more than MAX_REQUEST_RETRIES across the session but not within one flow
+        jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect').mockImplementation(() => {});
+        const failuresPerFlow = 4;
+        const flowCount = 3;
+        expect(failuresPerFlow * flowCount).toBeGreaterThan(CONST.NETWORK.MAX_REQUEST_RETRIES);
+
+        try {
+            for (let flow = 0; flow < flowCount; flow++) {
+                for (let failure = 0; failure < failuresPerFlow; failure++) {
+                    jest.mocked(reauthenticate).mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH));
+                }
+                jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: true});
+
+                // When a READ request hits an expired session and the retries run out their backoff timers
+                const middlewarePromise = Reauthentication(
+                    Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}),
+                    {command: 'TestCommand', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+                    false,
+                );
+                await jest.runAllTimersAsync();
+                await middlewarePromise;
+            }
+
+            // Then every flow reauthenticates and the user is never signed out
+            expect(reauthenticate).toHaveBeenCalledTimes(flowCount * (failuresPerFlow + 1));
+            expect(reconnectSpy).toHaveBeenCalledTimes(flowCount);
+            expect(redirectToSignIn).not.toHaveBeenCalled();
+        } finally {
+            jest.mocked(reauthenticate).mockReset();
+            reconnectSpy.mockRestore();
+            jest.useRealTimers();
+        }
     });
 
     describe('replay after a successful reauthentication', () => {
