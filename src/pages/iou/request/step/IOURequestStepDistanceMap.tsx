@@ -136,6 +136,7 @@ function IOURequestStepDistanceMap({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => doesMoneyRequestDraftHaveUserInput(transaction),
     });
 

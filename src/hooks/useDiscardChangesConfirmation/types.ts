@@ -5,6 +5,19 @@ type UseDiscardChangesConfirmationOptions = {
     onVisibilityChange?: (visible: boolean) => void;
     onConfirm?: () => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
+    /**
+     * When the user clicks outside the RHP and picks Discard, close the whole RHP, as that click does when there's nothing to discard,
+     * instead of only this page. Going back still closes only this page. The create expense steps set it, so discarding closes the whole flow.
+     */
+    shouldCloseRHPOnDiscard?: boolean;
+
+    /**
+     * Use on the first screen of a multi-step flow. The screen keeps prompting while the flow's other steps are open on top of it,
+     * so closing the RHP from any step asks first. Going back between steps never removes the first screen, so it doesn't prompt.
+     * Code that closes the flow on purpose from a later step, such as a submit, must call `suppressFlowDiscardPrompt` first.
+     * It also acts as `shouldCloseRHPOnDiscard`, so Discard after a click outside closes the whole flow.
+     */
+    shouldPromptWhenUnfocused?: boolean;
 };
 
 type DiscardChangesConfirmation = {
