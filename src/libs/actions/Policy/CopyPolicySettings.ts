@@ -270,7 +270,10 @@ function buildReimbursementCountriesPatch(sourcePolicy: Policy, targetPolicy: Po
         }
     }
 
-    for (const countryISO of Object.keys(sourceCountries)) {
+    for (const [countryISO, info] of Object.entries(sourceCountries)) {
+        if (info?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
         if (result[countryISO]) {
             continue;
         }

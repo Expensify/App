@@ -401,6 +401,20 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(Object.keys(policy?.reimbursement?.countries ?? {})).toEqual(['GB']);
             });
 
+            it('does not copy a source country the user deselected offline (pending deletion)', () => {
+                // Given a source that selected GB and deselected US offline, so US still carries a DELETE marker
+                const sourcePolicy = makeSourcePolicy({reimbursement: {enabled: true, countries: {GB: {}, US: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}});
+                // And a target with no reimbursement countries
+                const targetPolicy = makeTargetPolicy();
+
+                // When workflows is copied
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['workflows'], {}, {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                // Then only the effectively selected GB is copied; the pending-delete US is not resurrected
+                expect(Object.keys(policy?.reimbursement?.countries ?? {})).toEqual(['GB']);
+            });
+
             it('keeps a protected target country even when the source has no countries', () => {
                 // Given a source with no countries, and a target with its own US bank account (protected)
                 const sourcePolicy = makeSourcePolicy();
