@@ -7925,6 +7925,7 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            JUMP_TO: 'JUMP_TO',
             SET_PARAMS: 'SET_PARAMS',
             PRELOAD: 'PRELOAD',
             POP: 'POP',

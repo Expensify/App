@@ -111,6 +111,7 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
+import {savedSearchesPresenceSelector, shouldShowSavedSearchesSection} from '@selectors/SavedSearches';
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -5658,9 +5659,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     // Saved section
     {
-        const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
-
-        if (shouldShowSavedSearchesMenuItemTitle) {
+        if (shouldShowSavedSearchesSection(savedSearchesPresenceSelector(savedSearches), isOffline)) {
             const savedSection: SearchTypeMenuSection = {
                 translationPath: 'search.savedSearchesMenuItemTitle',
                 menuItems: [],
