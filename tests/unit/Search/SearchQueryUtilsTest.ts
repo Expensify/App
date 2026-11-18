@@ -2,6 +2,7 @@ import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@comp
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -15,6 +16,7 @@ import {
     buildSearchQueryString,
     buildUserReadableQueryString,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -30,6 +32,8 @@ import {
     getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
+    getPositiveHasFilterValues,
     shouldRefetchSearchOnReportActionChange,
     getDateFilterRange,
     getKeywordQueryForSearchInput,
@@ -6741,6 +6745,79 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getPositiveHasFilterValues', () => {
+        test('returns the positive has values and leaves out negated ones', () => {
+            // Given a query that includes approved violations and receipts but excludes submitted violations
+            const queryJSON = buildSearchQueryJSON(
+                `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            );
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then only the positive values are returned, so the Violations column never lists a stage the query excludes
+            expect(hasValues).toEqual(expect.arrayContaining([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION, CONST.SEARCH.HAS_VALUES.RECEIPT]));
+            expect(hasValues).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+        });
+
+        test('returns an empty list when the query has no has filter', () => {
+            // Given a query without any has filter
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then nothing is returned, so no violation labels are computed for the rows
+            expect(hasValues).toEqual([]);
+        });
+    });
+
+    describe('getEffectiveSortBy', () => {
+        test('falls back to date for a Violations sort without a violation has filter', () => {
+            // Given a Violations sort on a query that has no violation data to sort by
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, the same order the backend returns for this query
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('falls back to date when the violation has filter is negated', () => {
+            // Given a Violations sort on a query that excludes approved violations instead of including them
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, because a negated filter doesn't give the rows any violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('keeps the Violations sort when the query includes a violation has filter', () => {
+            // Given a Violations sort on an expense query that includes approved violations
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by their violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('keeps any other sort column as it is', () => {
+            // Given a query sorted by merchant without any violation has filter
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the fallback only applies to the Violations column
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+        });
+    });
+
     describe('getAllPolicyValues', () => {
         const policy1 = createRandomPolicy(1, undefined, 'Workspace 1');
         const policy2 = createRandomPolicy(2, undefined, 'Workspace 2');
@@ -7057,6 +7134,57 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('doesQueryMatchSearchContext', () => {
+        it.each([...TODO_SEARCH_KEYS])('keeps %s after removing its other default filters', (searchKey) => {
+            // Given a to-do search whose recipient and other default filters can be edited
+            const todoDefaultQuery = `type:expense-report action:${searchKey} to:123 reimbursable:yes`;
+            const editedQuery = `type:expense-report action:${searchKey} status:approved policyID:456`;
+
+            // When the edited query is validated and restored with its explicit tab
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(editedQuery), buildSearchQueryJSON(todoDefaultQuery), searchKey);
+
+            // Then its action keeps it on the same tab, including when revisiting
+            expect(matches).toBe(true);
+            expect(getValidLastQuery(editedQuery, todoDefaultQuery, searchKey)).toBe(editedQuery);
+        });
+
+        it.each([
+            'type:expense-report',
+            'type:expense-report action:pay',
+            'type:expense-report -action:approve',
+            'type:expense-report action:approve,pay',
+            'type:expense-report action:approve -action:approve',
+            'type:expense-report action:approve action:pay',
+            'type:expense-report action>approve',
+            'type:expense action:approve',
+        ])('rejects an incompatible Approve query: %s', (query) => {
+            // Given the default Approve query and an incompatible type or action
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+
+            // When checking and restoring the query with an explicit Approve key
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(query), buildSearchQueryJSON(todoDefaultQuery), CONST.SEARCH.SEARCH_KEYS.APPROVE);
+
+            // Then an action key alone is insufficient to keep the Approve context
+            expect(matches).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBe(todoDefaultQuery);
+        });
+
+        it('does not relax validation without a to-do key', () => {
+            // Given a query missing a filter from the default
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+            const query = 'type:expense-report action:approve';
+
+            // When validating without a key or with an ordinary Reports key
+            const queryJSON = buildSearchQueryJSON(query);
+            const defaultQueryJSON = buildSearchQueryJSON(todoDefaultQuery);
+
+            // Then both cases still require the default filter keys
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON)).toBe(false);
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON, CONST.SEARCH.SEARCH_KEYS.REPORTS)).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery)).toBe(todoDefaultQuery);
         });
     });
 

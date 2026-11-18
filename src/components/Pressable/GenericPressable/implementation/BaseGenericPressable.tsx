@@ -14,6 +14,7 @@ import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalR
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
@@ -195,13 +196,13 @@ function GenericPressable({
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
      * An element with an href is skipped, because the browser turns Enter into a click that keeps its modifier keys for pressLink.
      */
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: ViewKeyDownEvent) => {
         if (onKeyDown) {
-            onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+            onKeyDown(event);
             return;
         }
 
-        if (isRoleLink && !hasHref && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+        if (isRoleLink && !hasHref && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
             onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
         }

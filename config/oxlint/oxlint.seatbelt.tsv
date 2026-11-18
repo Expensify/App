@@ -108,8 +108,6 @@
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"no-restricted-imports"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CurrencyPicker.tsx"	"no-restricted-imports"	1
-"../../src/components/CurrencySelector.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/components/CustomUnitDefaultCategorySelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/DatePicker/CalendarPicker/index.tsx"	"react-hooks/purity"	2
 "../../src/components/DatePicker/CalendarPicker/MonthPickerModal.tsx"	"no-restricted-imports"	1
 "../../src/components/DatePicker/CalendarPicker/MonthPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
@@ -273,8 +271,8 @@
 "../../src/components/PopoverMenu/v2/sub/SubBackButton.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverMenu/v2/sub/SubTrigger.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverProvider/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/GenericPressable/implementation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/PressableWithDelayToggle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Pressable/PressResponder/useResponderRef.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -461,7 +459,6 @@
 "../../src/components/TransactionItemRow/DataCells/ChatBubbleCell.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/components/TransactionItemRow/DataCells/MerchantCell.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UnitPicker.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/components/UploadFile.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/UserInitialsAvatar.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/components/ValidateCodeActionModal/ValidateCodeActionContent.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/components/ValidateCodeInput.tsx"	"react-hooks/set-state-in-effect"	3
@@ -549,7 +546,7 @@
 "../../src/hooks/useMergeResultConfirmationConfig.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingFlow.ts"	"rulesdir/no-onyx-loading-status"	3
-"../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
+"../../src/hooks/useOnyx.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useOptimisticDraftTransactions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useOtherFeedsForFeedSelector.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/usePageRefresh/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1260,7 +1257,6 @@
 "../../src/pages/PrivateNotes/PrivateNotesEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/PrivateNotes/PrivateNotesEditPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/PrivateNotes/PrivateNotesListPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ProfilePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReimbursementAccount/ConnectedVerifiedBankAccount.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1595,7 +1591,6 @@
 "../../src/pages/TransactionMerge/MergeTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/TransactionMerge/MergeTransactionsListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/Travel/CarTripDetails.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/Travel/DynamicDomainPermissionInfoPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicPublicDomainErrorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Travel/DynamicTravelUpgrade.tsx"	"no-restricted-imports"	2
@@ -1889,7 +1884,6 @@
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/workspace/rules/SpendRules/SpendRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"no-restricted-imports"	1
@@ -1937,7 +1931,6 @@
 "../../src/pages/workspace/withPolicy.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsCreatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"no-restricted-imports"	1
