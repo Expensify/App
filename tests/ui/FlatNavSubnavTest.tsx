@@ -11,6 +11,8 @@ import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import type {ActiveFlatNavItem, FlatNavCannedSearchItem, FlatNavItem, FlatNavSavedSearchItem, FlatNavSubnavGroup} from '@libs/Navigation/FlatNav/types';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -35,6 +37,9 @@ jest.mock('@hooks/useShareSavedSearch', () => () => ({
     copiedID: null,
     handleShare: mockHandleShare,
 }));
+// The marker's slide is Reanimated's work. What the subnav owns is the position it hands the marker.
+const mockSubnavMarker = jest.fn<null, [{top: number | undefined}]>(() => null);
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSubnavMarker', () => (props: {top: number | undefined}) => mockSubnavMarker(props));
 jest.mock('@pages/Search/SavedSearchItemThreeDotMenu', () => {
     // The factory is hoisted above the imports, so it loads what it renders itself.
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
@@ -187,14 +192,25 @@ describe('FlatNavSubnav', () => {
         expect(getRow(translateLocal('common.approve')).props.accessibilityState).toMatchObject({selected: false});
     });
 
-    it('should draw the rule and the marker the active row is pointed out by', async () => {
-        // Given a subnav with an active row
+    it('should point the marker at the active row', async () => {
+        // Given Reports is active, the second row under the first header
         // When the subnav renders
         render(<SubnavUnderTest activeItem={ACTIVE_REPORTS} />);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the marker is mounted along the rule, to slide to whichever row is active next
-        expect(screen.getByTestId('FlatNavSubnavMarker')).toBeOnTheScreen();
+        // Then the marker sits below the header and the Expenses row, centred on the Reports row
+        const {flatNavigationBarSubnavHeaderHeight: headerHeight, flatNavigationBarSubnavItemHeight: itemHeight, flatNavigationBarSubnavMarkerHeight: markerHeight} = variables;
+        expect(mockSubnavMarker).toHaveBeenLastCalledWith({top: headerHeight + itemHeight + (itemHeight - markerHeight) / 2});
+    });
+
+    it('should give the marker no position when no row is active', async () => {
+        // Given a current search that belongs to none of the groups
+        // When the subnav renders without an active item
+        render(<SubnavUnderTest activeItem={undefined} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the marker has nowhere to point, which fades it out
+        expect(mockSubnavMarker).toHaveBeenLastCalledWith({top: undefined});
     });
 
     it('should hand the pressed canned search to the caller', async () => {
