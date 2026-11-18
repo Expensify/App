@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {getApprovalDropdownOptions} from '@components/ExpenseHeaderApprovalButton';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
@@ -141,6 +142,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
@@ -160,6 +163,8 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
 
     const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
@@ -198,6 +203,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
         if (!skipAnimation && !isSubmitPolicy(policy)) {

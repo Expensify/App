@@ -91,6 +91,12 @@ function DraggableList<T>({
         if (event.activatorEvent instanceof KeyboardEvent) {
             return;
         }
+
+        // Rows prevent the default mouse-down focus change, so a pointer drag must explicitly end text input focus.
+        const activeElement = document.activeElement;
+        if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement) {
+            activeElement.blur();
+        }
         DragCursor.show();
     };
 

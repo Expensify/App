@@ -36,4 +36,3 @@ function Content({containerStyles, ...rest}: ContentProps): React.ReactElement |
 Content.displayName = 'PopoverMenu.Content';
 
 export default Content;
-export type {ContentProps};

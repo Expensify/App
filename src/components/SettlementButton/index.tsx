@@ -31,7 +31,7 @@ import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@lib
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -46,6 +46,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
+import {openPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -164,6 +165,7 @@ function SettlementButton({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
@@ -234,7 +236,7 @@ function SettlementButton({
         retry?.();
     });
 
-    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>) => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>, paymentMethod?: PaymentMethod) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -245,7 +247,8 @@ function SettlementButton({
             return true;
         }
 
-        if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        // Paying elsewhere doesn't need a validated account, except Pay via ABA, as it downloads a payment file
+        if (!isUserValidated && (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA)) {
             verifyAccountAndResume(retry);
             return true;
         }
@@ -253,8 +256,8 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
-        if (checkForNecessaryAction(paymentMethodType, action)) {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, paymentMethod?: PaymentMethod) => {
+        if (checkForNecessaryAction(paymentMethodType, action, paymentMethod)) {
             return;
         }
         action();
@@ -265,6 +268,7 @@ function SettlementButton({
         icon: icons.CheckCircle,
         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         shouldUpdateSelectedIndex: false,
+        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_ELSEWHERE,
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
@@ -293,6 +297,7 @@ function SettlementButton({
                     text: translate('iou.settleWallet', ''),
                     value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PERSONAL,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -304,10 +309,14 @@ function SettlementButton({
         }
 
         const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy, isPayViaABABetaEnabled);
 
         if (shouldShowBusinessBankAccountOptions) {
             if (businessBankAccountOptionList.length === 0) {
-                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                // An ABA account is also a business account, so no need to show the generic pay via business account option
+                if (!shouldShowPayViaABAOption) {
+                    buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                }
             } else {
                 for (const account of businessBankAccountOptionList) {
                     buttonOptions.push({
@@ -319,6 +328,7 @@ function SettlementButton({
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
                         shouldIgnoreCompactStyle: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.BUSINESS_BANK_ACCOUNT,
                         onSelected: () =>
                             runPaymentAction(CONST.IOU.PAYMENT_TYPE.VBBA, () =>
                                 onPress({
@@ -342,8 +352,23 @@ function SettlementButton({
                     icon: icons.Building,
                     value: p.id,
                     shouldUpdateSelectedIndex: false,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.PAY_WITH_WORKSPACE,
                 });
             }
+        }
+
+        if (shouldShowPayViaABAOption) {
+            buttonOptions.push({
+                ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+                // The file is downloaded straight from the API, which can't be queued for when the user is back online
+                disabled: isOffline,
+                onSelected: () =>
+                    runPaymentAction(
+                        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}),
+                        CONST.PAYMENT_METHODS.ABA,
+                    ),
+            });
         }
 
         if (shouldShowPayElsewhereOption) {
@@ -373,13 +398,14 @@ function SettlementButton({
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
+                        return accountData?.type === requiredAccountType && !accountData?.additionalData?.isForABA && !isPartiallySetup && matchesCurrency(method, currency);
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
                         description: formattedPaymentMethod?.description ?? '',
                         icon: formattedPaymentMethod?.icon,
                         shouldUpdateSelectedIndex: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.BANK_ACCOUNT,
                         onSelected: () =>
                             runPaymentAction(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, () =>
                                 onPress({
@@ -431,6 +457,7 @@ function SettlementButton({
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.ADD_BANK_ACCOUNT,
                     onSelected: () => {
                         if (payAsBusiness) {
                             navigateToBusinessBankAccountRoute();
@@ -449,6 +476,7 @@ function SettlementButton({
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         shouldUpdateSelectedIndex: true,
+                        sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.INVOICE_PAYMENT_MENU.PAY_ELSEWHERE,
                         onSelected: () => runPaymentAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness})),
                     },
                 ];
@@ -467,6 +495,7 @@ function SettlementButton({
                     icon: icons.User,
                     value: invoiceDefaultValue,
                     backButtonText: translate('iou.individual'),
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.INVOICE_INDIVIDUAL,
                     subMenuItems: getInvoicesOptions(false),
                 });
                 buttonOptions.push({
@@ -474,6 +503,7 @@ function SettlementButton({
                     icon: icons.Building,
                     value: invoiceDefaultValue,
                     backButtonText: translate('iou.business'),
+                    sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.INVOICE_BUSINESS,
                     subMenuItems: getInvoicesOptions(true),
                 });
             } else {
@@ -552,6 +582,11 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
+    const handlePaymentOptionsShow = () => {
+        openPaymentMethods();
+        onPaymentOptionsShow?.();
+    };
+
     const popoverUseScrollView = shouldPopoverUseScrollView(paymentButtonOptions);
 
     return (
@@ -570,7 +605,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuShow={handlePaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu

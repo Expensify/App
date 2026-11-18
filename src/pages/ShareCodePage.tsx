@@ -153,6 +153,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                     formatPhoneNumber,
                     parentReportName: derivedParentReportName,
                     isParentReportArchived,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                 }).workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {
@@ -203,7 +204,10 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 }}
                 shouldShowBackButton
             />
-            <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+            <ScrollView
+                style={[themeStyles.flex1, themeStyles.pt3]}
+                contentContainerStyle={themeStyles.pb5}
+            >
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
                     <QRShareWithDownload
                         ref={qrCodeRef}

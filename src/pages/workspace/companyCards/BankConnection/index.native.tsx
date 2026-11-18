@@ -220,6 +220,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                         illustration={illustrations.BrokenCompanyCardBankConnection}
                         illustrationStyle={styles.errorStateCardIllustration}
                         buttonText={translate('common.buttonConfirm')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_LOAD_ERROR_CONFIRM}
                         onButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
                     />
                 )}

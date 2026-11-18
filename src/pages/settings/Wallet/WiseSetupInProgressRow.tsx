@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -59,6 +60,7 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, isOnboardingSubmitt
                     <>
                         {' '}
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_SETUP_IN_PROGRESS_CONTINUE_LINK}
                             variant="label"
                             onPress={() =>
                                 isOnboardingSubmitted
