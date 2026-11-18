@@ -89,7 +89,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
         onSelectWorkspace(policy);
     };
 
-    const handleSelectWorkspace = (item: WorkspaceListItem) => {
+    const selectWorkspaceRow = (item: WorkspaceListItem) => {
         selectWorkspace(item);
     };
 
@@ -110,7 +110,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             <SelectionList
                 key={initiallyFocusedKey}
                 data={filteredWorkspaceOptions}
-                onSelectRow={handleSelectWorkspace}
+                onSelectRow={selectWorkspaceRow}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
                 initiallyFocusedItemKey={initiallyFocusedKey}

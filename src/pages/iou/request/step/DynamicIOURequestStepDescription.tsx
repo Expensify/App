@@ -189,7 +189,7 @@ function DynamicIOURequestStepDescription({
         armNavigateBack();
     };
 
-    const handleUpdateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
+    const submitComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         updateComment(value);
     };
 
@@ -222,7 +222,7 @@ function DynamicIOURequestStepDescription({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={handleUpdateComment}
+                onSubmit={submitComment}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline

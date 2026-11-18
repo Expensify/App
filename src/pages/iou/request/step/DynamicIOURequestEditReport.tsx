@@ -144,7 +144,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
-    const handleSelectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
+    const selectReportRow = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         selectReport(item, report);
     };
 
@@ -188,7 +188,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         Navigation.dismissToSuperWideRHP();
     };
 
-    const handleRemoveFromReport = () => {
+    const removeTransactionsFromReport = () => {
         removeFromReport();
     };
 
@@ -220,14 +220,14 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
         );
     };
 
-    const handleCreateReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+    const createReportForMovingExpenses = (shouldDismissEmptyReportsConfirmation?: boolean) => {
         createReportForPolicy(shouldDismissEmptyReportsConfirmation);
     };
 
     const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
-        onCreateReport: handleCreateReportForPolicy,
+        onCreateReport: createReportForMovingExpenses,
         shouldBypassConfirmation: true,
     });
 
@@ -269,8 +269,8 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
             isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             isDistanceRequest={transactions.some(isDistanceRequestUtil)}
-            selectReport={handleSelectReport}
-            removeFromReport={handleRemoveFromReport}
+            selectReport={selectReportRow}
+            removeFromReport={removeTransactionsFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
             createReport={canCreateReport ? startCreateReport : undefined}
             isPerDiemRequest={hasPerDiemTransactions}

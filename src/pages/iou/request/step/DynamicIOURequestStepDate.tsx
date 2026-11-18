@@ -189,7 +189,7 @@ function DynamicIOURequestStepDate({
         saveAndNavigateBack();
     };
 
-    const handleUpdateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+    const submitDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         updateDate(value);
     };
 
@@ -213,7 +213,7 @@ function DynamicIOURequestStepDate({
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
-                onSubmit={handleUpdateDate}
+                onSubmit={submitDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert

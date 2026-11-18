@@ -119,7 +119,7 @@ function DynamicIOURequestStepAttendees({
         Navigation.goBack(backPathRef.current, {shouldSkipFocusRestore: true});
     };
 
-    const handleSaveAttendees = () => {
+    const saveAttendeesAndGoBack = () => {
         saveAttendees();
     };
 
@@ -135,7 +135,7 @@ function DynamicIOURequestStepAttendees({
             testID="DynamicIOURequestStepAttendees"
         >
             <MoneyRequestAttendeeSelector
-                onFinish={handleSaveAttendees}
+                onFinish={saveAttendeesAndGoBack}
                 onAttendeesAdded={(v) => setAttendees(v)}
                 attendees={attendees}
                 iouType={iouType}
