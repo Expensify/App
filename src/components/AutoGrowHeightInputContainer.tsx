@@ -83,6 +83,7 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
             return;
         }
 
+        // Keep the first capture until the measurement settles. A later one runs after the cap already changed, when the input may have scrolled away from its end.
         if (!restoreInputScrollRef.current) {
             restoreInputScrollRef.current = captureInputScrolledToEnd(contentRef.current);
         }
@@ -97,7 +98,7 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
     // On web the first onLayout arrives after paint, so a long value painted at the default cap first and then jumped to the slot height.
     // The slot is already laid out here, so measure it before the first paint.
     useLayoutEffect(() => {
-        if (isNativePlatform || hasMeasuredInitialSlotRef.current) {
+        if (hasMeasuredInitialSlotRef.current) {
             return;
         }
 
@@ -107,7 +108,7 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
             availableHeightRef.current = availableHeight;
             startMeasurement('clamp', availableHeight);
         });
-    }, [isNativePlatform, startMeasurement]);
+    }, [startMeasurement]);
 
     // A cap change can move the focused input away from the end of its text, so scroll it back once the new cap is applied.
     useLayoutEffect(() => {

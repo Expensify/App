@@ -7,6 +7,8 @@ function isCaretAtEnd(input: HTMLElement): boolean {
         return input.selectionStart === input.value.length && input.selectionEnd === input.value.length;
     }
 
+    // Markdown inputs render as a contenteditable element, so the caret comes from the selection. Trailing whitespace after it, such as the line break
+    // the editor keeps at the end, still counts as the end of the text.
     const selection = document.getSelection();
     if (!selection?.isCollapsed || !selection.focusNode || !input.contains(selection.focusNode)) {
         return false;
