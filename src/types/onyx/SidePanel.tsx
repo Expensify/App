@@ -1,6 +1,6 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
-import type {InsightsSearchKey} from './InsightsDashboard';
+import type {InsightsExplanationContext, InsightsSearchKey} from './InsightsDashboard';
 
 type SidePanel = {
     /** Whether the Side Panel is open on large screens */
@@ -14,11 +14,15 @@ type SidePanel = {
 
     /** The report the Side Panel shows instead of the Concierge chat it defaults to */
     reportID?: string;
+
+    /** Positions a preloaded answer at its beginning instead of the bottom of its thread. */
+    reportActionID?: string;
 };
 
 /** Insights dashboard and filters the user was looking at when they asked Concierge about it */
 type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency'> & {
     searchKey: InsightsSearchKey;
+    insight?: InsightsExplanationContext;
 };
 
 /**

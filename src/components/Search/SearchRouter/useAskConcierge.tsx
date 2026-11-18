@@ -59,7 +59,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
         const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
-        addComment({
+        const reportActionID = addComment({
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
@@ -76,7 +76,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             shouldNavigateToConciergeThread: !isInSidePanel,
         });
         if (!conciergeThreadReportID || isInSidePanel) {
-            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
+            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID, ...(reportActionID && {reportActionID})});
         }
     };
 

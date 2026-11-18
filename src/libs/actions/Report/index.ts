@@ -1389,10 +1389,11 @@ function addActions({
             if (!shouldNavigateToConciergeThread) {
                 return;
             }
-            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID, reportActionID: preloadedConciergeAction?.reportAction.reportActionID}));
         });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
+    return preloadedConciergeAction?.reportAction.reportActionID;
 }
 
 /** Add an attachment with an optional comment to a report */
@@ -1502,7 +1503,7 @@ function addComment({
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({
+    return addActions({
         report,
         notifyReportID,
         ancestors,

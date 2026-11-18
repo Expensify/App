@@ -44,7 +44,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             </View>
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
-                insightsScope={insightsScope}
+                insightsScope={{...insightsScope, ...(insight.explainContext && {insight: insight.explainContext})}}
             >
                 <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
             </InsightsExplainButton>

@@ -55,6 +55,7 @@ describe('InsightsExplainButton', () => {
         jest.useRealTimers();
         await Onyx.clear();
         jest.clearAllMocks();
+        jest.mocked(preloadInsightsExplanation).mockImplementation(() => new Promise(() => {}));
         mockIsOffline = false;
         jest.mocked(useAskConcierge).mockReturnValue({
             askConcierge: mockAskConcierge,
@@ -101,9 +102,9 @@ describe('InsightsExplainButton', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByRole('button'));
 
-        // Then a normal live request is sent for the new filters, rather than showing the old answer.
+        // Then the click waits for the new scope, rather than posting the old answer or starting a live generation.
         expect(preloadInsightsExplanation).toHaveBeenLastCalledWith(buildInsightsExplanationQuery(1, REPORT_ID, PROMPT, newScope), expect.any(Number));
-        expect(mockAskConcierge).toHaveBeenCalledWith(PROMPT, {insightsScope: newScope}, undefined);
+        expect(mockAskConcierge).not.toHaveBeenCalled();
     });
 
     it('keeps the offline click flow and preloads after reconnecting', async () => {
@@ -138,6 +139,12 @@ describe('InsightsExplainButton', () => {
     it('refreshes an answer at expiry and schedules the next refresh only after a fresh answer arrives', async () => {
         // Given a cached answer with only one minute left when Insights opens.
         jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        let resolveRefresh: (answer: string) => void = () => {};
+        jest.mocked(preloadInsightsExplanation).mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveRefresh = resolve;
+            }),
+        );
         const jsonQuery = buildInsightsExplanationQuery(1, REPORT_ID, PROMPT, SCOPE);
         const key = `${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hashText(jsonQuery, 2 ** 32)}` as const;
         await Onyx.set(key, {jsonQuery, response: 'Cached answer.', createdAt: DateUtils.subtractMillisecondsFromDateTime(getServerAnchoredDBTime(), 4 * 60 * 1000)});
@@ -151,14 +158,12 @@ describe('InsightsExplainButton', () => {
         expect(preloadInsightsExplanation).not.toHaveBeenCalled();
         act(() => jest.advanceTimersByTime(1));
 
-        // Then exactly one refresh starts, and clicks still reject the expired answer while it loads.
+        // Then exactly one refresh starts instead of retaining the expired answer.
         expect(preloadInsightsExplanation).toHaveBeenCalledTimes(1);
         expect(preloadInsightsExplanation).toHaveBeenCalledWith(jsonQuery, hashText(jsonQuery, 2 ** 32));
-        fireEvent.press(screen.getByRole('button'));
-        expect(mockAskConcierge).toHaveBeenLastCalledWith(PROMPT, {insightsScope: SCOPE}, undefined);
-
         // When a new answer arrives, then its own timestamp starts the next lifetime.
         await act(async () => {
+            resolveRefresh('Fresh answer.');
             await Onyx.set(key, {jsonQuery, response: 'Fresh answer.', createdAt: getServerAnchoredDBTime()});
             await new Promise<void>(setImmediate);
         });
@@ -173,6 +178,91 @@ describe('InsightsExplainButton', () => {
         rerender(renderButton());
         act(() => jest.advanceTimersByTime(2 * CACHE_LIFETIME_MS));
         expect(preloadInsightsExplanation).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for the in-flight preload and sends one question after an early click', async () => {
+        // Given background generation has not finished when Explain becomes visible.
+        let resolveAnswer: (answer: string) => void = () => {};
+        jest.mocked(preloadInsightsExplanation).mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveAnswer = resolve;
+            }),
+        );
+        render(renderButton());
+        await waitForBatchedUpdatesWithAct();
+
+        // When Explain is pressed twice before generation completes.
+        fireEvent.press(screen.getByRole('button'));
+        fireEvent.press(screen.getByRole('button'));
+
+        // Then it joins the original preload and waits instead of starting a live answer.
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(1);
+        expect(mockAskConcierge).not.toHaveBeenCalled();
+        await act(async () => resolveAnswer('Ready answer.'));
+        expect(mockAskConcierge).toHaveBeenCalledTimes(1);
+        expect(mockAskConcierge).toHaveBeenCalledWith(PROMPT, {insightsScope: SCOPE}, 'Ready answer.');
+    });
+
+    it('retries a failed preload once on click and falls back to a live answer', async () => {
+        // Given background generation failed without a reusable answer.
+        jest.mocked(preloadInsightsExplanation).mockResolvedValue(undefined);
+        render(renderButton());
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user clicks Explain and its one new attempt also fails.
+        fireEvent.press(screen.getByRole('button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the user keeps the live flow without an automatic retry loop.
+        expect(preloadInsightsExplanation).toHaveBeenCalledTimes(2);
+        expect(mockAskConcierge).toHaveBeenCalledWith(PROMPT, {insightsScope: SCOPE}, undefined);
+    });
+
+    it('queues the question if connectivity drops while the click waits for generation', async () => {
+        // Given a click waiting for background generation, with no question posted yet.
+        let resolveAnswer: (answer: string) => void = () => {};
+        jest.mocked(preloadInsightsExplanation).mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveAnswer = resolve;
+            }),
+        );
+        const {rerender} = render(renderButton());
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button'));
+
+        // When connectivity drops before generation returns.
+        mockIsOffline = true;
+        rerender(renderButton());
+        await waitForBatchedUpdatesWithAct();
+
+        // Then send one queued question, and ignore the old preload when it eventually finishes.
+        expect(mockAskConcierge).toHaveBeenCalledWith(PROMPT, {insightsScope: SCOPE}, undefined);
+        await act(async () => resolveAnswer('Late answer.'));
+        expect(mockAskConcierge).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['filters', 'unmount'] as const)('does not send a delayed question after %s changes', async (change) => {
+        // Given an early click is waiting for a slow answer.
+        let resolveAnswer: (answer: string) => void = () => {};
+        jest.mocked(preloadInsightsExplanation).mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveAnswer = resolve;
+            }),
+        );
+        const {rerender, unmount} = render(renderButton());
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByRole('button'));
+
+        // When that context disappears before the response arrives.
+        if (change === 'filters') {
+            rerender(renderButton({...SCOPE, policyIDs: ['ABC123']}));
+        } else {
+            unmount();
+        }
+        await act(async () => resolveAnswer('Old answer.'));
+
+        // Then no question is posted for the context the user left.
+        expect(mockAskConcierge).not.toHaveBeenCalled();
     });
 
     it.each(['filters', 'offline', 'unmount', 'unavailable'] as const)('cancels the old refresh when the context changes: %s', async (change) => {

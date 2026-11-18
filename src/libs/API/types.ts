@@ -2001,6 +2001,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     SEARCH: 'Search',
     GET_INSIGHTS: 'GetInsights',
     GET_SCIM_TOKEN: 'GetSCIMToken',
+    GET_INSIGHTS_EXPLANATION: 'GetInsightsExplanation',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
     TRANSLATE_RECEIPT: 'TranslateReceipt',
 
@@ -2038,6 +2039,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
 type SideEffectRequestCommandParameters = {
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_INSIGHTS_EXPLANATION]: Parameters.GetInsightsExplanationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SUPPORTAL_REASON]: Parameters.GetSupportalReasonParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_SUPPORT_TICKET]: Parameters.CreateSupportTicketParams;

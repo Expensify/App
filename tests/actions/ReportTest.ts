@@ -2469,7 +2469,7 @@ describe('actions/Report', () => {
         const answer = '<strong>Travel</strong> increased <em>about</em> 20%.<ul><li>Flights</li></ul><ol><li>Review</li></ol><table><tr><td>£200</td></tr></table>';
 
         // When Explain posts a question with an answer that was preloaded.
-        Report.addComment({
+        const initialReportActionID = Report.addComment({
             report,
             notifyReportID: report.reportID,
             ancestors: [],
@@ -2485,6 +2485,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         const request = PersistedRequests.getAll().find((item) => item.command === WRITE_COMMANDS.ADD_COMMENT);
         const answerID = String(request?.data?.optimisticConciergeReportActionID);
+        expect(initialReportActionID).toBe(answerID);
         const questionActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const);
         const replyActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${replyReportID}` as const);
         const question = questionActions?.[String(request?.data?.reportActionID)];

@@ -50,7 +50,7 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
+    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -182,9 +182,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
+    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string; reportActionID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID, options?.reportActionID);
     };
 
     // Because of the React Compiler we don't need to memoize it manually

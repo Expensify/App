@@ -225,6 +225,7 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
             searchKey: spec.searchKey,
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
+            ...(dashboard === CONST.INSIGHTS.DASHBOARD.SPEND && {includeExplanationContext: true}),
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),

@@ -20,34 +20,68 @@ function useInsightsExplanation(explainPrompt: string, insightsScope: InsightsSc
     const hash = hashText(jsonQuery, 2 ** 32);
     const [explanation] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION}${hash}`);
     const lastRequestedQuery = useRef<string | undefined>(undefined);
+    const pendingRequest = useRef<{jsonQuery: string; response: Promise<string | undefined>} | undefined>(undefined);
+    const pendingClick = useRef<((answer: string | undefined) => void) | undefined>(undefined);
+
+    const requestExplanation = () => {
+        if (pendingRequest.current?.jsonQuery === jsonQuery) {
+            return pendingRequest.current.response;
+        }
+        lastRequestedQuery.current = jsonQuery;
+        const response = preloadInsightsExplanation(jsonQuery, hash);
+        pendingRequest.current = {jsonQuery, response};
+        response.finally(() => {
+            if (pendingRequest.current?.response !== response) {
+                return;
+            }
+            pendingRequest.current = undefined;
+        });
+        return response;
+    };
 
     useEffect(() => {
         if (isOffline) {
             lastRequestedQuery.current = undefined;
+            // A click already waiting for generation must still reach the queued-comment flow if connectivity drops.
+            pendingClick.current?.(undefined);
+            pendingClick.current = undefined;
             return;
         }
         if (!shouldPreload || !accountID || !reportID || !explainPrompt.trim()) {
             return;
         }
-        const requestExplanation = () => {
-            lastRequestedQuery.current = jsonQuery;
-            preloadInsightsExplanation(jsonQuery, hash);
-        };
         const remainingTime = getInsightsExplanationRemainingTime(explanation, jsonQuery);
         if (remainingTime > 0) {
             // A successful answer can refresh once it expires; a failed request still falls back to the live flow.
             lastRequestedQuery.current = undefined;
-            const timeout = setTimeout(requestExplanation, remainingTime);
+            const timeout = setTimeout(() => {
+                requestExplanation();
+            }, remainingTime);
             return () => clearTimeout(timeout);
         }
         if (lastRequestedQuery.current === jsonQuery) {
             return;
         }
         requestExplanation();
-    }, [isOffline, shouldPreload, accountID, reportID, explainPrompt, jsonQuery, hash, explanation]);
+    }, [isOffline, shouldPreload, accountID, reportID, explainPrompt, jsonQuery, hash, explanation, requestExplanation]);
 
-    // Check freshness at the click as well, since the page may stay mounted longer than the cache lifetime.
-    return () => getCachedInsightsExplanation(explanation, jsonQuery);
+    // An early click joins the preload. A failed preload gets one new attempt before the caller uses the live flow.
+    return () => {
+        const cached = getCachedInsightsExplanation(explanation, jsonQuery);
+        if (cached || isOffline || !shouldPreload || !accountID || !reportID) {
+            return cached;
+        }
+        return new Promise<string | undefined>((resolve) => {
+            pendingClick.current = resolve;
+            requestExplanation().then((answer) => {
+                if (pendingClick.current !== resolve) {
+                    return;
+                }
+                pendingClick.current = undefined;
+                resolve(answer);
+            });
+        });
+    };
 }
 
 export default useInsightsExplanation;
