@@ -707,7 +707,12 @@ function removeApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}
         return;
     }
 
-    const approvers = currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex);
+    // Removing the last approver can leave the empty places of cleared approvers at the end. They're dropped, as in
+    // clearApprovalWorkflowApprover, so the editor doesn't show empty approver rows above "Additional approver".
+    const approvers = lodashDropRightWhile(
+        currentApprovalWorkflow.approvers.filter((approver, index) => index !== approverIndex),
+        (approver) => !approver,
+    );
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
         // An approver after the removed one may only have repeated them
         approvers: approvers.map(
