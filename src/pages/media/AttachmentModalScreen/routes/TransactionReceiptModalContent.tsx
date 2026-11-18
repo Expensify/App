@@ -503,7 +503,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             });
     };
 
-    const threeDotsMenuItems: ThreeDotsMenuItemFactory = ({file, source: innerSource, isLocalSource}) => {
+    const getThreeDotsMenuItems: ThreeDotsMenuItemFactory = ({file, source: innerSource, isLocalSource}) => {
         const menuItems = [];
         if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
             menuItems.push({
@@ -716,12 +716,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         originalFileName,
         report,
         headerTitle,
-        threeDotsMenuItems,
+        getThreeDotsMenuItems,
         isAuthTokenRequired,
         isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
         shouldShowNotFoundPage,
         shouldShowCarousel: false,
-        shouldShowRotateButton: false,
         pdfRotation,
         onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
         transaction,

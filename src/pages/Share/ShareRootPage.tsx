@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -184,9 +184,8 @@ function ShareRootPage() {
             testID="ShareRootPage"
         >
             <View style={[styles.flex1]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('share.shareToExpensify')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
                 />
                 {isFileReady ? (

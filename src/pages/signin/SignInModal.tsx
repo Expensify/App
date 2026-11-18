@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -71,7 +71,7 @@ function SignInModal() {
             shouldShowOfflineIndicator={false}
             testID="SignInModal"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 onBackButtonPress={() => {
                     if (!signinPageRef.current) {
                         Navigation.goBack();
