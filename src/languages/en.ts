@@ -8768,6 +8768,13 @@ const translations = {
             },
             setup: 'Connect',
             connectToSandbox: 'Connect to sandbox',
+            connectPage: {
+                title: (integrationName: string) => `Connect to ${integrationName}`,
+                importChartOfAccounts: 'Import chart of accounts',
+                importCodingFields: 'Import coding fields',
+                exportApprovedExpenses: 'Export approved expenses',
+                exportPaymentsAndSettlements: 'Export payments and settlements',
+            },
             lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             notSync: 'Not synced',
             import: 'Import',

@@ -13,7 +13,7 @@ import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
 import BaseConnectToQuickbooksOnlineFlow from './BaseConnectToQuickbooksOnlineFlow';
 
-function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: ConnectToQuickbooksOnlineFlowProps) {
+function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, isSandbox}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
@@ -21,9 +21,10 @@ function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: Conn
         <BaseConnectToQuickbooksOnlineFlow
             policyID={policyID}
             isIntuitEnterpriseSuite={isIntuitEnterpriseSuite}
-            onConnect={(isSandbox) => {
+            isSandbox={isSandbox}
+            onConnect={(shouldConnectToSandbox) => {
                 // On web the setup opens OldDot in a new browser tab.
-                openLink(getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite, isSandbox), environmentURL, false, session);
+                openLink(getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite, shouldConnectToSandbox), environmentURL, false, session);
             }}
         />
     );

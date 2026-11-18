@@ -1,3 +1,5 @@
+import type Environment from '@libs/Environment/getEnvironment/types';
+
 import CONST from '@src/CONST';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
 
@@ -17,4 +19,9 @@ function canUseVendorBillForCompanyCardExport(config?: QBOConnectionConfig): boo
     return config?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
 }
 
-export {canImportLocationsAsTags, shouldSwitchLocationsToReportFields, canUseVendorBillForCompanyCardExport};
+/** Intuit Enterprise Suite sandbox companies are only for testing, so production doesn't offer them */
+function canConnectToIntuitEnterpriseSuiteSandbox(environment: Environment): boolean {
+    return environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING;
+}
+
+export {canImportLocationsAsTags, shouldSwitchLocationsToReportFields, canUseVendorBillForCompanyCardExport, canConnectToIntuitEnterpriseSuiteSandbox};

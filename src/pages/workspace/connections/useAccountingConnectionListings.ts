@@ -11,10 +11,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate, isConnectPageConnectionName, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
-import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
+import {getAccountingIntegrationData, getActiveIntegrationToConnect, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,11 +86,11 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             showReadOnlyModal();
             return;
         }
-        startIntegrationFlow(
-            connectedIntegration
-                ? {name, isIntuitEnterpriseSuite, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true}
-                : {name, isIntuitEnterpriseSuite},
-        );
+        if (isConnectPageConnectionName(name)) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CONNECT.getRoute(policyID, name, isIntuitEnterpriseSuite));
+            return;
+        }
+        startIntegrationFlow(getActiveIntegrationToConnect({name, isIntuitEnterpriseSuite}, connectedIntegration));
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {

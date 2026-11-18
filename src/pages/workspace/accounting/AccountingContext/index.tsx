@@ -254,6 +254,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 cardFeeds,
                 cardList: cardLists,
                 isIntuitEnterpriseSuiteOverride: activeIntegration.isIntuitEnterpriseSuite,
+                isSandbox: activeIntegration.isSandbox,
             },
         )?.setupConnectionFlow;
     };

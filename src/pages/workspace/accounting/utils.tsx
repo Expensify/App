@@ -38,6 +38,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import type {ActiveIntegration} from './AccountingContext/types';
 import type {AccountingIntegration} from './types';
 
 import {isCertiniaFFAConnection} from './certinia/utils';
@@ -95,6 +96,9 @@ type GetAccountingIntegrationDataOptions = {
 
     /** Picks QBO or Intuit Enterprise Suite explicitly instead of following the existing connection */
     isIntuitEnterpriseSuiteOverride?: boolean;
+
+    /** Connects to the sandbox when true and the live account when false. When undefined, the flow asks the user. */
+    isSandbox?: boolean;
 };
 
 function getAccountingIntegrationData(
@@ -112,6 +116,7 @@ function getAccountingIntegrationData(
         cardFeeds,
         cardList,
         isIntuitEnterpriseSuiteOverride,
+        isSandbox,
     }: GetAccountingIntegrationDataOptions = {},
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -192,6 +197,7 @@ function getAccountingIntegrationData(
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
                         isIntuitEnterpriseSuite={shouldUseIntuitEnterpriseSuite}
+                        isSandbox={isSandbox}
                         key={key}
                     />
                 ),
@@ -499,6 +505,7 @@ function getAccountingIntegrationData(
                 setupConnectionFlow: (
                     <ConnectToCertiniaFlow
                         policyID={policyID}
+                        isSandbox={isSandbox}
                         key={key}
                     />
                 ),
@@ -909,7 +916,16 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
+/** Adds the replace prompt details when the workspace already has another accounting integration connected */
+function getActiveIntegrationToConnect(activeIntegration: ActiveIntegration, connectedIntegration: ConnectionName | undefined): ActiveIntegration {
+    if (!connectedIntegration) {
+        return activeIntegration;
+    }
+    return {...activeIntegration, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true};
+}
+
 export {
+    getActiveIntegrationToConnect,
     getAccountingIntegrationData,
     getCurrentAccountingIntegrationName,
     getSynchronizationErrorMessage,

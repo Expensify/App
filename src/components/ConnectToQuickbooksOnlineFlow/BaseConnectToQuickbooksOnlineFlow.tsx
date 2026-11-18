@@ -14,6 +14,7 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import {isAuthenticationError} from '@libs/actions/connections';
 
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
+import {canConnectToIntuitEnterpriseSuiteSandbox} from '@pages/workspace/accounting/qbo/utils';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -35,7 +36,7 @@ const anchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, onConnect}: BaseConnectToQuickbooksOnlineFlowProps) {
+function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, isSandbox, onConnect}: BaseConnectToQuickbooksOnlineFlowProps) {
     const {environment} = useEnvironment();
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -45,15 +46,15 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.QBO);
-    const shouldShowConnectionOptions = !!isIntuitEnterpriseSuite && (environment === CONST.ENVIRONMENT.DEV || environment === CONST.ENVIRONMENT.STAGING) && !isAuthError;
+    const shouldShowConnectionOptions = isSandbox === undefined && !!isIntuitEnterpriseSuite && canConnectToIntuitEnterpriseSuiteSandbox(environment) && !isAuthError;
     const [isConnectionOptionsPopoverOpen, setIsConnectionOptionsPopoverOpen] = useState(shouldShowConnectionOptions);
     const [connectionOptionsPopoverPosition, setConnectionOptionsPopoverPosition] = useState<AnchorPosition | null>(null);
     const didInitialize = useRef(false);
     const integrationKey = isIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : CONST.POLICY.CONNECTIONS.NAME.QBO;
     const connectionButtonRef = popoverAnchorRefs?.current?.[integrationKey];
 
-    const selectConnection = (isSandbox: boolean) => {
-        onConnect(isSandbox);
+    const selectConnection = (shouldConnectToSandbox: boolean) => {
+        onConnect(shouldConnectToSandbox);
         setIsConnectionOptionsPopoverOpen(false);
     };
 
@@ -67,9 +68,9 @@ function BaseConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite, o
         enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {});
         // Reconnect starts from the overflow menu, so there is no connection button to anchor this popover to.
         if (!shouldShowConnectionOptions) {
-            onConnect(false);
+            onConnect(!!isSandbox);
         }
-    }, [onConnect, policyID, shouldShowConnectionOptions, isVendorMatchingBetaEnabled]);
+    }, [onConnect, policyID, shouldShowConnectionOptions, isVendorMatchingBetaEnabled, isSandbox]);
 
     useLayoutEffect(() => {
         if (!isConnectionOptionsPopoverOpen) {

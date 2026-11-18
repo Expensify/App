@@ -6774,6 +6774,23 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        connectionOrbitRing: {
+            position: 'absolute',
+            top: variables.connectionOrbitBadgeSize / 2,
+            left: variables.connectionOrbitBadgeSize / 2,
+        },
+
+        // Badges start at the ring's center and are moved onto the ring by the animation
+        connectionOrbitBadge: {
+            position: 'absolute',
+            top: variables.connectionOrbitDiameter / 2,
+            left: variables.connectionOrbitDiameter / 2,
+            width: variables.connectionOrbitBadgeSize,
+            height: variables.connectionOrbitBadgeSize,
+            borderRadius: variables.connectionOrbitBadgeSize / 2,
+            overflow: 'hidden',
+        },
+
         importColumnCard: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,

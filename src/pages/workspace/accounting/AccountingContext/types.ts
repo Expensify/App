@@ -6,6 +6,9 @@ import type {View} from 'react-native';
 type ActiveIntegration = {
     name: ConnectionName;
     isIntuitEnterpriseSuite?: boolean;
+
+    /** Set when the user picked the sandbox or the live account before the flow started */
+    isSandbox?: boolean;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: ConnectionName;
 };

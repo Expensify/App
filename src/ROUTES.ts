@@ -4942,6 +4942,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_CONNECT: {
+        route: 'workspaces/:policyID/accounting/connect/:connectionName',
+        getRoute: (policyID: string | undefined, connectionName: ConnectionName, isIntuitEnterpriseSuite = false) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CONNECT route');
+            }
+            return `workspaces/${policyID}/accounting/connect/${connectionName}${isIntuitEnterpriseSuite ? '?isIntuitEnterpriseSuite=true' : ''}` as const;
+        },
+    },
     POLICY_ACCOUNTING_CLAIM_OFFER: {
         route: 'workspaces/:policyID/accounting/claim-offer/:integration',
         getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
