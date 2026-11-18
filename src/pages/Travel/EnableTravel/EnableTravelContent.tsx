@@ -26,6 +26,7 @@ import {View} from 'react-native';
 import type {EnableTravelSubPageProps} from './types';
 
 import DomainSelectorStep from './subPages/DomainSelectorStep';
+import FlagOffPlatformTravelStep from './subPages/FlagOffPlatformTravelStep';
 import LegalNameStep from './subPages/LegalNameStep';
 import TaxIDStep from './subPages/TaxIDStep';
 import TermsStep from './subPages/TermsStep';
@@ -36,6 +37,7 @@ const STEP_COMPONENT_BY_PAGE_NAME: Record<string, typeof LegalNameStep> = {
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.DOMAIN_SELECTOR]: DomainSelectorStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.WORKSPACE_ADDRESS]: WorkspaceAddressStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID]: TaxIDStep,
+    [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.FLAG_OFF_PLATFORM_TRAVEL]: FlagOffPlatformTravelStep,
     [CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS]: TermsStep,
 };
 
@@ -122,6 +124,10 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         }
         if (needsTaxID) {
             nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.LEGAL_ENTITY_TAX_ID);
+        }
+        // Flagging is set up as the workspace's travel is provisioned, so a workspace that already has travel skips the question
+        if (!isProvisioned) {
+            nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.FLAG_OFF_PLATFORM_TRAVEL);
         }
         nextEnabledStepNames.push(CONST.TRAVEL.ENABLE_FLOW.PAGE_NAME.TERMS);
         return nextEnabledStepNames;

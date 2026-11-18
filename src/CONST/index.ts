@@ -10410,6 +10410,7 @@ const CONST = {
                 DOMAIN_SELECTOR: 'domain-selector',
                 WORKSPACE_ADDRESS: 'workspace-address',
                 LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                FLAG_OFF_PLATFORM_TRAVEL: 'flag-off-platform-travel',
                 TERMS: 'terms',
             },
         },
