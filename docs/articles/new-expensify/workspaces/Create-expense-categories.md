@@ -96,13 +96,18 @@ Bulk actions are available using the checkboxes and **Selected** menu.
 
 ## How to control which categories a member can use
 
-On the Control plan, workspace admins can restrict each member to a selection of enabled categories. Members without restrictions can use every enabled category. Nothing changes until an admin sets a restriction.
+On the Control plan, workspace admins can use **Category visibility** to limit which enabled categories individual members can use for their expenses. By default, all enabled categories are available to every member.
 
-Configure **Category visibility** from the member’s details under **Workspaces > [workspace name] > Members**. [Learn how to set a member’s Category visibility](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#how-to-set-a-members-category-visibility).
+[Learn how to set a member's Category visibility](/articles/new-expensify/workspaces/Manage-Workspace-Members-and-Access#how-to-set-a-members-category-visibility).
 
-Disabling a category removes it from everyone’s available choices. Category visibility narrows access for individual members without disabling the category for the workspace. Newly added categories, including categories imported from an accounting integration, are available to everyone by default.
+Category visibility works differently from disabling a category:
 
-Restrictions apply to members’ own expenses, including admins’ own expenses. Admins and approvers retain the full enabled category list when editing someone else’s expense.
+- **Disabled categories** are unavailable to everyone in the workspace.
+- **Category visibility restrictions** limit which enabled categories an individual member can use without affecting other members.
+
+New categories, including those imported from an accounting integration, are available to all members by default.
+
+Category visibility restrictions apply to members' own expenses, including those of workspace admins. However, admins and approvers can still access all enabled categories when editing another member's expense.
 
 ---
 
