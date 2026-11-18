@@ -3,6 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput/index.native';
 import type * as WebScrollToFocusedInputModule from '@components/SelectionList/hooks/useScrollToFocusedInput/index.ts';
 
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
@@ -32,7 +34,7 @@ describe('useScrollToFocusedInput (native)', () => {
             );
             result.current.containerRef.current = createMock<ComponentRef<typeof View>>(createViewAt(LIST_TOP, LIST_HEIGHT + 200));
             act(() => result.current.trackScrollOffset(createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {y: SCROLL_OFFSET}}})));
-            return {scrollToOffset, scrollToReveal: result.current.scrollToReveal};
+            return {scrollToOffset, scrollToReveal: result.current.scrollToReveal, scrollInputIntoView: result.current.scrollInputIntoView};
         }
 
         it('brings up a view that sits below the list until its bottom is in view', () => {
@@ -54,6 +56,21 @@ describe('useScrollToFocusedInput (native)', () => {
             scrollToReveal(createViewAt(300, 60));
 
             // Then the list doesn't move, so a visible error never makes the form jump
+            expect(scrollToOffset).not.toHaveBeenCalled();
+        });
+
+        it('cancels a focused input scroll that is still waiting, so the revealed view stays in sight', () => {
+            // Given an input focused a moment ago, whose own scroll is still waiting for a keyboard that may never show, as with a hardware keyboard
+            jest.useFakeTimers();
+            const {scrollToOffset, scrollToReveal, scrollInputIntoView} = renderScrolledList();
+            scrollInputIntoView(createViewAt(560, 60));
+
+            // When a field already in sight is revealed before that wait ends
+            scrollToReveal(createViewAt(300, 60));
+            jest.advanceTimersByTime(CONST.MAX_TRANSITION_DURATION_MS);
+            jest.useRealTimers();
+
+            // Then the focused input's scroll never runs, so it can't move the revealed field out of view
             expect(scrollToOffset).not.toHaveBeenCalled();
         });
     });

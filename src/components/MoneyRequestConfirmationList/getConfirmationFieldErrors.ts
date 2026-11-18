@@ -130,6 +130,10 @@ function getMerchantFieldError(transaction: OnyxEntry<OnyxTypes.Transaction>, pa
 
 /** Returns the error each inline field of the confirmation would show right now, keyed by field. Empty when nothing blocks. */
 function getConfirmationFieldErrors(transaction: OnyxEntry<OnyxTypes.Transaction>, params: GetConfirmationFieldErrorsParams): ConfirmationFieldErrors {
+    // The pager can render once without a receipt while one is removed, and an absent receipt has no fields to flag.
+    if (!transaction) {
+        return NO_FIELD_ERRORS;
+    }
     const {shouldShowDate, isReadOnly, canEnterScanFieldsManually, isPolicyExpenseChat} = params;
     const amount = getAmountFieldError(transaction, params);
     const date = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually, isPolicyExpenseChat) ? 'common.error.fieldRequired' : undefined;
@@ -148,7 +152,7 @@ function getConfirmationFieldErrors(transaction: OnyxEntry<OnyxTypes.Transaction
 
 /** Checks emptiness by content, so it gives the same answer whether or not the map is the shared `NO_FIELD_ERRORS` */
 function hasFieldErrors(fieldErrors: ConfirmationFieldErrors): boolean {
-    return Object.keys(fieldErrors).length > 0;
+    return Object.values(fieldErrors).some(Boolean);
 }
 
 /** Returns the first other receipt of a multi-scan with a field error, since Create submits every receipt at once. */

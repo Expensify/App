@@ -1,5 +1,5 @@
 import type {GetConfirmationFieldErrorsParams} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
-import getConfirmationFieldErrors, {getSiblingFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
+import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors, NO_FIELD_ERRORS} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -71,6 +71,15 @@ describe('getConfirmationFieldErrors', () => {
         const fieldErrors = getConfirmationFieldErrors(createManualTransaction(), baseParams);
 
         // Then nothing is reported, and the shared empty map comes back so the footer's error state keeps its identity
+        expect(fieldErrors).toBe(NO_FIELD_ERRORS);
+    });
+
+    it('flags nothing while no receipt is rendered', () => {
+        // Given the render where the receipt on screen was just removed and the next one isn't loaded yet
+        // When its field errors are computed
+        const fieldErrors = getConfirmationFieldErrors(undefined, baseParams);
+
+        // Then no field is flagged, since an error then would belong to no receipt
         expect(fieldErrors).toBe(NO_FIELD_ERRORS);
     });
 
@@ -259,5 +268,18 @@ describe('getSiblingFieldErrors', () => {
         // When the other receipts are checked
         // Then the first one with an error is the one to bring on screen
         expect(getSiblingFieldErrors([valid, firstInvalid, secondInvalid], siblingParams)?.transactionID).toBe('txn3');
+    });
+});
+
+describe('hasFieldErrors', () => {
+    it.each([
+        ['an empty map', {}, false],
+        ['a map whose only entry has no error', {merchant: undefined}, false],
+        ['a map with an error', {merchant: 'iou.error.invalidMerchant'}, true],
+    ] as const)('reports %s by its content', (_case, fieldErrors, expected) => {
+        // Given a field-error map
+        // When it is checked for errors
+        // Then only an entry that holds an error counts, so a confirm is never blocked without a field to show it on
+        expect(hasFieldErrors(fieldErrors)).toBe(expected);
     });
 });

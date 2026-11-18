@@ -110,6 +110,8 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
     };
 
     const scrollToReveal = (view: MeasurableInput) => {
+        // A focused input's scroll that is still waiting would run afterwards and could move the revealed view back out of sight.
+        cleanup();
         const list = listRef.current;
         // The container also holds the footer below the list, so only the scroll view's own frame is the visible area.
         const scroller = list?.getNativeScrollRef();
