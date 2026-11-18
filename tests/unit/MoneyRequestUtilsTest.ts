@@ -680,6 +680,19 @@ describe('hasMoneyRequestDraftUserEdits', () => {
         expect(hasMoneyRequestDraftUserEdits(photoDraft)).toBe(true);
         expect(hasMoneyRequestDraftUserEdits(emptyDraft)).toBe(false);
     });
+
+    it('treats odometer readings that match the draft saved for later as clean', () => {
+        // Given an odometer draft holding the readings of a trip the user saved for later and reopened
+        const draft = buildDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, comment: {odometerStart: 10, odometerEnd: 20}});
+
+        // When the same readings were saved for later
+        // Then nothing is lost, since they're kept after the flow closes, so it's clean
+        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 20}})).toBe(false);
+
+        // When the user changed a reading after it was saved
+        // Then it's dirty again
+        expect(hasMoneyRequestDraftUserEdits(draft, {savedOdometerDraft: {odometerStartReading: 10, odometerEndReading: 25}})).toBe(true);
+    });
 });
 
 describe('haveMoneyRequestDraftsUserEdits', () => {
