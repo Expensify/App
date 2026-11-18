@@ -50,6 +50,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -414,6 +415,9 @@ type ContextMenuActionPayload = {
     rules: OnyxCollection<Rule>;
     reportIDToName: Record<string, string>;
     accountIDToName: Record<string, string>;
+
+    /** Whether the action is shown at the top of its own thread, where some messages show more detail */
+    isThreadReportParentAction?: boolean;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
@@ -1147,6 +1151,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 rules,
                 reportIDToName,
                 accountIDToName,
+                isThreadReportParentAction,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -1232,7 +1237,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
                     Clipboard.setString(getWorkspaceFrequencyUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName && isCategoryModificationAction(reportAction.actionName)) {
-                    Clipboard.setString(getWorkspaceCategoryUpdateMessage(translate, reportAction));
+                    Clipboard.setString(getWorkspaceCategoryUpdateMessage(translate, reportAction, policy, isThreadReportParentAction, personalDetails));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES) {
                     Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
@@ -1475,6 +1480,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getCompanyCardConnectionBrokenMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
                     setClipboardMessage(getCompanyCardConnectionBroken30DaysMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+                    setClipboardMessage(getCompanyCardConsentExpiringMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
                     setClipboardMessage(getCardConnectionBrokenMessage(undefined, getOriginalMessage(reportAction)?.cardName, translate, false));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {

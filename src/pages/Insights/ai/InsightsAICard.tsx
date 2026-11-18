@@ -1,5 +1,7 @@
+import Button from '@components/Button';
 import Text from '@components/Text';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
@@ -19,6 +21,7 @@ type InsightsAICardProps = {
 
 function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
@@ -42,7 +45,9 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
             <InsightsExplainButton
                 explainPrompt={insight.explainPrompt}
                 insightsScope={insightsScope}
-            />
+            >
+                <Button.Text style={[styles.textMicroBold, styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
+            </InsightsExplainButton>
         </View>
     );
 }

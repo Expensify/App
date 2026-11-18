@@ -126,6 +126,7 @@ const renderBookTravelButton = (shouldShowVerifyAccountModal = true) =>
                     text="Book a trip"
                     activePolicyID={POLICY_ID}
                     shouldShowVerifyAccountModal={shouldShowVerifyAccountModal}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </ComposeProviders>
         </NavigationContainer>,
