@@ -150,7 +150,8 @@ function InsightsChartWidget({
     const stackStages: NonEmptyTuple<ChartStackStage> | undefined = firstStackStage ? [firstStackStage, ...otherStackStages] : undefined;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
-    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    // Only line charts plot a running total
+    const canRunningTotal = view === CONST.SEARCH.VIEW.LINE && isRunningTotalAvailable(filters.date);
     const shouldShowRunningTotal = isShowingRunningTotal(filters) && view === CONST.SEARCH.VIEW.LINE;
     const today = getInsightsLastDay(asOfDate);
     const trackedFrom = getTrackedFrom(snapshot);
@@ -195,6 +196,7 @@ function InsightsChartWidget({
                 groupBy={getShownGroupBy(filters)}
                 options={groupByOptions}
                 defaultGroupBy={DEFAULT_INSIGHTS_FILTERS[dashboardID].groupBy}
+                shouldShowRunningTotalOption={canRunningTotal}
                 onChange={onGroupByChange}
             />
         ) : null;

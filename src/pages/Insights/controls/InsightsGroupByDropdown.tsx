@@ -36,16 +36,19 @@ type InsightsGroupByDropdownProps = {
     /** Grouping the dashboard starts from, which Reset returns to */
     defaultGroupBy: GroupByValue;
 
+    /** Whether Running total is offered, which it isn't for charts that can't plot it */
+    shouldShowRunningTotalOption: boolean;
+
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: InsightsGroupByDropdownProps) {
+function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, shouldShowRunningTotalOption, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const label = translate('search.display.groupBy');
     const runningTotalText = translate('insightsPage.runningTotal');
-    const isRunningTotal = groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY;
+    const isRunningTotal = shouldShowRunningTotalOption && groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY;
     // The stored bucket may no longer fit the date range, so the pill and radio follow the one it fits to.
     const fittedGroupBy = getFittingGroupBy(groupBy, options);
     const selectedValue: GroupByValue = isRunningTotal ? INSIGHTS_RUNNING_TOTAL_GROUP_BY : fittedGroupBy;
@@ -57,6 +60,7 @@ function InsightsGroupByDropdown({groupBy, options, defaultGroupBy, onChange}: I
             runningTotalText={runningTotalText}
             selectedValue={selectedValue}
             defaultGroupBy={defaultGroupBy}
+            shouldShowRunningTotalOption={shouldShowRunningTotalOption}
             label={label}
             closeOverlay={closeOverlay}
             onChange={onChange}
@@ -84,12 +88,13 @@ type InsightsGroupByPopupProps = {
     runningTotalText: string;
     selectedValue: GroupByValue;
     defaultGroupBy: GroupByValue;
+    shouldShowRunningTotalOption: boolean;
     label: string;
     closeOverlay: () => void;
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsGroupByPopup({options, runningTotalText, selectedValue, defaultGroupBy, label, closeOverlay, onChange}: InsightsGroupByPopupProps) {
+function InsightsGroupByPopup({options, runningTotalText, selectedValue, defaultGroupBy, shouldShowRunningTotalOption, label, closeOverlay, onChange}: InsightsGroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selected, setSelected] = useState<GroupByValue>(selectedValue);
@@ -99,18 +104,20 @@ function InsightsGroupByPopup({options, runningTotalText, selectedValue, default
         keyForList: option,
         isSelected: option === selected,
     }));
-    const runningTotalItems: Array<ListItem<GroupByValue>> = [
-        {text: runningTotalText, keyForList: INSIGHTS_RUNNING_TOTAL_GROUP_BY, isSelected: selected === INSIGHTS_RUNNING_TOTAL_GROUP_BY},
-    ];
+    const runningTotalItems: Array<ListItem<GroupByValue>> = shouldShowRunningTotalOption
+        ? [{text: runningTotalText, keyForList: INSIGHTS_RUNNING_TOTAL_GROUP_BY, isSelected: selected === INSIGHTS_RUNNING_TOTAL_GROUP_BY}]
+        : [];
 
     // A divider sits above the Running total section, the same way the generic Group by menu separates its sections.
-    const sections = [groupByItems, runningTotalItems].map((data, index) => ({
-        sectionIndex: index,
-        ...(index > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
-        data,
-    }));
+    const sections = [groupByItems, runningTotalItems]
+        .filter((data) => data.length > 0)
+        .map((data, index) => ({
+            sectionIndex: index,
+            ...(index > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
+            data,
+        }));
 
-    const itemCount = groupByItems.length + runningTotalItems.length + 1;
+    const itemCount = groupByItems.length + (runningTotalItems.length > 0 ? runningTotalItems.length + 1 : 0);
 
     const updateSelectedItem = (item: ListItem<GroupByValue>) => {
         setSelected(item.keyForList);
