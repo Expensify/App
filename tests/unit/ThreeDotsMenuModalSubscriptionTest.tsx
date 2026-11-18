@@ -61,6 +61,7 @@ describe('ThreeDotsMenu modal subscription', () => {
                     testID="three-dots-menu"
                     anchorAlignment={anchorAlignment}
                     menuItems={menuItems}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 />
             </Profiler>,
         );

@@ -140,6 +140,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
     const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
