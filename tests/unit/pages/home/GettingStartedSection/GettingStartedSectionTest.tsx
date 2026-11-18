@@ -118,6 +118,29 @@ async function setManageTeamUserState(overrides?: {
     await waitForBatchedUpdates();
 }
 
+/** A new user who signed up through a workspace invite and is a plain member of a workspace someone else owns. */
+async function setWorkspaceInviteeState(overrides?: {
+    choice?: typeof CONST.ONBOARDING_CHOICES.SUBMIT;
+    inviteType?: typeof CONST.ONBOARDING_INVITE_TYPES.WORKSPACE | null;
+    role?: Policy['role'];
+}) {
+    await Onyx.set(ONYXKEYS.SESSION, {accountID: 5});
+    await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+        choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+        inviteType: overrides?.inviteType === null ? undefined : CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
+    });
+    await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
+    await Onyx.set(
+        `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`,
+        createMock<Policy>({id: TEST_POLICY_ID, name: 'Test Workspace', type: CONST.POLICY.TYPE.TEAM, role: overrides?.role ?? CONST.POLICY.ROLE.USER, ownerAccountID: 6}),
+    );
+    await Onyx.set(
+        `${ONYXKEYS.COLLECTION.POLICY}personal`,
+        createMock<Policy>({id: 'personal', type: CONST.POLICY.TYPE.PERSONAL, ownerAccountID: 5, created: new Date().toISOString().replace('T', ' ').replace('Z', '')}),
+    );
+    await waitForBatchedUpdates();
+}
+
 describe('GettingStartedSection', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -525,6 +548,19 @@ describe('GettingStartedSection', () => {
             expect(screen.queryByText('homePage.gettingStartedSection.talkToAccountExecutive')).toBeNull();
         });
 
+        it('hides the help footer for a member who joined through a workspace invite', async () => {
+            // Given a new invitee, who is not in the #admins room the footer link opens
+            await setWorkspaceInviteeState();
+
+            // When the section renders
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            // Then the employee steps show without the dead help link
+            expect(screen.getByText('homePage.gettingStartedSection.addName')).toBeTruthy();
+            expect(screen.queryByText('homePage.gettingStartedSection.talkToConcierge')).toBeNull();
+        });
+
         it('opens the #admins room in the RHP when the footer link is pressed on wide layout', async () => {
             await setManageTeamUserState();
             await setAdminsRoom();
@@ -560,6 +596,47 @@ describe('GettingStartedSection', () => {
             const setupRulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(setupRulesItem).toBeDefined();
             expect(setupRulesItem?.isComplete).toBe(true);
+        });
+    });
+
+    describe('workspace invitee', () => {
+        it('renders the three employee steps in order', async () => {
+            // Given a new invitee
+            await setWorkspaceInviteeState();
+
+            // When the section renders
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            // Then "Add your name", "Add your first receipt" and "Download the app" show in that order
+            const rowTitles = screen
+                .getAllByText(/homePage\.gettingStartedSection\.(addName|addFirstReceipt|downloadApp)$/)
+                .map((element) => (typeof element.props.children === 'string' ? element.props.children : ''));
+            expect(rowTitles).toEqual(['homePage.gettingStartedSection.addName', 'homePage.gettingStartedSection.addFirstReceipt', 'homePage.gettingStartedSection.downloadApp']);
+        });
+
+        it('does not render the employee steps for a SUBMIT user without a workspace invite', async () => {
+            // Given a SUBMIT user who was not invited to a workspace, so the invitee list is never mounted
+            await setWorkspaceInviteeState({inviteType: null});
+
+            // When the section renders
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            // Then no employee steps show
+            expect(screen.queryByText('homePage.gettingStartedSection.addName')).toBeNull();
+        });
+
+        it('does not render the employee steps for an invitee who became a workspace admin', async () => {
+            // Given an invitee who was made an admin, so the intent-based list applies instead
+            await setWorkspaceInviteeState({role: CONST.POLICY.ROLE.ADMIN});
+
+            // When the section renders
+            renderGettingStartedSection();
+            await waitForBatchedUpdates();
+
+            // Then no employee steps show
+            expect(screen.queryByText('homePage.gettingStartedSection.addName')).toBeNull();
         });
     });
 

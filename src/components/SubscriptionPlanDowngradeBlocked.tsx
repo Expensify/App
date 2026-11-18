@@ -39,6 +39,7 @@ function SubscriptionPlanDowngradeBlocked({privateSubscription, formattedSubscri
             )}
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.SUBSCRIPTION_PLAN_DOWNGRADE_BLOCKED.CLOSE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={onClosePress}

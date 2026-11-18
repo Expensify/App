@@ -194,6 +194,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                         illustration={illustrations.ShareBank}
                         descriptionStyle={[styles.ph4, styles.textSupporting]}
                         illustrationStyle={styles.successBankSharedCardIllustration}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.SHARE_BANK_ACCOUNT_SUCCESS_CONFIRM}
                         onButtonPress={onButtonPress}
                         buttonText={translate('common.buttonConfirm')}
                     />
@@ -226,6 +227,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                         onSelectRow={toggleOption}
                         footerContent={
                             <FormAlertWithSubmitButton
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.SHARE_BANK_ACCOUNT}
                                 isLoading={isLoading}
                                 message={translate('walletPage.shareBankAccountNoAdminsSelected')}
                                 isAlertVisible={isAlertVisible}

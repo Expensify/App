@@ -132,7 +132,13 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             return (
                 <Text>
                     {prompt}
-                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.FILES_VALIDATION.SUPPORTED_FILES_LINK}
+                        href={CONST.BULK_UPLOAD_HELP_URL}
+                    >
+                        {' '}
+                        {translate('attachmentPicker.learnMoreAboutSupportedFiles')}
+                    </TextLink>
                 </Text>
             );
         }

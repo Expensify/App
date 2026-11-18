@@ -79,11 +79,10 @@ const useRevealedPhysicalCardPin = physicalCardPinStore.useValue;
 
 const setRevealedVirtualCardDetails = virtualCardDetailsStore.set;
 const clearRevealedVirtualCardDetails = virtualCardDetailsStore.clear;
-const useRevealedVirtualCardDetails = virtualCardDetailsStore.useValue;
 /**
  * Returns the entire revealed-virtual-card-details map. Use when you need to
  * look up by a cardID inside a render callback (e.g. inside a `.map()` over
- * virtual cards) where calling {@link useRevealedVirtualCardDetails} would
+ * virtual cards) where calling a per-card hook would
  * violate the Rules of Hooks.
  */
 const useAllRevealedVirtualCardDetails = virtualCardDetailsStore.useAll;
@@ -102,7 +101,6 @@ export {
     useRevealedPhysicalCardPin,
     setRevealedVirtualCardDetails,
     clearRevealedVirtualCardDetails,
-    useRevealedVirtualCardDetails,
     useAllRevealedVirtualCardDetails,
     setVirtualCardDetailsLoading,
     clearVirtualCardDetailsLoading,

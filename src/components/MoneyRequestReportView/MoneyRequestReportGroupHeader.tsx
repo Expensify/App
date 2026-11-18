@@ -101,6 +101,7 @@ function MoneyRequestReportGroupHeader({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {shouldShowCheckbox && (
                         <Checkbox
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.GROUP_HEADER_CHECKBOX}
                             isChecked={isSelected}
                             isIndeterminate={isIndeterminate}
                             disabled={isDisabled}

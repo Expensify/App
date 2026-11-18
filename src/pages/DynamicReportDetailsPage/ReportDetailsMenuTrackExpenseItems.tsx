@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -37,6 +38,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const {isRestrictedPolicyCreation, showRestrictedPolicyCreationModal} = useRestrictedPolicyCreationModal();
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Folder', 'UserPlus']);
@@ -88,6 +90,8 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             amountOwed,
             ownerBillingGracePeriodEnd,
             restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+            isRestrictedPolicyCreation,
+            showRestrictedPolicyCreationModal,
             transaction: iouTransaction,
             currentUserAccountID,
             currentUserEmail: currentUserEmail ?? '',
@@ -106,6 +110,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                 nor for a user restricted to one workspace. */}
                 {!isSelfDMExpenseSplit && !isRestrictedToPreferredPolicy && !isPerDiemRequest(iouTransaction) && !isTimeRequest(iouTransaction) && (
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SUBMIT_TO_FRIEND}
                         title={translate('actionableMentionTrackExpense.submitToFriend')}
                         icon={expensifyIcons.Send}
                         onPress={() => {
@@ -119,6 +124,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                     />
                 )}
                 <MenuItemNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SUBMIT_TO_EMPLOYER}
                     title={translate('actionableMentionTrackExpense.submitToEmployer')}
                     icon={expensifyIcons.Send}
                     onPress={() => {
@@ -140,6 +146,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
             {Permissions.canUseTrackFlows() && (
                 <>
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_CATEGORIZE}
                         title={translate('actionableMentionTrackExpense.categorize')}
                         icon={expensifyIcons.Folder}
                         onPress={() => {
@@ -164,6 +171,7 @@ function ReportDetailsMenuTrackExpenseItems({reportID, requestData}: ReportDetai
                         }}
                     />
                     <MenuItemNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.TRACK_EXPENSE_SHARE}
                         title={translate('actionableMentionTrackExpense.share')}
                         icon={expensifyIcons.UserPlus}
                         onPress={() => {
