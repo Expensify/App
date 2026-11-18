@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 
@@ -96,7 +96,7 @@ function WorkspaceCreateTaxPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
-                        <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
+                        <HeaderWithBackButtonAndTitle title={translate('workspace.taxes.addRate')} />
                         <FormProvider
                             style={[styles.flexGrow1, styles.mh5]}
                             formID={ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM}

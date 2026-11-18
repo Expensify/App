@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -95,10 +95,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             shouldEnableMaxHeight
             testID="WorkspaceTravelBillingMonthlyLimitPage"
         >
-            <HeaderWithBackButton
-                title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')} />
             <FormProvider
                 style={[styles.flexGrow1, styles.mh5]}
                 formID={ONYXKEYS.FORMS.EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM}
