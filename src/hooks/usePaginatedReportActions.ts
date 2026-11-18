@@ -1,13 +1,15 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getContinuousChain} from '@libs/PaginationUtils';
-import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getSortedReportActionsForDisplay, isReportActionFromCurrentUser} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {accountIDSelector} from '@selectors/Session';
 import {useState} from 'react';
 
 import useInitial from './useInitial';
@@ -40,6 +42,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
+    const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const getSortedAllReportActionsSelector = (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
         return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true, undefined, nonEmptyStringReportID);
@@ -75,7 +78,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return undefined;
         }
 
-        return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
+        // The user's own messages are never unread.
+        return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime && !isReportActionFromCurrentUser(reportAction, currentUserAccountID))
+            ?.reportActionID;
     };
     const id = getPaginationAnchorID();
 
