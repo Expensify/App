@@ -4110,6 +4110,7 @@ describe('actions/Duplicate', () => {
             // When they are duplicated in one bulk action
             bulkDuplicateExpenses({
                 isVendorMatchingBetaEnabled: false,
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 conciergeChat: undefined,
                 transactionIDs: distanceTransactionIDs,
                 allTransactions,
