@@ -26,7 +26,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type FlagOffPlatformTravelBannerProps = {
-    /** The workspace whose Travel page shows the banner */
     policyID: string;
 };
 
