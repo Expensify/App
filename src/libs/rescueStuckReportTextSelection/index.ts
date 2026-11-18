@@ -16,6 +16,10 @@ let primaryPointerDown = false;
 let selectionAnchor: TextPoint | null = null;
 let didTakeOverSelection = false;
 
+function isTextNode(node: Node | null | undefined): node is Text {
+    return !!node && node.nodeType === Node.TEXT_NODE;
+}
+
 function getCaretRange(x: number, y: number): Range | null {
     const caretPositionFromPoint = (document as Document & {caretPositionFromPoint?: CaretPositionFromPoint}).caretPositionFromPoint;
     if (typeof caretPositionFromPoint !== 'function') {
@@ -36,7 +40,7 @@ function getCaretRange(x: number, y: number): Range | null {
 function getReportTextPoint(x: number, y: number): TextPoint | null {
     const range = getCaretRange(x, y);
     const node = range?.startContainer;
-    if (!node || node.nodeType !== Node.TEXT_NODE) {
+    if (!isTextNode(node)) {
         return null;
     }
 
@@ -48,7 +52,7 @@ function getReportTextPoint(x: number, y: number): TextPoint | null {
         return null;
     }
 
-    return {node: node as Text, offset: range?.startOffset ?? 0};
+    return {node, offset: range?.startOffset ?? 0};
 }
 
 function onMouseDown(event: MouseEvent) {
@@ -78,7 +82,7 @@ function onMouseMove(event: MouseEvent) {
     }
 
     const anchorNode = selection.anchorNode;
-    const anchorIsLiveText = !!anchorNode && anchorNode.nodeType === Node.TEXT_NODE && document.contains(anchorNode);
+    const anchorIsLiveText = isTextNode(anchorNode) && document.contains(anchorNode);
     // Chrome anchors a cross-pane drag on an empty element. A live text anchor means the browser is already selecting, including a still-collapsed caret at the start of an in-pane drag.
     const isSelectionStuck = !anchorIsLiveText;
 
@@ -87,8 +91,8 @@ function onMouseMove(event: MouseEvent) {
     }
 
     if (!isSelectionStuck && !didTakeOverSelection) {
-        if (anchorIsLiveText && anchorNode) {
-            selectionAnchor = {node: anchorNode as Text, offset: selection.anchorOffset};
+        if (isTextNode(anchorNode)) {
+            selectionAnchor = {node: anchorNode, offset: selection.anchorOffset};
         }
         return;
     }
@@ -110,7 +114,7 @@ function onMouseUp() {
     didTakeOverSelection = false;
 }
 
-function installRescueStuckReportTextSelection(): () => void {
+export default function installRescueStuckReportTextSelection(): () => void {
     document.addEventListener('mousedown', onMouseDown, true);
     document.addEventListener('mousemove', onMouseMove, true);
     document.addEventListener('mouseup', onMouseUp, true);
@@ -122,9 +126,3 @@ function installRescueStuckReportTextSelection(): () => void {
         onMouseUp();
     };
 }
-
-function isPrimaryPointerDown(): boolean {
-    return primaryPointerDown;
-}
-
-export {installRescueStuckReportTextSelection, isPrimaryPointerDown};

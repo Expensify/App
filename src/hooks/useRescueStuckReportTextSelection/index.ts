@@ -1,4 +1,4 @@
-import {installRescueStuckReportTextSelection} from '@libs/rescueStuckReportTextSelection';
+import installRescueStuckReportTextSelection from '@libs/rescueStuckReportTextSelection';
 
 import {useEffect} from 'react';
 

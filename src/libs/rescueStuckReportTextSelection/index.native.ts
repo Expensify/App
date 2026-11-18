@@ -1,9 +1,3 @@
-function installRescueStuckReportTextSelection(): () => void {
+export default function installRescueStuckReportTextSelection(): () => void {
     return () => {};
 }
-
-function isPrimaryPointerDown(): boolean {
-    return false;
-}
-
-export {installRescueStuckReportTextSelection, isPrimaryPointerDown};
