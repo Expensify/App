@@ -25,7 +25,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isSafari} from '@libs/Browser';
-import castToSentryLabel from '@libs/castToSentryLabel';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 
@@ -602,8 +601,12 @@ function BasePopoverMenu({
             sentryLabel,
             onPress,
             onSecondaryInteraction,
+            interactive,
             ...menuItemProps
         } = item;
+        // Only an interactive item handles presses, and its type requires a label. Its own onPress wins over selecting it.
+        const pressProps =
+            interactive === false ? {} : {sentryLabel, onPress: onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event)), onSecondaryInteraction};
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
 
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
@@ -653,10 +656,8 @@ function BasePopoverMenu({
                         role={CONST.ROLE.BUTTON}
                         // Spread other props dynamically
                         {...menuItemProps}
-                        // The item's own onPress wins over selecting the item.
-                        sentryLabel={castToSentryLabel(sentryLabel)}
-                        onPress={onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event))}
-                        onSecondaryInteraction={onSecondaryInteraction}
+                        interactive={interactive}
+                        {...pressProps}
                         shouldShowRadioButton={isRadioButtonMode}
                         hasSubMenuItems={!!subMenuItems?.length}
                         shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
