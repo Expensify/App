@@ -305,7 +305,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                         selectedKeys={selectedVendorKeys}
                         onRowSelectionChange={setSelectedVendorKeys}
                         headerComponent={headerContent}
-                        bulkActionOptions={canWriteVendors ? vendorBulkActionOptions : undefined}
+                        bulkActionOptions={canWriteVendors && vendorBulkActionOptions.length > 0 ? vendorBulkActionOptions : undefined}
                     />
                 )}
             </ScreenWrapper>
