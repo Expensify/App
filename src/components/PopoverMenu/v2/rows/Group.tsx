@@ -20,4 +20,3 @@ function Group({children}: GroupProps): React.ReactElement {
 Group.displayName = 'PopoverMenu.Group';
 
 export default Group;
-export type {GroupProps};

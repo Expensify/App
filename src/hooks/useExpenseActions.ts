@@ -23,7 +23,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     isDM,
-    isExpenseReport,
     isSelfDM,
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
@@ -75,11 +74,11 @@ import useOnyx from './useOnyx';
 import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
-import useSingleExpenseReportView from './useSingleExpenseReportView';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
@@ -110,6 +109,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
@@ -213,12 +213,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
     const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
     const isDeletingOwnExpense = requestParentReportAction?.actorAccountID === accountID;
-
-    // In the table view a single-expense expense report is deleted as a report, so its expense moves to the self DM.
-    // IOU and invoice reports can't be deleted as a report, so they keep deleting their only expense.
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
-    const shouldDeleteSingleExpense = isDeletingOwnExpense && !(shouldUseTableViewForSingleExpense && isExpenseReport(moneyRequestReport));
-    const shouldShowEditSplitOnDeleteAction = shouldDeleteSingleExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
+    const shouldShowEditSplitOnDeleteAction = isDeletingOwnExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -290,6 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
             duplicateTransactionAction({
                 isVendorMatchingBetaEnabled,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 transaction: item,
                 optimisticChatReportID,
@@ -479,6 +475,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 duplicateReportAction({
                     isVendorMatchingBetaEnabled,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                     sourceReport: moneyRequestReport,
                     sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
@@ -562,7 +559,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
-                if (transactionCount === 1 && shouldDeleteSingleExpense) {
+                if (transactionCount === 1 && isDeletingOwnExpense) {
                     if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                         return;

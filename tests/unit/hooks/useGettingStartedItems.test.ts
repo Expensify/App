@@ -68,6 +68,12 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     };
 }
 
+async function addOwnExpense() {
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {reportID: 'r1', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: CURRENT_USER_ACCOUNT_ID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+}
+
 async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>; firstDayTrial?: string; lastDayTrial?: string; intentSource?: 'introSelected' | 'onboardingPurpose'} = {}) {
     // New workspaces enable Categories by default, so keep the categories step visible unless a test opts out.
     const policy = buildPolicy({areCategoriesEnabled: true, ...overrides.policy});
@@ -1426,13 +1432,60 @@ describe('useGettingStartedItems', () => {
         });
 
         describe('items and check states', () => {
-            it('should return exactly three items in order: createWorkspace, customizeCategories, inviteAccountant', async () => {
+            it('should return exactly four items in order: createWorkspace, customizeCategories, addFirstReceipt, inviteAccountant', async () => {
                 await setupTrackWorkspaceScenario();
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'addFirstReceipt', 'inviteAccountant']);
+            });
+
+            it('should mark addFirstReceipt complete once a non-deleted expense exists', async () => {
+                // Given a Track workspace admin with no expenses yet
+                await setupTrackWorkspaceScenario();
+
+                // When the hook builds the items
+                const {result: emptyResult} = renderHook(() => useGettingStartedItems());
+
+                // Then the step is incomplete
+                expect(emptyResult.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
+
+                // When the user creates an expense anywhere in the product
+                await addOwnExpense();
+                await waitForBatchedUpdates();
+
+                // Then the step is marked complete
+                const {result: withExpense} = renderHook(() => useGettingStartedItems());
+                expect(withExpense.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
+            });
+
+            it('should not mark addFirstReceipt complete for an expense on a report the user does not own', async () => {
+                // Given a Track workspace admin who has opened an expense report submitted by another member
+                await setupTrackWorkspaceScenario();
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {reportID: 'r2', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2`, {transactionID: '2', reportID: 'r2'});
+                await waitForBatchedUpdates();
+
+                // When the hook builds the items
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                // Then the step stays incomplete, because approving or paying someone else's expense is not adding a receipt
+                expect(result.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
+            });
+
+            it('should mark addFirstReceipt complete for an unreported expense', async () => {
+                // Given a Track workspace admin with a tracked expense that is not on any report
+                await setupTrackWorkspaceScenario();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}3`, {transactionID: '3', reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+                await waitForBatchedUpdates();
+
+                // When the hook builds the items
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                // Then the step is complete, because only the user can hold an unreported expense
+                expect(result.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
             });
 
             it('should keep createWorkspace isComplete=true even when no workspace-related state exists', async () => {
@@ -1626,7 +1679,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'addFirstReceipt', 'linkCompanyCards', 'inviteAccountant']);
             });
 
             it('should navigate to the workspace company cards route', async () => {
@@ -1671,7 +1724,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'addFirstReceipt', 'linkCompanyCards', 'setupTravel', 'inviteAccountant']);
             });
 
             it('should not show setupTravel when travel is not enabled', async () => {
@@ -1718,7 +1771,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'linkCompanyCards', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'addFirstReceipt', 'linkCompanyCards', 'inviteAccountant']);
             });
 
             it('should hide the linkCompanyCards step when Company cards is disabled', async () => {
@@ -1727,20 +1780,20 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'inviteAccountant']);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'addFirstReceipt', 'inviteAccountant']);
             });
 
             it('should preserve relative order and only collapse the hidden step when both features toggle', async () => {
                 await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: false, areCompanyCardsEnabled: false}});
 
                 const {result: bothDisabled} = renderHook(() => useGettingStartedItems());
-                expect(bothDisabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'inviteAccountant']);
+                expect(bothDisabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'addFirstReceipt', 'inviteAccountant']);
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {areCategoriesEnabled: true, areCompanyCardsEnabled: true});
                 await waitForBatchedUpdates();
 
                 const {result: bothEnabled} = renderHook(() => useGettingStartedItems());
-                expect(bothEnabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'inviteAccountant']);
+                expect(bothEnabled.current.items.map((item) => item.key)).toEqual(['createWorkspace', 'customizeCategories', 'addFirstReceipt', 'linkCompanyCards', 'inviteAccountant']);
             });
         });
     });
@@ -1816,7 +1869,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'customizeSpendCategories', 'createExpense', 'linkPersonalCard']);
+                expect(keys).toEqual(['createWorkspace', 'customizeSpendCategories', 'addFirstReceipt', 'linkPersonalCard']);
             });
 
             it('should omit customizeSpendCategories when the Categories feature is disabled', async () => {
@@ -1825,7 +1878,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 const keys = result.current.items.map((item) => item.key);
-                expect(keys).toEqual(['createWorkspace', 'createExpense', 'linkPersonalCard']);
+                expect(keys).toEqual(['createWorkspace', 'addFirstReceipt', 'linkPersonalCard']);
             });
 
             it('should resolve customizeSpendCategories to the categories route and mark it enabled', async () => {
@@ -1851,38 +1904,38 @@ describe('useGettingStartedItems', () => {
                 expect(customResult.current.items.find((item) => item.key === 'customizeSpendCategories')?.isComplete).toBe(true);
             });
 
-            it('should give createExpense an onPress (not a route) that starts a create money request', async () => {
+            it('should give addFirstReceipt an onPress (not a route) that opens the create expense flow on the Scan tab', async () => {
                 startMoneyRequest.mockClear();
                 await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
-                const createExpenseItem = result.current.items.find((item) => item.key === 'createExpense');
-                expect(createExpenseItem?.route).toBeUndefined();
-                createExpenseItem?.onPress?.();
-                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array));
+                const addFirstReceiptItem = result.current.items.find((item) => item.key === 'addFirstReceipt');
+                expect(addFirstReceiptItem?.route).toBeUndefined();
+                addFirstReceiptItem?.onPress?.();
+                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN);
             });
 
-            it('should mark createExpense incomplete with no transactions and complete once a non-deleted transaction exists', async () => {
+            it('should mark addFirstReceipt incomplete with no transactions and complete once a non-deleted transaction exists', async () => {
                 await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
 
                 const {result: emptyResult} = renderHook(() => useGettingStartedItems());
-                expect(emptyResult.current.items.find((item) => item.key === 'createExpense')?.isComplete).toBe(false);
+                expect(emptyResult.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
 
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+                await addOwnExpense();
                 await waitForBatchedUpdates();
 
                 const {result: withExpense} = renderHook(() => useGettingStartedItems());
-                expect(withExpense.current.items.find((item) => item.key === 'createExpense')?.isComplete).toBe(true);
+                expect(withExpense.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
             });
 
-            it('should not count a trashed transaction toward createExpense completion', async () => {
+            it('should not count a trashed transaction toward addFirstReceipt completion', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: CONST.REPORT.TRASH_REPORT_ID});
                 await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
-                expect(result.current.items.find((item) => item.key === 'createExpense')?.isComplete).toBe(false);
+                expect(result.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(false);
             });
 
             it('should resolve linkPersonalCard to the wallet route and reflect linked-card state', async () => {
@@ -1903,7 +1956,7 @@ describe('useGettingStartedItems', () => {
 
         it('should hide the section once every to-do is complete', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', reportID: 'r1'});
+            await addOwnExpense();
             await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
             await setupTrackPersonalScenario({policy: {areCategoriesEnabled: true}});
 
@@ -1992,7 +2045,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 expect(result.current.shouldShowSection).toBe(true);
-                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'addFirstReceipt', 'linkPersonalCard']);
             });
 
             it('should be hidden after the 60-day Getting Started window', async () => {
@@ -2024,7 +2077,7 @@ describe('useGettingStartedItems', () => {
                 const {result} = renderHook(() => useGettingStartedItems());
 
                 expect(result.current.shouldShowSection).toBe(true);
-                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'addFirstReceipt', 'linkPersonalCard']);
             });
 
             it('should ignore a stale free trial start date left over from an earlier paid workspace', async () => {
@@ -2060,12 +2113,12 @@ describe('useGettingStartedItems', () => {
         });
 
         describe('items and check states', () => {
-            it('should return the two to-dos in order, without a createWorkspace step', async () => {
+            it('should return the to-dos in order, without a createWorkspace step', async () => {
                 await setupSubmitScenario();
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
-                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'linkPersonalCard']);
+                expect(result.current.items.map((item) => item.key)).toEqual(['customizeExpenseCategories', 'addFirstReceipt', 'linkPersonalCard']);
             });
 
             it('should omit customizeExpenseCategories when the Categories feature is disabled', async () => {
@@ -2073,7 +2126,30 @@ describe('useGettingStartedItems', () => {
 
                 const {result} = renderHook(() => useGettingStartedItems());
 
-                expect(result.current.items.map((item) => item.key)).toEqual(['linkPersonalCard']);
+                expect(result.current.items.map((item) => item.key)).toEqual(['addFirstReceipt', 'linkPersonalCard']);
+            });
+
+            it('should mark addFirstReceipt complete once an expense exists and open the Scan tab on press', async () => {
+                // Given a Submit workspace owner with no expenses yet
+                startMoneyRequest.mockClear();
+                await setupSubmitScenario();
+
+                // When the hook builds the items
+                const {result: emptyResult} = renderHook(() => useGettingStartedItems());
+                const addFirstReceiptItem = emptyResult.current.items.find((item) => item.key === 'addFirstReceipt');
+
+                // Then the step is incomplete and pressing it starts the create expense flow on the Scan tab
+                expect(addFirstReceiptItem?.isComplete).toBe(false);
+                addFirstReceiptItem?.onPress?.();
+                expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, expect.any(String), expect.any(Array), CONST.IOU.REQUEST_TYPE.SCAN);
+
+                // When the user creates an expense anywhere in the product
+                await addOwnExpense();
+                await waitForBatchedUpdates();
+
+                // Then the step is marked complete
+                const {result: withExpense} = renderHook(() => useGettingStartedItems());
+                expect(withExpense.current.items.find((item) => item.key === 'addFirstReceipt')?.isComplete).toBe(true);
             });
 
             it('should resolve customizeExpenseCategories to the categories route', async () => {
@@ -2115,6 +2191,7 @@ describe('useGettingStartedItems', () => {
 
         it('should hide the section once every to-do is complete', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
+            await addOwnExpense();
             await Onyx.merge(ONYXKEYS.CARD_LIST, {testCard: {cardID: 1}});
             await setupSubmitScenario();
 
@@ -2184,6 +2261,7 @@ describe('useGettingStartedItems', () => {
                 'accountant@test.com': {email: 'accountant@test.com', role: CONST.POLICY.ROLE.USER},
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategory);
+            await addOwnExpense();
             await setupTrackWorkspaceScenario({policy: {areCategoriesEnabled: true, employeeList}});
 
             const {result} = renderHook(() => useGettingStartedItems());

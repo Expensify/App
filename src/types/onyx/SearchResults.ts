@@ -268,6 +268,12 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
 };
 
 /** Model of day grouped search result */
@@ -321,6 +327,15 @@ type SearchViolationGroup = SearchGroupBase & {
     violation: string;
 };
 
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
+};
+
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
@@ -359,6 +374,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchQuarterGroup
         | SearchApproverGroup
         | SearchViolationGroup
+        | SearchWorkflowStageGroup
     >;
 
 /** Model of search results */
@@ -399,4 +415,5 @@ export type {
     SearchQuarterGroup,
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

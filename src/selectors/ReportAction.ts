@@ -6,7 +6,6 @@ import {
     getOriginalMessage,
     getSortedReportActions,
     isActionOfType,
-    isSentMoneyReportAction,
 } from '@libs/ReportActionsUtils';
 import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
@@ -224,9 +223,6 @@ function relatedReportActionsSelector(reportIDs: Array<string | undefined>, chil
     };
 }
 
-/** Returns whether the report is a "Pay someone" (sent money) report, which has a pay action with IOUDetails instead of an expense-creating one. */
-const isSentMoneyReportSelector = (reportActions: OnyxEntry<ReportActions>) => Object.values(reportActions ?? {}).some(isSentMoneyReportAction);
-
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
@@ -261,6 +257,12 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
     return parentReportActionWithoutThreadReplies;
 }
 
+// The accounts a thread's parent action can credit, which getIcons shows for chat threads and expense requests
+const parentActionAccountIDsSelector = (parentReportActionID: string | undefined) => (parentReportActions: OnyxEntry<ReportActions>) => {
+    const parentAction = parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
+    return parentAction ? [parentAction.actorAccountID, parentAction.adminAccountID, parentAction.childOwnerAccountID, parentAction.childManagerAccountID] : undefined;
+};
+
 /** Keeps only the given reports' actions, so a page reading a few reports isn't woken by every other report's actions. */
 const reportActionsByReportIDsSelector =
     (reportIDs: string[]) =>
@@ -274,7 +276,7 @@ const reportActionsByReportIDsSelector =
     };
 
 export {
-    isSentMoneyReportSelector,
+    parentActionAccountIDsSelector,
     reportActionsByReportIDsSelector,
     getBillPayHistoryParticipantSelector,
     getBillProcessorAccountIDSelector,
