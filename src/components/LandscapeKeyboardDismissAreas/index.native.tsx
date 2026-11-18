@@ -1,6 +1,7 @@
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -8,22 +9,24 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 import {Keyboard} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
-import type SafeAreaProps from './types';
-
-function SafeArea({children}: SafeAreaProps) {
+/**
+ * Lets a tap in a side safe area dismiss the keyboard in landscape. They only exist while the keyboard is shown, because
+ * the native tab bar can sit in that inset and would never get the tap otherwise.
+ */
+function LandscapeKeyboardDismissAreas() {
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardShown} = useKeyboardState();
     const {left, right} = useSafeAreaInsets();
 
+    if (!isInLandscapeMode || !isKeyboardShown) {
+        return null;
+    }
+
     return (
-        <SafeAreaView
-            style={[styles.iPhoneXSafeArea]}
-            edges={['left', 'right']}
-        >
-            {children}
-            {isInLandscapeMode && left > 0 && (
+        <>
+            {left > 0 && (
                 <PressableWithoutFeedback
                     style={[styles.getSafeAreaPressablePosition('left', left)]}
                     onPress={() => Keyboard.dismiss()}
@@ -32,7 +35,7 @@ function SafeArea({children}: SafeAreaProps) {
                     sentryLabel={CONST.SENTRY_LABEL.SAFE_AREA.DISMISS_KEYBOARD_LANDSCAPE_MODE}
                 />
             )}
-            {isInLandscapeMode && right > 0 && (
+            {right > 0 && (
                 <PressableWithoutFeedback
                     style={[styles.getSafeAreaPressablePosition('right', right)]}
                     onPress={() => Keyboard.dismiss()}
@@ -41,8 +44,8 @@ function SafeArea({children}: SafeAreaProps) {
                     sentryLabel={CONST.SENTRY_LABEL.SAFE_AREA.DISMISS_KEYBOARD_LANDSCAPE_MODE}
                 />
             )}
-        </SafeAreaView>
+        </>
     );
 }
 
-export default SafeArea;
+export default LandscapeKeyboardDismissAreas;

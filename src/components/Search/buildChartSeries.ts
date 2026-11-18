@@ -1,10 +1,9 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts';
-import getPrimaryValue from '@components/Charts/utils/getPrimaryValue';
+import getDrawablePieData from '@components/Charts/utils/getDrawablePieData';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
-import {isShareWorthDrawing} from '@libs/PercentageUtils';
 import StringUtils from '@libs/StringUtils';
 
 import type {ColorScheme} from '@styles/index';
@@ -37,6 +36,9 @@ type ChartComparedRows = {
 
     /** Set when the rows are another period's */
     periods?: ChartComparisonPeriods;
+
+    /** Replaces period dates for a comparison against each group's own historical average. */
+    label?: string;
 };
 
 /** The average group value of each metric, drawn as a horizontal line in the chart's own metric. An amount is in the same units and currency as a group's total. */
@@ -130,13 +132,10 @@ type SearchChartModel = {
 function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undefined> {
     const colors: Array<string | undefined> = Array.from({length: data.length});
 
-    const ranked = data
-        .map((point, index) => ({absTotal: Math.abs(getPrimaryValue(point, CHART_SERIES_KEY.PRIMARY)), percentOfTotal: point.percentOfTotal, index}))
-        .filter((entry) => isShareWorthDrawing(entry.percentOfTotal))
-        .sort((a, b) => b.absTotal - a.absTotal);
+    const ranked = getDrawablePieData(data, CHART_SERIES_KEY.PRIMARY);
 
     for (const [rank, entry] of ranked.entries()) {
-        colors[entry.index] = VictoryTheme.colors.getColor(rank);
+        colors[entry.originalIndex] = VictoryTheme.colors.getColor(rank);
     }
 
     return colors;
@@ -325,7 +324,7 @@ function buildChartSeries({
     const comparisonSeries: ChartSeries | undefined =
         averageValue !== undefined
             ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(getAverageLabelKey(groupBy)), isAverage: true}
-            : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
+            : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: comparedRows.label ?? (periods && formatDates(periods.comparison, dateFnsLocale))};
 
     return {
         series: comparisonSeries ? [primarySeries, comparisonSeries] : [primarySeries],

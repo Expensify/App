@@ -108,6 +108,7 @@ import type {ValueOf} from 'type-fest';
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
 import {addDays, format, getYear, parse, subDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 
 import type {TransactionPreviewData} from './actions/Search';
@@ -124,6 +125,7 @@ import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard}
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import formatTagParentPath from './formatTagParentPath';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -816,6 +818,10 @@ function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
     return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
 }
 
+function isPolicyEligibleForTopTags(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areTagsEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -936,6 +942,8 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowExpensifyCardSuggestion || shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion && !isTrackIntentWithWorkflowsDisabled,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
+            // Home builds this chart from the dashboard's saved level, not a canned Search suggestion.
+            [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: false,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: shouldShowViolationsBySubmitterSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
@@ -3350,7 +3358,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): Selec
         }
         case CONST.SEARCH.GROUP_BY.TAG: {
             const tag = (groupData as SearchTagGroup).tag;
-            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
         }
         case CONST.SEARCH.GROUP_BY.DAY:
         case CONST.SEARCH.GROUP_BY.WEEK:
@@ -3379,6 +3387,22 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFil
         flatFilters: newFlatFilters,
     };
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+/** The same leaf under different dependent parents must open a different expense search. */
+function buildTagGroupQuery(queryJSON: SearchQueryJSON, tagGroup: SearchTagGroup): SearchQueryJSON | undefined {
+    const isLevelAware = tagGroup.tagLevel !== undefined;
+    return buildSpecificGroupQuery(
+        isLevelAware
+            ? {
+                  ...queryJSON,
+                  tagLevel: tagGroup.tagLevel,
+                  tagParent: tagGroup.parentTagPath ?? '',
+              }
+            : queryJSON,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+        !isLevelAware && (tagGroup.tag === '' || tagGroup.tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE) ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+    );
 }
 
 function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: Readonly<SearchQueryJSON> | undefined): number[] {
@@ -3442,11 +3466,7 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
             case CONST.SEARCH.GROUP_BY.TAG: {
                 const tagGroup = group as SearchTagGroup;
                 if (tagGroup.tag !== undefined) {
-                    transactionsQueryJSON = buildSpecificGroupQuery(
-                        queryJSON,
-                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                    );
+                    transactionsQueryJSON = buildTagGroupQuery(queryJSON, tagGroup);
                 }
                 break;
             }
@@ -3831,6 +3851,16 @@ function getMerchantSections(
     return [merchantSectionsValues, merchantSectionsValues.length, hasDeletedTransactionInData(data)];
 }
 
+/** Returns a tag group's label, naming the parents of a dependent tag and using "No tag" for an empty tag with no level so it sorts alphabetically. */
+function getTagGroupLabel({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>, translate: LocalizedTranslate): string {
+    if (tagLevel !== undefined) {
+        const parentLabel = formatTagParentPath(parentTagPath);
+        return `${Str.htmlDecode(tag)}${parentLabel ? ` (${parentLabel})` : ''}`;
+    }
+    const isEmptyTag = !tag || tag === CONST.SEARCH.TAG_EMPTY_VALUE || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE;
+    return isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(tag);
+}
+
 /**
  * @private
  * Organizes data into List Sections grouped by tag for display, for the TransactionGroupListItemType of Search Results.
@@ -3844,26 +3874,15 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
         if (isGroupEntry(key)) {
             const tagGroup = data[key] as SearchTagGroup;
 
-            const transactionsQueryJSON =
-                queryJSON && tagGroup.tag !== undefined
-                    ? buildSpecificGroupQuery(
-                          queryJSON,
-                          CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                          tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
-                      )
-                    : undefined;
-
-            // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
-            const rawTag = tagGroup.tag;
-            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
+            const transactionsQueryJSON = queryJSON && tagGroup.tag !== undefined ? buildTagGroupQuery(queryJSON, tagGroup) : undefined;
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
                 transactions: [],
                 transactionsQueryJSON,
                 ...tagGroup,
-                formattedTag,
+                formattedTag: getTagGroupLabel(tagGroup, translate),
+                ...(tagGroup.tagLevel !== undefined && {formattedTagName: Str.htmlDecode(tagGroup.tag)}),
                 keyForList: key,
             };
         }
@@ -5208,6 +5227,7 @@ const SEARCH_TYPE_MENU_TAB_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearchK
     [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_SPENDERS,
     [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_CATEGORIES,
     [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TOP_TAGS,
     [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.SPEND_OVER_TIME,
     [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.VIOLATIONS_BY_SUBMITTER,
     [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_TAB.TRIPS,
@@ -5235,6 +5255,7 @@ const SEARCH_TYPE_MENU_ITEM_SENTRY_LABELS: Record<Exclude<SearchKey, SavedSearch
     [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_SPENDERS,
     [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_CATEGORIES,
     [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_MERCHANTS,
+    [CONST.SEARCH.SEARCH_KEYS.TOP_TAGS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TOP_TAGS,
     [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.SPEND_OVER_TIME,
     [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.VIOLATIONS_BY_SUBMITTER,
     [CONST.SEARCH.SEARCH_KEYS.TRIPS]: CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM.TRIPS,
@@ -8523,6 +8544,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    getTagGroupLabel,
     getSearchTypeMenuItemSentryLabel,
     getSearchTypeMenuTabSentryLabel,
     getTransactionPolicyID,
@@ -8659,6 +8681,7 @@ export {
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
     isPolicyEligibleForTopCategories,
+    isPolicyEligibleForTopTags,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
