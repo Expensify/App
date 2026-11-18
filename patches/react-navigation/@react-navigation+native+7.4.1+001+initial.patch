@@ -139,7 +139,7 @@ index af0cd61..2805780 100644
  export function useLinking(ref, {
    enabled = true,
    config,
-@@ -266,12 +304,17 @@ export function useLinking(ref, {
+@@ -266,12 +304,21 @@ export function useLinking(ref, {
        if (record?.path === path && record?.state) {
          const currentState = navigation.getRootState();
          const [currentFocused, recordFocused] = findMatchingState(currentState, record.state);
@@ -147,7 +147,11 @@ index af0cd61..2805780 100644
 +        // Custom string history entries (e.g. modal back-guards) aren't routes, so no router can pop them with GO_BACK.
 +        // Reset to the record's state instead, which drops the custom entry.
 +        const isPoppingCustomHistoryEntry = typeof currentFocused?.history?.at(-1) === 'string';
-+        if (previousIndex - index === 1 && currentFocused && recordFocused && !isPoppingCustomHistoryEntry && isPoppingLastEntry(currentFocused, recordFocused)) {
++
++        // Leading custom entries (e.g. the reveal padding) not in the record make the history longer than the browser records
++        const getLeadingCustomEntryCount = history => history?.findIndex(entry => typeof entry !== 'string') ?? 0;
++        const hasDifferentLeadingCustomEntries = getLeadingCustomEntryCount(currentFocused?.history) !== getLeadingCustomEntryCount(recordFocused?.history);
++        if (previousIndex - index === 1 && currentFocused && recordFocused && !isPoppingCustomHistoryEntry && !hasDifferentLeadingCustomEntries && isPoppingLastEntry(currentFocused, recordFocused)) {
            const pending = pendingPopStateDeltaRef.current;
 
            // If we detect that the state change is popping the last entry
@@ -159,7 +163,7 @@ index af0cd61..2805780 100644
 +          dispatch({...CommonActions.goBack(), target: currentFocused.key},
            // Stack on any delta from a previous `popstate` that hasn't committed yet
            pending === 'replace' ? 'replace' : (pending ?? 0) - 1);
-@@ -411,6 +454,9 @@ export function useLinking(ref, {
+@@ -411,6 +458,9 @@ export function useLinking(ref, {
          const historyDelta = getHistoryLength(focusedState) - getHistoryLength(previousFocusedState) - (
          // Subtract the delta already applied by the browser to sync only the remaining changes
          pendingPopStateDelta ?? 0);
@@ -169,7 +173,7 @@ index af0cd61..2805780 100644
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -422,7 +468,8 @@ export function useLinking(ref, {
+@@ -422,7 +472,8 @@ export function useLinking(ref, {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
@@ -179,7 +183,7 @@ index af0cd61..2805780 100644
            });
            const currentIndex = history.index;
            try {
-@@ -435,7 +482,18 @@ export function useLinking(ref, {
+@@ -435,7 +486,18 @@ export function useLinking(ref, {
                // We couldn't find an existing entry to go back to, so we'll go back by the delta
                // This won't be correct if multiple routes were pushed in one go before
                // Usually this shouldn't happen and this is a fallback for that
@@ -199,7 +203,7 @@ index af0cd61..2805780 100644
              }
  
              // Store the updated state as well as fix the path if incorrect
-@@ -448,10 +506,26 @@ export function useLinking(ref, {
+@@ -448,10 +510,26 @@ export function useLinking(ref, {
            }
          } else {
            // If history length is unchanged, we want to replaceState

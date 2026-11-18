@@ -12,6 +12,7 @@ import {
     applyRevealPaddingOffset,
     asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
+    getResetHistory,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
     getTrailingStringSentinels,
@@ -117,10 +118,13 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }
 
+            // A RESET carrying its own history (e.g. browser Back restoring a recorded state) must match that recorded entry
+            const resetHistory = getResetHistory(action);
+
             // Default: re-apply the offset (single source of truth = leading padding entries in
             // state.history). addPushParamsRouterExtension keeps all string entries, so
             // reveal-padding entries survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
-            return applyRevealPaddingOffset(state, rehydrated);
+            return applyRevealPaddingOffset({...state, history: resetHistory ?? state.history}, rehydrated);
         };
 
         return {

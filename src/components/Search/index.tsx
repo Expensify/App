@@ -108,7 +108,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -1282,20 +1282,11 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
+            // Skipped on a pre-mount reveal: the expense lands right after the slide, and the footer change would stall it.
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder && !Navigation.getIsRevealingPreMountedFullscreen()) {
                 wasRearmedRef.current = true;
-                const rearm = () => {
-                    rearmTracking();
-                    setSkeletonWasDisplayed(true);
-                };
-
-                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
-                // so a transition keeps that render from blocking the slide.
-                if (Navigation.getIsRevealingPreMountedFullscreen()) {
-                    startTransition(rearm);
-                } else {
-                    rearm();
-                }
+                rearmTracking();
+                setSkeletonWasDisplayed(true);
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
