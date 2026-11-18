@@ -114,6 +114,7 @@ import {
     insertColumnBeforeTotalAmount,
     isGroupEntry,
     navigateToSearchRHP,
+    replaceIncludedFilterValues,
     shouldShowDeleteOption,
 } from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
@@ -405,11 +406,11 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     if (!filterKey) {
         return undefined;
     }
-    const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
-    newFlatFilters.push({
-        key: filterKey,
-        filters: filterEntries.map((e) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: e.value})),
-    });
+    const newFlatFilters = replaceIncludedFilterValues(
+        queryJSON.flatFilters,
+        filterKey,
+        filterEntries.map((e) => e.value),
+    );
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters}));
 }
@@ -455,6 +456,7 @@ const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.CATEGORY,
     CONST.SEARCH.GROUP_BY.MERCHANT,
     CONST.SEARCH.GROUP_BY.TAG,
+    CONST.SEARCH.GROUP_BY.VIOLATION,
 ]);
 
 /**

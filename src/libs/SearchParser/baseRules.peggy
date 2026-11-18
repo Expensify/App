@@ -166,6 +166,7 @@ columnsValues
   / groupYear
   / groupQuarter
   / groupApprover
+  / groupViolation
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -206,6 +207,7 @@ groupWeek               = "group-week"i &wordBoundary               { return "gr
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
 groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
+groupViolation          = "group-violation"i &wordBoundary          { return "groupViolation"; }
 
 
 operator "operator"
