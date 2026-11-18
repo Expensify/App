@@ -73,6 +73,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.qbo.locations')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.IMPORT_LOCATIONS_SWITCH}
                 isActive={isSwitchOn}
                 onToggle={() =>
                     updateQuickbooksOnlineSyncLocations(
@@ -95,6 +96,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
                         <MenuItemSectionRoot
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBO.LOCATIONS_DISPLAYED_AS}
                             onPress={canUseTagsForLocations ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)) : undefined}
                         >
                             <MenuItemField.Row

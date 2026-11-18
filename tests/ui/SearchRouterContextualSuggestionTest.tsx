@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -25,6 +25,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const REPORT_ID = '1';
 const PARENT_REPORT_ID = '2';
 const PARENT_REPORT_ACTION_ID = '3';
+const CURRENT_USER_ACCOUNT_ID = 4;
+const OTHER_USER_ACCOUNT_ID = 5;
 
 let mockGetAdditionalSections: GetAdditionalSectionsCallback | undefined;
 
@@ -88,8 +90,9 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-function getContextualSuggestionText(reportName: string) {
-    const recentReports: SearchOptionData[] = [{reportID: REPORT_ID, keyForList: REPORT_ID, text: reportName}];
+/** Builds the contextual suggestion, passing the report in the recent reports only when a name is given */
+function getContextualSuggestionText(reportName?: string) {
+    const recentReports: SearchOptionData[] = reportName === undefined ? [] : [{reportID: REPORT_ID, keyForList: REPORT_ID, text: reportName}];
     const sections = mockGetAdditionalSections?.({recentReports, personalDetails: [], userToInvite: null, currentUserOption: null}, 0);
     return (sections?.at(0)?.data.at(0) as SearchQueryItem | undefined)?.text;
 }
@@ -107,6 +110,18 @@ async function renderSearchRouter(report: Report) {
     await waitForBatchedUpdatesWithAct();
 }
 
+function createHiddenReport(type: Report['type'], chatType?: Report['chatType']): Report {
+    return {
+        ...createRandomReport(Number(REPORT_ID), chatType),
+        reportID: REPORT_ID,
+        type,
+        reportName: 'Hidden report',
+        parentReportID: undefined,
+        parentReportActionID: undefined,
+        participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+    };
+}
+
 describe('SearchRouter contextual "Search in" suggestion', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -118,6 +133,72 @@ describe('SearchRouter contextual "Search in" suggestion', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    describe('when the report is not in the recent reports', () => {
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+        });
+
+        it('shows the suggestion for an expense report that is hidden for the current user', async () => {
+            // Given an expense report that is hidden for its owner, like the new report created for a held expense on submit
+            await renderSearchRouter(createHiddenReport(CONST.REPORT.TYPE.EXPENSE));
+
+            // When the contextual suggestion is built without the report in the recent reports
+            const text = getContextualSuggestionText();
+
+            // Then the suggestion is still shown, because hidden is the default preference for the owner of a money request report
+            expect(text).toBe('Search in Hidden report');
+        });
+
+        it('shows the suggestion for an invoice report that is hidden for the current user', async () => {
+            // Given an invoice report that is hidden for the current user, which is how invoice reports are created
+            await renderSearchRouter(createHiddenReport(CONST.REPORT.TYPE.INVOICE));
+
+            // When the contextual suggestion is built without the report in the recent reports
+            const text = getContextualSuggestionText();
+
+            // Then the suggestion is still shown, because hidden is the default preference for invoice reports
+            expect(text).toBe('Search in Hidden report');
+        });
+
+        it('does not show the suggestion for a chat that is hidden for the current user', async () => {
+            // Given a room that is hidden for the current user, like a room they left
+            await renderSearchRouter(createHiddenReport(CONST.REPORT.TYPE.CHAT, CONST.REPORT.CHAT_TYPE.POLICY_ROOM));
+
+            // When the contextual suggestion is built without the report in the recent reports
+            const text = getContextualSuggestionText();
+
+            // Then no suggestion is shown, because the user should not search in a chat they no longer see
+            expect(text).toBeUndefined();
+        });
+
+        it('does not show the suggestion for a chat where the current user is not a participant', async () => {
+            // Given a room where only another user is a participant
+            await renderSearchRouter({
+                ...createHiddenReport(CONST.REPORT.TYPE.CHAT, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: {[OTHER_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            });
+
+            // When the contextual suggestion is built without the report in the recent reports
+            const text = getContextualSuggestionText();
+
+            // Then no suggestion is shown, because a missing participant is treated as hidden
+            expect(text).toBeUndefined();
+        });
+
+        it('does not show the suggestion for a hidden expense report once the user types', async () => {
+            // Given an expense report that is hidden for its owner
+            await renderSearchRouter(createHiddenReport(CONST.REPORT.TYPE.EXPENSE));
+
+            // When the user types in the search input
+            fireEvent.changeText(screen.getByTestId('search-autocomplete-text-input'), 'taxi');
+            await waitForBatchedUpdatesWithAct();
+            const text = getContextualSuggestionText();
+
+            // Then the suggestion is not shown, because it is only offered while the input is empty
+            expect(text).toBeUndefined();
+        });
     });
 
     it('keeps angle brackets in the name of a report with no parent action', async () => {

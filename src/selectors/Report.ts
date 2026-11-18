@@ -2,6 +2,7 @@ import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -343,6 +344,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         creditedAmount: report.creditedAmount,
         creditedCurrency: report.creditedCurrency,
         withdrawalIDs: report.withdrawalIDs,
+        wiseQuote: report.wiseQuote,
+        wiseQuoteRequest: report.wiseQuoteRequest,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -372,6 +375,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         managerID: report.managerID || undefined,
         supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
+        billSenderAccountID: report.billSenderAccountID,
         participants: report.participants,
         total: report.total,
         unheldTotal: report.unheldTotal,
@@ -428,6 +432,9 @@ function reportParentChainSelector(reportID: string | undefined) {
     };
 }
 
+const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
+
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -466,6 +473,7 @@ export {
     getStableReportSelector,
     isDraftReportSelector,
     reportParentChainSelector,
+    policyExpenseChatSelector,
     reportsByIDsSelector,
 };
 

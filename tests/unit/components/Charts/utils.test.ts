@@ -11,6 +11,8 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -34,6 +36,8 @@ import VictoryTheme, {
     X_AXIS_LABEL_MIN_HEIGHT,
 } from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
 
 import variables from '@styles/variables';
 
@@ -700,6 +704,67 @@ describe('getNiceYAxisTicks', () => {
     });
 });
 
+describe('getSteppedYAxisTicks', () => {
+    it('keeps a small count domain on whole numbers', () => {
+        // Given a domain of 0 to 2 expenses, which the default 5 ticks would split in halves
+        // When ticks are stepped by one expense
+        // Then they land on 0, 1 and 2 only
+        expect(getSteppedYAxisTicks([0, 2], 5, 1)).toEqual([0, 1, 2]);
+    });
+
+    it('gives a flat domain a tick one step above it, so the axis is not a single repeated label', () => {
+        // Given every value being zero
+        // When ticks are stepped by one
+        // Then the axis still spans one step
+        expect(getSteppedYAxisTicks([0, 0], 5, 1)).toEqual([0, 1]);
+    });
+
+    it('picks round numbers of steps, so seconds stepped by tenths of a day read as round days', () => {
+        // Given durations up to 11 days in seconds, stepped by a tenth of a day like the mockup's 0 to 10 days axis
+        // When the ticks are picked
+        const ticks = getSteppedYAxisTicks([0, 11 * CONST.DATE.SECONDS_PER_DAY], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS);
+
+        // Then they fall on every second day rather than on round numbers of seconds
+        expect(ticks.map((tick) => tick / CONST.DATE.SECONDS_PER_DAY)).toEqual([0, 2, 4, 6, 8, 10, 12]);
+    });
+
+    it('spans one step when every duration is below it, instead of repeating "0 days"', () => {
+        // Given durations of a few seconds, far below a tenth of a day
+        // When the ticks are picked
+        // Then the axis runs from 0 to one step
+        expect(getSteppedYAxisTicks([0, 19], 5, AVERAGE_DURATION_PRECISION_IN_SECONDS)).toEqual([0, AVERAGE_DURATION_PRECISION_IN_SECONDS]);
+    });
+
+    it('covers negative domains too', () => {
+        // Given a domain running from -1 to 1
+        // When ticks are stepped by one
+        // Then they land on -1, 0 and 1
+        expect(getSteppedYAxisTicks([-1, 1], 5, 1)).toEqual([-1, 0, 1]);
+    });
+});
+
+describe('getYAxisTickLayout', () => {
+    it('leaves the axis to the default tick count over the data domain when no step is set', () => {
+        // Given an amount chart, which has no tick step
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 1234], undefined);
+
+        // Then the chart picks its own ticks over the data's domain
+        expect(layout).toEqual({ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain: [0, 1234]});
+    });
+
+    it('stretches the domain to the outermost stepped tick, so the axis ends on a label', () => {
+        // Given counts up to 11 expenses, stepped by one
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 11], 1);
+
+        // Then the ticks end on a round 12 and the domain reaches it
+        expect(layout.ticks?.at(-1)).toBe(12);
+        expect(layout.tickCount).toBe(layout.ticks?.length);
+        expect(layout.domain).toEqual([0, 12]);
+    });
+});
+
 describe('getBarLayout', () => {
     it('keeps a 16px gap and fills the rest of the plot with bars', () => {
         // Given a 300px plot with 4 bars, wide enough for the full gap
@@ -828,7 +893,7 @@ describe('getPieChartLoadingHeight', () => {
 
         // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
         const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
-        const legendHeight = rowCount * variables.fontSizeNormalHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        const legendHeight = rowCount * variables.lineHeightChartLabel + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
         expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
     });
 

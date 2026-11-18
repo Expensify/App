@@ -1,14 +1,14 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type {FileObject} from '@src/types/utils/Attachment';
+import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -165,6 +165,23 @@ function getDownloadFileName(displayName: string, source: string): string {
         return displayName;
     }
     return `${displayName}.${sourceExtension}`;
+}
+
+/**
+ * Whether the response to a file download is an API error instead of the file. The commands that return CSV and ABA
+ * files only respond with JSON when they fail.
+ */
+function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
+    return contentType === 'application/json' && ['.csv', '.aba'].some((extension) => fileName?.includes(extension));
+}
+
+/**
+ * Rejects with the API's error so the caller can tell the user why the download failed.
+ */
+function rejectWithFileDownloadError(response: Response): Promise<never> {
+    return response.json().then((error: {jsonCode?: number; message?: string}) => {
+        throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+    });
 }
 
 /**
@@ -711,13 +728,19 @@ const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: 
     return calculateScaledDimensions(width, height);
 };
 
-const createFile = (file: File): FileObject => {
+const createFile = (file: File & Pick<ImagePickerResponse, 'width' | 'height'>): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-        return {
+        const nativeFile: FileObject = {
             uri: file.uri,
             name: file.name,
             type: file.type,
         };
+        // Keep the dimensions so the optimistic attachment renders at its real aspect ratio instead of jumping from a square on load.
+        // Only add them when set, because the optimistic HTML writes the attribute whenever the key exists, even if the value is undefined.
+        if (file.width && file.height) {
+            return {...nativeFile, width: file.width, height: file.height};
+        }
+        return nativeFile;
     }
     const clonedFile = new File([file], file.name, {
         type: file.type,
@@ -735,36 +758,6 @@ const resizeImageIfNeeded = (file: FileObject) => {
     return getImageDimensionsAfterResize(file)
         .then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}))
         .then((result) => createFile(result));
-};
-
-const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
-    return validateImageForCorruption(file)
-        .then(() => {
-            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-            if (
-                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                )
-            ) {
-                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                return false;
-            }
-
-            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                return false;
-            }
-
-            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                return false;
-            }
-            return true;
-        })
-        .catch(() => {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            return false;
-        });
 };
 
 const isValidReceiptExtension = (file: FileObject) => {
@@ -924,6 +917,11 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
             };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_INVALID:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.errorWhileSelectingAttachment'),
+            };
         case CONST.FILE_VALIDATION_ERRORS.IMAGE_CONVERSION_FAILED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
@@ -1037,6 +1035,8 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
 
 export {
     showGeneralErrorAlert,
+    isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
@@ -1053,13 +1053,11 @@ export {
     getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
-    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     convertFileObjectOrUriToBase64DataURL,
     isLocalFile,
     validateImageForCorruption,
-    isImage,
     getFileResolution,
     isHighResolutionImage,
     verifyFileFormat,
@@ -1068,7 +1066,6 @@ export {
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
-    validateReceipt,
     normalizeFileObject,
     getMimeTypeFromUri,
     isValidReceiptExtension,

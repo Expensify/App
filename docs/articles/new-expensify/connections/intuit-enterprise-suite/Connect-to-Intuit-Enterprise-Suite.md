@@ -24,7 +24,6 @@ Custom dimensions are turned off until you enable each one. Learn how to [config
 To connect Intuit Enterprise Suite, you must:
 
 - Be a workspace admin with a workspace on the Control plan.
-- Have **Accounting** enabled on your workspace, under **More features**.
 - Have Intuit Enterprise Suite login credentials.
 
 ---
@@ -32,15 +31,15 @@ To connect Intuit Enterprise Suite, you must:
 ## How to connect Intuit Enterprise Suite to your workspace
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
-2. Select **Accounting**.
-3. In the **Connections** section next to **Intuit Enterprise Suite**, select **Connect**.
+2. Select **Connections**.
+3. Select **Intuit Enterprise Suite**.
 4. Log in with your Intuit credentials when prompted.
 
 ---
 
 ## What happens after you connect Intuit Enterprise Suite
 
-After the connection is established, the **Connections** section updates to show your connected Intuit Enterprise Suite integration, including:
+After the connection is established, Intuit Enterprise Suite appears as connected on the **Connections** page. Select **Configure** next to Intuit Enterprise Suite to see:
 
 - The connection status and last sync timestamp.
 - The selected Entity.

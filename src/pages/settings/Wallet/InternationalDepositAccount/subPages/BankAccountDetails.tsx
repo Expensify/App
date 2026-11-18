@@ -114,6 +114,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                     />
                     <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_BANK_ACCOUNT_DETAILS_PROTECT_DATA_LINK}
                             style={[styles.textMicro]}
                             href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
                         >

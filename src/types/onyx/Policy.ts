@@ -30,6 +30,9 @@ type GovernmentRateSnapshot = {
 
     /** Government-published end date (ISO 8601) at the time the rate was copied, omitted if the source rate has none */
     endDate?: string;
+
+    /** Government-published tax reclaimable fraction at the time the rate was copied, omitted if the source rate has none */
+    taxClaimablePercentage?: number;
 };
 
 /** General-purpose optional attributes of the policy distance rate */
@@ -103,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
@@ -971,7 +977,7 @@ type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
 type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
 
 /** NetSuite export destination values */
-type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+type NetSuiteExportDestinationValues = 'CREDIT_CARD_CHARGE' | 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
 
 /** NetSuite expense report approval level values */
 type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
@@ -996,6 +1002,7 @@ type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
     vendorBill?: string;
     journalEntry?: string;
+    creditCardCharge?: string;
 };
 
 /** NetSuite custom list */
@@ -1172,6 +1179,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
+
+        /** Credit card account used when exporting company card expenses as credit card charges */
+        creditCardAccount?: string;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
 
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
@@ -1811,6 +1824,9 @@ type RilletExport = {
 
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
+
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
@@ -2780,6 +2796,26 @@ type ZohoBooksAccount = {
 };
 
 /**
+ * Bank, cash or credit card account retrieved from Zoho Books, for the company card, bill payment and settlement account pickers.
+ */
+type ZohoBooksBankAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Zoho Books account type. */
+    accountType: ZohoBooksAccountType;
+
+    /** Currency associated with the account. */
+    currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
  * Reporting tag retrieved from Zoho Books.
  */
 type ZohoBooksReportingTag = {
@@ -2861,6 +2897,9 @@ type ZohoBooksConnectionData = {
 
     /** Accounts available in Zoho Books. */
     accounts?: ZohoBooksAccount[];
+
+    /** Active bank and credit card accounts that company card expenses can export to. */
+    bankAccounts?: ZohoBooksBankAccount[];
 
     /** Reporting tags available in Zoho Books. */
     reportingTags?: ZohoBooksReportingTag[];
@@ -3685,13 +3724,24 @@ type ACHAccount = {
     sharees?: string[];
 };
 
-/** Withdrawal account the company reimburses from in one country */
-type ReimbursementCountryAccount = {
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
+    bankAccountID?: number;
+
+    /** One of `CONST.BANK_ACCOUNT.STATE` */
+    state?: string;
+
     additionalData?: {
         /** Whether the account is only used to pay with ABA files */
         isForABA?: boolean;
+
+        verifications?: {
+            /** Only set on accounts set up through Corpay */
+            corpay?: Record<string, unknown>;
+        };
     };
-};
+}>;
 
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -4076,7 +4126,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, ReimbursementCountryAccount>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -4235,6 +4285,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** All the integration connections attached to the policy */
         connections?: Partial<Connections>;
 
+        /** Why a connect flow that left the app (e.g. an OAuth window) failed, keyed by the integration that failed to connect */
+        connectErrors?: Partial<Record<ConnectionName, string | null>>;
+
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
@@ -4252,6 +4305,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Travel feature is enabled */
         isTravelEnabled?: boolean;
+
+        /** Whether the workspace has been provisioned for Travel */
+        isTravelProvisioned?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -4395,6 +4451,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
@@ -4481,7 +4538,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
-    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
@@ -4506,6 +4562,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
@@ -4535,6 +4592,7 @@ export type {
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    ZohoBooksBankAccount,
     BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,

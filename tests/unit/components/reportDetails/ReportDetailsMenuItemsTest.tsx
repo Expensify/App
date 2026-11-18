@@ -24,11 +24,12 @@ import {createRandomReport} from '../../../utils/collections/reports';
 import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/MenuItem', () => {
+// Every row, preset or composed, draws its title through this leaf, so it marks one row per title
+jest.mock('@components/MenuItem/leaves/content/MenuItemTitle', () => {
     const {Text} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
     return {
         __esModule: true,
-        default: ({title}: {title: string}) => <Text testID="menuRow">{title}</Text>,
+        default: ({children}: {children: string}) => <Text testID="menuRow">{children}</Text>,
     };
 });
 jest.mock('@hooks/useOnyx', () => {
@@ -237,7 +238,7 @@ describe('ReportDetailsMenuItems', () => {
         expect(getRenderedRows()).toEqual(['Members', 'Settings', 'Mark as incomplete']);
     });
 
-    it('should render the track expense rows between Settings and the later rows', async () => {
+    it('should render the track expense destinations after Settings without Leave', async () => {
         // Given a thread on a track expense in the self DM, with its request data mounted
         const selfDMReportID = '300';
         const parentReportActionID = '301';
@@ -257,7 +258,7 @@ describe('ReportDetailsMenuItems', () => {
         // When the menu renders for the money case
         await renderMenu(requestData);
 
-        // Then both submit destinations render right after Settings, as the inline track pushes did
-        expect(getRenderedRows()).toEqual(['Members', 'Settings', 'Submit to a friend', 'Submit to my employer', 'Leave']);
+        // Then both submit destinations follow Settings, without Leave because tracked expenses keep their participants
+        expect(getRenderedRows()).toEqual(['Members', 'Settings', 'Submit to a friend', 'Submit to my employer']);
     });
 });

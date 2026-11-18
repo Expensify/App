@@ -111,6 +111,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: jest.fn(), toggleAll: jest.fn()}),
     useSearchSelectionContext: () => ({selectedTransactions: {}}),
     useSearchShiftRangeGroups: () => mockShiftRangeGroups,
+    useSearchQueryContext: () => ({currentSearchKey: undefined}),
 }));
 
 const STABLE_QUERY_JSON: SearchQueryJSON = {

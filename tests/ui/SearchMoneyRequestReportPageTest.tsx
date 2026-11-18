@@ -10,12 +10,15 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
+
+import Log from '@libs/Log';
 
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 import SearchMoneyRequestReportPage from '@pages/Search/SearchMoneyRequestReportPage';
@@ -54,6 +57,7 @@ jest.mock('@hooks/useSubmitToDestinationVisible', () => jest.fn());
 jest.mock('@hooks/useReportIsArchived', () => jest.fn());
 jest.mock('@hooks/useIsReportReadyToDisplay', () => jest.fn());
 jest.mock('@hooks/useParentReportAction', () => jest.fn());
+jest.mock('@hooks/usePermissions', () => jest.fn());
 jest.mock('@components/WideRHPContextProvider/useRHPWidth', () => jest.fn());
 jest.mock('@hooks/useReportAttributes', () => ({useDerivedReportNameByReportID: jest.fn()}));
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
@@ -96,6 +100,7 @@ const mockUseSubmitToDestinationVisible = useSubmitToDestinationVisible as jest.
 const mockUseReportIsArchived = useReportIsArchived as jest.MockedFunction<typeof useReportIsArchived>;
 const mockUseIsReportReadyToDisplay = useIsReportReadyToDisplay as jest.MockedFunction<typeof useIsReportReadyToDisplay>;
 const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<typeof useParentReportAction>;
+const mockUsePermissions = usePermissions as jest.MockedFunction<typeof usePermissions>;
 const mockUseDerivedReportNameByReportID = useDerivedReportNameByReportID as jest.MockedFunction<typeof useDerivedReportNameByReportID>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseClearReportActionDraftsOnReportChange = useClearReportActionDraftsOnReportChange as jest.MockedFunction<typeof useClearReportActionDraftsOnReportChange>;
@@ -219,6 +224,33 @@ function renderPage(options: RenderOptions) {
     return render(<SearchMoneyRequestReportPage {...pageProps} />);
 }
 
+function setUpDefaultMocks() {
+    mockUseNetwork.mockReturnValue({isOffline: false});
+    mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'test@example.com', email: 'test@example.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
+    mockUsePersonalDetails.mockReturnValue({});
+    mockUseDismissOnMoneyRequestReportRemoval.mockReturnValue(undefined);
+    mockUseSubmitToDestinationVisible.mockReturnValue(jest.fn());
+    mockUseReportIsArchived.mockReturnValue(false);
+    mockUseIsReportReadyToDisplay.mockReturnValue({isEditingDisabled: false, isCurrentReportLoadedFromOnyx: true});
+    mockUseParentReportAction.mockReturnValue(undefined);
+    mockUsePermissions.mockReturnValue({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false});
+    mockUseDerivedReportNameByReportID.mockReturnValue(undefined);
+    mockUseResponsiveLayout.mockReturnValue({
+        shouldUseNarrowLayout: false,
+        isSmallScreenWidth: false,
+        isInNarrowPaneModal: false,
+        isExtraSmallScreenHeight: false,
+        isMediumScreenWidth: false,
+        isLargeScreenWidth: true,
+        isExtraLargeScreenWidth: false,
+        isExtraSmallScreenWidth: false,
+        isSmallScreen: false,
+        onboardingIsMediumOrLargerScreenWidth: true,
+        isInLandscapeMode: false,
+    });
+    mockUseClearReportActionDraftsOnReportChange.mockReturnValue(undefined);
+}
+
 describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -227,29 +259,7 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'test@example.com', email: 'test@example.com'} as ReturnType<typeof useCurrentUserPersonalDetails>);
-        mockUsePersonalDetails.mockReturnValue({});
-        mockUseDismissOnMoneyRequestReportRemoval.mockReturnValue(undefined);
-        mockUseSubmitToDestinationVisible.mockReturnValue(jest.fn());
-        mockUseReportIsArchived.mockReturnValue(false);
-        mockUseIsReportReadyToDisplay.mockReturnValue({isEditingDisabled: false, isCurrentReportLoadedFromOnyx: true});
-        mockUseParentReportAction.mockReturnValue(undefined);
-        mockUseDerivedReportNameByReportID.mockReturnValue(undefined);
-        mockUseResponsiveLayout.mockReturnValue({
-            shouldUseNarrowLayout: false,
-            isSmallScreenWidth: false,
-            isInNarrowPaneModal: false,
-            isExtraSmallScreenHeight: false,
-            isMediumScreenWidth: false,
-            isLargeScreenWidth: true,
-            isExtraLargeScreenWidth: false,
-            isExtraSmallScreenWidth: false,
-            isSmallScreen: false,
-            onboardingIsMediumOrLargerScreenWidth: true,
-            isInLandscapeMode: false,
-        });
-        mockUseClearReportActionDraftsOnReportChange.mockReturnValue(undefined);
+        setUpDefaultMocks();
         // renderPage() sets the full useOnyx routing (including the report key, which some tests override).
     });
 
@@ -383,4 +393,49 @@ describe('SearchMoneyRequestReportPage (legacy transaction self-heal)', () => {
 
         expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
     });
+});
+
+describe('SearchMoneyRequestReportPage bill access', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        setUpDefaultMocks();
+    });
+
+    afterEach(async () => {
+        await waitForBatchedUpdatesWithAct();
+        await Onyx.clear();
+    });
+
+    it.each([
+        {isBillPayBetaEnabled: false, shouldShowNotFoundPage: true},
+        {isBillPayBetaEnabled: true, shouldShowNotFoundPage: false},
+    ])(
+        'shows the not-found page for a bill only to users without the newDotBillPay beta (isBillPayBetaEnabled: $isBillPayBetaEnabled)',
+        async ({isBillPayBetaEnabled, shouldShowNotFoundPage}) => {
+            // Given a bill with one expense opened from Search by a user with or without the newDotBillPay beta
+            const logSpy = jest.spyOn(Log, 'info');
+            mockUsePermissions.mockReturnValue({
+                isBetaEnabled: (beta) => isBillPayBetaEnabled && beta === CONST.BETAS.NEW_DOT_BILL_PAY,
+                isBetaEnabledOrUnknown: (beta) => isBillPayBetaEnabled && beta === CONST.BETAS.NEW_DOT_BILL_PAY,
+            });
+            const transaction = buildTransaction('billTxn', REPORT_ID);
+
+            // When the page renders the bill
+            renderPage({
+                allReportTransactions: {[transaction.transactionID]: transaction},
+                report: {...mockReport, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only users without the beta get the not-found page, because NewDot only shows bills behind the beta
+            const notFoundLogCalls = logSpy.mock.calls.filter(([message]) => message === '[SearchMoneyRequestReportPage] Displaying NotFound Page');
+            expect(notFoundLogCalls.length > 0).toBe(shouldShowNotFoundPage);
+            logSpy.mockRestore();
+        },
+    );
 });

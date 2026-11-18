@@ -1,6 +1,7 @@
 import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
+import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
+import TabBarLabel from '@components/Navigation/NavigationTabBar/TabBarLabel';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +28,7 @@ type NavigationTabBarAvatarProps = {
 function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
     const accountAccessibilityState = {selected: isSelected};
@@ -35,7 +36,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     return (
         <PressableWithFeedback
             onPress={onPress}
-            accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
+            accessibilityLabel={getTabAccessibilityLabel(`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`, !!status, translate)}
             role={CONST.ROLE.TAB}
             wrapperStyle={shouldUseNarrowLayout ? styles.navigationTabBarSlot : styles.flex1}
             accessibilityState={accountAccessibilityState}
@@ -49,9 +50,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                         styles.navigationTabBarItem,
                         shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
                         shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                        isInLandscapeMode && [styles.flexRow, styles.gap1Half],
                     ]}
                 >
-                    <View style={shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half}>
+                    <View style={!isInLandscapeMode && (shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half)}>
                         <AccountNavigationAvatar
                             // The floating bar marks the selected tab with a pill behind the whole item, so the
                             // avatar's own ring would double up on it. The side bar has no pill and keeps it.
@@ -60,18 +62,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                             size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
-                    <Text
+                    <TabBarLabel
+                        label={translate('initialSettingsPage.account')}
+                        isSelected={isSelected}
                         numberOfLines={shouldUseNarrowLayout ? 1 : 2}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            isSelected ? styles.textBold : styles.textSupporting,
-                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        {translate('initialSettingsPage.account')}
-                    </Text>
+                        style={!isInLandscapeMode && (shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half)}
+                    />
                 </View>
             )}
         </PressableWithFeedback>

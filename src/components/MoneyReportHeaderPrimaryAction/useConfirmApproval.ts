@@ -1,10 +1,12 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -24,7 +26,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 // eslint-disable-next-line no-restricted-imports -- Violations must be live, not from the Search snapshot.
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -42,9 +44,12 @@ function useConfirmApproval(
 ) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const [liveReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const moneyRequestReport = liveReport ?? fallbackReport;
@@ -65,6 +70,8 @@ function useConfirmApproval(
     const [transactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(transactions.map((transaction) => transaction.transactionID)),
     });
+    // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
+    const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -77,10 +84,15 @@ function useConfirmApproval(
             showDelegateNoAccessModal();
             return;
         }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         if (!isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
@@ -98,6 +110,7 @@ function useConfirmApproval(
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            allTransactionViolations: {...autoReportedRejectedExpenseViolations, ...transactionViolations},
             additionalOnyxData: getAdditionalOnyxData?.(),
         });
     };

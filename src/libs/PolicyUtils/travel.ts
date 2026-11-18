@@ -20,9 +20,14 @@ function isWorkspaceProvisionedForTravel(travelSettings?: WorkspaceTravelSetting
     return !!(travelSettings?.spotnanaCompanyID ?? travelSettings?.associatedTravelDomainAccountID);
 }
 
+/** Whether a workspace is provisioned for travel, falling back to the policy summary flag when its travel settings aren't loaded. */
+function isPolicyProvisionedForTravel(policy: OnyxEntry<Policy>): boolean {
+    return policy?.isTravelProvisioned === true || isWorkspaceProvisionedForTravel(policy?.travelSettings);
+}
+
 /** Whether travel is enabled on a workspace, meaning it can be used to book a trip. */
 function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings: TravelSettings | undefined): boolean {
-    return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isWorkspaceProvisionedForTravel(policy?.travelSettings)));
+    return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isPolicyProvisionedForTravel(policy)));
 }
 
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -55,4 +60,4 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, hasAcceptedTravelTerms, isNonUSDPolicy, getTravelStep};
+export {isWorkspaceProvisionedForTravel, isPolicyProvisionedForTravel, hasAcceptedTravelTerms, isNonUSDPolicy, getTravelStep};

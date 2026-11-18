@@ -24,7 +24,6 @@ import {accountIDSelector, displayNameSelector} from '@src/selectors/PersonalDet
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
@@ -121,7 +120,7 @@ function WorkspaceConfirmationForm({
     };
 
     const policyID = generatePolicyID();
-    const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -191,6 +190,7 @@ function WorkspaceConfirmationForm({
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
                 </View>
                 <AvatarWithImagePicker
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_AVATAR}
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage}
                     avatar={workspaceAvatarNode}
@@ -230,24 +230,22 @@ function WorkspaceConfirmationForm({
                     shouldScrollToEnd={isApprovedAccountant}
                 >
                     <View style={styles.mb4}>
-                        {!isLoadingOnyxValue(metadata) && (
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.NAME}
-                                label={translate('workspace.common.workspaceName')}
-                                accessibilityLabel={translate('workspace.common.workspaceName')}
-                                spellCheck={false}
-                                defaultValue={defaultWorkspaceName}
-                                onChangeText={(str) => {
-                                    if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                        return;
-                                    }
-                                    setWorkspaceNameFirstCharacter(str);
-                                }}
-                                ref={inputCallbackRef}
-                            />
-                        )}
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            label={translate('workspace.common.workspaceName')}
+                            accessibilityLabel={translate('workspace.common.workspaceName')}
+                            spellCheck={false}
+                            defaultValue={defaultWorkspaceName}
+                            onChangeText={(str) => {
+                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                    return;
+                                }
+                                setWorkspaceNameFirstCharacter(str);
+                            }}
+                            ref={inputCallbackRef}
+                        />
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
@@ -272,6 +270,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_PLAN_TYPE.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_PLAN_TYPE}
                                         value={userPlanType}
                                     />
                                 </View>
@@ -287,6 +286,7 @@ function WorkspaceConfirmationForm({
                                         onPress={() => {
                                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
                                         }}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_OWNER}
                                         value={userOwner}
                                     />
                                 </View>
@@ -299,6 +299,7 @@ function WorkspaceConfirmationForm({
                                             </View>
                                             <Switch
                                                 accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH}
                                                 isOn={makeMeAdmin}
                                                 onToggle={setMakeMeAdmin}
                                             />

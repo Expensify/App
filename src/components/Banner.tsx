@@ -4,15 +4,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import type IconSize from './Icon/types';
 
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -21,7 +25,7 @@ import RenderHTML from './RenderHTML';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-type BannerProps = {
+type BannerProps = WithSentryLabelWhenPressable & {
     /** Text to display in the banner. */
     text?: string;
 
@@ -34,6 +38,9 @@ type BannerProps = {
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
 
+    /** Preset size of the left-aligned icon */
+    iconSize?: IconSize;
+
     shouldShowCloseButton?: boolean;
 
     /** Should this component render the text as HTML? */
@@ -42,7 +49,7 @@ type BannerProps = {
     /** Callback called when the close button is pressed */
     onClose?: () => void;
 
-    /** Callback called when the message is pressed */
+    /** Callback called when the message is pressed. Needs `sentryLabel`. */
     onPress?: () => void;
 
     /** Styles to be assigned to the Banner container */
@@ -59,8 +66,10 @@ function Banner({
     text,
     content,
     icon,
+    iconSize,
     onClose,
     onPress,
+    sentryLabel,
     containerStyles,
     textStyles,
     children,
@@ -98,6 +107,7 @@ function Banner({
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={displayIcon}
+                                        size={iconSize}
                                         fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: shouldHighlight})})}
                                     />
                                 </View>
@@ -110,6 +120,7 @@ function Banner({
                                 ) : (
                                     <Text
                                         style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        sentryLabel={castToSentryLabel(sentryLabel)}
                                         onPress={onPress}
                                         suppressHighlighting
                                     >
@@ -124,7 +135,7 @@ function Banner({
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
-                                    sentryLabel="Banner-Close"
+                                    sentryLabel={CONST.SENTRY_LABEL.BANNER.CLOSE}
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}

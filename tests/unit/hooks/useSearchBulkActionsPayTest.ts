@@ -4,10 +4,12 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
+import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 
@@ -20,6 +22,7 @@ import Onyx from 'react-native-onyx';
 // Both are driven from these module-level flags so each test can toggle them independently.
 let mockShouldEnableBulkPayOption = true;
 let mockBulkPayButtonOptions: Array<Record<string, unknown>> = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
+let mockEnabledBetas: string[] = [];
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
@@ -29,9 +32,28 @@ jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
 // which never fires under Jest. Invoke the callback synchronously so we can assert the modal opens.
+const mockDeferModalPresentation = jest.fn((presentModal: () => void) => presentModal());
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     __esModule: true,
-    default: (presentModal: () => void) => presentModal(),
+    default: (presentModal: () => void) => mockDeferModalPresentation(presentModal),
+}));
+
+const mockShowWiseQuoteCarouselModal = jest.fn();
+jest.mock('@hooks/useWiseQuoteConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showWiseQuoteConfirmModal: jest.fn(), showWiseQuoteCarouselModal: mockShowWiseQuoteCarouselModal}),
+}));
+
+jest.mock('@libs/actions/Wise', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/Wise'),
+    getWiseQuote: jest.fn(),
+}));
+
+let mockShouldConfirmWiseQuote = false;
+jest.mock('@libs/BankAccountUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/BankAccountUtils'),
+    shouldConfirmWiseQuoteBeforePaying: () => mockShouldConfirmWiseQuote,
+    shouldGetWiseQuote: () => mockShouldConfirmWiseQuote,
 }));
 
 jest.mock('@libs/actions/Search', () => {
@@ -58,6 +80,7 @@ jest.mock('@libs/actions/Search', () => {
         unholdMoneyRequestOnSearch: jest.fn(),
         getChatReportWithFallback: actualSearch.getChatReportWithFallback,
         getReportFromSearchSnapshot: actualSearch.getReportFromSearchSnapshot,
+        getReportActionsFromSearchSnapshot: actualSearch.getReportActionsFromSearchSnapshot,
         getPolicyFromSearchSnapshot: actualSearch.getPolicyFromSearchSnapshot,
         resolveSearchPayPaymentMethod: actualSearch.resolveSearchPayPaymentMethod,
     };
@@ -148,7 +171,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta), isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -158,7 +181,15 @@ jest.mock('@hooks/useSelfDMReport', () => ({
 
 jest.mock('@hooks/useBulkPayOptions', () => ({
     __esModule: true,
-    default: () => ({bulkPayButtonOptions: mockBulkPayButtonOptions, latestBankItems: []}),
+    default: jest.fn(() => ({bulkPayButtonOptions: mockBulkPayButtonOptions, latestBankItems: []})),
+}));
+
+const mockPayReportsViaABA = jest.fn();
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
+
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
 }));
 
 jest.mock('@hooks/useDefaultExpensePolicy', () => ({
@@ -174,14 +205,9 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
 jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
-        introSelected: undefined,
-        isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
         defaultWorkspaceName: undefined,
-        userBillingGracePeriodEnds: undefined,
-        amountOwed: undefined,
-        ownerBillingGracePeriodEnd: undefined,
     }),
     PaymentContextProvider: ({children}: {children: unknown}) => children,
     useReportPaymentContext: () => ({}),
@@ -234,6 +260,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
+};
+
+const expenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense'},
 };
 
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
@@ -393,6 +426,40 @@ describe('useSearchBulkActions - Pay option', () => {
         const serializedQuery = jest.mocked(queueBulkPayReports).mock.calls.at(0)?.at(0);
         expect(serializedQuery).toBeDefined();
         expect(serializedQuery).toContain('-reportID:excluded-report');
+    });
+
+    it('pays every matching report under Select all in an expense search with nothing unchecked', async () => {
+        // Given every matching expense selected on the Expenses search, none of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When Pay is selected
+        await act(async () => {
+            await getPayOptionFromResult(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the search itself is sent, since it holds exactly what is selected
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the Pay option under Select all in an expense search once an expense is unchecked, since paying its report would pay it too', async () => {
+        // Given every matching expense selected on the Expenses search, then one of them unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'report-with-unchecked-expense'})};
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        // When the bulk actions are built
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Pay is not offered, since a report cannot leave out one of its expenses
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
     it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {
@@ -659,5 +726,153 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             expect.objectContaining({reportID: '1', isItemInvoice: false}),
         );
         expect(mockLogInfo).toHaveBeenCalledWith('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount: 0, selectedCount: 1});
+    });
+});
+
+describe('useSearchBulkActions - bulk pay Wise quote', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockShouldConfirmWiseQuote = true;
+        mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({chatReportID: '2'})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '2', policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        mockShouldConfirmWiseQuote = false;
+        await Onyx.clear();
+    });
+
+    it('opens the Wise quote carousel only once the pay popover has dismissed', async () => {
+        // Given a selected report whose expenses need a Wise quote, and a pay popover that is still dismissing
+        let presentAfterPopoverDismiss: (() => void) | undefined;
+        mockDeferModalPresentation.mockImplementationOnce((presentModal) => {
+            presentAfterPopoverDismiss = presentModal;
+        });
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user picks the business bank account from the pay popover
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
+
+        // Then the carousel waits, because iOS can't present a modal while the popover is still on screen, and nothing is paid
+        await waitFor(() => expect(mockDeferModalPresentation).toHaveBeenCalled());
+        expect(mockShowWiseQuoteCarouselModal).not.toHaveBeenCalled();
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+
+        // When the popover finishes dismissing
+        act(() => presentAfterPopoverDismiss?.());
+
+        // Then the carousel opens for the selected report
+        expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
+    });
+});
+
+describe('useSearchBulkActions - pay via ABA', () => {
+    const ABAPolicy = {
+        id: 'policy1',
+        role: CONST.POLICY.ROLE.ADMIN,
+        outputCurrency: CONST.CURRENCY.AUD,
+        reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockAreAllMatchingItemsSelected = false;
+        mockEnabledBetas = [CONST.BETAS.PAY_VIA_ABA];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: 'chat1'}), makeSelectedReport({reportID: '3', chatReportID: 'chat3'})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, ABAPolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat1', policyID: 'policy1'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat3', policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        mockEnabledBetas = [];
+        await Onyx.clear();
+    });
+
+    async function renderBulkActions() {
+        const rendered = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(rendered.result.current.headerButtonsOptions)).toBeDefined();
+        });
+        return rendered;
+    }
+
+    it('offers paying via ABA and loads the withdrawal account when the reports are from one AUD workspace', async () => {
+        // Given reports selected from an AUD workspace with an open AU withdrawal account (set up in beforeEach)
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then the AU withdrawal account is loaded and paying via ABA is offered
+        expect(openPaymentMethods).toHaveBeenCalled();
+        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(true);
+    });
+
+    it('tells the pay options when the selected reports are in different currencies', async () => {
+        // Given an AUD report and a USD report selected from the same AUD workspace, e.g. because the USD report's first expense was in USD
+        mockSelectedReports = [
+            makeSelectedReport({reportID: '1', chatReportID: 'chat1', currency: CONST.CURRENCY.AUD}),
+            makeSelectedReport({reportID: '3', chatReportID: 'chat3', currency: CONST.CURRENCY.USD}),
+        ];
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then the pay options know about the mix of currencies, so they can still offer paying via ABA
+        const bulkPayOptionsProps = jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0);
+        expect(bulkPayOptionsProps?.hasMultipleCurrencies).toBe(true);
+        expect(bulkPayOptionsProps?.shouldShowPayViaABAOption).toBe(true);
+    });
+
+    it('does not offer paying via ABA when everything matching the search is selected', async () => {
+        // Given every report matching the search is selected, which only the backend has the list of
+        mockAreAllMatchingItemsSelected = true;
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then paying via ABA isn't offered, since there's no list of reports to put in the file
+        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(false);
+    });
+
+    it('pays all the selected reports with one ABA file when ABA is picked', async () => {
+        // Given two reports selected for bulk pay
+        const {result} = await renderBulkActions();
+
+        // When "Pay via ABA" is picked
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then one ABA file pays both reports, instead of marking each one as paid elsewhere
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expect.objectContaining({reportID: '1'}), expect.objectContaining({reportID: '3'})], expect.objectContaining({id: 'policy1'}));
+        expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 });

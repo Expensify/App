@@ -58,8 +58,8 @@ If a record is inactive or deleted, you have two options:
 1. Reactivate the account or record in QuickBooks Online.
 2. In Expensify, go to the **Workspaces** navigation tab.
 3. Select your Workspace.
-4. Click **Accounting**.
-5. Click the **three-dot icon** next to the QuickBooks Online connection.
+4. Select **Connections**, then select **Configure** next to QuickBooks Online.
+5. Select **More (⋮)**.
 6. Select **Sync now**.
 7. Retry exporting the report.
 

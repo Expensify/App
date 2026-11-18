@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -27,6 +28,7 @@ type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onUpgrade: () => void;
+    upgradeSentryLabel: SentryLabel;
     formattedPrice: string;
     policyID?: string;
     backTo?: Route;
@@ -34,7 +36,7 @@ type GenericFeaturesViewProps = {
     upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, backTo, policyID, upgradePlanType}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, upgradeSentryLabel, buttonDisabled, loading, formattedPrice, backTo, policyID, upgradePlanType}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -99,6 +101,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
             )}
             {policyID ? (
                 <Button
+                    sentryLabel={upgradeSentryLabel}
                     isLoading={loading}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onUpgrade}
@@ -110,6 +113,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 </Button>
             ) : (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.GENERIC_FEATURES_GO_TO_WORKSPACES}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     size={CONST.BUTTON_SIZE.LARGE}

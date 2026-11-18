@@ -9,12 +9,12 @@ import type {RenderersProps} from 'react-native-render-html';
 import React from 'react';
 import {RenderHTMLConfigProvider, RenderHTMLSource, useSharedProps} from 'react-native-render-html';
 
-import htmlRenderers from './HTMLEngineProvider/HTMLRenderers';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
+import {useHTMLRenderers} from './HTMLEngineProvider/HTMLRenderersContext';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 type ConciergeLinkPressHandler = () => void;
@@ -43,6 +43,7 @@ type SelectableHTMLConfigProviderProps = {
 function SelectableHTMLConfigProvider({children, isSelectable}: SelectableHTMLConfigProviderProps) {
     const styles = useThemeStyles();
     const sharedProps = useSharedProps();
+    const htmlRenderers = useHTMLRenderers();
 
     return (
         <RenderHTMLConfigProvider

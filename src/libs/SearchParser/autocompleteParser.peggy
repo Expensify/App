@@ -99,6 +99,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
@@ -141,6 +142,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / reportFieldDynamic
       / columns
       / limit

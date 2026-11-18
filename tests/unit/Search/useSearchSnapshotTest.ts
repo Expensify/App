@@ -58,9 +58,15 @@ jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
         policyForMovingExpenses: undefined,
     }),
 }));
+let mockGroupSnapshots: Record<string, unknown> = {};
+let mockShouldReturnTripRooms = false;
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: () => mockShouldReturnTripRooms,
+}));
 jest.mock('@hooks/useMultipleSnapshots', () => ({
     __esModule: true,
-    default: () => ({}),
+    default: () => mockGroupSnapshots,
 }));
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -98,6 +104,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
     isTransactionGroupListItemType: (item: Record<string, unknown>) => 'transactions' in item,
+    getSortedTransactionData: (transactions: unknown) => transactions,
+    isTransactionEntry: (key: string) => key.startsWith('transactions_'),
 }));
 
 // The optimistic-tracking hooks are mocked so this suite exercises the hook's WIRING (correct inputs in,
@@ -159,6 +167,8 @@ function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimistic
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
         mockIsOffline = false;
+        mockGroupSnapshots = {};
+        mockShouldReturnTripRooms = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -380,6 +390,27 @@ describe('useSearchSnapshot', () => {
         }
     });
 
+    it('tells getSortedSections when a trip search returns trip rooms', () => {
+        // Given a trip search with the TravelApproval beta, whose rows are trip rooms with their own sort keys
+        mockShouldReturnTripRooms = true;
+        const searchResults = makeSearchResults({type: CONST.SEARCH.DATA_TYPES.TRIP});
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+
+        // When the snapshot is projected
+        renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({type: CONST.SEARCH.DATA_TYPES.TRIP}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then the trip rooms flag reaches the sort, or trip rows keep the server order whatever column is sorted
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(mockGetSortedSections.mock.calls.at(-1)?.[7]).toEqual(expect.objectContaining({shouldReturnTripRooms: true}));
+    });
+
     it('keeps the projected data referentially stable across re-renders with unchanged inputs', () => {
         // Given stable inputs and projections that allocate new rows whenever they are evaluated.
         // Their compiler-managed references must stay stable for the optimistic-state effect.
@@ -538,6 +569,66 @@ describe('useSearchSnapshot', () => {
         expect(result.current.data.map((item) => item.keyForList)).toEqual(['group0', 'group1']);
         // cap slices whole groups, so group2's transactions must be unreachable for bulk actions
         expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
+    });
+
+    it('records on each group what its own search returned that the list no longer shows, whether it has more to load, and where it last read from', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const draftsGroupHash = 11;
+        const unchangedGroupHash = 22;
+        const draftsGroupData = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}a`]: {transactionID: 'a'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}b`]: {transactionID: 'b'},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}submitted`]: {transactionID: 'submitted'},
+            [`${ONYXKEYS.COLLECTION.REPORT}1`]: {reportID: '1'},
+        };
+        const unchangedGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}c`]: {transactionID: 'c'}};
+        const groups = [
+            {keyForList: 'group0', transactions: [], transactionsQueryJSON: {hash: draftsGroupHash}},
+            {keyForList: 'group1', transactions: [], transactionsQueryJSON: {hash: unchangedGroupHash}},
+            {keyForList: 'group2', transactions: [], transactionsQueryJSON: {hash: 33}},
+        ];
+        mockGroupSnapshots = {
+            [String(draftsGroupHash)]: {data: draftsGroupData, search: {hasMoreResults: true, offset: 50}},
+            [String(unchangedGroupHash)]: {data: unchangedGroupData, search: {hasMoreResults: false, offset: 0}},
+        };
+        mockGetSections.mockImplementation(({data}: {data: unknown}) => {
+            if (data === draftsGroupData) {
+                return [[{transactionID: 'a'}, {transactionID: 'b'}], 2, false];
+            }
+            if (data === unchangedGroupData) {
+                return [[{transactionID: 'c'}], 1, false];
+            }
+            return [groups, groups.length, false];
+        });
+
+        // Given a group after a Show more holding a submitted expense the list hides, one with every row loaded, and one never opened
+        // When the grouped search is projected
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then each opened group carries what its own search said, and the unopened group carries none
+        const [draftsGroup, unchangedGroup, unopenedGroup] = result.current.filteredData;
+        expect(draftsGroup).toEqual(
+            expect.objectContaining({
+                keyForList: 'group0',
+                transactions: [{transactionID: 'a'}, {transactionID: 'b'}],
+                hiddenTransactionIDs: ['submitted'],
+                hasMoreTransactions: true,
+                transactionsOffset: 50,
+            }),
+        );
+        expect(unchangedGroup).toEqual(
+            expect.objectContaining({keyForList: 'group1', transactions: [{transactionID: 'c'}], hiddenTransactionIDs: [], hasMoreTransactions: false, transactionsOffset: 0}),
+        );
+        expect(unopenedGroup).not.toHaveProperty('hasMoreTransactions');
+        expect(unopenedGroup).not.toHaveProperty('transactionsOffset');
     });
 
     it('does not spend visibleRowLimit on rows being deleted online', () => {

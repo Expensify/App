@@ -12,12 +12,14 @@ describe('resolveComparisonPeriods', () => {
         jest.useRealTimers();
     });
 
-    it('compares the year so far against the same stretch of the year before', () => {
-        // When the page reports on the year to date
+    it('compares year to date against the whole year before, like this year', () => {
+        // When the page reports on year to date, which is kept as an alias of this year
         const periods = resolveComparisonPeriods({preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE});
 
-        // Then each period runs from January 1st to the same day of its own year, and each day pairs with its date a year before
-        expect(periods).toEqual({primary: {start: '2026-01-01', end: '2026-09-22'}, comparison: {start: '2025-01-01', end: '2025-09-22'}, monthsApart: 12});
+        // Then both periods are whole calendar years, a year apart
+        const expectedPeriods = {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}, monthsApart: 12};
+        expect(periods).toEqual(expectedPeriods);
+        expect(resolveComparisonPeriods({preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR})).toEqual(expectedPeriods);
     });
 
     it('compares a month against the month before it', () => {

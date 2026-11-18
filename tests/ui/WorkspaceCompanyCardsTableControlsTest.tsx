@@ -1,16 +1,24 @@
 import {render, screen} from '@testing-library/react-native';
 
+import CardUnsubmittedTransactionsPrompt from '@components/CardUnsubmittedTransactionsPrompt';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContext';
 import WorkspaceCompanyCardsTableControls from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableControls';
 import type {WorkspaceCompanyCardTableItemData} from '@components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow';
 
+import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import {formatMaskedCardName} from '@libs/CardUtils';
 import localFileDownload from '@libs/localFileDownload';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
+
+import createRandomCard from '../utils/collections/card';
 
 type MockDropdownOption = {
     value: string;
-    onSelected: () => void;
+    onSelected: () => void | Promise<void>;
 };
 
 type MockButtonProps = {
@@ -22,6 +30,9 @@ type MockButtonProps = {
 const mockButtonProps: {current?: MockButtonProps} = {};
 let mockProcessedData: Array<Partial<WorkspaceCompanyCardTableItemData> & {selected?: boolean}> = [];
 let mockShouldUseNarrowLayout = true;
+const mockShowConfirmModal = jest.fn<Promise<ModalStateChangePayload>, [{prompt: React.ReactNode}]>();
+
+jest.mock('@components/CardUnsubmittedTransactionsPrompt', () => () => null);
 
 jest.mock('@components/ButtonWithDropdownMenu', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -55,7 +66,7 @@ jest.mock('@components/Table/TableContext', () => ({
 
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: jest.fn()}),
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -100,7 +111,7 @@ function renderControls(isSelectionModeEnabled: boolean) {
         <WorkspaceCompanyCardsTableControls
             policyID="policy123"
             domainOrWorkspaceAccountID={123}
-            bankName={undefined}
+            bankName={CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}
             feedName="oauth.chase.com#123"
             canWriteCompanyCards
             clearCardSelection={clearCardSelection}
@@ -116,6 +127,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
         mockButtonProps.current = undefined;
         mockProcessedData = [];
         mockShouldUseNarrowLayout = true;
+        mockShowConfirmModal.mockResolvedValue({action: ModalActions.CLOSE});
     });
 
     it('shows the disabled zero-selected action and keeps search mounted when selection mode starts', () => {
@@ -153,5 +165,45 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
 
         // Then the existing export still uses one safe text cell for the card name
         expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));
+    });
+
+    it.each([[123], [123, 456]])('links only the selected assigned cards in the warning: %j', async (...cardIDs) => {
+        // Given selected assigned cards, plus disabled and unselected rows that must not enter the link
+        mockProcessedData = cardIDs.map((cardID) => ({selected: true, isAssigned: true, assignedCard: createRandomCard(cardID)}));
+        mockProcessedData.push({selected: true, disabled: true, isAssigned: true, assignedCard: createRandomCard(789)}, {selected: false, isAssigned: false});
+        const {clearCardSelection} = renderControls(true);
+
+        // When opening and closing the warning without confirming
+        await mockButtonProps.current?.options.find((option) => option.value === 'unassign')?.onSelected();
+
+        // Then the prompt contains exactly the selected IDs and no card is unassigned
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                prompt: (
+                    <CardUnsubmittedTransactionsPrompt
+                        cardIDs={cardIDs}
+                        descriptionKey={cardIDs.length === 1 ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'}
+                    />
+                ),
+            }),
+        );
+        expect(unassignWorkspaceCompanyCard).not.toHaveBeenCalled();
+        expect(clearCardSelection).not.toHaveBeenCalled();
+    });
+
+    it('still unassigns the selected cards only after explicit confirmation', async () => {
+        // Given one selected assigned card and an explicit confirmation result
+        const card = createRandomCard(123);
+        mockProcessedData = [{selected: true, isAssigned: true, assignedCard: card}];
+        mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+        const {clearCardSelection} = renderControls(true);
+
+        // When the unassign action is confirmed
+        await mockButtonProps.current?.options.find((option) => option.value === 'unassign')?.onSelected();
+
+        // Then the existing destructive behavior remains scoped to the selected card
+        expect(unassignWorkspaceCompanyCard).toHaveBeenCalledTimes(1);
+        expect(unassignWorkspaceCompanyCard).toHaveBeenCalledWith(123, CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, card);
+        expect(clearCardSelection).toHaveBeenCalledTimes(1);
     });
 });

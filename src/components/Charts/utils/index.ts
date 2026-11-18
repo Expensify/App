@@ -467,6 +467,33 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Y-axis ticks on whole multiples of `step`, picked as round numbers of steps rather than of plotted units, so a count never shows half an expense
+ * and seconds can read as round days. The ticks always include the domain's ends, and a flat domain still gets a tick one step above it.
+ */
+function getSteppedYAxisTicks(domain: [number, number], tickCount: number, step: number): number[] {
+    const min = Math.floor(domain[0] / step);
+    const max = Math.max(Math.ceil(domain[1] / step), min + 1);
+    return scaleLinear()
+        .domain([min, max])
+        .nice(tickCount)
+        .ticks(tickCount)
+        .filter((tick) => Number.isInteger(tick))
+        .map((tick) => tick * step);
+}
+
+/**
+ * Y-axis ticks, tick count and domain of a cartesian chart. With a `step`, the ticks stay on its multiples and the domain stretches to the outermost tick,
+ * so the axis ends on a label. Without one, the axis takes the default tick count over the data's own domain.
+ */
+function getYAxisTickLayout(domain: [number, number], step: number | undefined): {ticks: number[] | undefined; tickCount: number; domain: [number, number]} {
+    if (!step) {
+        return {ticks: undefined, tickCount: VictoryTheme.axis.tickCount, domain};
+    }
+    const ticks = getSteppedYAxisTicks(domain, VictoryTheme.axis.tickCount, step);
+    return {ticks, tickCount: ticks.length, domain: [Math.min(domain[0], ticks.at(0) ?? 0), Math.max(domain[1], ticks.at(-1) ?? 0)]};
+}
+
+/**
  * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
  * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
@@ -553,6 +580,8 @@ function getYAxisLabelWidth(
     fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
+    tickCount: number = VictoryTheme.axis.tickCount,
+    tickValues?: number[],
 ): number {
     if (!fontManager) {
         return 0;
@@ -560,12 +589,8 @@ function getYAxisLabelWidth(
     const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
-    return Math.max(
-        0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontManager, fontSize),
-        ),
-    );
+    const ticks = tickValues ?? getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom);
+    return Math.max(0, ...ticks.map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)));
 }
 
 export {
@@ -594,11 +619,11 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getSteppedYAxisTicks,
+    getYAxisTickLayout,
     getYAxisLabelWidth,
     getCartesianPlotBounds,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
     getAxisLabelStep,
 };
-
-export type {ChartLabelHitTestParams};

@@ -191,6 +191,7 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
                     />
                     <TextLink
                         href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
                         style={styles.mt3}
                     >
                         {translate('common.privacy')}

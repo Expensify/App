@@ -127,6 +127,7 @@ function CopyPolicySettingsUpgradePage() {
                     <UpgradeConfirmation
                         policyName={upgradedWorkspacesName}
                         afterUpgradeAcknowledged={navigateToConfirm}
+                        confirmSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.COPY_SETTINGS_CONFIRMATION_CONTINUE}
                         buttonText={translate('common.continue')}
                     />
                 ) : (
@@ -138,6 +139,7 @@ function CopyPolicySettingsUpgradePage() {
                             description={translate('workspace.copyPolicySettings.upgrade.description', {workspaceName: sourcePolicy?.name ?? '', features: displayedControlOnlyFeatures})}
                             buttonText={translate('common.upgrade')}
                             onUpgrade={onUpgrade}
+                            upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.COPY_SETTINGS_UPGRADE}
                             buttonDisabled={isOffline || policiesToUpgrade.length === 0}
                             loading={isUpgradePending}
                             unlockBadgeText={translate('workspace.upgrade.unlockFeatures')}

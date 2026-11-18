@@ -1,6 +1,5 @@
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
@@ -25,13 +24,12 @@ type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCRE
 
 function InsightsPage({route}: InsightsPageProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [accessibleDashboards = getEmptyArray<InsightsDashboardID>(), accessibleDashboardsMetadata] = useAccessibleDashboards();
     useDocumentTitle(translate('common.insights'));
 
     const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params?.dashboardID);
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !dashboardID || (!isLoadingOnyxValue(accessibleDashboardsMetadata) && !accessibleDashboards.includes(dashboardID))) {
+    if (!dashboardID || (!isLoadingOnyxValue(accessibleDashboardsMetadata) && !accessibleDashboards.includes(dashboardID))) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)} />;
     }
 

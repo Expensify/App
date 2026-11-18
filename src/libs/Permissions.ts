@@ -8,8 +8,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import type Environment from './Environment/getEnvironment/types';
 
-import getPlatform from './getPlatform';
-
 /**
  * Overrides are a test tool, so they never apply in production.
  * Android staging and TestFlight are compiled as production, so only the resolved environment tells a real production
@@ -24,13 +22,6 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-/**
- * Link previews are temporarily disabled.
- */
-function canUseLinkPreviews(): boolean {
-    return false;
-}
-
 /** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
     if (canApplyBetaOverrides(environment)) {
@@ -38,11 +29,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: 
         if (override !== undefined) {
             return override;
         }
-    }
-
-    // Release desktop web independently while the native navigation fixes roll out.
-    if ((beta === CONST.BETAS.INSIGHTS_PAGE || beta === CONST.BETAS.INSIGHTS_COMPARE) && getPlatform(true) === CONST.PLATFORM.WEB) {
-        return true;
     }
 
     const hasAllBetasEnabled = canUseAllBetas(betas);
@@ -75,7 +61,6 @@ function canUsePrivateNotes(): boolean {
 
 // usePermissions calls every member of this object with no arguments, so only no-argument checks belong here
 export default {
-    canUseLinkPreviews,
     canUseTrackFlows,
     canUsePrivateNotes,
     isBetaEnabled,

@@ -66,10 +66,11 @@ These messages appear under the work email field, and the form stays open. Corre
 
 Add the address as a contact method on your account:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account** > **Profile**.
-2. Click **Contact methods**.
-3. Click **New contact method**.
-4. Enter the email address, then follow the prompts to verify it.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+3. Select **Contact methods**.
+4. Select **New contact method**.
+4. Click **New contact method**.
+5. Enter the email address, then follow the prompts to verify it.
 
 This works for an address that isn’t a login on another Expensify account. If the address is a domain controlled login, or a login on an account with 2FA or SSO/SAML enabled, adding it as a contact method fails with **Failed to add this contact method. Please reach out to Concierge for help.** Sign in to that account instead, or chat with Concierge.
 

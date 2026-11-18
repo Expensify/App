@@ -43,9 +43,6 @@ type VisibilityFlags = {
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
 
-    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible?: boolean;
-
     /**
      * Whether the list renders a participant section ("To" / "Paid by") above the footer. The manual form draws a
      * divider under it so the workspace row reads as its own section rather than as the first expense detail.

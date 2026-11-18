@@ -101,36 +101,18 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
-        const avatars = getIcons(
-            quickActionReport,
+        const avatars = getIcons({
+            report: quickActionReport,
             formatPhoneNumber,
             translate,
             personalDetails,
-            null,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
             isReportArchived,
-            quickActionReportPendingDeleteMemberAccountIDs,
+            pendingDeleteMemberAccountIDs: quickActionReportPendingDeleteMemberAccountIDs,
             conciergeReportID,
-        );
+        });
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(
-            policyChatForActivePolicy,
-            formatPhoneNumber,
-            translate,
-            personalDetails,
-            null,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived,
-            undefined,
-            conciergeReportID,
-        );
+        quickActionAvatars = getIcons({report: policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, isReportArchived, conciergeReportID});
     }
 
     let quickActionTitle = '';
@@ -173,6 +155,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     if (quickAction?.action && quickActionReport) {
         return (
             <FABFocusableMenuItem
+                sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
                 itemId={ITEM_ID}
                 isVisible={isVisible}
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
@@ -220,6 +203,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
             itemId={ITEM_ID}
             isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}

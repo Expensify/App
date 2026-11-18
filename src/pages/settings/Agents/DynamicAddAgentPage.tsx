@@ -34,7 +34,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canMemberWrite, POLICY_ROLE_RANKING} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, createAgent, createCompanyAgent, setNewAgentAvatarPreset} from '@userActions/Agent';
@@ -91,7 +91,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
     const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
-    const defaultRole = availableRoleItems.at(0)?.value;
+    // The role list is ordered for display, so the default comes from the role hierarchy instead.
+    const defaultRole = POLICY_ROLE_RANKING.find((role) => availableRoleItems.some((item) => item.value === role));
     const roleOptions = availableRoleItems.map((roleItem) => ({
         label: roleItem.text,
         value: roleItem.value,
@@ -336,6 +337,8 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                 excludedMarkdownStyles={['mentionReport']}
                                 onKeyPress={submitFormOnModEnter}
                                 defaultValue={defaultPrompt}
+                                maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                                sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.INSTRUCTIONS}
                                 multiline
                                 // Keep native markdown sizing enabled across rotation so the input retains focus while its height limit changes.
                                 autoGrowHeight={shouldAutoGrowPromptInput}

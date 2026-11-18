@@ -1,12 +1,12 @@
 import type {ChartComparisonPeriods, ChartPeriod} from '@components/Search/comparisonBuckets';
 
-import {getDateRangeForPreset} from '@libs/SearchQueryUtils';
-
 import CONST from '@src/CONST';
 
-import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, startOfYear, subDays, subMonths, subYears} from 'date-fns';
+import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, subDays, subMonths} from 'date-fns';
 
 import type {InsightsFilters} from './insightsFilters';
+
+import getInsightsDateRange from './getInsightsDateRange';
 
 /** Presets that span a fixed number of days rather than whole months */
 const DAY_LENGTH_PRESETS = new Set<string>([
@@ -26,23 +26,12 @@ function formatPeriod(start: Date, end: Date): ChartPeriod {
 
 /** Resolves the period the Date filter covers and the one before it, which decide how buckets pair up and what each series is named. The backend picks the compared rows itself. */
 function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartComparisonPeriods | undefined {
-    let primary;
-    if ('preset' in dateFilter) {
-        primary = getDateRangeForPreset(dateFilter.preset);
-    } else {
-        primary = 'on' in dateFilter ? {start: dateFilter.on, end: dateFilter.on} : {start: dateFilter.from, end: dateFilter.to};
-    }
+    const primary = getInsightsDateRange(dateFilter);
     if (!primary.start || !primary.end) {
         return undefined;
     }
     const start = parseISO(primary.start);
     const end = parseISO(primary.end);
-
-    // The year so far compares against the same days of the year before.
-    if ('preset' in dateFilter && dateFilter.preset === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE) {
-        const sameDayLastYear = subYears(end, 1);
-        return {primary, comparison: formatPeriod(startOfYear(sameDayLastYear), sameDayLastYear), monthsApart: 12};
-    }
 
     // Month, quarter, and year presets cover whole months and compare month for month.
     if ('preset' in dateFilter && !DAY_LENGTH_PRESETS.has(dateFilter.preset)) {

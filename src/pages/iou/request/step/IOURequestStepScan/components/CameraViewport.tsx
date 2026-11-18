@@ -13,9 +13,12 @@ import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
 import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
+import {getTorchModeProp} from '@pages/iou/request/step/IOURequestStepScan/utils/shouldLightFlashWithTorch';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode, RefObject} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
@@ -72,6 +75,9 @@ type CameraViewportProps = {
     /** Callback fired each time the session finishes configuring, so the outputs' negotiated sizes can be read */
     onConfigured?: () => void;
 
+    /** Callback fired each time the camera session starts, including after it was stopped */
+    onStarted?: () => void;
+
     /** Callback fired with the session config VisionCamera picked, before `onConfigured` */
     onSessionConfigSelected?: (config: CameraSessionConfig) => void;
 
@@ -82,7 +88,7 @@ type CameraViewportProps = {
     shouldShowFlashButton: boolean;
 
     /** Sentry label for the flash button */
-    flashSentryLabel?: string;
+    flashSentryLabel?: SentryLabel;
 
     /** Current camera permission status; used to disable the flash button until granted */
     cameraPermissionStatus: PermissionStatus | null;
@@ -93,6 +99,9 @@ type CameraViewportProps = {
     hasFlash: boolean;
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
+
+    /** Whether the torch is requested. VisionCamera applies it asynchronously, so it may not be lit yet */
+    isTorchOn?: boolean;
 
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
@@ -112,6 +121,7 @@ function CameraViewport({
     didCapturePhoto = false,
     hasPendingPhotoCapture = false,
     onConfigured,
+    onStarted,
     onSessionConfigSelected,
     onLayout,
     shouldShowFlashButton,
@@ -120,6 +130,7 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
+    isTorchOn = false,
     children,
 }: CameraViewportProps) {
     const theme = useTheme();
@@ -170,10 +181,12 @@ function CameraViewport({
                         outputs={outputs}
                         style={[styles.flex1, shouldHidePreview && styles.opacity0]}
                         zoom={shouldHidePreview ? 1 : getZoomProp(device)}
+                        torchMode={getTorchModeProp(device.hasTorch, isTorchOn)}
                         cameraTabIndex={1}
                         forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
                         shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onConfigured={onConfigured}
+                        onStarted={onStarted}
                         onPreviewStarted={revealPreviewOnWideLens}
                         onPreviewStopped={hidePreview}
                         onSessionConfigSelected={onSessionConfigSelected}
