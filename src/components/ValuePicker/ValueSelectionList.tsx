@@ -5,8 +5,8 @@ import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 
+import searchOptions from '@libs/searchOptions';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import StringUtils from '@libs/StringUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import CONST from '@src/CONST';
@@ -46,19 +46,16 @@ function ValueSelectionList({
         isSelected: item.value === selectedItem?.value,
     }));
 
-    const [searchValue, setSearchValue, matchingOptions, searchQuery] = useSearchResults(options, (option, searchInput) => {
-        if (option.searchValue === undefined) {
-            return tokenizedSearch([option], searchInput, () => [option.text]).length > 0;
-        }
-        // A query of only punctuation sanitizes to nothing and matches no option, as in the country selector
-        const sanitizedInput = StringUtils.sanitizeString(searchInput);
-        return !!sanitizedInput && option.searchValue.includes(sanitizedInput);
-    });
-
-    // An option whose own value was typed, such as the country code `US`, goes first, as the country selector lists it
-    const sanitizedQuery = StringUtils.sanitizeString(searchQuery);
-    const isTypedValue = (option: {value: string; searchValue?: string}) => option.searchValue !== undefined && !!sanitizedQuery && option.value.toLowerCase() === sanitizedQuery;
-    const filteredOptions = [...matchingOptions.filter(isTypedValue), ...matchingOptions.filter((option) => !isTypedValue(option))];
+    // Options with a `searchValue`, such as countries, are filtered and ranked by `searchOptions` below, so every country field sorts its results the same way
+    const [searchValue, setSearchValue, matchingOptions, searchQuery] = useSearchResults(
+        options,
+        (option, searchInput) => option.searchValue !== undefined || tokenizedSearch([option], searchInput, () => [option.text]).length > 0,
+    );
+    const rankedOptions = searchOptions(
+        searchQuery,
+        matchingOptions.flatMap((option) => (option.searchValue === undefined ? [] : [{...option, searchValue: option.searchValue}])),
+    );
+    const filteredOptions = searchQuery ? [...rankedOptions, ...matchingOptions.filter((option) => option.searchValue === undefined)] : matchingOptions;
 
     // The search input is gated on the unfiltered list length so it doesn't disappear once a query narrows the results.
     const isSearchable = options.length >= CONST.STANDARD_LIST_ITEM_LIMIT;

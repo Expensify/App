@@ -155,7 +155,9 @@ describe('ValueSelectionList', () => {
 
         describe('options with their own search text', () => {
             const countries = [
+                {value: 'AG', label: 'Antigua & Barbuda'},
                 {value: 'AU', label: 'Australia'},
+                {value: 'BB', label: 'Barbados'},
                 // cspell:disable-next-line
                 {value: 'MX', label: 'México'},
                 {value: 'US', label: 'United States'},
@@ -179,6 +181,18 @@ describe('ValueSelectionList', () => {
                 // Then the country with that code comes first, ahead of names that merely contain it
                 const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
                 expect(selectionListProps?.data.map((item) => item.keyForList)).toEqual(['US', 'AU']);
+            });
+
+            it('lists a name that starts with the query before names that only contain it', () => {
+                // Given a country list where an earlier country contains the text another country starts with
+                renderCountries();
+
+                // When the user types the start of the later country's name
+                search('bar');
+
+                // Then that country comes first, because a name starting with the query is the likelier target
+                const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+                expect(selectionListProps?.data.map((item) => item.keyForList)).toEqual(['BB', 'AG']);
             });
 
             it('ignores accents', () => {
