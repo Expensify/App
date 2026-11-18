@@ -65,6 +65,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState('');
     const {isBetaEnabled} = usePermissions();
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
+
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup.
+    useEffect(() => {
+        if (!groupPolicy || onboardingPolicyID) {
+            return;
+        }
+        setOnboardingAdminsChatReportID(groupPolicy.chatReportIDAdmins?.toString());
+        setOnboardingPolicyID(groupPolicy.id);
+    }, [groupPolicy, onboardingPolicyID]);
+
     const onboardingPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`];
     const canUseBusinessCentral = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!onboardingPolicy?.connections?.businessCentral;
     const canUseDigits = isBetaEnabled(CONST.BETAS.DIGITS) || !!onboardingPolicy?.connections?.digits;
@@ -90,18 +102,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const trimmedQuery = searchQuery.trim();
     const normalizedQuery = trimmedQuery.toLocaleLowerCase();
     const filteredOptions = options.filter((option) => `${option.name} ${option.aliases ?? ''}`.toLocaleLowerCase().includes(normalizedQuery));
-
-    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
-
-    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup.
-    useEffect(() => {
-        if (!groupPolicy || onboardingPolicyID) {
-            return;
-        }
-        setOnboardingAdminsChatReportID(groupPolicy.chatReportIDAdmins?.toString());
-        setOnboardingPolicyID(groupPolicy.id);
-    }, [groupPolicy, onboardingPolicyID]);
 
     const unsupportedTitle = translate('onboarding.accounting.unsupportedTitle', trimmedQuery);
     const unsupportedSubtitle = translate('onboarding.accounting.unsupportedSubtitle');
