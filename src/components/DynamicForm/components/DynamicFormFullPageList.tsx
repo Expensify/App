@@ -41,7 +41,6 @@ function DynamicFormFullPageList({isVisible, title, onClose, children}: DynamicF
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="DynamicFormFullPageList"
-                shouldEnableKeyboardAvoidingView={false}
             >
                 <Header>
                     <Header.BackButton onPress={onClose} />
