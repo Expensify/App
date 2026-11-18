@@ -51,8 +51,6 @@ jobs:
               - 'config/babel/**'
               - 'tsconfig.json'
               - '.nvmrc'
-              - '.github/workflows/test.yml'
-              - '.github/workflows/reassurePerformanceTests.yml'
               - '.github/actions/composite/setupNode/**'
 
       - name: Setup Node

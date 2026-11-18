@@ -1,3 +1,4 @@
+// Throwaway: probes selective test runs, reverted before merge.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';

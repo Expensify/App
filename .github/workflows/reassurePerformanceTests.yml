@@ -48,7 +48,6 @@ on:
       - 'tests/__mocks__/**'
       # CI: only this check, its baseline seed, and the actions it runs.
       - '!.github/**'
-      - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
       - '.github/actions/javascript/validateReassureOutput/**'
       - '.github/actions/composite/setupNode/**'
@@ -204,8 +203,6 @@ jobs:
               - 'config/babel/**'
               - 'tsconfig.json'
               - '.nvmrc'
-              - '.github/workflows/test.yml'
-              - '.github/workflows/reassurePerformanceTests.yml'
               - '.github/actions/composite/setupNode/**'
 
       - name: Setup NodeJS
