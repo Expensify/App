@@ -30,8 +30,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import type {TupleToUnion} from 'type-fest';
-import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale, StackedBarOptionsFn} from 'victory-native';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
+import {Group, Skia} from '@shopify/react-native-skia';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -71,7 +72,8 @@ function VerticalBarChartCanvas({
     const isStacked = stacks.length > 0;
     // A stack reaches the sum of its segments, so the y-axis and the tooltip anchor are measured against each stack's total across both periods
     const plottedData = isStacked ? getStackTotalsData(data, stacks, averageSeries) : data;
-    const plottedSeries = isStacked ? [...getStackTotalSeries(stacks), ...(averageSeries ? [averageSeries] : [])] : series;
+    const stackTotalSeries = getStackTotalSeries(stacks);
+    const plottedSeries = isStacked ? [...stackTotalSeries, ...(averageSeries ? [averageSeries] : [])] : series;
     const barSlotCount = isStacked ? stacks.length : barSeries.length;
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
@@ -223,34 +225,47 @@ function VerticalBarChartCanvas({
         );
     };
 
-    // Only the stack's ends are rounded, so its segments meet flush
-    const getStackSegmentOptions: StackedBarOptionsFn = ({isTop, isBottom}) => ({
-        roundedCorners: {
-            topLeft: isTop ? BAR_CORNER_RADIUS : 0,
-            topRight: isTop ? BAR_CORNER_RADIUS : 0,
-            bottomLeft: isBottom ? BAR_CORNER_RADIUS : 0,
-            bottomRight: isBottom ? BAR_CORNER_RADIUS : 0,
-        },
-    });
+    /**
+     * Returns the rounded outline of a stack's bars, from zero to each bar's total.
+     * Rounding the end segments instead fails when an end segment is too short to show its corners, like a stage that took minutes in a chart of days.
+     */
+    const getStackOutline = (position: number, offset: number, xScale: Scale, yScale: Scale) => {
+        const totalKey = stackTotalSeries.at(position)?.key;
+        const outline = Skia.PathBuilder.Make();
+        for (const [index, point] of plottedData.entries()) {
+            const total = totalKey ? point.values[totalKey] : undefined;
+            if (!total) {
+                continue;
+            }
+            const top = Math.min(yScale(total), yScale(0));
+            const height = Math.abs(yScale(total) - yScale(0));
+            const bar = Skia.XYWHRect(xScale(index) + offset - groupedBarWidth / 2, top, groupedBarWidth, height);
+            outline.addRRect(Skia.RRectXY(bar, BAR_CORNER_RADIUS, BAR_CORNER_RADIUS));
+        }
+        return outline.build();
+    };
 
-    const renderStack = (stack: ChartSeries[], position: number, points: Record<string, PointsArray>, chartBounds: ChartBounds) => {
+    const renderStack = (stack: ChartSeries[], position: number, points: Record<string, PointsArray>, chartBounds: ChartBounds, xScale: Scale, yScale: Scale) => {
         // The previous period's stack is drawn left of the current one, reading in time order
         const offset = getSlotOffset(stacks.length - 1 - position);
         return (
-            <StackedBar
+            <Group
                 key={`stack-${stack.at(0)?.stackIndex}`}
-                points={stack.map((seriesItem) =>
-                    (points[seriesItem.key] ?? []).map((point) => ({
-                        ...point,
-                        x: point.x + offset,
-                    })),
-                )}
-                chartBounds={chartBounds}
-                barWidth={groupedBarWidth}
-                barCount={data.length}
-                colors={stack.map((seriesItem) => seriesItem.color ?? VictoryTheme.colors.default)}
-                barOptions={getStackSegmentOptions}
-            />
+                clip={getStackOutline(position, offset, xScale, yScale)}
+            >
+                <StackedBar
+                    points={stack.map((seriesItem) =>
+                        (points[seriesItem.key] ?? []).map((point) => ({
+                            ...point,
+                            x: point.x + offset,
+                        })),
+                    )}
+                    chartBounds={chartBounds}
+                    barWidth={groupedBarWidth}
+                    barCount={data.length}
+                    colors={stack.map((seriesItem) => seriesItem.color ?? VictoryTheme.colors.default)}
+                />
+            </Group>
         );
     };
 
@@ -340,7 +355,7 @@ function VerticalBarChartCanvas({
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >
-                    {({points, chartBounds, yScale, yTicks}) => (
+                    {({points, chartBounds, xScale, yScale, yTicks}) => (
                         <>
                             <ChartGridLines
                                 yTicks={yTicks}
@@ -348,7 +363,7 @@ function VerticalBarChartCanvas({
                                 chartBounds={chartBounds}
                                 color={theme.border}
                             />
-                            {groupedBarWidth > 0 && isStacked && stacks.map((stack, position) => renderStack(stack, position, points, chartBounds))}
+                            {groupedBarWidth > 0 && isStacked && stacks.map((stack, position) => renderStack(stack, position, points, chartBounds, xScale, yScale))}
                             {groupedBarWidth > 0 &&
                                 !isStacked &&
                                 barSeries.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
