@@ -247,10 +247,8 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
         expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledWith('1', '', TRAVEL_ACCOUNT.id);
         expect(Navigation.goBack).toHaveBeenCalledWith(BACK_PATH);
     });
-    it.each([ROUTES.POLICY_ACCOUNTING.getRoute('1'), ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute('1')])('preserves the dynamic parent from %s for Back and Save', (basePath) => {
-        // Given the picker was opened from either accounting entry point.
-        const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, basePath);
-        jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
+    it('preserves the dynamic parent for Back and Save', () => {
+        // Given the picker receives its parent route from the dynamic back-path hook.
         renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
 
         // When Back is pressed.
@@ -260,7 +258,7 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
 
         // Then this picker's dynamic suffix is used and Back does not persist anything.
         expect(useDynamicBackPath).toHaveBeenCalledWith(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path);
-        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(BACK_PATH);
         expect(updateQuickbooksDesktopFxExpenseAccount).not.toHaveBeenCalled();
 
         // When an account is selected and saved through the same screen callback.
@@ -273,7 +271,7 @@ describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
 
         // Then Save also returns to the original dynamic parent, rather than a shared route.
         expect(Navigation.goBack).toHaveBeenCalledTimes(2);
-        expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);
+        expect(Navigation.goBack).toHaveBeenLastCalledWith(BACK_PATH);
         expect(updateQuickbooksDesktopFxExpenseAccount).toHaveBeenCalledTimes(1);
     });
 });

@@ -38,8 +38,11 @@ type FxExpenseAccountSelectPageProps = Pick<
     | 'initiallyFocusedOptionKey'
     | 'confirmButtonOptions'
 > & {
+    /** Description rendered above the search box, outside the scrollable account list. */
     children: ReactNode;
+    /** Shown for missing accounts. A search with no matches shows the no-results message instead. */
     emptyStateTitle: string;
+    /** Explanation displayed with emptyStateTitle when there are no accounts. */
     emptyStateSubtitle: string;
 };
 
