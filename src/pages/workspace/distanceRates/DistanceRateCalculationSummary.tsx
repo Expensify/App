@@ -69,17 +69,19 @@ function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, 
     const note = governmentRateCountry ? getGovernmentRateNote(translate, governmentRateCountry, governmentRate, dateFnsLocale) : undefined;
 
     return (
-        <View style={[styles.mt6, styles.gap2]}>
+        <View style={[styles.mb4, styles.gap3]}>
             <SummaryLine icon={icons.Car}>
-                <Text style={styles.textSupporting}>{translate('workspace.distanceRates.addRatePage.unitPaidIn', Str.recapitalize(translate(getUnitTranslationKey(unit))), currency)}</Text>
+                <Text style={styles.textLabelSupporting}>
+                    {translate('workspace.distanceRates.addRatePage.unitPaidIn', Str.recapitalize(translate(getUnitTranslationKey(unit))), currency)}
+                </Text>
             </SummaryLine>
             {shouldShowNote && (
                 <SummaryLine icon={icons.Info}>
                     {note ? (
-                        <Text style={styles.textSupporting}>{note}</Text>
+                        <Text style={styles.textLabelSupporting}>{note}</Text>
                     ) : (
                         <SkeletonTextLine
-                            lineHeight={lineHeightScale.text}
+                            lineHeight={lineHeightScale.label}
                             barWidth={NOTE_SKELETON_WIDTH}
                         />
                     )}
