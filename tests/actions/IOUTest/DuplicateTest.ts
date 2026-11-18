@@ -3039,8 +3039,8 @@ describe('actions/Duplicate', () => {
             expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 12, rate: 5000})]);
         });
 
-        it('per diem expense whose workspace price changed since it was created', async () => {
-            // Given a workspace whose per diem sub-rate now costs 60.00
+        it('per diem expense whose workspace price and currency changed since it was created', async () => {
+            // Given a workspace whose per diem sub-rate now costs 60.00 EUR
             const targetPolicy: Policy = {
                 ...mockPolicy,
                 customUnits: {
@@ -3051,7 +3051,7 @@ describe('actions/Duplicate', () => {
                             polandRate: {
                                 customUnitRateID: 'polandRate',
                                 name: 'Poland',
-                                currency: 'PLN',
+                                currency: 'EUR',
                                 subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}],
                             },
                         },
@@ -3059,10 +3059,11 @@ describe('actions/Duplicate', () => {
                 },
             };
 
-            // And a per diem expense created in New Expensify when the sub-rate cost 50.00
+            // And a per diem expense created in New Expensify when the sub-rate cost 50.00 PLN
             const perDiemTransaction = {
                 ...mockTransaction,
                 amount: -5000,
+                currency: 'PLN',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: 'customUnit' as const,
@@ -3114,9 +3115,16 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the sub-rate keeps the price it was created with, so the copy has the same amount as the original
+            // Then the server gets the workspace's current price and currency, which it prices the copy with, so the receipt
+            // it draws from the request shows the same price and currency as the copy
             const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
-            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', rate: 5000})]);
+            expect(writeCall?.[1]).toEqual(expect.objectContaining({currency: 'EUR'}));
+            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', rate: 6000})]);
+
+            // And the copy shows that price and currency while it's being created, so it doesn't change when the server responds
+            const copiedPerDiem = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(writeCall?.[1]?.transactionID)}`);
+            expect(copiedPerDiem?.amount).toBe(-6000);
+            expect(copiedPerDiem?.currency).toBe('EUR');
         });
 
         it('should not pass linkedTrackedExpenseReportAction.childReportID as transactionThreadReportID to the API', async () => {
@@ -4104,7 +4112,7 @@ describe('actions/Duplicate', () => {
             expect(copy?.reimbursableTotal).toBe(-46000);
         });
 
-        it('should total a per diem expense from Expensify Classic at the workspace price its copy is created with', async () => {
+        it('should total a per diem expense at the workspace price and currency its copy is created with', async () => {
             // Given a workspace whose per diem sub-rate now costs 60.00
             const customUnits: Policy['customUnits'] = {
                 perDiemUnit: {
@@ -4145,12 +4153,37 @@ describe('actions/Duplicate', () => {
             expect(copy?.reimbursableTotal).toBe(-6000);
             expect(copy?.unheldReimbursableTotal).toBe(-6000);
 
-            // When the same expense is in a currency other than the report's, whose stored conversion is of its old 50.00 amount
+            // When a per diem created in New Expensify at 50.00 AUD, before the workspace changed the rate to 60.00 INR, is duplicated
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
-            const crossCurrencyCopy = await duplicateCrossCurrencyReport([{...classicPerDiem, currency: 'AUD', convertedAmount: -46000}], {customUnits});
+            const newDotPerDiem: Partial<Transaction> = {
+                ...classicPerDiem,
+                currency: 'AUD',
+                convertedAmount: -46000,
+                comment: {
+                    ...classicPerDiem.comment,
+                    customUnit: {...classicPerDiem.comment?.customUnit, subRates: [{id: 'subrate-1', name: 'Full Day', quantity: 1, rate: 5000}]},
+                },
+            };
+            const repricedCopy = await duplicateCrossCurrencyReport([newDotPerDiem], {customUnits});
 
-            // Then the copy doesn't take a total from that out-of-date conversion, and leaves it to the server
+            // Then the copy is totalled at the 60.00 INR the server creates its expense with, not from the source's out-of-date conversion
+            expect(repricedCopy?.total).toBe(-6000);
+            expect(repricedCopy?.reimbursableTotal).toBe(-6000);
+
+            // When the workspace's rate is now in a currency other than the report's
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            const audCustomUnits: Policy['customUnits'] = {
+                perDiemUnit: {
+                    customUnitID: 'perDiemUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {polandRate: {customUnitRateID: 'polandRate', name: 'Poland', currency: 'AUD', subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}]}},
+                },
+            };
+            const crossCurrencyCopy = await duplicateCrossCurrencyReport([classicPerDiem], {customUnits: audCustomUnits});
+
+            // Then the copy doesn't guess a conversion, and leaves the total to the server
             expect(crossCurrencyCopy?.total).toBe(0);
             expect(crossCurrencyCopy?.reimbursableTotal).toBe(0);
         });

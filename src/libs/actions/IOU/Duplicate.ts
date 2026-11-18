@@ -83,16 +83,21 @@ import {requestMoney, trackExpense} from './TrackExpense';
 const CLASSIC_PER_DIEM_DATE_REGEX = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}).*$/;
 
 /**
- * Builds the custom unit a duplicated per diem expense is created with. Expensify Classic saves per diem dates with a time
- * zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates without their price and with the quantity as a
- * string ("12"). CreatePerDiemRequest rejects those dates and string quantities, so the copy keeps the time the user entered
- * (2026-07-31 05:30:00) and sends the quantity as a number. A sub-rate without a price takes the workspace's current price,
- * so duplicateReport totals the copy from this custom unit rather than from the source expense's amount.
+ * Builds the custom unit and currency a duplicated per diem expense is created with. Expensify Classic saves per diem dates
+ * with a time zone offset, like 2026-07-31T05:30:00.000+02:00, and saves sub-rates without their price and with the quantity
+ * as a string ("12"). CreatePerDiemRequest rejects those dates and string quantities, so the copy keeps the time the user
+ * entered (2026-07-31 05:30:00) and sends the quantity as a number.
+ *
+ * CreatePerDiemRequest prices the copy from the workspace's current sub-rate prices and rate currency, whatever the request
+ * says, but draws the receipt from the prices and currency in the request. So the copy takes the workspace's prices and
+ * currency too, keeping the source's only for a sub-rate or rate the workspace no longer has. For example, a 10 x 16.00 EUR
+ * per diem whose workspace price is now 10.00 USD is copied as 100.00 USD, and its receipt shows 10.00 USD.
  */
-function buildDuplicatePerDiemCustomUnit(sourceCustomUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>): TransactionCustomUnit {
+function buildDuplicatePerDiem(sourceCustomUnit: TransactionCustomUnit, sourceCurrency: string, policy: OnyxEntry<OnyxTypes.Policy>): {customUnit: TransactionCustomUnit; currency: string} {
     const sourceDates = sourceCustomUnit.attributes?.dates;
-    const policySubRates = sourceCustomUnit.customUnitRateID ? (getPerDiemRateCustomUnitRate(policy, sourceCustomUnit.customUnitRateID)?.subRates ?? []) : [];
-    return {
+    const policyRate = sourceCustomUnit.customUnitRateID ? getPerDiemRateCustomUnitRate(policy, sourceCustomUnit.customUnitRateID) : undefined;
+    const policySubRates = policyRate?.subRates ?? [];
+    const customUnit: TransactionCustomUnit = {
         ...sourceCustomUnit,
         attributes: sourceDates
             ? {
@@ -106,9 +111,10 @@ function buildDuplicatePerDiemCustomUnit(sourceCustomUnit: TransactionCustomUnit
         subRates: sourceCustomUnit.subRates?.map((subRate) => ({
             ...subRate,
             quantity: Number(subRate.quantity),
-            rate: subRate.rate ?? policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate,
+            rate: policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate ?? subRate.rate,
         })),
     };
+    return {customUnit, currency: policyRate?.currency ?? sourceCurrency};
 }
 
 function getIOUActionForTransactions(
@@ -823,7 +829,7 @@ function createExpenseByType({
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
-                    customUnit: buildDuplicatePerDiemCustomUnit(transaction.comment?.customUnit ?? {}, params.policyParams?.policy),
+                    ...buildDuplicatePerDiem(transaction.comment?.customUnit ?? {}, getCurrency(transaction), params.policyParams?.policy),
                 },
                 hasViolations: false,
                 customUnitPolicyID,
@@ -1097,8 +1103,8 @@ type DuplicateReportTotals = {
  * `undefined` means "don't guess". That covers four cases: the copy's currency differs from the source report's (a
  * cross-workspace duplicate into another output currency, where the stored conversion is for the wrong currency), an
  * expense needs a conversion it doesn't carry, an expense has an unsynced amount or currency edit, or a converted per
- * diem's copy is priced differently from its source. Only the server recomputes `convertedAmount`, so in the last two
- * cases the stored conversion describes the source's old amount rather than the copy's.
+ * diem's copy has a different price or currency than its source. Only the server recomputes `convertedAmount`, so in the
+ * last two cases the stored conversion describes the source's old amount rather than the copy's.
  * The caller then leaves the totals as the server will send them rather than writing a fabricated number.
  */
 function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Transaction[], sourceReport: OnyxEntry<OnyxTypes.Report>, targetPolicy: OnyxTypes.Policy): number[] | undefined {
@@ -1112,11 +1118,18 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
         // getCurrency/getAmount read the modified values first, so an expense whose currency was edited after it was
         // created is measured by what it is now, not by what it was created as.
         const sourceAmount = getAmount(transaction, true);
+        const sourceCurrency = getCurrency(transaction);
 
-        // A per diem copy is priced from its sub-rates, which can differ from the source amount when Expensify Classic
-        // didn't save a sub-rate's price and the workspace's price has changed since.
-        const copyAmount = isPerDiemRequest(transaction) ? computePerDiemExpenseAmount(buildDuplicatePerDiemCustomUnit(transaction.comment?.customUnit ?? {}, targetPolicy)) : sourceAmount;
-        if (getCurrency(transaction) === reportCurrency) {
+        // A per diem copy is priced from the workspace's current per diem rate, which can differ from the source's
+        // amount and currency when the workspace changed the rate after the source was created.
+        let copyAmount = sourceAmount;
+        let copyCurrency = sourceCurrency;
+        if (isPerDiemRequest(transaction)) {
+            const perDiem = buildDuplicatePerDiem(transaction.comment?.customUnit ?? {}, sourceCurrency, targetPolicy);
+            copyAmount = computePerDiemExpenseAmount(perDiem.customUnit);
+            copyCurrency = perDiem.currency;
+        }
+        if (copyCurrency === reportCurrency) {
             amounts.push(copyAmount);
             continue;
         }
@@ -1125,7 +1138,7 @@ function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Tra
         // before the edit, so it can't stand in for the expense here. The same goes for a copy priced differently from
         // its source, since `convertedAmount` is the conversion of the source amount.
         const hasUnsyncedAmountEdit = !!transaction.pendingFields?.amount || !!transaction.pendingFields?.currency;
-        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit || copyAmount !== sourceAmount) {
+        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit || copyAmount !== sourceAmount || copyCurrency !== sourceCurrency) {
             return undefined;
         }
 
