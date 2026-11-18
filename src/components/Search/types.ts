@@ -420,7 +420,9 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.RIGHT_PINNED_COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -449,6 +451,12 @@ type SearchQueryAST = {
     groupColumns?: SearchColumnType[];
     limit?: number;
     compare?: SearchCompareMode;
+
+    /** 1-based position; omitted queries retain full-tag grouping and text matching. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for an exact level-aware tag filter; empty selects independent tags. */
+    tagParent?: string;
 };
 
 type SearchQueryJSON = {

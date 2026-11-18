@@ -29,9 +29,9 @@ type WithRequiredSentryLabel = {
  * Pass `TLabelProp` when the label has another name, e.g. `WithSentryLabelWhenPressable<'onCtaPress', 'ctaSentryLabel'>`.
  *
  * TypeScript loses the link between the label and the press props once they are destructured, so a component that
- * passes them on checks the label again and passes them together:
- * `const pressProps = sentryLabel ? {onPress, sentryLabel} : {};`. Derive other types from one that uses this with
- * `DistributedOmit` / `DistributedPick` from type-fest, since `Omit` and `Pick` merge the union and drop the requirement.
+ * passes them on checks the prop that makes it pressable and passes the label in that branch (see SENTRY_LABEL.md).
+ * Derive other types from one that uses this with `DistributedOmit` / `DistributedPick` from type-fest, since `Omit` and
+ * `Pick` merge the union and drop the requirement.
  */
 type WithSentryLabelWhenPressable<TPressProp extends PropertyKey = 'onPress', TLabelProp extends PropertyKey = 'sentryLabel'> =
     | Record<TLabelProp, SentryLabel>

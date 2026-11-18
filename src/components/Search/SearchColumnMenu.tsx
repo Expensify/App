@@ -70,11 +70,10 @@ function SearchColumnMenuTrigger() {
     const isCaretBeforeLabel = layoutAlignment === CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END;
 
     return (
-        <PopoverMenu.Trigger>
+        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}>
             <PressableWithFeedback
                 accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: label})}
                 role={CONST.ROLE.BUTTON}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 onWrapperLayout={updateCaretRoom}
                 // Fills the cell, so the whole heading opens the menu.

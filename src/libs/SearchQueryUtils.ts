@@ -77,6 +77,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -94,6 +95,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
 import StringUtils from './StringUtils';
@@ -1077,6 +1079,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${status.isNegated ? CONST.SEARCH.NOT_PREFIX : ''}${CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS}:${status.value?.join(',') ?? ''}`;
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
+    if (query.tagLevel !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`;
+    }
+    if (query.tagParent !== undefined) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`;
+    }
 
     const policyID = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     if (policyID.value) {
@@ -1084,6 +1092,12 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
+    if (query.tagLevel !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${query.tagLevel}`);
+    }
+    if (query.tagParent !== undefined) {
+        filterSet.add(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${JSON.stringify(query.tagParent)}`);
+    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -1270,6 +1284,14 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        if (result.tagLevel !== undefined) {
+            const tagLevel = Number(result.tagLevel);
+            result.tagLevel = Number.isSafeInteger(tagLevel) && tagLevel > 0 ? tagLevel : undefined;
+        }
+        if (result.tagParent !== undefined && (result.tagLevel === undefined || typeof result.tagParent !== 'string')) {
+            result.tagParent = undefined;
+        }
+
         // Normalize compare before computing hashes so invalid values don't affect hash
         if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
             result.compare = undefined;
@@ -1317,6 +1339,10 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT && queryJSON?.tagParent !== undefined) {
+            queryParts.push(`${key}:${sanitizeSearchValue(queryJSON.tagParent) || '""'}`);
+            continue;
+        }
         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
@@ -1560,6 +1586,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         leftPinnedColumns,
         rightPinnedColumns,
         limit,
+        tagLevel,
+        tagParent,
         footerCount,
         footerTotal,
         footerCurrency,
@@ -1583,6 +1611,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+    const level = Number(tagLevel);
+    if (tagLevel !== undefined && Number.isSafeInteger(level) && level > 0) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_LEVEL}:${level}`);
+        if (tagParent !== undefined) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TAG_PARENT}:${sanitizeSearchValue(tagParent) || '""'}`);
+        }
     }
 
     // View is only valid when groupBy is set
@@ -2446,6 +2481,12 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+    if (queryJSON.tagLevel !== undefined) {
+        filtersForm[FILTER_KEYS.TAG_LEVEL] = queryJSON.tagLevel.toString();
+        if (queryJSON.tagParent !== undefined) {
+            filtersForm[FILTER_KEYS.TAG_PARENT] = queryJSON.tagParent;
+        }
     }
 
     const footerSelection = getFooterSelectionFromQuery(queryJSON);
@@ -3513,7 +3554,38 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
 
-function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+function getActionFilters(searchQueryJSON: SearchQueryJSON) {
+    return searchQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION).flatMap((filter) => filter.filters);
+}
+
+/**
+ * Checks whether filter edits still belong to an explicitly selected search.
+ * Submit, Approve, Pay, and Export deliberately use only their type and a single matching positive action,
+ * so defaults like to:, from:, and payer: may be removed through advanced filters, as agreed in https://github.com/Expensify/App/issues/102448.
+ * Removing to: from Approve broadens it beyond the current recipient to all matching reports the user can access.
+ * Every other search keeps the stricter default-filter-keys check.
+ */
+function doesQueryMatchSearchContext(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined, searchKey?: SearchKey) {
+    if (!searchKey || !TODO_SEARCH_KEYS.has(searchKey)) {
+        return doesQueryMatchDefaultFilterKeysAndType(queryJSON, defaultQueryJSON);
+    }
+
+    if (!queryJSON || !defaultQueryJSON || queryJSON.type !== defaultQueryJSON.type) {
+        return false;
+    }
+
+    const actionFilters = getActionFilters(queryJSON);
+    const defaultActionFilters = getActionFilters(defaultQueryJSON);
+    return (
+        actionFilters.length === 1 &&
+        defaultActionFilters.length === 1 &&
+        actionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        defaultActionFilters[0].operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO &&
+        actionFilters[0].value === defaultActionFilters[0].value
+    );
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string, searchKey?: SearchKey) {
     if (!lastQuery) {
         return defaultQuery;
     }
@@ -3530,7 +3602,7 @@ function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) 
         return defaultQuery;
     }
 
-    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+    if (!doesQueryMatchSearchContext(lastQueryJSON, defaultQueryJSON, searchKey)) {
         return defaultQuery;
     }
 
@@ -3629,6 +3701,7 @@ export {
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     shouldRefetchSearchOnReportActionChange,
