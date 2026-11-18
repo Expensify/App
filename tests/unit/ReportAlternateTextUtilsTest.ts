@@ -581,7 +581,7 @@ describe('ReportAlternateTextUtils', () => {
             });
 
             // Then the preview shows the room name instead of #Hidden
-            expect(alternateText).toContain('see #mentioned-room');
+            expect(alternateText).toBe('Alice: see #mentioned-room');
         });
 
         it('should return the plain last message for a report preview in a workspace chat', () => {
@@ -686,6 +686,48 @@ describe('ReportAlternateTextUtils', () => {
 
             // Then the room keeps its name instead of showing as #Hidden
             expect(lastMessage).toBe('see #mentioned-room');
+        });
+
+        it('names a room that the parent action mentions when a one-expense report swaps it in for the expense action', async () => {
+            // Given a one-expense report whose last action is the expense's IOU CREATE, and whose newest visible action is a comment
+            // that mentions a room by reportID. The IOU CREATE is filtered out, so the preview is built from that comment instead.
+            const report = makeReport({reportID: '200'});
+            const swappedInRoomID = '888';
+            const expenseAction = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                reportActionID: '2',
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const parentComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '3',
+                created: '2024-01-02 00:00:00.000',
+                message: [{type: 'COMMENT', html: `see <mention-report reportID="${swappedInRoomID}"></mention-report>`, text: 'see', isDeletedParentAction: false, deleted: ''}],
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[parentComment.reportActionID]: parentComment});
+            await waitForBatchedUpdates();
+
+            // When the LHN builds the last message text, with the room's name only in the derived report names
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction: expenseAction,
+                lastOriginalAction: expenseAction,
+                oneTransactionThreadReportID: '201',
+                reportAttributesDerived: {[swappedInRoomID]: {reportName: '#swapped-in-room'}},
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the room in the swapped-in comment keeps its name instead of showing as #Hidden
+            expect(lastMessage).toBe('see #swapped-in-room');
         });
 
         describe('getReportPreviewMessage', () => {
