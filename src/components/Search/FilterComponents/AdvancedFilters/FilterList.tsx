@@ -61,7 +61,7 @@ type FilterListProps = FilterItemCallbacks & {
 
     /**
      * Called when the cursor leaves the list, so the consumer can settle whatever it was still waiting on for the last row. Web only.
-     * It gets the list's mouse leave event, which keeps the position in `nativeEvent` under the Strict TypeScript API.
+     * It gets the list's mouse leave event, which keeps the position in `nativeEvent`.
      */
     onPointerLeave?: (event: {nativeEvent: {clientX: number}}) => void;
 };

@@ -20,9 +20,8 @@ type TextInputScrollEvent = Parameters<NonNullable<TextInputProps['onScroll']>>[
 type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventListener>[1]>[0];
 
 /**
- * The key down and click events a View or Pressable receives. On the current types they come from react-native-web, which passes
- * the DOM event. Under the Strict API they are React Native's own `KeyDownEvent` and `PointerEvent`, which carry the key, modifiers and
- * pointer position in `nativeEvent`. The DOM event carries them there too, so handlers read them from `nativeEvent`.
+ * The key down and click events a View or Pressable receives.
+ * Handlers read the key, modifiers and pointer position from `nativeEvent`.
  */
 type ViewKeyDownEvent = Parameters<NonNullable<ViewProps['onKeyDown']>>[0];
 
