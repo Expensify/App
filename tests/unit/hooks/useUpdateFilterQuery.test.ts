@@ -145,6 +145,33 @@ describe('useUpdateFilterQuery', () => {
             expect(values.groupBy).toBeUndefined();
             expect(values.has).toBeUndefined();
         });
+
+        it('drops the violation grouping instead of re-adding expense-only has values when the type changes', () => {
+            // Given an expense search grouped by violation, with the violation has values the grouping added
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.VIOLATION, has: VIOLATION_HAS};
+
+            // When Advanced filters switches the type to chat, which removes the violation has values
+            const values = result.current.getUpdatedFilterFormValues(currentValues, {type: CONST.SEARCH.DATA_TYPES.CHAT});
+
+            // Then the chat query isn't left with expense-only has values, and the grouping goes with them
+            expect(values.has ?? []).not.toEqual(expect.arrayContaining([CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]));
+            expect(values.has ?? []).not.toEqual(expect.arrayContaining([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]));
+            expect(values.groupBy).toBeUndefined();
+        });
+
+        it('leaves a typed violation grouping without has values alone when another filter changes', () => {
+            // Given a typed group-by:violation query with no has value, which Auth answers from both stages
+            const {result} = renderHook(() => useUpdateFilterQuery(baseQueryJSON));
+            const currentValues: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, groupBy: CONST.SEARCH.GROUP_BY.VIOLATION};
+
+            // When an unrelated filter is set from the filters bar
+            const values = result.current.getUpdatedFilterFormValues(currentValues, {merchant: 'Taxi'});
+
+            // Then neither the grouping nor the has values change behind the user's back
+            expect(values.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(values.has).toBeUndefined();
+        });
     });
 
     function setup() {

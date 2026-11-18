@@ -34,13 +34,15 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.hasNot = filterValidHasValues(updatedFilterFormValues.hasNot, updatedFilterFormValues.type, translate);
         }
 
-        // Violation groups only come back for the violations kept at submission or approval, so grouping by violation
-        // needs one of those has values. Choosing the grouping adds them, and clearing them drops the grouping.
+        // The filters UI pairs the violation grouping with a violation has value, so the Has pill shows which stages the
+        // groups count. Choosing the grouping adds both stages, and removing them (by clearing the Has pill, or by
+        // switching to a type that has no violations) drops the grouping. A typed query without one is left alone,
+        // since Auth reads both stages for it.
         if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && !hasValuesIncludeViolationFilter(updatedFilterFormValues.has)) {
-            if (currentValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && 'has' in newValues) {
-                updatedFilterFormValues.groupBy = undefined;
-            } else {
+            if (currentValues.groupBy !== CONST.SEARCH.GROUP_BY.VIOLATION) {
                 updatedFilterFormValues.has = [...(updatedFilterFormValues.has ?? []), ...VIOLATION_HAS_VALUES];
+            } else if (hasValuesIncludeViolationFilter(currentValues.has)) {
+                updatedFilterFormValues.groupBy = undefined;
             }
         }
 
