@@ -69,7 +69,7 @@ function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, 
     const note = governmentRateCountry ? getGovernmentRateNote(translate, governmentRateCountry, governmentRate, dateFnsLocale) : undefined;
 
     return (
-        <View style={[styles.mt6, styles.gap3]}>
+        <View style={[styles.mt6, styles.gap2]}>
             <SummaryLine icon={icons.Car}>
                 <Text style={styles.textSupporting}>{translate('workspace.distanceRates.addRatePage.unitPaidIn', Str.recapitalize(translate(getUnitTranslationKey(unit))), currency)}</Text>
             </SummaryLine>
