@@ -143,7 +143,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
         translationKey: 'common.violations',
-        isColumnSortable: false,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,

@@ -3893,6 +3893,9 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         ACCOUNTING_METHOD: 'accountingMethod',
         FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
+        API_PROVIDER: {
+            CODAT: 'codat',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
@@ -4501,6 +4504,8 @@ const CONST = {
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
     },
+
+    QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME: 'Credit Card Misc.',
 
     RILLET_CONFIG: {
         SUBSIDIARY_ID: 'subsidiaryID',
@@ -6034,6 +6039,15 @@ const CONST = {
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
+        // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for
+        DISTANCE_RATE_EURO_COUNTRIES: ['AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES'] as const,
+        DISTANCE_RATE_DEFAULT_EURO_COUNTRY: 'AT',
+        // Countries without a government rate whose reason is explained on the Add rate page
+        DISTANCE_RATE_COUNTRIES_WITH_NO_GOVERNMENT_RATE_NOTE: ['FR', 'IT', 'GR', 'BG', 'SK', 'CZ', 'HU', 'RO', 'SG', 'HK'] as const,
+        DISTANCE_RATE_KIND: {
+            GOVERNMENT: 'government',
+            CUSTOM: 'custom',
+        },
         // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
             US: 'mi',
@@ -8101,6 +8115,7 @@ const CONST = {
      * Constant for prefix of violations.
      */
     VIOLATIONS_PREFIX: 'violations.',
+    NONDEFAULT_VIOLATION_PREFIX: 'nonDefault',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -8134,6 +8149,14 @@ const CONST = {
         MISSING_CATEGORY: 'missingCategory',
         MISSING_COMMENT: 'missingComment',
         MISSING_TAG: 'missingTag',
+        NONDEFAULT_AMOUNT: 'nonDefaultAmount',
+        NONDEFAULT_BILLABLE: 'nonDefaultBillable',
+        NONDEFAULT_CATEGORY: 'nonDefaultCategory',
+        NONDEFAULT_COMMENT: 'nonDefaultComment',
+        NONDEFAULT_MERCHANT: 'nonDefaultMerchant',
+        NONDEFAULT_REIMBURSABLE: 'nonDefaultReimbursable',
+        NONDEFAULT_TAG: 'nonDefaultTag',
+        NONDEFAULT_TAX: 'nonDefaultTax',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
         INCREASED_DISTANCE: 'increasedDistance',

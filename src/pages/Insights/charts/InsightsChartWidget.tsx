@@ -1,9 +1,11 @@
 import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 import type {ChartAverage} from '@components/Search/buildChartSeries';
+import type {ChartStackStage} from '@components/Search/buildStackedSeries';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import {getStageDuration} from '@components/Search/chartMetricValue';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {GroupedItem, SearchChartCountDimension, SearchQueryJSON} from '@components/Search/types';
@@ -28,7 +30,8 @@ import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import type {InsightsChartSpec, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
+import type {InsightsChartSpec, InsightsChartStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
+import {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -43,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID, InsightsScope, SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {NonEmptyTuple} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -79,6 +83,9 @@ type InsightsChartWidgetProps = {
 
     /** Whether GetInsights answered the dashboard's query */
     isDashboardLoaded: boolean | undefined;
+
+    /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
+    stages?: InsightsChartStage[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
@@ -127,6 +134,7 @@ function InsightsChartWidget({
     averageSnapshot,
     average,
     isDashboardLoaded,
+    stages,
     filters,
     insightsScope,
     countDimension,
@@ -156,7 +164,7 @@ function InsightsChartWidget({
     }
 
     const {data, state, comparison} = useInsightsChartData(
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded},
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages},
         filters,
     );
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
@@ -165,9 +173,20 @@ function InsightsChartWidget({
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const isTimeGrouped = !!CHART_GROUP_BY_CONFIG[groupBy].getDateRange;
     const shouldShowTable = !isTimeGrouped && (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE);
+    const [firstStackStage, ...otherStackStages] = isStackedChart(chart)
+        ? (stages ?? []).map(({workflowStage, durationField, color, comparisonColor}): ChartStackStage => ({
+              key: workflowStage,
+              label: translate(`search.workflowStages.${workflowStage}`),
+              color,
+              comparisonColor,
+              getValue: (item) => getStageDuration(item, durationField),
+          }))
+        : [];
+    const stackStages: NonEmptyTuple<ChartStackStage> | undefined = firstStackStage ? [firstStackStage, ...otherStackStages] : undefined;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
-    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    // Only line charts plot a running total
+    const canRunningTotal = view === CONST.SEARCH.VIEW.LINE && isRunningTotalAvailable(filters.date);
     const shouldShowRunningTotal = isShowingRunningTotal(filters) && view === CONST.SEARCH.VIEW.LINE;
     const today = getInsightsLastDay(asOfDate);
     const trackedFrom = getTrackedFrom(snapshot);
@@ -188,6 +207,7 @@ function InsightsChartWidget({
             shouldShowRunningTotal,
             countDimension,
             metric: chart.metric,
+            stages: stackStages,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
@@ -210,6 +230,7 @@ function InsightsChartWidget({
                 groupBy={getShownGroupBy(filters)}
                 options={groupByOptions}
                 defaultGroupBy={DEFAULT_INSIGHTS_FILTERS[dashboardID].groupBy}
+                shouldShowRunningTotalOption={canRunningTotal}
                 onChange={onGroupByChange}
             />
         ) : null;
@@ -336,6 +357,7 @@ function InsightsChartWidget({
                                 drillDownQueryJSON={queryJSONForSearch}
                                 comparison={comparison}
                                 shouldShowRunningTotal={shouldShowRunningTotal}
+                                stages={stackStages}
                                 chartContainerStyle={cardPaddingHorizontal}
                                 dateFilterKey={chart.dateFilterKey}
                                 trackedFrom={trackedFrom}

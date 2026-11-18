@@ -271,8 +271,8 @@
 "../../src/components/PopoverMenu/v2/sub/SubBackButton.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverMenu/v2/sub/SubTrigger.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/PopoverProvider/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../src/components/Pressable/GenericPressable/implementation/BaseGenericPressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/GenericPressable/implementation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Pressable/PressableWithDelayToggle.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Pressable/PressResponder/useResponderRef.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -629,7 +629,6 @@
 "../../src/libs/actions/Help.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/HybridApp/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/ImportTransactions.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/InputFocus/index.web.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/BulkEdit.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -964,7 +963,6 @@
 "../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	3
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
-"../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	26
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	14
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/MoneyRequestAmountInputProps"	1
@@ -2201,7 +2199,7 @@
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
+"../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/ChronosTimerActionTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/unit/ChronosTimerActionTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/cleanupPreMountedDraftReportsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1

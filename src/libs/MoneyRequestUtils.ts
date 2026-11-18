@@ -11,7 +11,6 @@ import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './Curren
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
 import {doesMoneyRequestDraftHaveUserInput, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
-import {getMerchantError} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -172,18 +171,6 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
     return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 }
 
-/**
- * Validates a merchant value according to business rules.
- *
- * @param merchant - The merchant name to validate
- * @param transaction - The transaction to validate merchant for (used to determine if clearing is allowed)
- * @param report - The parent report for the transaction (used to determine if IOU clearing is allowed)
- * @returns Whether the merchant value is valid
- */
-function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
-}
-
 type AmountHasUnsavedChangesParams = {
     typedAmount: string;
     committedAmount: number;
@@ -306,7 +293,6 @@ export {
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
     isMerchantRequired,
-    isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,

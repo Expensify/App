@@ -11,6 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {InsightsChartStage} from './dashboardSpecs';
 import type {InsightsChartQuery} from './insightsQueries';
 
 const INSIGHTS_DASHBOARD_STATE = {
@@ -32,6 +33,9 @@ type InsightsDashboardChart = InsightsChartQuery & {
     averageSnapshot?: OnyxEntry<SearchResults>;
     average?: ChartAverage;
     isDashboardLoaded?: boolean;
+
+    /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
+    stages?: InsightsChartStage[];
 };
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
