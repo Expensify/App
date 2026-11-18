@@ -1,8 +1,8 @@
 ---
 title: Manage Workspace Members and Access
-description: Learn how to change workspace member roles, remove members, set display names, update work arrangements and download a CSV.
+description: Learn how to change workspace member roles, set category visibility, remove members, set display names, update work arrangements and download a CSV.
 keywords: [workspace members, change role, remove member, remove users, filter members, member display name, download members, export members, member CSV, workspace access, work arrangement, commute exclusions, exclude usual commute, office-based, remote or mobile, default work arrangement, mileage commute]
-internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, removing members individually or in bulk, filtering by role, setting display names, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
+internalScope: Audience is workspace admins, People admins, and other members with access to workspace member settings. Covers changing existing members' roles, setting per-member category visibility on Control, removing members individually or in bulk, filtering by role, setting display names, and downloading a member CSV. Does not cover inviting members, detailed role comparisons, or instructions for transferring workspace ownership.
 contentType: task
 platform: new-expensify
 ---
@@ -39,6 +39,22 @@ On web, you can also hover over the member’s **Role** in the member list and s
 You cannot change the role of the member designated as the workspace’s authorized **Payer**. Role-change options are hidden until a different payer is assigned.
 
 To change their role, first go to **Workspaces > [workspace name] > Workflows > Payments** and set a different admin as the **Payer**. Then return to **Members** to change the previous payer’s role.
+
+## How to set a member’s Category visibility
+
+Workspace admins on the Control plan can choose which enabled categories each member can use. Categories must be enabled on the workspace.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Members**.
+2. Select the member’s name.
+3. Select **Category visibility**.
+4. Select the categories the member can use. Use the search field to find a category.
+5. Select **Save**.
+
+The member’s details show **All categories** when unrestricted, or a category count when restricted. To remove the restriction, select every category and save. Every member must retain at least one enabled category.
+
+Restrictions apply when members categorize their own expenses, including admins’ own expenses. Admins and approvers can still select any enabled category when editing someone else’s expense. Visibility changes are recorded in the workspace’s **#admins** room.
+
+Learn how [category visibility affects automatic categorization and expense violations](/articles/new-expensify/workspaces/Create-expense-categories#how-to-control-which-categories-a-member-can-use).
 
 ## How to remove a workspace member
 
