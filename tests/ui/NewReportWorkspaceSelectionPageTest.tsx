@@ -1,10 +1,11 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import type useSingleExecution from '@hooks/useSingleExecution';
 
 import {createNewReport} from '@libs/actions/Report';
@@ -34,6 +35,7 @@ jest.mock('@libs/actions/Report', () => ({
 
 const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => jest.fn(() => ({openCreateReportConfirmation: mockOpenCreateReportConfirmation})));
+jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
 
 // Web does not use the native pressable guard, so these tests must rely on the button's loading guard.
 jest.mock('@hooks/useSingleExecution', () => jest.requireActual<{default: typeof useSingleExecution}>('@hooks/useSingleExecution/index.ts'));
@@ -132,11 +134,37 @@ describe('NewReportWorkspaceSelectionPage', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
+    beforeEach(() => {
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it.each([true, false])('places Create inside the scrollable list only when the footer hook returns %s', async (shouldFooterBeInsideList) => {
+        // Given the shared hook decides whether the keyboard leaves room for a fixed footer.
+        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(shouldFooterBeInsideList);
+        await act(async () => {
+            await seedBaseOnyx();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When this page renders its workspace list.
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Create scrolls with the list only in the layout selected by the hook.
+        expect(await screen.findByRole('button', {name: 'Create'})).toBeOnTheScreen();
+        const createInsideList = within(screen.getByTestId('selection-list')).queryByRole('button', {name: 'Create'});
+        if (shouldFooterBeInsideList) {
+            expect(createInsideList).toBeOnTheScreen();
+        } else {
+            expect(createInsideList).not.toBeOnTheScreen();
+        }
     });
 
     it('shows an error without creating a report until a workspace is selected and confirmed', async () => {
