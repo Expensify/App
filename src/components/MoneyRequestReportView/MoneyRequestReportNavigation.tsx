@@ -196,7 +196,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? keepReportInPlace(allReports, lastValidReports, reportID) : allReports;
     const currentIndex = effectiveAllReports.indexOf(reportID);
 
-    const hideNextButton = !paging.hasMoreResults && currentIndex === effectiveAllReports.length - 1;
+    const canRequestNextPage = paging.hasMoreResults && !paging.isPageRequestPending && !isOffline;
+    const hideNextButton = !canRequestNextPage && currentIndex === effectiveAllReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const shouldDisplayNavigationArrows = effectiveAllReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
@@ -223,7 +224,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         }
         const threshold = Math.min(effectiveAllReports.length * 0.75, effectiveAllReports.length - 2);
 
-        if (currentIndex + 1 >= threshold && paging.hasMoreResults && !paging.isPageRequestPending && !isOffline) {
+        if (currentIndex + 1 >= threshold && canRequestNextPage) {
             const queryJSON = lastSearchQuery.queryJSON;
             const searchKey = lastSearchQuery.searchKey;
             const offset = paging.nextPageOffset;

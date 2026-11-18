@@ -43,10 +43,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 let mockOnNext: (() => void) | undefined;
+let mockIsNextButtonDisabled: boolean | undefined;
 jest.mock('@components/PrevNextButtons', () => ({
     __esModule: true,
-    default: ({onNext}: {onNext: () => void}) => {
+    default: ({onNext, isNextButtonDisabled}: {onNext: () => void; isNextButtonDisabled: boolean}) => {
         mockOnNext = onNext;
+        mockIsNextButtonDisabled = isNextButtonDisabled;
         return null;
     },
 }));
@@ -248,6 +250,22 @@ describe('MoneyRequestReportNavigation', () => {
 
             // Then no page is requested, because the request could only fail and leave the snapshot pointing at a page that never loaded
             expect(search).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['enabled when the next page can be requested', {offset: 0, hasMoreResults: true}, false, false],
+            ['disabled while offline', {offset: 0, hasMoreResults: true}, true, true],
+            ['disabled while the next page is loading', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}, false, true],
+            ['disabled when there are no more results', {offset: 0, hasMoreResults: false}, false, true],
+        ])('keeps Next on the last loaded report %s', (_label, snapshotSearch, isOffline, shouldBeDisabled) => {
+            // Given the last loaded report is open
+            mockIsOffline = isOffline;
+
+            // When the navigation renders
+            renderNavigationOnFirstPage(`${CONST.SEARCH.RESULTS_PAGE_SIZE}`, {offset: 0}, snapshotSearch);
+
+            // Then Next is only enabled when pressing it can request the next page, because otherwise the press would do nothing
+            expect(mockIsNextButtonDisabled).toBe(shouldBeDisabled);
         });
 
         it('stays on the last loaded report while the next page is requested', () => {
