@@ -44,6 +44,7 @@ import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -1280,13 +1281,19 @@ function Search({
                 return;
             }
 
-            // Re-arm pending expense skeleton for subsequent creations while Search
+            let rearmAfterRevealHandle: CancelHandle | undefined;
+
+            // Re-arm pending expense tracking for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            // Skipped on a pre-mount reveal: the expense lands right after the slide, and the footer change would stall it.
-            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder && !Navigation.getIsRevealingPreMountedFullscreen()) {
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                rearmTracking();
-                setSkeletonWasDisplayed(true);
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    // Re-arming mid-slide re-renders the list and stalls it, and the held write lands right after, so no skeleton row
+                    rearmAfterRevealHandle = TransitionTracker.runAfterTransitions({callback: () => rearmTracking(false), waitForUpcomingTransition: true});
+                } else {
+                    rearmTracking();
+                    setSkeletonWasDisplayed(true);
+                }
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
@@ -1297,6 +1304,8 @@ function Search({
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushPendingSearchWrite();
+
+            return () => rearmAfterRevealHandle?.cancel();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
