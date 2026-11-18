@@ -1,8 +1,4 @@
-/**
- * Logs the sent and serverResult steps of the receipt trail for every attempt of a request that creates, edits, moves,
- * merges or deletes an expense. It sits right after Logging, so a 407 that Reauthentication replays shows up as two
- * attempts instead of one.
- */
+/** Logs the sent and serverResult steps of the receipt trail for each attempt of an expense request. */
 import type HttpsError from '@libs/Errors/HttpsError';
 import {getReceiptTrailFields, getResponseResultClass, getThrownErrorResultClass, logReceiptSent, logReceiptServerResult, RECEIPT_TRAIL_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
