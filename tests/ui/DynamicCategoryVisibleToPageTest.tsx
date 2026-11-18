@@ -161,4 +161,22 @@ describe('DynamicCategoryVisibleToPage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('keeps the search input when no member matches the search', async () => {
+        // Given the Fees "Visible to" page, whose search input sits inside the member list
+        const {unmount} = renderPage({policyID: policy.id, categoryName: 'Fees'});
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+        // When the admin searches for a name no member has
+        fireEvent.changeText(screen.getByLabelText('Search'), 'xxxx');
+
+        // Then the list says there are no results, and the search input stays so the admin can change the search
+        expect(await screen.findByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
+        expect(screen.getByLabelText('Search')).toBeOnTheScreen();
+        expect(screen.queryByText('Bob User')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });

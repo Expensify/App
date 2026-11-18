@@ -2,11 +2,9 @@
  * Lets a workspace admin choose which members can use a category, from that category's settings page. Checked members
  * can use it and unchecked members can't. Unchecking every member disables the category.
  */
-import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
@@ -14,7 +12,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitialSelection from '@hooks/useInitialSelection';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
 import useOnyx from '@hooks/useOnyx';
@@ -39,8 +37,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -63,7 +59,6 @@ function DynamicCategoryVisibleToPage({
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
@@ -118,7 +113,7 @@ function DynamicCategoryVisibleToPage({
         initialSelectedKeys,
     );
 
-    const [inputValue, setInputValue, filteredMemberItems] = useSearchResults(sortedMemberItems, filterMember);
+    const [inputValue, setInputValue, filteredMemberItems, searchQuery] = useSearchResults(sortedMemberItems, filterMember);
 
     const toggleMember = (item: MemberListItem) => toggleKey(item.keyForList);
 
@@ -188,23 +183,16 @@ function DynamicCategoryVisibleToPage({
                         value: inputValue,
                         label: translate('common.search'),
                         onChangeText: setInputValue,
+                        headerMessage: searchQuery.trim() && filteredMemberItems.length === 0 ? translate('common.noResultsFound') : '',
                         shouldBeInsideList: true,
                     }}
                     shouldHeaderBeInsideList
+                    // The search input lives inside the list, so the empty state would replace it. The header message says there are no results instead.
+                    shouldShowListEmptyContent={false}
                     style={{
                         listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                         listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                     }}
-                    listEmptyContent={
-                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                            <BlockingView
-                                icon={illustrations.Telescope}
-                                iconWidth={variables.emptyListIconWidth}
-                                iconHeight={variables.emptyListIconHeight}
-                                title={translate('common.noResultsFound')}
-                            />
-                        </ScrollView>
-                    }
                     footerContent={
                         <FormAlertWithSubmitButton
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.VISIBLE_TO_SAVE}
