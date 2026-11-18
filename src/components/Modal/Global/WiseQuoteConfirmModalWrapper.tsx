@@ -1,13 +1,17 @@
+import RenderHTML from '@components/RenderHTML';
 import WiseQuotePaymentSummary from '@components/WisePaymentSummary/components/WiseQuotePaymentSummary';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ModalProps} from './ModalContext';
 
@@ -26,7 +30,11 @@ type WiseQuoteConfirmModalWrapperProps = ModalProps & {
 /** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying */
 function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm}: WiseQuoteConfirmModalWrapperProps) {
     const {translate} = useLocalize();
-    const [wiseQuoteID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote?.wiseQuoteID});
+    const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const [wiseQuote] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote});
+    const wiseQuoteID = wiseQuote?.wiseQuoteID;
+    const confirmText = wiseQuote ? translate('iou.settlePayment', convertToDisplayString(wiseQuote.debitedAmount, wiseQuote.currency)) : translate('iou.pay');
 
     return (
         <ConfirmModalWrapper
@@ -39,12 +47,17 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <WiseQuotePaymentSummary
-                    reportID={reportID}
-                    isPayingUnheldOnly={isPayingUnheldOnly}
-                />
+                <View>
+                    <WiseQuotePaymentSummary
+                        reportID={reportID}
+                        isPayingUnheldOnly={isPayingUnheldOnly}
+                    />
+                    <View style={styles.mt5}>
+                        <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: translate('iou.pay')})} />
+                    </View>
+                </View>
             }
-            confirmText={translate('iou.pay')}
+            confirmText={confirmText}
             cancelText={translate('common.cancel')}
             isConfirmDisabled={!wiseQuoteID}
             shouldDisableConfirmButtonWhenOffline

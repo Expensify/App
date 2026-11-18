@@ -1869,15 +1869,16 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmPay: 'Confirmar valor do pagamento',
         wisePaymentSummary: {
             confirmPayment: 'Confirmar pagamento',
-            reportTotal: 'Total do relatório',
-            unheldAmountBeingPaid: 'Valor não retido a pagar',
-            debitAmount: 'Valor debitado',
             employeeWillReceive: 'O funcionário receberá',
+            companyWillPay: 'A empresa pagará',
             totalFees: 'Taxas totais',
             fxRate: 'Taxa de câmbio',
             paymentDetails: 'Detalhes do pagamento',
-            debitedAmount: 'Valor debitado',
+            companyPaid: 'A empresa pagou',
             employeeReceived: 'O funcionário recebeu',
+            paymentServicesProvidedByWise: 'Serviços de pagamento fornecidos pela Wise',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-label>O destinatário pode receber menos devido a tarifas cobradas pelo banco dele e a impostos estrangeiros. Ao clicar em ${buttonText}, aceito os <a href="${CONST.WISE.TERMS_URL}">Termos de Uso</a> e a <a href="${CONST.WISE.PRIVACY_URL}">Política de Privacidade</a> da Wise.</muted-text-label>`,
             payAll: 'Pagar tudo',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 relatório',

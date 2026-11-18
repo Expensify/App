@@ -1869,15 +1869,16 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmPay: 'Bevestig betalingsbedrag',
         wisePaymentSummary: {
             confirmPayment: 'Betaling bevestigen',
-            reportTotal: 'Rapporttotaal',
-            unheldAmountBeingPaid: 'Te betalen bedrag zonder wachtstand',
-            debitAmount: 'Afschrijvingsbedrag',
             employeeWillReceive: 'Werknemer ontvangt',
+            companyWillPay: 'Bedrijf betaalt',
             totalFees: 'Totale kosten',
             fxRate: 'Wisselkoers',
             paymentDetails: 'Betalingsgegevens',
-            debitedAmount: 'Afgeschreven bedrag',
+            companyPaid: 'Bedrijf betaalde',
             employeeReceived: 'Medewerker ontving',
+            paymentServicesProvidedByWise: 'Betaaldiensten geleverd door Wise',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-label>De ontvanger kan minder ontvangen door kosten van de bank van de ontvanger en buitenlandse belastingen. Door op ${buttonText} te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a> van Wise.</muted-text-label>`,
             payAll: 'Alles betalen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 rapport',

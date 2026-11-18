@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import getWisePaymentSummaryRows, {getAmountsWithoutQuote, getWisePaymentSummaryRowCount} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
+import getWisePaymentSummaryRows, {getAmountsWithoutQuote, WISE_PAYMENT_SUMMARY_ROW_COUNT} from '@components/WisePaymentSummary/utils/getWisePaymentSummaryRows';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -68,7 +68,7 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
                     reportID={reportID}
                     report={report}
                     rows={[]}
-                    placeholderRowCount={getWisePaymentSummaryRowCount({report, isPayingUnheldOnly})}
+                    placeholderRowCount={WISE_PAYMENT_SUMMARY_ROW_COUNT}
                 />
             </View>
             {shouldShowLoadingIndicator && (

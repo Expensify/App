@@ -1,7 +1,9 @@
+import RenderHTML from '@components/RenderHTML';
 import WiseQuoteCarousel from '@components/WisePaymentSummary/components/WiseQuoteCarousel';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -10,6 +12,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ModalProps} from './ModalContext';
 
@@ -30,6 +33,7 @@ type WiseQuoteCarouselModalWrapperProps = ModalProps & {
 /** Pay all stays disabled until every quoted report's quote is loaded, since Wise requires the admin to be able to see each one */
 function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quotedReportIDs, onConfirm}: WiseQuoteCarouselModalWrapperProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const selectQuoteStates = (onyxReports: OnyxCollection<Report>) =>
         Object.fromEntries(
             quotedReportIDs.map((reportID) => {
@@ -45,6 +49,8 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
     const hasEveryQuote = confirmedQuoteIDs.length === quotedReportIDs.length;
     const isLoading = quoteStates.length < quotedReportIDs.length || quoteStates.some(([, {wiseQuoteID, hasError}]) => !wiseQuoteID && !hasError);
 
+    const confirmText = translate('iou.wisePaymentSummary.payAll');
+
     return (
         <ConfirmModalWrapper
             closeModal={(payload) => {
@@ -56,13 +62,18 @@ function WiseQuoteCarouselModalWrapper({closeModal, resolveModal, reports, quote
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <WiseQuoteCarousel
-                    reports={reports}
-                    quotedReportIDs={quotedReportIDs}
-                    isLoading={isLoading}
-                />
+                <View>
+                    <WiseQuoteCarousel
+                        reports={reports}
+                        quotedReportIDs={quotedReportIDs}
+                        isLoading={isLoading}
+                    />
+                    <View style={styles.mt5}>
+                        <RenderHTML html={translate('iou.wisePaymentSummary.paymentDisclosure', {buttonText: confirmText})} />
+                    </View>
+                </View>
             }
-            confirmText={translate('iou.wisePaymentSummary.payAll')}
+            confirmText={confirmText}
             cancelText={translate('common.cancel')}
             isConfirmDisabled={!hasEveryQuote}
             shouldDisableConfirmButtonWhenOffline
