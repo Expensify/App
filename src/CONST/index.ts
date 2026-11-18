@@ -1647,6 +1647,7 @@ const CONST = {
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
+        MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
