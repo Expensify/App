@@ -103,7 +103,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
     const toggleReceiptEnhancement = () => {
         setIsReceiptEnhancementEnabled(!isReceiptEnhancementEnabled);
-        setIsReceiptEnhancementToastVisible(!isReceiptEnhancementEnabled);
+        setIsReceiptEnhancementToastVisible(!isReceiptEnhancementEnabled && cameraPermissionStatus === RESULTS.GRANTED);
     };
 
     const hideReceiptEnhancementToast = () => setIsReceiptEnhancementToastVisible(false);
