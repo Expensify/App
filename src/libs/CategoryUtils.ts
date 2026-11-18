@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
@@ -147,6 +147,19 @@ function isCategoryMissing(category: string | undefined): boolean {
  */
 function isCategoryVisibleToMember(policyCategory: PolicyCategory | undefined, accountID: number): boolean {
     return !!policyCategory && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]);
+}
+
+/**
+ * A workspace default category, such as the distance or per diem one, only applies to members who can use it, so this
+ * returns an empty category for a member it's hidden from. The default is kept while the category isn't loaded, since
+ * its visibility isn't known yet.
+ */
+function getMemberDefaultCategory(defaultCategory: string | undefined, policyCategories: OnyxEntry<PolicyCategories>, accountID: number): string {
+    if (!defaultCategory) {
+        return '';
+    }
+    const policyCategory = policyCategories?.[defaultCategory];
+    return !policyCategory || isCategoryVisibleToMember(policyCategory, accountID) ? defaultCategory : '';
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -375,4 +388,5 @@ export {
     getDisabledCategoryKey,
     canCreateCategoryFromSearch,
     isCategoryVisibleToMember,
+    getMemberDefaultCategory,
 };

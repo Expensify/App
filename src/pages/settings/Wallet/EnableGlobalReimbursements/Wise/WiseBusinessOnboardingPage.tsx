@@ -5,7 +5,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useDismissWiseGlobalReimbursementsBanners from '@hooks/useDismissWiseGlobalReimbursementsBanners';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -66,6 +65,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
+    // A selector, so the check is cached now that only the early return below reads it
+    const [isEligible = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: (list) => isBankAccountEligibleForGlobalReimbursements(list?.[bankAccountID]?.accountData, list?.[bankAccountID]?.bankCurrency),
+    });
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -186,10 +189,6 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     if (!isLoading && !isPrefillDone && !isDraftForOtherAccount && !isPrefillPending) {
         setIsPrefillDone(true);
     }
-
-    // Starting onboarding for any account retires both banners for good, and the writes wait for the form so the read is not queued behind them
-    const isEligible = isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
-    useDismissWiseGlobalReimbursementsBanners(isNewVisit && isPrefillDone && isEligible);
 
     useEffect(() => {
         if (!isPrefillPending) {

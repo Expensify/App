@@ -8,6 +8,8 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import type Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -103,6 +105,7 @@ const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
         interactive
         rowIndex={index}
         accessibilityLabel={item.name}
+        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
     >
         <View testID={`row-${item.id}`}>
             <Text>{item.name}</Text>

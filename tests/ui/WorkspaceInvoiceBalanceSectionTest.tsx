@@ -142,6 +142,7 @@ describe('WorkspaceInvoiceBalanceSection', () => {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="Next action"
                 onPress={pressSibling}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Text>Next action</Text>
             </PressableWithoutFeedback>,

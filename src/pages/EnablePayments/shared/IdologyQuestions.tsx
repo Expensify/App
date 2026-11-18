@@ -147,6 +147,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                             fill={theme.icon}
                         />
                         <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.ENABLE_PAYMENTS.IDOLOGY_QUESTIONS_HELP_LINK}
                             style={[styles.textMicro, styles.ml2]}
                             href={CONST.HELP_LINK_URL}
                         >
