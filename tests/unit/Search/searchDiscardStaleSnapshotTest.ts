@@ -125,24 +125,6 @@ describe('explicit Search snapshot invalidation', () => {
         expect(mockedWait).toHaveBeenCalledTimes(1);
     });
 
-    it('does not send a queued search when the app goes offline during the wait', async () => {
-        // Given a search waiting on the write queue
-        const writes = defer<void>();
-        mockedWait.mockReturnValueOnce(writes.promise);
-        const pending = search({queryJSON: getQueryJSON(), searchKey: undefined, isLoading: false});
-
-        // When going offline releases that wait
-        mockedOffline.mockReturnValue(true);
-        writes.resolve();
-        await pending;
-
-        // Then cached rows are preserved, and a later reconnect search can use the same key
-        expect(mockedRequest).not.toHaveBeenCalled();
-        mockedOffline.mockReturnValue(false);
-        await search({queryJSON: getQueryJSON(), searchKey: undefined, isLoading: false});
-        expect(mockedRequest).toHaveBeenCalledTimes(1);
-    });
-
     it('cleans invalidation after a rejected request so the next search is fresh', async () => {
         // Given a sent request that will fail without reaching the middleware
         const response = defer<Response<OnyxKey>>();

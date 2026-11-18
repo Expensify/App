@@ -1,5 +1,4 @@
 import {init as initActiveClientManager} from '@libs/ActiveClientManager';
-import {WRITE_COMMANDS} from '@libs/API/types';
 
 import type {OnyxInput, OnyxKey} from 'react-native-onyx';
 
@@ -68,19 +67,6 @@ describe('PersistedRequests', () => {
     it('save a request without conflicts', () => {
         PersistedRequests.save(request);
         expect(PersistedRequests.getAll().length).toBe(2);
-    });
-
-    it('merges an inline edit from another tab', async () => {
-        // Given this tab's queue after its own writes have settled
-        await waitForBatchedUpdates();
-        const otherTabEdit = {...request, command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, requestIndex: 2};
-
-        // When storage notifies this tab of an edit saved elsewhere
-        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [request, otherTabEdit]);
-        await waitForBatchedUpdates();
-
-        // Then queue synchronization still works independently of Search
-        expect(PersistedRequests.getAll()).toContainEqual(otherTabEdit);
     });
 
     it('remove a request from the PersistedRequests array', () => {

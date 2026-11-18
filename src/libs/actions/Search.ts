@@ -1708,13 +1708,6 @@ function search({
     inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
-
-            // The queue can also become idle offline. Keep cached results until the reconnect refetch.
-            if (getIsOffline()) {
-                inFlightSearchRequests.delete(dedupeKey);
-                return undefined;
-            }
-
             return startRequest();
         })
         .catch((error: unknown) => {
