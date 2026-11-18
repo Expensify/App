@@ -176,11 +176,7 @@ function MoneyRequestReportPreview({
     };
 
     const openReportFromPreview = () => {
-        // contextMenuRef.current can change from a value to null and back during initial hydration.
-        // Accessing contextMenuRef.current?.isContextMenuOpening directly may cause a crash if the ref changes after the null check.
-        // Capture the ref in a local variable when the user opens the context menu.
-        const contextMenu = contextMenuRef.current;
-        if (!iouReportID || contextMenu?.isContextMenuOpening) {
+        if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
 
@@ -343,11 +339,7 @@ function MoneyRequestReportPreview({
     };
 
     const openTransactionFromPreview = async (transaction: Transaction) => {
-        // contextMenuRef.current can change from a value to null and back during initial hydration.
-        // Accessing contextMenuRef.current?.isContextMenuOpening directly may cause a crash if the ref changes after the null check.
-        // Capture the ref in a local variable when the user opens the context menu.
-        const contextMenu = contextMenuRef.current;
-        if (contextMenu?.isContextMenuOpening) {
+        if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
 
