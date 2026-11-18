@@ -1,6 +1,7 @@
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import {categoryHasAnyRequireFieldsRule, hasExplicitAmountLimit} from '@libs/PolicyRulesUtils';
@@ -318,29 +319,85 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
         }
     }
 
+    if (parts.includes('rules') && (sourcePolicy.rules?.agentRules || targetPolicy.rules?.agentRules)) {
+        // Auth replaces Agent rules; the other rule groups belong to codingRules.
+        patch.rules = {
+            ...targetPolicy.rules,
+            agentRules: Object.fromEntries(
+                Object.entries(sourcePolicy.rules?.agentRules ?? {})
+                    .filter(([, rule]) => !!rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([id, rule]) => [id, buildDuplicateSettingSnapshot(rule)]),
+            ),
+        };
+    }
+
+    if (parts.includes('codingRules')) {
+        const members = parts.includes('members') ? sourcePolicy.employeeList : targetPolicy.employeeList;
+        const approverEmails = new Set(
+            Object.entries(members ?? {})
+                .filter(([, member]) => !!member && member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([email]) => email.toLowerCase()),
+        );
+        if (parts.includes('members')) {
+            approverEmails.add(targetPolicy.owner.toLowerCase());
+        }
+        const taxPolicy = parts.includes('taxes') ? sourcePolicy : targetPolicy;
+        const taxCodes = new Set(
+            Object.entries(taxPolicy.taxRates?.taxes ?? {})
+                .filter(([, tax]) => !!tax && !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map(([code]) => code),
+        );
+        patch.rules = {
+            ...(patch.rules ?? targetPolicy.rules),
+            // Numeric IDs are reminted by Auth and already have temporary copies in rules_.
+            codingRules: Object.fromEntries(
+                Object.entries(sourcePolicy.rules?.codingRules ?? {})
+                    .filter(([id]) => !(Number(id) > 0))
+                    .filter(([, rule]) => !!rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([id, rule]) => [id, buildDuplicateSettingSnapshot(rule)]),
+            ),
+            approvalRules: (sourcePolicy.rules?.approvalRules ?? []).filter((rule) => !!rule && (!rule.approver || approverEmails.has(rule.approver.toLowerCase()))),
+            expenseRules: (sourcePolicy.rules?.expenseRules ?? []).filter((rule) => {
+                const taxCode = rule?.tax?.field_id_TAX?.externalID;
+                return !!rule && (!taxCode || taxCodes.has(taxCode));
+            }),
+        };
+    }
+
     if (parts.includes('workflows') && parts.includes('members')) {
         patch.approver = sourcePolicy.approver;
     }
 
     if (shouldCopyReportFields || shouldCopyInvoiceFields) {
         const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
-            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            const isInvoiceField = field?.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
             return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
         };
         const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
-        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(
+            ([, field]) => !!field && field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && shouldCopyField(field),
+        );
         const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
         patch.fieldList = Object.fromEntries(mergedFields);
+        if (shouldCopyReportFields && !copiedSourceFields.some(([, field]) => field.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID)) {
+            const titleField = Object.entries(targetPolicy.fieldList ?? {}).find(([, field]) => field?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
+            if (titleField) {
+                patch.fieldList[titleField[0]] = titleField[1];
+            }
+        }
     }
 
     return patch;
 }
 
-function buildExpandedPendingFields(parts: Part[]): Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> {
-    const pendingFields: Partial<Record<PolicyFieldsForPart, typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE>> = {};
+function buildExpandedPendingFields(
+    parts: Part[],
+    pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD | typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+): Partial<Record<PolicyFieldsForPart, typeof pendingAction>> {
+    const pendingFields: Partial<Record<PolicyFieldsForPart, typeof pendingAction>> = {};
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
-            pendingFields[field] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            pendingFields[field] = pendingAction;
         }
     }
     return pendingFields;
@@ -382,7 +439,8 @@ function buildCopyPolicySettingsData(
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const pendingFields = buildExpandedPendingFields(parts);
+    const pendingAction = isNewPolicy ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const pendingFields = buildExpandedPendingFields(parts, pendingAction);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
     const isCategoriesSelected = parts.includes('categories');
@@ -394,24 +452,13 @@ function buildCopyPolicySettingsData(
     const isCodingRulesSelected = parts.includes('codingRules');
     const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
-    const timeTrackingPendingFields = isTimeTrackingSelected
-        ? {
-              isTimeTrackingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-              timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-          }
-        : {};
-    const timeTrackingClearedPendingFields = isTimeTrackingSelected
-        ? {
-              isTimeTrackingEnabled: null,
-              timeTrackingDefaultRate: null,
-          }
-        : {};
-    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    const timeTrackingPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: pendingAction, timeTrackingDefaultRate: pendingAction} : {};
+    const timeTrackingClearedPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: null, timeTrackingDefaultRate: null} : {};
+    const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: pendingAction} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
-    // Merchant rules are only visible while Rules is on, so copying them turns Rules on for the target,
-    // the same way the backend does. This keeps the target right while offline, before the server push lands.
-    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: true} : {};
-    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {};
+    // Auth preserves an explicit source Rules toggle, including when Merchant rules are copied.
+    const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: sourcePolicy.areRulesEnabled ?? true} : {};
+    const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: pendingAction} : {};
     const codingRulesClearedPendingFields = isCodingRulesSelected ? {areRulesEnabled: null} : {};
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;

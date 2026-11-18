@@ -211,6 +211,113 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
             });
 
+            it('replaces only Agent rules when Rules is selected and clears an empty source', () => {
+                // Given different Agent rules and an unrelated target approval rule.
+                const sourceRule = {
+                    ruleID: 'source',
+                    prompt: 'Require a receipt',
+                    created: '2026-11-01',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: {old: 'Source error'},
+                };
+                const source = makeSourcePolicy({
+                    rules: {agentRules: {source: sourceRule}},
+                });
+                const target = makeTargetPolicy({
+                    rules: {
+                        agentRules: {
+                            old: {ruleID: 'old', prompt: 'Old rule', created: '2026-10-01'},
+                        },
+                        approvalRules: [{approver: 'admin@example.com', applyWhen: []}],
+                    },
+                });
+
+                // When Rules are copied, then copied again from an empty source.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['rules'], {}, {}, {}).optimisticData);
+                const cleared = getOptimisticPolicy(buildCopyPolicySettingsData(makeSourcePolicy({rules: undefined}), [target], ['rules'], {}, {}, {}).optimisticData);
+
+                // Then Auth's Agent-rule replacement does not overwrite codingRules-owned approval rules or retain source errors.
+                expect(copied?.rules).toEqual({
+                    agentRules: {
+                        source: {
+                            ruleID: 'source',
+                            prompt: 'Require a receipt',
+                            created: '2026-11-01',
+                        },
+                    },
+                    approvalRules: target.rules?.approvalRules,
+                });
+                expect(cleared?.rules).toEqual({...target.rules, agentRules: {}});
+                expect(source.rules?.agentRules?.source.errors).toEqual({
+                    old: 'Source error',
+                });
+            });
+
+            it('replaces coding rule groups using the target members and enabled taxes', () => {
+                // Given saved legacy rules, valid and invalid approvers, and tax defaults.
+                const source = makeSourcePolicy({
+                    rules: {
+                        codingRules: {
+                            legacy: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee'}, category: 'Meals'},
+                            '123': {ruleID: '123', filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Migrated'}},
+                        },
+                        approvalRules: [
+                            {approver: 'member@example.com', applyWhen: []},
+                            {approver: 'outsider@example.com', applyWhen: []},
+                        ],
+                        expenseRules: [
+                            {tax: {field_id_TAX: {externalID: 'VAT'}}, applyWhen: []},
+                            {tax: {field_id_TAX: {externalID: 'MISSING'}}, applyWhen: []},
+                        ],
+                    },
+                });
+                const target = makeTargetPolicy({
+                    employeeList: {'member@example.com': {email: 'member@example.com'}},
+                    taxRates: {name: 'Tax', defaultExternalID: 'VAT', defaultValue: '10%', foreignTaxDefault: 'VAT', taxes: {VAT: {name: 'VAT', value: '10%'}}},
+                    rules: {agentRules: {agent: {ruleID: 'agent', prompt: 'Keep this', created: '2026-11-01'}}},
+                });
+
+                // When Merchant rules are copied and then cleared by an empty source.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['codingRules'], {}, {}, {}).optimisticData);
+                const cleared = getOptimisticPolicy(buildCopyPolicySettingsData(makeSourcePolicy({rules: undefined}), [target], ['codingRules'], {}, {}, {}).optimisticData);
+
+                // Then each group follows Auth's ownership and eligibility, and numeric IDs await its new identities.
+                expect(copied?.rules).toEqual({
+                    ...target.rules,
+                    codingRules: {legacy: source.rules?.codingRules?.legacy},
+                    approvalRules: [source.rules?.approvalRules?.[0]],
+                    expenseRules: [source.rules?.expenseRules?.[0]],
+                });
+                expect(cleared?.rules).toEqual({...target.rules, codingRules: {}, approvalRules: [], expenseRules: []});
+            });
+
+            it('keeps the creation title when the source has no report title', () => {
+                // Given a newly created target title and a source without report fields.
+                const title: NonNullable<Policy['fieldList']>[string] = {
+                    fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+                    name: 'Title',
+                    type: 'formula',
+                    defaultValue: 'Default title',
+                    target: 'expense',
+                    orderWeight: 0,
+                    deletable: true,
+                    values: [],
+                    keys: [],
+                    externalIDs: [],
+                    disabledOptions: [],
+                    isTax: false,
+                };
+                const source = makeSourcePolicy({fieldList: {}});
+                const target = makeTargetPolicy({fieldList: {title}});
+
+                // When Reports are copied into the new workspace.
+                const copied = getOptimisticPolicy(buildCopyPolicySettingsData(source, [target], ['reports'], {}, {}, {}, false, true).optimisticData);
+
+                // Then the new workspace retains a title and its new fields are marked as additions.
+                expect(copied?.fieldList).toEqual({title});
+                expect(copied?.pendingFields?.fieldList).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            });
+
             it('copies only invoice markup and preserves the target invoicing identity', () => {
                 // Given workspaces with separate invoicing identities.
                 const sourcePolicy = makeSourcePolicy({invoice: {markUp: 25, companyName: 'Source', bankAccount: {stripeConnectAccountID: 'source-stripe'}}});
@@ -313,7 +420,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
-            it('enables Rules on the target when merchant rules are copied so they are visible while offline', () => {
+            it('preserves an explicit disabled Rules toggle when merchant rules are copied', () => {
                 // Given a target with Rules off, and a source whose Rules toggle was turned off after it got merchant rules
                 const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
                 const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
@@ -322,8 +429,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['codingRules'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                // Then Rules is turned on optimistically and marked pending, because merchant rules only show up while Rules is on
-                expect(policy?.areRulesEnabled).toBe(true);
+                // Then the explicit source toggle matches Auth while the copied fields are pending.
+                expect(policy?.areRulesEnabled).toBe(false);
                 expect(policy?.pendingFields?.areRulesEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
                 // Then success clears the pending marker and failure restores the original toggle
@@ -332,7 +439,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(getFailurePolicy(failureData)?.areRulesEnabled).toBe(false);
             });
 
-            it('enables Rules on the target when merchant rules are copied together with rules from a source that has Rules off', () => {
+            it('keeps Rules off when both rule parts are copied from a disabled source', () => {
                 // Given a source whose Rules toggle is off
                 const sourcePolicy = makeSourcePolicy({areRulesEnabled: false});
                 const targetPolicy = makeTargetPolicy({areRulesEnabled: false});
@@ -340,8 +447,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 // When rules and merchant rules are copied together
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules', 'codingRules'], {}, {}, {});
 
-                // Then merchant rules still turn Rules on, so the copied merchant rules stay visible
-                expect(getOptimisticPolicy(optimisticData)?.areRulesEnabled).toBe(true);
+                // Then neither part overrides the explicit source toggle, matching Auth.
+                expect(getOptimisticPolicy(optimisticData)?.areRulesEnabled).toBe(false);
             });
 
             it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
