@@ -21,10 +21,10 @@ All Expensify members can view and revoke device access on web or mobile for the
 ## How to view and revoke logged-in devices in Device management
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2. Click **Security**.
-3. Click **Device management**.
+2. Select **Security**.
+3. Select **Device management**.
 4. Review the list of devices that have access to your account. Each entry shows the device name, operating system, and when it was last active.
-5. To remove a device, click **Revoke** next to it.
+5. To remove a device, select **Revoke** next to it.
 
 Each listed device represents an active login session on your account. Devices may appear multiple times if you signed in using different browsers, apps, or devices.
 
@@ -45,7 +45,7 @@ Some entries in your device list are app connections you authorized through OAut
 
 These connections appear with a label like **OAuth - MCP (Claude)** instead of a device name and operating system. If the connected tool isn't recognized, the entry shows **OAuth - MCP**.
 
-To disconnect one of these tools from your account, click **Revoke** next to it. The tool immediately loses access and must be reauthorized before it can connect again.
+To disconnect one of these tools from your account, select **Revoke** next to it. The tool immediately loses access and must be reauthorized before it can connect again.
 
 ---
 
@@ -65,7 +65,7 @@ Revoking a device does not:
 
 ## Can I revoke access to a lost or stolen device?
 
-Yes. Open **Device management**, find the device you want to remove, and click **Revoke** to sign that device out remotely.
+Yes. Open **Device management**, find the device you want to remove, and select **Revoke** to sign that device out remotely.
 
 ## Why do I see multiple devices listed?
 
@@ -73,7 +73,7 @@ Each browser, mobile app, or device creates a separate login session. You may se
 
 ## Can I revoke all devices at once?
 
-Yes. Open **Device management** and click **Sign out on all devices**.
+Yes. Open **Device management** and select **Sign out on all devices**.
 
 ## What information can I see for each device?
 
@@ -81,4 +81,4 @@ The device list shows the device name, operating system or browser, and the last
 
 ## What the OAuth - MCP (Claude) label means in your device list
 
-It's an app you authorized to access your Expensify account through OAuth, such as an AI assistant connected through the Model Context Protocol (MCP). The label shows which tool is connected, for example **OAuth - MCP (Cursor)** or **OAuth - MCP (ChatGPT)**. Click **Revoke** to disconnect it.
+It's an app you authorized to access your Expensify account through OAuth, such as an AI assistant connected through the Model Context Protocol (MCP). The label shows which tool is connected, for example **OAuth - MCP (Cursor)** or **OAuth - MCP (ChatGPT)**. Select **Revoke** to disconnect it.
