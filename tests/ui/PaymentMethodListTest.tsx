@@ -404,3 +404,110 @@ describe('PaymentMethodList', () => {
         expect(screen.queryByText('Global reimbursements setup in progress.', {exact: false})).not.toBeOnTheScreen();
     });
 });
+
+describe('PaymentMethodList personal card title', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
+    });
+
+    it('shows the persisted cardTitle as the row title for a bank-linked personal card', async () => {
+        // Given a bank-linked personal card whose admin set a cardTitle in nameValuePairs
+        const card = createMock<Card>({
+            cardID: 10,
+            bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+            cardName: 'XXXX1234',
+            domainName: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: 'My Chase Card'}),
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CARD_LIST, createCardList(card));
+        });
+
+        // When the wallet's assigned card list renders
+        renderAssignedCardsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the persisted cardTitle is shown as the row label, not the raw cardName
+        expect(screen.getByText('My Chase Card')).toBeOnTheScreen();
+        expect(screen.queryByText('XXXX1234')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to the masked card number when a bank-linked personal card has no cardTitle', async () => {
+        // Given a bank-linked personal card with no cardTitle
+        const card = createMock<Card>({
+            cardID: 11,
+            bank: CONST.PERSONAL_CARDS.BANK_NAME.CHASE,
+            cardName: 'XXXX1234',
+            domainName: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: undefined}),
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CARD_LIST, createCardList(card));
+        });
+
+        // When the wallet's assigned card list renders
+        renderAssignedCardsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the masked card number (with groups separated by spaces) is shown as the fallback label
+        expect(screen.getByText('•••• 1234')).toBeOnTheScreen();
+    });
+
+    it('shows the persisted cardTitle as the row title for a CSV personal card', async () => {
+        // Given a CSV-imported personal card whose user set a cardTitle
+        const card = createMock<Card>({
+            cardID: 12,
+            bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+            cardName: 'Old CSV Name',
+            domainName: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: 'My Transactions'}),
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CARD_LIST, createCardList(card));
+        });
+
+        // When the wallet's assigned card list renders
+        renderAssignedCardsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the persisted cardTitle is shown, not the stale cardName
+        expect(screen.getByText('My Transactions')).toBeOnTheScreen();
+        expect(screen.queryByText('Old CSV Name')).not.toBeOnTheScreen();
+    });
+
+    it('falls back to cardName for a CSV personal card without a cardTitle', async () => {
+        // Given a CSV-imported personal card with no cardTitle set
+        const card = createMock<Card>({
+            cardID: 13,
+            bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+            cardName: 'Raw CSV Name',
+            domainName: '',
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            nameValuePairs: createMock<Card['nameValuePairs']>({cardTitle: undefined}),
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.CARD_LIST, createCardList(card));
+        });
+
+        // When the wallet's assigned card list renders
+        renderAssignedCardsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the raw cardName is shown as the fallback label
+        expect(screen.getByText('Raw CSV Name')).toBeOnTheScreen();
+    });
+});

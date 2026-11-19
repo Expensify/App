@@ -291,7 +291,7 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
         setSelectedCard(cardData);
         const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-        const cardTitle = isCSVImportCard ? (cardData?.nameValuePairs?.cardTitle ?? cardData?.cardName) : maskCardNumber(cardData?.cardName, cardData?.bank);
+        const cardTitle = cardData?.nameValuePairs?.cardTitle ?? (isCSVImportCard ? cardData?.cardName : maskCardNumber(cardData?.cardName, cardData?.bank));
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},

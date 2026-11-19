@@ -238,7 +238,6 @@ function PaymentMethodList({
         selector: isActingAsDelegateSelector,
     });
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -423,20 +422,13 @@ function PaymentMethodList({
                 }
 
                 if (!isUserExpensifyCard) {
-                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName) || card.lastFourPAN || '';
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-                    let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                    const cardTitle = card.nameValuePairs?.cardTitle ?? (isCSVImportCard ? card.cardName : maskCardNumber(card.cardName, card.bank));
                     const pressHandler = onPress as CardPressHandler;
-                    let cardDescription;
-                    if (isUserPersonalCard) {
-                        cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
-                        cardDescription = lastFourPAN;
-                    } else if (lastFourPAN) {
-                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
-                    } else {
-                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
-                    }
+                    const domainDesc = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
+                    const cardDescription = [lastFourPAN, domainDesc].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
                     // Personal cards (including CSV imported) navigate to the personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
                     const cardOnPress = isUserPersonalCard

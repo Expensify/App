@@ -3791,8 +3791,12 @@ function getCardSections(
                 continue;
             }
 
-            let formattedCardName = customCardNames?.[cardGroup.cardID];
-            if (formattedCardName === undefined) {
+            const card = cardList?.[cardGroup.cardID];
+            const resolvedName = card?.nameValuePairs?.cardTitle ?? customCardNames?.[cardGroup.cardID];
+            let formattedCardName: string;
+            if (resolvedName !== undefined) {
+                formattedCardName = cardGroup.lastFourPAN ? formattedCardNameWithDotAndLastFour(resolvedName, cardGroup.lastFourPAN) : resolvedName;
+            } else {
                 const cached = cardDescriptionByCardID.get(cardGroup.cardID);
                 if (cached !== undefined) {
                     formattedCardName = cached;
@@ -3809,11 +3813,7 @@ function getCardSections(
                     );
                     cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
                 }
-            } else if (cardGroup.lastFourPAN) {
-                formattedCardName = formattedCardNameWithDotAndLastFour(formattedCardName, cardGroup.lastFourPAN);
             }
-
-            const card = cardList?.[cardGroup.cardID];
             // A workspace/company card from a card feed can also lack a `fundID`, so `isPersonalCard` alone would misclassify it.
             // The non-personal card list keeps every company/workspace-feed card while filtering personal cards out, so presence
             // there means the card is definitively NOT personal.

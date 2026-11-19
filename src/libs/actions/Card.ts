@@ -459,7 +459,7 @@ function unassignCard(card: Card) {
 }
 
 function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTitle?: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -475,13 +475,6 @@ function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTit
                         },
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {
-                [cardID]: newCardTitle,
             },
         },
     ];
@@ -502,7 +495,7 @@ function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTit
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -518,13 +511,6 @@ function updateAssignedCardName(cardID: string, newCardTitle: string, oldCardTit
                         },
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
-            value: {
-                [cardID]: oldCardTitle,
             },
         },
     ];

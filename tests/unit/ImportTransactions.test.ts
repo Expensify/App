@@ -1449,7 +1449,7 @@ describe('ImportTransactions', () => {
         });
 
         it('returns the currency and amount sign from the saved layout', () => {
-            const result = getExistingCardImportSettings(undefined, savedLayout, undefined);
+            const result = getExistingCardImportSettings(undefined, savedLayout);
 
             expect(result).toEqual({cardDisplayName: 'Layout Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true});
         });
@@ -1457,21 +1457,24 @@ describe('ImportTransactions', () => {
         it('prefers the card values over the saved layout ones', () => {
             const card = createMock<Card>({cardName: 'Backend Card', reimbursable: true, nameValuePairs: {cardTitle: 'Card Title'}});
 
-            const result = getExistingCardImportSettings(card, savedLayout, undefined);
+            const result = getExistingCardImportSettings(card, savedLayout);
 
             expect(result).toEqual({cardDisplayName: 'Card Title', currency: 'AUD', isReimbursable: true, flipAmountSign: true});
         });
 
-        it('prefers the custom card name over every other name', () => {
-            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: 'Card Title'}});
+        it('falls back to cardName when there is no cardTitle', () => {
+            // Given a card whose nameValuePairs.cardTitle has not been set
+            const card = createMock<Card>({cardName: 'Backend Card', nameValuePairs: {cardTitle: undefined}});
 
-            const result = getExistingCardImportSettings(card, savedLayout, 'Custom Name');
+            // When the existing import settings are resolved for that card
+            const result = getExistingCardImportSettings(card, savedLayout);
 
-            expect(result.cardDisplayName).toBe('Custom Name');
+            // Then the raw cardName is used as the display name because cardTitle is absent
+            expect(result.cardDisplayName).toBe('Backend Card');
         });
 
         it('returns no settings when there is nothing to restore', () => {
-            expect(getExistingCardImportSettings(undefined, undefined, undefined)).toEqual({});
+            expect(getExistingCardImportSettings(undefined, undefined)).toEqual({});
         });
     });
 });
