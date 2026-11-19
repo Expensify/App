@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -15,6 +16,7 @@ import React from 'react';
 import getTabAccessibilityLabel from './getTabAccessibilityLabel';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
+import useSignedInLinkRoute from './useSignedInLinkRoute';
 
 type WorkspacesTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -28,6 +30,8 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
 
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const workspacesLinkRoute = getSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route);
 
     const workspacesAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.WORKSPACES};
     const workspacesStatusIndicatorColor = workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined;
@@ -36,6 +40,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
         return (
             <PressableWithFeedback
                 onPress={navigateToWorkspaces}
+                linkRoute={workspacesLinkRoute}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
                 accessibilityState={workspacesAccessibilityState}
@@ -59,6 +64,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     return (
         <PressableWithFeedback
             onPress={navigateToWorkspaces}
+            linkRoute={workspacesLinkRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesTabIndicatorStatus, translate)}
             accessibilityState={workspacesAccessibilityState}
