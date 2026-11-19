@@ -106,6 +106,15 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
 
+    useEffect(() => {
+        if (isOffline || !pendingPolicyID || getPerDiemCustomUnit(pendingPolicy)?.rates) {
+            return;
+        }
+        fetchPerDiemRates(pendingPolicyID);
+        // Only retry on connectivity changes; selecting a workspace already starts its fetch.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOffline]);
+
     if (pendingPolicyID) {
         if (isOffline) {
             return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
