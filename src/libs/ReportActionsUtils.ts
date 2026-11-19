@@ -74,6 +74,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -1740,6 +1741,8 @@ function shouldReportActionBeVisible(
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
     isInvoice?: boolean,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1801,6 +1804,10 @@ function shouldReportActionBeVisible(
             isActionableCardFraudAlert(reportAction)) &&
         !canUserPerformWriteAction
     ) {
+        return false;
+    }
+
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
         return false;
     }
 

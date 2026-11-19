@@ -586,7 +586,21 @@ const translations: TranslationDeepObject<typeof en> = {
         reportShared: 'Udostępniono raport',
         dayCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
             one: (count: number) => `${formattedCount ?? count} dzień`,
-            other: (count: number) => `${formattedCount ?? count} dni`,
+            few: (count: number) => `${formattedCount ?? count} dni`,
+            many: (count: number) => `${formattedCount ?? count} dni`,
+            other: (count: number) => `${formattedCount ?? count} dnia`,
+        }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} godzina`,
+            few: (count: number) => `${formattedCount ?? count} godziny`,
+            many: (count: number) => `${formattedCount ?? count} godzin`,
+            other: (count: number) => `${formattedCount ?? count} godziny`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuta`,
+            few: (count: number) => `${formattedCount ?? count} minuty`,
+            many: (count: number) => `${formattedCount ?? count} minut`,
+            other: (count: number) => `${formattedCount ?? count} minuty`,
         }),
         amount: 'Kwota',
     },

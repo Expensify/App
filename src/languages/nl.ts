@@ -583,6 +583,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} dag`,
             other: (count: number) => `${formattedCount ?? count} dagen`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} uur`,
+            other: (count: number) => `${formattedCount ?? count} uur`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} minuut`,
+            other: (count: number) => `${formattedCount ?? count} minuten`,
+        }),
         amount: 'Bedrag',
     },
     socials: {

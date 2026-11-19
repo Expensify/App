@@ -853,6 +853,8 @@ const CONST = {
         // `PPP` is date-fns' long localized date. In en-US it already carries the ordinal day this constant is named
         // for, so English output is unchanged, while other languages stop being forced into the US component order.
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'PPP',
+        SECONDS_PER_MINUTE: 60,
+        SECONDS_PER_HOUR: 60 * 60,
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
     },
@@ -7599,6 +7601,7 @@ const CONST = {
     // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     INNER_BOX_SHADOW_ELEMENT: 'inner-box-shadow-element',
+    TAB_BAR_LABEL_BOLD_PLACEHOLDER: 'tab-bar-label-bold-placeholder',
     COPYABLE_TEXT_ELEMENT: 'copyable-text',
     COPYABLE_ROW_ELEMENT: 'copyable-row',
     COPYABLE_ROW_CONTINUATION_ELEMENT: 'copyable-row-continuation',

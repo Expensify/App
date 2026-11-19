@@ -580,6 +580,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: (count: number) => `${formattedCount ?? count} ημέρα`,
             other: (count: number) => `${formattedCount ?? count} ημέρες`,
         }),
+        hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} ώρα`,
+            other: (count: number) => `${formattedCount ?? count} ώρες`,
+        }),
+        minuteCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+            one: (count: number) => `${formattedCount ?? count} λεπτό`,
+            other: (count: number) => `${formattedCount ?? count} λεπτά`,
+        }),
         amount: 'Ποσό',
     },
     socials: {

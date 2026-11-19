@@ -3,6 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
@@ -171,6 +172,9 @@ type PressableProps = RNPressableProps &
          * @default false
          */
         shouldAllowTextSelection?: boolean;
+
+        /** Renders the pressable as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
 
         ref?: PressableRef;
     };

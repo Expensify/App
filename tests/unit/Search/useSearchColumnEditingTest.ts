@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useHideSearchColumn from '@components/Search/hooks/useHideSearchColumn';
+import useSearchColumnEditing from '@components/Search/hooks/useSearchColumnEditing';
 import type {SearchColumnType} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,7 +48,7 @@ function getSavedColumns() {
     return getQueryJSON(getNavigatedRouteParams().get('q') ?? '').columns;
 }
 
-describe('useHideSearchColumn', () => {
+describe('useSearchColumnEditing', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -65,7 +65,7 @@ describe('useHideSearchColumn', () => {
 
     it('hides a column by saving the shown columns without it, in the same order', () => {
         // Given an expense search showing a few columns
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
 
         // When Merchant is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.MERCHANT));
@@ -87,7 +87,7 @@ describe('useHideSearchColumn', () => {
         const queryJSON = getQueryJSON(
             `type:expense-report columns:${CONST.SEARCH.TABLE_COLUMNS.TO},${CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME},${CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED},${CONST.SEARCH.TABLE_COLUMNS.TOTAL}`,
         );
-        const {result} = renderHook(() => useHideSearchColumn(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
 
         // When To is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.TO));
@@ -98,7 +98,7 @@ describe('useHideSearchColumn', () => {
 
     it('offers no hide for the total column, which the table needs to lay out', () => {
         // Given an expense search
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then the total column's menu can't hide it, the same as the Columns page, while the other columns' menus can
@@ -108,7 +108,7 @@ describe('useHideSearchColumn', () => {
 
     it('offers hide for the optional columns of a grouped table, but not for the column it groups by', () => {
         // Given an expense search grouped by member, showing its default group columns
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then Expenses and Total can be hidden, the same as on the Columns page, while From stays because the groups are named by it
@@ -120,7 +120,7 @@ describe('useHideSearchColumn', () => {
     it('keeps the saved expense columns when a group column is hidden', () => {
         // Given a grouped search that saved only expense columns, so its groups expand to those
         const queryJSON = getQueryJSON(`type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
-        const {result} = renderHook(() => useHideSearchColumn(queryJSON, GROUP_FROM_SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, GROUP_FROM_SHOWN_COLUMNS));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
@@ -141,7 +141,7 @@ describe('useHideSearchColumn', () => {
             `type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM},${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL},${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
         );
         const {result} = renderHook(() =>
-            useHideSearchColumn(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]),
+            useSearchColumnEditing(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]),
         );
 
         // When Total is hidden from its menu
@@ -168,7 +168,7 @@ describe('useHideSearchColumn', () => {
             CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
         ];
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:withdrawal-id'), shownColumns));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:withdrawal-id'), shownColumns));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
@@ -189,7 +189,7 @@ describe('useHideSearchColumn', () => {
 
     it('saves no expense columns with the group columns when a grouped search has no saved columns', () => {
         // Given a grouped search with no saved columns, so its expanded groups derive their expense columns from the data
-        const {result} = renderHook(() => useHideSearchColumn(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
