@@ -65,12 +65,11 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
-import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 
 import EuroCountryDropdown from './EuroCountryDropdown';
 
@@ -157,7 +156,7 @@ function CreateDistanceRatePage({
     const selectKind = (selectedKind: DistanceRateKind) => {
         // Android keeps the keyboard open when the focused Name input unmounts
         if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
-            KeyboardUtils.dismiss();
+            Keyboard.dismiss();
         }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
