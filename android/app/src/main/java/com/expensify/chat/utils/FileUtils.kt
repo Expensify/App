@@ -110,7 +110,7 @@ object FileUtils {
         }
     }
 
-    /** The sending app chooses the display name, so drop any directory segments to keep the copy inside the share folder. */
+    /** The sending app controls this name, so only its last segment is kept; otherwise `../shared_prefs/x.xml` would write outside the share folder. */
     fun getSafeFileName(name: String?): String? {
         val baseName = name?.substringAfterLast('/')?.substringAfterLast('\\')?.trim()
         return if (baseName.isNullOrEmpty() || baseName == "." || baseName == "..") null else baseName
