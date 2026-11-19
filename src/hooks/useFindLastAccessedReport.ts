@@ -30,16 +30,8 @@ function useFindLastAccessedReport({openOnAdminRoom, enabled = true}: UseFindLas
             if (!enabled) {
                 return undefined;
             }
-            return findLastAccessedReport(
-                ignoreDomainRooms,
-                guideAccountIDs,
-                isAnonymousUser,
-                shouldPreferAdminRoom,
-                undefined,
-                reportNameValuePairs,
-                reports,
-                excludedConciergeReportID,
-            )?.reportID;
+            return findLastAccessedReport(ignoreDomainRooms, guideAccountIDs, isAnonymousUser, shouldPreferAdminRoom, undefined, reportNameValuePairs, reports, excludedConciergeReportID)
+                ?.reportID;
         },
     });
     return {lastAccessedReportID, reportsMetadata, reportNameValuePairsMetadata};
