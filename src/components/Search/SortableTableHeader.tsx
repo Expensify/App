@@ -54,7 +54,7 @@ type SearchTableHeaderProps = {
     isDateColumnCreated?: boolean;
 
     /**
-     * Replaces each column's heading, reading the column from `useSortableColumn`.
+     * Replaces each heading that shows a label or an icon, reading the column from `useSortableColumn`.
      * Without it the headings sort when pressed.
      */
     children?: React.ReactNode;
@@ -141,7 +141,8 @@ function SortableTableHeader({
                         />
                     );
 
-                    if (children) {
+                    // A heading with neither a label nor an icon, like the report table's Comments, shows nothing to open a menu from.
+                    if (children && (!!label || !!icon)) {
                         return (
                             <View
                                 key={columnName}

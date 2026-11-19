@@ -1,5 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
+import Profile from '@assets/images/profile.svg';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {useSortableColumn} from '@components/Search/SortableColumnContext';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
@@ -23,8 +25,9 @@ function renderHeader() {
         <LocaleContextProvider>
             <SortableTableHeader
                 columns={[
-                    {columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR, translationKey: undefined, isColumnSortable: false},
+                    {columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR, translationKey: undefined, icon: Profile, isColumnSortable: false},
                     {columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE, translationKey: 'common.title', isColumnSortable: true},
+                    {columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS, translationKey: undefined, isColumnSortable: false},
                 ]}
                 shouldShowSorting
                 shouldShowColumn={() => true}
@@ -54,5 +57,15 @@ describe('SortableTableHeader', () => {
         // and it is named the same as on the Columns page so screen readers can announce its menu
         expect(screen.getByTestId(`heading-${CONST.SEARCH.TABLE_COLUMNS.AVATAR}`)).toHaveTextContent('Avatar');
         expect(screen.getByTestId(`heading-${CONST.SEARCH.TABLE_COLUMNS.TITLE}`)).toHaveTextContent('Title');
+    });
+
+    it('keeps a heading with neither a label nor an icon without a menu', async () => {
+        // Given a header whose Comments column shows neither a label nor an icon, like the report table's
+        // When the header renders with a child that turns each heading into its column menu
+        renderHeader();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Comments heading isn't replaced, because a blank heading gives users nothing to open its menu from
+        expect(screen.queryByTestId(`heading-${CONST.SEARCH.TABLE_COLUMNS.COMMENTS}`)).toBeNull();
     });
 });
