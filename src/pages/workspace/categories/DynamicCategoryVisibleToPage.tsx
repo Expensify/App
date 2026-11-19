@@ -69,6 +69,9 @@ function DynamicCategoryVisibleToPage({
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
 
     const policyCategory = policyCategories?.[categoryName];
+    // The server rejects visibility changes on a disabled category. A pending enabled change means this page just disabled
+    // the category by unchecking every member, so the page stays as it is while it closes instead of flashing not found.
+    const isCategoryDisabled = !!policyCategory && !policyCategory.enabled && !policyCategory.pendingFields?.enabled;
 
     // A missing visibleTo means every member can use the category, so every row starts checked.
     const visibleAccountIDs = memberAccountIDs.filter((accountID) => !policyCategory?.visibleTo || !!policyCategory.visibleTo[accountID]);
@@ -156,7 +159,7 @@ function DynamicCategoryVisibleToPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-            shouldBeBlocked={!canWriteCategories || !policyCategory}
+            shouldBeBlocked={!canWriteCategories || !policyCategory || isCategoryDisabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

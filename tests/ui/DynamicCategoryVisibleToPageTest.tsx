@@ -162,6 +162,47 @@ describe('DynamicCategoryVisibleToPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('blocks the page for a disabled category, since the server rejects visibility changes on it', async () => {
+        // Given Fees was disabled
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {Fees: {enabled: false}});
+        });
+
+        // When the admin opens its "Visible to" page, for example from a deep link
+        const {unmount} = renderPage({policyID: policy.id, categoryName: 'Fees'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page is blocked instead of listing the members
+        expect(await screen.findByText("Hmm... it's not here")).toBeOnTheScreen();
+        expect(screen.queryByText('Bob User')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('stays on screen while it closes after unchecking every member disables the category', async () => {
+        // Given the Meals "Visible to" page, where the admin and Carol are checked and every member can still use Fees
+        mockFetch.pause();
+        const {unmount} = renderPage({policyID: policy.id, categoryName: 'Meals'});
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText('Carol User')).toBeOnTheScreen();
+
+        // When the admin unchecks every member and saves
+        fireEvent.press(screen.getByText('Admin User'));
+        fireEvent.press(screen.getByText('Carol User'));
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Meals is disabled with the change pending, and the page doesn't swap to not found while it closes
+        const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+        expect(categories?.Meals?.enabled).toBe(false);
+        expect(categories?.Meals?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        expect(screen.queryByText("Hmm... it's not here")).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('keeps the search input when no member matches the search', async () => {
         // Given the Fees "Visible to" page, whose search input sits inside the member list
         const {unmount} = renderPage({policyID: policy.id, categoryName: 'Fees'});

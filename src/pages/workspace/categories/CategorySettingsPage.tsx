@@ -296,7 +296,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                             <MenuItemField
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SETTINGS_VISIBLE_TO}
                                 name={translate('workspace.categories.visibleTo')}
-                                onPress={canWriteCategories ? navigateToVisibleTo : undefined}
+                                // The server rejects visibility changes on a disabled category, so the row is read-only until it's enabled again.
+                                onPress={canWriteCategories && policyCategory.enabled ? navigateToVisibleTo : undefined}
                                 value={visibleToText}
                             />
                         </OfflineWithFeedback>
