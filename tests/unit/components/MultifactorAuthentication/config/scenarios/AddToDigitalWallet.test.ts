@@ -62,7 +62,7 @@ describe('AddToDigitalWallet scenario', () => {
         const response = await AddToDigitalWallet.action(params, undefined);
 
         // Then the wallet reason replaces the backend one and the message keeps the backend detail.
-        expect(response).toEqual({...failure, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED});
+        expect(response).toEqual({...failure, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED, message: `${failure.reason} - Rejected`});
     });
 
     it('sanitizes native exceptions instead of exposing card data', async () => {
