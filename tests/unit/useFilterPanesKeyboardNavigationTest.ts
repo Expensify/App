@@ -230,4 +230,20 @@ describe('useFilterPanesKeyboardNavigation', () => {
         expect(enter.defaultPrevented).toBe(false);
         expect(document.activeElement).toBe(panes.clearButton);
     });
+
+    it('moves the focus into the content when an arrow key is pressed with the focus on the page', () => {
+        // Given a report field that opened its values and took the focused row away, leaving the focus on the page
+        const panes = createPanes();
+        renderNavigation(panes);
+        const valueRow = document.createElement('button');
+        markShown(valueRow);
+        panes.contentContainer.replaceChildren(valueRow);
+
+        // When the down arrow is pressed
+        const event = pressKey(document.body, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+
+        // Then the focus goes to the new view, so the arrow keys work there again
+        expect(document.activeElement).toBe(valueRow);
+        expect(event.defaultPrevented).toBe(true);
+    });
 });

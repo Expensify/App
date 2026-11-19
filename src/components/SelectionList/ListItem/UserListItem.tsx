@@ -28,6 +28,7 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     shouldDisableHoverStyle,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
+    titleNumberOfLines,
 }: ListItemProps<TItem>) {
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!item.actionElement && !canSelectMultiple;
@@ -59,7 +60,10 @@ function UserListItem<TItem extends ListItem>({
         >
             <ListItemComposed.Row style={item.itemStyle}>
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
-                <UserListItemContent item={item} />
+                <UserListItemContent
+                    item={item}
+                    titleNumberOfLines={titleNumberOfLines}
+                />
                 {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
                 {item.actionElement}
