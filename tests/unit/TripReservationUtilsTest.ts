@@ -3326,7 +3326,18 @@ describe('TripReservationUtils', () => {
     });
 
     describe('getReservationDetailsFromSequence', () => {
-        const icons = {} as Parameters<typeof getReservationDetailsFromSequence>[0];
+        // Icons don't affect the layover logic under test, so each one is a placeholder image source.
+        const icons: Parameters<typeof getReservationDetailsFromSequence>[0] = {
+            Plane: 1,
+            PlaneCircleSlash: 1,
+            Bed: 1,
+            BedCircleSlash: 1,
+            CarWithKey: 1,
+            CarCircleSlash: 1,
+            Train: 1,
+            TrainCircleSlash: 1,
+            Luggage: 1,
+        };
 
         const buildFlight = (reservationID: string, legId: number, startDate: string, endDate: string): Reservation => ({
             type: CONST.RESERVATION_TYPE.FLIGHT,
