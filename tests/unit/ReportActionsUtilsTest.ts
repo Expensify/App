@@ -57,6 +57,7 @@ import {
     getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
+    getMergedReportsMessage,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -10059,6 +10060,39 @@ describe('ReportActionsUtils', () => {
                 // Then it is hidden as before, so the new rule only brings back previews that have something to say
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('getMergedReportsMessage', () => {
+        const buildMergedReportsAction = (sourceReports: Array<{reportID: string; reportName: string}>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS> => ({
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_REPORTS,
+            originalMessage: {sourceReports, movedTransactionCount: 3},
+        });
+
+        it('names the single merged report', () => {
+            // Given an action for a merge of one report
+            const action = buildMergedReportsAction([{reportID: '1', reportName: 'Taxi'}]);
+
+            // When the message is built
+            const message = getMergedReportsMessage(translateLocal, action);
+
+            // Then it names that report, since the merge deleted it and there is nothing to link to
+            expect(message).toBe('merged Taxi into this report');
+        });
+
+        it('counts and lists several merged reports', () => {
+            // Given an action for a merge of two reports
+            const action = buildMergedReportsAction([
+                {reportID: '1', reportName: 'Lunch with client'},
+                {reportID: '2', reportName: 'Taxi'},
+            ]);
+
+            // When the message is built
+            const message = getMergedReportsMessage(translateLocal, action);
+
+            // Then it gives the count and lists every report name, so the history shows where the expenses came from
+            expect(message).toBe('merged 2 reports into this report: Lunch with client, Taxi');
         });
     });
 });
