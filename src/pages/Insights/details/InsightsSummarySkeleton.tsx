@@ -11,7 +11,7 @@ const LABEL_WIDTH = 80;
 const COMPARISON_WIDTH = 200;
 const VALUE_WIDTH = 96;
 
-/** Loading skeleton of the Summary card's content */
+/** Loading skeleton of the Summary section's content */
 function InsightsSummarySkeleton() {
     const styles = useThemeStyles();
 

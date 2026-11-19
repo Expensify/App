@@ -16,7 +16,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/** Sends an Insights read command and stores the response's JSON code, so we can tell backend errors apart from requests that got no response */
+/** Sends an Insights read command and stores the response's JSON code, which distinguishes backend errors from requests that got no response */
 function requestInsights<TKey extends OnyxKey>(
     command: typeof READ_COMMANDS.GET_INSIGHTS | typeof READ_COMMANDS.GET_INSIGHTS_DETAILS,
     jsonQuery: string,

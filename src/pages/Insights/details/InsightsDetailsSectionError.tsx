@@ -8,7 +8,7 @@ import variables from '@styles/variables';
 import React from 'react';
 
 type InsightsDetailsSectionErrorProps = {
-    /** Whether the request got no response, in which case we ask the user to refresh instead of showing an error */
+    /** Whether the request got no response, which shows a refresh prompt instead of an error */
     isStale: boolean;
 
     onRetry: () => void;

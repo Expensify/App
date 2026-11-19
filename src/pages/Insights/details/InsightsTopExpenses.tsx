@@ -49,7 +49,6 @@ type InsightsTopExpensesProps = {
     query: SearchQueryString;
 
     snapshotHash: number;
-
     onRetry: () => void;
 };
 

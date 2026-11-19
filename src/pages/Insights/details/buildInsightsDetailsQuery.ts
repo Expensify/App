@@ -40,7 +40,7 @@ type InsightsDetailsQuery = {
     /** The period the panel summarizes, trimmed to the Date range */
     period: ChartPeriod;
 
-    /** Length of the summarized period, also used for the average */
+    /** Whether the summarized period is a day, week, month, quarter or year, which is also what the average is counted in */
     periodGroupBy: InsightsTimeGroupBy;
 
     /** Whether the period hasn't ended yet, so its spend may still grow */
@@ -67,7 +67,7 @@ type BuildInsightsDetailsQueryParams = {
     lastDay: string;
 };
 
-/** Returns the calendar period of the given length that contains the date. */
+/** Returns the calendar day, week, month, quarter or year that contains the date. */
 function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPeriod {
     const day = parseISO(date);
     switch (groupBy) {
@@ -86,14 +86,21 @@ function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPer
 }
 
 /** Returns the period the panel summarizes: the clicked one on Spend over time, the last one in the Date range on ranking graphs. */
-function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGroupBy: InsightsTimeGroupBy): ChartPeriod | undefined {
-    if (params.graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME) {
-        return params.periodEnd ? {start: params.itemKey, end: params.periodEnd} : undefined;
+function getSummarizedPeriod({
+    graphKey,
+    filters,
+    itemKey,
+    periodEnd,
+    lastDay,
+    periodGroupBy,
+}: Pick<BuildInsightsDetailsQueryParams, 'graphKey' | 'filters' | 'itemKey' | 'periodEnd' | 'lastDay'> & {periodGroupBy: InsightsTimeGroupBy}): ChartPeriod | undefined {
+    if (graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME) {
+        return periodEnd ? {start: itemKey, end: periodEnd} : undefined;
     }
 
-    const range = getInsightsDateRange(params.filters.date);
-    // Ranges like This year end in the future, but the chart only has buckets up to the last day, so we cut the range there
-    const end = range.end && range.end > params.lastDay ? params.lastDay : range.end;
+    const range = getInsightsDateRange(filters.date);
+    // Ranges like This year end in the future, but the chart only has buckets up to the last day
+    const end = range.end && range.end > lastDay ? lastDay : range.end;
     if (!end || end < range.start) {
         return undefined;
     }
@@ -102,29 +109,36 @@ function getSummarizedPeriod(params: BuildInsightsDetailsQueryParams, periodGrou
 }
 
 /** Builds the request for a Details panel's sections, or nothing when the backend doesn't support the graph or the period can't be resolved. */
-function buildInsightsDetailsQuery(params: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
-    const {graphKey, filters, itemGroupBy, itemKey, topExpensesSnapshotHash} = params;
+function buildInsightsDetailsQuery({
+    graphKey,
+    filters,
+    itemGroupBy,
+    itemKey,
+    periodEnd,
+    topExpensesSnapshotHash,
+    lastDay,
+}: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
     if (!SUPPORTED_GRAPH_KEYS.has(graphKey)) {
         return undefined;
     }
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
-    const period = getSummarizedPeriod(params, periodGroupBy);
+    const period = getSummarizedPeriod({graphKey, filters, itemKey, periodEnd, lastDay, periodGroupBy});
     const filtersQueryJSON = buildDashboardQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
     if (!period || !filtersQueryJSON) {
         return undefined;
     }
 
     const item = itemGroupBy ? {groupBy: itemGroupBy, value: itemGroupBy === CONST.SEARCH.GROUP_BY.FROM ? Number(itemKey) : itemKey} : undefined;
-    const identity = {graphKey, filters: filtersQueryJSON.filters, groupBy: periodGroupBy, period, item};
-    const hash = hashText(JSON.stringify(identity), 2 ** 32);
+    const hashedFields = {graphKey, filters: filtersQueryJSON.filters, groupBy: periodGroupBy, period, item};
+    const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {
-        jsonQuery: JSON.stringify({...identity, sections: INSIGHTS_DETAILS_SECTIONS, topExpensesSnapshotHash, hash}),
+        jsonQuery: JSON.stringify({...hashedFields, sections: INSIGHTS_DETAILS_SECTIONS, topExpensesSnapshotHash, hash}),
         hash,
         topExpensesSnapshotHash,
         period,
         periodGroupBy,
-        isPeriodInProgress: period.end >= params.lastDay,
+        isPeriodInProgress: period.end >= lastDay,
     };
 }
 

@@ -1,4 +1,4 @@
-import getInsightsAverageComparison from '@pages/Insights/details/getInsightsAverageComparison';
+import getInsightsAverageComparison, {INSIGHTS_AVERAGE_COMPARISON} from '@pages/Insights/details/getInsightsAverageComparison';
 
 describe('getInsightsAverageComparison', () => {
     it('asks for more history when fewer than three complete periods are behind the average', () => {
@@ -7,7 +7,7 @@ describe('getInsightsAverageComparison', () => {
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: 4000, averagePeriodCount: 2});
 
         // Then no comparison is drawn, since two periods are too few to call normal
-        expect(comparison).toEqual({type: 'notEnoughHistory'});
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY});
     });
 
     it('asks for more history when the backend has no history to average', () => {
@@ -16,7 +16,7 @@ describe('getInsightsAverageComparison', () => {
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: null, averagePeriodCount: 0});
 
         // Then no comparison is drawn
-        expect(comparison).toEqual({type: 'notEnoughHistory'});
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY});
     });
 
     it('calls the item new when it had no spend in the history', () => {
@@ -25,7 +25,7 @@ describe('getInsightsAverageComparison', () => {
         const comparison = getInsightsAverageComparison({total: 5000, count: 2, shareOfTotal: 10, average: 0, averagePeriodCount: 12});
 
         // Then it reads as new instead of a percentage of zero
-        expect(comparison).toEqual({type: 'new'});
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.NEW});
     });
 
     it('compares spend above the average as a positive difference', () => {
@@ -34,8 +34,8 @@ describe('getInsightsAverageComparison', () => {
         const comparison = getInsightsAverageComparison({total: 11400, count: 3, shareOfTotal: 10, average: 10000, averagePeriodCount: 6});
 
         // Then it is $14 or 14% over
-        expect(comparison).toMatchObject({type: 'change', difference: 1400});
-        expect(comparison.type === 'change' ? comparison.percentage : undefined).toBeCloseTo(14);
+        expect(comparison).toMatchObject({type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference: 1400});
+        expect(comparison.type === INSIGHTS_AVERAGE_COMPARISON.CHANGE ? comparison.percentage : undefined).toBeCloseTo(14);
     });
 
     it('compares spend below the average as a negative difference', () => {
@@ -44,6 +44,6 @@ describe('getInsightsAverageComparison', () => {
         const comparison = getInsightsAverageComparison({total: 9000, count: 3, shareOfTotal: 10, average: 10000, averagePeriodCount: 12});
 
         // Then it is $10 or 10% under
-        expect(comparison).toEqual({type: 'change', difference: -1000, percentage: 10});
+        expect(comparison).toEqual({type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference: -1000, percentage: 10});
     });
 });

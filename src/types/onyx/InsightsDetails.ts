@@ -7,7 +7,10 @@ type InsightsDetailsSummary = {
 
     count: number;
 
-    /** Percentage of all spend in the period, or in the Date range for Spend over time, that the item accounts for */
+    /**
+     * The item's percentage of all spend in the period.
+     * On Spend over time, the period's percentage of all spend in the Date range instead.
+     */
     shareOfTotal: number;
 
     /** Spend per complete period before the summarized one, or null when there's no history to average */
@@ -20,7 +23,6 @@ type InsightsDetailsSummary = {
 /** Data of one Insights Details panel */
 type InsightsDetails = {
     summary?: InsightsDetailsSummary;
-
     errors?: Errors;
 
     /** JSON code of the failed GetInsightsDetails request stored with errors */

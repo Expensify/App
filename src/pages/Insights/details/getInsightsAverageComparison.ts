@@ -4,16 +4,22 @@ import type {InsightsDetailsSummary} from '@src/types/onyx';
 /** Complete periods of history the comparison needs before the summarized one */
 const MIN_AVERAGE_PERIOD_COUNT = 3;
 
+const INSIGHTS_AVERAGE_COMPARISON = {
+    NOT_ENOUGH_HISTORY: 'notEnoughHistory',
+    NEW: 'new',
+    CHANGE: 'change',
+} as const;
+
 type InsightsAverageComparison =
     | {
-          type: 'notEnoughHistory';
+          type: typeof INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY;
       }
     | {
           /** The item had no spend before, so any percentage would divide by zero */
-          type: 'new';
+          type: typeof INSIGHTS_AVERAGE_COMPARISON.NEW;
       }
     | {
-          type: 'change';
+          type: typeof INSIGHTS_AVERAGE_COMPARISON.CHANGE;
 
           /** Spend in the period minus the average */
           difference: number;
@@ -25,15 +31,16 @@ type InsightsAverageComparison =
 /** Returns how the period compares to the average, once there are enough complete periods behind it. */
 function getInsightsAverageComparison({total, average, averagePeriodCount}: InsightsDetailsSummary): InsightsAverageComparison {
     if (average === null || averagePeriodCount < MIN_AVERAGE_PERIOD_COUNT) {
-        return {type: 'notEnoughHistory'};
+        return {type: INSIGHTS_AVERAGE_COMPARISON.NOT_ENOUGH_HISTORY};
     }
     if (average === 0) {
-        return {type: 'new'};
+        return {type: INSIGHTS_AVERAGE_COMPARISON.NEW};
     }
 
     const difference = total - average;
-    return {type: 'change', difference, percentage: (Math.abs(difference) / Math.abs(average)) * 100};
+    return {type: INSIGHTS_AVERAGE_COMPARISON.CHANGE, difference, percentage: (Math.abs(difference) / average) * 100};
 }
 
-export {MIN_AVERAGE_PERIOD_COUNT};
+export {INSIGHTS_AVERAGE_COMPARISON, MIN_AVERAGE_PERIOD_COUNT};
+export type {InsightsAverageComparison};
 export default getInsightsAverageComparison;
