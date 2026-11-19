@@ -55,6 +55,7 @@ class NotifyingResizeObserver implements ResizeObserver {
     }
 }
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module */
 jest.mock('@components/Pressable/PressableWithoutFeedback', () => {
     const ReactActual = jest.requireActual('react');
     const {Pressable: RNPressable} = jest.requireActual('react-native');
@@ -97,6 +98,7 @@ jest.mock('@components/PopoverMenu', () => {
     const {Text: RNText} = jest.requireActual('react-native');
     return ({anchorPosition}: {anchorPosition?: AnchorPosition}) => <RNText testID="three-dots-anchor-horizontal">{anchorPosition?.horizontal ?? ''}</RNText>;
 });
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 const MENU_ITEMS = [{text: 'Details', onSelected: () => {}, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
 

@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -224,7 +225,7 @@ function ThreeDotsMenu({
     }, [windowWidth, windowHeight, isPopupMenuVisible]);
 
     useEffect(() => {
-        if (!isPopupMenuVisible || !(buttonRef.current instanceof HTMLElement)) {
+        if (!isPopupMenuVisible || !isHTMLElement(buttonRef.current)) {
             return;
         }
         return subscribeToAnchorMovement(buttonRef.current, () => {

@@ -53,6 +53,8 @@ jest.mock('lodash/debounce', () => {
     };
 });
 
+// jest.requireActual returns an untyped module, so the mock factory cannot be annotated without an inline import().
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 jest.mock('@components/PopoverMenu', () => {
     const ReactActual = jest.requireActual('react');
     const {Text: RNText} = jest.requireActual('react-native');
@@ -64,6 +66,7 @@ jest.mock('@components/PopoverMenu', () => {
         return <RNText testID="three-dots-anchor-horizontal">{anchorPosition?.horizontal ?? ''}</RNText>;
     };
 });
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 const MENU_ITEMS = [{text: 'Details', onSelected: () => {}, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}];
 
@@ -170,5 +173,22 @@ describe('ThreeDotsMenu reposition on resize', () => {
 
         // Then the popup does not re-render, because setPosition kept the previous object
         expect((globalThis as typeof globalThis & {threeDotsPopoverRenders?: number}).threeDotsPopoverRenders).toBe(rendersAfterMove);
+    });
+
+    it('opens on a runtime where HTMLElement is not defined', async () => {
+        // Given stock native, where reading HTMLElement throws, so the observer must not be attached that way
+        renderMenu();
+        const originalHTMLElement = globalThis.HTMLElement;
+        Object.defineProperty(globalThis, 'HTMLElement', {configurable: true, writable: true, value: undefined});
+
+        try {
+            // When the menu is opened
+            fireEvent.press(screen.getByTestId('three-dots-button'));
+
+            // Then the popup still appears, because the anchor check does not evaluate HTMLElement
+            expect(await screen.findByText('120')).toBeTruthy();
+        } finally {
+            Object.defineProperty(globalThis, 'HTMLElement', {configurable: true, writable: true, value: originalHTMLElement});
+        }
     });
 });
