@@ -214,6 +214,8 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         // Given: A corporate card expense the server refused to reject individually
         await renderTransactionItem(buildTransactionWithRejectCorporateCardError());
 
+        // When: The transaction item is rendered with a rejectCorporateCard error
+
         // Then: The corporate card message is shown, not the generic one
         expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectCorporateCardExpense'))).toBeOnTheScreen();
         expect(screen.queryByText(translateLocal('iou.rejectReport.couldNotRejectExpense'))).not.toBeOnTheScreen();
@@ -223,20 +225,24 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         // Given: An expense the server rejected with an unexpected error
         await renderTransactionItem(buildTransactionWithRejectOtherError());
 
+        // When: The transaction item is rendered with a rejectOther error
+
         // Then: The contact Concierge message is shown
         expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectExpenseContactConcierge'))).toBeOnTheScreen();
     });
 
-    it('should show the corporate card message when rejectCorporateCard and reject are both set', async () => {
-        // Given: An expense where the server set rejectCorporateCard but failureData also wrote reject
+    it('should show the corporate card message when rejectCorporateCard and rejectOther are both set', async () => {
+        // Given: An expense where the server set rejectCorporateCard but failureData also wrote rejectOther
         await renderTransactionItem(
             buildTransaction({
                 errorFields: {
                     rejectCorporateCard: {[ERROR_TIMESTAMP]: 'Corporate card expenses on a statement report cannot be rejected individually. Please reject the entire report instead.'},
-                    reject: {[ERROR_TIMESTAMP]: SERVER_REJECT_MESSAGE},
+                    rejectOther: {[ERROR_TIMESTAMP]: 'This expense could not be rejected. Please contact Concierge for help.'},
                 },
             }),
         );
+
+        // When: The transaction item is rendered with both rejectCorporateCard and rejectOther errors
 
         // Then: The more specific corporate card error takes priority over the generic fallback
         expect(screen.getByText(translateLocal('iou.rejectReport.couldNotRejectCorporateCardExpense'))).toBeOnTheScreen();

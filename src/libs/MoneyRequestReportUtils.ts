@@ -36,8 +36,8 @@ import {getSupersededPendingCardTransactionIDs, getVisibleTransactionViolations,
  * set on this expense (`reject`, `rejectCorporateCard`, or `rejectOther`).
  */
 function getTransactionRejectError(transaction: OnyxEntry<Transaction>): {key: string; translationKey: TranslationPaths} | undefined {
-    // Check server-set specific fields before the generic `reject` field. The generic field is also written
-    // by failureData as a fallback for offline failures, so it must not shadow a more specific server error.
+    // Check the most specific server-set fields first. `rejectOther` is written by failureData as a catch-all
+    // fallback for offline failures, so it must not shadow a more specific server error.
     const rejectCorporateCardKey = Object.keys(getLatestErrorField(transaction, 'rejectCorporateCard')).at(0);
     if (rejectCorporateCardKey) {
         return {key: rejectCorporateCardKey, translationKey: 'iou.rejectReport.couldNotRejectCorporateCardExpense'};
