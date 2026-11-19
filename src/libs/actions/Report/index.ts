@@ -85,6 +85,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork, getServerAnchoredDBTime} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -517,6 +518,7 @@ type MergeReportsProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     isChatReportArchived: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -3329,8 +3331,9 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
  * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ * @param readTime When the user saw the report (defaults to now). A delayed read passes it so newer actions stay unread.
  */
-function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, isReportActionsLoaded: boolean, shouldResetUnreadMarker = false, readTime?: string) {
     if (!reportID) {
         return;
     }
@@ -3340,7 +3343,7 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
         return;
     }
 
-    const lastReadTime = getDBTimeWithSkew();
+    const lastReadTime = readTime ?? getDBTimeWithSkew();
 
     // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
     // user created. `openReport` clears it on a return trip or a refresh.
@@ -7426,12 +7429,45 @@ function downloadReportPDF(fileName: string, reportName: string, translate: Loca
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
+// A newer deletion cancels this so a stale clear can't wipe its URL.
+let pendingDeleteTransactionNavigateBackUrlClear: {cancel: () => void} | undefined;
+
 function setDeleteTransactionNavigateBackUrl(url: string) {
-    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    pendingDeleteTransactionNavigateBackUrlClear = undefined;
+    Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, url);
 }
 
 function clearDeleteTransactionNavigateBackUrl() {
-    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+    Onyx.merge(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, null);
+}
+
+function clearDeleteTransactionNavigateBackUrlAfterTransitions(shouldClear: () => Promise<boolean>) {
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    let isCancelled = false;
+    let frameID: number | undefined;
+    const transitionHandle = TransitionTracker.runAfterTransitions({
+        callback: () => {
+            shouldClear().then((shouldClearUrl) => {
+                if (isCancelled || !shouldClearUrl) {
+                    return;
+                }
+                // One more frame so the popped screen's guard doesn't flash Not Found.
+                frameID = requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+            });
+        },
+        waitForUpcomingTransition: true,
+    });
+    pendingDeleteTransactionNavigateBackUrlClear = {
+        cancel: () => {
+            isCancelled = true;
+            transitionHandle.cancel();
+            if (frameID === undefined) {
+                return;
+            }
+            cancelAnimationFrame(frameID);
+        },
+    };
 }
 
 type DeleteAppReportProps = {
@@ -8203,6 +8239,7 @@ function convertIOUReportToExpenseReport(
         ...getNegatedReportTotals(iouReport),
     };
 
+    // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
@@ -9328,6 +9365,7 @@ function mergeReports({
     isVendorMatchingBetaEnabled,
     isChatReportArchived,
     currentUserPersonalDetails,
+    personalDetailsByLogins,
 }: MergeReportsProps) {
     const reports = allReportsParam ?? allReports;
     const destinationReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
@@ -9363,6 +9401,7 @@ function mergeReports({
         getCurrencyDecimals,
         getCurrencySymbol,
         currentUserPersonalDetails,
+        personalDetailsByLogins,
     });
 
     const {
@@ -9546,6 +9585,7 @@ export {
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
+    clearDeleteTransactionNavigateBackUrlAfterTransitions,
     clearIOUError,
     clearReportErrors,
     clearNewRoomFormError,

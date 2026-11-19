@@ -24,13 +24,8 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCurrency,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils,
-    isOnHold,
-    removeTransactionFromDuplicateTransactionViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isOnHold} from '@libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils/duplicates';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';

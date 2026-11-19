@@ -42,6 +42,10 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
+        Sentry.setUser({
+            id: value?.accountID,
+            email: value?.email,
+        });
         if (!value?.email) {
             session = undefined;
             handleAccountChange();

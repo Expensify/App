@@ -22,6 +22,9 @@ import type {
     FlatNavSection,
     FlatNavSectionDefinition,
     FlatNavSectionID,
+    FlatNavSubnavGroup,
+    FlatNavSubnavGroupDefinition,
+    FlatNavSubnavRowHeights,
 } from './types';
 
 import FLAT_NAV from './FLAT_NAV';
@@ -114,6 +117,7 @@ function buildCannedSearchItem(searchKey: FlatNavCannedSearchKey, menuItem: Sear
         key: searchKey,
         sectionID,
         translationPath: IN_SECTION_TRANSLATION_PATH_OVERRIDES[searchKey] ?? menuItem.translationPath,
+        spendColumnTranslationPath: menuItem.translationPath,
         iconName: menuItem.icon,
         searchQuery: menuItem.searchQuery,
         badgeText: getItemBadgeText(searchKey, todoCounts) || undefined,
@@ -179,5 +183,94 @@ function getFlatNavSectionDefaultItem(section: FlatNavSection): FlatNavItem | un
     return section.items.find((item) => item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH || !item.isDisabled);
 }
 
-export {buildFlatNavSections, FLAT_NAV_SECTION_DEFINITIONS, getActiveFlatNavItem, getFlatNavSectionBadgeText, getFlatNavSectionDefaultItem, getFlatNavSectionIDForSearchKey};
+/**
+ * The headers of the Spend subnav in render order. Expenses and Reports sit under one header because the Spend column lists them together.
+ * The headers follow the order of the flat navigation bar sections, so Accounting comes before Travel even though the Spend column lists Travel first.
+ */
+const FLAT_NAV_SUBNAV_GROUP_DEFINITIONS: readonly FlatNavSubnavGroupDefinition[] = [
+    {
+        id: FLAT_NAV.SUBNAV_GROUP.EXPENSE_REPORTS,
+        translationPath: 'search.tabs.expenseReports',
+        sectionIDs: [FLAT_NAV.SECTION.EXPENSES, FLAT_NAV.SECTION.REPORTS],
+        // Under its own section Reports reads "My reports". Next to Expenses it is the whole list of reports.
+        shouldUseSpendColumnLabels: true,
+    },
+    {
+        id: FLAT_NAV.SUBNAV_GROUP.ACCOUNTING,
+        translationPath: 'search.tabs.accounting',
+        sectionIDs: [FLAT_NAV.SECTION.ACCOUNTING],
+    },
+    {
+        id: FLAT_NAV.SUBNAV_GROUP.TRAVEL,
+        translationPath: 'search.tabs.travel',
+        sectionIDs: [FLAT_NAV.SECTION.TRAVEL],
+    },
+    {
+        id: FLAT_NAV.SUBNAV_GROUP.SAVED,
+        translationPath: SAVED_SEARCHES_TRANSLATION_PATH,
+        sectionIDs: [FLAT_NAV.SECTION.SAVED],
+    },
+];
+
+type BuildFlatNavSubnavGroupsParams = {
+    sections: FlatNavSection[];
+
+    /** Offline, a saved search pending delete stays listed. Online it is dropped so every row has the same height. */
+    isOffline: boolean;
+};
+
+/** Arranges the visible sections under the headers of the Spend subnav. A header with nothing under it is left out. */
+function buildFlatNavSubnavGroups({sections, isOffline}: BuildFlatNavSubnavGroupsParams): FlatNavSubnavGroup[] {
+    const groups: FlatNavSubnavGroup[] = [];
+    for (const definition of FLAT_NAV_SUBNAV_GROUP_DEFINITIONS) {
+        const items = definition.sectionIDs
+            .flatMap((sectionID) => sections.find((section) => section.id === sectionID)?.items ?? [])
+            .filter((item) => item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH || isOffline || !item.isDisabled)
+            .map(
+                (item): FlatNavItem =>
+                    item.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && definition.shouldUseSpendColumnLabels ? {...item, translationPath: item.spendColumnTranslationPath} : item,
+            );
+
+        if (items.length > 0) {
+            groups.push({
+                id: definition.id,
+                translationPath: definition.translationPath,
+                items,
+            });
+        }
+    }
+    return groups;
+}
+
+/**
+ * Where the marker of the active row starts, counted from the top of the subnav. Undefined when no row is active.
+ * Rows have fixed heights, so this is a sum rather than a measurement.
+ */
+function getFlatNavSubnavMarkerTop(groups: FlatNavSubnavGroup[], activeItemKey: SearchKey | undefined, rowHeights: FlatNavSubnavRowHeights): number | undefined {
+    if (!activeItemKey) {
+        return undefined;
+    }
+    let rowTop = 0;
+    for (const group of groups) {
+        rowTop += rowHeights.header;
+        for (const item of group.items) {
+            if (item.key === activeItemKey) {
+                return rowTop + (rowHeights.item - rowHeights.marker) / 2;
+            }
+            rowTop += rowHeights.item;
+        }
+    }
+    return undefined;
+}
+
+export {
+    buildFlatNavSections,
+    buildFlatNavSubnavGroups,
+    FLAT_NAV_SECTION_DEFINITIONS,
+    getActiveFlatNavItem,
+    getFlatNavSectionBadgeText,
+    getFlatNavSectionDefaultItem,
+    getFlatNavSectionIDForSearchKey,
+    getFlatNavSubnavMarkerTop,
+};
 export type {BuildFlatNavSectionsParams};

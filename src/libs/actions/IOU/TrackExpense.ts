@@ -2002,7 +2002,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 category,
                 tag,
                 taxCode,
-                taxAmount,
+                // the existing taxAmount field was inadequate as it does not accept signed values,
+                // the new field was added to preserve existing behavior of the existing field
+                signedTaxAmount: taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,

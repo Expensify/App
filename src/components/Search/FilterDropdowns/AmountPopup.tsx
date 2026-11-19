@@ -5,16 +5,21 @@ import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Searc
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterFormValues, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
@@ -67,6 +72,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
 
 function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
@@ -155,17 +161,28 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
             onApply={applyChanges}
             applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
-            {modifierConfig.map((modifier) => (
-                <MenuItem
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
-                    key={modifier}
-                    title={title[modifier]}
-                    description={formatAmount(amountValues[modifier])}
-                    onPress={() => setSelectedModifier(modifier)}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                />
-            ))}
+            {modifierConfig.map((modifier) => {
+                const formattedAmount = formatAmount(amountValues[modifier]);
+
+                return (
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
+                        key={modifier}
+                        onPress={callIfAuthenticated(() => setSelectedModifier(modifier), session)}
+                        isCompact
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{title[modifier]}</MenuItem.Title>
+                                {!!formattedAmount && <MenuItem.Description>{formattedAmount}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                );
+            })}
         </BasePopup>
     );
 }

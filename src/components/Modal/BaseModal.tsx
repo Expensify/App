@@ -1,5 +1,6 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FSClassContext from '@components/FSClassView/FSClassContext';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RHPResizeHandle from '@components/RHPResizeHandle';
@@ -438,18 +439,21 @@ function BaseModal({
                                 </PressableWithoutFeedback>
                             )}
                             <FSClassContext.Provider value={forwardedFSClass}>
-                                <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                                    <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                                </HorizontalSafeAreaContext.Provider>
                             </FSClassContext.Provider>
                         </Animated.View>
-                        {stackedResizableRHPWidth !== undefined && isVisible && (
-                            // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
-                            <Animated.View
-                                pointerEvents="box-none"
-                                style={[styles.fullScreen, sidePanelAnimatedStyle]}
-                            >
-                                <RHPResizeHandle />
-                            </Animated.View>
-                        )}
+                        {stackedResizableRHPWidth !== undefined &&
+                            isVisible && (
+                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                                <Animated.View
+                                    pointerEvents="box-none"
+                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                                >
+                                    <RHPResizeHandle />
+                                </Animated.View>
+                            )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>

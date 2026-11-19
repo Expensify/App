@@ -1,5 +1,5 @@
 /** Approval rows keep their pills, navigation and error feedback when composed. */
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MenuItem from '@components/MenuItem';
 
@@ -116,16 +116,17 @@ beforeEach(() => {
 });
 
 describe('Approval workflow composed rows', () => {
-    it('puts the member and approver pills in value leaves with readable names and keeps edit navigation', () => {
+    it('keeps member and approver pills outside text value leaves with readable names and edit navigation', () => {
         // Given a workflow with one submitter and one approver
         const view = renderEditor();
 
         // When the approver row is pressed
         fireEvent.press(screen.getByRole('button', {name: 'Approver One'}), pressEvent);
 
-        // Then its pills retain explicit text labels rather than an object-stringified accessible value
-        expect(view.UNSAFE_getAllByType(MenuItem.FieldValue).at(0)).toHaveProperty('props.accessibilityLabel', 'Member One');
-        expect(view.UNSAFE_getAllByType(MenuItem.FieldValue).at(1)).toHaveProperty('props.accessibilityLabel', 'Approver One');
+        // Then pills avoid native text attachment clipping while their rows retain accessible names
+        expect(view.UNSAFE_queryAllByType(MenuItem.FieldValue)).toHaveLength(0);
+        expect(screen.getByRole('button', {name: 'Member One'})).toBeOnTheScreen();
+        expect(screen.getByRole('button', {name: 'Approver One'})).toBeOnTheScreen();
         expect(screen.getByText('Member One')).toBeOnTheScreen();
         expect(screen.getByText('Approver One')).toBeOnTheScreen();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
@@ -136,22 +137,24 @@ describe('Approval workflow composed rows', () => {
         mockWorkflow.isDefault = true;
 
         // When its rows render
-        renderEditor();
+        const view = renderEditor();
 
-        // Then Everyone is still visible but is not a button
+        // Then plain-text Everyone keeps its value leaf but cannot be edited
+        expect(view.UNSAFE_getAllByType(MenuItem.FieldValue)).toHaveLength(1);
+        expect(view.UNSAFE_getByType(MenuItem.FieldValue).props.children).toBe('workspace.common.everyone');
         expect(screen.getByText('workspace.common.everyone')).toBeOnTheScreen();
         expect(screen.queryByRole('button', {name: 'workspace.common.everyone'})).toBeNull();
     });
 
-    it('allows member pills to wrap without limiting the value to one line', () => {
+    it('allows multiple long-name member pills to wrap outside text value leaves', () => {
         // Given several submitters whose real UserPills container can wrap on a narrow screen
-        mockWorkflow.members = Array.from({length: 7}, (_, index) => ({email: `member${index}@example.com`, displayName: `Member ${index}`}));
+        mockWorkflow.members = Array.from({length: 7}, (_, index) => ({email: `member${index}@example.com`, displayName: `Member With A Long Display Name ${index}`}));
 
         // When the editor composes the member value
         const view = renderEditor();
 
         // Then every visible pill is retained and the value does not truncate its wrapping container
-        expect(view.UNSAFE_getAllByType(MenuItem.FieldValue).at(0)).toHaveProperty('props.numberOfLines', 0);
+        expect(view.UNSAFE_queryAllByType(MenuItem.FieldValue)).toHaveLength(0);
         for (const member of mockWorkflow.members) {
             expect(screen.getByText(member.displayName)).toBeOnTheScreen();
         }
@@ -178,14 +181,10 @@ describe('Approval workflow composed rows', () => {
 
         // When its empty approver row is pressed
         const view = renderEditor();
-        const root = view.UNSAFE_getAllByType(MenuItem.Root).find(({props}) => props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER);
-        if (!root) {
-            throw new Error('Expected an approver row');
-        }
-        fireEvent.press(within(root).getByRole('button'), pressEvent);
+        fireEvent.press(screen.getByRole('button', {name: 'workflowsPage.approver'}), pressEvent);
 
-        // Then the empty value remains a placeholder, and selection goes to the first approver step
-        expect(view.UNSAFE_getAllByType(MenuItem.FieldValue)).toHaveLength(1);
+        // Then the empty value remains a named placeholder, and selection goes to the first approver step
+        expect(view.UNSAFE_queryAllByType(MenuItem.FieldValue)).toHaveLength(0);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
     });
 

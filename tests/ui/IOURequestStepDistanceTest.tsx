@@ -70,7 +70,6 @@ jest.mock('@libs/actions/IOU', () => {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
         trackExpense: jest.fn(),
-        createDistanceRequest: jest.fn(),
     };
 });
 
@@ -1262,10 +1261,7 @@ describe('IOURequestStepDistance - editing the waypoints of an expense with an a
         await waitForBatchedUpdatesWithAct();
 
         // `getAllByLabelText` matches both the field label <Text> and the underlying <TextInput>; pick the input.
-        fireEvent.changeText(
-            screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!,
-            '150',
-        );
+        fireEvent.changeText(screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!, '150');
         // The Manual-tab Save button is the second "common.save" → submitManualDistance
         fireEvent.press(screen.getAllByText('common.save').at(1)!);
 
