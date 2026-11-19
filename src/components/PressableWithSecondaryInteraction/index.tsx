@@ -4,6 +4,7 @@ import usePressResponderProps from '@components/Pressable/PressResponder/usePres
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';
 
@@ -27,7 +28,7 @@ function PressableWithSecondaryInteraction({
     activeOpacity = 1,
     opacityAnimationDuration,
     shouldAllowTextSelection = false,
-    sentryLabel,
+    sentryLabel: rawSentryLabel,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -35,12 +36,13 @@ function PressableWithSecondaryInteraction({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
     // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
-    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls, sentryLabel} = usePressResponderProps({
         onSecondaryInteraction: rawOnSecondaryInteraction,
         accessibilityState: rest.accessibilityState,
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rawSentryLabel,
     });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
@@ -101,7 +103,7 @@ function PressableWithSecondaryInteraction({
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
-            sentryLabel={sentryLabel}
+            sentryLabel={castToSentryLabel(sentryLabel)}
             {...rest}
             accessibilityState={accessibilityState}
             accessibilityHasPopup={accessibilityHasPopup}

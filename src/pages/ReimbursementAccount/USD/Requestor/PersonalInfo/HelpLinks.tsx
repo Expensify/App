@@ -33,6 +33,7 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
             />
             <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.HELP_LINKS.LEARN_MORE_LINK}
                     style={[styles.textMicro]}
                     href={CONST.BANK_ACCOUNT_PERSONAL_DOCUMENTATION_INFO_URL}
                 >
@@ -40,6 +41,7 @@ function HelpLinks({containerStyles}: HelpLinkProps) {
                 </TextLink>
                 <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
                 <TextLink
+                    sentryLabel={CONST.SENTRY_LABEL.HELP_LINKS.IS_MY_DATA_SAFE_LINK}
                     style={[styles.textMicro]}
                     href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
                 >

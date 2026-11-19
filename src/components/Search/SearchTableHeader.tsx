@@ -84,7 +84,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.VENDOR,
         translationKey: 'common.vendor',
-        isColumnSortable: false,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
@@ -143,7 +143,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
         translationKey: 'common.violations',
-        isColumnSortable: false,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
@@ -594,6 +594,15 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
                     translationKey: 'common.category',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION,
+                    translationKey: 'search.filters.groupBy.violation',
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,

@@ -75,6 +75,31 @@ describe('ListItemPressable', () => {
         expect(screen.getByLabelText('Item text')).toBeTruthy();
     });
 
+    it.each([
+        ['selects a checkbox row, since the list Enter shortcut stands down while a checkbox is focused', CONST.ROLE.CHECKBOX, 1],
+        ['leaves an option row to the list Enter shortcut, so the row is not selected twice', undefined, 0],
+    ])('Enter on a focused row %s', (_case, accessibilityRole, expectedSelections) => {
+        // Given a row that leaves Enter to the list, as every row of a list with its Enter shortcut on does
+        const onSelectRow = jest.fn();
+        render(
+            <ListItemComposed
+                item={{keyForList: '1', text: 'Item text'}}
+                accessibilityRole={accessibilityRole}
+                canSelectMultiple={accessibilityRole === CONST.ROLE.CHECKBOX}
+                shouldPreventEnterKeySubmit
+                onSelectRow={onSelectRow}
+                shouldShowTooltip={false}
+                isFocused
+            />,
+        );
+
+        // When the browser turns Enter on the focused row into a press
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`), {key: CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey});
+
+        // Then only a checkbox row is selected by it
+        expect(onSelectRow).toHaveBeenCalledTimes(expectedSelections);
+    });
+
     it('should keep the button role for a navigational row when shouldUseOptionRole is false', () => {
         render(
             <ListItemComposed
@@ -127,6 +152,30 @@ describe('ListItemPressable', () => {
             />,
         );
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
+    });
+
+    it.each([
+        ['a checkbox row presses itself', CONST.ROLE.CHECKBOX, 1],
+        ['an option row leaves it to the list', undefined, 0],
+    ])('on Enter while the list owns the key, %s', (_case, accessibilityRole, expectedSelections) => {
+        // Given a row in a list whose Enter shortcut stands aside while a checkbox is focused
+        const onSelectRow = jest.fn();
+        render(
+            <ListItemComposed
+                item={{keyForList: '1', text: 'Item text'}}
+                accessibilityRole={accessibilityRole}
+                shouldPreventEnterKeySubmit
+                onSelectRow={onSelectRow}
+                shouldShowTooltip={false}
+                isFocused
+            />,
+        );
+
+        // When Enter presses the focused row
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`), {key: CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey});
+
+        // Then only the checkbox row selects itself, so an option row is not selected twice with the list's shortcut
+        expect(onSelectRow).toHaveBeenCalledTimes(expectedSelections);
     });
 
     it.each([

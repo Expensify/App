@@ -14,6 +14,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -23,6 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
+import useReportApprovalWarningData from '@hooks/useReportApprovalWarningData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,7 +48,7 @@ import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {autoReportedRejectedExpenseViolationsSelector, transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
+import {autoReportedRejectedExpenseViolationsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
@@ -266,7 +268,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
-    const {currentSearchResults: snapshot} = useSearchResultsContext();
+    const {currentSearchResults: snapshot, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
@@ -298,8 +300,18 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         shouldShowMarkAsDoneCopy,
     });
 
-    const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
-    const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
+    const snapshotTransactions = currentSearchTransactionsByReportID.get(reportItem.reportID) ?? reportItem.transactions ?? [];
+    const {
+        transactions: approvalTransactions,
+        violations: approvalViolations,
+        liveViolations: allViolations,
+    } = useReportApprovalWarningData(reportItem.reportID, snapshotTransactions, currentSearchViolations);
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: parentReport ?? snapshotReport,
+        policy: parentPolicy ?? snapshotPolicy,
+        transactions: approvalTransactions,
+        violationsCollection: approvalViolations,
+    });
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
 
@@ -349,6 +361,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             confirmSubmitReportViolations,
+            confirmApproveReportViolations,
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),

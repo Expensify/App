@@ -11,6 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -29,9 +30,9 @@ type ItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-type ItemProps = ItemOwnProps & MenuItemForwardProps;
+type ItemProps = ItemOwnProps & MenuItemForwardProps & WithRequiredSentryLabel;
 
-function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
+function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, sentryLabel, ...rest}: ItemProps): React.ReactElement | null {
     useContentClose(Item.displayName);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -46,6 +47,7 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem
                 {...rest}
+                sentryLabel={sentryLabel}
                 ref={ref}
                 title={text}
                 iconWidth={iconWidth ?? variables.iconSizeNormal}
@@ -70,4 +72,9 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
 Item.displayName = 'PopoverMenu.Item';
 
 export default Item;
-export type {ItemProps, ItemSelectEvent};
+/**
+ * Documented in README.md as the type of the `onSelect` event, so it is kept as public API although no module imports it.
+ *
+ * @public
+ */
+export type {ItemSelectEvent};

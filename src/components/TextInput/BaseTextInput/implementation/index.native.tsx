@@ -94,7 +94,8 @@ function BaseTextInput({
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
-    sentryLabel,
+    // A press on the field focuses the input, so inputs without a label of their own report under a shared one.
+    sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.FIELD,
     rightHandSideComponent,
     shouldAllowFocusInLandscapeMode = false,
     ...props
