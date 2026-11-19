@@ -8,6 +8,7 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import mockOnyxKeys from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -27,6 +28,12 @@ let mockSearchKey: SearchKey | undefined;
 // Mutable so a test can open a tab that was preloaded at idle.
 let mockIsInPreloadedTab = false;
 let mockShouldUseLiveData = false;
+let mockIsLoadingApp = false;
+
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string) => [key === mockOnyxKeys.IS_LOADING_APP ? mockIsLoadingApp : undefined],
+}));
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -149,11 +156,95 @@ describe('useSearchPageSetup', () => {
         mockIsInPreloadedTab = false;
         mockShouldUseLiveData = false;
         mockIsOffline = false;
+        mockIsLoadingApp = false;
         mockLastFocusCallback = undefined;
         mockMarkPageRequestedSearch.mockClear();
         mockClearPageRequestedSearch.mockClear();
         mockFocusCleanups = [];
         resetPendingSearchWrite();
+    });
+
+    it.each([
+        [111, 222],
+        [222, 111],
+    ])('does not re-request account %s drafts while switching to account %s', (previousAccountID, nextAccountID) => {
+        // Given a retained Drafts page with cached results from the previous account
+        const previousQuery = buildSearchQueryJSON(`type:expense-report action:submit from:${previousAccountID}`);
+        const nextQuery = buildSearchQueryJSON(`type:expense-report action:submit from:${nextAccountID}`);
+        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
+        mockSearchResults = buildLoadedSnapshot(previousQuery?.hash ?? 0);
+        const {rerender} = renderHook(({query}) => useSearchPageSetup(query), {initialProps: {query: previousQuery}});
+        mockSearch.mockClear();
+        mockedSaveLastSearchParams.mockClear();
+        mockMarkPageRequestedSearch.mockClear();
+
+        // When switching accounts clears the snapshot before replacing the retained route query
+        mockIsLoadingApp = true;
+        mockSearchResults = undefined;
+        rerender({query: previousQuery});
+
+        // Then the old query cannot overwrite the next account's preferences or claim its first request
+        expect(mockSearch).not.toHaveBeenCalled();
+        expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+        expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
+
+        // When the new account's query arrives, it must still wait for app loading to finish
+        rerender({query: nextQuery});
+        expect(mockSearch).not.toHaveBeenCalled();
+        expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+        mockIsLoadingApp = false;
+        rerender({query: nextQuery});
+
+        // Then changing only the loading flag starts the new query and records its request
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: nextQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        expect(mockedSaveLastSearchParams).toHaveBeenCalledTimes(1);
+        expect(mockMarkPageRequestedSearch).toHaveBeenCalledWith(nextQuery?.hash, false);
+    });
+
+    it.each([false, true])('preserves the first preloaded-tab request while app loading blocks it (live data: %s)', (shouldUseLiveData) => {
+        // Given a preloaded tab with cached data that needs a refresh when first opened
+        mockIsInPreloadedTab = true;
+        mockShouldUseLiveData = shouldUseLiveData;
+        mockSearchResults = buildLoadedSnapshot(queryJSON?.hash ?? 0);
+        const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+
+        // When the tab opens during app loading
+        mockIsLoadingApp = true;
+        mockIsInPreloadedTab = false;
+        rerender({});
+
+        // Then neither a request nor its tracking is consumed
+        expect(mockSearch).not.toHaveBeenCalled();
+        expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
+        expect(mockedSaveLastSearchParams).not.toHaveBeenCalled();
+
+        // When app loading finishes without any other dependency changing
+        mockIsLoadingApp = false;
+        rerender({});
+        rerender({});
+
+        // Then the first-open refresh still runs exactly once, including the live-data branch
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON, offset: 0}));
+    });
+
+    it('defers inherited-error recovery without recording the hash while the app loads', () => {
+        // Given a retained snapshot whose error belongs to an earlier visit
+        mockIsLoadingApp = true;
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
+        const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+
+        // Then loading cannot clear the error or start a search
+        expect(getClearedHashes()).toEqual([]);
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // When the app finishes loading
+        mockIsLoadingApp = false;
+        rerender({});
+
+        // Then recovery still runs because the blocked effect did not mark the hash requested
+        expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
     it('claims the first page only when the page is the one requesting it', () => {

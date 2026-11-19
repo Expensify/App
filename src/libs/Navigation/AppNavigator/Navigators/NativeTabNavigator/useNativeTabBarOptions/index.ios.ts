@@ -3,7 +3,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
+import {getNativeTabGlyphName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
+import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 
@@ -81,10 +82,10 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabName): NativeBottomTabNavigationOptions => ({
+    const getTabOptions = (name: NativeTabRouteName): NativeBottomTabNavigationOptions => ({
         ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
         tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
-            name,
+            name: getNativeTabGlyphName(name),
             color: isSelected ? theme.iconMenu : theme.icon,
             dotColor: dotColors[name],
             // A column is too narrow for the labels, so it shows the icons alone.
