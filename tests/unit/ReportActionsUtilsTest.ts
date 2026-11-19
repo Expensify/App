@@ -1574,6 +1574,24 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('links several Digits card transactions to their Digits ledger', () => {
+            // Given a Digits export that created a ledger transaction for each of two company card expenses
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.DIGITS, [
+                'https://my.digits.com/@acme/transactions/ledger/txn-1',
+                'https://my.digits.com/@acme/transactions/ledger/txn-2',
+            ]);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the company card link opens the company's Digits ledger instead of falling back to QuickBooks Online
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.DIGITS}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://my.digits.com/@acme/transactions/ledger'},
+            ]);
+        });
+
         it('does not link Business Central export record IDs', () => {
             // Given an export with one out-of-pocket record and multiple company card records stored as IDs
             const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);
@@ -3568,6 +3586,132 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
+            const reportID = `newDotReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
+            const reportID = `newDotMarkedReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
+            expect(actual).toBe(isVisible);
+        });
+
+        it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            const reportID = 'paidInvoiceWithPaySibling';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUReportID: reportID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When the action's visibility is checked for the invoice
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true, undefined, reportID);
+
+            // Then it stays hidden, because the IOU PAY action already shows the payment
+            expect(actual).toBe(false);
+        });
+
+        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
+            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
+            const reportID = 'invoiceFromActionReportID';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
+            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked without a reportID
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
+
+            // Then it shows, because the action's own reportID tells that it belongs to an invoice
+            expect(actual).toBe(true);
+        });
+
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
             // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
             const reportID = 'reportWithPaySibling';
@@ -3808,7 +3952,7 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', () => {
-            // Given a workspace chat on a policy where the current user has the approve-only role
+            // Given a policy chat where the current user has the approve-only role
             const reportID = '9001';
             const policyID = 'policy_approve_only';
             const policy: Policy = {
@@ -3830,14 +3974,25 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
 
             // Then it is hidden because approve-only members cannot create policy rooms
             expect(actual).toBe(false);
         });
 
         it('should return true for an actionable report mention whisper when the user can create rooms on the policy', () => {
-            // Given a workspace chat on a policy where the current user has the member role
+            // Given a policy chat where the current user has the member role
             const reportID = '9002';
             const policyID = 'policy_member';
             const policy: Policy = {
@@ -3859,7 +4014,18 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
 
             // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);

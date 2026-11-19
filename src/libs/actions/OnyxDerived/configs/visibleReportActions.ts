@@ -3,6 +3,7 @@ import {
     isActionableWhisperRequiringWritePermission,
     isActionOfType,
     isConciergeCategoryOptions,
+    isPaymentActionHiddenOutsideInvoices,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {isSupportTicket} from '@libs/ReportUtils';
@@ -18,13 +19,20 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns true if the action's visibility depends on runtime context that can't be cached,
- * such as write permissions, policy settings, or sibling actions.
+ * such as write permissions, policy settings, the type of its report, or sibling actions.
  */
 function shouldSkipCachingAction(action: ReportAction): boolean {
     if (isActionableReportMentionWhisper(action)) {
         return false;
     }
-    return isActionableWhisperRequiringWritePermission(action) || isConciergeCategoryOptions(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+    // A payment action hidden outside invoices depends on its report's type. The cache doesn't pass a reportID, so it
+    // can't tell that the report is an invoice and would hide the action there.
+    return (
+        isActionableWhisperRequiringWritePermission(action) ||
+        isConciergeCategoryOptions(action) ||
+        isPaymentActionHiddenOutsideInvoices(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)
+    );
 }
 
 /**
@@ -56,7 +64,18 @@ function computeReportVisibility(
         }
         if (isActionableReportMentionWhisper(action)) {
             // Write permission is still checked at runtime in isReportActionVisible, so pass true here to run the remaining visibility checks (deleted, resolved, targeted, room-creation permission) against the snapshot.
-            reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, policy, currentUserEmail);
+            reportVisibility[action.reportActionID] = shouldReportActionBeVisible(
+                action,
+                actionID,
+                true,
+                currentUserAccountID,
+                undefined,
+                false,
+                undefined,
+                undefined,
+                policy,
+                currentUserEmail,
+            );
             continue;
         }
         // A replacement ticket has its own active survey, so the original ticket's survey is stale.
@@ -72,7 +91,7 @@ function computeReportVisibility(
 
 /**
  * Updates cached visibility only for `ACTIONABLE_REPORT_MENTION_WHISPER` entries on a report when
- * only its workspace changed, avoiding a full recompute of every action on the workspace.
+ * only its policy changed, avoiding a full recompute of every action on the policy.
  */
 function updateReportMentionWhispersVisibility(
     policy: OnyxEntry<Policy>,
@@ -87,7 +106,7 @@ function updateReportMentionWhispersVisibility(
         if (!action || actionID !== action.reportActionID || !isActionableReportMentionWhisper(action)) {
             continue;
         }
-        const isVisible = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, policy, currentUserEmail);
+        const isVisible = shouldReportActionBeVisible(action, actionID, true, currentUserAccountID, undefined, false, undefined, undefined, policy, currentUserEmail);
         if (nextReportVisibility?.[action.reportActionID] === isVisible) {
             continue;
         }
@@ -106,7 +125,7 @@ export default createOnyxDerivedValueConfig({
     // (for UNREPORTED_TRANSACTION/MOVED_TRANSACTION visibility) AND to provide the current
     // report collection to the visibility check, avoiding stale data from global connections.
     // SESSION dependency is needed for whisper targeting when user changes.
-    // POLICY dependency is needed so room-creation whispers recompute when a workspace member's role changes.
+    // POLICY dependency is needed so room-creation whispers recompute when a policy member's role changes.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.POLICY],
     compute: ([allReportActions, session, allReports, allReportNameValuePairs, allPolicies], {sourceValues, currentValue, triggeredKeys}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {

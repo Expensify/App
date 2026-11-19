@@ -101,8 +101,8 @@ const businessPage: DynamicFormPage = {
 };
 
 /** The US business onboarding form. Each page's key names the onboarding step its answers belong to. */
-const US: DynamicFormSchema = {
+const US = {
     pages: [representativePage, businessPage],
-};
+} satisfies DynamicFormSchema;
 
 export default US;

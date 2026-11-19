@@ -15,7 +15,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
@@ -349,6 +348,9 @@ export default function TableRow({
         wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
     };
 
+    // Only an interactive row handles presses, and its props require a label.
+    const pressProps = interactive ? {sentryLabel, onPress: handleRowPress, onLongPress: handleRowLongPress} : {};
+
     return (
         <OfflineWithFeedback
             {...offlineWithFeedback}
@@ -393,11 +395,7 @@ export default function TableRow({
                     const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
                     markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
                 }}
-                // Interactive rows always have a label, but TypeScript can't tell once it is taken out of the props, and the
-                // pressable requires one with the handlers. Non-interactive rows have none, and their handlers do nothing.
-                sentryLabel={castToSentryLabel(sentryLabel)}
-                onPress={(event) => handleRowPress(event)}
-                onLongPress={handleRowLongPress}
+                {...pressProps}
                 onPressIn={(event) => {
                     captureEditingOnPressIn();
                     onPressIn?.(event);
