@@ -353,6 +353,18 @@ type SearchWorkflowStageGroup = SearchGroupBase & {
     averageDuration: number | null;
 };
 
+/** Model of a grouped search result counting reports by who finished a workflow stage. Only Insights returns it. */
+type SearchHandledByGroup = SearchGroupBase & {
+    /** Whether people, an AI agent or rules finished the stage */
+    handledBy: ValueOf<typeof CONST.INSIGHTS.HANDLED_BY_SOURCE>;
+
+    /** The AI agent's account ID, set only when `handledBy` is `agent` */
+    accountID?: number;
+
+    /** Average time the group's reports spent in the stage, in seconds, null when no report finished it */
+    averageDuration: number | null;
+};
+
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
@@ -392,6 +404,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
         | SearchApproverGroup
         | SearchViolationGroup
         | SearchWorkflowStageGroup
+        | SearchHandledByGroup
     >;
 
 /** Model of search results */
@@ -434,4 +447,5 @@ export type {
     SearchApproverGroup,
     SearchViolationGroup,
     SearchWorkflowStageGroup,
+    SearchHandledByGroup,
 };

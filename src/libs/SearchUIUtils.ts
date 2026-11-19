@@ -30,6 +30,7 @@ import type {
     TransactionPaidByGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionWorkflowStageGroupListItemType,
+    TransactionHandledByGroupListItemType,
     TransactionYearGroupListItemType,
     TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
@@ -322,6 +323,7 @@ type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGrou
 type TransactionViolationGroupSorting = ColumnSortMapping<TransactionViolationGroupListItemType>;
 type TransactionPaidByGroupSorting = ColumnSortMapping<TransactionPaidByGroupListItemType>;
 type TransactionWorkflowStageGroupSorting = ColumnSortMapping<TransactionWorkflowStageGroupListItemType>;
+type TransactionHandledByGroupSorting = ColumnSortMapping<TransactionHandledByGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -524,6 +526,11 @@ const transactionPaidByGroupColumnNamesToSortingProperty: TransactionPaidByGroup
 const transactionViolationGroupColumnNamesToSortingProperty: TransactionViolationGroupSorting = transactionGroupBaseSortingProperties;
 
 const transactionWorkflowStageGroupColumnNamesToSortingProperty: TransactionWorkflowStageGroupSorting = {
+    [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionHandledByGroupColumnNamesToSortingProperty: TransactionHandledByGroupSorting = {
     [CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME]: 'averageDuration' as const,
     ...transactionGroupBaseSortingProperties,
 };
@@ -3702,6 +3709,43 @@ function getWorkflowStageSections(data: OnyxTypes.SearchResults['data'], transla
     return [workflowStageSections, workflowStageSections.length, hasDeletedTransactionInData(data)];
 }
 
+/** Builds Insights sections grouped by who finished a workflow stage; call only via `getSections()`. */
+function getHandledBySections(
+    data: OnyxTypes.SearchResults['data'],
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
+): [TransactionHandledByGroupListItemType[], number, boolean] {
+    const handledBySections: TransactionHandledByGroupListItemType[] = [];
+
+    for (const key in data) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+        const handledByGroup = data[key];
+        if (!('handledBy' in handledByGroup)) {
+            continue;
+        }
+        let formattedHandledBy = translate(`insightsPage.handledBy.source.${handledByGroup.handledBy}`);
+        let avatar: OnyxTypes.PersonalDetails['avatar'];
+        if (handledByGroup.handledBy === CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT && handledByGroup.accountID) {
+            const personalDetails = data.personalDetailsList?.[handledByGroup.accountID] ?? onyxPersonalDetailsList?.[handledByGroup.accountID] ?? emptyPersonalDetails;
+            formattedHandledBy = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
+            avatar = personalDetails.avatar;
+        }
+        handledBySections.push({
+            groupedBy: CONST.SEARCH.GROUP_BY.HANDLED_BY,
+            transactions: [],
+            ...handledByGroup,
+            formattedHandledBy,
+            avatar,
+            keyForList: key,
+        });
+    }
+
+    return [handledBySections, handledBySections.length, hasDeletedTransactionInData(data)];
+}
+
 function formattedCardNameWithDotAndLastFour(formattedCardName: string, lastFour: string): string {
     return `${formattedCardName} ${CONST.DOT_SEPARATOR} ${lastFour}`;
 }
@@ -4291,6 +4335,8 @@ function getSections({
                 return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.PAID_BY);
             case CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE:
                 return getWorkflowStageSections(data, translate);
+            case CONST.SEARCH.GROUP_BY.HANDLED_BY:
+                return getHandledBySections(data, translate, formatPhoneNumber, onyxPersonalDetailsList);
         }
     }
 
@@ -4362,6 +4408,9 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     ),
     [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: createGroupSortFunction<TransactionWorkflowStageGroupListItemType>(transactionWorkflowStageGroupColumnNamesToSortingProperty, (a, b, lc) =>
         lc(a.formattedWorkflowStage, b.formattedWorkflowStage),
+    ),
+    [CONST.SEARCH.GROUP_BY.HANDLED_BY]: createGroupSortFunction<TransactionHandledByGroupListItemType>(transactionHandledByGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedHandledBy, b.formattedHandledBy),
     ),
 };
 
@@ -7631,6 +7680,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.PAID_BY,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WORKFLOW_STAGE,
+            [CONST.SEARCH.GROUP_BY.HANDLED_BY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.HANDLED_BY,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -7649,6 +7699,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.VIOLATION]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.VIOLATION,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.PAID_BY,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WORKFLOW_STAGE,
+            [CONST.SEARCH.GROUP_BY.HANDLED_BY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.HANDLED_BY,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];

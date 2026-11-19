@@ -509,6 +509,7 @@ function TransactionGroupListItemImpl({
             [CONST.SEARCH.GROUP_BY.VIOLATION]: null,
             [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: null,
+            [CONST.SEARCH.GROUP_BY.HANDLED_BY]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

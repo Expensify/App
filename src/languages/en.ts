@@ -1406,6 +1406,37 @@ const translations = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
         },
+        handledBy: {
+            title: 'Handled by',
+            stageLabel: 'Stage',
+            stage: {
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Approve',
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: 'Submit',
+            },
+            // @context Column header naming who or what finished a workflow stage: people, an AI agent or rules.
+            sourceColumn: 'Source',
+            averageTimeColumn: 'Average time',
+            source: {
+                [CONST.INSIGHTS.HANDLED_BY_SOURCE.PEOPLE]: 'People',
+                [CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT]: 'AI agent',
+                [CONST.INSIGHTS.HANDLED_BY_SOURCE.RULES]: 'Rules',
+            },
+            ruleSetting: {
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Auto-approve compliant reports',
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: 'Submissions',
+            },
+            agentSetup: {
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Approve reports in minutes, not days',
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: "Submit reports as soon as they're ready",
+            },
+            setUp: 'Set up',
+            turnOn: 'Turn on',
+            lessThanHours: (formattedHours: string) => `<${formattedHours} hours`,
+            hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
+                one: (count: number) => `${formattedCount ?? count} hour`,
+                other: (count: number) => `${formattedCount ?? count} hours`,
+            }),
+        },
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -11582,6 +11613,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violation',
                 [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Paid by',
                 [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stage',
+                [CONST.SEARCH.GROUP_BY.HANDLED_BY]: 'Handled by',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11650,6 +11682,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.VIOLATION]: 'Violations',
             [CONST.SEARCH.GROUP_BY.PAID_BY]: 'Payers',
             [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: 'Workflow stages',
+            [CONST.SEARCH.GROUP_BY.HANDLED_BY]: 'Handled by',
         },
         workflowStages: {
             [CONST.SEARCH.WORKFLOW_STAGES.CREATED_SUBMITTED]: 'Submitted',

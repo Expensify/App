@@ -1,4 +1,5 @@
 import formatChartCount from '@components/Charts/utils/formatChartCount';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
@@ -39,6 +40,16 @@ const RANKING_TABLE_COLUMN = {
     CHANGE: 5,
 } as const;
 
+/** Writes a share to one decimal place, e.g. "40.8%", and a tiny one as "<0.1%" so it never reads as zero */
+function formatRankingTableShare(share: number, numberFormat: LocaleContextProps['numberFormat']): string {
+    const percentOptions = {
+        style: 'percent',
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    } as const;
+    return share > 0 && share < MIN_WRITTEN_SHARE ? `<${numberFormat(MIN_WRITTEN_SHARE / 100, percentOptions)}` : numberFormat(share / 100, percentOptions);
+}
+
 type InsightsRankingTableRowProps = {
     row: RankingTableRow;
     groupBy: SearchGroupBy;
@@ -62,12 +73,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
     const label = getLabel(item);
     const formattedCount = formatChartCount(item.count, countDimension, translate, numberFormat);
     const formattedAmount = convertToDisplayString(item.total, item.currency);
-    const percentOptions = {
-        style: 'percent',
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-    } as const;
-    const formattedShare = share > 0 && share < MIN_WRITTEN_SHARE ? `<${numberFormat(MIN_WRITTEN_SHARE / 100, percentOptions)}` : numberFormat(share / 100, percentOptions);
+    const formattedShare = formatRankingTableShare(share, numberFormat);
     const changeLabel = change ? formatRankingTableChange(change, translate, numberFormat).accessibilityLabel : undefined;
     const accessibilityLabel = [label, formattedCount, formattedShare, formattedAmount, changeLabel].filter(Boolean).join(', ');
     const cellStyle = [styles.tableRowVerticalPadding, styles.justifyContentCenter];
@@ -174,4 +180,4 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
 }
 
 export default InsightsRankingTableRow;
-export {RANKING_TABLE_COLUMN};
+export {formatRankingTableShare, RANKING_TABLE_COLUMN};

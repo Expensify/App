@@ -10,10 +10,10 @@ import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@sr
 
 import {addDays, format, parseISO} from 'date-fns';
 
-import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsDateFilterKey, InsightsHandledByStages, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import INSIGHTS_DASHBOARD_SPECS, {applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {applyHandledByStage, applyViolationStage, getViolationStage, VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import getInsightsDateRange from './getInsightsDateRange';
 import getInsightsLastDay from './getInsightsLastDay';
 import {getQueryGroupBy} from './insightsGroupByUtils';
@@ -194,7 +194,7 @@ type InsightsQuery = {
     /** Request payload for GetInsights. */
     jsonQuery: string;
 
-    /** Hash of the dashboard-wide query and the picked violation stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
+    /** Hash of the dashboard-wide query and the picked violation and Handled by stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
     hash: number;
 
     /** Hashes of the snapshots the graphs are stored under. */
@@ -204,12 +204,16 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the headline and supporting charts, applying each chart's picked violation stage, naming each graph's snapshots by its chart's query hashes and returns those chart queries to read the snapshots back with. */
+/**
+ * Builds one request for the headline and supporting charts, applying each chart's picked violation stage and Handled by stage, naming each graph's snapshots by its chart's query hashes and returns those chart queries to read the snapshots back with.
+ * `handledByStages` holds the stage each Handled by chart counts, already resolved against the stages the workspaces in scope offer.
+ */
 function buildInsightsJsonQuery(
     dashboard: InsightsDashboardID,
     filters: InsightsFilters,
     supportingChartSpecs: InsightsChartSpec[],
     violationStages: InsightsViolationStages = {},
+    handledByStages: InsightsHandledByStages = {},
 ): InsightsQuery | undefined {
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
@@ -221,7 +225,7 @@ function buildInsightsJsonQuery(
 
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const buildChartQuery = (declaredChart: InsightsChartSpec): InsightsChartQuery => {
-        const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
+        const chart = applyHandledByStage(applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]), handledByStages[declaredChart.graphKey]);
         return {
             chart,
             queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
@@ -239,8 +243,22 @@ function buildInsightsJsonQuery(
         }),
     );
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
+    // Like violation stages, the Handled by stage is sent for every chart of the dashboard that offers it
+    const requestedHandledByStages: InsightsHandledByStages = Object.fromEntries(
+        spec.supportingCharts.flatMap((chart) => {
+            const stage = chart.hasHandledByStageControl ? handledByStages[chart.graphKey] : undefined;
+            return stage ? [[chart.graphKey, stage]] : [];
+        }),
+    );
+    const hasHandledByStages = Object.keys(requestedHandledByStages).length > 0;
     // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry
-    const hash = hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
+    let hash = queryJSON.hash;
+    if (hasHandledByStages) {
+        hash = hashText(JSON.stringify([queryJSON.hash, requestedViolationStages, requestedHandledByStages]), INSIGHTS_HASH_RANGE);
+    } else if (hasViolationStages) {
+        // Kept in its earlier shape, so the dashboard entries already stored for violation stages stay valid
+        hash = hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE);
+    }
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -258,6 +276,7 @@ function buildInsightsJsonQuery(
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
+            ...(hasHandledByStages && {handledByStages: requestedHandledByStages}),
         }),
         hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),

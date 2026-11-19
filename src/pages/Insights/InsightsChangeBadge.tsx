@@ -14,11 +14,14 @@ type InsightsChangeBadgeProps = {
 
     isIncrease: boolean;
 
+    /** Draws the badge gray in both directions, for changes that are neither good nor bad on their own */
+    isNeutral?: boolean;
+
     style?: StyleProp<ViewStyle>;
 };
 
 /** Badge showing how a value changed, with an arrow when it went up or down */
-function InsightsChangeBadge({text, isIncrease, style}: InsightsChangeBadgeProps) {
+function InsightsChangeBadge({text, isIncrease, isNeutral = false, style}: InsightsChangeBadgeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
@@ -32,8 +35,8 @@ function InsightsChangeBadge({text, isIncrease, style}: InsightsChangeBadgeProps
             <Badge
                 text={text}
                 icon={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                error={isIncrease}
-                success={!isIncrease}
+                error={!isNeutral && isIncrease}
+                success={!isNeutral && !isIncrease}
                 badgeStyles={styles.ml0}
             />
         </View>

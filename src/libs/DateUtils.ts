@@ -1105,6 +1105,24 @@ function formatAverageDuration(
     return translateParam('common.dayCount', {count: days, formattedCount: formattedDays});
 }
 
+/** Below this many hours, a handling time reads as "<0.1 hours" rather than rounding to zero */
+const MIN_WRITTEN_HANDLING_HOURS = 0.1;
+
+/**
+ * Writes how long a workflow stage took in the viewer's locale: "<0.1 hours" when shorter than that, hours under a day, e.g. "2.4 hours", and days otherwise, e.g. "4.2 days".
+ */
+function formatHandlingTime(durationInSeconds: number, translateParam: LocaleContextProps['translate'], numberFormat: LocaleContextProps['numberFormat']): string {
+    if (durationInSeconds >= CONST.DATE.SECONDS_PER_DAY) {
+        return formatAverageDuration(durationInSeconds, translateParam, numberFormat);
+    }
+    const exactHours = durationInSeconds / CONST.DATE.SECONDS_PER_HOUR;
+    if (exactHours < MIN_WRITTEN_HANDLING_HOURS) {
+        return translateParam('insightsPage.handledBy.lessThanHours', numberFormat(MIN_WRITTEN_HANDLING_HOURS, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS}));
+    }
+    const hours = Number(exactHours.toFixed(MAX_AVERAGE_DURATION_FRACTION_DIGITS));
+    return translateParam('insightsPage.handledBy.hourCount', {count: hours, formattedCount: numberFormat(hours, {maximumFractionDigits: MAX_AVERAGE_DURATION_FRACTION_DIGITS})});
+}
+
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
 
 /**
@@ -1615,6 +1633,7 @@ const DateUtils = {
     getFormattedDurationBetweenDates,
     getFormattedDuration,
     formatAverageDuration,
+    formatHandlingTime,
     formatCountdownTimer,
     isFutureDay,
     isTransactionDateFuture,

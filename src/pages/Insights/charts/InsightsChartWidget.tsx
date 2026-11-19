@@ -30,7 +30,7 @@ import {buildSearchQueryJSON, getDateFilterRange} from '@libs/SearchQueryUtils';
 import InsightsExplainButton from '@pages/Insights/ai/InsightsExplainButton';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
-import type {InsightsChartSpec, InsightsChartStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
+import type {InsightsChartSpec, InsightsChartStage, InsightsHandledByStage, InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import {isStackedChart} from '@pages/Insights/dashboardSpecs';
 import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
@@ -56,6 +56,7 @@ import type {InsightsChartMenuAction} from './InsightsChartMenu';
 
 import InsightsChartMenu from './InsightsChartMenu';
 import InsightsDataTable from './InsightsDataTable';
+import InsightsHandledByTable from './InsightsHandledByTable';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
@@ -111,6 +112,9 @@ type InsightsChartWidgetProps = {
     /** Shows the violation stage control in the header of a chart that offers one */
     onViolationStageChange?: (stage: InsightsViolationStage) => void;
 
+    /** Stage a Handled by chart counts, left out by other charts */
+    handledByStage?: InsightsHandledByStage;
+
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
@@ -143,6 +147,7 @@ function InsightsChartWidget({
     onGroupByChange,
     violationStage,
     onViolationStageChange,
+    handledByStage,
     asOfDate,
     children,
 }: InsightsChartWidgetProps) {
@@ -270,7 +275,10 @@ function InsightsChartWidget({
         });
     }
 
-    const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
+    // Handled by has no menu, since its rows can't be listed on Spend
+    const canUseMenuActions = !handledByStage && !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
+    // The Handled by table decides its own empty state, since an empty stage can still list setup rows
+    const shouldShowHandledByTable = !!handledByStage && (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY);
     const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
     let headerMenu: React.ReactNode = null;
     // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
@@ -329,8 +337,21 @@ function InsightsChartWidget({
             >
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-                {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
-                {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&
+                {state === INSIGHTS_CHART_STATE.EMPTY && !shouldShowHandledByTable && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+                {shouldShowHandledByTable && (
+                    <InsightsHandledByTable
+                        title={translate(chart.titleKey)}
+                        data={data}
+                        comparison={comparison}
+                        isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
+                        stage={handledByStage}
+                        policyIDs={filters.policyIDs}
+                        emptyStateTestID={`insightsChartEmptyState-${chart.graphKey}`}
+                        isLoading={isLoading}
+                    />
+                )}
+                {!handledByStage &&
+                    (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&
                     (view === CONST.SEARCH.VIEW.TABLE ? (
                         <InsightsRankingTable
                             title={translate(chart.titleKey)}

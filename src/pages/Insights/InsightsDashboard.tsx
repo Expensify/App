@@ -42,7 +42,7 @@ import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-import type {InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
+import type {InsightsHandledByStage, InsightsHandledByStages, InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
@@ -52,11 +52,15 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
+import InsightsHandledByStageControl from './controls/InsightsHandledByStageControl';
 import InsightsPageControls from './controls/InsightsPageControls';
 import InsightsTagLevelControl from './controls/InsightsTagLevelControl';
 import INSIGHTS_DASHBOARD_SPECS, {
+    applyHandledByStage,
     applyViolationStage,
     getEnabledStages,
+    getHandledByStage,
+    getHandledByStageOptions,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,
     getViolationStage,
@@ -113,6 +117,15 @@ type InsightsDashboardContentProps = {
     /** Stores the stage picked on the given chart, which only charts with a violation stage control call */
     onViolationStageChange: (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => void;
 
+    /** Stage each Handled by chart counts, resolved against the stages the workspaces in scope offer */
+    handledByStages: InsightsHandledByStages;
+
+    /** Handled by stages the workspaces in scope offer */
+    handledByStageOptions: InsightsHandledByStage[];
+
+    /** Stores the Handled by stage picked on the given chart */
+    onHandledByStageChange: (graphKey: InsightsGraphKey, stage: InsightsHandledByStage) => void;
+
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
 
@@ -155,6 +168,9 @@ function InsightsDashboardContent({
     onGroupByChange,
     violationStages,
     onViolationStageChange,
+    handledByStages,
+    handledByStageOptions,
+    onHandledByStageChange,
     tagLevelOptions,
     captureRef,
     children,
@@ -294,6 +310,7 @@ function InsightsDashboardContent({
             onGroupByChange={isHeadline ? onGroupByChange : undefined}
             violationStage={getViolationStage(chart, violationStages)}
             onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
+            handledByStage={handledByStages[chart.graphKey]}
             asOfDate={asOfDate}
         >
             {chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && tagLevelOptions.length > 1 && (
@@ -302,6 +319,15 @@ function InsightsDashboardContent({
                         tagLevel={filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL}
                         options={tagLevelOptions}
                         onChange={onGroupByChange}
+                    />
+                </InsightsChartWidget.Controls>
+            )}
+            {!!chart.hasHandledByStageControl && !!handledByStages[chart.graphKey] && handledByStageOptions.length > 1 && (
+                <InsightsChartWidget.Controls>
+                    <InsightsHandledByStageControl
+                        stage={handledByStages[chart.graphKey] ?? CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE}
+                        options={handledByStageOptions}
+                        onChange={(stage) => onHandledByStageChange(chart.graphKey, stage)}
                     />
                 </InsightsChartWidget.Controls>
             )}
@@ -401,13 +427,22 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     };
     // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
     const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
+    // Kept on screen only, like the violation stages. The pick is resolved against the stages the workspaces in scope offer before it reaches the query.
+    const [pickedHandledByStages, setPickedHandledByStages] = useState<InsightsHandledByStages>({});
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
+    const handledByStageOptions = getHandledByStageOptions(policiesInScope);
+    const handledByStages: InsightsHandledByStages = Object.fromEntries(
+        supportingSpecs.flatMap((chart) => {
+            const stage = getHandledByStage(chart, pickedHandledByStages, handledByStageOptions);
+            return stage ? [[chart.graphKey, stage]] : [];
+        }),
+    );
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
-    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages, handledByStages) : undefined;
     const hash = query?.hash;
     const snapshotHashes = query?.snapshotHashes.join(',');
     const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
@@ -415,6 +450,12 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             return;
         }
         setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+    };
+    const updateHandledByStage = (graphKey: InsightsGraphKey, stage: InsightsHandledByStage) => {
+        if (isExporting) {
+            return;
+        }
+        setPickedHandledByStages((currentStages) => ({...currentStages, [graphKey]: stage}));
     };
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -448,7 +489,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
-        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart: applyViolationStage(chart, violationStages[chart.graphKey]), queryJSON: undefined}));
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({
+              chart: applyHandledByStage(applyViolationStage(chart, violationStages[chart.graphKey]), handledByStages[chart.graphKey]),
+              queryJSON: undefined,
+          }));
     const snapshots = useMultipleSnapshots(
         visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
@@ -568,6 +612,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             onGroupByChange={updateFilters}
                             violationStages={violationStages}
                             onViolationStageChange={updateViolationStage}
+                            handledByStages={handledByStages}
+                            handledByStageOptions={handledByStageOptions}
+                            onHandledByStageChange={updateHandledByStage}
                             tagLevelOptions={tagLevelOptions}
                             captureRef={contentRef}
                         >

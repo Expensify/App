@@ -44,6 +44,7 @@
     violation: null,
     "paid-by": null,
     "workflow-stage": null,
+    "handled-by": null,
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
