@@ -19,6 +19,7 @@ import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
@@ -1570,6 +1571,24 @@ describe('ReportActionsUtils', () => {
                 {text: `exported to ${CONST.EXPORT_LABELS.QBO}`, url: ''},
                 {text: 'and successfully created a record for', url: ''},
                 {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
+            ]);
+        });
+
+        it('links several Digits card transactions to their Digits ledger', () => {
+            // Given a Digits export that created a ledger transaction for each of two company card expenses
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.DIGITS, [
+                'https://my.digits.com/@acme/transactions/ledger/txn-1',
+                'https://my.digits.com/@acme/transactions/ledger/txn-2',
+            ]);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the company card link opens the company's Digits ledger instead of falling back to QuickBooks Online
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.DIGITS}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://my.digits.com/@acme/transactions/ledger'},
             ]);
         });
 
@@ -3565,6 +3584,132 @@ describe('ReportActionsUtils', () => {
             // Then the action should NOT be visible (IOU PAY action is shown instead)
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
+            const reportID = `newDotReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
+            const reportID = `newDotMarkedReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
+            expect(actual).toBe(isVisible);
+        });
+
+        it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            const reportID = 'paidInvoiceWithPaySibling';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUReportID: reportID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When the action's visibility is checked for the invoice
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true, undefined, reportID);
+
+            // Then it stays hidden, because the IOU PAY action already shows the payment
+            expect(actual).toBe(false);
+        });
+
+        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
+            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
+            const reportID = 'invoiceFromActionReportID';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
+            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked without a reportID
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
+
+            // Then it shows, because the action's own reportID tells that it belongs to an invoice
+            expect(actual).toBe(true);
         });
 
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
@@ -8595,6 +8740,66 @@ describe('ReportActionsUtils', () => {
             isReversed: false,
         };
 
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}, expected: null},
+            {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+                expected: 'system-action',
+            },
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [currentUserAccountID]}, expected: 'system-action'},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}, expected: null},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {}, expected: 'system-action'},
+        ])('limits automatic markers for $actionName with $originalMessage', ({actionName, originalMessage, expected}) => {
+            // Given an unread system action, including legacy reimbursements without recipient metadata
+            const action = makeAction({reportActionID: 'system-action', actionName, originalMessage});
+
+            // When scanning online or offline in either list direction
+            for (const isOffline of [false, true]) {
+                for (const isReversed of [false, true]) {
+                    // Then only NetSuite exports and reimbursements targeted to someone else are suppressed
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], isOffline, isReversed})).toEqual([expected, expected ? 0 : -1]);
+                }
+            }
+        });
+
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}},
+        ])('skips informational $actionName without hiding a real unread message', ({actionName, originalMessage}) => {
+            // Given a real unread comment next to a filtered informational action
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const informational = makeAction({reportActionID: 'informational', actionName, originalMessage});
+            const read = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+
+            // When the informational action falls before or after the comment in either list direction
+            for (const informationalIsNewer of [false, true]) {
+                const filtered = {...informational, created: informationalIsNewer ? '2023-01-01 13:00:00.000' : informational.created};
+                const newestFirst = informationalIsNewer ? [filtered, comment, read] : [comment, filtered, read];
+                for (const isReversed of [false, true]) {
+                    const actions = isReversed ? [...newestFirst].reverse() : newestFirst;
+                    // Then the real comment keeps the divider at its original list index
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['comment', actions.indexOf(comment)]);
+                }
+            }
+        });
+
+        it('preserves the existing explicit message-level unread override for a NetSuite export', () => {
+            // Given a NetSuite export explicitly marked unread by the user
+            const action = makeAction({
+                reportActionID: 'manual-export',
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+
+            // When scanning with the manual anchor main already stores
+            // Then automatic filtering must not change that explicit message-level command
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], manuallyMarkedUnreadReportActionID: action.reportActionID})).toEqual([
+                action.reportActionID,
+                0,
+            ]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(
@@ -8700,6 +8905,65 @@ describe('ReportActionsUtils', () => {
                     prevSortedVisibleReportActionsObjects: {},
                 }),
             ).toEqual([null, -1]);
+        });
+    });
+
+    describe('getCompanyCardConsentExpiringMessage', () => {
+        const amexFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001` as CompanyCardFeedWithNumber;
+        const buildConsentExpiringAction = (originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING>['originalMessage']) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                reportActionID: 'consent-expiring-1',
+                actorAccountID: 1,
+                created: '2026-11-04',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('shows the bank name when the feed has no custom name', () => {
+            // Given a warning for a feed without a custom name, so Auth sends the internal feed name as the feed name
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: amexFeed, warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the feed the way the Company cards page does instead of showing the internal feed name
+            expect(result).toContain('<strong>American Express</strong>');
+            expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
+        });
+
+        it('keeps the custom feed name', () => {
+            // Given a warning for a feed the admin renamed
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the admin's custom name is shown
+            expect(result).toContain('<strong>Travel cards</strong>');
+        });
+
+        it('mentions the admin who can renew consent', () => {
+            // Given a warning addressed to the admin who can renew consent
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7, mentionedAccountIDs: [12]});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts by mentioning that admin so the room knows who should act
+            expect(result.startsWith('<mention-user accountID="12"/>, your <strong>Travel cards</strong>')).toBe(true);
+        });
+
+        it('addresses the room when no admin is mentioned', () => {
+            // Given a warning with no admin to mention
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts without a mention
+            expect(result.startsWith('Your <strong>Travel cards</strong>')).toBe(true);
+            expect(result).not.toContain('<mention-user');
         });
     });
 

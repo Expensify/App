@@ -2194,6 +2194,26 @@ describe('ReportActionItem', () => {
             expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONSENT_EXPIRING action', async () => {
+            // Given an upcoming consent-expiry warning for an Amex company card feed
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING, {
+                policyID: 'pol123',
+                bank: 'oauth.americanexpressfdx.com 1001',
+                feedName: 'American Express Business',
+                consentGrantedAt: 1790000000,
+                consentExpiresAt: 1797776000,
+                warningDaysBeforeExpiry: 14,
+            });
+
+            // When the warning is displayed in the admins room
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it explains the upcoming expiry and offers the workspace connection link
+            expect(screen.getByText(/American Express Business card connection will need renewed consent in two weeks/)).toBeOnTheScreen();
+            expect(screen.getByText(/Reconnect the card connection before consent expires/)).toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',

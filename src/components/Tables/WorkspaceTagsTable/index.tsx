@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
@@ -11,7 +12,9 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import variables from '@styles/variables';
 
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -60,6 +63,9 @@ type WorkspaceTagsTableProps = {
     shouldShowApproverColumn: boolean;
     emptyState: TableEmptyStateProps;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected tags support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
 export default function WorkspaceTagsTable({
@@ -73,6 +79,7 @@ export default function WorkspaceTagsTable({
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
     headerComponent,
+    bulkActionOptions,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -221,6 +228,7 @@ export default function WorkspaceTagsTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

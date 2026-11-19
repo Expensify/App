@@ -39,6 +39,11 @@ function serializeLoggingData<T extends Record<string, unknown> | undefined>(log
     }
 }
 
+function omitOnyxData<TKey extends OnyxKey>(response: Response<TKey>) {
+    const {onyxData, paginationOnyxData, ...rest} = response;
+    return rest;
+}
+
 function logRequestDetails<TKey extends OnyxKey>(message: string, request: Request<TKey>, response?: Response<TKey> | void) {
     // Don't log about log or else we'd cause an infinite loop.
     if (request.command === 'Log') {
@@ -75,7 +80,9 @@ function logRequestDetails<TKey extends OnyxKey>(message: string, request: Reque
             ...request,
             data: serializeLoggingData(request.data),
         });
-        extraData.response = sanitizeLogParams(response);
+        // onyxData and paginationOnyxData can hold thousands of reports and actions, and sanitizing them copies every nested object
+        // on the main thread just for a debug log entry.
+        extraData.response = sanitizeLogParams(response ? omitOnyxData(response) : response);
     }
 
     Log.info(message, false, logParams, false, extraData);

@@ -125,6 +125,17 @@ function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     trackFullstoryPageView(state);
 }
 
+let lastNewDotScreenName: string | undefined;
+
+function setNewDotScreenContext() {
+    const name = navigationRef.getCurrentRoute()?.name;
+    if (name === lastNewDotScreenName) {
+        return;
+    }
+    lastNewDotScreenName = name;
+    Sentry.setContext(CONST.TELEMETRY.CONTEXT_NEWDOT_SCREEN, {name, timestamp: Date.now() / 1000});
+}
+
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     useStartSpansOnRender([
         {
@@ -275,6 +286,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
         const currentRoute = navigationRef.getCurrentRoute();
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
+        setNewDotScreenContext();
 
         updateCurrentReportID(state);
         parseAndLogRoute(state, authenticated);
@@ -301,6 +313,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         updateCurrentReportID(navigationRef.getRootState());
         // Same for a share flow that is part of the initial state.
         parkShareFlowRemovedByOnboarding(navigationRef.getRootState());
+
+        // Records the first screen, for the same reason.
+        setNewDotScreenContext();
     };
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.

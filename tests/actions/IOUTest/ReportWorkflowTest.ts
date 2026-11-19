@@ -3857,6 +3857,33 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, true, invoiceReceiverPolicy)).toBe(false);
         });
 
+        it('does not offer Pay on an invoice that the receiver pays through its linked bill', () => {
+            // Given an invoice that the receiver's policy admin could pay
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(true);
+
+            // When Auth marks the invoice hidden for the receiver because it has a linked bill
+            const linkedInvoice = {...iouReport, isHiddenForBillReceiver: true};
+
+            // Then the invoice offers no Pay, because the receiver pays the bill as in Classic
+            expect(canIOUBePaid(linkedInvoice, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(linkedInvoice, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false, invoiceReceiverPolicy)).toBe(false);
+        });
+
         it('reads the archived state only from the isChatReportArchived parameter, not from Onyx', async () => {
             // Given an invoice whose chat report is marked archived in Onyx while the parameter says it is not archived
             const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
