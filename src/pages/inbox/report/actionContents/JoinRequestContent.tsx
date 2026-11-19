@@ -41,12 +41,16 @@ function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequest
             {isJoinRequestUnresolved && (
                 <ActionableItemButtons layout="horizontal">
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.JOIN_REQUEST_ACCEPT_BUTTON}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => acceptJoinRequest(actionOwnerReportID, action)}
                     >
                         <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.accept')}</Button.Text>
                     </Button>
-                    <Button onPress={() => declineJoinRequest(actionOwnerReportID, action)}>
+                    <Button
+                        onPress={() => declineJoinRequest(actionOwnerReportID, action)}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.JOIN_REQUEST_DECLINE_BUTTON}
+                    >
                         <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.decline')}</Button.Text>
                     </Button>
                 </ActionableItemButtons>

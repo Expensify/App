@@ -47,7 +47,7 @@ function renderPage() {
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator>
                         <Stack.Screen
-                            name={SCREENS.SETTINGS.PROFILE.ADDRESS}
+                            name={SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS}
                             component={AddressPage}
                         />
                     </Stack.Navigator>

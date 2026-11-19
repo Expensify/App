@@ -34,6 +34,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     if (!oktaScimToken || oktaScimToken.state === ScimTokenState.LOADING) {
         return (
             <ButtonDisabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.REVEAL_SCIM_TOKEN}
                 style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
@@ -50,6 +51,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
                 message={oktaScimToken.error}
                 onRetry={fetchOktaScimToken}
                 size={CONST.BUTTON_SIZE.SMALL}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.SAML.RETRY_SCIM_TOKEN}
             />
         );
     }

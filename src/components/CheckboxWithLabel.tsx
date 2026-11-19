@@ -2,6 +2,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef, ComponentType, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -96,6 +98,7 @@ function CheckboxWithLabel({
         <View style={style}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.userSelectNone]}>
                 <Checkbox
+                    sentryLabel={CONST.SENTRY_LABEL.CHECKBOX_WITH_LABEL.CHECKBOX}
                     isChecked={isActuallyChecked}
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
@@ -105,6 +108,7 @@ function CheckboxWithLabel({
                     accessibilityLabel={accessibilityLabel ?? label ?? ''}
                 />
                 <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.CHECKBOX_WITH_LABEL.CHECKBOX}
                     tabIndex={-1}
                     accessible={false}
                     onPress={toggleCheckbox}

@@ -17,12 +17,13 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -38,11 +39,12 @@ type StatusType = {
     isSelected: boolean;
 };
 
-type StatusExpiryFieldProps = Pick<MenuItemRootProps, 'onPress' | 'sentryLabel'> & {
-    name: string;
-    value: string;
-    error: string;
-};
+type StatusExpiryFieldProps = WithRequiredSentryLabel &
+    Pick<MenuItemRootProps, 'onPress'> & {
+        name: string;
+        value: string;
+        error: string;
+    };
 
 function StatusExpiryField({name, value, error, onPress, sentryLabel}: StatusExpiryFieldProps) {
     return (
@@ -162,14 +164,14 @@ function StatusClearAfterPage() {
                     name={translate('statusPage.date')}
                     value={customStatusDate}
                     error={customDateError}
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
                 />
                 <StatusExpiryField
                     name={translate('statusPage.time')}
                     value={customStatusTime}
                     error={customTimeError}
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), session)}
                     sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
                 />
             </>

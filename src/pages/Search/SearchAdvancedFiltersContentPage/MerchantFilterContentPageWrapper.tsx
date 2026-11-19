@@ -8,6 +8,7 @@ import React from 'react';
 function MerchantFilterContentPageWrapper({baseFilterKey, value, isNegated, merchantOperator, buttonText, onChange}: MerchantFilterContentWrapperProps) {
     return (
         <MerchantFilterContent
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
             baseFilterKey={baseFilterKey}
             value={value}
             isNegated={isNegated}

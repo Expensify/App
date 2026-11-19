@@ -3,6 +3,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import isHTMLElement from '@libs/isHTMLElement';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -54,6 +56,9 @@ function ComposerSendButton() {
                     accessible
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={label}
+                    accessibilityState={{disabled: isSendDisabled}}
+                    // Preserve the existing Tab order by avoiding the native disabled attribute on web.
+                    ref={(element) => (isHTMLElement(element) ? element.setAttribute('aria-disabled', String(isSendDisabled)) : undefined)}
                     collapsable={false}
                 >
                     <SubmitDraftButton

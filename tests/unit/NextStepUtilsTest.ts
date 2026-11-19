@@ -1,4 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import {
     buildNextStepMessage,
@@ -916,6 +917,7 @@ describe('libs/NextStepUtils', () => {
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
+        const currentUserPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
         const policyID = 'policy-1';
 
         beforeAll(() => {
@@ -929,6 +931,47 @@ describe('libs/NextStepUtils', () => {
                     },
                 },
             }).then(waitForBatchedUpdates);
+        });
+
+        it('returns the next step of an invoice only while a payment waits for the sender bank account', () => {
+            // Given an invoice that waits for the sender to add a bank account
+            const waitingNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+            const invoice = {
+                reportID: 'invoice-1',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: waitingNextStep,
+            } as Report;
+            const getNextStep = (report: Report) =>
+                getReportNextStep({
+                    currentUserLogin: currentUserEmail,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    report,
+                    reportOwnerLogin: currentUserEmail,
+                    reportMetadata: undefined,
+                    reportActions: [],
+                    transactions: {},
+                    violations: {},
+                    policy: undefined,
+                    rules: undefined,
+                    areStrictPolicyRulesEnabled: false,
+                    isReportArchived: false,
+                    theme: undefined,
+                    isOffline: false,
+                });
+
+            // When the next step is read, then the invoice shows it, because the sender must act before they can be paid
+            expect(getNextStep(invoice)).toBe(waitingNextStep);
+
+            // And an invoice with any other next step shows none
+            expect(getNextStep({...invoice, nextStep: {...waitingNextStep, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY}})).toBeUndefined();
         });
 
         it('returns the current next step when no special conditions are met', () => {
@@ -962,6 +1005,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1012,6 +1056,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1071,6 +1116,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1126,6 +1172,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1145,6 +1192,7 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns the current next step when the approve-only member is not the report owner', () => {
+            const ownerLogin = 'owner@expensify.com';
             const currentNextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1180,7 +1228,8 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: 'owner@expensify.com',
+                reportOwnerLogin: ownerLogin,
+                reportOwnerPersonalDetailsByLogin: {[ownerLogin]: {accountID: 99, login: ownerLogin}},
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1237,6 +1286,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1304,6 +1354,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1382,6 +1433,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
                 report,
                 reportOwnerLogin: currentUserEmail,
+                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1515,6 +1567,45 @@ describe('libs/NextStepUtils', () => {
 
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
+        });
+
+        it.each([
+            {
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                expectedAutoExportMessage: 'This report will be exported after final approval.',
+            },
+            {
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                expectedAutoExportMessage: 'Reimbursable expenses will be exported when this report is paid.',
+            },
+        ])('appends the $autoExportMessageKey timing after the next step message', ({autoExportMessageKey, expectedAutoExportMessage}) => {
+            // Given a next step from a workspace that auto-exports
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                autoExport: {messageKey: autoExportMessageKey},
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then the export timing follows the main message
+            expect(message).toBe(`<next-step>No further action required! ${expectedAutoExportMessage}</next-step>`);
+        });
+
+        it.each([undefined, null])('leaves the message unchanged when the auto-export timing is %s', (autoExport) => {
+            // Given a next step without an export timing, which the backend sends as null to clear an earlier one
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                autoExport,
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then nothing is appended to it
+            expect(message).toBe('<next-step>No further action required!</next-step>');
         });
 
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
@@ -1763,6 +1854,95 @@ describe('libs/NextStepUtils', () => {
             });
 
             expect(result?.messageKey).toBe(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
+        });
+
+        it.each([
+            {
+                description: 'clears the after-final-approval export timing on final approval',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'keeps the when-paid export timing on final approval',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: -500,
+                shouldKeepAutoExport: true,
+            },
+            {
+                description: 'clears the when-paid export timing on final approval when there is no reimbursable spend',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                total: 0,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the when-paid export timing on payment',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the export timing when the report goes back to open, like on retract or reject',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the export timing when the report is closed',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.CLOSED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'keeps the after-final-approval export timing when the report moves to its next approver',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: -500,
+                shouldKeepAutoExport: true,
+            },
+        ])('$description', ({autoExportMessageKey, predictedNextStatus, total, shouldKeepAutoExport}) => {
+            // Given a submitted report whose next step from the server includes an export timing
+            const report: Report = {
+                ...getOpenSubmitAndCloseReport(),
+                total,
+                reimbursableTotal: total,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    autoExport: {messageKey: autoExportMessageKey},
+                },
+            };
+
+            // When the optimistic next step is built for the report's next status
+            const result = buildOptimisticNextStep({
+                rules: undefined,
+                report,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                predictedNextStatus,
+                shouldFixViolations: false,
+                isUnapprove: false,
+                isReopen: false,
+                isTrackIntentUser: false,
+            });
+
+            // Then the timing is either left out, so merging keeps the server's value, or cleared alongside the rest of the step
+            if (shouldKeepAutoExport) {
+                expect(result).not.toHaveProperty('autoExport');
+            } else {
+                expect(result?.autoExport).toBeNull();
+            }
         });
     });
 });

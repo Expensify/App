@@ -8,6 +8,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
+
 import React from 'react';
 
 import type {ButtonProps} from '..';
@@ -68,7 +70,7 @@ function LinkButtonText({children, numberOfLines, style, hoverStyle}: ButtonText
  * </LinkButton>
  * ```
  */
-type LinkButtonProps = Omit<ButtonProps, 'variant'>;
+type LinkButtonProps = Omit<ButtonProps, 'variant'> & WithRequiredSentryLabel;
 
 function LinkButtonComponent({innerStyles = [], children, ...rest}: LinkButtonProps) {
     const styles = useThemeStyles();

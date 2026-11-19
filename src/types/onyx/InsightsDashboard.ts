@@ -29,15 +29,76 @@ type InsightsGraph = {
 
     /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
     averageCount?: number;
+
+    /** Average group duration over the selected period, in seconds, which the "Average" compare mode draws on duration charts */
+    averageDuration?: number;
 };
+
+/** Kind of signal an AI insight was detected from */
+type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
+
+/** A chip's value, either a whole-number percentage or an amount */
+type AIInsightChipValue =
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.AMOUNT;
+
+          /** Amount in cents */
+          value: number;
+          currency: string;
+      };
+
+/** Chip showing how much an item changed */
+type AIInsightChangeChip = AIInsightChipValue & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE;
+    direction: ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION>;
+};
+
+/** Chip showing an observed statistic rather than a change */
+type AIInsightNeutralChip = (
+    | AIInsightChipValue
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
+          value: number;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
+
+          /** Average processing duration in seconds */
+          value: number;
+      }
+) & {
+    type: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL;
+};
+
+/** An AI insight's statistic: a change or an observed value */
+type AIInsightChip = AIInsightChangeChip | AIInsightNeutralChip;
 
 /** AI-written insight about the dashboard's data */
 type AIInsight = {
-    /** Narration shown on the card */
-    text: string;
+    id: string;
+    signal: AIInsightSignal;
+    title: string;
+    chip: AIInsightChip;
+    summary: string;
 
     /** Message sent to Concierge when the user asks it to explain the card */
     explainPrompt: string;
+};
+
+/** Expenses dated after the day the dashboard counts through, which every graph leaves out */
+type InsightsFutureExpenses = {
+    /** Number of expenses dated after that day within the date range */
+    count: number;
+
+    /** Their total in the group currency, in the same units as the snapshot's totals */
+    total: number;
+
+    /** Group currency the total is converted to */
+    currency: string;
 };
 
 /** What the backend returns for one dashboard and set of filters */
@@ -45,10 +106,16 @@ type InsightsDashboard = {
     /** Snapshots the response filled, keyed by the graph slot each chart's spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
 
+    /** Last day the graphs count expenses through, as a yyyy-MM-dd string */
+    asOfDate?: string;
+
+    /** Expenses in the date range dated after `asOfDate` */
+    futureExpenses?: InsightsFutureExpenses;
+
     /** Whether the account has any expenses at all, regardless of the query, so an empty account can be told apart from filters that matched nothing */
     hasResults?: boolean;
 
-    /** Cards drawn above the headline chart */
+    /** Cards drawn above the headline chart. Missing until they're written, and empty when there are none. */
     aiInsights?: AIInsight[];
 
     /** Query the stored graphs answer */
@@ -60,5 +127,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

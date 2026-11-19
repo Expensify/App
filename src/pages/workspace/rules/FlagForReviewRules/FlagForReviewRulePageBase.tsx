@@ -32,7 +32,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -265,9 +265,7 @@ function FlagForReviewRulePageBase({
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItem.Root
-                        onPress={
-                            canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)), false, session) : undefined
-                        }
+                        onPress={canEditCategory ? callIfAuthenticated(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName)), session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
                     >
                         <MenuItem.Row>
@@ -293,14 +291,13 @@ function FlagForReviewRulePageBase({
                     <MenuItem.Root
                         onPress={
                             canWriteRules
-                                ? callFunctionIfActionIsAllowed(
+                                ? callIfAuthenticated(
                                       () =>
                                           Navigation.navigate(
                                               isCategoryScopedFlow
                                                   ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
                                                   : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
                                           ),
-                                      false,
                                       session,
                                   )
                                 : undefined

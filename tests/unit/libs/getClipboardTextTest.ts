@@ -23,7 +23,7 @@ describe('getClipboardText', () => {
     // In the jest-expo test environment, platform resolution prefers .native files,
     // so getClipboardText resolves to the native implementation (htmlToMarkdown).
     // The web implementation (htmlToText) is structurally identical and tested via
-    // useCopySelectionHelper and ContextMenuActions integration tests.
+    // ContextMenuActions integration tests.
     it('calls Parser.htmlToMarkdown with the selection', () => {
         mockedParser.htmlToMarkdown.mockReturnValue('[Expensify](https://expensify.com)');
 

@@ -30,7 +30,6 @@ import {
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
-    compareDuplicateTransactionFields,
     getAmount,
     getExpenseTypeTranslationKey,
     getFormattedCreated,
@@ -51,6 +50,7 @@ import {
     isScanning,
     shouldShowViolation,
 } from './TransactionUtils';
+import {compareDuplicateTransactionFields} from './TransactionUtils/duplicates';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 
@@ -294,11 +294,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(
-            created,
-            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(created, dateFnsLocale);
         previewDateText = {text: date};
     }
 
