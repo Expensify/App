@@ -8298,6 +8298,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             timezoneInputLabel: '时区',
             timezoneInputHelpText: '您的时区用于自动提交报表',
             timezoneErrorMessage: '无法更改时区。请重试或联系支持。',
+            directReimbursementCurrencyTitle: '直接报销不支持此货币',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `此工作区通过 Expensify 直接向成员报销，但 ${currency} 不支持此功能。要使用 ${currency}，请前往工作流程，先关闭再重新开启付款，使付款在 Expensify 之外进行。`,
+            goToWorkflows: '前往工作流程',
         },
         officeLocations: {
             title: '办公地点',

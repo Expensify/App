@@ -1916,6 +1916,7 @@ const CONST = {
         GBP: 'GBP',
         NZD: 'NZD',
         EUR: 'EUR',
+        SGD: 'SGD',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
     // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
@@ -1923,6 +1924,11 @@ const CONST = {
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
+    },
+    // The server only lets a workspace with Direct reimbursement switch to these currencies. The list copies the server's own
+    // direct reimbursement list, which also includes SGD, so it is kept apart from DIRECT_REIMBURSEMENT_CURRENCIES above.
+    get CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE() {
+        return [this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.EUR, this.CURRENCY.GBP, this.CURRENCY.USD, this.CURRENCY.SGD];
     },
     TRIAL_DURATION_DAYS: 8,
     EXAMPLE_PHONE_NUMBER: '+15005550006',
@@ -5655,7 +5661,6 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
-            GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {

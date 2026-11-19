@@ -8676,6 +8676,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             timezoneInputLabel: 'Zeitzone',
             timezoneInputHelpText: 'Ihre Zeitzone wird für das automatische Einreichen von Berichten verwendet',
             timezoneErrorMessage: 'Zeitzone konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+            directReimbursementCurrencyTitle: 'Währung bei direkter Erstattung nicht verfügbar',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `Dieser Workspace erstattet Mitgliedern direkt über Expensify, was in ${currency} nicht verfügbar ist. Um ${currency} zu verwenden, gehe zu Workflows und schalte Zahlungen aus und wieder ein, damit Zahlungen außerhalb von Expensify erfolgen.`,
+            goToWorkflows: 'Zu Workflows',
         },
         officeLocations: {
             title: 'Bürostandorte',
