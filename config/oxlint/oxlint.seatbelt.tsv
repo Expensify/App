@@ -488,7 +488,6 @@
 "../../src/hooks/useAutoUpdateTimezone.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useBulkDuplicateAction.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/hooks/useBulkDuplicateAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useBulkPayOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useCachedImageSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useCachedImageSource.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useCancellationType.ts"	"react-hooks/refs"	2
