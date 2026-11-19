@@ -3151,11 +3151,6 @@ describe('PolicyUtils', () => {
         describe('getManagerAccountID', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            });
-            afterEach(async () => {
-                await Onyx.clear();
-                await waitForBatchedUpdatesWithAct();
             });
 
             it('should return default approver for personal workspaces', () => {
