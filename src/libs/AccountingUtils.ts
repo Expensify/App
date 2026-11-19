@@ -59,9 +59,14 @@ const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>(Object.values(STANDARD_E
 const EXPORT_TEMPLATE_SEARCH_PREFIX = 'template:';
 const ACCOUNTING_EXPORT_SEARCH_VALUES = new Set<string>([...Object.values(CONST.EXPORT_LABELS), ...CONST.POLICY.CONNECTIONS.EXPORTED_TO_INTEGRATION_DISPLAY_NAMES]);
 
-/** Distinguishes templates whose names also identify accounting exports. */
+/** Returns a picker ID distinct from accounting destinations, even for identical names. */
 function getExportTemplateSearchValue(label: string): string {
-    return ACCOUNTING_EXPORT_SEARCH_VALUES.has(label) || label.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX) ? `${EXPORT_TEMPLATE_SEARCH_PREFIX}${label}` : label;
+    return `${EXPORT_TEMPLATE_SEARCH_PREFIX}${label}`;
+}
+
+/** Maps a query destination to its picker ID, preserving literal names in existing searches. */
+function getExportedToPickerValue(label: string, isTemplate: boolean): string {
+    return !isTemplate && ACCOUNTING_EXPORT_SEARCH_VALUES.has(label) ? label : getExportTemplateSearchValue(label);
 }
 
 /** Returns the recorded template name without its Search discriminator. */
@@ -156,6 +161,7 @@ export {
     EXPORT_TEMPLATE_SEARCH_PREFIX,
     getExportTemplateSearchValue,
     getExportedToDisplayName,
+    getExportedToPickerValue,
     getAccountingIntegrationDisplayName,
     getConnectionNameFromRouteParam,
     getExportLabelForConnection,

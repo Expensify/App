@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 
+import {EXPORT_TEMPLATE_SEARCH_PREFIX, getExportedToDisplayName, getExportedToPickerValue} from '@libs/AccountingUtils';
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
@@ -666,18 +667,26 @@ function useAutocompleteSuggestions({
 
             return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
+            const isTemplateFilter = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE;
+            const selectedExports = new Set(
+                ranges
+                    .filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO || range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE)
+                    .map((range) => getExportedToPickerValue(range.value, range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE).toLowerCase()),
+            );
             const filteredExportedTo = exportedToFilterOptions
+                .filter((value) => !isTemplateFilter || value.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX))
                 .filter((value) => {
                     const lowerValue = value.toLowerCase();
-                    return lowerValue.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(lowerValue);
+                    return getExportedToDisplayName(value).toLowerCase().includes(autocompleteValue.toLowerCase()) && !selectedExports.has(lowerValue);
                 })
                 .sort()
                 .slice(0, 10);
             return filteredExportedTo.map((value) => ({
-                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO,
-                text: value,
-                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterKey: isTemplateFilter ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE : CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO,
+                text: isTemplateFilter ? getExportedToDisplayName(value) : value,
+                mapKey: isTemplateFilter ? CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE : CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:

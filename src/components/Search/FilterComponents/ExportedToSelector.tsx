@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExportLabelsForConnection, getExportTemplateSearchValue, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
+import {getExportLabelsForConnection, getExportedToDisplayName, getExportTemplateSearchValue, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -123,6 +123,18 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
                 text: displayName,
                 value: filterValue,
                 leftElement: tableIconForExportOption(isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil),
+            });
+        }
+
+        // Saved template filters can outlive the cached template list.
+        for (const selectedValue of value) {
+            if (usedPickerValueKeys.has(selectedValue)) {
+                continue;
+            }
+            standardAndIntegrationCustomTemplatePickerItems.push({
+                text: getExportedToDisplayName(selectedValue),
+                value: selectedValue,
+                leftElement: tableIconForExportOption(expensifyIcons.TablePencil),
             });
         }
 

@@ -130,7 +130,8 @@ const setPerformanceTimersEnd = () => {
 };
 
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
-    return `${filterKey}:${filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO ? getExportedToDisplayName(value) : value}`;
+    const displayKey = filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO : filterKey;
+    return `${displayKey}:${filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO ? getExportedToDisplayName(value) : value}`;
 }
 
 function SearchRouterItem({
@@ -727,7 +728,8 @@ function SearchAutocompleteList({
                 text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
                 singleIcon:
-                    filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO && text.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX)
+                    filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO_TEMPLATE ||
+                    (filterKey === CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO && text.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX))
                         ? expensifyIcons.TablePencil
                         : expensifyIcons.MagnifyingGlass,
                 searchQuery: text,
