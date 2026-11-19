@@ -2540,7 +2540,7 @@ const ROUTES = {
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
 
-    // The Concierge page in the wide flat navigation, listing Concierge conversations next to the open one
+    // The Concierge page, listing Concierge conversations next to the open one
     CONCIERGE_CHATS: 'concierge/chats',
     CONCIERGE_CONVERSATION: {
         route: 'concierge/:reportID/:reportActionID?',

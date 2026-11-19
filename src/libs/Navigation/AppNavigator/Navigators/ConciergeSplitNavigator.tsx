@@ -1,5 +1,5 @@
 /**
- * The Concierge page of the wide flat navigation. The sidebar lists the Concierge conversations, and the central pane shows
+ * The Concierge page of the flat navigation. The sidebar lists the Concierge conversations, and the central pane shows
  * the Concierge DM, which starts a new conversation, or the conversation the user picked.
  */
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
