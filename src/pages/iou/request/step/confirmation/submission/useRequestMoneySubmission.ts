@@ -23,7 +23,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
-import {requestMoney as requestMoneyIOUActions} from '@userActions/IOU/TrackExpense';
+import {commitRequestMoney, planRequestMoney} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
 import CONST from '@src/CONST';
@@ -157,7 +157,7 @@ function useRequestMoneySubmission({
             return;
         }
 
-        // requestMoney bails per-item on malformed SUBMIT too late for UI cleanup — reject the batch upfront.
+        // planRequestMoney bails per-item on malformed SUBMIT too late for UI cleanup — reject the batch upfront.
         const requiresLinkedTracked = action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
@@ -235,10 +235,9 @@ function useRequestMoneySubmission({
                 }
             }
 
-            const {iouReport} = requestMoneyIOUActions({
+            const requestMoneyPlan = planRequestMoney({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
-                writeBarrier,
                 report,
                 existingIOUReport,
                 optimisticChatReportID,
@@ -315,10 +314,12 @@ function useRequestMoneySubmission({
                 formatPhoneNumber,
                 rules,
             });
-            existingIOUReport = iouReport;
-            if (!iouReport) {
+            if (requestMoneyPlan) {
+                commitRequestMoney(requestMoneyPlan, writeBarrier);
+            } else {
                 allTransactionsCreated = false;
             }
+            existingIOUReport = requestMoneyPlan?.iouReport;
         }
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);

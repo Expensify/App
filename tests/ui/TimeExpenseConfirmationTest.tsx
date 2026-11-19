@@ -7,7 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {requestMoney} from '@libs/actions/IOU/TrackExpense';
+import {commitRequestMoney, planRequestMoney} from '@libs/actions/IOU/TrackExpense';
 
 import IOURequestStepConfirmation from '@pages/iou/request/step/IOURequestStepConfirmation';
 
@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import createMockScreenNavigation from '../utils/createMockScreenNavigation';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -60,7 +61,8 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
     const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
     return {
         ...actual,
-        requestMoney: jest.fn(() => ({iouReport: undefined})),
+        planRequestMoney: jest.fn(),
+        commitRequestMoney: jest.fn(),
     };
 });
 
@@ -361,16 +363,22 @@ describe('TimeExpenseConfirmationTest', () => {
 
     describe('time expense submission', () => {
         it('should allow submission of valid time expense', async () => {
+            // Given a valid time expense on the confirmation page, whose request can be planned
             await setupTransaction();
+            const plan = createMock<NonNullable<ReturnType<typeof planRequestMoney>>>({iouReport: {reportID: 'time-iou-report'}, transactionID: 'time-transaction'});
+            jest.mocked(planRequestMoney).mockReturnValueOnce(plan);
 
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
+            // When the user presses the create button
             const submitButton = screen.getByText(/create.*expense/i);
             fireEvent.press(submitButton);
             await waitForBatchedUpdatesWithAct();
 
-            expect(requestMoney).toHaveBeenCalled();
+            // Then the planned expense is committed exactly once, so a valid time expense is actually written and not just planned
+            expect(commitRequestMoney).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(commitRequestMoney).mock.calls.at(0)?.at(0)).toBe(plan);
         });
 
         it('should not apply default tax code to time expenses', async () => {
@@ -383,10 +391,10 @@ describe('TimeExpenseConfirmationTest', () => {
             fireEvent.press(submitButton);
             await waitForBatchedUpdatesWithAct();
 
-            expect(requestMoney).toHaveBeenCalled();
-            const firstRequestMoneyCall = jest.mocked(requestMoney).mock.calls.at(0);
+            expect(planRequestMoney).toHaveBeenCalled();
+            const firstRequestMoneyCall = jest.mocked(planRequestMoney).mock.calls.at(0);
             if (!firstRequestMoneyCall) {
-                throw new Error('Expected requestMoney to have been called');
+                throw new Error('Expected planRequestMoney to have been called');
             }
             const [callArgs] = firstRequestMoneyCall;
             expect(callArgs.transactionParams.taxCode).toBe('');
@@ -415,7 +423,7 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/total amount is too large/i)).toBeDefined();
-            expect(requestMoney).not.toHaveBeenCalled();
+            expect(planRequestMoney).not.toHaveBeenCalled();
         });
     });
 });

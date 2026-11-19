@@ -77,7 +77,7 @@ import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
 import {submitPerDiemExpense} from './PerDiem';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {commitDistanceRequest, planDistanceRequest} from './Split';
-import {requestMoney, trackExpense} from './TrackExpense';
+import {commitRequestMoney, planRequestMoney, trackExpense} from './TrackExpense';
 
 function getIOUActionForTransactions(
     transactionIDList: Array<string | undefined>,
@@ -740,9 +740,8 @@ function createExpenseByType({
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const duplicateRequestType = getDuplicateRequestType(transaction);
-            const {writeBarrier, ...distanceBaseParams} = params;
             const distanceParams: CreateDistanceRequestInformation = {
-                ...distanceBaseParams,
+                ...params,
                 participants,
                 // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
                 // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
@@ -782,7 +781,7 @@ function createExpenseByType({
                 rules,
             };
             const distanceRequestPlan = planDistanceRequest(distanceParams);
-            commitDistanceRequest(distanceRequestPlan, writeBarrier);
+            commitDistanceRequest(distanceRequestPlan);
             return {iouReport: distanceRequestPlan.iouReport, transactionID: distanceRequestPlan.transactionID};
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
@@ -803,10 +802,14 @@ function createExpenseByType({
             };
             return submitPerDiemExpense(perDiemParams);
         }
-        default:
-            return requestMoney({
-                ...params,
-            });
+        default: {
+            const requestMoneyPlan = planRequestMoney(params);
+            if (!requestMoneyPlan) {
+                return undefined;
+            }
+            commitRequestMoney(requestMoneyPlan);
+            return {iouReport: requestMoneyPlan.iouReport, transactionID: requestMoneyPlan.transactionID};
+        }
     }
 }
 

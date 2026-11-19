@@ -1515,12 +1515,33 @@ type ConvertTrackedExpenseToRequestParams = {
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
     shouldDeferAutoSubmit?: boolean;
+};
 
-    /** What the write waits on before applying its optimistic data. Fires immediately when omitted. */
-    writeBarrier?: WriteReadyBarrier;
+/** A request built ahead of sending it, so an expense can be planned before anything is written. */
+type MoneyRequestWrite<TCommand extends WriteCommand> = {
+    command: TCommand;
+    parameters: ApiRequestCommandParameters[TCommand];
+    onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>;
+};
 
-    /** Runs once the write's optimistic data is in Onyx. */
-    onWriteStarted?: () => void;
+/** A tracked expense moved to a workspace sends AddTrackedExpenseToPolicy, and one moved to a person sends ConvertTrackedExpenseToRequest. */
+type ConvertTrackedExpenseToRequestWrite =
+    | MoneyRequestWrite<typeof WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY>
+    | MoneyRequestWrite<typeof WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST>;
+
+/** An expense for another person that planRequestMoney built and commitRequestMoney writes. */
+type RequestMoneyPlan = {
+    iouReport: OnyxTypes.Report;
+    transactionID: string;
+    write: MoneyRequestWrite<typeof WRITE_COMMANDS.REQUEST_MONEY> | ConvertTrackedExpenseToRequestWrite;
+    activeReportID: string | undefined;
+
+    /** Set when the expense lands in a chat, whose report list is told about the new preview once the write starts. */
+    newActionNotification: {reportID: string; reportAction: OnyxTypes.ReportAction; isFromCurrentUser: boolean} | undefined;
+    isRetry: boolean;
+    shouldPlaySound: boolean;
+    shouldAddPendingNewTransaction: boolean;
+    shouldSignalExpenseAdded: boolean;
 };
 
 /**
@@ -1545,13 +1566,9 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
     return Math.abs(quantity - routeQuantity) > 0.01;
 }
 
-function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, writeBarrier, onWriteStarted} =
-        convertTrackedExpenseParams;
+function buildConvertTrackedExpenseToRequestWrite(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams): ConvertTrackedExpenseToRequestWrite {
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
-    const dispatchWrite = <TCommand extends WriteCommand>(command: TCommand, params: ApiRequestCommandParameters[TCommand], writeOnyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) => {
-        API.writeWhenReady(command, params, writeOnyxData, writeBarrier ?? IMMEDIATE, {onWriteStarted});
-    };
     const {
         transactionID,
         actionableWhisperReportActionID,
@@ -1664,8 +1681,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             ...workspaceParamsForAPI,
         };
 
-        dispatchWrite(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, params, {optimisticData, successData, failureData});
-        return;
+        return {command: WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters: params, onyxData: {optimisticData, successData, failureData}};
     }
 
     const parameters = {
@@ -1692,13 +1708,20 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         customUnitRateID,
         waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
-    dispatchWrite(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
+    return {command: WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, onyxData: {optimisticData, successData, failureData}};
+}
+
+function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
+    const {command, parameters, onyxData} = buildConvertTrackedExpenseToRequestWrite(convertTrackedExpenseParams);
+    API.writeWhenReady(command, parameters, onyxData, IMMEDIATE);
 }
 
 /**
- * Submit expense to another user
+ * Builds an expense for another person without writing anything, or returns undefined when a SUBMIT has no tracked expense to move.
+ * The plan captures report state as it is now, so pass it to commitRequestMoney straight away.
+ * The one exception to writing nothing is a test drive: building its onboarding data adds the assigned guide's personal details when they are not loaded yet.
  */
-function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouReport?: OnyxTypes.Report; transactionID?: string} {
+function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): RequestMoneyPlan | undefined {
     const {
         report,
         existingIOUReport,
@@ -1734,13 +1757,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
-        writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
-    transactionParams.comment = parsedComment;
+    const parsedTransactionParams = {...transactionParams, comment: parsedComment};
     const {
         amount,
         distance,
@@ -1769,7 +1791,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         rate,
         unit,
         isFromGlobalCreate = false,
-    } = transactionParams;
+    } = parsedTransactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
 
@@ -1791,7 +1813,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
         },
         transactionParams: {
-            ...requestMoneyInformation.transactionParams,
+            ...parsedTransactionParams,
             receipt: undefined,
         },
         existingTransaction: explicitExistingTransaction
@@ -1826,7 +1848,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingIOUReport,
         participantParams,
         policyParams,
-        transactionParams,
+        transactionParams: parsedTransactionParams,
         newReportTotal,
         newReimbursableTotal,
         newNonReimbursableTotal,
@@ -1865,32 +1887,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
-    if (shouldPlaySound) {
-        playSound(SOUNDS.DONE);
-    }
-
-    // Wrapped in a closure because the branches below build the write from different params, and the
-    // caller decides when it goes out: `resolveWriteBarrier` picks the readiness signal (a transition
-    // barrier from the dismissing view, or Search's content layout) so the optimistic Onyx updates do
-    // not block the JS thread while something is still animating.
-    let deferredAPIWrite: (() => void) | undefined;
-
-    // Tells the report list about the new action. Runs once the write's optimistic data exists, otherwise
-    // the list has nothing to scroll to. The delay gives the destination report time to mount its subscriber.
-    const notifyRequestAction =
-        activeReportID && !isMoneyRequestReport
-            ? () =>
-                  Navigation.setNavigationActionToMicrotaskQueue(() =>
-                      setTimeout(() => {
-                          notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
-                      }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
-                  )
-            : undefined;
-
+    let write: RequestMoneyPlan['write'];
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
-                return {};
+                return undefined;
             }
             const customUnitParams = isDistanceRequestTransactionUtils(transaction)
                 ? {
@@ -1917,54 +1918,44 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
-            deferredAPIWrite = () => {
-                convertTrackedExpenseToRequest({
-                    payerParams: {
-                        accountID: payerAccountID,
-                        email: payerEmail,
-                    },
-                    transactionParams: {
-                        amount,
-                        distance,
-                        currency,
-                        comment,
-                        merchant,
-                        created,
-                        attendees,
-                        transactionID: transaction.transactionID,
-                        actionableWhisperReportActionID,
-                        linkedTrackedExpenseReportAction,
-                        linkedTrackedExpenseReportID,
-                        transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
-                        isLinkedTrackedExpenseReportArchived,
-                        isDistance: isDistanceRequest,
-                        customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
-                        waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
-                    },
-                    chatParams: {
-                        reportID: chatReport.reportID,
-                        createdReportActionID: createdChatReportActionID,
-                        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                    },
-                    iouParams: {
-                        reportID: iouReport.reportID,
-                        createdReportActionID: createdIOUReportActionID,
-                        reportActionID: iouAction.reportActionID,
-                    },
-                    onyxData,
-                    workspaceParams,
-                    currentUserAccountID: currentUserAccountIDParam,
-                    shouldDeferAutoSubmit,
-                    // Resolved inside the closure so the Search signal is sampled when the write is
-                    // actually issued, the same moment as the sibling branch below.
-                    writeBarrier: resolveWriteBarrier({
-                        writeBarrier,
-                        isRetry: requestMoneyInformation.isRetry,
-                        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    }),
-                    onWriteStarted: notifyRequestAction,
-                });
-            };
+            write = buildConvertTrackedExpenseToRequestWrite({
+                payerParams: {
+                    accountID: payerAccountID,
+                    email: payerEmail,
+                },
+                transactionParams: {
+                    amount,
+                    distance,
+                    currency,
+                    comment,
+                    merchant,
+                    created,
+                    attendees,
+                    transactionID: transaction.transactionID,
+                    actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID,
+                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
+                    isLinkedTrackedExpenseReportArchived,
+                    isDistance: isDistanceRequest,
+                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                },
+                chatParams: {
+                    reportID: chatReport.reportID,
+                    createdReportActionID: createdChatReportActionID,
+                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                },
+                iouParams: {
+                    reportID: iouReport.reportID,
+                    createdReportActionID: createdIOUReportActionID,
+                    reportActionID: iouAction.reportActionID,
+                },
+                onyxData,
+                workspaceParams,
+                currentUserAccountID: currentUserAccountIDParam,
+                shouldDeferAutoSubmit,
+            });
             break;
         }
         default: {
@@ -2027,29 +2018,75 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 shouldDeferAutoSubmit,
             };
 
-            deferredAPIWrite = () => {
-                API.writeWhenReady(
-                    WRITE_COMMANDS.REQUEST_MONEY,
-                    parameters,
-                    onyxData,
-                    resolveWriteBarrier({writeBarrier, isRetry: requestMoneyInformation.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
-                    {onWriteStarted: notifyRequestAction},
-                );
-            };
+            write = {command: WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData};
         }
     }
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
+    return {
+        iouReport,
+        transactionID: transaction.transactionID,
+        write,
+        activeReportID,
+        newActionNotification:
+            activeReportID && !isMoneyRequestReport
+                ? {reportID: activeReportID, reportAction: reportPreviewAction, isFromCurrentUser: payeeAccountID === currentUserAccountIDParam}
+                : undefined,
+        isRetry: !!requestMoneyInformation.isRetry,
+        shouldPlaySound,
+        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID)),
+        shouldSignalExpenseAdded: !requestMoneyInformation.isRetry && isFromGlobalCreate,
+    };
+}
+
+/**
+ * Runs what planRequestMoney leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ *
+ * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
+ * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search. A retry never waits for Search.
+ */
+function commitRequestMoney(plan: RequestMoneyPlan, writeBarrier?: WriteReadyBarrier) {
+    if (plan.shouldPlaySound) {
+        playSound(SOUNDS.DONE);
     }
 
-    deferredAPIWrite?.();
-
-    if (!requestMoneyInformation.isRetry && isFromGlobalCreate) {
-        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (plan.shouldAddPendingNewTransaction) {
+        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
-    return {iouReport, transactionID: transaction.transactionID};
+    const {newActionNotification} = plan;
+    API.writeWhenReady(
+        plan.write.command,
+        plan.write.parameters,
+        plan.write.onyxData,
+        resolveWriteBarrier({writeBarrier, isRetry: plan.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`}),
+        {
+            // The report list is told only once the write's optimistic data exists, otherwise it has nothing to scroll to.
+            // The delay gives the destination report time to mount its subscriber.
+            onWriteStarted: newActionNotification
+                ? () =>
+                      Navigation.setNavigationActionToMicrotaskQueue(() =>
+                          setTimeout(() => {
+                              notifyNewAction(newActionNotification.reportID, newActionNotification.reportAction, newActionNotification.isFromCurrentUser);
+                          }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
+                      )
+                : undefined,
+        },
+    );
+
+    if (plan.shouldSignalExpenseAdded) {
+        signalExpenseAddedGrowl(plan.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
+}
+
+/**
+ * Submit expense to another user
+ */
+function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+    const plan = planRequestMoney(requestMoneyInformation);
+    if (!plan) {
+        return;
+    }
+    commitRequestMoney(plan);
 }
 
 /**
@@ -3208,6 +3245,8 @@ export {
     hasManualDistanceOverride,
     trackExpense,
     requestMoney,
+    planRequestMoney,
+    commitRequestMoney,
 };
 
 export type {CreateTrackExpenseParams};
