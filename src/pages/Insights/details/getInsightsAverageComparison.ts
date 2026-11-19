@@ -37,5 +37,4 @@ function getInsightsAverageComparison({total, average, averagePeriodCount}: Insi
 }
 
 export {MIN_AVERAGE_PERIOD_COUNT};
-export type {InsightsAverageComparison};
 export default getInsightsAverageComparison;
