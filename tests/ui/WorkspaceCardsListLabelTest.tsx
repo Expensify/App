@@ -95,7 +95,7 @@ describe('WorkspaceCardsListLabel', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then the request names the GB program, so the backend settles this workspace's program and not a US one on the same domain
+        // Then the request names the GB program instead of US
         TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, 0, {feedCountry: CONST.COUNTRY.GB, domainAccountID: WORKSPACE_ACCOUNT_ID});
     });
 
