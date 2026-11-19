@@ -3138,6 +3138,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  * The deprecated Year to date preset is mapped to This year
+ * An expense query grouped by violation with no violation has value gets both violation has values
  */
 function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
