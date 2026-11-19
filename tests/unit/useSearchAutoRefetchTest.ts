@@ -39,6 +39,9 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline}))
 let mockIsInPreloadedTab = false;
 jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab));
 
+let mockIsClientTheLeader = true;
+jest.mock('@libs/ActiveClientManager', () => ({...jest.requireActual<Record<string, unknown>>('@libs/ActiveClientManager'), isClientTheLeader: jest.fn(() => mockIsClientTheLeader)}));
+
 let lastWriteID = 0;
 
 /** Raises the signal FlagSearchTransactionWrites sends once a user write to these transactions succeeds. */
@@ -59,6 +62,7 @@ afterEach(async () => {
     mockIsOffline = false;
     mockUseIsFocused.mockReturnValue(true);
     mockIsInPreloadedTab = false;
+    mockIsClientTheLeader = true;
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -423,6 +427,18 @@ describe('useSearchAutoRefetch', () => {
         rerender({});
 
         // Then Search still requests the results again, because the edit to expense 1 was not lost behind the later one
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger search in a background tab when another tab changes a transaction in the results', () => {
+        // Given Search in a tab that is not the leader, which never receives the write signal because it is RAM-only
+        mockIsClientTheLeader = false;
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: createMock<Transaction>({transactionID: '1', amount: 100})});
+
+        // When the leader tab edits the expense and the new transaction syncs over
+        rerender({transactions: {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})}});
+
+        // Then Search requests the results again, falling back to comparing the synced transactions
         expect(search).toHaveBeenCalledTimes(1);
     });
 

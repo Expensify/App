@@ -52,6 +52,24 @@ describe('FlagSearchTransactionWrites', () => {
         expect(Object.keys(signal?.reportIDs ?? {})).toEqual(['5']);
     });
 
+    it('flags each transaction a collection rollback restores', async () => {
+        // Given a successful move of a whole report whose rollback restores its transactions in one collection update
+        // When it passes through the middleware
+        const signal = await runMiddleware({
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {reportID: '5'}, [`${ONYXKEYS.COLLECTION.TRANSACTION}2`]: {reportID: '5'}},
+                },
+            ],
+        });
+
+        // Then Search is told about each transaction and the report they left, not about an empty transaction ID
+        expect(Object.keys(signal?.transactionIDs ?? {})).toEqual(['1', '2']);
+        expect(Object.keys(signal?.reportIDs ?? {})).toEqual(['5']);
+    });
+
     it('does not flag a read that writes transactions without rolling them back', async () => {
         // Given an OpenReport that seeds a transaction optimistically but has nothing to roll back
         // When it passes through the middleware

@@ -2,6 +2,7 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {search} from '@libs/actions/Search';
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -172,6 +173,12 @@ function useSearchAutoRefetch({
         if (newTransactionWrite) {
             handledTransactionWriteIDRef.current = newTransactionWrite.writeID;
         }
+        // Only the leader tab raises the signal, and it is RAM-only so it never reaches other tabs. They see the synced transactions instead.
+        const hasSyncedTransactionChange =
+            !isChat &&
+            !isClientTheLeader() &&
+            transactions !== previousTransactions &&
+            hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
         const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
 
         // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
@@ -179,7 +186,9 @@ function useSearchAutoRefetch({
 
         // Check if there is a change in the transactions or report actions list
         if (
-            (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasWrittenResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
+            (isChat
+                ? hasReportActionsIDsChange
+                : hasTransactionsIDsChange || hasWrittenResultTransaction || hasSyncedTransactionChange || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
             hasPendingSearchRef.current
         ) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
@@ -220,6 +229,7 @@ function useSearchAutoRefetch({
             if (
                 !hasAGenuinelyNewID &&
                 !hasWrittenResultTransaction &&
+                !hasSyncedTransactionChange &&
                 !hasChangedResultMemberCustomField &&
                 !hasRelevantReportActionChange &&
                 !hadPendingSearch &&
@@ -366,6 +376,48 @@ function hasWrittenTransactionInSearchResults(
     return writtenTransactionIDs.some(
         (transactionID) => searchResultIDs.has(transactionID) || isReportInSearchResults(transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID),
     );
+}
+
+/**
+ * Whether a transaction the results depend on was replaced in Onyx: it is on screen, or it moved into or out of a report on screen.
+ */
+function hasChangedTransactionInSearchResults(
+    transactions: OnyxCollection<Transaction>,
+    transactionKeys: string[],
+    previousTransactions: OnyxCollection<Transaction>,
+    previousTransactionKeys: Set<string>,
+    searchResultsData: Partial<SearchResults['data']> | undefined,
+    isGroupedSearch: boolean,
+): boolean {
+    if (!searchResultsData) {
+        return false;
+    }
+
+    const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const changedTransactionIDs: string[] = [];
+    for (const key of transactionKeys) {
+        const transaction = transactions?.[key];
+        const previousTransaction = previousTransactions?.[key];
+        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
+            continue;
+        }
+        if (isGroupedSearch) {
+            return true;
+        }
+        if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
+            return true;
+        }
+        changedTransactionIDs.push(transaction.transactionID);
+    }
+
+    // Walking the results is the expensive half, so only do it once something actually changed.
+    if (changedTransactionIDs.length === 0) {
+        return false;
+    }
+
+    const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
+    return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
 const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);

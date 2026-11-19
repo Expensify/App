@@ -20,16 +20,26 @@ function notifySearchOfTransactionWrites(updates: ReadonlyArray<{key: string; va
     const nextWriteID = writeID + 1;
     const transactionIDs: Record<string, number> = {};
     const reportIDs: Record<string, number> = {};
+    const addTransaction = (key: string, value: unknown) => {
+        transactionIDs[key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length)] = nextWriteID;
+        // A user write's rollback holds the report the transaction left, which loses an expense when it is moved.
+        const reportID = getReportID(value);
+        if (reportID) {
+            reportIDs[reportID] = nextWriteID;
+        }
+    };
     for (const update of updates ?? []) {
         if (!update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             continue;
         }
-        transactionIDs[update.key.slice(ONYXKEYS.COLLECTION.TRANSACTION.length)] = nextWriteID;
-        // A user write's rollback holds the report the transaction left, which loses an expense when it is moved.
-        const reportID = getReportID(update.value);
-        if (reportID) {
-            reportIDs[reportID] = nextWriteID;
+        // A collection update holds its members under their own keys.
+        if (update.key === ONYXKEYS.COLLECTION.TRANSACTION) {
+            for (const [key, value] of Object.entries(update.value ?? {})) {
+                addTransaction(key, value);
+            }
+            continue;
         }
+        addTransaction(update.key, update.value);
     }
     if (Object.keys(transactionIDs).length === 0) {
         return;
