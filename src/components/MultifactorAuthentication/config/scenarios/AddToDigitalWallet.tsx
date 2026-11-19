@@ -54,7 +54,8 @@ export default {
             };
         } catch (error) {
             if (error instanceof WalletProvisioningError) {
-                return {...error.response, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED};
+                // The backend reason moves into message so telemetry still sees it.
+                return {...error.response, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED, message: error.response.message ?? error.response.reason};
             }
             // Native exceptions can contain card data. Only the wallet failure reason is exposed.
             return {

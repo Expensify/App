@@ -53,7 +53,7 @@ describe('AddToDigitalWallet scenario', () => {
         expect(getPaymentMethods).not.toHaveBeenCalled();
     });
 
-    it('maps server failures to the wallet reason and keeps status and message', async () => {
+    it('maps server failures to the wallet reason and keeps status and backend details', async () => {
         // Given provisioning failed before the native bridge rejected.
         const failure = {httpStatusCode: 403, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, message: 'Rejected'};
         jest.mocked(handleAddCardToWallet).mockRejectedValue(new WalletProvisioningError(failure));
@@ -61,7 +61,7 @@ describe('AddToDigitalWallet scenario', () => {
         // When the scenario catches that failure.
         const response = await AddToDigitalWallet.action(params, undefined);
 
-        // Then the wallet reason replaces the backend one so the MFA failure screen is not used.
+        // Then the wallet reason replaces the backend one and the message keeps the backend detail.
         expect(response).toEqual({...failure, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED});
     });
 
@@ -118,7 +118,7 @@ describe('AddToDigitalWallet scenario', () => {
         expect(getPaymentMethods).not.toHaveBeenCalled();
     });
 
-    it('keeps the default failure screens for genuine MFA failures', () => {
+    it('only overrides the failure screen for the wallet reason', () => {
         // Given a failure that happened before the wallet handoff.
         // When looking up a screen override for an MFA-stage reason.
         const overrides: Record<string, unknown> = AddToDigitalWallet.failureScreens;
