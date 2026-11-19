@@ -3,11 +3,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import TabNavigatorBar from '@libs/Navigation/AppNavigator/Navigators/TabNavigatorBar';
 
+import SCREENS from '@src/SCREENS';
+
 import type {NativeBottomTabNavigatorProps} from '@react-navigation/bottom-tabs/unstable';
 
 import React from 'react';
 import {View} from 'react-native';
 
+import FlatNavTabPressListeners from './FlatNavTabPressListeners';
 import NativeTabBarOverlay from './NativeTabBarOverlay';
 import TabPressListeners from './TabPressListeners';
 
@@ -23,6 +26,8 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
         .filter((route) => descriptors[route.key]?.options.tabBarItemHidden)
         .map((route) => route.name)
         .join();
+    // The More placeholder is registered only with the flat nav bar, so the layout does not read the beta itself.
+    const isFlatNavTabBarShown = state.routes.some((route) => route.name === SCREENS.NATIVE_TAB_ITEM.MORE);
 
     // The tabs stay at the same place in the tree in both layouts, so crossing the breakpoint does not remount them.
     return (
@@ -38,6 +43,12 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
                 state={state}
                 descriptors={descriptors}
             />
+            {isFlatNavTabBarShown && (
+                <FlatNavTabPressListeners
+                    state={state}
+                    descriptors={descriptors}
+                />
+            )}
             {shouldUseNarrowLayout && (
                 <NativeTabBarOverlay
                     state={state}

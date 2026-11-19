@@ -192,4 +192,21 @@ describe('ApprovalWorkflowSection', () => {
         // Then no error is shown, since there is no Edit button to act on it
         expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
     });
+
+    it('does not reorder the workflow members while showing them sorted', () => {
+        // Given a workflow whose members aren't in alphabetical order
+        const workflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            members: [
+                {email: 'zoe@example.com', displayName: 'Zoe'},
+                {email: 'adam@example.com', displayName: 'Adam'},
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: workflow, onPress: jest.fn()});
+
+        // Then the members keep their order, since the Approvals list keys each workflow by its first member
+        expect(workflow.members.map((member) => member.email)).toEqual(['zoe@example.com', 'adam@example.com']);
+    });
 });

@@ -634,7 +634,7 @@ function getPDFViewStyle(width: number, height: number): Pick<ViewStyle, 'height
     };
 }
 
-function getWidthAndHeightStyle(width: number, height?: number): Pick<ViewStyle, 'height' | 'width'> {
+function getWidthAndHeightStyle(width: number, height?: number): Dimensions {
     return {
         width,
         height: height ?? width,
@@ -822,7 +822,7 @@ function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
 /**
  * Get variable padding-left as style
  */
-function getPaddingLeft(paddingLeft: number): ViewStyle {
+function getPaddingLeft(paddingLeft: number): Pick<ViewStyle, 'paddingLeft'> {
     return {
         paddingLeft,
     };
@@ -1661,6 +1661,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
             columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
             break;
         case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION:
             // Wider than category/tag so short violation labels are less likely to truncate.
             columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
             break;

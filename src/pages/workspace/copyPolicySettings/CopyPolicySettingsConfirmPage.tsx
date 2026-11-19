@@ -26,7 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
@@ -40,8 +39,8 @@ function CopyPolicySettingsConfirmPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [copyPolicySettingsState] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -49,7 +48,6 @@ function CopyPolicySettingsConfirmPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettingsState?.targetPolicyIDs ?? [];
     const parts = copyPolicySettingsState?.parts ?? [];
-    const isDataLoaded = !isLoadingOnyxValue(policiesMetadata, copyPolicySettingsMetadata);
 
     const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter((policy): policy is Policy => policy !== undefined);
 
@@ -61,7 +59,7 @@ function CopyPolicySettingsConfirmPage() {
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     useEffect(() => {
-        if (!sourcePolicyID || !isDataLoaded) {
+        if (!sourcePolicyID) {
             return;
         }
 
@@ -73,7 +71,7 @@ function CopyPolicySettingsConfirmPage() {
         if (!parts.length && targetPolicyIDs.length) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID));
         }
-    }, [isDataLoaded, parts.length, sourcePolicyID, targetPolicyIDs.length]);
+    }, [parts.length, sourcePolicyID, targetPolicyIDs.length]);
 
     const translatedParts = parts
         .map((part) => {
@@ -84,7 +82,7 @@ function CopyPolicySettingsConfirmPage() {
         .join(', ');
 
     const handleCopyPolicySettings = () => {
-        if (!sourcePolicy || !sourcePolicyID || !isDataLoaded || !areAllTargetPoliciesResolved) {
+        if (!sourcePolicy || !sourcePolicyID || !areAllTargetPoliciesResolved) {
             return;
         }
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
