@@ -56,9 +56,10 @@ object FileUtils {
      */
     @Throws(IOException::class)
     fun saveFileFromProviderUri(fileUri: Uri, destinationFile: File?, context: Context) {
-        val inputStream: InputStream? = context.contentResolver.openInputStream(fileUri)
+        val inputStream: InputStream = context.contentResolver.openInputStream(fileUri)
+            ?: throw IOException("Couldn't open the shared file")
         val outputStream: OutputStream = FileOutputStream(destinationFile)
-        inputStream?.use { input ->
+        inputStream.use { input ->
             outputStream.use { output ->
                 input.copyTo(output)
             }
@@ -98,16 +99,23 @@ object FileUtils {
      * @return The absolute path of the image
      */
     fun copyUriToStorage(fileUri: Uri, context: Context): String? {
-        val fileName = getFileName(context, fileUri) ?: return null
+        val fileName = getSafeFileName(getFileName(context, fileUri)) ?: return null
         val destinationFile = File(getInternalStorageDirectory(context), fileName)
 
         return try {
             saveFileFromProviderUri(fileUri, destinationFile, context)
             destinationFile.absolutePath
         } catch (ex: IOException) {
+            destinationFile.delete()
             Log.e(tag, "Couldn't save file from intent", ex)
             null
         }
+    }
+
+    /** The sending app chooses the display name, so drop any directory segments to keep the copy inside the share folder. */
+    fun getSafeFileName(name: String?): String? {
+        val baseName = name?.substringAfterLast('/')?.substringAfterLast('\\')?.trim()
+        return if (baseName.isNullOrEmpty() || baseName == "." || baseName == "..") null else baseName
     }
 
     private fun getFileName(context: Context, uri: Uri): String? {
