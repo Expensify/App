@@ -1307,10 +1307,10 @@ type OriginalMessageMovedTransaction = {
 type OriginalMessageMergedReports = {
     /** Reports merged into this report, with their names at merge time because the merge deletes them */
     sourceReports: Array<{
-        /** ID of the merged report */
+        /** ID of a report the merge deleted, so it no longer resolves to a report in Onyx */
         reportID: string;
 
-        /** Name of the merged report */
+        /** Name the report had at merge time, kept here because the merge deletes the report */
         reportName: string;
     }>;
 
