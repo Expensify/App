@@ -8,6 +8,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getFieldRequiredErrors, isValidTaxIDEINNumber} from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -57,6 +58,7 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
             shouldDelayAutoFocus
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

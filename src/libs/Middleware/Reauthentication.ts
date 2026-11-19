@@ -10,6 +10,7 @@ import reauthenticateLibs from '@libs/Reauthentication';
 import type {ReauthenticationResult} from '@libs/Reauthentication';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
+import trackAuthenticationError from '@libs/telemetry/trackAuthenticationError';
 
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
@@ -33,6 +34,7 @@ function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     isAuthenticating = retryReauthenticate(commandName).finally(() => {
         // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
         isAuthenticating = null;
+        reauthThrottle.clear();
     });
 
     return isAuthenticating;
@@ -44,6 +46,11 @@ function retryReauthenticate(commandName?: string): Promise<ReauthenticationResu
             .sleep(error, 'Authenticate')
             .then(() => retryReauthenticate(commandName))
             .catch(() => {
+                trackAuthenticationError(error, {
+                    errorType: 'retries_exhausted',
+                    functionName: 'reauthenticate',
+                    command: commandName,
+                });
                 setIsAuthenticating(false);
                 Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED, 'passwordForm.error.fallback');

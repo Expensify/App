@@ -3,6 +3,8 @@ import type {AmountFilterContentWrapperProps} from '@components/Search/FilterCom
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+
 import React from 'react';
 
 function AmountFilterContentPopupWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
@@ -12,6 +14,7 @@ function AmountFilterContentPopupWrapper({baseFilterKey, value, onChange}: Amoun
             baseFilterKey={baseFilterKey}
             value={value}
             style={[styles.pt2]}
+            sentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
             onChange={onChange}
         />
     );

@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
-import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -27,8 +26,8 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useEffect, useRef, useState} from 'react';
-import {Alert, AppState, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
 import ShareTab from './ShareTab';
@@ -77,7 +76,6 @@ function ShareRootPage() {
             });
     };
 
-    const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
@@ -142,9 +140,6 @@ function ShareRootPage() {
                         // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
                         // even when a previous Share session left the tab on SHARE.
                         Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
-                        // Pre-warm the position while the user picks a recipient so SubmitDetailsPage
-                        // avoids reading the device inside the ShareExtensionOpenSubmitFlow span.
-                        snapshotUserLocation();
                     } else {
                         setIsFileScannable(false);
                     }
@@ -158,12 +153,13 @@ function ShareRootPage() {
     };
 
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                handleProcessFiles();
+        // Re-read only on a new share. Foreground events also fire after permission dialogs, when the file may already be moved.
+        const subscription = Linking.addEventListener('url', ({url}) => {
+            if (!url.includes(ROUTES.SHARE_ROOT)) {
+                return;
             }
 
-            appState.current = nextAppState;
+            handleProcessFiles();
         });
 
         return () => {

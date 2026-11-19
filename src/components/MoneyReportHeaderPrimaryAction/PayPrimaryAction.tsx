@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -121,6 +122,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
 
     const refreshSearch = () => {
         // Read at payment time, since the Wise quote can be confirmed after the network state changes
@@ -149,6 +151,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
+                paymentMethod,
                 methodID,
                 onConfirm: () => startAnimation(),
             });
@@ -198,6 +201,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             return;
         }
 
+        if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (moneyRequestReport?.reportID) {
+                payReportsViaABA([moneyRequestReport], policy, {onPaid: startAnimation});
+            }
+            return;
+        }
+
         payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -230,6 +240,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
 
     return (
         <AnimatedSettlementButton
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PRIMARY_ACTION.PAY}
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
@@ -246,7 +257,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={!isOffline && !canAllowSettlement}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
         />
     );
 }
