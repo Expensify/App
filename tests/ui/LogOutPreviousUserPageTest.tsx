@@ -13,7 +13,7 @@ import Navigation from '@navigation/Navigation';
 
 import LogOutPreviousUserPage from '@pages/LogOutPreviousUserPage';
 
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isAnonymousUser, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -126,6 +126,7 @@ describe('LogOutPreviousUserPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(isAnonymousUser).mockReturnValue(false);
         jest.mocked(signInWithShortLivedAuthToken).mockResolvedValue(undefined);
         mockInitialURL = SUPPORT_TRANSITION_URL;
         await act(async () => {
@@ -255,6 +256,35 @@ describe('LogOutPreviousUserPage', () => {
 
         // Then the prompt is closed, so it cannot sign out whatever session is current later
         expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')})).toBeNull();
+    });
+
+    it('keeps the transition route on top when signing out an anonymous session for a link into another account', async () => {
+        // Given an anonymous session that last visited a public room, and a transition link for an account
+        mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+        jest.mocked(isAnonymousUser).mockReturnValue(true);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await Onyx.set(ONYXKEYS.LAST_VISITED_PATH, REPORT_ROUTE);
+        });
+        const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot');
+
+        // The sign-out keeps only the top root route, so record which route is on top when it runs
+        let topRouteAtSignOut: string | undefined;
+        jest.mocked(signOutAndRedirectToSignIn).mockImplementationOnce(() => {
+            topRouteAtSignOut = navigationRef.getRootState()?.routes.at(-1)?.name;
+            return undefined;
+        });
+
+        // When the transition page opens for that link
+        renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page signs out with the transition route still on top, so the public transition page can sign in the link account
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
+        expect(resetRootSpy).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        resetRootSpy.mockRestore();
     });
 
     it('goes Home for an old mobile link that names its token shortLivedToken', async () => {
