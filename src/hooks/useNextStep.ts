@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
@@ -27,6 +28,7 @@ function useNextStep(reportID: string | undefined) {
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const reportOwnerPersonalDetailsByLogin = usePersonalDetailsByLogins([reportOwnerLogin]);
     const {transactions, violations} = useTransactionsAndViolationsForReport(report?.reportID);
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -38,6 +40,7 @@ function useNextStep(reportID: string | undefined) {
         currentUserAccountID,
         report,
         reportOwnerLogin: reportOwnerLogin ?? '',
+        reportOwnerPersonalDetailsByLogin,
         reportMetadata: pendingExpenseActionMetadata,
         reportActions,
         transactions,
