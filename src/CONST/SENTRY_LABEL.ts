@@ -3327,6 +3327,7 @@ const SENTRY_LABEL = {
         DATE_OF_BIRTH: 'SettingsProfile-DateOfBirth',
         PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
         ADDRESS: 'SettingsProfile-Address',
+        ADDRESS_STATE_OR_PROVINCE: 'SettingsProfile-AddressStateOrProvince',
         TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
         AI_PROMPT: 'SettingsProfile-AIPrompt',
         AI_PROMPT_SAVE: 'SettingsProfile-AIPromptSave',
