@@ -107,6 +107,9 @@ type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = E
      */
     callback?: MultifactorAuthenticationScenarioCallback;
 
+    /** Hides the MFA modal as soon as the action succeeds, for actions that dismiss a native sheet over it. */
+    shouldHideModalOnSuccess?: true;
+
     /**
      * Called when the user cancels the MFA flow. When provided, cancel() awaits this function
      * and uses the returned MFAError to navigate to the appropriate failure screen.

@@ -88,7 +88,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
+    const {isCancelConfirmVisible, isModalHidden, isModalOpen, scenario} = useMultifactorAuthenticationState();
     const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -219,8 +219,9 @@ function MultifactorAuthenticationModalNavigator() {
 
     return (
         <View
-            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
-            pointerEvents="box-none"
+            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot, isModalHidden && styles.opacity0]}
+            pointerEvents={isModalHidden ? 'none' : 'box-none'}
+            aria-hidden={isModalHidden}
         >
             {!shouldUseNarrowLayout && (
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>
