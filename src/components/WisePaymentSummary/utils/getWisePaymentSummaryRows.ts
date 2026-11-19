@@ -76,7 +76,7 @@ function getPaidWisePaymentSummaryRows({report, amounts, translate, convertToDis
     return rows;
 }
 
-/** Ordered so the reimbursable amount plus the fees add up to what the company pays, as Wise requires before payment */
+/** Rows in the order Wise requires before payment */
 function getWisePaymentSummaryRows(params: GetWisePaymentSummaryRowsParams): WisePaymentSummaryRow[] {
     const {report, amounts, isPayingUnheldOnly, isPaid = false, translate, convertToDisplayString} = params;
     if (isPaid) {
