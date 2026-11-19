@@ -1049,7 +1049,7 @@ type ABAFile = {
     content: string;
 };
 
-type PayViaABAJSONResponse = {
+type PayViaABAResponse = {
     jsonCode?: number;
     message?: string;
     ABA?: string;
@@ -1066,7 +1066,7 @@ async function getABAFileContent(response: Response): Promise<string> {
         }
         return response.text();
     }
-    return response.json().then((data: PayViaABAJSONResponse) => {
+    return response.json().then((data: PayViaABAResponse) => {
         if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.ABA === undefined) {
             throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
         }
