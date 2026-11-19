@@ -15,8 +15,7 @@ import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsConciergeInboxDM from './useIsConciergeInboxDM';
-import useIsConciergeNewChatOnly from './useIsConciergeNewChatOnly';
-import useIsInSidePanel from './useIsInSidePanel';
+import useIsInConciergePage from './useIsInConciergePage';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -36,11 +35,8 @@ type ConciergeAskState = {
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
-    const isConciergeNewChatOnly = useIsConciergeNewChatOnly();
-    const isInSidePanel = useIsInSidePanel();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    // The side panel shows the Concierge DM's history, unless the DM only starts new conversations there, as it does with the flat navigation
-    const isConciergeDM = isConciergeInboxDM || (isConciergeNewChatOnly && !!reportID && reportID === conciergeReportID);
+    // The Concierge chat on the Concierge page only starts new conversations, so it shows the welcome screen instead of its history
+    const isInConciergePage = useIsInConciergePage();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -64,15 +60,13 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    // A link to a message in the Concierge chat shows that message, even where the chat only starts new conversations
-    const isHistoryExpanded = isConciergeDM && (!!route.params?.reportActionID || (showFullHistory && !isConciergeNewChatOnly));
-    const shouldShowWelcome = isConciergeDM && !isHistoryExpanded && (isConciergeNewChatOnly || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
+    const isHistoryExpanded = isConciergeInboxDM && ((showFullHistory && !isInConciergePage) || !!route.params?.reportActionID);
+    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isInConciergePage || ((isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers));
 
     return {
         isHistoryExpanded,
         shouldShowWelcome,
-        // The side panel is always narrow, so it keeps the composer at the bottom like the mobile layout
-        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout && !isInSidePanel,
+        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
         hasUnreadMessageFromOthers,
     };
 }

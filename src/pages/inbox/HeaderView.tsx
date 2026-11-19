@@ -20,7 +20,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
-import useConciergeHeaderPlacement from '@hooks/useConciergeHeaderPlacement';
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -118,7 +117,6 @@ import {Keyboard, View} from 'react-native';
 import {useConciergeChatHistoryActions} from './ConciergeChatHistoryContext';
 import ConciergeNewChatIconButton from './ConciergeNewChatIconButton';
 import ConciergePageHistoryButton from './ConciergePageHistoryButton';
-import ConciergeSidePanelHistoryButton from './ConciergeSidePanelHistoryButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -185,7 +183,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     // The Concierge page starts new conversations from the New button of its list
     const shouldShowNewConciergeChatButton = !isInSidePanel && !isInConciergePage && isConciergeThread;
-    const {isInNarrowConciergePage, isInConciergeSidePanel} = useConciergeHeaderPlacement(reportID);
+    const isInNarrowConciergePage = isInConciergePage && shouldUseNarrowLayout;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, reportMetadata, false, true);
@@ -305,7 +303,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
     // Each Concierge conversation is its own thread on the Concierge page, so its threads offer a human too. A support ticket already has one.
-    const shouldShowTalkToHuman = isConciergeChat || ((isInConciergePage || isInConciergeSidePanel) && isConciergeThread && !isSupportTicketReport);
+    const shouldShowTalkToHuman = isConciergeChat || (isInConciergePage && isConciergeThread && !isSupportTicketReport);
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
     // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
@@ -562,7 +560,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                 </View>
                                 {isInNarrowConciergePage && !isConciergeChat && <ConciergeNewChatIconButton />}
                                 {isInNarrowConciergePage && <ConciergePageHistoryButton />}
-                                {isInConciergeSidePanel && <ConciergeSidePanelHistoryButton />}
                                 <SidePanelExpandButton reportID={reportID} />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
