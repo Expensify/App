@@ -21,6 +21,8 @@ import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
@@ -34,31 +36,43 @@ import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {TableActionsContext, useTableContext, useTableRowSemanticID} from './TableContext';
 
-type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
-    /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
-    accessible?: true;
+// An interactive row handles presses, Enter/Space and the long press that starts mobile selection on its own, even
+// without onPress, so it always needs a label. The long press is the row's own, so callers can't pass `onLongPress`.
+type TableRowInteractivityProps =
+    | (WithRequiredSentryLabel & {
+          /** Whether or not the table row is pressable or not */
+          interactive: true;
+      })
+    | (WithSentryLabel & {
+          interactive: false;
 
-    /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
-    accessibilityLabel: string;
+          /** A row that isn't interactive ignores presses */
+          onPress?: undefined;
+      });
 
-    /** Whether or not the table row is pressable or not */
-    interactive: boolean;
+type TableRowProps = TableRowInteractivityProps &
+    Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel' | 'sentryLabel' | 'interactive' | 'onLongPress'> & {
+        /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
+        accessible?: true;
 
-    disabled?: boolean;
-    rowIndex: number;
+        /** Describes the row's content to assistive technology, e.g. `Workspace name: Acme, Owner: Jane Doe`. */
+        accessibilityLabel: string;
 
-    /** Attributes for when the client is offline and there is an error related to the table row */
-    offlineWithFeedback?: OfflineWithFeedbackProps;
+        disabled?: boolean;
+        rowIndex: number;
 
-    /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
-    checkboxReplacementElement?: React.ReactNode;
+        /** Attributes for when the client is offline and there is an error related to the table row */
+        offlineWithFeedback?: OfflineWithFeedbackProps;
 
-    /** Optional content rendered below the row grid */
-    rowFooter?: React.ReactNode;
+        /** Custom element to render in place of the selection checkbox (e.g. a lock icon for non-selectable rows) */
+        checkboxReplacementElement?: React.ReactNode;
 
-    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
-    isGroupHeader?: boolean;
-};
+        /** Optional content rendered below the row grid */
+        rowFooter?: React.ReactNode;
+
+        /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+        isGroupHeader?: boolean;
+    };
 
 export default function TableRow({
     children,
@@ -334,6 +348,9 @@ export default function TableRow({
         wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
     };
 
+    // Only an interactive row handles presses, and its props require a label.
+    const pressProps = interactive ? {sentryLabel, onPress: handleRowPress, onLongPress: handleRowLongPress} : {};
+
     return (
         <OfflineWithFeedback
             {...offlineWithFeedback}
@@ -345,7 +362,6 @@ export default function TableRow({
                 id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
                 aria-hidden={isAccessibilityHidden ? true : undefined}
                 style={tableRowPressableStyles}
-                sentryLabel={sentryLabel}
                 interactive={interactive}
                 shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}
@@ -379,12 +395,11 @@ export default function TableRow({
                     const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
                     markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
                 }}
-                onPress={(event) => handleRowPress(event)}
+                {...pressProps}
                 onPressIn={(event) => {
                     captureEditingOnPressIn();
                     onPressIn?.(event);
                 }}
-                onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}
                 dataSet={rowDataSet}

@@ -566,6 +566,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowHRSyncLink && '. '}
                         {shouldShowHRSyncLink && (
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CONFIGURE_HR_SYNC_LINK}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
                             >
                                 {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
@@ -616,6 +617,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeRole'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_ROLE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_ROLE,
                 icon: icons.UserPencil,
                 shouldSkipFocusRestore: true,
                 onSelected: () => {
@@ -629,6 +631,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeOfficeLocation'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_OFFICE_LOCATION,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_OFFICE_LOCATION,
                 icon: icons.Location,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.getRoute(policyID)),
             });
@@ -642,6 +645,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.changeWorkArrangement'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.CHANGE_WORK_ARRANGEMENT,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
             });
@@ -651,6 +655,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push({
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_REMOVE,
                 icon: icons.RemoveMembers,
                 shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
@@ -690,6 +695,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_IMPORT_SPREADSHEET,
             },
             {
                 icon: icons.Download,
@@ -704,6 +710,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_DOWNLOAD_CSV,
             },
         ];
         const hrProvider = getConnectedHRProvider(policy);
@@ -722,6 +729,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     close(() => syncConnection(policy, hrProvider.connectionName));
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_MENU_SYNC_WITH_HR,
                 disabled: isHRSyncInProgress,
             });
         }

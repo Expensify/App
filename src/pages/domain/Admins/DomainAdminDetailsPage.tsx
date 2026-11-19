@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React from 'react';
+import React, {useEffect, useId} from 'react';
 
 type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMIN_DETAILS>;
 
@@ -48,13 +48,25 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const [adminPersonalDetails] = usePersonalDetail(accountID);
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const isTargetAdmin = !!adminAccountIDs?.includes(accountID);
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate, formatPhoneNumber});
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModalByID} = useConfirmModal();
+    const revokeAdminModalID = useId();
+
+    useEffect(() => {
+        // The global confirmation outlives the page content replaced by Not Found.
+        if (isTargetAdmin) {
+            return;
+        }
+        closeModalByID(revokeAdminModalID);
+    }, [isTargetAdmin, closeModalByID, revokeAdminModalID]);
+
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
+            id: revokeAdminModalID,
             title: translate('domain.admins.revokeAdminAccess'),
             prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
@@ -75,6 +87,8 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         <BaseDomainMemberDetailsComponent
             domainAccountID={domainAccountID}
             accountID={accountID}
+            shouldBeBlocked={!isTargetAdmin}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}}
         >
             {domainHasOnlyOneAdmin && (
                 <MenuItemAction

@@ -2,7 +2,19 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
-import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import {
+    doesMoneyRequestDraftHaveUserInput,
+    isDistanceTypeRequest,
+    isGPSDistanceRequest,
+    isManualDistanceRequest,
+    isMapDistanceRequest,
+    isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isScanRequest,
+    isTimeRequest,
+    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from '@libs/TransactionUtils';
 import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
@@ -19,11 +31,12 @@ import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transacti
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates, compareDuplicateTransactionFields} from '../../src/libs/TransactionUtils/duplicates';
+import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -334,84 +347,54 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('getCategoryTaxDetails', () => {
-        it('should return the associated tax when the category matches the tax expense rules', () => {
-            // Given a policy with tax expense rules associated with a category
+    describe('getCategoryTaxCode', () => {
+        const POLICY_ID = '0';
+
+        it('should return the associated tax when the category matches a category rule', () => {
+            // Given a policy with an expense default that sets a tax for a category
             const category = 'Advertising';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
+            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
             // When retrieving the tax from the associated category
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
 
-            // Then it should return the associated tax code, amount, and value
+            // Then it should return the tax code the rule sets
             expect(categoryTaxCode).toBe('id_TAX_RATE_1');
-            expect(categoryTaxAmount).toBe(5);
-            expect(categoryTaxValue).toBe('5%');
         });
 
-        it("should return the default tax when the category doesn't match the tax expense rules", () => {
-            // Given a policy with tax expense rules associated with a category
-            const ruleCategory = 'Advertising';
-            const selectedCategory = 'Benefits';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
+        it("should return undefined when the category doesn't match any category rule", () => {
+            // Given an expense default that sets a tax for a different category
+            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection(POLICY_ID, 'Advertising', 'id_TAX_RATE_1');
 
-            // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
+            // When retrieving the tax for a category no rule matches
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Benefits', generateTransaction(), fakePolicy, rules);
 
-            // Then it should return the default tax code, amount, and value
-            expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
-            expect(categoryTaxAmount).toBe(0);
-            expect(categoryTaxValue).toBe('0%');
+            // Then no rule applies, so the caller is left to fall back to the workspace default
+            expect(categoryTaxCode).toBeUndefined();
         });
 
-        it("should return the foreign default tax when the category doesn't match the tax expense rules and using a foreign currency", () => {
-            // Given a policy with tax expense rules associated with a category and a transaction with a foreign currency
-            const ruleCategory = 'Advertising';
-            const selectedCategory = 'Benefits';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: {
-                    ...CONST.DEFAULT_TAX,
-                    foreignTaxDefault: 'id_TAX_RATE_2',
-                    taxes: {
-                        ...CONST.DEFAULT_TAX.taxes,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        id_TAX_RATE_2: {
-                            name: 'Tax rate 2',
-                            value: '10%',
-                        },
-                    },
-                },
-                outputCurrency: 'IDR',
-                rules: {expenseRules: createCategoryTaxExpenseRules(ruleCategory, 'id_TAX_RATE_1')},
-            };
-            const transaction = generateTransaction();
+        it('should ignore a rule that also matches on a merchant', () => {
+            // Given a rule matching on a category and a merchant, which is narrower than the category alone
+            const category = 'Advertising';
+            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1', 'Starbucks');
 
-            // When retrieving the tax from a category that is not associated with the tax expense rules
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(selectedCategory, transaction, fakePolicy, getCurrencyDecimalsLocal);
+            // When retrieving the tax for that category
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, generateTransaction(), fakePolicy, rules);
 
-            // Then it should return the default tax code, amount, and value
-            expect(categoryTaxCode).toBe('id_TAX_RATE_2');
-            expect(categoryTaxAmount).toBe(9);
-            expect(categoryTaxValue).toBe('10%');
+            // Then the rule is skipped, because applying it would tax every expense in the category rather than the ones it matches
+            expect(categoryTaxCode).toBeUndefined();
         });
 
         describe('distance expenses', () => {
             const distanceRateID = 'DISTANCE_RATE_ID';
 
-            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
+            function buildDistancePolicy(taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
                 return {
                     ...createRandomPolicy(0),
+                    id: POLICY_ID,
                     taxRates: {
                         ...CONST.DEFAULT_TAX,
                         taxes: {
@@ -420,7 +403,6 @@ describe('TransactionUtils', () => {
                             id_TAX_RATE_2: {name: 'Tax Rate 2', value: '8%', isDisabled: isRateTaxDisabled},
                         },
                     },
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
                     customUnits: {
                         DISTANCE_CUSTOM_UNIT: {
                             attributes: {taxEnabled, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
@@ -452,56 +434,48 @@ describe('TransactionUtils', () => {
                 };
             }
 
+            const category = 'Advertising';
+
             it('should apply the category rule when distance tax tracking is on and the rate has no tax rate of its own', () => {
                 // Given a policy whose distance rates track tax, where the selected rate has no tax rate of its own
-                const category = 'Advertising';
-                const fakePolicy = buildDistancePolicy(category, true);
+                const fakePolicy = buildDistancePolicy(true);
+                const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+                const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, buildDistanceTransaction(), fakePolicy, rules);
 
                 // Then the category rule fills the slot the rate left empty, rather than the workspace default
                 expect(categoryTaxCode).toBe('id_TAX_RATE_1');
-                expect(categoryTaxValue).toBe('5%');
             });
 
             it('should keep the rate tax rate when distance tax tracking is on and the rate has its own tax rate', () => {
                 // Given a policy whose distance rates track tax, where the selected rate carries its own tax rate
-                const category = 'Advertising';
-                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2');
+                const fakePolicy = buildDistancePolicy(true, 'id_TAX_RATE_2');
+                const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
-                    category,
-                    buildDistanceTransaction(),
-                    fakePolicy,
-                    getCurrencyDecimalsLocal,
-                );
+                const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, buildDistanceTransaction(), fakePolicy, rules);
 
                 // Then the category rule is skipped, because the rate's own tax rate takes precedence over it
                 expect(categoryTaxCode).toBeUndefined();
-                expect(categoryTaxAmount).toBeUndefined();
-                expect(categoryTaxValue).toBeUndefined();
             });
 
             it('should apply the category rule when the rate points at a tax rate that was disabled', () => {
                 // Given a distance rate that still points at a tax rate the admin has since disabled
-                const category = 'Advertising';
-                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2', true);
+                const fakePolicy = buildDistancePolicy(true, 'id_TAX_RATE_2', true);
+                const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+                const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, buildDistanceTransaction(), fakePolicy, rules);
 
                 // Then the rate counts as having no tax rate, so the category rule applies no matter which of the two the user picked first
                 expect(categoryTaxCode).toBe('id_TAX_RATE_1');
-                expect(categoryTaxValue).toBe('5%');
             });
 
             it('should fall back to the workspace default when the category rule points at a disabled tax rate', () => {
                 // Given a category rule pointing at a tax rate the admin has since disabled, on a rate with no tax rate of its own
-                const category = 'Advertising';
                 const fakePolicy: Policy = {
-                    ...buildDistancePolicy(category, true),
+                    ...buildDistancePolicy(true),
                     taxRates: {
                         ...CONST.DEFAULT_TAX,
                         taxes: {
@@ -511,57 +485,37 @@ describe('TransactionUtils', () => {
                         },
                     },
                 };
+                const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
 
                 // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+                const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, buildDistanceTransaction(), fakePolicy, rules);
 
                 // Then the rule is skipped, because the expense cannot carry a tax rate the user is no longer offered
                 expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
-                expect(categoryTaxValue).toBe('0%');
+            });
+
+            it('should return undefined when distance tax tracking is disabled', () => {
+                // Given a category rule on a policy whose distance rates do not track tax
+                const fakePolicy = buildDistancePolicy(false);
+                const rules = createCategoryTaxRulesCollection(POLICY_ID, category, 'id_TAX_RATE_1');
+
+                // When retrieving the tax from the associated category
+                const categoryTaxCode = TransactionUtils.getCategoryTaxCode(category, buildDistanceTransaction(), fakePolicy, rules);
+
+                // Then no tax is resolved, because the Tax field is hidden and a value written there would be invisible
+                expect(categoryTaxCode).toBeUndefined();
             });
         });
 
-        describe('should return undefined tax', () => {
-            it('if the transaction type is distance and distance tax tracking is disabled', () => {
-                // Given a policy with tax expense rules associated with a category, and no distance rates tracking tax
-                const category = 'Advertising';
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(0),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
-                };
-                const transaction: Transaction = {
-                    ...generateTransaction(),
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                };
+        it('should return undefined when the policy has no expense defaults', () => {
+            // Given a policy with no rules at all
+            const fakePolicy: Policy = {...createRandomPolicy(0), id: POLICY_ID, taxRates: CONST.DEFAULT_TAX};
 
-                // When retrieving the tax from the associated category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
+            // When retrieving the tax for a category
+            const categoryTaxCode = TransactionUtils.getCategoryTaxCode('Advertising', generateTransaction(), fakePolicy, {});
 
-                // Then it should return undefined for the tax code, amount, and value
-                expect(categoryTaxCode).toBe(undefined);
-                expect(categoryTaxAmount).toBe(undefined);
-                expect(categoryTaxValue).toBe(undefined);
-            });
-
-            it('if there are no policy tax expense rules', () => {
-                // Given a policy without tax expense rules
-                const category = 'Advertising';
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(0),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {},
-                };
-                const transaction = generateTransaction();
-
-                // When retrieving the tax from a category
-                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, transaction, fakePolicy, getCurrencyDecimalsLocal);
-
-                // Then it should return undefined for the tax code, amount, and value
-                expect(categoryTaxCode).toBe(undefined);
-                expect(categoryTaxAmount).toBe(undefined);
-                expect(categoryTaxValue).toBe(undefined);
-            });
+            // Then no rule applies
+            expect(categoryTaxCode).toBeUndefined();
         });
     });
 
@@ -645,14 +599,15 @@ describe('TransactionUtils', () => {
             });
 
             // When computing the tax for the full trip, the excluded trip, and a trip of only the reimbursable part
-            const fullTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 30}), RATE_ID, getCurrencyDecimalsLocal);
+            const fullTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 30}), RATE_ID, {}, getCurrencyDecimalsLocal);
             const excludedTrip = TransactionUtils.getDistanceRateTaxUpdates(
                 policy,
                 buildTrip({quantity: 30, commuterExclusion: 10, reimbursableDistance: 20}),
                 RATE_ID,
+                {},
                 getCurrencyDecimalsLocal,
             );
-            const shortTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 20}), RATE_ID, getCurrencyDecimalsLocal);
+            const shortTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 20}), RATE_ID, {}, getCurrencyDecimalsLocal);
 
             // Then the commute is left out of the tax, so the expense is taxed as if it were only the reimbursable 20 miles
             expect(excludedTrip.taxAmount).toBe(shortTrip.taxAmount);
@@ -664,10 +619,61 @@ describe('TransactionUtils', () => {
             const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1', isRateTaxDisabled: true});
 
             // When computing the tax updates for that distance rate
-            const {taxCode} = TransactionUtils.getDistanceRateTaxUpdates(policy, distanceTransaction, RATE_ID, getCurrencyDecimalsLocal);
+            const {taxCode} = TransactionUtils.getDistanceRateTaxUpdates(policy, distanceTransaction, RATE_ID, {}, getCurrencyDecimalsLocal);
 
             // Then the disabled tax code is not used
             expect(taxCode).toBe('id_TAX_EXEMPT');
+        });
+
+        describe('getCategoryTaxDetails for a distance split', () => {
+            // A rate carrying its own tax rate outranks a category rule, so the rate is left without one.
+            const buildRuledPolicy = () => buildDistancePolicy({rateTaxCode: ''});
+
+            it("applies the category rule's rate", () => {
+                // Given a workspace whose Car category carries a tax rule
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split on that category is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails(
+                    'Car',
+                    distanceTransaction,
+                    policy,
+                    createCategoryTaxRulesCollection(policy.id, 'Car', 'id_TAX_RATE_1'),
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the rule's rate is used
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+            });
+
+            it('falls back to the workspace default for a category with no rule', () => {
+                // Given the same workspace, and a category it has no rule for
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split on that category is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails(
+                    'Equipment',
+                    distanceTransaction,
+                    policy,
+                    createCategoryTaxRulesCollection(policy.id, 'Car', 'id_TAX_RATE_1'),
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the workspace default is written rather than nothing, so switching away from a category with
+                // a rule does not leave that category's rate on the split
+                expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+            });
+
+            it('leaves a split alone on a workspace with no category tax rule at all', () => {
+                // Given a workspace with no category tax rule, so the split's tax was never rule driven
+                const policy = buildRuledPolicy();
+
+                // When the tax for a distance split is resolved
+                const {categoryTaxCode} = TransactionUtils.getCategoryTaxDetails('Equipment', distanceTransaction, policy, {}, getCurrencyDecimalsLocal);
+
+                // Then nothing is written, so whatever tax the split holds stands
+                expect(categoryTaxCode).toBeUndefined();
+            });
         });
     });
 
@@ -688,8 +694,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Zero Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
 
@@ -714,102 +720,14 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Failed Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
 
             // Then the edit does not incorrectly confirm the missing amount
             expect(updatedTransaction.isAmountSet).not.toBe(true);
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
-        });
-
-        it('should return updated category and tax when updating category with a category tax rules', () => {
-            // Given a policy with tax expense rules associated with a category
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction();
-
-            // When updating the transaction category to the category associated with the rule
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the updated transaction should contain the tax from the matched rule
-            expect(updatedTransaction.category).toBe(category);
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should keep the existing tax when clearing the category on a server backed edit', () => {
-            // Given an expense carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the tax is left untouched, because the API is not told to change it and the server keeps its own
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should reset to the workspace default tax when clearing the category on a split draft', () => {
-            // Given a split draft carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared on the draft
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: false,
-                isSplitTransaction: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the draft falls back to the workspace default, since the draft tax is what gets sent
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe('id_TAX_EXEMPT');
-            expect(updatedTransaction.taxAmount).toBe(0);
-            expect(updatedTransaction.taxValue).toBe('0%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -853,8 +771,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: quantity should be updated
@@ -917,8 +835,8 @@ describe('TransactionUtils', () => {
                 policy: undefined,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.routes).toEqual(routes);
@@ -964,8 +882,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the amount/merchant are recalculated locally against the new rate (10 mi × rate2), not deferred to the server
@@ -1012,8 +930,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the rate id updates, but amount/merchant recalculation is deferred to the server (no valid local mileage data)
@@ -1075,8 +993,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then: the rate id updates, but the stale distance is not turned into an amount/merchant
@@ -1141,8 +1059,8 @@ describe('TransactionUtils', () => {
                         ...(rateUnitChanged ? {customUnitRateID: 'ID2'} : {}),
                     },
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 const expectedExclusion = rateUnitChanged ? 4.83 : 3;
@@ -1207,8 +1125,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
@@ -1285,8 +1203,8 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // The commute is excluded from the new route's distance, so only the 17 reimbursable miles are charged.
@@ -1357,8 +1275,8 @@ describe('TransactionUtils', () => {
                     policies,
                     transactionChanges: {customUnitRateID: 'ID2'},
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
             // When the rate is changed
@@ -1436,8 +1354,8 @@ describe('TransactionUtils', () => {
                     policy: undefined,
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 // Currency + merchant follow the threaded personal currency (EUR), and amount = 20 mi × 30¢ = 600.
@@ -1491,8 +1409,8 @@ describe('TransactionUtils', () => {
                         },
                     },
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 // Merchant currency and modifiedCurrency both follow the EUR personal-policy rate, not the USD transaction currency.
@@ -1552,8 +1470,8 @@ describe('TransactionUtils', () => {
                     },
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
@@ -1602,8 +1520,8 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then the whole 20 miles is reimbursable, rather than the old commute coming off it
@@ -1657,8 +1575,8 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             // Then only the usual commute comes off the 20 mile trip, not the old full-trip exclusion
@@ -1677,8 +1595,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
@@ -1693,8 +1611,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
@@ -1708,8 +1626,8 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('5%');
@@ -1725,11 +1643,59 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
 
             expect(updatedTransaction.taxValue).toBe('10%');
+        });
+
+        it("resolves the category rule's tax when an existing expense's category changes", () => {
+            // Given an expense on a policy whose expense default sets a tax for the category being picked
+            const transaction = generateTransaction({category: 'Meals', taxCode: 'id_TAX_EXEMPT', taxValue: '0%', taxAmount: 0});
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
+
+            // When the category is edited, which an existing expense does without passing through the confirmation page
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: 'Advertising'},
+                policy,
+                rules,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic update carries the rule's tax, so offline the expense shows it without waiting for the server
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxAmount).toBe(5);
+        });
+
+        it('leaves the tax alone when the category is cleared on a server backed edit', () => {
+            // Given an expense carrying the tax its category rule set
+            const transaction = generateTransaction({category: 'Advertising', taxCode: 'id_TAX_RATE_1', taxValue: '5%', taxAmount: 5});
+            const policy: Policy = {...createRandomPolicy(0), id: '0', taxRates: CONST.DEFAULT_TAX};
+            const rules = createCategoryTaxRulesCollection('0', 'Advertising', 'id_TAX_RATE_1');
+
+            // When the category is cleared
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {category: ''},
+                policy,
+                rules,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stored tax is left untouched, because the server leaves it untouched too and predicting a change would flicker
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxAmount).toBe(5);
         });
     });
 
@@ -3221,6 +3187,79 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasViolation', () => {
+        const futureDateViolations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.FUTURE_DATE,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            },
+        ];
+        const policy: Policy = createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE);
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('should return true for a futureDate violation when the date and time are beyond the +14 hour window', () => {
+            // Given a futureDate violation on an expense that SmartScan dated today at UTC+14, with a time that hasn't happened yet at UTC+14
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28', modifiedCreated: '2026-10-28 18:11:40'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation counts, because the backend still returns it and it is shown on the expense
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a stale futureDate violation once the date is within the +14 hour window', () => {
+            // Given a futureDate violation saved earlier on a date-only expense dated the current UTC+14 date
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-27T17:18:00Z'));
+            const transaction = generateTransaction({created: '2026-10-28'});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, futureDateViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation doesn't count, because it is hidden and can't block Submit under strict rules
+            expect(result).toBe(false);
+        });
+
+        it('should return false for a missingAttendees violation when attendee tracking is off', () => {
+            // Given a missingAttendees violation on a Control workspace that has attendee tracking turned off, so the violation is hidden
+            const missingAttendeesViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const trackingOffPolicy: Policy = {...policy, isAttendeeTrackingEnabled: false};
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(
+                generateTransaction(),
+                missingAttendeesViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+                openReport,
+                CURRENT_USER_EMAIL,
+                trackingOffPolicy,
+            );
+
+            // Then the violation doesn't count, because the user can't see it and has nothing to fix before submitting
+            expect(result).toBe(false);
+        });
+
+        it('should return true for a missingCategory violation while Concierge AI picks a category', () => {
+            // Given a missingCategory violation on a new expense that is still being created, so it is hidden while Concierge AI picks a category
+            const missingCategoryViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+            const transaction = generateTransaction({category: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+
+            // When checking whether the expense has a violation
+            const result = TransactionUtils.hasViolation(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, openReport, CURRENT_USER_EMAIL, policy);
+
+            // Then the violation still counts, so the report can't be submitted before the category is set
+            expect(result).toBe(true);
+        });
+    });
+
     describe('hasNoticeTypeViolation', () => {
         const noticeViolations: TransactionViolation[] = [
             {
@@ -4379,7 +4418,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4390,7 +4429,7 @@ describe('TransactionUtils', () => {
                 taxValue: '15%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 - Default Policy (15%)');
         });
@@ -4401,7 +4440,7 @@ describe('TransactionUtils', () => {
                 taxValue: '5%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, true, policyForMovingExpenses);
 
             expect(result).toBe('Tax Rate 1 (5%)');
         });
@@ -4412,7 +4451,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policy, transaction, false, undefined);
 
             expect(result).toBe('Tax exempt (0%) • Default');
         });
@@ -4428,7 +4467,7 @@ describe('TransactionUtils', () => {
                 taxValue: undefined,
             });
 
-            const result = TransactionUtils.getTaxRateTitle(policyWithTrackingDisabled, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, policyWithTrackingDisabled, transaction, false, undefined);
 
             expect(result).toBe('');
         });
@@ -4439,7 +4478,7 @@ describe('TransactionUtils', () => {
                 taxValue: '10%',
             });
 
-            const result = TransactionUtils.getTaxRateTitle(undefined, transaction, false, undefined);
+            const result = TransactionUtils.getTaxRateTitle(translateLocal, undefined, transaction, false, undefined);
 
             expect(result).toBe('');
         });
@@ -4456,8 +4495,15 @@ describe('TransactionUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // Duplicates are compared only when their report is loaded, and generateTransaction defaults to report '1'.
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {...fakeReport, reportID: '1'});
+            await waitForBatchedUpdates();
+        });
+
         it('should return empty keep and change when reviewingTransaction or reportID is missing', () => {
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
             expect(result.keep).toEqual({});
             expect(result.change).toEqual({});
         });
@@ -4478,7 +4524,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.merchant).toBe('Merchant A');
             expect(result.keep.category).toBe('Food');
@@ -4500,7 +4546,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.change.merchant).toContain('Merchant A');
             expect(result.change.merchant).toContain('Merchant B');
@@ -4532,7 +4578,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('Marketing');
@@ -4563,7 +4609,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             // Since only one enabled tag is available and empty is not included, tag should not be in change
             expect(result.change.tag).toBeUndefined();
@@ -4596,7 +4642,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.keep.category).toBe('Food');
@@ -4619,7 +4665,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('');
                 expect(result.change.description).toBeUndefined();
@@ -4638,7 +4684,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change.merchant).toBeUndefined();
@@ -4658,7 +4704,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBeUndefined();
                 expect(result.change.merchant).toEqual(expect.arrayContaining(['Amazon', 'Best Buy', 'Target']));
@@ -4678,7 +4724,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Modified Merchant');
                 expect(result.change.merchant).toBeUndefined();
@@ -4702,7 +4748,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
@@ -4735,7 +4781,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.category).toBeUndefined();
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', 'Food']));
@@ -4768,7 +4814,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4803,7 +4849,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4826,7 +4872,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When categories are not enabled and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4856,7 +4902,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', '']));
             });
@@ -4874,7 +4920,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4896,7 +4942,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4935,7 +4981,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering:Project A');
             expect(result.change.tag).toContain('Engineering:Project B');
@@ -4972,7 +5018,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.tag).toBe('Engineering:Project A');
             expect(result.change.tag).toBeUndefined();
@@ -5002,7 +5048,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('');
@@ -5020,7 +5066,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('Business meeting');
                 expect(result.change.description).toBeUndefined();
@@ -5040,7 +5086,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBeUndefined();
                 expect(result.change.description).toHaveLength(3);
@@ -5059,7 +5105,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
@@ -5099,7 +5145,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5140,7 +5186,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5160,7 +5206,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBe(true);
                 expect(result.change.billable).toBeUndefined();
@@ -5177,7 +5223,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBeUndefined();
                 expect(result.change.billable).toEqual(expect.arrayContaining([true, false]));
@@ -5196,7 +5242,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBe(true);
                 expect(result.change.reimbursable).toBeUndefined();
@@ -5213,16 +5259,18 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
             });
 
             it('should force reimbursable to false and not show the step when the reviewing (kept) transaction is a managed card', () => {
+                // Given a company card expense imported with a forced non-reimbursable restriction
                 const managedCardTransaction = generateTransaction({
                     reimbursable: false,
                     managedCard: true,
+                    comment: {forceReimbursable: false},
                 });
 
                 const duplicates = [
@@ -5232,29 +5280,37 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                // When duplicates with different reimbursable values are compared
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then duplicate resolution preserves the restriction without offering a choice
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
             });
 
             it('should preserve an imported reimbursable=true value when the kept transaction is a managed card', () => {
-                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                // Given a company card expense imported with a forced reimbursable restriction
+                const managedCardTransaction = generateTransaction({reimbursable: true, managedCard: true, comment: {forceReimbursable: true}});
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                // When duplicates with different reimbursable values are compared
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then the forced reimbursable value survives duplicate resolution
                 expect(result.keep.reimbursable).toBe(true);
                 expect(result.change.reimbursable).toBeUndefined();
             });
 
             it('should default reimbursable to false when the kept managed card has no reimbursable value', () => {
-                const managedCardTransaction = generateTransaction({managedCard: true});
+                // Given a locked company card expense with an absent reimbursable value
+                const managedCardTransaction = generateTransaction({managedCard: true, comment: {forceReimbursable: false}});
                 delete managedCardTransaction.reimbursable;
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                // When the expense is kept during duplicate resolution
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
+                // Then the missing value still defaults to non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
             });
 
@@ -5271,7 +5327,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // The kept cash expense must not be silently converted to non-reimbursable; the differing values are
                 // surfaced as a review step instead.
@@ -5280,7 +5336,7 @@ describe('TransactionUtils', () => {
             });
 
             it('should force reimbursable to false when the selected (kept) transaction is a managed card, even though the reviewing transaction is a cash expense', () => {
-                // Reproduces the back-navigation bug: the Review* pages recompute the step list from the thread's cash
+                // Given the back-navigation bug: the Review* pages recompute the step list from the thread's cash
                 // transaction (reviewingTransaction) while the kept transaction is the managed card (selectedTransactionID).
                 const managedCardTransactionID = 'managed-card-1';
                 const reviewingCashTransaction = generateTransaction({
@@ -5294,11 +5350,14 @@ describe('TransactionUtils', () => {
                         transactionID: managedCardTransactionID,
                         reimbursable: false,
                         managedCard: true,
+                        comment: {forceReimbursable: false},
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
+                // When navigating back with the locked company card still selected
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
 
+                // Then the reimbursable step stays hidden
                 expect(result.keep.reimbursable).toBe(false);
                 expect(result.change.reimbursable).toBeUndefined();
             });
@@ -5319,10 +5378,74 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should keep a "Force Yes" company card expense reimbursable and not show the step', () => {
+                // Given a kept company card expense whose feed forces it to be reimbursable, and a non-reimbursable duplicate
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: true},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the forced value is kept, so resolving duplicates can't silently make the expense non-reimbursable
+                expect(result.keep.reimbursable).toBe(true);
+                expect(result.change.reimbursable).toBeUndefined();
+            });
+
+            it('should surface the reimbursable step when the kept company card expense uses a "Do Not Force" setting', () => {
+                // Given a kept company card expense whose reimbursable value the user can change
+                const companyCardTransaction = generateTransaction({
+                    reimbursable: true,
+                    managedCard: true,
+                    comment: {forceReimbursable: null},
+                });
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the user picks the reimbursable value in the review step
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should show the reimbursable step for a company card expense with no stamped restriction', () => {
+                // Given a kept company card expense with no stamped value, and a non-reimbursable duplicate
+                const companyCardTransaction = generateTransaction({reimbursable: true, managedCard: true});
+                const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then the user can choose, because a missing restriction means "Do Not Force"
+                expect(result.keep.reimbursable).toBeUndefined();
+                expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
+            });
+
+            it('should force reimbursable to false when the kept transaction is an Expensify Card expense', () => {
+                // Given a kept Expensify Card expense and a reimbursable duplicate
+                const expensifyCardTransaction = generateTransaction({
+                    reimbursable: false,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                });
+                const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
+
+                // When the duplicate fields are compared
+                const result = compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+
+                // Then Expensify Card expenses stay non-reimbursable
+                expect(result.keep.reimbursable).toBe(false);
+                expect(result.change.reimbursable).toBeUndefined();
             });
         });
 
@@ -5346,7 +5469,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeDefined();
                 expect(result.keep.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -5369,7 +5492,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeUndefined();
             });
@@ -5377,7 +5500,7 @@ describe('TransactionUtils', () => {
 
         describe('edge cases and data validation', () => {
             it('should return empty keep and change when reviewingTransaction is undefined', () => {
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep).toEqual({});
                 expect(result.change).toEqual({});
@@ -5388,7 +5511,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5399,7 +5522,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5422,7 +5545,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Should compare all transactions (Amazon, Best Buy, Target) since removeSettledAndApprovedTransactions
                 // checks the actual report state from Onyx, and in this case all reports may not be properly settled
@@ -5460,7 +5583,7 @@ describe('TransactionUtils', () => {
                     Travel: {name: 'Travel', enabled: true},
                 };
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.change.category).toEqual(expect.arrayContaining(['Food', 'Travel']));
@@ -5537,7 +5660,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5554,7 +5677,7 @@ describe('TransactionUtils', () => {
             const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
             const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
@@ -5570,7 +5693,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [approvedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5581,6 +5704,29 @@ describe('TransactionUtils', () => {
             );
 
             expect(params.transactionList).toEqual([]);
+        });
+
+        it('excludes a duplicate whose report is not loaded but keeps an unreported one', () => {
+            // Given one duplicate on a report missing from Onyx, whose state could be approved or paid,
+            // and one unreported duplicate that has no report at all
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const unloadedDuplicate = generateTransaction({reportID: 'unloadedDuplicateReport'});
+            const unreportedDuplicate = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            const duplicates = [unloadedDuplicate, unreportedDuplicate];
+
+            // When building the merge params
+            const params = buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+                keptTransaction,
+            );
+
+            // Then only the unreported duplicate is sent, so Auth never receives a transaction it would reject
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([unreportedDuplicate.transactionID]);
         });
     });
 
@@ -5593,31 +5739,51 @@ describe('TransactionUtils', () => {
 
         it('allows merging when the kept report is open and there are duplicates', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept report is awaiting first approval', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense is unreported (no resolvable report)', () => {
-            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('allows merging when the kept expense has no report ID at all', () => {
+            // Given a legacy unreported expense that carries no report ID instead of the unreported sentinel
+            // When checking whether the merge can be sent
+            const canMerge = canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
+
+            // Then it is treated like an unreported expense, which Auth still lets you merge
+            expect(canMerge).toBe(true);
+        });
+
+        it('blocks merging when the kept report is not loaded', () => {
+            // Given a kept expense that sits on a report missing from Onyx, so its state is unknown
+            const unloadedReportID = 'unloadedKeptReport';
+
+            // When checking whether the merge can be sent
+            const canMerge = canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
+
+            // Then it is blocked, because the report may be approved or paid and Auth would reject the merge
+            expect(canMerge).toBe(false);
         });
 
         it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when the kept report is reimbursed', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, [])).toBe(false);
         });
     });
 
@@ -5646,7 +5812,7 @@ describe('TransactionUtils', () => {
                 billable: true,
             };
 
-            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
 
             expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
             expect(updatedTransaction.taxAmount).toBe(-500);
@@ -6149,26 +6315,26 @@ describe('TransactionUtils', () => {
     });
 
     describe.each([
-        {fn: 'isDistanceTypeRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isMapDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
-        {fn: 'isGPSDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isManualDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isOdometerDistanceRequest', match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
-        {fn: 'isScanRequest', match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
-        {fn: 'isPerDiemRequest', match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
-        {fn: 'isTimeRequest', match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
-    ] as const)('$fn', ({fn, match, other}) => {
+        {name: 'isDistanceTypeRequest', fn: isDistanceTypeRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isMapDistanceRequest', fn: isMapDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, other: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS},
+        {name: 'isGPSDistanceRequest', fn: isGPSDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isManualDistanceRequest', fn: isManualDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isOdometerDistanceRequest', fn: isOdometerDistanceRequest, match: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, other: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP},
+        {name: 'isScanRequest', fn: isScanRequest, match: CONST.IOU.REQUEST_TYPE.SCAN, other: CONST.IOU.REQUEST_TYPE.MANUAL},
+        {name: 'isPerDiemRequest', fn: isPerDiemRequest, match: CONST.IOU.REQUEST_TYPE.PER_DIEM, other: CONST.IOU.REQUEST_TYPE.TIME},
+        {name: 'isTimeRequest', fn: isTimeRequest, match: CONST.IOU.REQUEST_TYPE.TIME, other: CONST.IOU.REQUEST_TYPE.PER_DIEM},
+    ] as const)('$name', ({fn, match, other}) => {
         describe(`when iouRequestType matches`, () => {
             it('returns true', () => {
                 const transaction = generateTransaction({iouRequestType: match});
-                expect(TransactionUtils[fn](transaction)).toBe(true);
+                expect(fn(transaction)).toBe(true);
             });
         });
 
         describe('when iouRequestType is a different request type', () => {
             it('returns false', () => {
                 const transaction = generateTransaction({iouRequestType: other});
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
 
@@ -6176,14 +6342,14 @@ describe('TransactionUtils', () => {
             it('returns false', () => {
                 const transaction = {...generateTransaction(), iouRequestType: null};
                 // @ts-expect-error -- null intentionally models a legacy runtime value.
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
 
         describe('when iouRequestType is undefined', () => {
             it('returns false', () => {
                 const transaction = generateTransaction({iouRequestType: undefined});
-                expect(TransactionUtils[fn](transaction)).toBe(false);
+                expect(fn(transaction)).toBe(false);
             });
         });
     });
@@ -6565,6 +6731,59 @@ describe('isTransactionSubmittable', () => {
         const transaction = generateTransaction();
 
         expect(TransactionUtils.isTransactionSubmittable(transaction, undefined, undefined, undefined, undefined, undefined, undefined)).toBe(true);
+    });
+});
+
+describe('isCardTransactionReimbursableEditable', () => {
+    it('returns true for a cash expense', () => {
+        // Given a cash expense, which follows the workspace cash expense rules instead of a card feed
+        const transaction = generateTransaction();
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then the reimbursable value can be changed
+        expect(isEditable).toBe(true);
+    });
+
+    it('returns false for an Expensify Card expense', () => {
+        // Given an Expensify Card expense, which can never be reimbursable, even with a "Do Not Force" value
+        const transaction = generateTransaction({managedCard: true, bank: CONST.EXPENSIFY_CARD.BANK, comment: {forceReimbursable: null}});
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then the reimbursable value can't be changed
+        expect(isEditable).toBe(false);
+    });
+
+    it.each([
+        [null, true],
+        [undefined, true],
+        [true, false],
+        [false, false],
+    ])('uses the stamped %s value of a company card expense', (forceReimbursable, expected) => {
+        // Given a company card expense stamped with the feed setting at import
+        const transaction = generateTransaction({managedCard: true, comment: {forceReimbursable}});
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then either boolean locks the value, while null and missing restrictions allow changes
+        expect(isEditable).toBe(expected);
+    });
+
+    it('returns true for a company card expense with no comment', () => {
+        // Given a company card expense with no stamped value. The current feed setting is ignored, because feed changes only affect new expenses
+        const transaction = generateTransaction({managedCard: true});
+
+        delete transaction.comment;
+
+        // When checking whether the card restriction permits editing
+        const isEditable = TransactionUtils.isCardTransactionReimbursableEditable(transaction);
+
+        // Then the absent comment does not introduce a restriction
+        expect(isEditable).toBe(true);
     });
 });
 

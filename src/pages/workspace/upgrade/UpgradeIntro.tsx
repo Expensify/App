@@ -120,14 +120,10 @@ function UpgradeIntro({feature, onUpgrade, upgradeSentryLabel, buttonDisabled, l
         );
     }
 
-    const isIllustration = feature.icon in illustrations;
-    const isIllustrationIcon = feature.icon in illustrationIcons;
-    let iconSrc;
-    if (isIllustrationIcon) {
-        iconSrc = illustrationIcons[feature.icon as keyof typeof illustrationIcons];
-    } else if (isIllustration) {
-        iconSrc = illustrations[feature.icon as keyof typeof illustrations];
-    }
+    const illustrationIcon = Object.entries(illustrationIcons).find(([name]) => name === feature.icon)?.[1];
+    const illustration = Object.entries(illustrations).find(([name]) => name === feature.icon)?.[1];
+    const isIllustration = illustration !== undefined;
+    const iconSrc = illustrationIcon ?? illustration;
 
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 

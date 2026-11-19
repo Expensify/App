@@ -39,6 +39,7 @@ function DynamicFormFieldsPage({
     isRefreshingRequirements,
     refreshError,
     shouldDisableNextWhenOffline,
+    validatePage,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,7 +59,11 @@ function DynamicFormFieldsPage({
         <FormProvider
             formID={formID}
             submitButtonText={translate(isEditing || isLastPage ? 'common.confirm' : 'common.next')}
-            validate={(inputValues) => getDynamicFieldErrors(getContentFields(page.content), withInputValues(inputValues), translate, allFields)}
+            validate={(inputValues) => {
+                const currentValues = withInputValues(inputValues);
+                // A field's own error, such as a missing answer, says more than a check of the whole page
+                return {...validatePage?.(page, currentValues), ...getDynamicFieldErrors(getContentFields(page.content), currentValues, translate, allFields)};
+            }}
             onSubmit={(inputValues) => {
                 const pageValues = toDynamicFormValues(inputValues);
                 onPageSubmit(page, pageValues);
