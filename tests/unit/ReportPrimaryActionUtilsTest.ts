@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -2599,7 +2600,7 @@ describe('isReviewDuplicatesAction', () => {
         ).toBe(false);
     });
 
-    const buildAdminScenario = async (stateNum: number, statusNum: number, role: string) => {
+    const buildAdminScenario = async (stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>, statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>, role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         // Given an admin who is neither the submitter nor the approver of a report with a duplicated expense
         const report = createMock<Report>({
             reportID: REPORT_ID,
