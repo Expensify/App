@@ -28,6 +28,9 @@ type MultifactorAuthenticationAuthorizeTransactionActionsProps = {
 
     /** Sentry label of the authorize button, so each review screen is tracked on its own */
     authorizeSentryLabel?: SentryLabel;
+
+    /** Stacks the buttons full width with authorize on top, for labels too long to sit side by side */
+    shouldStackButtons?: boolean;
 };
 
 function MultifactorAuthenticationAuthorizeTransactionActions({
@@ -38,35 +41,46 @@ function MultifactorAuthenticationAuthorizeTransactionActions({
     authorizeText,
     denySentryLabel = CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_DENY,
     authorizeSentryLabel = CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE,
+    shouldStackButtons = false,
 }: MultifactorAuthenticationAuthorizeTransactionActionsProps) {
     const styles = useThemeStyles();
 
+    const buttonStyle = shouldStackButtons ? undefined : styles.flex1;
+
+    const denyButton = (
+        <Button
+            sentryLabel={denySentryLabel}
+            variant={CONST.BUTTON_VARIANT.DANGER}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={buttonStyle}
+            onPress={onDeny}
+        >
+            <Button.Text>{denyText}</Button.Text>
+        </Button>
+    );
+
+    const authorizeButton = (
+        <Button
+            sentryLabel={authorizeSentryLabel}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={buttonStyle}
+            onPress={onAuthorize}
+        >
+            <Button.Text>{authorizeText}</Button.Text>
+        </Button>
+    );
+
     return (
-        <FixedFooter style={[styles.flexRow, styles.gap2]}>
+        <FixedFooter style={[shouldStackButtons ? styles.flexColumn : styles.flexRow, styles.gap2]}>
             {isLoading ? (
                 <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
                     <LoadingIndicator iconSize={28} />
                 </View>
             ) : (
                 <>
-                    <Button
-                        sentryLabel={denySentryLabel}
-                        variant={CONST.BUTTON_VARIANT.DANGER}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={styles.flex1}
-                        onPress={onDeny}
-                    >
-                        <Button.Text>{denyText}</Button.Text>
-                    </Button>
-                    <Button
-                        sentryLabel={authorizeSentryLabel}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        style={styles.flex1}
-                        onPress={onAuthorize}
-                    >
-                        <Button.Text>{authorizeText}</Button.Text>
-                    </Button>
+                    {shouldStackButtons ? authorizeButton : denyButton}
+                    {shouldStackButtons ? denyButton : authorizeButton}
                 </>
             )}
         </FixedFooter>

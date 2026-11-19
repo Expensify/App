@@ -134,6 +134,7 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
                         denyText={translate('multifactorAuthentication.fraudReview.unrecognizedButton')}
                         authorizeSentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_RECOGNIZED}
                         denySentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION_NOT_RECOGNIZED}
+                        shouldStackButtons
                     />
                     <FreezeCardCancelConfirmModal
                         isVisible={isConfirmModalVisible}
