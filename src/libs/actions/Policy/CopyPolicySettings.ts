@@ -314,6 +314,10 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
             if (field === 'fieldList') {
                 continue;
             }
+            if (field === 'mccGroup' && sourcePolicy.mccGroup) {
+                patch.mccGroup = Object.fromEntries(Object.entries(sourcePolicy.mccGroup).map(([id, group]) => [id, buildDuplicateSettingSnapshot(group)]));
+                continue;
+            }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }

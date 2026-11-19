@@ -213,6 +213,24 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
             });
 
+            it('copies MCC categories without source pending markers and preserves rollback state', () => {
+                // Given a source MCC edit that is still queued and a target with its own pending edit.
+                const source = makeSourcePolicy({mccGroup: {dining: {category: 'Meals', groupID: 'dining', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}});
+                const target = makeTargetPolicy({mccGroup: {dining: {category: 'Travel', groupID: 'dining', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}});
+
+                // When Categories is copied to an existing or a new workspace.
+                for (const isNewPolicy of [false, true]) {
+                    const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['categories'], {}, {}, {}, false, isNewPolicy);
+
+                    // Then only setting values reach the destination, while the source and rollback keep their own feedback.
+                    expect(getOptimisticPolicy(optimisticData)?.mccGroup).toEqual({dining: {category: 'Meals', groupID: 'dining'}});
+                    if (!isNewPolicy) {
+                        expect(getFailurePolicy(failureData)?.mccGroup).toEqual(target.mccGroup);
+                    }
+                }
+                expect(source.mccGroup?.dining.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            });
+
             it('replaces only Agent rules when Rules is selected and clears an empty source', () => {
                 // Given different Agent rules and an unrelated target approval rule.
                 const sourceRule = {
