@@ -38,7 +38,8 @@ function WiseQuotePaymentSummary({reportID, searchReport, isPayingUnheldOnly, is
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [onyxReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const report = searchReport ? {...searchReport, ...onyxReport} : onyxReport;
+    // The quote is read from Onyx only, since a refetch clears it there and the copy from Search would show the old quote under the loader
+    const report = searchReport ? {...searchReport, ...onyxReport, wiseQuote: onyxReport?.wiseQuote, errorFields: onyxReport?.errorFields} : onyxReport;
 
     if (!report) {
         return null;
