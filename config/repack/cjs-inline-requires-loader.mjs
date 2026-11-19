@@ -85,8 +85,13 @@ export default async function cjsInlineRequiresLoader(source, inputSourceMap) {
 
         // App source only needs block-scoping (Hermes shares one binding across loop iterations).
         // node_modules also ship async generators, which Hermes cannot parse, so the node_modules
-        // rule opts into lowering those too. Everything else modern Hermes handles natively.
-        const envInclude = options.hermesLowering ? ['transform-block-scoping', 'transform-async-to-generator', 'transform-async-generator-functions'] : ['transform-block-scoping'];
+        // rule opts into lowering those too. Lower optional chaining before Rspack 2.1.3 can
+        // drop its null guards on inlined require() member chains.
+        const envInclude = [
+            'transform-block-scoping',
+            'transform-optional-chaining',
+            ...(options.hermesLowering ? ['transform-async-to-generator', 'transform-async-generator-functions'] : []),
+        ];
 
         const swcResult = await rspack.experiments.swc.transform(source, {
             filename: this.resourcePath,
