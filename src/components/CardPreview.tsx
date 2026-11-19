@@ -59,6 +59,7 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
                     style={[styles.walletCardHolder, {color: getCardFeedTextColor(CONST.EXPENSIFY_CARD.BANK)}]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
+                    fsClass={CONST.FULLSTORY.CLASS.MASK}
                 >
                     {cardHolder}
                 </Text>

@@ -293,6 +293,31 @@ describe('ExpenseFieldDropdown', () => {
         expect(renderCount).toBe(0);
     });
 
+    it('opens into the room there is when the field has no page to fall back to', () => {
+        // Given a field with no full-page selector, e.g. a Yes or No list, on a viewport too short for the usual minimum
+        mockWindowHeight = 300;
+        mockRowAt(120);
+        render(
+            <ExpenseFieldDropdown
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                name={FIELD_NAME}
+                testID={ROW_TEST_ID}
+                shouldOpenInDropdown
+                renderDropdown={renderDropdown}
+            />,
+        );
+
+        // When the row is pressed
+        act(() => pressRow());
+
+        // Then the list still opens, sized to the room below the row so the list scrolls rather than the press doing
+        // nothing
+        expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
+        const spaceBelow = mockWindowHeight - (renderedProps?.anchorPosition.vertical ?? 0);
+        expect(renderedProps?.popoverHeight).toBeGreaterThan(0);
+        expect(renderedProps?.popoverHeight).toBeLessThanOrEqual(spaceBelow);
+    });
+
     it('opens the bottom sheet on a narrow layout however little room the row has', () => {
         // Given a narrow layout and a row with too little room either side for a pop-over
         const onPress = jest.fn();

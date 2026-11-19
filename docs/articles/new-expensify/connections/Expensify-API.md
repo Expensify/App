@@ -5,7 +5,7 @@ keywords: [Expensify Classic, API]
 ---
 
 
-Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions.
+Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions. You can revoke API access in **Account > Profile > Contact methods**.
 
 ---
 
