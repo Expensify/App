@@ -19,6 +19,7 @@ import type {SidePanel} from '@src/types/onyx';
 import type PaneWidthBounds from '@src/types/utils/PaneWidthBounds';
 
 import type {PropsWithChildren, RefObject} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import React, {createContext, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
@@ -26,6 +27,8 @@ import React, {createContext, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 
 import useSidePanelDockProgress from './useSidePanelDockProgress';
+
+type SidePanelMode = ValueOf<typeof CONST.SIDE_PANEL_MODE>;
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -47,11 +50,15 @@ type SidePanelStateContextProps = {
     isSidePanelResizable: boolean;
     sidePanelNVP?: SidePanel;
     sessionStartTime: string | null;
+
+    /** Narrow layouts always dock, so this is only floating or minimized on a wide layout. */
+    sidePanelMode: SidePanelMode;
 };
 
 type SidePanelActionsContextProps = {
     openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
+    setSidePanelMode: (mode: SidePanelMode) => void;
 };
 
 const SidePanelStateContext = createContext<SidePanelStateContextProps>({
@@ -67,6 +74,7 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelWidthBounds: {min: variables.sidePanelWidth, max: variables.sidePanelWidth},
     isSidePanelResizable: false,
     sessionStartTime: null,
+    sidePanelMode: 'docked',
 });
 
 const SidePanelReportIDContext = createContext<string | undefined>(undefined);
@@ -74,6 +82,7 @@ const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
     closeSidePanel: () => {},
+    setSidePanelMode: () => {},
 });
 
 /**
@@ -86,10 +95,25 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : dockedSidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
+    const {
+        shouldHideSidePanel,
+        shouldHideSidePanelBackdrop: shouldHideDockedSidePanelBackdrop,
+        shouldHideHelpButton,
+        isSidePanelHiddenOrLargeScreen: isDockedSidePanelHiddenOrLargeScreen,
+        sidePanelNVP,
+    } = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
-    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
+    const [selectedSidePanelMode = CONST.SIDE_PANEL_MODE.DOCKED] = useOnyx(ONYXKEYS.SIDE_PANEL_MODE);
+    const setSidePanelMode = SidePanelActions.setSidePanelMode;
+    const sidePanelMode: SidePanelMode = shouldUseNarrowLayout ? 'docked' : selectedSidePanelMode;
+    const isSidePanelDocked = sidePanelMode === 'docked';
+
+    // A floating or minimized panel sits over the page like a launcher, so it neither insets the page nor blocks it with a backdrop.
+    const shouldHideSidePanelBackdrop = shouldHideDockedSidePanelBackdrop || !isSidePanelDocked;
+    const isSidePanelHiddenOrLargeScreen = isDockedSidePanelHiddenOrLargeScreen || !isSidePanelDocked;
+
+    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel && isSidePanelDocked;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? dockedSidePanelWidth : 0));
     const dockedSidePanelWidthRef = useSidePanelDockProgress(sidePanelOffset, dockedSidePanelWidth, shouldApplySidePanelOffset);
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
@@ -184,6 +208,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
         setSessionStartTime(getServerAnchoredDBTime());
+        if (selectedSidePanelMode === 'minimized') {
+            setSidePanelMode('floating');
+        }
         SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
     };
 
@@ -203,6 +230,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         isSidePanelResizable,
         sidePanelNVP,
         sessionStartTime,
+        sidePanelMode,
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -210,6 +238,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const actionsValue = {
         openSidePanel,
         closeSidePanel,
+        setSidePanelMode,
     };
 
     return (
@@ -223,3 +252,4 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
 export default SidePanelContextProvider;
 export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};
+export type {SidePanelMode};

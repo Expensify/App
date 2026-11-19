@@ -8,10 +8,14 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+
+import variables from '@styles/variables';
 
 import {areAllModalsHidden} from '@userActions/Modal';
 
@@ -28,21 +32,31 @@ import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 
 import type SidePanelModalProps from './types';
 
+import useSidePanelFloatingRight from '../useSidePanelFloatingRight';
+
 function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom, paddingLeft, paddingRight} = useSafeAreaPaddings();
-    const {sidePanelWidth} = useSidePanelState();
+    const {sidePanelWidth, sidePanelMode} = useSidePanelState();
+    const {setSidePanelMode} = useSidePanelActions();
+    const {windowHeight} = useWindowDimensions();
+    const isFloating = sidePanelMode === 'floating';
+
+    // A floating panel sits beside the page like a chat popover, so only a docked panel on a smaller screen acts as a modal.
+    const isModalPanel = !isExtraLargeScreenWidth && !isFloating;
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
 
     const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useWideRHPState();
 
+    const floatingRight = useSidePanelFloatingRight(variables.sidePanelFloatingWidth);
+
     const shouldOverlayBeVisible = (!!wideRHPRouteKeys.length && isWideRHPFocused) || (!!superWideRHPRouteKeys.length && isSuperWideRHPFocused) || !isRHPVisible;
 
     const onCloseSidePanelOnSmallScreens = () => {
-        if (isExtraLargeScreenWidth) {
+        if (!isModalPanel) {
             return;
         }
 
@@ -58,9 +72,13 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
             if (!areAllModalsHidden()) {
                 return;
             }
+            if (isFloating) {
+                setSidePanelMode('minimized');
+                return;
+            }
             closeSidePanel();
         },
-        {isActive: !isExtraLargeScreenWidth, shouldBubble: false},
+        {isActive: !isExtraLargeScreenWidth || isFloating, shouldBubble: false},
     );
     // Close Side Panel on debug key press i.e. opening the TestTools modal
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.DEBUG, () => closeSidePanel(), {shouldBubble: true});
@@ -72,8 +90,8 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
-        // Side Panel is not a normal modal on ExtraLargeScreenWidth.
-        if (isExtraLargeScreenWidth) {
+        // Side Panel is not a normal modal when docked on ExtraLargeScreenWidth or floating.
+        if (!isModalPanel) {
             return;
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
@@ -81,11 +99,28 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isExtraLargeScreenWidth]);
+    }, [isModalPanel]);
+
+    // The floating popover reuses the docked slide's progress, fading and rising into place instead of sliding in from the edge.
+    const floatingProgress = sidePanelTranslateX.current.interpolate({inputRange: [0, sidePanelWidth], outputRange: [0, 1], extrapolate: 'clamp'});
+    const contentStyle = isFloating
+        ? [
+              styles.sidePanelFloatingContent(windowHeight, floatingRight),
+              {
+                  opacity: floatingProgress.interpolate({inputRange: [0, 1], outputRange: [1, 0]}),
+                  transform: [{translateY: floatingProgress.interpolate({inputRange: [0, 1], outputRange: [0, 24]})}],
+              },
+          ]
+        : [
+              styles.sidePanelContent,
+              styles.sidePanelContentWidth(shouldUseNarrowLayout, sidePanelWidth),
+              styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
+              {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
+          ];
 
     return (
         <ModalPortal>
-            <FocusTrapForModal active={!isExtraLargeScreenWidth}>
+            <FocusTrapForModal active={isModalPanel}>
                 <View style={styles.sidePanelContainer}>
                     <View>
                         {!shouldHideSidePanelBackdrop && (
@@ -96,16 +131,9 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         )}
                     </View>
                     <ColorSchemeWrapper>
-                        <Animated.View
-                            style={[
-                                styles.sidePanelContent,
-                                styles.sidePanelContentWidth(shouldUseNarrowLayout, sidePanelWidth),
-                                styles.sidePanelContentBorderWidth(isExtraLargeScreenWidth),
-                                {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom, paddingLeft, paddingRight},
-                            ]}
-                        >
+                        <Animated.View style={contentStyle}>
                             {children}
-                            <SidePanelResizeHandle />
+                            {!isFloating && <SidePanelResizeHandle />}
                         </Animated.View>
                     </ColorSchemeWrapper>
                 </View>

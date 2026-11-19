@@ -557,6 +557,9 @@ const translations = {
         collapsed: 'Collapsed',
         expand: 'Expand',
         expanded: 'Expanded',
+        minimize: 'Minimize',
+        popOut: 'Pop out',
+        dockToSide: 'Dock to side',
         expenseReport: 'Expense Report',
         // @context Rate as a noun, not a verb
         rateOutOfPolicy: 'Rate out of policy',

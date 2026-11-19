@@ -15,6 +15,7 @@ import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsConciergeInboxDM from './useIsConciergeInboxDM';
+import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -35,6 +36,7 @@ type ConciergeAskState = {
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isInSidePanel = useIsInSidePanel();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -63,7 +65,8 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     return {
         isHistoryExpanded,
         shouldShowWelcome,
-        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout,
+        // The side panel is as narrow as a phone, so it keeps the composer at the bottom like the narrow layout.
+        shouldCenterWelcomeWithComposer: shouldShowWelcome && !shouldUseNarrowLayout && !isInSidePanel,
         hasUnreadMessageFromOthers,
     };
 }

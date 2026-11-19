@@ -1209,6 +1209,14 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.componentSizeNormal,
         },
 
+        // Narrower hit area for the side panel header's icon buttons, so they sit closer together.
+        sidePanelHeaderButton: {
+            alignItems: 'center',
+            height: variables.componentSizeNormal,
+            justifyContent: 'center',
+            width: variables.sidePanelHeaderButtonWidth,
+        },
+
         visuallyHidden: {
             ...visibility.hidden,
             overflow: 'hidden',
@@ -7715,6 +7723,38 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+        }),
+        // Floats over the page's bottom-right corner like a support chat popover, leaving the rest of the page uncovered.
+        sidePanelFloatingContent: (windowHeight: number, right: DimensionValue): ViewStyle =>
+            toViewStyle({
+                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+                right,
+                bottom: variables.rhpFloatingCardMargin,
+                width: variables.sidePanelFloatingWidth,
+                height: Math.min(variables.sidePanelFloatingMaxHeight, windowHeight - variables.rhpFloatingCardMargin * 2),
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderWidth: 1,
+                borderColor: theme.border,
+                overflow: 'hidden',
+                boxShadow: theme.shadow,
+                backgroundColor: theme.modalBackground,
+            }),
+        sidePanelLauncher: (right: DimensionValue): ViewStyle =>
+            toViewStyle({
+                position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+                right,
+                bottom: variables.rhpFloatingCardMargin + variables.sidePanelLauncherInset,
+                width: variables.componentSizeLarge,
+                height: variables.componentSizeLarge,
+                borderRadius: variables.componentBorderRadiusCircle,
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: theme.shadow,
+            }),
+        // Sits on the launcher's top-right edge, where the round avatar's border meets its bounding box diagonally.
+        sidePanelLauncherIndicator: (): ViewStyle => ({
+            top: 0,
+            right: 0,
         }),
 
         searchBarWidth: (shouldUseNarrowLayout: boolean) => ({

@@ -13,7 +13,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
-import SidePanelExpandButton from '@components/SidePanel/SidePanelExpandButton';
+import SidePanelModeButtons from '@components/SidePanel/SidePanelModeButtons';
 import TalkToHumanButton from '@components/TalkToHumanButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -97,6 +97,7 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 
 import {joinRoom} from '@userActions/Report';
 import {callIfAuthenticated} from '@userActions/Session';
+import SidePanelActions from '@userActions/SidePanel';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -168,7 +169,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const theme = useTheme();
     const styles = useThemeStyles();
     const stackedRowBottomPadding = useStackedHeaderRowPadding();
-    const avatarSize = useHeaderAvatarSize();
+    const headerAvatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldClaimOnlyForScreenReader: true});
     const isSelfDM = isSelfDMReportUtils(report);
@@ -314,6 +315,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         bookCallCalendarLink = accountGuideDetails?.calendarLink;
     }
 
+    // The side panel header on a wide layout uses a smaller avatar and narrower icon buttons.
+    const isCompactSidePanelHeader = !!isInSidePanel && !shouldUseNarrowLayout;
+
     const callActionButton = shouldShowTalkToHuman ? (
         <TalkToHumanButton />
     ) : (
@@ -397,7 +401,11 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
-    const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
+    const avatarSize = isCompactSidePanelHeader ? CONST.AVATAR_SIZE.MID_SMALL : headerAvatarSize;
+    // A thread opened inside the wide side panel gets a back button that returns the panel to its parent chat.
+    const isSidePanelThread = isCompactSidePanelHeader && !!report?.parentReportID;
+    const shouldShowBackButton = ((shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton) || isSidePanelThread;
+    const onBackButtonPress = isSidePanelThread ? () => SidePanelActions.setSidePanelReportID(report?.parentReportID ?? null) : onNavigationMenuButtonClicked;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -432,7 +440,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                             {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
-                                    onPress={onNavigationMenuButtonClicked}
+                                    onPress={onBackButtonPress}
                                     style={[styles.LHNToggle, contentHeaderHeightStyle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
@@ -549,12 +557,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton reportID={report.reportID} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                <SidePanelExpandButton reportID={reportID} />
+                                <SidePanelModeButtons />
                                 {shouldShowCloseButton && (
                                     <Tooltip text={translate('common.close')}>
                                         <PressableWithoutFeedback
                                             onPress={onNavigationMenuButtonClicked}
-                                            style={[styles.touchableButtonImage]}
+                                            style={[isCompactSidePanelHeader ? styles.sidePanelHeaderButton : styles.touchableButtonImage]}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.close')}
                                             sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}

@@ -401,6 +401,11 @@ export default {
     modalBaseZIndex: 9999,
     autoCompleteSuggestionsZIndex: 9999,
     sidePanelZIndex: 9998,
+    sidePanelFloatingWidth: 400,
+    sidePanelFloatingMaxHeight: 720,
+    sidePanelHeaderButtonWidth: 36,
+    // How much further than the floating panel the minimized launcher sits from the window's bottom-right corner.
+    sidePanelLauncherInset: 8,
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,

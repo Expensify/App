@@ -43,6 +43,7 @@ const sidePanelState: ReturnType<typeof useSidePanelState> = {
     sidePanelWidth: 375,
     sidePanelWidthBounds: {min: 375, max: 375},
     isSidePanelResizable: false,
+    sidePanelMode: 'docked',
 };
 
 function buildAction(overrides: Partial<ReportAction>): ReportAction {

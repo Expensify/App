@@ -150,6 +150,7 @@ const defaultSidePanelState: ReturnType<typeof useSidePanelState> = {
     sidePanelWidth: 375,
     sidePanelWidthBounds: {min: 375, max: 375},
     isSidePanelResizable: false,
+    sidePanelMode: 'docked',
 };
 
 jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());

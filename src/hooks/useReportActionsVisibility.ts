@@ -59,8 +59,9 @@ function useReportActionsVisibility({
 
     const isInSidePanel = useIsInSidePanel();
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeHiddenHistory = isConciergeSidePanel;
+    // The side panel shares the Inbox's welcome screen and history toggle, so it hides no history by session.
+    const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
+    const isConciergeHiddenHistory = false;
 
     const {sessionStartTime} = useSidePanelState();
 
