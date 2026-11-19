@@ -1661,6 +1661,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
             columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
             break;
         case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION:
             // Wider than category/tag so short violation labels are less likely to truncate.
             columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
             break;

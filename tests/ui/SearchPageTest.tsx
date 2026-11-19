@@ -677,6 +677,33 @@ describe('SearchPageNarrow', () => {
         // Then the mount does not ask for the same first page again
         expect(firstPageCallCount()).toBe(1);
     });
+
+    it('waits for app loading to finish before requesting an uncached search', async () => {
+        // Given cleared account data while the app is still loading
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        });
+
+        // When a retained search page renders with no snapshot
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then it cannot issue a request using the retained query during the account switch
+        expect(mockSearch).not.toHaveBeenCalled();
+
+        // When only the app-loading flag changes
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        // Then setup resumes without requiring a query or snapshot change
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({queryJSON: expenseQueryJSON, offset: 0}));
+    });
+
     it('refreshes the first page on every return to a cached query', async () => {
         // Given a query whose results are already cached, so Search mounts right away with no skeleton
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
@@ -1127,6 +1154,64 @@ describe('SearchPageNarrow', () => {
 
             expect(mockSearch).toHaveBeenCalledTimes(1);
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('holds the mounted live search request until app loading finishes', async () => {
+            // Given live rows that let Search mount even while the app is loading
+            await seedTodoReports(3);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+
+            // When the Drafts page opens during the account transition
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the independent Search effect must also wait
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When loading finishes without changing the query
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            });
+
+            // Then its first request was not consumed by the blocked effect
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
+        it('preserves a pending totals retry while the app loads', async () => {
+            // Given a live request in flight when the user selects every matching report
+            await seedTodoReports(3);
+            await seedTodoSnapshot(false, {isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(lastWriteActionsRender()).toBeDefined();
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            mockSearch.mockClear();
+
+            // When that request settles during app loading, making the totals retry eligible
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            });
+            await answerTodoPage(0);
+
+            // Then neither automatic request path may issue the retry or consume it
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the loading guard is released
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            });
+
+            // Then the deferred request still obtains the missing report total
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({shouldCalculateTotals: true, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
         });
 
         it('asks for its first page exactly once when its preloaded tab is opened', async () => {

@@ -1,3 +1,5 @@
+import {markInFlightSearchRequestsStale} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import type {TransactionEditPermissions, TransactionEditPermissionsParams, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -53,6 +55,11 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
+
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    markInFlightSearchRequestsStale: jest.fn(),
+}));
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -738,17 +745,25 @@ describe('TransactionInlineEdit', () => {
 
         // Onyx is never initialized here, so the module-level transaction cache is empty. That is exactly
         // the state of a Search row the user has not opened: it exists only in the search snapshot.
-        it.each([
-            ['date', () => editTransactionDateInline(buildParams(), '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
-            ['merchant', () => editTransactionMerchantInline(translate, buildParams(), 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
-            ['description', () => editTransactionDescriptionInline(translate, buildParams(), 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
-            ['category', () => editTransactionCategoryInline(buildParams(), 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
-            ['amount', () => editTransactionAmountInline(translate, buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
-            ['tag', () => editTransactionTagInline(buildParams(), 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
-        ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
-            edit();
+        describe.each([123456, undefined])('with snapshot hash %s', (hash) => {
+            it.each([
+                ['date', () => editTransactionDateInline({...buildParams(), hash}, '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
+                ['merchant', () => editTransactionMerchantInline(translate, {...buildParams(), hash}, 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
+                ['description', () => editTransactionDescriptionInline(translate, {...buildParams(), hash}, 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
+                ['category', () => editTransactionCategoryInline({...buildParams(), hash}, 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
+                ['amount', () => editTransactionAmountInline(translate, {...buildParams(), hash}, 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
+                ['tag', () => editTransactionTagInline({...buildParams(), hash}, 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
+            ])('forwards the caller transaction and hash when editing %s', (_field, edit, getDelegate, expectedChange) => {
+                // Given a valid inline edit with or without an associated Search snapshot
+                // When the edit delegates to its canonical write action
+                edit();
 
-            expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
+                // Then only that snapshot is invalidated, synchronously before optimistic data is applied
+                expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, transaction: snapshotTransaction, hash, ...expectedChange}));
+                expect(markInFlightSearchRequestsStale).toHaveBeenCalledTimes(1);
+                expect(markInFlightSearchRequestsStale).toHaveBeenCalledWith(hash);
+                expect(jest.mocked(markInFlightSearchRequestsStale).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(getDelegate()).mock.invocationCallOrder.at(0) ?? 0);
+            });
         });
 
         it('clears the merchant instead of discarding the edit', () => {

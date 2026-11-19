@@ -31,6 +31,7 @@ import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transacti
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
+import {buildMergeDuplicatesParams, buildNewTransactionAfterReviewingDuplicates, canMergeDuplicates, compareDuplicateTransactionFields} from '../../src/libs/TransactionUtils/duplicates';
 import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -4502,7 +4503,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should return empty keep and change when reviewingTransaction or reportID is missing', () => {
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
             expect(result.keep).toEqual({});
             expect(result.change).toEqual({});
         });
@@ -4523,7 +4524,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.merchant).toBe('Merchant A');
             expect(result.keep.category).toBe('Food');
@@ -4545,7 +4546,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields({}, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.change.merchant).toContain('Merchant A');
             expect(result.change.merchant).toContain('Merchant B');
@@ -4577,7 +4578,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('Marketing');
@@ -4608,7 +4609,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             // Since only one enabled tag is available and empty is not included, tag should not be in change
             expect(result.change.tag).toBeUndefined();
@@ -4641,7 +4642,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.keep.category).toBe('Food');
@@ -4664,7 +4665,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('');
                 expect(result.change.description).toBeUndefined();
@@ -4683,7 +4684,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change.merchant).toBeUndefined();
@@ -4703,7 +4704,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBeUndefined();
                 expect(result.change.merchant).toEqual(expect.arrayContaining(['Amazon', 'Best Buy', 'Target']));
@@ -4723,7 +4724,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Modified Merchant');
                 expect(result.change.merchant).toBeUndefined();
@@ -4747,7 +4748,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
@@ -4780,7 +4781,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.category).toBeUndefined();
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', 'Food']));
@@ -4813,7 +4814,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4848,7 +4849,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 // When only one valid category exists and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4871,7 +4872,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When categories are not enabled and fields differ, keep preserves the first transaction's category
                 expect(result.keep.category).toBe('Travel');
@@ -4901,7 +4902,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.change.category).toEqual(expect.arrayContaining(['Travel', '']));
             });
@@ -4919,7 +4920,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4941,7 +4942,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 expect(result.keep.tag).toBe('Client A');
                 expect(result.change.tag).toBeUndefined();
@@ -4980,7 +4981,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering:Project A');
             expect(result.change.tag).toContain('Engineering:Project B');
@@ -5017,7 +5018,7 @@ describe('TransactionUtils', () => {
                 reportID: fakeReportID,
             });
 
-            const result = TransactionUtils.compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
+            const result = compareDuplicateTransactionFields(multiLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, undefined, undefined);
 
             expect(result.keep.tag).toBe('Engineering:Project A');
             expect(result.change.tag).toBeUndefined();
@@ -5047,7 +5048,7 @@ describe('TransactionUtils', () => {
             });
 
             const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
-            const result = TransactionUtils.compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
+            const result = compareDuplicateTransactionFields(singleLevelPolicyTags, transaction1, [transaction2], fakeReport, undefined, fakePolicy, undefined);
 
             expect(result.change.tag).toContain('Engineering');
             expect(result.change.tag).toContain('');
@@ -5065,7 +5066,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBe('Business meeting');
                 expect(result.change.description).toBeUndefined();
@@ -5085,7 +5086,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.description).toBeUndefined();
                 expect(result.change.description).toHaveLength(3);
@@ -5104,7 +5105,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
@@ -5144,7 +5145,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5185,7 +5186,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
                 // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
                 expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
@@ -5205,7 +5206,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBe(true);
                 expect(result.change.billable).toBeUndefined();
@@ -5222,7 +5223,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.billable).toBeUndefined();
                 expect(result.change.billable).toEqual(expect.arrayContaining([true, false]));
@@ -5241,7 +5242,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBe(true);
                 expect(result.change.reimbursable).toBeUndefined();
@@ -5258,7 +5259,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
@@ -5280,7 +5281,7 @@ describe('TransactionUtils', () => {
                 ];
 
                 // When duplicates with different reimbursable values are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then duplicate resolution preserves the restriction without offering a choice
                 expect(result.keep.reimbursable).toBe(false);
@@ -5293,7 +5294,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When duplicates with different reimbursable values are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the forced reimbursable value survives duplicate resolution
                 expect(result.keep.reimbursable).toBe(true);
@@ -5307,7 +5308,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
                 // When the expense is kept during duplicate resolution
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, managedCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the missing value still defaults to non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
@@ -5326,7 +5327,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, cashTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // The kept cash expense must not be silently converted to non-reimbursable; the differing values are
                 // surfaced as a review step instead.
@@ -5354,7 +5355,7 @@ describe('TransactionUtils', () => {
                 ];
 
                 // When navigating back with the locked company card still selected
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, managedCardTransactionID, mockPolicy, undefined);
 
                 // Then the reimbursable step stays hidden
                 expect(result.keep.reimbursable).toBe(false);
@@ -5377,7 +5378,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingCashTransaction, duplicates, mockReport, cashTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.reimbursable).toBeUndefined();
                 expect(result.change.reimbursable).toEqual(expect.arrayContaining([true, false]));
@@ -5393,7 +5394,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the forced value is kept, so resolving duplicates can't silently make the expense non-reimbursable
                 expect(result.keep.reimbursable).toBe(true);
@@ -5410,7 +5411,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the user picks the reimbursable value in the review step
                 expect(result.keep.reimbursable).toBeUndefined();
@@ -5423,7 +5424,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: false, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, companyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then the user can choose, because a missing restriction means "Do Not Force"
                 expect(result.keep.reimbursable).toBeUndefined();
@@ -5440,7 +5441,7 @@ describe('TransactionUtils', () => {
                 const duplicates = [generateTransaction({reimbursable: true, managedCard: false})];
 
                 // When the duplicate fields are compared
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, expensifyCardTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Then Expensify Card expenses stay non-reimbursable
                 expect(result.keep.reimbursable).toBe(false);
@@ -5468,7 +5469,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, selectedTransactionID, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeDefined();
                 expect(result.keep.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
@@ -5491,7 +5492,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.comment).toBeUndefined();
             });
@@ -5499,7 +5500,7 @@ describe('TransactionUtils', () => {
 
         describe('edge cases and data validation', () => {
             it('should return empty keep and change when reviewingTransaction is undefined', () => {
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, undefined, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep).toEqual({});
                 expect(result.change).toEqual({});
@@ -5510,7 +5511,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, [], mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5521,7 +5522,7 @@ describe('TransactionUtils', () => {
                     merchant: 'Amazon',
                 });
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, undefined, mockReport, undefined, mockPolicy, undefined);
 
                 expect(result.keep.merchant).toBe('Amazon');
                 expect(result.change).toEqual({});
@@ -5544,7 +5545,7 @@ describe('TransactionUtils', () => {
                     }),
                 ];
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, mockPolicy, undefined);
 
                 // Should compare all transactions (Amazon, Best Buy, Target) since removeSettledAndApprovedTransactions
                 // checks the actual report state from Onyx, and in this case all reports may not be properly settled
@@ -5582,7 +5583,7 @@ describe('TransactionUtils', () => {
                     Travel: {name: 'Travel', enabled: true},
                 };
 
-                const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
+                const result = compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
                 expect(result.keep.merchant).toBe('Starbucks');
                 expect(result.change.category).toEqual(expect.arrayContaining(['Food', 'Travel']));
@@ -5659,7 +5660,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [openDuplicate, submittedDuplicate, approvedDuplicate, closedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5676,7 +5677,7 @@ describe('TransactionUtils', () => {
             const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
             const closedDuplicate = generateTransaction({reportID: MERGE_CLOSED_REPORT_ID});
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(keptTransaction.transactionID, [closedDuplicate.transactionID]),
                 [closedDuplicate],
                 keptTransaction,
@@ -5692,7 +5693,7 @@ describe('TransactionUtils', () => {
             const reimbursedDuplicate = generateTransaction({reportID: MERGE_REIMBURSED_REPORT_ID});
             const duplicates = [approvedDuplicate, reimbursedDuplicate];
 
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5714,7 +5715,7 @@ describe('TransactionUtils', () => {
             const duplicates = [unloadedDuplicate, unreportedDuplicate];
 
             // When building the merge params
-            const params = TransactionUtils.buildMergeDuplicatesParams(
+            const params = buildMergeDuplicatesParams(
                 buildReviewDuplicates(
                     keptTransaction.transactionID,
                     duplicates.map((transaction) => transaction.transactionID),
@@ -5738,22 +5739,22 @@ describe('TransactionUtils', () => {
 
         it('allows merging when the kept report is open and there are duplicates', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept report is awaiting first approval', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
-            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense is unreported (no resolvable report)', () => {
-            expect(TransactionUtils.canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
+            expect(canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense has no report ID at all', () => {
             // Given a legacy unreported expense that carries no report ID instead of the unreported sentinel
             // When checking whether the merge can be sent
-            const canMerge = TransactionUtils.canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
+            const canMerge = canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
 
             // Then it is treated like an unreported expense, which Auth still lets you merge
             expect(canMerge).toBe(true);
@@ -5764,7 +5765,7 @@ describe('TransactionUtils', () => {
             const unloadedReportID = 'unloadedKeptReport';
 
             // When checking whether the merge can be sent
-            const canMerge = TransactionUtils.canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
+            const canMerge = canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
 
             // Then it is blocked, because the report may be approved or paid and Auth would reject the merge
             expect(canMerge).toBe(false);
@@ -5772,17 +5773,17 @@ describe('TransactionUtils', () => {
 
         it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
-            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when the kept report is reimbursed', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
-            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, [])).toBe(false);
+            expect(canMergeDuplicates(report, report.reportID, [])).toBe(false);
         });
     });
 
@@ -5811,7 +5812,7 @@ describe('TransactionUtils', () => {
                 billable: true,
             };
 
-            const updatedTransaction = TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
+            const updatedTransaction = buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction);
 
             expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
             expect(updatedTransaction.taxAmount).toBe(-500);

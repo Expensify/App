@@ -40,7 +40,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
-import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getEnabledCategoriesCount, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -268,6 +268,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
 
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
     const categoryRows: WorkspaceCategoryTableRowData[] = categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
         const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -291,7 +293,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             enabled: value.enabled,
             errors: value.errors ?? undefined,
             pendingAction: value.pendingAction,
-            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value], enabledCategoriesCount) || !canWriteCategories || isDisabled,
             canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
             action: () => navigateToCategory(value),
             onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
@@ -439,16 +441,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }
     const secondaryActions = menuItems;
 
-    const getHeaderButtons = () => {
-        if (!canWriteCategories && secondaryActions.length === 0) {
-            return null;
-        }
-
+    const getBulkActionOptions = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategoryKeys.map((key) => policyCategories?.[key]);
 
-        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
+        if (canWriteCategories) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: icons.Trashcan,
@@ -566,7 +564,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     },
                 });
             }
+        }
 
+        return options;
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteCategories && secondaryActions.length === 0) {
+            return null;
+        }
+
+        // The floating bar over the table takes these actions wherever it fits, which is the full-width page and not
+        // the RHP. The header keeps offering them everywhere the bar cannot go.
+        if (canWriteCategories && shouldUseNarrowLayout && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -574,7 +584,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
-                    options={options}
+                    options={getBulkActionOptions()}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedCategoryKeys.length}
@@ -722,6 +732,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
+                        bulkActionOptions={canWriteCategories ? getBulkActionOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>
