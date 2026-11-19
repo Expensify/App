@@ -568,15 +568,21 @@ describe('deleteAgent', () => {
         // When the agent is deleted through the optimistic accountID the list still holds
         deleteAgent(optimisticAccountID, undefined, undefined, false);
 
-        // Then the request targets the real agent and the optimistic agent is marked as deleted too. Its cleanup otherwise
-        // waits for the real agent's personal details, which this deletion removes, so it would stay listed. A failed
-        // deletion drops that marker because the real agent still exists.
+        // Then the request targets the real agent and the optimistic agent is hidden until the result is known. Its cleanup
+        // waits for the real agent's personal details, which a successful deletion removes, so only the success clears it.
+        // A failed deletion leaves it hidden for that cleanup, because the real agent still exists.
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: realAccountID}, expect.any(Object));
         const {optimisticData, successData, failureData} = getWriteOptions();
         expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)?.value).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
         expect(findUpdate(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
-        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
-        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)?.value).toStrictEqual({pendingAction: null});
+        expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toStrictEqual({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`,
+            value: null,
+        });
+        expect(successData.filter((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST).map((update) => update.value)).toContainEqual({[optimisticAccountID]: null});
+        expect(findUpdate(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(JSON.stringify(failureData)).not.toContain(String(optimisticAccountID));
     });
 
     it('marks only the given agent when no real accountID is known for it', () => {

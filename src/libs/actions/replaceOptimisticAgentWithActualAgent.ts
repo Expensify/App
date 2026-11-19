@@ -1,10 +1,9 @@
 import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getPersonalDetail, personalDetailsHydrationPromise} from '@libs/PersonalDetailsStore';
+import {getPersonalDetail, personalDetailsHydrationPromise, subscribeToPersonalDetails} from '@libs/PersonalDetailsStore';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Agent, Report} from '@src/types/onyx';
@@ -43,6 +42,12 @@ const AGENT_SETTINGS_SCREENS = new Set<string>([
 const processedAccountIDs = new Map<number, number>();
 const pendingAccountIDs = new Map<number, number>();
 let isReplacementScheduled = false;
+
+// Mappings whose cleanup this tab skipped because its cache did not hold the real agent yet. The mapping is not delivered
+// again when that agent arrives, so they are retried on every personal details change until they are cleared or nothing
+// optimistic is left. A mapping with nothing to clear is never kept, so retained mappings cost nothing on app start.
+const skippedAccountIDs = new Map<number, number>();
+let unsubscribeFromPersonalDetails: (() => void) | undefined;
 
 // Reports are only read inside the mapping callback, so connectWithoutView() is used. On app start the mapping can
 // arrive before this collection is hydrated, so consumers wait for this promise. Onyx always fires the callback at
@@ -141,9 +146,40 @@ function clearOptimisticAgentData(accountIDs: Map<number, number>) {
 // real agent's personal details from the same response, because each tab applies another tab's writes key by key. A
 // cleanup there would save a personal details list without the real agent and erase it in every tab. So a tab only
 // clears the optimistic agent once its cache holds the real one; until then the result of another tab's cleanup reaches
-// it through Onyx's cross-tab sync. An agent deleted while CreateAgent was in flight has no real data left to keep.
-function canClearOptimisticAgent(optimisticAccountID: number, realAccountID: number): boolean {
-    return !!getPersonalDetail(realAccountID) || agents?.[`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+// it through Onyx's cross-tab sync, or the tab retries once the real details arrive. Only the server's details count,
+// because deleteAgent writes placeholder entries without a login. A deleted agent is cleared by DeleteAgent's success.
+function canClearOptimisticAgent(realAccountID: number): boolean {
+    return !!getPersonalDetail(realAccountID)?.login;
+}
+
+function hasOptimisticAgentData(optimisticAccountID: number): boolean {
+    return !!getPersonalDetail(optimisticAccountID) || !!agents?.[`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`];
+}
+
+function clearOptimisticAgentsWhenSafe(accountIDs: Map<number, number>) {
+    const accountIDsToClear = new Map<number, number>();
+    for (const [optimisticAccountID, realAccountID] of accountIDs) {
+        skippedAccountIDs.delete(optimisticAccountID);
+        if (canClearOptimisticAgent(realAccountID)) {
+            accountIDsToClear.set(optimisticAccountID, realAccountID);
+        } else if (hasOptimisticAgentData(optimisticAccountID)) {
+            skippedAccountIDs.set(optimisticAccountID, realAccountID);
+        }
+    }
+
+    if (skippedAccountIDs.size === 0) {
+        unsubscribeFromPersonalDetails?.();
+        unsubscribeFromPersonalDetails = undefined;
+    } else if (!unsubscribeFromPersonalDetails) {
+        unsubscribeFromPersonalDetails = subscribeToPersonalDetails(() => clearOptimisticAgentsWhenSafe(new Map(skippedAccountIDs)));
+    }
+
+    // The retry runs on every personal details change, so it must not scan the reports when there is nothing to clear.
+    if (accountIDsToClear.size === 0) {
+        return;
+    }
+    remapReportParticipants(accountIDsToClear);
+    clearOptimisticAgentData(accountIDsToClear);
 }
 
 function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, realAccountID: number) {
@@ -183,14 +219,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
                     redirectAgentSettingsScreens(accountIDs);
                 }
 
-                const accountIDsToClear = new Map<number, number>();
-                for (const [pendingOptimisticAccountID, pendingRealAccountID] of accountIDs) {
-                    if (canClearOptimisticAgent(pendingOptimisticAccountID, pendingRealAccountID)) {
-                        accountIDsToClear.set(pendingOptimisticAccountID, pendingRealAccountID);
-                    }
-                }
-                remapReportParticipants(accountIDsToClear);
-                clearOptimisticAgentData(accountIDsToClear);
+                clearOptimisticAgentsWhenSafe(accountIDs);
             },
         });
     });

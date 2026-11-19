@@ -2,12 +2,16 @@ import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
 import {registerAgentAccountIDMapping, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import {write} from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import replaceOptimisticAgentAccountID from '@libs/Middleware/ReplaceOptimisticAgentAccountID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type * as NavigationModule from '@libs/Navigation/Navigation';
+import type * as PersonalDetailsStoreModule from '@libs/PersonalDetailsStore';
 
 import {deleteAgent} from '@userActions/Agent';
+import {clear as clearPersistedRequests, getAll as getPersistedRequests, save as savePersistedRequest} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
 import type * as ReplaceOptimisticAgentWithActualAgentModule from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
@@ -16,6 +20,8 @@ import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {AnyRequest} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 // Default type import only: a namespace import would pull in the restricted `useOnyx` name
@@ -57,6 +63,26 @@ jest.mock('@libs/Navigation/Navigation', () => {
 jest.mock('@libs/API', () => ({write: jest.fn(), read: jest.fn()}));
 const mockWrite = jest.mocked(write);
 
+const mockSubscribeToPersonalDetails = jest.fn();
+const mockUnsubscribeFromPersonalDetails = jest.fn();
+
+// The store stays real. Its subscriptions are counted because they are the only sign of a skipped cleanup that is kept
+// for a retry, which must cost nothing once there is nothing left to clear.
+jest.mock('@libs/PersonalDetailsStore', () => {
+    const actualStore = jest.requireActual<typeof PersonalDetailsStoreModule>('@libs/PersonalDetailsStore');
+    return {
+        ...actualStore,
+        subscribeToPersonalDetails: (listener: () => void) => {
+            mockSubscribeToPersonalDetails();
+            const unsubscribe = actualStore.subscribeToPersonalDetails(listener);
+            return () => {
+                mockUnsubscribeFromPersonalDetails();
+                unsubscribe();
+            };
+        },
+    };
+});
+
 function buildAgentEditNavigationState(accountID: number): PartialState<NavigationState> {
     return {
         key: 'root-stack-key',
@@ -75,10 +101,60 @@ function buildAgentEditNavigationState(accountID: number): PartialState<Navigati
     };
 }
 
-// CreateAgent's response adds the real agent's personal details. A tab only clears the optimistic agent once its own
-// cache holds them, so tests of the cleanup seed them first.
+// CreateAgent's response adds the real agent's personal details, with the login only the server assigns. A tab only clears
+// the optimistic agent once its own cache holds them, so tests of the cleanup seed them first.
+function buildRealAgentPersonalDetail(accountID: number) {
+    return {accountID, displayName: 'Created agent', login: `agent+${accountID}@expensify.com`};
+}
+
 function addRealAgentPersonalDetails(...realAccountIDs: number[]) {
-    return Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries(realAccountIDs.map((accountID) => [accountID, {accountID, displayName: 'Created agent'}])));
+    return Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries(realAccountIDs.map((accountID) => [accountID, buildRealAgentPersonalDetail(accountID)])));
+}
+
+// The agent as createAgent() leaves it in this tab until CreateAgent's response arrives.
+async function addOptimisticAgent(optimisticAccountID: number) {
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true}});
+    await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+    await waitForBatchedUpdates();
+}
+
+function applyCreateAgentResponse(realAccountID: number) {
+    return Onyx.update([
+        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: buildRealAgentPersonalDetail(realAccountID)}},
+        {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {prompt: 'Book my flights'}},
+    ]);
+}
+
+function getLastDeleteAgentOnyxData() {
+    const onyxData = mockWrite.mock.calls.at(-1)?.[2];
+    if (!onyxData) {
+        throw new Error('deleteAgent did not call write with its Onyx data');
+    }
+    return onyxData;
+}
+
+// Deletes the agent before CreateAgent's response, so the request is built for the optimistic accountID, and returns it
+// as the queue sends it: rewritten by the middleware once that response's mapping arrives.
+async function queueDeletionBeforeCreateAgentResponse(optimisticAccountID: number, realAccountID: number): Promise<AnyRequest> {
+    deleteAgent(optimisticAccountID, undefined, undefined, false);
+    expect(mockWrite).toHaveBeenLastCalledWith(WRITE_COMMANDS.DELETE_AGENT, {agentAccountID: optimisticAccountID}, expect.any(Object));
+    const deleteOnyxData = getLastDeleteAgentOnyxData();
+    await Onyx.update(deleteOnyxData.optimisticData ?? []);
+    await clearPersistedRequests();
+    await savePersistedRequest({command: WRITE_COMMANDS.DELETE_AGENT, data: {agentAccountID: optimisticAccountID}, ...deleteOnyxData});
+    await waitForBatchedUpdates();
+
+    // The server sends the mapping twice in CreateAgent's response.
+    const mappingUpdate = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, value: {[optimisticAccountID]: realAccountID}};
+    const createAgentResponse: Response<typeof ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING> = {jsonCode: 200, onyxData: [mappingUpdate, mappingUpdate]};
+    await replaceOptimisticAgentAccountID(Promise.resolve(createAgentResponse), {command: WRITE_COMMANDS.CREATE_AGENT, data: {optimisticAccountID: String(optimisticAccountID)}}, true);
+    const rewrittenRequest = getPersistedRequests().at(0);
+    if (!rewrittenRequest) {
+        throw new Error('The DeleteAgent request was not queued');
+    }
+    expect(rewrittenRequest.data?.agentAccountID).toBe(realAccountID);
+    await clearPersistedRequests();
+    return rewrittenRequest;
 }
 
 describe('replaceOptimisticAgentWithActualAgent', () => {
@@ -99,6 +175,8 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         mockIsReady.mockReturnValue(false);
         mockGetRootState.mockReturnValue(undefined);
         mockSetParams.mockClear();
+        mockSubscribeToPersonalDetails.mockClear();
+        mockUnsubscribeFromPersonalDetails.mockClear();
     });
 
     it('remaps the DM participants from the optimistic accountID to the real one', async () => {
@@ -274,29 +352,54 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         expect(mapping?.[optimisticAccountID]).toBe(realAccountID);
     });
 
-    it('does not resurrect an agent that was deleted while its CreateAgent was in flight', async () => {
-        // Given a DeleteAgent queued against the optimistic agent that the middleware rewrote to the real accountID and
-        // that already succeeded, so the real keys are gone while the optimistic prompt still shows the DELETE marker
+    it('clears every agent record when a deletion queued while CreateAgent was in flight succeeds', async () => {
+        // Given an agent deleted before CreateAgent's response, so deleteAgent built the request for the optimistic
+        // accountID, and the middleware rewrote the queued DeleteAgent to the real accountID when that response arrived
         const optimisticAccountID = 3948576102394857;
         const realAccountID = 6158293047615829;
+        await addOptimisticAgent(optimisticAccountID);
+        const deleteRequest = await queueDeletionBeforeCreateAgentResponse(optimisticAccountID, realAccountID);
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
-        });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {
-            prompt: 'Book my flights',
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        });
+        // When the queue drains: CreateAgent's response adds the real agent, DeleteAgent's success removes it, and then the
+        // mapping reaches this tab
+        await applyCreateAgentResponse(realAccountID);
+        await Onyx.update(deleteRequest.successData ?? []);
         await waitForBatchedUpdates();
-
+        mockSubscribeToPersonalDetails.mockClear();
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
-        // Then nothing is written under the real accountID and the optimistic keys are cleared
+        // Then neither agent is left and nothing is kept for a retry. The cleanup needs the real agent's details, which the
+        // deletion removed, so only the successful deletion can clear the optimistic agent.
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[realAccountID]).toBeUndefined();
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect(mockSubscribeToPersonalDetails).not.toHaveBeenCalled();
+    });
+
+    it('keeps the real agent with its error when a deletion queued while CreateAgent was in flight fails', async () => {
+        // Given an agent deleted before CreateAgent's response, with the queued DeleteAgent rewritten to the real accountID
+        const optimisticAccountID = 3948576102394858;
+        const realAccountID = 6158293047615830;
+        await addOptimisticAgent(optimisticAccountID);
+        const deleteRequest = await queueDeletionBeforeCreateAgentResponse(optimisticAccountID, realAccountID);
+
+        // When the queue drains with DeleteAgent's failure and the mapping reaches this tab
+        await applyCreateAgentResponse(realAccountID);
+        await Onyx.update(deleteRequest.failureData ?? []);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then the real agent, which still exists on the server, stays with its error, and this tab clears the optimistic
+        // agent because its cache holds the real one
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[realAccountID]).toStrictEqual(buildRealAgentPersonalDetail(realAccountID));
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+        const realAgent = await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
+        expect(realAgent?.errors).toBeTruthy();
+        expect(realAgent?.pendingAction).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
     });
 
@@ -420,7 +523,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
-            [realAccountID]: {accountID: realAccountID, displayName: 'Created agent'},
+            [realAccountID]: buildRealAgentPersonalDetail(realAccountID),
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Test instructions'});
         await Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: realAccountID});
@@ -529,41 +632,181 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         updateSpy.mockRestore();
     });
 
-    it('clears an optimistic agent that was deleted after its real accountID was registered', async () => {
+    it('clears a skipped optimistic agent once the real agent reaches this tab', async () => {
+        // Given a tab that received the mapping before the real agent's details, so it skipped the cleanup. The mapping is
+        // not delivered again, and the tab that applied CreateAgent's response may close before its own cleanup.
+        const optimisticAccountID = 5172839406517284;
+        const realAccountID = 3846152907384616;
+        const ownerAccountID = 16180339;
+        const reportID = '9182736450918274';
+        await addOptimisticAgent(optimisticAccountID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {
+                [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+        });
+        await waitForBatchedUpdates();
+        mockSubscribeToPersonalDetails.mockClear();
+        mockUnsubscribeFromPersonalDetails.mockClear();
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+        expect(mockSubscribeToPersonalDetails).toHaveBeenCalledTimes(1);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeDefined();
+        const updateSpy = jest.spyOn(Onyx, 'update');
+
+        // When the real agent's details arrive, followed by an unrelated personal details change
+        await addRealAgentPersonalDetails(realAccountID);
+        await waitForBatchedUpdates();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, displayName: 'Owner'}});
+        await waitForBatchedUpdates();
+
+        // Then this tab cleans up once, without another mapping change or a reload, and stops listening
+        expect(updateSpy).toHaveBeenCalledTimes(1);
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+        expect(personalDetails?.[realAccountID]).toStrictEqual(buildRealAgentPersonalDetail(realAccountID));
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual({
+            [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+        });
+        expect(mockUnsubscribeFromPersonalDetails).toHaveBeenCalledTimes(1);
+        updateSpy.mockRestore();
+    });
+
+    it('stops retrying a skipped cleanup once another tab has cleared the optimistic agent', async () => {
+        // Given a tab that skipped the cleanup because its cache did not hold the real agent yet
+        const optimisticAccountID = 5172839406517285;
+        const realAccountID = 3846152907384617;
+        await addOptimisticAgent(optimisticAccountID);
+        mockSubscribeToPersonalDetails.mockClear();
+        mockUnsubscribeFromPersonalDetails.mockClear();
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+        expect(mockSubscribeToPersonalDetails).toHaveBeenCalledTimes(1);
+        const updateSpy = jest.spyOn(Onyx, 'update');
+
+        // When another tab's cleanup reaches it before the real agent does, as after a successful deletion
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, null);
+        await waitForBatchedUpdates();
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+        await waitForBatchedUpdates();
+
+        // Then it stops listening without writing anything, since there is nothing left to clear
+        expect(mockUnsubscribeFromPersonalDetails).toHaveBeenCalledTimes(1);
+        expect(updateSpy).not.toHaveBeenCalled();
+        updateSpy.mockRestore();
+    });
+
+    it('keeps nothing for a retry when a mapping has no optimistic data left to clear', async () => {
+        // Given a retained mapping of an agent deleted long ago: no optimistic data and no real agent in this tab
+        const optimisticAccountID = 5172839406517286;
+        const realAccountID = 3846152907384618;
+        await addRealAgentPersonalDetails(realAccountID + 1);
+        await waitForBatchedUpdates();
+        mockSubscribeToPersonalDetails.mockClear();
+
+        // When the mapping is consumed
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then the tab does not listen to personal details for it, so retained mappings cost nothing
+        expect(mockSubscribeToPersonalDetails).not.toHaveBeenCalled();
+    });
+
+    it('clears an optimistic agent through the successful deletion when it was deleted after its real accountID was registered', async () => {
         // Given an agent deleted while another request kept the queue from draining after CreateAgent's response. The
         // middleware had already registered the real accountID, so DeleteAgent targets the real agent.
         const optimisticAccountID = 2864019375286401;
         const realAccountID = 7392018465739201;
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
-        });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-        await waitForBatchedUpdates();
+        await addOptimisticAgent(optimisticAccountID);
         registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
         deleteAgent(optimisticAccountID, undefined, undefined, false);
-        const deleteOnyxData = mockWrite.mock.calls.at(-1)?.[2];
-        if (!deleteOnyxData) {
-            throw new Error('deleteAgent did not call write with its Onyx data');
-        }
+        const deleteOnyxData = getLastDeleteAgentOnyxData();
         await Onyx.update(deleteOnyxData.optimisticData ?? []);
 
         // When the queue drains: CreateAgent's response adds the real agent, DeleteAgent's success removes it again, and
         // then the mapping reaches this tab
-        await Onyx.update([
-            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[realAccountID]: {accountID: realAccountID, displayName: 'Concierge Travel'}}},
-            {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, value: {prompt: 'Book my flights'}},
-        ]);
+        await applyCreateAgentResponse(realAccountID);
         await Onyx.update(deleteOnyxData.successData ?? []);
+        await waitForBatchedUpdates();
+        mockSubscribeToPersonalDetails.mockClear();
         replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
         await waitForBatchedUpdates();
 
-        // Then the optimistic agent is cleared too. The real agent's personal details it normally waits for are gone, so
-        // only the DELETE marker on the optimistic agent keeps the deleted agent from staying listed.
+        // Then neither agent is left and nothing is kept for a retry. The real agent's details the cleanup waits for are
+        // gone, so the successful deletion clears the optimistic agent itself.
         const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
         expect(personalDetails?.[realAccountID]).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`)).toBeUndefined();
+        expect(mockSubscribeToPersonalDetails).not.toHaveBeenCalled();
+    });
+
+    it('keeps the real agent with its error when a deletion after its real accountID was registered fails', async () => {
+        // Given an agent deleted after the middleware registered its real accountID, so DeleteAgent targets the real agent
+        const optimisticAccountID = 2864019375286402;
+        const realAccountID = 7392018465739202;
+        await addOptimisticAgent(optimisticAccountID);
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+        const deleteOnyxData = getLastDeleteAgentOnyxData();
+        await Onyx.update(deleteOnyxData.optimisticData ?? []);
+
+        // When the queue drains with DeleteAgent's failure and the mapping reaches this tab
+        await applyCreateAgentResponse(realAccountID);
+        await Onyx.update(deleteOnyxData.failureData ?? []);
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then the real agent, which still exists on the server, stays with its error, and this tab clears the optimistic
+        // agent because its cache holds the real one
+        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetails?.[realAccountID]).toStrictEqual(buildRealAgentPersonalDetail(realAccountID));
+        expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+        const realAgent = await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`);
+        expect(realAgent?.errors).toBeTruthy();
+        expect(realAgent?.pendingAction).toBeUndefined();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
+    });
+
+    it.each([
+        {deletionState: 'in flight', optimisticAccountID: 2864019375286403, realAccountID: 7392018465739203, hasFailed: false},
+        {deletionState: 'failed', optimisticAccountID: 2864019375286404, realAccountID: 7392018465739204, hasFailed: true},
+    ])('writes nothing while only deleteAgent placeholders stand for the real agent and the deletion is $deletionState', async ({optimisticAccountID, realAccountID, hasFailed}) => {
+        // Given a tab whose cache lags behind another tab's. It received the DELETE marker and deleteAgent's placeholder
+        // personal detail for the real agent, but not yet the real agent's details from CreateAgent's response. The failed
+        // case checks that the placeholder deleteAgent's failure data writes does not open the gate either. Neither
+        // placeholder has a login.
+        await addOptimisticAgent(optimisticAccountID);
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+        const deleteOnyxData = getLastDeleteAgentOnyxData();
+        await Onyx.update(deleteOnyxData.optimisticData ?? []);
+        if (hasFailed) {
+            await Onyx.update(deleteOnyxData.failureData ?? []);
+        }
+        await waitForBatchedUpdates();
+        const personalDetailsBefore = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        expect(personalDetailsBefore?.[realAccountID]).toStrictEqual({accountID: hasFailed ? realAccountID : CONST.DEFAULT_NUMBER_ID});
+        const mergeSpy = jest.spyOn(Onyx, 'merge');
+        const updateSpy = jest.spyOn(Onyx, 'update');
+
+        // When this tab receives the mapping
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then it writes nothing. Saving its personal details list would erase the real agent in every tab, and after a
+        // failed deletion that agent still exists on the server.
+        expect(mergeSpy).not.toHaveBeenCalled();
+        expect(updateSpy).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST)).toStrictEqual(personalDetailsBefore);
+        mergeSpy.mockRestore();
+        updateSpy.mockRestore();
     });
 
     // The module consumes a persisted mapping as soon as it loads, so the cold start is reproduced by seeding storage
@@ -588,7 +831,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             });
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Concierge Travel', isOptimisticPersonalDetail: true},
-                [realAccountID]: {accountID: realAccountID, displayName: 'Concierge Travel'},
+                [realAccountID]: buildRealAgentPersonalDetail(realAccountID),
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             await waitForBatchedUpdates();
@@ -633,7 +876,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             ColdStartOnyx.init({keys: coldStartOnyxKeys});
             await ColdStartOnyx.clear();
             await ColdStartOnyx.multiSet({
-                [coldStartOnyxKeys.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created agent'}},
+                [coldStartOnyxKeys.PERSONAL_DETAILS_LIST]: {[realAccountID]: buildRealAgentPersonalDetail(realAccountID)},
                 [coldStartOnyxKeys.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID, [secondOptimisticID]: 12003},
             });
             await ColdStartOnyx.set(`${coldStartOnyxKeys.COLLECTION.AGENT}${realAccountID}`, {prompt: 'Saved instructions'});
@@ -652,8 +895,9 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             await waitForBatchedUpdates();
             const readColdStartValue = require<typeof GetOnyxValueModule>('../utils/getOnyxValue').default;
 
-            // Then completed cleanup causes no writes, while a report-only orphan is still repaired
+            // Then completed cleanup causes no writes and keeps nothing for a retry, while a report-only orphan is still repaired
             expect(mockGetRootState).toHaveBeenCalledTimes(1);
+            expect(mockSubscribeToPersonalDetails).not.toHaveBeenCalled();
             expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
             expect(updateSpy).not.toHaveBeenCalled();
             expect(mergeSpy).toHaveBeenCalledTimes(hasOrphanReport ? 1 : 0);
