@@ -6,7 +6,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {detachReceipt, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {flush as flushSequentialQueue, waitForIdle} from '@libs/Network/SequentialQueue';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
+import {clear as clearPersistedRequests, getAll as getAllPersistedRequests} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -21,13 +24,15 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import type {MockFetch} from '../../utils/TestHelper';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
+import {expectAPICommandToHaveBeenCalled, getGlobalFetchMock, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -441,7 +446,12 @@ describe('actions/IOU/Receipt', () => {
                 await waitForBatchedUpdates();
 
                 // Then API.write is invoked with the REPLACE_RECEIPT command and the correct transactionID
-                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REPLACE_RECEIPT, expect.objectContaining({transactionID}), expect.anything());
+                expect(writeSpy).toHaveBeenCalledWith(
+                    WRITE_COMMANDS.REPLACE_RECEIPT,
+                    expect.objectContaining({transactionID}),
+                    expect.anything(),
+                    expect.objectContaining({checkAndFixConflictingRequest: expect.any(Function)}),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -702,6 +712,7 @@ describe('actions/IOU/Receipt', () => {
                         receipt: expect.any(Object),
                     }),
                     expect.anything(),
+                    expect.objectContaining({checkAndFixConflictingRequest: expect.any(Function)}),
                 );
             } finally {
                 writeSpy.mockRestore();
@@ -1040,6 +1051,231 @@ describe('actions/IOU/Receipt', () => {
                 );
             } finally {
                 writeSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('offline receipt replacements', () => {
+        const transactionID = '107135';
+        const threadReportID = '107136';
+        const snapshotHash = 918273645;
+        const originalReceipt = {source: 'original.jpg', filename: 'original.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN};
+        const originalTimestamp = '2026-01-01 00:00:00.000';
+        const currentUserPersonalDetails = {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL};
+        let mockFetch: MockFetch;
+
+        const getTransaction = () => getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        const getThread = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
+        const getActions = () => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
+        const getQueuedReplacement = () => getAllPersistedRequests().find((request) => request.command === WRITE_COMMANDS.REPLACE_RECEIPT);
+        const getAuditActionIDs = (request: ReturnType<typeof getQueuedReplacement>) =>
+            [request?.data?.reportActionID, request?.data?.receiptRemovedReportActionID].filter((id): id is string => typeof id === 'string' && id !== '0');
+
+        const replaceWithLatestState = async (source: string, isSameReceipt?: boolean) => {
+            replaceReceipt({
+                transaction: await getTransaction(),
+                file: new File([new Blob(['test'])], source, {type: 'image/jpeg'}),
+                source,
+                isSameReceipt,
+                transactionPolicy: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails,
+                transactionThreadReport: await getThread(),
+            });
+            await waitForBatchedUpdates();
+        };
+
+        const detachLatestState = async () => {
+            detachReceipt({
+                transaction: await getTransaction(),
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionViolations: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                transactionThreadReport: await getThread(),
+                delegateAccountID: undefined,
+                currentUserPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+        };
+
+        const reconnect = async () => {
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+            flushSequentialQueue();
+            await waitForIdle();
+            await waitForBatchedUpdates();
+        };
+
+        beforeEach(async () => {
+            mockFetch = getGlobalFetchMock();
+            global.fetch = mockFetch;
+            clearPersistedRequests();
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+                lastVisibleActionCreated: originalTimestamp,
+                lastReadTime: originalTimestamp,
+            });
+            const transaction = {...createRandomTransaction(Number(transactionID)), receipt: originalReceipt};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
+                // @ts-expect-error: Only the transaction data is needed in this snapshot fixture
+                data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+            });
+            jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(createMock<SearchQueryJSON>({hash: snapshotHash}));
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+            clearPersistedRequests();
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        });
+
+        it('sends only the latest replacement followed by detach without leaving superseded audit actions', async () => {
+            // Given three offline uploads, whose discarded audit actions must not remain pending
+            await replaceWithLatestState('first.jpg');
+            const supersededIDs = getAuditActionIDs(getQueuedReplacement());
+            await replaceWithLatestState('second.jpg');
+            supersededIDs.push(...getAuditActionIDs(getQueuedReplacement()));
+            await replaceWithLatestState('third.jpg');
+            const keptIDs = getAuditActionIDs(getQueuedReplacement());
+            await detachLatestState();
+
+            // When all changes are still offline, only the final upload and detach remain
+            expect(getAllPersistedRequests()).toEqual([
+                expect.objectContaining({command: WRITE_COMMANDS.REPLACE_RECEIPT, data: expect.objectContaining({receipt: expect.objectContaining({source: 'third.jpg'})})}),
+                expect.objectContaining({command: WRITE_COMMANDS.DETACH_RECEIPT}),
+            ]);
+            const actions = await getActions();
+            for (const id of supersededIDs) {
+                expect(actions?.[id]).toBeUndefined();
+            }
+            for (const id of keptIDs) {
+                expect(actions?.[id]).toBeDefined();
+            }
+            await reconnect();
+
+            // Then reconnect sends one upload followed by detach, and discarded audit actions never return
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REPLACE_RECEIPT, 1);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DETACH_RECEIPT, 1);
+            const syncedActions = await getActions();
+            for (const id of supersededIDs) {
+                expect(syncedActions?.[id]).toBeUndefined();
+            }
+        });
+
+        it('restores the original receipt, snapshot and timestamps but keeps the latest error on upload failure', async () => {
+            // Given several unsent uploads whose intermediate files never reached the server
+            await replaceWithLatestState('first.jpg');
+            const supersededIDs = getAuditActionIDs(getQueuedReplacement());
+            await replaceWithLatestState('second.jpg');
+            await replaceWithLatestState('third.jpg');
+
+            // When the surviving upload fails
+            mockFetch.fail();
+            await reconnect();
+
+            // Then rollback restores the original state without resurrecting the discarded uploads' audit actions
+            const transaction = await getTransaction();
+            expect(transaction?.receipt?.source).toBe(originalReceipt.source);
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(originalReceipt.source);
+            expect(Object.values(transaction?.errors ?? {}).at(0)).toEqual(expect.objectContaining({source: 'third.jpg'}));
+            expect((await getThread())?.lastVisibleActionCreated).toBe(originalTimestamp);
+            expect((await getThread())?.lastReadTime).toBe(originalTimestamp);
+            const actions = await getActions();
+            for (const id of supersededIDs) {
+                expect(actions?.[id]).toBeUndefined();
+            }
+        });
+
+        it('sends a crop of an unsent replacement with replacement audit actions', async () => {
+            // Given a new receipt the server has not seen
+            await replaceWithLatestState('first.jpg');
+
+            // When it is cropped offline
+            await replaceWithLatestState('cropped.jpg', true);
+
+            // Then the single surviving upload is a replacement, not a crop of the server's old file
+            expect(getAllPersistedRequests()).toHaveLength(1);
+            expect(getQueuedReplacement()?.data?.isSameReceipt).toBe(false);
+            expect(getAuditActionIDs(getQueuedReplacement())).toHaveLength(2);
+        });
+
+        it.each([true, false])('restores earlier snapshots when search changes between uploads (another search: %s)', async (opensAnotherSearch) => {
+            // Given an unsent replacement made in one search
+            await replaceWithLatestState('first.jpg');
+            const secondSnapshotHash = snapshotHash + 1;
+            if (opensAnotherSearch) {
+                const transaction = await getTransaction();
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${secondSnapshotHash}`, {
+                    // @ts-expect-error: Only transaction data is needed in this search fixture
+                    data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                });
+            }
+
+            // When the user switches searches or leaves search, replaces again, and the surviving upload fails
+            jest.mocked(SearchQueryUtils.getCurrentSearchQueryJSON).mockReturnValue(opensAnotherSearch ? createMock<SearchQueryJSON>({hash: secondSnapshotHash}) : undefined);
+            await replaceWithLatestState('second.jpg');
+            mockFetch.fail();
+            await reconnect();
+
+            // Then no touched snapshot rolls back to the first file, whose upload was discarded
+            expect((await getTransaction())?.receipt?.source).toBe(originalReceipt.source);
+            for (const hash of opensAnotherSearch ? [snapshotHash, secondSnapshotHash] : [snapshotHash]) {
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(originalReceipt.source);
+            }
+        });
+
+        it('does not report a receipt removal when the expense originally had none', async () => {
+            // Given an expense without a server receipt
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: null});
+
+            // When an unsent receipt is replaced again
+            await replaceWithLatestState('first.jpg');
+            await replaceWithLatestState('second.jpg');
+
+            // Then only an addition is sent, because the server never stored a receipt to remove
+            expect(getAllPersistedRequests()).toHaveLength(1);
+            expect(getQueuedReplacement()?.data?.reportActionID).toEqual(expect.any(String));
+            expect(getQueuedReplacement()?.data?.receiptRemovedReportActionID).toBeUndefined();
+        });
+
+        it('preserves additions and removals across detach boundaries from the earlier audit-trail fix', async () => {
+            // Given an expense without a receipt, matching the historical missing-audit regression
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {receipt: null});
+
+            // When receipts are added and deleted twice offline, with redundant replacements within each segment
+            await replaceWithLatestState('first-discarded.jpg');
+            await replaceWithLatestState('first-kept.jpg');
+            await detachLatestState();
+            await replaceWithLatestState('second-discarded.jpg');
+            await replaceWithLatestState('second-kept.jpg');
+            await detachLatestState();
+            const queued = [...getAllPersistedRequests()];
+            const actionIDs = queued.flatMap((request) => getAuditActionIDs(request));
+
+            // Then each addition preceding a deletion survives with its audit action, in its original history order
+            expect(queued.map((request) => request.command)).toEqual([
+                WRITE_COMMANDS.REPLACE_RECEIPT,
+                WRITE_COMMANDS.DETACH_RECEIPT,
+                WRITE_COMMANDS.REPLACE_RECEIPT,
+                WRITE_COMMANDS.DETACH_RECEIPT,
+            ]);
+            expect(actionIDs).toHaveLength(4);
+            await reconnect();
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REPLACE_RECEIPT, 2);
+            expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DETACH_RECEIPT, 2);
+            const actions = await getActions();
+            for (const id of actionIDs) {
+                expect(actions?.[id]).toBeDefined();
+                expect(actions?.[id]?.pendingAction).toBeFalsy();
+                expect(actions?.[id]?.errors).toBeFalsy();
             }
         });
     });

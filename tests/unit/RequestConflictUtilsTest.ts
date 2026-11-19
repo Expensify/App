@@ -7,6 +7,7 @@ import {
     resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveReconnectDuplicationConflictAction,
+    resolveReplaceReceiptConflicts,
     resolveVacationDelegateDeletionConflicts,
 } from '@libs/actions/RequestConflictUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -18,6 +19,44 @@ import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 describe('RequestConflictUtils', () => {
+    describe('resolveReplaceReceiptConflicts', () => {
+        const replace = (transactionID: string, isRollback?: boolean): AnyRequest => ({command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID}, isRollback});
+        const detach = (transactionID: string): AnyRequest => ({command: WRITE_COMMANDS.DETACH_RECEIPT, data: {transactionID}});
+
+        it.each<[string, AnyRequest[], ReturnType<typeof resolveReplaceReceiptConflicts>]>([
+            ['empty queue', [], {conflictAction: {type: 'push'}}],
+            ['another transaction', [replace('2')], {conflictAction: {type: 'push'}}],
+            [
+                'multiple replacements with dependencies',
+                [replace('1'), {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '3'}}, replace('2'), replace('1')],
+                {conflictAction: {type: 'delete', indices: [0, 3], pushNewRequest: true}},
+            ],
+            ['same transaction detach', [replace('1'), detach('1'), replace('1')], {conflictAction: {type: 'delete', indices: [2], pushNewRequest: true}}],
+            ['another transaction detach', [replace('1'), detach('2'), replace('1')], {conflictAction: {type: 'delete', indices: [0, 2], pushNewRequest: true}}],
+            ['previously attempted replacement', [replace('1'), replace('1', true), replace('1')], {conflictAction: {type: 'delete', indices: [2], pushNewRequest: true}}],
+        ])('preserves receipt history and unrelated requests with %s', (_case, persistedRequests, expected) => {
+            // Given waiting requests that may include a receipt history boundary or another transaction
+            // When a new replacement for transaction 1 is prepared
+            const result = resolveReplaceReceiptConflicts(persistedRequests, '1');
+
+            // Then only eligible unsent uploads are removed and the new upload is appended after its dependencies
+            expect(result).toEqual(expected);
+        });
+
+        it('returns the same result without mutating requests when evaluated twice', () => {
+            // Given frozen requests, since preparation and insertion both evaluate the resolver
+            const persistedRequests = Object.freeze([Object.freeze(replace('1')), Object.freeze(replace('1'))]);
+
+            // When both phases resolve the same requests
+            const first = resolveReplaceReceiptConflicts([...persistedRequests], '1');
+            const second = resolveReplaceReceiptConflicts([...persistedRequests], '1');
+
+            // Then both phases agree without changing the queue or performing optimistic cleanup
+            expect(first).toEqual(second);
+            expect(first).toEqual({conflictAction: {type: 'delete', indices: [0, 1], pushNewRequest: true}});
+        });
+    });
+
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
         const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment'}, {command: 'CloseAccount'}];
         const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === command);
