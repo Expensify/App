@@ -1,5 +1,7 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
 
+import {setRevealedUnderRouteKey} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabRootRevealStore';
+import {isTabRootScreen} from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -7,7 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {BottomTabNavigationOptions} from '@react-navigation/bottom-tabs';
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
-import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
+import type {NavigationState, ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
 
 import React, {useLayoutEffect, useRef} from 'react';
 
@@ -15,11 +17,12 @@ import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} 
 
 const NAVIGATOR_NAMES = new Set<string>(Object.values(NAVIGATORS));
 
-// The only navigation capability ScreenLayout actually needs, regardless of which navigator (stack, bottom-tabs, ...)
+// The only navigation capabilities ScreenLayout actually needs, regardless of which navigator (stack, bottom-tabs, ...)
 // it's used with. Keeping this minimal means passing a real (properly-typed) navigation prop into it - e.g. from
-// bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` structurally satisfies it.
+// bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` and `getState` structurally satisfy it.
 type TransitionAwareNavigation = {
-    addListener(type: 'transitionStart' | 'transitionEnd', callback: () => void): () => void;
+    addListener(type: 'transitionStart' | 'transitionEnd' | 'gestureCancel', callback: (event: {data?: {closing?: boolean}}) => void): () => void;
+    getState(): NavigationState;
 };
 
 /**
@@ -57,13 +60,20 @@ type ScreenLayoutProps = ScreenLayoutArgs<
     TransitionAwareNavigation
 >;
 
-function ScreenLayout({children, navigation}: ScreenLayoutProps) {
+function ScreenLayout({children, navigation, route}: ScreenLayoutProps) {
+    const routeKey = route.key;
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
     // Net-count overlapping starts so a single handle spans rapid back/forward re-fires — no decrement-to-zero seam for `runAfterTransitions` to flush through, and `transitionEnd` for the wrong leg can't end the active one.
     const pendingTransitionsRef = useRef(0);
 
     useLayoutEffect(() => {
-        const transitionStartListener = navigation.addListener('transitionStart', () => {
+        const transitionStartListener = navigation.addListener('transitionStart', (event) => {
+            const state = navigation.getState();
+            const isFocusedInStack = state.routes.at(state.index)?.key === routeKey;
+            // A back swipe starts closing the screen while it is still focused, since the pop only lands once the swipe ends.
+            if (event.data?.closing && isFocusedInStack && state.index > 0 && isTabRootScreen(state.routes.at(state.index - 1)?.name)) {
+                setRevealedUnderRouteKey(routeKey);
+            }
             pendingTransitionsRef.current += 1;
             if (!transitionHandleRef.current) {
                 transitionHandleRef.current = TransitionTracker.startTransition('navigation');
@@ -78,8 +88,13 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
                 transitionHandleRef.current = null;
             }
         });
+        // A cancelled back swipe leaves the screen in place, so the bar has to hide again.
+        const gestureCancelListener = navigation.addListener('gestureCancel', () => {
+            setRevealedUnderRouteKey(undefined);
+        });
 
         return () => {
+            gestureCancelListener();
             transitionStartListener();
             transitionEndListener();
             const handleToEnd = transitionHandleRef.current;
@@ -93,7 +108,7 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
                 TransitionTracker.endTransition(handleToEnd);
             });
         };
-    }, [navigation]);
+    }, [navigation, routeKey]);
 
     return children;
 }

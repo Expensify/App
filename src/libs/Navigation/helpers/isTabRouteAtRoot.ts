@@ -29,6 +29,8 @@ const TAB_WRAPPER_NAVIGATORS = new Set<string>([
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 
+const isTabRootScreen = (name: string | undefined): boolean => !!name && SCREENS_WITH_TAB_BAR.has(name);
+
 const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
 
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
@@ -58,3 +60,4 @@ function isTabRouteAtRoot(route: TabRouteLike | undefined): boolean {
 }
 
 export default isTabRouteAtRoot;
+export {isTabRootScreen};

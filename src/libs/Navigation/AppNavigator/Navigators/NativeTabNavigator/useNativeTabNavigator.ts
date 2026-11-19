@@ -16,12 +16,13 @@ import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
 
-import {useNavigationState, useRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import {isAnonymousSessionSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useEffect, useSyncExternalStore} from 'react';
 
 import getActiveTabRoute from './getActiveTabRoute';
 import {isNavigationToNativeTabItem} from './nativeTabItemUtils';
+import {getRevealedUnderRouteKey, setRevealedUnderRouteKey, subscribeToRevealedUnderRouteKey} from './tabRootRevealStore';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
@@ -48,7 +49,17 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNaviga
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = getActiveTabRoute(tabState);
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
+    const revealedUnderRouteKey = useSyncExternalStore(subscribeToRevealedUnderRouteKey, getRevealedUnderRouteKey);
+    // A back swipe keeps the screen it is closing focused until it ends, so the bar would only come back after the swipe.
+    const isTabRootBeingRevealed = useNavigationState((state) => !!revealedUnderRouteKey && findFocusedRoute(state)?.key === revealedUnderRouteKey);
+    // Once that screen is no longer the focused one the swipe is over, and a stale key would bring the bar back if the screen got focus again.
+    useEffect(() => {
+        if (!revealedUnderRouteKey || isTabRootBeingRevealed) {
+            return;
+        }
+        setRevealedUnderRouteKey(undefined);
+    }, [revealedUnderRouteKey, isTabRootBeingRevealed]);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && (isTabRouteAtRoot(activeTabRoute) || isTabRootBeingRevealed) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
