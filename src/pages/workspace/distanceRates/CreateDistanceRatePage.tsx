@@ -103,6 +103,7 @@ function CreateDistanceRatePage({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const formRef = useRef<FormRef>(null);
+    const shouldFocusNameOnMountRef = useRef(false);
 
     // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
     const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
@@ -138,8 +139,9 @@ function CreateDistanceRatePage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- the rates only need loading once when the page opens
-    }, []);
+        // The reference rates are loaded for the workspace currency, and the currency can change while this page stays open
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currency]);
 
     // The custom form is cleared and the kind goes back to the new country's default
     const selectEuroCountry = (selectedCountry: string) => {
@@ -156,6 +158,9 @@ function CreateDistanceRatePage({
         // Android keeps the keyboard open when the focused Name input unmounts
         if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
             KeyboardUtils.dismiss();
+        } else if (kind !== selectedKind) {
+            // Name mounts after this switch, which is too late for the screen's autofocus
+            shouldFocusNameOnMountRef.current = true;
         }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
@@ -280,7 +285,7 @@ function CreateDistanceRatePage({
                 shouldKeyboardOffsetBottomSafeAreaPadding={shouldShowCountryAndKind ? false : undefined}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
-                <FullPageBlockingView style={styles.flexGrow1}>
+                <FullPageBlockingView style={styles.flex1}>
                     <FormProvider
                         ref={formRef}
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
@@ -367,7 +372,14 @@ function CreateDistanceRatePage({
                                             {translate('common.details')}
                                         </Text>
                                         <InputWrapper
-                                            ref={inputCallbackRef}
+                                            ref={(el) => {
+                                                inputCallbackRef(el);
+                                                if (!el || !shouldFocusNameOnMountRef.current) {
+                                                    return;
+                                                }
+                                                shouldFocusNameOnMountRef.current = false;
+                                                el.focus();
+                                            }}
                                             InputComponent={TextInput}
                                             inputID={INPUT_IDS.NAME}
                                             label={translate('common.name')}
