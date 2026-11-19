@@ -69,6 +69,9 @@ type InsightsSummaryProps = {
 
     /** Currency the amounts are converted to */
     currency: string;
+
+    /** Requests the panel's sections again */
+    onRetry: () => void;
 };
 
 type SummaryTileProps = {
@@ -94,14 +97,14 @@ function SummaryTile({label, value}: SummaryTileProps) {
 }
 
 /** Describes the summarized period and how it compares to the item's own average. */
-function InsightsSummary({query, graphKey, currency}: InsightsSummaryProps) {
+function InsightsSummary({query, graphKey, currency, onRetry}: InsightsSummaryProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, preferredLocale, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
     const illustrations = useMemoizedLazyIllustrations(['CalendarMonthly']);
-    const {summary, state, retry} = useInsightsSummary(query);
+    const {summary, state} = useInsightsSummary(query);
     const {period, periodGroupBy, isPeriodInProgress} = query;
     const isSpendOverTime = graphKey === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME;
 
@@ -109,7 +112,7 @@ function InsightsSummary({query, graphKey, currency}: InsightsSummaryProps) {
         return (
             <InsightsDetailsSectionError
                 isStale={state === INSIGHTS_DETAILS_SECTION_STATE.STALE}
-                onRetry={retry}
+                onRetry={onRetry}
             />
         );
     }

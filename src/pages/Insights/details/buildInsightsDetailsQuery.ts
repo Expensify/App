@@ -18,7 +18,7 @@ import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 
 /** Sections of the panel this request loads */
-const INSIGHTS_DETAILS_SECTIONS = ['summary'];
+const INSIGHTS_DETAILS_SECTIONS = ['summary', 'topExpenses'];
 
 type InsightsDetailsQuery = {
     /** Request payload for GetInsightsDetails */
@@ -26,6 +26,9 @@ type InsightsDetailsQuery = {
 
     /** Hash of the graph, filters, period and item, which the response is stored under */
     hash: number;
+
+    /** Hash of the snapshot the response stores the panel's Top expenses under */
+    topExpensesSnapshotHash: number;
 
     /** Days the panel summarizes, trimmed to the Date range */
     period: ChartPeriod;
@@ -103,6 +106,7 @@ function buildInsightsDetailsQuery(params: BuildInsightsDetailsQueryParams): Ins
     return {
         jsonQuery: JSON.stringify({...identity, sections: INSIGHTS_DETAILS_SECTIONS, topExpensesSnapshotHash, hash}),
         hash,
+        topExpensesSnapshotHash,
         period,
         periodGroupBy,
         isPeriodInProgress: period.end >= format(new Date(), CONST.DATE.FNS_FORMAT_STRING),

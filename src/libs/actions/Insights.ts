@@ -87,14 +87,29 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData});
 }
 
-/** Loads the given sections of a Details panel into the entry stored under its hash */
-function getInsightsDetails(hash: number, jsonQuery: string) {
+/** Loads the given sections of a Details panel into the entry stored under its hash, and its Top expenses into their snapshot */
+function getInsightsDetails(hash: number, jsonQuery: string, topExpensesSnapshotHash: number) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${hash}` as const;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>> = [
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${topExpensesSnapshotHash}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key,
             value: {errors: null, responseJsonCode: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: snapshotKey,
+            value: {errors: null, search: {responseJsonCode: null}},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: snapshotKey,
+            value: {
+                search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: topExpensesSnapshotHash},
+            },
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>> = [
@@ -108,7 +123,7 @@ function getInsightsDetails(hash: number, jsonQuery: string) {
         },
     ];
 
-    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, failureData});
+    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, successData, failureData});
 }
 
 function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {

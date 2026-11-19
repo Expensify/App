@@ -32,6 +32,7 @@ import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
+import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
@@ -74,6 +75,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         chartSpec && topExpensesSnapshotHash !== undefined
             ? buildInsightsDetailsQuery({graphKey: chartSpec.graphKey, filters, itemGroupBy: chartSpec.groupBy, itemKey, periodEnd, topExpensesSnapshotHash})
             : undefined;
+    const requestDetails = useRequestInsightsDetails(detailsQuery);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
         return (
@@ -108,13 +110,20 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         <Text variant="h1">{item.title}</Text>
                     </View>
                     {!!detailsQuery && (
-                        <InsightsSummary
-                            query={detailsQuery}
-                            graphKey={chartSpec.graphKey}
-                            currency={filters.groupCurrency}
-                        />
+                        <>
+                            <InsightsSummary
+                                query={detailsQuery}
+                                graphKey={chartSpec.graphKey}
+                                currency={filters.groupCurrency}
+                                onRetry={requestDetails}
+                            />
+                            <InsightsTopExpenses
+                                query={drillDownQuery}
+                                detailsQuery={detailsQuery}
+                                onRetry={requestDetails}
+                            />
+                        </>
                     )}
-                    <InsightsTopExpenses query={drillDownQuery} />
                 </ScrollView>
             )}
         </ScreenWrapper>
