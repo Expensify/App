@@ -350,7 +350,7 @@ describe('LogOutPreviousUserPage', () => {
             navigationRef.dispatch(StackActions.replace(SCREENS.CONCIERGE));
         });
         await act(async () => {
-            resolveSignIn({type: CONST.ERROR_TYPE.ACCOUNT_MISMATCH} as Awaited<ReturnType<typeof signInWithShortLivedAuthToken>>);
+            resolveSignIn({type: CONST.ERROR_TYPE.ACCOUNT_MISMATCH});
         });
         const goBackCallCountBeforeDismiss = jest.mocked(Navigation.goBack).mock.calls.length;
         fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('common.buttonConfirm')}));
