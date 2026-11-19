@@ -1515,7 +1515,6 @@
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/WiseGlobalReimbursementsIntroPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/Share/ShareDetailsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/Share/ShareTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Share/SubmitDetailsPage.tsx"	"no-restricted-imports"	1
