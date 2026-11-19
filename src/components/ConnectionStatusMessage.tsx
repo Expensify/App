@@ -20,7 +20,8 @@ type ConnectionStatusMessageProps = WithSentryLabelWhenPressable<'onActionPress'
     actionText?: string;
     onActionPress?: () => void;
     isActionDisabled?: boolean;
-    statusTone?: 'default' | 'success' | 'danger';
+    /** `pending` marks something still in progress, with an hourglass and a regular action button */
+    statusTone?: 'default' | 'success' | 'danger' | 'pending';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
 
@@ -41,7 +42,7 @@ function ConnectionStatusMessage({
     actionAccessibilityLabel,
     actionSentryLabel,
 }: ConnectionStatusMessageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Hourglass']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {cardPaddingHorizontal} = useLayoutSpacing();
@@ -57,6 +58,7 @@ function ConnectionStatusMessage({
     const shouldShowActionButton = !!actionText && !!onActionPress;
     const isDangerStatus = statusTone === 'danger';
     const isSuccessStatus = statusTone === 'success';
+    const isPendingStatus = statusTone === 'pending';
     let messageTag;
     if (isDangerStatus) {
         messageTag = 'rbr';
@@ -66,13 +68,19 @@ function ConnectionStatusMessage({
         messageTag = 'muted-text-label';
     }
     const messageHTML = `<${messageTag}>${message ?? ''}</${messageTag}>`;
+    let statusIcon;
+    if (isPendingStatus) {
+        statusIcon = {src: icons.Hourglass, fill: theme.textSupporting};
+    } else if (isDangerStatus || isSuccessStatus) {
+        statusIcon = {src: icons.DotIndicator, fill: isDangerStatus ? theme.danger : theme.iconSuccessFill};
+    }
     const messageContent = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-            {(isDangerStatus || isSuccessStatus) && (
+            {!!statusIcon && (
                 <View style={[styles.offlineFeedbackErrorDot, styles.mr2]}>
                     <Icon
-                        src={icons.DotIndicator}
-                        fill={isDangerStatus ? theme.danger : theme.iconSuccessFill}
+                        src={statusIcon.src}
+                        fill={statusIcon.fill}
                     />
                 </View>
             )}
@@ -85,9 +93,15 @@ function ConnectionStatusMessage({
         </View>
     );
 
+    let actionButtonVariant;
+    if (isSuccessStatus) {
+        actionButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    } else if (!isPendingStatus) {
+        actionButtonVariant = CONST.BUTTON_VARIANT.DANGER;
+    }
     const actionButton = shouldShowActionButton ? (
         <Button
-            variant={isSuccessStatus ? CONST.BUTTON_VARIANT.SUCCESS : CONST.BUTTON_VARIANT.DANGER}
+            variant={actionButtonVariant}
             size={CONST.BUTTON_SIZE.SMALL}
             style={styles.alignSelfStart}
             onPress={onActionPress}
