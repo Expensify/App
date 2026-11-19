@@ -1,3 +1,4 @@
+/** Forced fraud review screen: the cardholder confirms or reports a declined transaction, backing out reports it as fraud */
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Header from '@components/Header';
@@ -76,7 +77,6 @@ function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
 
     const confirmRecognized = () => {
         addBreadcrumb('Recognized tapped', {transactionID});
-        allowNavigatingAway();
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVIEW_FRAUD_TRANSACTION, {
             transactionID,
         });

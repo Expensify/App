@@ -13,11 +13,11 @@ import AuthorizeCardTransactionPreview from './AuthorizeCardTransactionPreview';
 type MultifactorAuthenticationAuthorizeTransactionContentProps = {
     transaction: Pick<TransactionPending3DSReview, 'transactionID' | 'amount' | 'currency' | 'merchant' | 'created' | 'lastFourPAN'>;
 
-    /** Question shown above the transaction, falls back to the 3DS wording */
-    title?: string;
+    /** Question shown above the transaction */
+    title: string;
 
-    /** Explanation under the question, falls back to the 3DS wording */
-    description?: string;
+    /** Explanation under the question */
+    description: string;
 };
 
 function MultifactorAuthenticationAuthorizeTransactionContent({transaction, title, description}: MultifactorAuthenticationAuthorizeTransactionContentProps) {
@@ -27,8 +27,8 @@ function MultifactorAuthenticationAuthorizeTransactionContent({transaction, titl
     return (
         <View style={styles.mh5}>
             <View style={[styles.gap2, styles.mb6]}>
-                <Text style={styles.textHeadlineLineHeightXXL}>{title ?? translate('multifactorAuthentication.reviewTransaction.pleaseReview')}</Text>
-                <Text style={styles.textSupporting}>{description ?? translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}</Text>
+                <Text style={styles.textHeadlineLineHeightXXL}>{title}</Text>
+                <Text style={styles.textSupporting}>{description}</Text>
             </View>
             <View style={styles.mb2}>
                 <Text style={styles.textMicroSupporting}>{translate('multifactorAuthentication.reviewTransaction.transactionDetails')}</Text>

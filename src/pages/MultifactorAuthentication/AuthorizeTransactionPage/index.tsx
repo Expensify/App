@@ -139,11 +139,17 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
             />
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                    <MultifactorAuthenticationAuthorizeTransactionContent transaction={transaction} />
+                    <MultifactorAuthenticationAuthorizeTransactionContent
+                        transaction={transaction}
+                        title={translate('multifactorAuthentication.reviewTransaction.pleaseReview')}
+                        description={translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}
+                    />
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isDenyingTransaction}
                         onAuthorize={onApproveTransaction}
                         onDeny={onDenyTransaction}
+                        authorizeText={translate('multifactorAuthentication.reviewTransaction.approve')}
+                        denyText={translate('multifactorAuthentication.reviewTransaction.deny')}
                     />
                     <AuthorizeTransactionCancelConfirmModal
                         isVisible={isConfirmModalVisible}
